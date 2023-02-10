@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:path/path.dart' show posix;
 
 /// A contributor that produces suggestions based on the content of the file
@@ -16,7 +17,9 @@ class UriContributor extends DartCompletionContributor {
   UriContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     var visitor = _UriSuggestionBuilder(request, builder);
     request.target.containingNode.accept(visitor);
   }

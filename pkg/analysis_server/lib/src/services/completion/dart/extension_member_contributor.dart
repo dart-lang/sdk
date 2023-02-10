@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A contributor that produces suggestions based on the members of an
 /// extension.
@@ -97,7 +98,9 @@ class ExtensionMemberContributor extends DartCompletionContributor {
   }
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     addExtensions(
       request.libraryElement.accessibleExtensions,
     );

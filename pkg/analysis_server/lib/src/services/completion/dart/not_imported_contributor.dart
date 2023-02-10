@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/local_library_contr
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A contributor of suggestions from not yet imported libraries.
 class NotImportedContributor extends DartCompletionContributor {
@@ -30,7 +31,9 @@ class NotImportedContributor extends DartCompletionContributor {
   );
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     var analysisDriver = request.analysisContext.driver;
 
     var fsState = analysisDriver.fsState;
@@ -39,7 +42,9 @@ class NotImportedContributor extends DartCompletionContributor {
     );
 
     try {
-      await analysisDriver.discoverAvailableFiles().timeout(budget.left);
+      await performance.runAsync('discoverAvailableFiles', (_) async {
+        await analysisDriver.discoverAvailableFiles().timeout(budget.left);
+      });
     } on TimeoutException {
       additionalData.isIncomplete = true;
       return;
@@ -73,7 +78,12 @@ class NotImportedContributor extends DartCompletionContributor {
         continue;
       }
 
-      var elementResult = await analysisDriver.getLibraryByUri(file.uriStr);
+      var elementResult = await performance.runAsync(
+        'getLibraryByUri',
+        (_) async {
+          return await analysisDriver.getLibraryByUri(file.uriStr);
+        },
+      );
       if (elementResult is! LibraryElementResult) {
         continue;
       }
@@ -92,7 +102,9 @@ class NotImportedContributor extends DartCompletionContributor {
       builder.laterReplacesEarlier = false;
 
       if (request.includeIdentifiers) {
-        _buildSuggestions(exportElements);
+        performance.run('buildSuggestions', (_) {
+          _buildSuggestions(exportElements);
+        });
       }
 
       extensionContributor.addExtensions(

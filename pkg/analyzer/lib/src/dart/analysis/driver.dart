@@ -1773,52 +1773,59 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<ResolvedForCompletionResultImpl?> _resolveForCompletion(
     _ResolveForCompletionRequest request,
   ) async {
-    final path = request.path;
-    if (!_isAbsolutePath(path)) {
-      return null;
-    }
+    return request.performance.runAsync('body', (performance) async {
+      final path = request.path;
+      if (!_isAbsolutePath(path)) {
+        return null;
+      }
 
-    if (!_fsState.hasUri(path)) {
-      return null;
-    }
+      if (!_fsState.hasUri(path)) {
+        return null;
+      }
 
-    var file = _fsState.getFileForPath(path);
+      var file = _fsState.getFileForPath(path);
 
-    // Prepare the library - the file itself, or the known library.
-    final kind = file.kind;
-    final library = kind.library ?? kind.asLibrary;
+      // Prepare the library - the file itself, or the known library.
+      final kind = file.kind;
+      final library = kind.library ?? kind.asLibrary;
 
-    await libraryContext.load(
-      targetLibrary: library,
-      performance: OperationPerformanceImpl('<root>'),
-    );
-    var unitElement = libraryContext.computeUnitElement(library, file);
+      await performance.runAsync(
+        'libraryContext',
+        (performance) async {
+          await libraryContext.load(
+            targetLibrary: library,
+            performance: performance,
+          );
+        },
+      );
+      var unitElement = libraryContext.computeUnitElement(library, file);
 
-    var analysisResult = LibraryAnalyzer(
-      analysisOptions as AnalysisOptionsImpl,
-      declaredVariables,
-      libraryContext.elementFactory.libraryOfUri2(library.file.uri),
-      libraryContext.elementFactory.analysisSession.inheritanceManager,
-      library,
-      testingData: testingData,
-    ).analyzeForCompletion(
-      file: file,
-      offset: request.offset,
-      unitElement: unitElement,
-      performance: request.performance,
-    );
+      var analysisResult = LibraryAnalyzer(
+        analysisOptions as AnalysisOptionsImpl,
+        declaredVariables,
+        libraryContext.elementFactory.libraryOfUri2(library.file.uri),
+        libraryContext.elementFactory.analysisSession.inheritanceManager,
+        library,
+        testingData: testingData,
+      ).analyzeForCompletion(
+        file: file,
+        offset: request.offset,
+        unitElement: unitElement,
+        performance: performance,
+      );
 
-    return ResolvedForCompletionResultImpl(
-      analysisSession: currentSession,
-      path: path,
-      uri: file.uri,
-      exists: file.exists,
-      content: file.content,
-      lineInfo: file.lineInfo,
-      parsedUnit: analysisResult.parsedUnit,
-      unitElement: unitElement,
-      resolvedNodes: analysisResult.resolvedNodes,
-    );
+      return ResolvedForCompletionResultImpl(
+        analysisSession: currentSession,
+        path: path,
+        uri: file.uri,
+        exists: file.exists,
+        content: file.content,
+        lineInfo: file.lineInfo,
+        parsedUnit: analysisResult.parsedUnit,
+        unitElement: unitElement,
+        resolvedNodes: analysisResult.resolvedNodes,
+      );
+    });
   }
 
   /// Serialize the given [resolvedUnit] errors and index into bytes.

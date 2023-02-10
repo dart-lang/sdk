@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 const ASYNC_STAR = 'async*';
@@ -30,7 +31,9 @@ class KeywordContributor extends DartCompletionContributor {
   KeywordContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     // Don't suggest anything right after double or integer literals.
     if (request.target.isDoubleOrIntLiteral()) {
       return;

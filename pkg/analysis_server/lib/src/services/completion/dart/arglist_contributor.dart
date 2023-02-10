@@ -8,6 +8,7 @@ import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A contributor that produces suggestions for named expression labels that
 /// correspond to named parameters when completing in argument lists.
@@ -20,7 +21,9 @@ class ArgListContributor extends DartCompletionContributor {
   ArgListContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     var parameters = request.target.executableElement?.parameters ??
         request.target.functionType?.parameters;
     if (parameters == null) {
