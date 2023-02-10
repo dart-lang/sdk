@@ -134,26 +134,38 @@ class Platform {
   /// This value is `false` if the operating system is a specialized
   /// version of Linux that identifies itself by a different name,
   /// for example Android (see [isAndroid]).
+  /// [Warning] DO NOT USE THIS IF YOUR FILE HAS WEB IMPLEMENTATION
+  @Deprecated('Use `defaultTargetPlatform == TargetPlatform.linux')
   static final bool isLinux = (_operatingSystem == "linux");
 
   /// Whether the operating system is a version of
   /// [macOS](https://en.wikipedia.org/wiki/MacOS).
+  /// [Warning] DO NOT USE THIS IF YOUR FILE HAS WEB IMPLEMENTATION
+  @Deprecated('Use `defaultTargetPlatform == TargetPlatform.macOS')
   static final bool isMacOS = (_operatingSystem == "macos");
 
   /// Whether the operating system is a version of
   /// [Microsoft Windows](https://en.wikipedia.org/wiki/Microsoft_Windows).
+  /// [Warning] DO NOT USE THIS IF YOUR FILE HAS WEB IMPLEMENTATION
+  @Deprecated('Use `defaultTargetPlatform == TargetPlatform.windows')
   static final bool isWindows = (_operatingSystem == "windows");
 
   /// Whether the operating system is a version of
   /// [Android](https://en.wikipedia.org/wiki/Android_%28operating_system%29).
+  /// [Warning] DO NOT USE THIS IF YOUR FILE HAS WEB IMPLEMENTATION
+  @Deprecated('Use `defaultTargetPlatform == TargetPlatform.android')
   static final bool isAndroid = (_operatingSystem == "android");
 
   /// Whether the operating system is a version of
   /// [iOS](https://en.wikipedia.org/wiki/IOS).
+  /// [Warning] DO NOT USE THIS IF YOUR FILE HAS WEB IMPLEMENTATION
+  @Deprecated('Use `defaultTargetPlatform == TargetPlatform.iOS')
   static final bool isIOS = (_operatingSystem == "ios");
 
   /// Whether the operating system is a version of
   /// [Fuchsia](https://en.wikipedia.org/wiki/Google_Fuchsia).
+  /// [Warning] DO NOT USE THIS IF YOUR FILE HAS WEB IMPLEMENTATION
+  @Deprecated('Use `defaultTargetPlatform == TargetPlatform.fuchsia')
   static final bool isFuchsia = (_operatingSystem == "fuchsia");
 
   /// The environment for this process as a map from string key to string value.
