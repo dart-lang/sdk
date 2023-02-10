@@ -9466,20 +9466,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(_rewriteStack.isEmpty);
   }
 
-  void visitDummyPattern(
-    DummyPattern node, {
-    required SharedMatchContext context,
-  }) {
-    int? stackBase;
-    assert(checkStackBase(node, stackBase = stackHeight));
-
-    pushRewrite(node);
-
-    assert(checkStack(node, stackBase, [
-      /* pattern = */ ValueKinds.Pattern,
-    ]));
-  }
-
   void visitVariablePattern(
     VariablePattern node, {
     required SharedMatchContext context,

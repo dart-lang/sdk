@@ -3712,37 +3712,6 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
   String? get variableName => null;
 }
 
-class DummyPattern extends Pattern {
-  DummyPattern(int fileOffset) : super(fileOffset);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('<dummy-pattern>');
-  }
-
-  @override
-  List<VariableDeclaration> get declaredVariables => const [];
-
-  @override
-  void acceptInference(
-    InferenceVisitorImpl visitor, {
-    required SharedMatchContext context,
-  }) {
-    visitor.visitDummyPattern(this, context: context);
-  }
-
-  @override
-  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
-      MatchingCache matchingCache, CacheableExpression matchedExpression) {
-    return new BooleanExpression(false, fileOffset: fileOffset);
-  }
-
-  @override
-  String toString() {
-    return "DummyPattern(${toStringInternal()})";
-  }
-}
-
 /// A [Pattern] based on an [Expression]. This corresponds to a constant
 /// pattern in the specification.
 class ExpressionPattern extends Pattern {
