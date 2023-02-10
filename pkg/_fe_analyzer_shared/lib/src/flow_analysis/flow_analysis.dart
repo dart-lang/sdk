@@ -3663,11 +3663,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   ///     }
   SsaNode<Type>? _scrutineeSsaNode;
 
-  /// If a pattern is being analyzed, the static type of the scrutinee
-  /// expression, otherwise`null`.  This determines the initial matched value
-  /// type.
-  Type? _scrutineeType;
-
   /// The most recently visited expression for which an [ExpressionInfo] object
   /// exists, or `null` if no expression has been visited that has a
   /// corresponding [ExpressionInfo] object.
@@ -3963,7 +3958,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     assert(_unmatched == null);
     assert(_scrutineeInfo == null);
     assert(_scrutineeSsaNode == null);
-    assert(_scrutineeType == null);
   }
 
   @override
@@ -4627,10 +4621,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         _pushScrutinee(scrutinee, scrutineeType);
     _current = _current.split();
     _SwitchStatementContext<Type> context = new _SwitchStatementContext<Type>(
-        _current.reachable.parent!,
-        _current,
-        scrutineeType,
-        matchedValueReference);
+        _current.reachable.parent!, _current, matchedValueReference);
     _stack.add(context);
     if (switchStatement != null) {
       _statementToContext[switchStatement] = context;
@@ -4815,9 +4806,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     }
     if (_scrutineeSsaNode != null) {
       print('  scrutineeSsaNode: $_scrutineeSsaNode');
-    }
-    if (_scrutineeType != null) {
-      print('  scrutineeType: $_scrutineeType');
     }
     if (_expressionWithInfo != null) {
       print('  expressionWithInfo: $_expressionWithInfo');
@@ -5186,7 +5174,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         _stack.removeLast() as _ScrutineeContext<Type>;
     _scrutineeInfo = context.previousScrutineeInfo;
     _scrutineeSsaNode = context.previousScrutineeSsaNode;
-    _scrutineeType = context.previousScrutineeType;
   }
 
   /// Updates the [_stack] to reflect the fact that flow analysis is entering
@@ -5212,14 +5199,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         : _computeEqualityInfo(scrutinee, scrutineeType);
     _stack.add(new _ScrutineeContext<Type>(
         previousScrutineeInfo: _scrutineeInfo,
-        previousScrutineeSsaNode: _scrutineeSsaNode,
-        previousScrutineeType: _scrutineeType));
+        previousScrutineeSsaNode: _scrutineeSsaNode));
     _scrutineeInfo = scrutineeInfo;
     ReferenceWithType<Type>? scrutineeReference = scrutineeInfo?._reference;
     _scrutineeSsaNode = scrutineeReference == null
         ? new SsaNode<Type>(null)
         : _current.infoFor(scrutineeReference.promotionKey).ssaNode;
-    _scrutineeType = scrutineeType;
     return _makeTemporaryReference(_scrutineeSsaNode, scrutineeType);
   }
 
@@ -6161,18 +6146,14 @@ class _ScrutineeContext<Type extends Object> extends _FlowContext {
 
   final SsaNode<Type>? previousScrutineeSsaNode;
 
-  final Type? previousScrutineeType;
-
   _ScrutineeContext(
       {required this.previousScrutineeInfo,
-      required this.previousScrutineeSsaNode,
-      required this.previousScrutineeType});
+      required this.previousScrutineeSsaNode});
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
     ..['previousScrutineeInfo'] = previousScrutineeInfo
-    ..['previousScrutineeSsaNode'] = previousScrutineeSsaNode
-    ..['previousScrutineeType'] = previousScrutineeType;
+    ..['previousScrutineeSsaNode'] = previousScrutineeSsaNode;
 
   @override
   String get _debugType => '_ScrutineeContext';
@@ -6234,9 +6215,6 @@ class _SwitchAlternativesContext<Type extends Object> extends _FlowContext {
 /// [_FlowContext] representing a switch statement.
 class _SwitchStatementContext<Type extends Object>
     extends _SimpleStatementContext<Type> {
-  /// The static type of the value being matched.
-  final Type _scrutineeType;
-
   /// Reference for the value being matched.
   final ReferenceWithType<Type> _matchedValueReference;
 
@@ -6245,14 +6223,13 @@ class _SwitchStatementContext<Type extends Object>
   /// statements, this is the flow state on entry to the next `if`.
   FlowModel<Type> _unmatched;
 
-  _SwitchStatementContext(super.checkpoint, super._previous,
-      this._scrutineeType, this._matchedValueReference)
+  _SwitchStatementContext(
+      super.checkpoint, super._previous, this._matchedValueReference)
       : _unmatched = _previous;
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
     ..['matchedValueReference'] = _matchedValueReference
-    ..['scrutineeType'] = _scrutineeType
     ..['unmatched'] = _unmatched;
 
   @override
