@@ -27,9 +27,7 @@ inline void UpdateTimelineTrackMetadata(const OSThread& thread) {
   RecorderLockScope rl;
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder != nullptr && !rl.IsShuttingDown()) {
-    recorder->AddTrackMetadataBasedOnThread(
-        OS::ProcessId(), OSThread::ThreadIdToIntPtr(thread.trace_id()),
-        thread.name());
+    recorder->AddTrackMetadataBasedOnThread(thread);
   }
 }
 #endif  // defined(SUPPORT_TIMELINE)
