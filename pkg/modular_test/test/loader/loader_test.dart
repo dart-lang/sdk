@@ -87,9 +87,9 @@ String _dumpAsText(ModularTest test) {
     } else if (module.isSdk) {
       buffer.write('\n  (sdk sources omitted)');
     } else {
-      module.sources.forEach((uri) {
+      for (var uri in module.sources) {
         buffer.write('\n  $uri');
-      });
+      }
     }
 
     buffer.write('\n');
