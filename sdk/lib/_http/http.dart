@@ -682,6 +682,16 @@ abstract class ContentType implements HeaderValue {
   ///    application/octet-stream
   static final binary = ContentType("application", "octet-stream");
 
+  /// Content type for Problem Details formatted as a JSON document.
+  ///
+  ///   application/problem+json
+  static final problemJson = ContentType("application", "problem+json");
+
+  /// Content type for Problem Details formatted as a XML document.
+  ///
+  ///   application/problem+xml
+  static final problemXml = ContentType("application", "problem+xml");
+
   /// Creates a new content type object setting the primary type and
   /// sub type. The charset and additional parameters can also be set
   /// using [charset] and [parameters]. If charset is passed and
