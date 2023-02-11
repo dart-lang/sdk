@@ -36,17 +36,20 @@ class _MethodLoweringConfig {
   final Procedure procedure;
   final _MethodType type;
   final String jsString;
+  final InlineExtensionIndex _inlineExtensionIndex;
   late final bool isConstructor =
       type == _MethodType.jsObjectLiteralConstructor ||
           type == _MethodType.constructor;
-  late final bool firstParameterIsObject = procedure.isExtensionMember;
+  late final bool firstParameterIsObject =
+      _inlineExtensionIndex.isInstanceInteropMember(procedure);
   late final List<VariableDeclaration> parameters =
       type == _MethodType.jsObjectLiteralConstructor
           ? function.namedParameters
           : function.positionalParameters;
   late String tag = procedure.name.text.replaceAll(RegExp(r'[^a-zA-Z_]'), '_');
 
-  _MethodLoweringConfig(this.procedure, this.type, this.jsString);
+  _MethodLoweringConfig(
+      this.procedure, this.type, this.jsString, this._inlineExtensionIndex);
 
   FunctionNode get function => procedure.function;
   Uri get fileUri => procedure.fileUri;
@@ -294,6 +297,15 @@ class _JSLowerer extends Transformer {
                 _getJSString(node, nodeDescriptor.name.text);
             jsString = '$jsString.$memberSelectorString';
             type = _getTypeForInlineClassMember(kind);
+          } else {
+            jsString = _getJSString(node, nodeDescriptor.name.text);
+            if (nodeDescriptor.kind == InlineClassMemberKind.Getter) {
+              type = _MethodType.getter;
+            } else if (nodeDescriptor.kind == InlineClassMemberKind.Setter) {
+              type = _MethodType.setter;
+            } else if (nodeDescriptor.kind == InlineClassMemberKind.Method) {
+              type = _MethodType.method;
+            }
           }
         }
       } else if (node.isExtensionMember) {
@@ -321,8 +333,8 @@ class _JSLowerer extends Transformer {
         type = _getTypeForNonExtensionMember(node);
       }
       if (type != null) {
-        transformedBody =
-            _specializeJSMethod(_MethodLoweringConfig(node, type, jsString));
+        transformedBody = _specializeJSMethod(
+            _MethodLoweringConfig(node, type, jsString, _inlineExtensionIndex));
       }
     }
     if (transformedBody != null) {
