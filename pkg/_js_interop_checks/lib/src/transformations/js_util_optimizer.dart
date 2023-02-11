@@ -121,20 +121,15 @@ class JsUtilOptimizer extends Transformer {
     _staticTypeContext.enterMember(node);
     ReturnStatement? transformedBody;
     if (node.isExternal) {
-      if (node.isExtensionMember) {
-        var reference = node.reference;
-        var nodeDescriptor =
-            _inlineExtensionIndex.getExtensionDescriptor(reference);
+      if (_inlineExtensionIndex.isInstanceInteropMember(node)) {
         var shouldTrustType =
-            _inlineExtensionIndex.isTrustTypesMember(reference);
-        if (nodeDescriptor != null && !nodeDescriptor.isStatic) {
-          if (_isGetter(node)) {
-            transformedBody = _getExternalGetterBody(node, shouldTrustType);
-          } else if (_isSetter(node)) {
-            transformedBody = _getExternalSetterBody(node);
-          } else if (_isMethod(node)) {
-            transformedBody = _getExternalMethodBody(node, shouldTrustType);
-          }
+            _inlineExtensionIndex.isTrustTypesMember(node.reference);
+        if (_isGetter(node)) {
+          transformedBody = _getExternalGetterBody(node, shouldTrustType);
+        } else if (_isSetter(node)) {
+          transformedBody = _getExternalSetterBody(node);
+        } else if (_isMethod(node)) {
+          transformedBody = _getExternalMethodBody(node, shouldTrustType);
         }
       } else {
         // Do the lowerings for top-levels, static class members, and
@@ -324,9 +319,9 @@ class JsUtilOptimizer extends Transformer {
   ReturnStatement _getExternalGetterBody(Procedure node, bool shouldTrustType,
       [Expression? receiver]) {
     var function = node.function;
-    // Parameter `this` only exists for instance extension members.
+    // Parameter `this` only exists for inline and extension instance members.
     assert(function.positionalParameters.length ==
-        (_isInstanceExtensionMember(node) ? 1 : 0));
+        (_inlineExtensionIndex.isInstanceInteropMember(node) ? 1 : 0));
     Procedure target =
         shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
     var getPropertyInvocation = StaticInvocation(
@@ -350,9 +345,9 @@ class JsUtilOptimizer extends Transformer {
   ReturnStatement _getExternalSetterBody(Procedure node,
       [Expression? receiver]) {
     var function = node.function;
-    // Parameter `this` only exists for instance extension members.
+    // Parameter `this` only exists for inline and extension instance members.
     assert(function.positionalParameters.length ==
-        (_isInstanceExtensionMember(node) ? 2 : 1));
+        (_inlineExtensionIndex.isInstanceInteropMember(node) ? 2 : 1));
     var value = function.positionalParameters.last;
     var setPropertyInvocation = StaticInvocation(
         _setPropertyTarget,
@@ -380,8 +375,8 @@ class JsUtilOptimizer extends Transformer {
     Procedure target =
         shouldTrustType ? _callMethodTrustTypeTarget : _callMethodTarget;
     var positionalParameters = function.positionalParameters;
-    if (_isInstanceExtensionMember(node)) {
-      // Ignore `this` for instance extension members.
+    if (_inlineExtensionIndex.isInstanceInteropMember(node)) {
+      // Ignore `this` for inline and extension members.
       positionalParameters = positionalParameters.sublist(1);
     }
     var callMethodInvocation = StaticInvocation(
@@ -423,12 +418,6 @@ class JsUtilOptimizer extends Transformer {
       ..fileOffset = node.fileOffset;
     return ReturnStatement(_lowerCallConstructor(callConstructorInvocation));
   }
-
-  /// Return whether [node] is an extension member that's declared as
-  /// non-`static`.
-  bool _isInstanceExtensionMember(Member node) =>
-      node.isExtensionMember &&
-      !_inlineExtensionIndex.getExtensionDescriptor(node.reference)!.isStatic;
 
   /// Returns the underlying JS name.
   ///
@@ -665,7 +654,7 @@ class InlineExtensionIndex {
   InlineExtensionIndex(this._library);
 
   /// For all extension members in `_library` whose on-type has a
-  /// `@staticInterop` annotation, initializes `_extensionMemberIndex` to an
+  /// `@JS` or `@Native` annotation, initializes `_extensionMemberIndex` to an
   /// index of the extension member references to the member's
   /// `ExtensionMemberDescriptor`.
   ///
@@ -677,16 +666,22 @@ class InlineExtensionIndex {
     _shouldTrustType = {};
     _library.extensions
         .forEach((extension) => extension.members.forEach((descriptor) {
+              var reference = descriptor.member;
               var onType = extension.onType;
+              Annotatable? cls;
               if (onType is InterfaceType) {
-                var cls = onType.classNode;
-                var reference = descriptor.member;
-                if (hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls)) {
-                  _extensionMemberIndex![reference] = descriptor;
-                }
+                cls = onType.classNode;
+                // For now, `@trustTypes` can only be used on non-inline
+                // classes.
                 if (hasTrustTypesAnnotation(cls)) {
                   _shouldTrustType.add(reference);
                 }
+              } else if (onType is InlineType) {
+                cls = onType.inlineClass;
+              }
+              if (cls == null) return;
+              if (hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls)) {
+                _extensionMemberIndex![reference] = descriptor;
               }
             }));
   }
@@ -728,5 +723,22 @@ class InlineExtensionIndex {
   InlineClass? getInlineClass(Reference reference) {
     _createInlineIndexes();
     return _inlineClassIndex[reference];
+  }
+
+  /// Return whether [node] is either an extension member that's declared as
+  /// non-`static` or an inline class member that's declared as non-`static`
+  /// and is not a factory or constructor.
+  bool isInstanceInteropMember(Member node) {
+    if (node.isExtensionMember) {
+      var descriptor = getExtensionDescriptor(node.reference);
+      return descriptor != null && !descriptor.isStatic;
+    } else if (node.isInlineClassMember) {
+      var descriptor = getInlineDescriptor(node.reference);
+      return descriptor != null &&
+          !descriptor.isStatic &&
+          descriptor.kind != InlineClassMemberKind.Constructor &&
+          descriptor.kind != InlineClassMemberKind.Factory;
+    }
+    return false;
   }
 }

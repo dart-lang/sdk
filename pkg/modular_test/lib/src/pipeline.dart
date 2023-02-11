@@ -110,14 +110,14 @@ abstract class Pipeline<S extends ModularStep> {
         for (var dataId in step.dependencyDataNeeded) {
           if (!previousKinds.containsKey(dataId)) {
             _validationError(
-                "Step '${step.runtimeType}' needs data '${dataId}', but the "
+                "Step '${step.runtimeType}' needs data '$dataId', but the "
                 "data is not produced by this or a preceding step.");
           }
         }
         for (var dataId in step.moduleDataNeeded) {
           if (!previousKinds.containsKey(dataId)) {
             _validationError(
-                "Step '${step.runtimeType}' needs data '${dataId}', but the "
+                "Step '${step.runtimeType}' needs data '$dataId', but the "
                 "data is not produced by a preceding step.");
           }
           if (dataId == resultKind) {
@@ -160,14 +160,14 @@ abstract class Pipeline<S extends ModularStep> {
     // Include only requested data from transitive dependencies.
     Map<Module, Set<DataId>> visibleData = {};
 
-    deps.forEach((dep) {
+    for (var dep in deps) {
       visibleData[dep] = {};
       for (var dataId in step.dependencyDataNeeded) {
         if (computedData[dep]!.contains(dataId)) {
           visibleData[dep]!.add(dataId);
         }
       }
-    });
+    }
     visibleData[module] = {};
     for (var dataId in step.moduleDataNeeded) {
       if (computedData[module]!.contains(dataId)) {
@@ -185,5 +185,6 @@ abstract class Pipeline<S extends ModularStep> {
 class InvalidPipelineError extends Error {
   final String message;
   InvalidPipelineError(this.message);
+  @override
   String toString() => "Invalid pipeline: $message";
 }

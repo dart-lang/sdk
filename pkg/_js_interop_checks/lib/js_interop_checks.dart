@@ -612,7 +612,8 @@ class JsInteropChecks extends RecursiveVisitor {
 
   /// Returns whether given extension [member] is on a class that passes the
   /// given [validateExtensionClass].
-  bool _checkExtensionMember(Member member, Function validateExtensionClass) {
+  bool _checkExtensionMember(
+      Member member, bool Function(Annotatable) validateExtensionClass) {
     assert(member.isExtensionMember);
     if (_libraryExtensionsIndex == null) {
       _libraryExtensionsIndex = {};
@@ -622,7 +623,9 @@ class JsInteropChecks extends RecursiveVisitor {
     }
 
     var onType = _libraryExtensionsIndex![member.reference]!.onType;
-    return onType is InterfaceType && validateExtensionClass(onType.classNode);
+    return onType is InterfaceType &&
+            validateExtensionClass(onType.classNode) ||
+        onType is InlineType && validateExtensionClass(onType.inlineClass);
   }
 
   /// Checks whether [procedure] is a disallowed constructor or factory

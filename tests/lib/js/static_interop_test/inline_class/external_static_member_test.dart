@@ -5,7 +5,7 @@
 // SharedOptions=--enable-experiment=inline-class
 
 @JS()
-library static_member_test;
+library external_static_member_test;
 
 import 'dart:js_interop';
 import 'dart:js_util' as js_util;
@@ -23,8 +23,7 @@ inline class ExternalStatic {
   // them.
   // external factory ExternalStatic.factory();
   external ExternalStatic.multipleArgs(double a, String b);
-  // TODO(srujzs): Uncomment the optional args test once the CFE supports them.
-  // external ExternalStatic.differentArgs(double a, [String? b]);
+  external ExternalStatic.differentArgs(double a, [String b = '']);
   ExternalStatic.nonExternal() : this.obj = ExternalStatic() as JSObject;
 
   external static String field;
@@ -71,7 +70,7 @@ void main() {
   testExternalConstructorCall(ExternalStatic());
   // testExternalConstructorCall(ExternalStatic.factory());
   testExternalConstructorCall(ExternalStatic.multipleArgs(0, ''));
-  // testExternalConstructorCall(ExternalStatic.differentArgs(0));
+  testExternalConstructorCall(ExternalStatic.differentArgs(0));
   testExternalConstructorCall(ExternalStatic.nonExternal());
 
   // Fields.

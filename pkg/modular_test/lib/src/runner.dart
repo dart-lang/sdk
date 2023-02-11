@@ -39,6 +39,7 @@ Future<void> runSuite(Uri suiteFolder, String suiteName, Options options,
 }
 
 class _PipelineTest implements generic.Test {
+  @override
   final String name;
   final Uri uri;
   final Options options;
@@ -49,6 +50,7 @@ class _PipelineTest implements generic.Test {
       // from the suite and the trailing `/`.
       : name = uri.path.substring(suiteFolder.path.length, uri.path.length - 1);
 
+  @override
   Future<void> run() async {
     ModularTest test = await loadTest(uri);
     if (options.verbose) print(test.debugString());
