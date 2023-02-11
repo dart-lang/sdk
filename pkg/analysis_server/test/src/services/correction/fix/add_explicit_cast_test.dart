@@ -361,6 +361,27 @@ class B {}
 ''');
   }
 
+  Future<void> test_assignment_list_toSet() async {
+    await resolveTestCode('''
+f(List<A> a) {
+  Set<B> b;
+  b = a.toSet();
+  print(b);
+}
+class A {}
+class B {}
+''');
+    await assertHasFix('''
+f(List<A> a) {
+  Set<B> b;
+  b = a.cast<B>().toSet();
+  print(b);
+}
+class A {}
+class B {}
+''');
+  }
+
   Future<void> test_assignment_map() async {
     await resolveTestCode('''
 f(Map<A, B> a) {
@@ -460,6 +481,27 @@ class B {}
 f(Set<A> a) {
   Set<B> b;
   b = a.cast<B>();
+  print(b);
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_assignment_set_toList() async {
+    await resolveTestCode('''
+f(Set<A> a) {
+  List<B> b;
+  b = a.toList();
+  print(b);
+}
+class A {}
+class B {}
+''');
+    await assertHasFix('''
+f(Set<A> a) {
+  List<B> b;
+  b = a.cast<B>().toList();
   print(b);
 }
 class A {}
