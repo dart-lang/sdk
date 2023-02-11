@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -109,7 +110,8 @@ class BinaryExpressionResolver {
     _resolver.analyzeExpression(node.leftOperand, null);
     var left = _resolver.popRewrite()!;
 
-    var flow = _resolver.flowAnalysis.flow;
+    var flowAnalysis = _resolver.flowAnalysis;
+    var flow = flowAnalysis.flow;
     EqualityInfo<DartType>? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
@@ -118,7 +120,7 @@ class BinaryExpressionResolver {
 
     _resolver.analyzeExpression(node.rightOperand, null);
     var right = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(right);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(right);
 
     if (!leftExtensionOverride) {
       flow?.equalityOperation_end(
@@ -134,6 +136,28 @@ class BinaryExpressionResolver {
     _resolveUserDefinableType(node, contextType: contextType);
     _resolver.checkForArgumentTypeNotAssignableForArgument(node.rightOperand,
         promoteParameterToNullable: true, whyNotPromoted: whyNotPromoted);
+
+    void reportNullComparison(SyntacticEntity start, SyntacticEntity end) {
+      var errorCode = notEqual
+          ? HintCode.UNNECESSARY_NULL_COMPARISON_FALSE
+          : HintCode.UNNECESSARY_NULL_COMPARISON_TRUE;
+      var offset = start.offset;
+      _errorReporter.reportErrorForOffset(errorCode, offset, end.end - offset);
+    }
+
+    if (left is SimpleIdentifierImpl && right is NullLiteralImpl) {
+      var element = left.staticElement;
+      if (element is PromotableElement &&
+          flowAnalysis.isDefinitelyUnassigned(left, element)) {
+        reportNullComparison(left, node.operator);
+      }
+    } else if (right is SimpleIdentifierImpl && left is NullLiteralImpl) {
+      var element = right.staticElement;
+      if (element is PromotableElement &&
+          flowAnalysis.isDefinitelyUnassigned(right, element)) {
+        reportNullComparison(node.operator, right);
+      }
+    }
   }
 
   void _resolveIfNull(BinaryExpressionImpl node,
