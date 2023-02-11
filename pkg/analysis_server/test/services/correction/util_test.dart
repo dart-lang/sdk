@@ -24,10 +24,9 @@ void main() {
 class UtilTest extends AbstractSingleUnitTest {
   Future<void> assert_invertCondition(String expr, String expected) async {
     await resolveTestCode('''
-void f() {
+void f(bool? b4, bool? b5) {
   int? v1, v2, v3, v4, v5;
   bool b1 = true, b2 = true, b3 = true;
-  bool? b4, b5;
   if ($expr) {
     0;
   } else {
