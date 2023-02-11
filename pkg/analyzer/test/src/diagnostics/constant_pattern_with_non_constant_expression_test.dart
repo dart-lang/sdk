@@ -30,6 +30,7 @@ GuardedPattern
     expression: BooleanLiteral
       literal: true
       staticType: bool
+    matchedValueType: dynamic
 ''');
   }
 
@@ -60,6 +61,7 @@ GuardedPattern
         staticType: int
       staticElement: self::@class::A::@getter::a
       staticType: int
+    matchedValueType: dynamic
 ''');
   }
 
@@ -92,6 +94,7 @@ GuardedPattern
     expression: DoubleLiteral
       literal: 1.2
       staticType: double
+    matchedValueType: dynamic
 ''');
   }
 
@@ -133,6 +136,7 @@ GuardedPattern
         staticElement: package:test/a.dart::@class::A::@getter::a
         staticType: int
       staticType: int
+    matchedValueType: dynamic
 ''');
   }
 
@@ -174,6 +178,7 @@ GuardedPattern
         staticElement: package:test/a.dart::@class::A::@getter::a
         staticType: int
       staticType: int
+    matchedValueType: dynamic
 ''');
   }
 
@@ -206,6 +211,7 @@ GuardedPattern
         leftParenthesis: (
         rightParenthesis: )
       staticType: A
+    matchedValueType: dynamic
 ''');
   }
 
@@ -223,6 +229,7 @@ GuardedPattern
     expression: IntegerLiteral
       literal: 0
       staticType: int
+    matchedValueType: dynamic
 ''');
   }
 
@@ -246,6 +253,7 @@ GuardedPattern
           staticType: int
       rightBracket: ]
       staticType: List<int>
+    matchedValueType: dynamic
 ''');
   }
 
@@ -271,6 +279,7 @@ GuardedPattern
           staticType: int
       rightBracket: ]
       staticType: List<int>
+    matchedValueType: dynamic
 ''');
   }
 
@@ -303,6 +312,7 @@ GuardedPattern
       token: a
       staticElement: a@20
       staticType: int
+    matchedValueType: dynamic
 ''');
   }
 
@@ -344,6 +354,7 @@ GuardedPattern
       rightBracket: }
       isMap: true
       staticType: Map<int, int>
+    matchedValueType: dynamic
 ''');
   }
 
@@ -375,6 +386,7 @@ GuardedPattern
       rightBracket: }
       isMap: true
       staticType: Map<int, int>
+    matchedValueType: dynamic
 ''');
   }
 
@@ -419,6 +431,7 @@ GuardedPattern
       rightBracket: }
       isMap: true
       staticType: Map<int, int>
+    matchedValueType: dynamic
 ''');
   }
 
@@ -456,6 +469,7 @@ GuardedPattern
       rightBracket: }
       isMap: false
       staticType: Set<int>
+    matchedValueType: dynamic
 ''');
   }
 
@@ -482,6 +496,7 @@ GuardedPattern
       rightBracket: }
       isMap: false
       staticType: Set<int>
+    matchedValueType: dynamic
 ''');
   }
 
@@ -516,6 +531,7 @@ GuardedPattern
       token: a
       staticElement: self::@getter::a
       staticType: int
+    matchedValueType: dynamic
 ''');
   }
 
@@ -539,6 +555,7 @@ GuardedPattern
       token: a
       staticElement: self::@getter::a
       staticType: int
+    matchedValueType: dynamic
 ''');
   }
 }

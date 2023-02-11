@@ -59,10 +59,7 @@ void f() {
 
     _assertHasOperationPerformance(['resolution']);
     _assertHasOperationPerformance(['suggestions']);
-    _assertHasOperationPerformance([
-      'suggestions',
-      'DartCompletionManager - KeywordContributor',
-    ]);
+    _assertHasOperationPerformance(['suggestions', 'KeywordContributor']);
   }
 
   Future<void> test_compute_prefixStart_beforeToken_identifier() async {

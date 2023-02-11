@@ -186,9 +186,11 @@ class DartCompletionManager {
     try {
       for (var contributor in contributors) {
         await performance.runAsync(
-          'DartCompletionManager - ${contributor.runtimeType}',
-          (_) async {
-            await contributor.computeSuggestions();
+          '${contributor.runtimeType}',
+          (performance) async {
+            await contributor.computeSuggestions(
+              performance: performance,
+            );
           },
         );
         request.checkAborted();

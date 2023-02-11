@@ -46,7 +46,9 @@ MapPattern
         name: a
         declaredElement: a@47
           type: String
+        matchedValueType: dynamic
   rightBracket: }
+  matchedValueType: dynamic
   requiredType: Map<dynamic, dynamic>
 ''');
   }
@@ -77,7 +79,9 @@ MapPattern
         name: a
         declaredElement: hasImplicitType a@44
           type: dynamic
+        matchedValueType: dynamic
   rightBracket: }
+  matchedValueType: dynamic
   requiredType: Map<dynamic, dynamic>
 ''');
   }
@@ -124,7 +128,9 @@ MapPattern
         name: a
         declaredElement: hasImplicitType a@57
           type: String
+        matchedValueType: String
   rightBracket: }
+  matchedValueType: dynamic
   requiredType: Map<int, String>
 ''');
   }
@@ -148,9 +154,11 @@ MapPattern
       value: ConstantPattern
         expression: SimpleStringLiteral
           literal: ''
+        matchedValueType: String
     RestPatternElement
       operator: ...
   rightBracket: }
+  matchedValueType: Map<int, String>
   requiredType: Map<int, String>
 ''');
   }
@@ -178,6 +186,7 @@ MapPattern
       value: ConstantPattern
         expression: SimpleStringLiteral
           literal: ''
+        matchedValueType: String
     RestPatternElement
       operator: ...
       pattern: DeclaredVariablePattern
@@ -185,7 +194,9 @@ MapPattern
         name: rest
         declaredElement: hasImplicitType rest@57
           type: dynamic
+        matchedValueType: dynamic
   rightBracket: }
+  matchedValueType: Map<int, String>
   requiredType: Map<int, String>
 ''');
   }
@@ -213,7 +224,9 @@ MapPattern
         name: a
         declaredElement: hasImplicitType a@50
           type: String
+        matchedValueType: String
   rightBracket: }
+  matchedValueType: Map<int, String>
   requiredType: Map<int, String>
 ''');
   }
@@ -257,7 +270,9 @@ MapPattern
         name: a
         declaredElement: hasImplicitType a@62
           type: int
+        matchedValueType: int
   rightBracket: }
+  matchedValueType: Map<bool, num>
   requiredType: Map<bool, int>
 ''');
   }
@@ -282,7 +297,9 @@ MapPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object?
   rightBracket: }
+  matchedValueType: Object
   requiredType: Map<Object?, Object?>
 ''');
   }
@@ -298,6 +315,7 @@ void f(Object x) {
 MapPattern
   leftBracket: {
   rightBracket: }
+  matchedValueType: Object
   requiredType: Map<Object?, Object?>
 ''');
   }
@@ -330,7 +348,9 @@ MapPattern
         name: a
         declaredElement: a@43
           type: int
+        matchedValueType: Object?
   rightBracket: }
+  matchedValueType: Object
   requiredType: Map<Object?, Object?>
 ''');
   }
@@ -358,7 +378,9 @@ MapPattern
         name: a
         declaredElement: hasImplicitType a@43
           type: Object?
+        matchedValueType: Object?
   rightBracket: }
+  matchedValueType: Object
   requiredType: Map<Object?, Object?>
 ''');
   }
@@ -399,7 +421,9 @@ MapPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: int
   rightBracket: }
+  matchedValueType: Object
   requiredType: Map<bool, int>
 ''');
   }
@@ -443,7 +467,9 @@ MapPattern
         name: a
         declaredElement: hasImplicitType a@54
           type: int
+        matchedValueType: int
   rightBracket: }
+  matchedValueType: Object
   requiredType: Map<bool, int>
 ''');
   }
@@ -478,7 +504,9 @@ MapPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: dynamic
   rightBracket: }
+  matchedValueType: dynamic
   requiredType: Map<dynamic, dynamic>
 ''');
   }
@@ -507,7 +535,9 @@ PatternVariableDeclaration
           name: a
           declaredElement: hasImplicitType a@40
             type: int
+          matchedValueType: int
     rightBracket: }
+    matchedValueType: Map<bool, int>
     requiredType: Map<bool, int>
   equals: =
   expression: SimpleIdentifier
@@ -560,7 +590,9 @@ PatternVariableDeclaration
           name: a
           declaredElement: hasImplicitType a@35
             type: int
+          matchedValueType: int
     rightBracket: }
+    matchedValueType: Map<bool, int>
     requiredType: Map<bool, int>
   equals: =
   expression: MethodInvocation
@@ -611,7 +643,9 @@ PatternVariableDeclaration
           name: a
           declaredElement: a@28
             type: int
+          matchedValueType: int
     rightBracket: }
+    matchedValueType: Map<Object?, int>
     requiredType: Map<Object?, int>
   equals: =
   expression: MethodInvocation

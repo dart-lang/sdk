@@ -96,7 +96,9 @@ ForElement
         name: a
         declaredElement: hasImplicitType a@25
           type: dynamic
+        matchedValueType: dynamic
       rightParenthesis: )
+      matchedValueType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -129,7 +131,9 @@ ForElement
         name: a
         declaredElement: hasImplicitType a@35
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -164,7 +168,9 @@ ForElement
         name: a
         declaredElement: hasImplicitType a@32
           type: dynamic
+        matchedValueType: dynamic
       rightParenthesis: )
+      matchedValueType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -205,7 +211,9 @@ ForElement
         name: a
         declaredElement: a@28
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -248,7 +256,9 @@ ForElement
         name: a
         declaredElement: hasImplicitType a@24
           type: Object?
+        matchedValueType: Object?
       rightParenthesis: )
+      matchedValueType: Object?
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -289,7 +299,9 @@ ForElement
         name: a
         declaredElement: hasImplicitType isFinal a@37
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -328,7 +340,9 @@ ForElement
         name: a
         declaredElement: a@39
           type: num
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -366,7 +380,9 @@ ForElement
         name: a
         declaredElement: hasImplicitType a@37
           type: dynamic
+        matchedValueType: dynamic
       rightParenthesis: )
+      matchedValueType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -402,7 +418,9 @@ ForElement
         name: a
         declaredElement: hasImplicitType a@44
           type: dynamic
+        matchedValueType: dynamic
       rightParenthesis: )
+      matchedValueType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -436,7 +454,9 @@ ForElement
         name: a
         declaredElement: hasImplicitType a@49
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -478,7 +498,9 @@ ForElement
         name: a
         declaredElement: a@40
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -522,7 +544,9 @@ ForElement
         name: a
         declaredElement: hasImplicitType a@36
           type: Object?
+        matchedValueType: Object?
       rightParenthesis: )
+      matchedValueType: Object?
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -564,7 +588,9 @@ ForElement
         name: a
         declaredElement: hasImplicitType isFinal a@51
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -604,7 +630,9 @@ ForElement
         name: a
         declaredElement: a@53
           type: num
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -690,12 +718,14 @@ ForElement
               name: a
               declaredElement: hasImplicitType a@37
                 type: int
+              matchedValueType: int
             element: <null>
           PatternField
             pattern: DeclaredVariablePattern
               name: b
               declaredElement: hasImplicitType b@40
                 type: bool
+              matchedValueType: bool
             element: <null>
         rightParenthesis: )
         matchedValueType: (int, bool)

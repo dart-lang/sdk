@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequest;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
     show LocalDeclarationVisitor;
 
@@ -17,7 +18,9 @@ class LabelContributor extends DartCompletionContributor {
   LabelContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     var optype = request.opType;
 
     // Collect suggestions from the specific child [AstNode] that contains

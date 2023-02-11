@@ -37,6 +37,7 @@ ObjectPattern
     type: B<int>
   leftParenthesis: (
   rightParenthesis: )
+  matchedValueType: A<int>
 ''');
   }
 
@@ -66,6 +67,7 @@ ObjectPattern
           int
   leftParenthesis: (
   rightParenthesis: )
+  matchedValueType: A<int, String>
 ''');
   }
 
@@ -114,10 +116,12 @@ ObjectPattern
         name: foo2
         declaredElement: hasImplicitType foo2@90
           type: int
+        matchedValueType: int
       element: PropertyAccessorMember
         base: self::@class::A::@getter::foo
         substitution: {T: int}
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -153,8 +157,10 @@ ObjectPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: int
       element: self::@class::A::@getter::foo
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -192,8 +198,10 @@ ObjectPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: int
       element: self::@extension::E::@getter::foo
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -232,8 +240,10 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@83
           type: void Function()
+        matchedValueType: void Function()
       element: self::@class::A::@method::foo
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -274,8 +284,10 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@97
           type: void Function()
+        matchedValueType: void Function()
       element: self::@extension::E::@method::foo
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -314,8 +326,10 @@ ObjectPattern
         name: foo2
         declaredElement: hasImplicitType foo2@84
           type: int
+        matchedValueType: int
       element: self::@class::A::@getter::foo
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -352,8 +366,10 @@ ObjectPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: dynamic
       element: <null>
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -391,8 +407,10 @@ ObjectPattern
         name: foo
         declaredElement: hasImplicitType foo@81
           type: int
+        matchedValueType: int
       element: self::@class::A::@getter::foo
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -431,6 +449,7 @@ ObjectPattern
           name: foo
           declaredElement: hasImplicitType foo@82
             type: int
+          matchedValueType: int
         asToken: as
         type: NamedType
           name: SimpleIdentifier
@@ -438,8 +457,10 @@ ObjectPattern
             staticElement: dart:core::@class::int
             staticType: null
           type: int
+        matchedValueType: int?
       element: self::@class::A::@getter::foo
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -478,9 +499,12 @@ ObjectPattern
           name: foo
           declaredElement: hasImplicitType foo@82
             type: int
+          matchedValueType: int
         operator: !
+        matchedValueType: int?
       element: self::@class::A::@getter::foo
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -519,9 +543,12 @@ ObjectPattern
           name: foo
           declaredElement: hasImplicitType foo@82
             type: int
+          matchedValueType: int
         operator: ?
+        matchedValueType: int?
       element: self::@class::A::@getter::foo
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -561,9 +588,12 @@ ObjectPattern
           name: foo
           declaredElement: hasImplicitType foo@82
             type: int
+          matchedValueType: int
         rightParenthesis: )
+        matchedValueType: int
       element: self::@class::A::@getter::foo
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -599,8 +629,10 @@ ObjectPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: dynamic
       element: <null>
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -637,8 +669,10 @@ ObjectPattern
         name: foo
         declaredElement: hasImplicitType foo@65
           type: dynamic
+        matchedValueType: dynamic
       element: <null>
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -675,8 +709,10 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@77
           type: dynamic
+        matchedValueType: dynamic
       element: <null>
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -730,8 +766,10 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@145
           type: int
+        matchedValueType: int
       element: self::@extension::E::@getter::foo
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -773,8 +811,10 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@141
           type: int
+        matchedValueType: int
       element: self::@extension::E::@getter::foo
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -812,8 +852,10 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@90
           type: int
+        matchedValueType: int
       element: dart:core::@class::Object::@getter::hashCode
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -852,8 +894,10 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@85
           type: dynamic
+        matchedValueType: dynamic
       element: <null>
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -891,8 +935,10 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@73
           type: int
+        matchedValueType: int
       element: <null>
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -930,8 +976,10 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@71
           type: int
+        matchedValueType: int
       element: <null>
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -968,10 +1016,12 @@ PatternVariableDeclaration
           name: a
           declaredElement: hasImplicitType a@32
             type: int
+          matchedValueType: int
         element: PropertyAccessorMember
           base: self::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
+    matchedValueType: A<int>
   equals: =
   expression: SimpleIdentifier
     token: x
@@ -1025,10 +1075,12 @@ PatternVariableDeclaration
           name: a
           declaredElement: hasImplicitType a@29
             type: int
+          matchedValueType: int
         element: PropertyAccessorMember
           base: self::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
+    matchedValueType: A<int>
   equals: =
   expression: InstanceCreationExpression
     keyword: new
@@ -1090,10 +1142,12 @@ PatternVariableDeclaration
           name: a
           declaredElement: a@28
             type: int
+          matchedValueType: dynamic
         element: PropertyAccessorMember
           base: self::@class::A::@getter::foo
           substitution: {T: dynamic}
     rightParenthesis: )
+    matchedValueType: A<dynamic>
   equals: =
   expression: InstanceCreationExpression
     keyword: new

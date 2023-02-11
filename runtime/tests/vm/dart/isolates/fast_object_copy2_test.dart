@@ -111,7 +111,6 @@ class SendReceiveTest extends SendReceiveTestBase {
     await testSharable2();
     await testCopyableClosures();
     await testSharableTypedData();
-    await testUnmodifiableList();
   }
 
   Future testSharable() async {
@@ -176,35 +175,6 @@ class SendReceiveTest extends SendReceiveTestBase {
     }
 
     malloc.free(bytes);
-  }
-
-  Future testUnmodifiableList() async {
-    print('testUnmodifiableList');
-
-    // Sharable.
-    for (final sharable in [
-      1,
-      const Object(),
-      'foo',
-      List.unmodifiable([const Object()])
-    ]) {
-      final list = List.unmodifiable([sharable]);
-      final listCopy = await sendReceive(list);
-      Expect.identical(list, listCopy);
-    }
-
-    // Non-Sharable.
-    for (final nonSharable in [
-      Object(),
-      [],
-      {},
-      List.unmodifiable([Object()])
-    ]) {
-      final list = List.unmodifiable([nonSharable]);
-      final listCopy = await sendReceive(list);
-      Expect.notIdentical(list, listCopy);
-      Expect.notIdentical(list[0], listCopy[0]);
-    }
   }
 }
 

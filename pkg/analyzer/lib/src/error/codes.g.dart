@@ -6464,6 +6464,14 @@ class WarningCode extends AnalyzerErrorCode {
   ///  This is the new replacement for [HintCode.UNNECESSARY_FINAL].
   static const HintCode UNNECESSARY_FINAL = HintCode.UNNECESSARY_FINAL;
 
+  ///  This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
+  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE =
+      HintCode.UNNECESSARY_TYPE_CHECK_FALSE;
+
+  ///  This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_TRUE].
+  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE =
+      HintCode.UNNECESSARY_TYPE_CHECK_TRUE;
+
   ///  Parameters:
   ///  0: the name of the exception variable
   static const WarningCode UNUSED_CATCH_CLAUSE = WarningCode(

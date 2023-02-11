@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A contributor that produces a closure matching the context type.
 class ClosureContributor extends DartCompletionContributor {
@@ -16,7 +17,9 @@ class ClosureContributor extends DartCompletionContributor {
   }
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     var contextType = request.contextType;
     if (contextType is FunctionType) {
       builder.suggestClosure(

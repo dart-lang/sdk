@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -48,7 +49,9 @@ abstract class DartCompletionContributorTest
       DartCompletionRequest request) async {
     var builder = SuggestionBuilder(request, useFilter: false);
     var contributor = createContributor(request, builder);
-    await contributor.computeSuggestions();
+    await contributor.computeSuggestions(
+      performance: OperationPerformanceImpl('<root>'),
+    );
     return builder.suggestions.map((e) => e.build()).toList();
   }
 

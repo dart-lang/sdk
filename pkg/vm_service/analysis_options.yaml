@@ -1,4 +1,4 @@
-include: package:lints/core.yaml
+include: package:lints/recommended.yaml
 
 linter:
   rules:

@@ -38,6 +38,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 1
@@ -98,6 +99,7 @@ IfElement
             name: a
             declaredElement: a@56
               type: int
+            matchedValueType: Object?
           RelationalPattern
             operator: ==
             operand: SimpleIdentifier
@@ -105,7 +107,9 @@ IfElement
               staticElement: a@56
               staticType: int
             element: dart:core::@class::Object::@method::==
+            matchedValueType: Object?
         rightBracket: ]
+        matchedValueType: Object
         requiredType: List<Object?>
       whenClause: WhenClause
         whenKeyword: when
@@ -171,6 +175,7 @@ IfElement
         name: a
         declaredElement: a@42
           type: int
+        matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -237,6 +242,7 @@ IfElement
             leftParenthesis: (
             rightParenthesis: )
           staticType: A
+        matchedValueType: Object
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 0
@@ -304,6 +310,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: int
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 1
@@ -334,6 +341,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
         expression: FunctionExpressionInvocation
@@ -377,6 +385,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
         expression: BooleanLiteral

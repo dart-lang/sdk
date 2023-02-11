@@ -40,6 +40,7 @@ ConstantPattern
       staticType: int
     staticElement: self::@class::A::@getter::foo
     staticType: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -71,6 +72,7 @@ ConstantPattern
       leftParenthesis: (
       rightParenthesis: )
     staticType: A
+  matchedValueType: dynamic
 ''');
   }
 
@@ -86,6 +88,7 @@ ConstantPattern
   expression: IntegerLiteral
     literal: 0
     staticType: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -104,6 +107,7 @@ ConstantPattern
   expression: IntegerLiteral
     literal: 0
     staticType: double
+  matchedValueType: double
 ''');
   }
 
@@ -125,6 +129,7 @@ ConstantPattern
         staticType: int
     rightBracket: ]
     staticType: List<int>
+  matchedValueType: dynamic
 ''');
   }
 
@@ -152,6 +157,7 @@ ConstantPattern
     rightBracket: }
     isMap: true
     staticType: Map<int, int>
+  matchedValueType: dynamic
 ''');
   }
 
@@ -192,6 +198,7 @@ ConstantPattern
       staticElement: package:test/a.dart::@class::A::@getter::foo
       staticType: int
     staticType: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -223,6 +230,7 @@ ConstantPattern
       staticType: int
     staticElement: package:test/a.dart::@getter::foo
     staticType: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -248,6 +256,7 @@ ConstantPattern
     rightBracket: }
     isMap: false
     staticType: Set<int>
+  matchedValueType: dynamic
 ''');
   }
 
@@ -266,6 +275,7 @@ ConstantPattern
     token: foo
     staticElement: self::@getter::foo
     staticType: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -281,6 +291,7 @@ ConstantPattern
   expression: IntegerLiteral
     literal: 0
     staticType: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -299,6 +310,7 @@ ConstantPattern
   expression: IntegerLiteral
     literal: 0
     staticType: int
+  matchedValueType: dynamic
 ''');
   }
 }

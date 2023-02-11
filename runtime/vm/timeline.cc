@@ -1072,8 +1072,10 @@ TimelineEventRecorder::TimelineEventRecorder()
   // were initialized before this point.
   OSThreadIterator it;
   while (it.HasNext()) {
-    OSThread* thread = it.Next();
-    AddTrackMetadataBasedOnThread(*thread);
+    OSThread& thread = *it.Next();
+    AddTrackMetadataBasedOnThread(OS::ProcessId(),
+                                  OSThread::ThreadIdToIntPtr(thread.trace_id()),
+                                  thread.name());
   }
 }
 
@@ -1246,7 +1248,9 @@ TimelineEventBlock* TimelineEventRecorder::GetNewBlock() {
 }
 
 void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
-    const OSThread& thread) {
+    const intptr_t process_id,
+    const intptr_t trace_id,
+    const char* thread_name) {
   if (FLAG_timeline_recorder != nullptr &&
       // There is no way to retrieve track metadata when a callback or systrace
       // recorder is in use, so we don't need to update the map in these cases.
@@ -1254,23 +1258,19 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
       strcmp("systrace", FLAG_timeline_recorder) != 0) {
     MutexLocker ml(&track_uuid_to_track_metadata_lock_);
 
-    intptr_t pid = OS::ProcessId();
-    intptr_t tid = OSThread::ThreadIdToIntPtr(thread.trace_id());
-    const char* thread_name = thread.name();
-
-    void* key = reinterpret_cast<void*>(tid);
-    const intptr_t hash = Utils::WordHash(tid);
+    void* key = reinterpret_cast<void*>(trace_id);
+    const intptr_t hash = Utils::WordHash(trace_id);
     SimpleHashMap::Entry* entry =
         track_uuid_to_track_metadata_.Lookup(key, hash, true);
     if (entry->value == nullptr) {
       entry->value = new TimelineTrackMetadata(
-          pid, tid,
+          process_id, trace_id,
           Utils::CreateCStringUniquePtr(
               Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
     } else {
       TimelineTrackMetadata* value =
           static_cast<TimelineTrackMetadata*>(entry->value);
-      ASSERT(pid == value->pid());
+      ASSERT(process_id == value->pid());
       value->set_track_name(Utils::CreateCStringUniquePtr(
           Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
     }

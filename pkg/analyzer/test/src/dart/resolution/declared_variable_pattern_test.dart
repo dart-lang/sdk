@@ -33,6 +33,7 @@ DeclaredVariablePattern
   name: y
   declaredElement: hasImplicitType isFinal y@46
     type: int
+  matchedValueType: int
 ''');
   }
 
@@ -60,6 +61,7 @@ DeclaredVariablePattern
   name: y
   declaredElement: isFinal y@46
     type: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -79,7 +81,9 @@ ListPattern
       name: a
       declaredElement: hasImplicitType isFinal a@54
         type: int
+      matchedValueType: int
   rightBracket: ]
+  matchedValueType: List<int>
   requiredType: List<int>
 ''');
   }
@@ -102,7 +106,9 @@ ListPattern
         name: a
         declaredElement: hasImplicitType isFinal a@57
           type: List<int>
+        matchedValueType: List<int>
   rightBracket: ]
+  matchedValueType: List<int>
   requiredType: List<int>
 ''');
   }
@@ -128,7 +134,9 @@ MapPattern
         name: a
         declaredElement: hasImplicitType isFinal a@57
           type: int
+        matchedValueType: int
   rightBracket: }
+  matchedValueType: Map<int, int>
   requiredType: Map<int, int>
 ''');
   }
@@ -159,8 +167,10 @@ ObjectPattern
         name: a
         declaredElement: hasImplicitType isFinal a@63
           type: int
+        matchedValueType: int
       element: dart:core::@class::int::@getter::sign
   rightParenthesis: )
+  matchedValueType: int
 ''');
   }
 
@@ -179,7 +189,9 @@ ParenthesizedPattern
     name: a
     declaredElement: hasImplicitType isFinal a@54
       type: int
+    matchedValueType: int
   rightParenthesis: )
+  matchedValueType: int
 ''');
   }
 
@@ -200,6 +212,7 @@ RecordPattern
         name: a
         declaredElement: hasImplicitType isFinal a@54
           type: int
+        matchedValueType: int
       element: <null>
   rightParenthesis: )
   matchedValueType: (int)
@@ -229,6 +242,7 @@ DeclaredVariablePattern
   name: y
   declaredElement: y@40
     type: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -250,6 +264,7 @@ DeclaredVariablePattern
   name: y
   declaredElement: hasImplicitType y@54
     type: T
+  matchedValueType: T & int
 ''');
   }
 
@@ -274,6 +289,7 @@ DeclaredVariablePattern
   name: y
   declaredElement: hasImplicitType y@95
     type: List<int>
+  matchedValueType: List<int*>*
 ''');
   }
 
@@ -292,6 +308,7 @@ DeclaredVariablePattern
   name: y
   declaredElement: hasImplicitType y@33
     type: int
+  matchedValueType: int
 ''');
   }
 
@@ -310,6 +327,7 @@ DeclaredVariablePattern
   name: y
   declaredElement: hasImplicitType y@36
     type: dynamic
+  matchedValueType: Never?
 ''');
   }
 
@@ -328,6 +346,7 @@ DeclaredVariablePattern
   name: y
   declaredElement: hasImplicitType y@34
     type: dynamic
+  matchedValueType: Null
 ''');
   }
 
@@ -352,6 +371,7 @@ DeclaredVariablePattern
   name: y
   declaredElement: hasImplicitType y@95
     type: dynamic
+  matchedValueType: Null*
 ''');
   }
 
@@ -373,6 +393,7 @@ DeclaredVariablePattern
   name: y
   declaredElement: hasImplicitType y@44
     type: int
+  matchedValueType: int
 ''');
   }
 
@@ -395,6 +416,7 @@ CastPattern
     name: y
     declaredElement: hasImplicitType y@44
       type: int
+    matchedValueType: int
   asToken: as
   type: NamedType
     name: SimpleIdentifier
@@ -402,6 +424,7 @@ CastPattern
       staticElement: dart:core::@class::int
       staticType: null
     type: int
+  matchedValueType: num
 ''');
   }
 }

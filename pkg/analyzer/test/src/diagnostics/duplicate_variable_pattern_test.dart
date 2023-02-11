@@ -34,12 +34,15 @@ LogicalAndPattern
     name: a
     declaredElement: hasImplicitType a@33
       type: int
+    matchedValueType: int
   operator: &&
   rightOperand: DeclaredVariablePattern
     keyword: var
     name: a
     declaredElement: hasImplicitType a@42
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -65,12 +68,15 @@ LogicalAndPattern
     name: a
     declaredElement: hasImplicitType a@44
       type: int
+    matchedValueType: int
   operator: &&
   rightOperand: DeclaredVariablePattern
     keyword: var
     name: a
     declaredElement: hasImplicitType a@53
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 

@@ -1708,6 +1708,9 @@ abstract class ContinueStatement implements Statement {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class DartPattern implements AstNode, ListPatternElement {
+  /// The matched value type, or `null` if the node is not resolved yet.
+  DartType? get matchedValueType;
+
   /// Return the precedence of this pattern.
   ///
   /// The precedence is a positive integer value that defines how the source
@@ -4486,9 +4489,6 @@ abstract class RecordPattern implements DartPattern {
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
-
-  /// The matched value type, or `null` if the node is not resolved yet.
-  DartType? get matchedValueType;
 
   /// Return the right parenthesis.
   Token get rightParenthesis;

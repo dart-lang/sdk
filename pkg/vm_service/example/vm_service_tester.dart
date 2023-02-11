@@ -29,19 +29,19 @@ void main() {
   test('integration', () async {
     String sdk = path.dirname(path.dirname(Platform.resolvedExecutable));
 
-    print('Using sdk at ${sdk}.');
+    print('Using sdk at $sdk.');
 
     // pause_isolates_on_start, pause_isolates_on_exit
-    process = await Process.start('${sdk}/bin/dart', [
+    process = await Process.start('$sdk/bin/dart', [
       '--pause_isolates_on_start',
-      '--enable-vm-service=${port}',
+      '--enable-vm-service=$port',
       '--disable-service-auth-codes',
       'example/sample_main.dart'
     ]);
 
     print('dart process started');
 
-    process!.exitCode.then((code) => print('vm exited: ${code}'));
+    process!.exitCode.then((code) => print('vm exited: $code'));
     process!.stdout.transform(utf8.decoder).listen(print);
     process!.stderr.transform(utf8.decoder).listen(print);
 
@@ -52,13 +52,13 @@ void main() {
 
     print('socket connected');
 
-    serviceClient.onSend.listen((str) => print('--> ${str}'));
+    serviceClient.onSend.listen((str) => print('--> $str'));
 
     // The next listener will bail out if you toggle this to false, which we need
     // to do for some things like the custom service registration tests.
     var checkResponseJsonCompatibility = true;
     serviceClient.onReceive.listen((str) {
-      print('<-- ${str}');
+      print('<-- $str');
 
       if (!checkResponseJsonCompatibility) return;
 
@@ -94,11 +94,11 @@ void main() {
       expect(reserializedJson, equals(originalJson));
     });
 
-    serviceClient.onIsolateEvent.listen((e) => print('onIsolateEvent: ${e}'));
-    serviceClient.onDebugEvent.listen((e) => print('onDebugEvent: ${e}'));
-    serviceClient.onGCEvent.listen((e) => print('onGCEvent: ${e}'));
-    serviceClient.onStdoutEvent.listen((e) => print('onStdoutEvent: ${e}'));
-    serviceClient.onStderrEvent.listen((e) => print('onStderrEvent: ${e}'));
+    serviceClient.onIsolateEvent.listen((e) => print('onIsolateEvent: $e'));
+    serviceClient.onDebugEvent.listen((e) => print('onDebugEvent: $e'));
+    serviceClient.onGCEvent.listen((e) => print('onGCEvent: $e'));
+    serviceClient.onStdoutEvent.listen((e) => print('onStdoutEvent: $e'));
+    serviceClient.onStderrEvent.listen((e) => print('onStderrEvent: $e'));
 
     unawaited(serviceClient.streamListen(EventStreams.kIsolate));
     unawaited(serviceClient.streamListen(EventStreams.kDebug));
@@ -217,7 +217,9 @@ Future testSourceReport(IsolateRef isolateRef) async {
 }
 
 class StdoutLog extends Log {
+  @override
   void warning(String message) => print(message);
 
+  @override
   void severe(String message) => print(message);
 }

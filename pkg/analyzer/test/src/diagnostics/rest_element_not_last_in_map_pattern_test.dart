@@ -37,7 +37,9 @@ MapPattern
       separator: :
       value: WildcardPattern
         name: _
+        matchedValueType: String
   rightBracket: }
+  matchedValueType: Map<int, String>
   requiredType: Map<int, String>
 ''');
   }

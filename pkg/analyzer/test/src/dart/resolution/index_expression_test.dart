@@ -351,6 +351,7 @@ IndexExpression
         guardedPattern: GuardedPattern
           pattern: WildcardPattern
             name: _
+            matchedValueType: Object?
         arrow: =>
         expression: InstanceCreationExpression
           constructorName: ConstructorName
@@ -744,6 +745,7 @@ AssignmentExpression
           guardedPattern: GuardedPattern
             pattern: WildcardPattern
               name: _
+              matchedValueType: Object?
           arrow: =>
           expression: InstanceCreationExpression
             constructorName: ConstructorName

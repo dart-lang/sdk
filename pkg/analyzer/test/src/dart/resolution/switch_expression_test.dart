@@ -64,6 +64,7 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: WildcardPattern
           name: _
+          matchedValueType: Object?
       arrow: =>
       expression: MethodInvocation
         methodName: SimpleIdentifier
@@ -120,8 +121,10 @@ SwitchExpression
                 name: isEven
                 declaredElement: hasImplicitType isEven@37
                   type: bool
+                matchedValueType: bool
               element: dart:core::@class::int::@getter::isEven
           rightParenthesis: )
+          matchedValueType: Null
         whenClause: WhenClause
           whenKeyword: when
           expression: SimpleIdentifier
@@ -136,6 +139,7 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: WildcardPattern
           name: _
+          matchedValueType: Null
       arrow: =>
       expression: IntegerLiteral
         literal: 0
@@ -160,6 +164,7 @@ SwitchExpressionCase
   guardedPattern: GuardedPattern
     pattern: WildcardPattern
       name: _
+      matchedValueType: Object?
   arrow: =>
   expression: FunctionExpressionInvocation
     function: SimpleIdentifier
@@ -208,6 +213,7 @@ SwitchExpressionCase
           leftParenthesis: (
           rightParenthesis: )
         staticType: A
+      matchedValueType: Object?
   arrow: =>
   expression: IntegerLiteral
     literal: 0
@@ -233,6 +239,7 @@ SwitchExpressionCase
       expression: IntegerLiteral
         literal: 0
         staticType: int
+      matchedValueType: Object?
     whenClause: WhenClause
       whenKeyword: when
       expression: FunctionExpressionInvocation
@@ -285,6 +292,7 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: WildcardPattern
           name: _
+          matchedValueType: int
       arrow: =>
       expression: IntegerLiteral
         literal: 0
@@ -322,6 +330,7 @@ SwitchExpression
           expression: BooleanLiteral
             literal: true
             staticType: bool
+          matchedValueType: Object?
       arrow: =>
       expression: IntegerLiteral
         literal: 0
@@ -330,6 +339,7 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: WildcardPattern
           name: _
+          matchedValueType: Object?
       arrow: =>
       expression: NullLiteral
         literal: null
@@ -367,6 +377,7 @@ SwitchExpression
           expression: BooleanLiteral
             literal: true
             staticType: bool
+          matchedValueType: Object?
       arrow: =>
       expression: IntegerLiteral
         literal: 0
@@ -375,6 +386,7 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: WildcardPattern
           name: _
+          matchedValueType: Object?
       arrow: =>
       expression: IntegerLiteral
         literal: 1
@@ -427,13 +439,17 @@ SwitchExpression
                 name: a
                 declaredElement: hasImplicitType a@50
                   type: int
+                matchedValueType: int
               operator: ||
               rightOperand: DeclaredVariablePattern
                 keyword: var
                 name: a
                 declaredElement: hasImplicitType a@59
                   type: int
+                matchedValueType: int
+              matchedValueType: int
           rightBracket: ]
+          matchedValueType: Object?
           requiredType: List<int>
       arrow: =>
       expression: SimpleIdentifier
@@ -444,6 +460,7 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: WildcardPattern
           name: _
+          matchedValueType: Object?
       arrow: =>
       expression: IntegerLiteral
         literal: 0
@@ -496,6 +513,7 @@ SwitchExpression
               name: a
               declaredElement: a@58
                 type: int
+              matchedValueType: Object?
             RelationalPattern
               operator: ==
               operand: SimpleIdentifier
@@ -503,7 +521,9 @@ SwitchExpression
                 staticElement: a@58
                 staticType: int
               element: dart:core::@class::Object::@method::==
+              matchedValueType: Object?
           rightBracket: ]
+          matchedValueType: Object?
           requiredType: List<Object?>
         whenClause: WhenClause
           whenKeyword: when
@@ -529,6 +549,7 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: WildcardPattern
           name: _
+          matchedValueType: Object?
       arrow: =>
       expression: IntegerLiteral
         literal: 0
@@ -574,6 +595,7 @@ SwitchExpression
           name: a
           declaredElement: a@44
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -598,6 +620,7 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: WildcardPattern
           name: _
+          matchedValueType: Object?
       arrow: =>
       expression: SimpleIdentifier
         token: a

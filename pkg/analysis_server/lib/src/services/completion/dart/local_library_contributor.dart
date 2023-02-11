@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 /// A visitor for building suggestions based upon the elements defined by
@@ -190,7 +191,9 @@ class LocalLibraryContributor extends DartCompletionContributor {
   LocalLibraryContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     if (!request.includeIdentifiers) {
       return;
     }

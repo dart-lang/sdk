@@ -8,6 +8,7 @@ import 'package:analysis_server/src/utilities/extensions/completion_request.dart
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A contributor that produces suggestions based on the static members of a
 /// given class, enum, or extension. More concretely, this class produces
@@ -17,7 +18,9 @@ class StaticMemberContributor extends DartCompletionContributor {
   StaticMemberContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     var library = request.libraryElement;
     bool isVisible(Element element) => element.isAccessibleIn(library);
     var targetId = request.target.dotTarget;

@@ -224,8 +224,8 @@ double objectLength(WasmExternRef? o) => JS<double>("o => o.length", o);
 WasmExternRef? objectReadIndex(WasmExternRef? o, double index) =>
     JS<WasmExternRef?>("(o, i) => o[i]", o, index);
 
-Object? unwrapJSWrappedDartFunction(WasmExternRef? f) =>
-    JS<Object?>("f => f.dartFunction", f);
+Function unwrapJSWrappedDartFunction(WasmExternRef? f) =>
+    JS<Function>("f => f.dartFunction", f);
 
 WasmExternRef? jsInt8ArrayFromDartInt8List(Int8List l) =>
     JS<WasmExternRef?>('l => arrayFromDartList(Int8Array, l)', l);
@@ -494,7 +494,7 @@ List<int> jsIntTypedArrayToDartIntTypedData(
 
 JSArray toJSArray(List<JSAny?> list) {
   int length = list.length;
-  JSArray result = JSArray.withLength(length.toDouble().toJS());
+  JSArray result = JSArray.withLength(length.toDouble().toJS);
   for (int i = 0; i < length; i++) {
     result[i] = list[i];
   }

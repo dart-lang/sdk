@@ -377,6 +377,7 @@ FunctionExpressionInvocation
         guardedPattern: GuardedPattern
           pattern: WildcardPattern
             name: _
+            matchedValueType: Object?
         arrow: =>
         expression: SimpleIdentifier
           token: foo

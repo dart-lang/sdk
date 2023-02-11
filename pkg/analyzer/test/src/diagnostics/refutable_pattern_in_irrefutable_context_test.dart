@@ -36,7 +36,9 @@ PatternVariableDeclaration
       expression: IntegerLiteral
         literal: 0
         staticType: int
+      matchedValueType: int
     rightParenthesis: )
+    matchedValueType: int
   equals: =
   expression: IntegerLiteral
     literal: 0
@@ -64,10 +66,14 @@ PatternVariableDeclaration
     pattern: LogicalOrPattern
       leftOperand: WildcardPattern
         name: _
+        matchedValueType: int
       operator: ||
       rightOperand: WildcardPattern
         name: _
+        matchedValueType: int
+      matchedValueType: int
     rightParenthesis: )
+    matchedValueType: int
   equals: =
   expression: IntegerLiteral
     literal: 0
@@ -95,8 +101,11 @@ PatternVariableDeclaration
     pattern: NullCheckPattern
       pattern: WildcardPattern
         name: _
+        matchedValueType: int
       operator: ?
+      matchedValueType: int?
     rightParenthesis: )
+    matchedValueType: int?
   equals: =
   expression: SimpleIdentifier
     token: x
@@ -128,7 +137,9 @@ PatternVariableDeclaration
         literal: 0
         staticType: int
       element: dart:core::@class::num::@method::>
+      matchedValueType: int
     rightParenthesis: )
+    matchedValueType: int
   equals: =
   expression: IntegerLiteral
     literal: 0

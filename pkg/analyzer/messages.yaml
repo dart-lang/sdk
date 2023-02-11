@@ -23530,6 +23530,12 @@ WarningCode:
   UNNECESSARY_FINAL:
     aliasFor: HintCode.UNNECESSARY_FINAL
     comment: This is the new replacement for [HintCode.UNNECESSARY_FINAL].
+  UNNECESSARY_TYPE_CHECK_FALSE:
+    aliasFor: HintCode.UNNECESSARY_TYPE_CHECK_FALSE
+    comment: This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
+  UNNECESSARY_TYPE_CHECK_TRUE:
+    aliasFor: HintCode.UNNECESSARY_TYPE_CHECK_TRUE
+    comment: This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_TRUE].
   UNUSED_CATCH_CLAUSE:
     problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
     correctionMessage: Try removing the catch clause.

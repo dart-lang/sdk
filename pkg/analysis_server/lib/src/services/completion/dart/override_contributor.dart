@@ -7,6 +7,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 
 /// A completion contributor used to suggest replacing partial identifiers
@@ -15,7 +16,9 @@ class OverrideContributor extends DartCompletionContributor {
   OverrideContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     final target = _getTargetId(request.target);
     if (target == null) {
       return;
