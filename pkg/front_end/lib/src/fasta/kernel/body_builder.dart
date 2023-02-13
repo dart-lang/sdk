@@ -9449,7 +9449,10 @@ Block combineStatements(Statement statement, Statement body) {
     }
     return body;
   } else {
-    return new Block(<Statement>[statement, body])
+    return new Block(<Statement>[
+      if (statement is Block) ...statement.statements else statement,
+      body
+    ])
       ..fileOffset = statement.fileOffset;
   }
 }
