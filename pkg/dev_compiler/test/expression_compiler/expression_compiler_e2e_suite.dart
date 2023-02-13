@@ -193,7 +193,8 @@ class TestCompiler {
     }
     setup.diagnosticMessages.clear();
 
-    var sourceMap = source_maps.SingleMapping.fromJson(code.sourceMap!);
+    var sourceMap = source_maps.SingleMapping.fromJson(
+        code.sourceMap!.cast<String, dynamic>());
     return TestCompiler._(
         setup, component, evaluator, code.metadata, sourceMap);
   }

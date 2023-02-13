@@ -121,7 +121,7 @@ SingleMapping convertFromHumanReadableSourceMap(String json) {
 
   List<TargetLineEntry> lineEntries = lineEntryMap.values.toList();
 
-  Map outputMap = {
+  var outputMap = <String, dynamic>{
     'version': 3,
     'sourceRoot': inputMap['sourceRoot'],
     'file': inputMap['file'],
