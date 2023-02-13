@@ -104,7 +104,9 @@ String createCompileJitJson({
       if (args.wasParsed(defineOption)) defineOption: args[defineOption],
       if (args.wasParsed(enableAssertsOption)) enableAssertsOption: true,
       if (args.wasParsed(enableExperimentOption))
-        enableExperimentOption: args[enableExperimentOption],
+        enableExperimentOption: args[enableExperimentOption]
+            .map((e) => '--enable-experiment=$e')
+            .toList(),
       if (packages != null) packageString: packages,
       if (args.wasParsed(verbosityOption))
         verbosityOption: args[verbosityOption],

@@ -284,10 +284,11 @@ class RunCommand extends DartdevCommand {
     final useResidentServer =
         args.wasParsed(residentOption) || hasServerInfoOption;
     DartExecutableWithPackageConfig executable;
+    final hasExperiments = args.enabledExperiments.isNotEmpty;
     try {
       executable = await getExecutableForCommand(
         mainCommand,
-        allowSnapshot: !useResidentServer,
+        allowSnapshot: !(useResidentServer || hasExperiments),
       );
     } on CommandResolutionFailedException catch (e) {
       log.stderr(e.message);

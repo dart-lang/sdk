@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:dartdev/src/resident_frontend_constants.dart';
 import 'package:dartdev/src/resident_frontend_utils.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -117,7 +118,7 @@ void run() {
     // VM service).
     //
     // See https://github.com/dart-lang/sdk/issues/50230
-    p = project();
+    p = project(sdkConstraint: VersionConstraint.parse('>=2.19.0 <3.0.0'));
     p.file('main.dart', 'void main(args) { print("Record: \${(1, 2)}"); }');
     ProcessResult result = await p.run([
       'run',
@@ -142,6 +143,20 @@ void run() {
     expect(result.stdout, isEmpty);
     expect(result.stderr, isNotEmpty);
     expect(result.exitCode, 254);
+
+    p.file('bin/main.dart', 'void main(args) { print("Record: \${(1, 2)}"); }');
+    // Run again with the package-syntax
+    result = await p.run([
+      'run',
+      '--enable-experiment=records',
+      ':main',
+    ]);
+
+    // The records experiment should not be enabled and the program should fail
+    // to run.
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('Record: '));
+    expect(result.exitCode, 0);
   });
 
   test('arguments are properly passed', () async {
@@ -733,6 +748,36 @@ void residentRun() {
       ),
     );
     expect(result.stderr, isEmpty);
+    expect(kernelCache, isNot(null));
+  });
+
+  test('Handles experiments', () async {
+    // TODO(https://github.com/dart-lang/sdk/issues/50230): Use
+    // `test-experiment` instead of `records` here.
+    p = project(
+      mainSrc: r"void main() { print(('hello','world').$1); }",
+      sdkConstraint: VersionConstraint.parse(
+        '>=2.19.0 <3.0.0',
+      ),
+    );
+    final result = await p.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      '--enable-experiment=records',
+      p.relativeFilePath,
+    ]);
+    Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
+
+    expect(result.stderr, isEmpty);
+    expect(
+      result.stdout,
+      allOf(
+        contains('hello'),
+        isNot(contains(residentFrontendServerPrefix)),
+      ),
+    );
+    expect(result.exitCode, 0);
+
     expect(kernelCache, isNot(null));
   });
 
