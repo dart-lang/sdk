@@ -29,7 +29,7 @@ class InfoCommand extends DartdevCommand {
 
   static const String _message =
       'If providing this information as part of reporting a bug, please review '
-      "the information below to ensure it only contains things you're "
+      "the information\nbelow to ensure it only contains things you're "
       'comfortable posting publicly.';
 
   static const String removeFilePathsFlag = 'remove-file-paths';
@@ -39,7 +39,7 @@ class InfoCommand extends DartdevCommand {
     final elideFilePaths = argResults![removeFilePathsFlag] as bool;
 
     print('');
-    print(wrapText(_message, width: dartdevUsageLineLength));
+    print(_message);
 
     print('');
     print('#### General info');
