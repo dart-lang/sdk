@@ -3701,6 +3701,16 @@ class ConstantPattern extends Pattern {
   // not been computed.
   DartType expressionType = const DynamicType();
 
+  /// The `operator ==` procedure on [expression].
+  ///
+  /// This is set during inference.
+  late Procedure equalsTarget;
+
+  /// The type of the `operator ==` procedure on [expression].
+  ///
+  /// This is set during inference.
+  late FunctionType equalsType;
+
   ConstantPattern(this.expression) : super(expression.fileOffset) {
     expression.parent = this;
   }
@@ -3885,6 +3895,94 @@ class ListPattern extends Pattern {
   DartType? typeArgument;
   List<Pattern> patterns;
 
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
+  /// If `true`, the matched expression must be checked to be a `List`.
+  ///
+  /// This is set during inference.
+  late bool needsCheck;
+
+  /// The type of the matched expression.
+  ///
+  /// If [needsCheck] is `true`, this is the list type it was checked against.
+  /// Otherwise it is the type of the matched expression itself, which was,
+  /// in this case, already known to be a list type.
+  ///
+  /// This is set during inference.
+  late DartType listType;
+
+  /// If `true`, this list pattern contains a rest pattern.
+  ///
+  /// This is set during inference.
+  bool hasRestPattern = false;
+
+  /// The target of the `length` property of the list.
+  ///
+  /// This is set during inference.
+  late Member lengthTarget;
+
+  /// The type of the `length` property of the list.
+  ///
+  /// This is set during inference.
+  late DartType lengthType;
+
+  /// The method used to check the `length` of the list.
+  ///
+  /// If this pattern has a rest pattern, this is an `operator >=` method.
+  /// Otherwise this is an `operator ==` method.
+  ///
+  /// This is set during inference.
+  late Procedure lengthCheckTarget;
+
+  /// The type of the method used to check the `length` of the list.
+  ///
+  /// If this pattern has a rest pattern, this is an `operator >=` method.
+  /// Otherwise this is an `operator ==` method.
+  ///
+  /// This is set during inference.
+  late FunctionType lengthCheckType;
+
+  /// The target of the `sublist` method of the list.
+  ///
+  /// This is used if this pattern has a rest pattern with a subpattern.
+  ///
+  /// This is set during inference.
+  late Procedure sublistTarget;
+
+  /// The type of the `sublist` method of the list.
+  ///
+  /// This is used if this pattern has a rest pattern with a subpattern.
+  ///
+  /// This is set during inference.
+  late FunctionType sublistType;
+
+  /// The target of the `minus` method of the `length` of this list.
+  ///
+  /// This is used to compute tail indices if this pattern has a rest pattern.
+  ///
+  /// This is set during inference.
+  late Procedure minusTarget;
+
+  /// The type of the `minus` method of the `length` of this list.
+  ///
+  /// This is used to compute tail indices if this pattern has a rest pattern.
+  ///
+  /// This is set during inference.
+  late FunctionType minusType;
+
+  /// The target of the `operator []` method of the list.
+  ///
+  /// This is set during inference.
+  late Procedure indexGetTarget;
+
+  /// The type of the `operator []` method of the list.
+  ///
+  /// This is set during inference.
+  late FunctionType indexGetType;
+
   @override
   List<VariableDeclaration> get declaredVariables =>
       [for (Pattern pattern in patterns) ...pattern.declaredVariables];
@@ -3924,6 +4022,25 @@ class ListPattern extends Pattern {
 class ObjectPattern extends Pattern {
   final DartType type;
   final List<NamedPattern> fields;
+
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
+  /// If `true`, the matched expression must be checked to be of type [type].
+  ///
+  /// This is set during inference.
+  late bool needsCheck;
+
+  /// The type of the matched expression.
+  ///
+  /// If [needsCheck] is `true`, this is the type it was checked against.
+  /// Otherwise it is the type of the matched expression itself, which was,
+  /// in this case, already known to be of the required type.
+  ///
+  /// This is set during inference.
+  late DartType objectType;
 
   ObjectPattern(this.type, this.fields, int fileOffset) : super(fileOffset) {
     setParents(fields, this);
@@ -3972,6 +4089,44 @@ class RelationalPattern extends Pattern {
   final RelationalPatternKind kind;
   Expression expression;
   DartType expressionType = const UnknownType();
+
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
+  /// The access kind for performing the relational operation of this pattern.
+  ///
+  /// This is set during inference.
+  late RelationAccessKind accessKind;
+
+  /// The name of the relational operation called by this pattern.
+  ///
+  /// This is set during inference.
+  late Name name;
+
+  /// The target [Procedure] called by this pattern.
+  ///
+  /// This is used for [RelationAccessKind.Instance] and
+  /// [RelationAccessKind.Static].
+  ///
+  /// This is set during inference.
+  late Procedure? target;
+
+  /// The type arguments passed to [target].
+  ///
+  /// This is used for [RelationAccessKind.Static].
+  ///
+  /// This is set during inference.
+  late List<DartType>? typeArguments;
+
+  /// The type of [target].
+  ///
+  /// This is used for [RelationAccessKind.Instance] and
+  /// [RelationAccessKind.Static].
+  ///
+  /// This is set during inference.
+  late FunctionType? functionType;
 
   RelationalPattern(this.kind, this.expression, int fileOffset)
       : super(fileOffset) {
@@ -4107,6 +4262,17 @@ class PatternAssignment extends InternalExpression {
 class AssignedVariablePattern extends Pattern {
   final VariableDeclaration variable;
 
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
+  /// If `true`, the matched expression must be checked to be of the type
+  /// of [variable].
+  ///
+  /// This is set during inference.
+  late bool needsCheck;
+
   AssignedVariablePattern(this.variable, {required int offset}) : super(offset);
 
   @override
@@ -4218,6 +4384,76 @@ class MapPattern extends Pattern {
   DartType? valueType;
   final List<MapPatternEntry> entries;
 
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
+  /// If `true`, the matched expression must be checked to be a `Map`.
+  ///
+  /// This is set during inference.
+  late bool needsCheck;
+
+  /// The type of the matched expression.
+  ///
+  /// If [needsCheck] is `true`, this is the map type it was checked against.
+  /// Otherwise it is the type of the matched expression itself, which was,
+  /// in this case, already known to be a map type.
+  ///
+  /// This is set during inference.
+  late DartType mapType;
+
+  /// If `true`, this map pattern contains a rest pattern.
+  ///
+  /// This is set during inference.
+  bool hasRestPattern = false;
+
+  /// The target of the `length` property of the map.
+  ///
+  /// This is set during inference.
+  late Member lengthTarget;
+
+  /// The type of the `length` property of the map.
+  ///
+  /// This is set during inference.
+  late DartType lengthType;
+
+  /// The method used to check the `length` of the map.
+  ///
+  /// If this pattern has a rest pattern, this is an `operator >=` method.
+  /// Otherwise this is an `operator ==` method.
+  ///
+  /// This is set during inference.
+  late Procedure lengthCheckTarget;
+
+  /// The type of the method used to check the `length` of the map.
+  ///
+  /// If this pattern has a rest pattern, this is an `operator >=` method.
+  /// Otherwise this is an `operator ==` method.
+  ///
+  /// This is set during inference.
+  late FunctionType lengthCheckType;
+
+  /// The target of the `containsKey` method of the map.
+  ///
+  /// This is set during inference.
+  late Procedure containsKeyTarget;
+
+  /// The type of the `containsKey` method of the map.
+  ///
+  /// This is set during inference.
+  late FunctionType containsKeyType;
+
+  /// The target of the `operator []` method of the map.
+  ///
+  /// This is set during inference.
+  late Procedure indexGetTarget;
+
+  /// The type of the `operator []` method of the map.
+  ///
+  /// This is set during inference.
+  late FunctionType indexGetType;
+
   @override
   List<VariableDeclaration> get declaredVariables =>
       [for (MapPatternEntry entry in entries) ...entry.value.declaredVariables];
@@ -4255,6 +4491,69 @@ class NamedPattern extends Pattern {
   final String name;
   Pattern pattern;
 
+  /// When used in an object pattern, this holds the named of the property
+  /// accessed by this pattern.
+  ///
+  /// This is set during inference.
+  late Name fieldName;
+
+  /// When used in an object pattern, this holds the access kind of used for
+  /// reading the property value for this pattern.
+  ///
+  /// This is set during inference.
+  late ObjectAccessKind accessKind;
+
+  /// When used in an object pattern, this holds the target [Member] used to
+  /// read the property for this pattern.
+  ///
+  /// This is used for [ObjectAccessKind.Object], [ObjectAccessKind.Instance],
+  /// and [ObjectAccessKind.Static].
+  ///
+  /// This is set during inference.
+  Member? target;
+
+  /// When used in an object pattern, this holds the static property type for
+  /// this pattern.
+  ///
+  /// This is used for [ObjectAccessKind.Object] and
+  /// [ObjectAccessKind.Instance].
+  ///
+  /// This is set during inference.
+  DartType? resultType;
+
+  /// When used in an object pattern, this holds the record on which the
+  /// property for this pattern is read.
+  ///
+  /// This is used for [ObjectAccessKind.RecordNamed] and
+  /// [ObjectAccessKind.RecordIndexed].
+  ///
+  /// This is set during inference.
+  RecordType? recordType;
+
+  /// When used in an object pattern, this holds the record field index from
+  /// which the property for this pattern is read.
+  ///
+  /// This is used for [ObjectAccessKind.RecordIndexed].
+  ///
+  /// This is set during inference.
+  int? recordFieldIndex;
+
+  /// When used in an object pattern, this holds the function type of [target]
+  /// called to read the property for this pattern.
+  ///
+  /// This is used for [ObjectAccessKind.Static].
+  ///
+  /// This is set during inference.
+  FunctionType? functionType;
+
+  /// When used in an object pattern, this holds the type arguments used when
+  /// called the [target] to read the property for this pattern.
+  ///
+  /// This is used for [ObjectAccessKind.Static].
+  ///
+  /// This is set during inference.
+  List<DartType>? typeArguments;
+
   @override
   List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
 
@@ -4282,6 +4581,25 @@ class NamedPattern extends Pattern {
 class RecordPattern extends Pattern {
   final List<Pattern> patterns;
   late final RecordType type;
+
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
+  /// If `true`, the matched expression must be checked to be of type [type].
+  ///
+  /// This is set during inference.
+  late bool needsCheck;
+
+  /// The type of the matched expression.
+  ///
+  /// If [needsCheck] is `true`, this is the record type it was checked against.
+  /// Otherwise it is the type of the matched expression itself, which was,
+  /// in this case, already known to be a record type.
+  ///
+  /// This is set during inference.
+  late RecordType recordType;
 
   @override
   List<VariableDeclaration> get declaredVariables =>
@@ -4318,6 +4636,11 @@ class VariablePattern extends Pattern {
   String name;
   VariableDeclaration variable;
 
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
   @override
   List<VariableDeclaration> get declaredVariables => [variable];
 
@@ -4330,22 +4653,6 @@ class VariablePattern extends Pattern {
   @override
   R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
       visitor.visitVariablePattern(this, arg);
-
-  @override
-  R accept<R>(TreeVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultTreeNode(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
-  }
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -4443,4 +4750,58 @@ abstract class PatternVisitor1<R, A> {
       defaultPattern(node, arg);
   R visitWildcardPattern(WildcardPattern node, A arg) =>
       defaultPattern(node, arg);
+}
+
+/// Kinds of lowerings of relational pattern operations.
+enum RelationAccessKind {
+  /// Operator defined by an interface member.
+  Instance,
+
+  /// Operator defined by an extension or inline class member.
+  Static,
+
+  /// Operator accessed on a receiver of type `dynamic`.
+  Dynamic,
+
+  /// Operator accessed on a receiver of type `Never`.
+  Never,
+
+  /// Operator accessed on a receiver of an invalid type.
+  Invalid,
+
+  /// Erroneous operator access.
+  Error,
+}
+
+/// Kinds of lowerings of objects pattern property access.
+enum ObjectAccessKind {
+  /// Property defined by an `Object` member.
+  Object,
+
+  /// Property defined by an interface member.
+  Instance,
+
+  /// Property defined by an extension or inline class member.
+  Static,
+
+  /// Named record field property.
+  RecordNamed,
+
+  /// Positional record field property.
+  RecordIndexed,
+
+  /// Property accessed on a receiver of type `dynamic`.
+  Dynamic,
+
+  /// Property accessed on a receiver of type `Never`.
+  Never,
+
+  /// Property accessed on a receiver of an invalid type.
+  Invalid,
+
+  /// Access of `call` on a function.
+  FunctionTearOff,
+
+  /// Erroneous property access.
+  Error,
 }

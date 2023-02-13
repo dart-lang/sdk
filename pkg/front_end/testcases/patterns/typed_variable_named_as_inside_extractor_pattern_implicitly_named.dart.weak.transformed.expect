@@ -2,11 +2,11 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart:10:10: Error: The getter 'as' isn't defined for the class 'C'.
+// pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart:10:12: Error: The getter 'as' isn't defined for the class 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'as'.
 //     case C(: int as):
-//          ^^
+//            ^^
 //
 import self as self;
 import "dart:core" as core;
@@ -22,13 +22,13 @@ static method test(dynamic x) → dynamic {
   {
     core::int as;
     final dynamic #0#0 = x;
-    function ##0#2#initializer() → dynamic
-      return invalid-expression "pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart:10:10: Error: The getter 'as' isn't defined for the class 'C'.
+    function ##0#2#initializer() → invalid-type
+      return invalid-expression "pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart:10:12: Error: The getter 'as' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'as'.
     case C(: int as):
-         ^^" in #0#0{self::C}{<unresolved>}.as;
-    late final dynamic #0#2 = ##0#2#initializer(){() → dynamic};
+           ^^" in null{<unresolved>}.as;
+    late final invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(#0#0 is{ForNonNullableByDefault} self::C && (#0#2 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = as = #0#2{core::int} in true))) {
       {
         break #L1;

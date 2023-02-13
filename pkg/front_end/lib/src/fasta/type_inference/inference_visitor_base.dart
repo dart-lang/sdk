@@ -215,7 +215,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   int _matchCacheIndex = 0;
 
   MatchingCache createMatchingCache() {
-    return new MatchingCache(_matchCacheIndex++, this);
+    return new MatchingCache(_matchCacheIndex++, coreTypes,
+        useLowering: libraryBuilder.loader.target.backendTarget
+            .isLateLocalLoweringEnabled(
+                hasInitializer: true,
+                isFinal: true,
+                isPotentiallyNullable: true));
   }
 
   DartType computeGreatestClosure(DartType type) {

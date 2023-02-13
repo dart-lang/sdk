@@ -163,6 +163,7 @@ nnbd_mixed/issue41597: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
 nonfunction_type_aliases/old_version: FormatterCrash
 patterns/pattern_matching: FormatterCrash
+patterns/pattern_types: FormatterCrash
 patterns/records/destructuring: FormatterCrash
 patterns/records/record_pattern_inside_if_case: FormatterCrash
 patterns/switchExpression_empty: FormatterCrash
