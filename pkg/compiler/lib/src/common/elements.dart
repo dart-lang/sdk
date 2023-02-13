@@ -562,6 +562,9 @@ abstract class CommonElements {
   late final ClassEntity jsJavaScriptObjectClass =
       _findInterceptorsClass('JavaScriptObject');
 
+  InterfaceType get jsJavaScriptObjectType =>
+      _getRawType(jsJavaScriptObjectClass);
+
   late final ClassEntity jsIndexableClass =
       _findInterceptorsClass('JSIndexable');
 
