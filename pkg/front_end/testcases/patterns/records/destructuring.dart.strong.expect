@@ -16,7 +16,7 @@ static method main(core::List<core::String> arguments) → void {
   final core::double long;
   {
     final dynamic #0#0 = self::getLocation("Aarhus");
-    if(!(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && (let final dynamic #t1 = lat = #0#0{(core::Object?, core::Object?)}.$1{core::Object?} in true) && (let final dynamic #t2 = long = #0#0{(core::Object?, core::Object?)}.$2{core::Object?} in true)))
+    if(!((let final dynamic #t1 = lat = #0#0{(core::double, core::double)}.$1{core::Object?} as{ForNonNullableByDefault} core::double in true) && (let final dynamic #t2 = long = #0#0{(core::double, core::double)}.$2{core::Object?} as{ForNonNullableByDefault} core::double in true)))
       throw new _in::ReachabilityError::•();
   }
   core::print("Current location: ${lat}, ${long}");

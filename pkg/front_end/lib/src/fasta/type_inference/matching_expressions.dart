@@ -48,7 +48,8 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitAssignedVariablePattern(
       AssignedVariablePattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = matchedExpression.getType(base);
+    DartType matchedType = node.matchedType;
+    matchedExpression = matchedExpression.promote(matchedType);
     CacheableExpression valueExpression;
     if (!base.isAssignable(matchedType, node.variable.type) ||
         matchedType is DynamicType) {
@@ -92,7 +93,8 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitListPattern(
       ListPattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = matchedExpression.getType(base);
+    DartType matchedType = node.matchedType;
+    matchedExpression = matchedExpression.promote(matchedType);
     DartType typeArgument = node.typeArgument ?? const DynamicType();
     DartType targetListType = new InterfaceType(base.coreTypes.listClass,
         Nullability.nonNullable, <DartType>[typeArgument]);
@@ -201,7 +203,8 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitMapPattern(
       MapPattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = matchedExpression.getType(base);
+    DartType matchedType = node.matchedType;
+    matchedExpression = matchedExpression.promote(matchedType);
     DartType keyType = node.keyType ?? const DynamicType();
     DartType valueType = node.valueType ?? const DynamicType();
     DartType targetMapType = new InterfaceType(
@@ -331,7 +334,8 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitObjectPattern(
       ObjectPattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = matchedExpression.getType(base);
+    DartType matchedType = node.matchedType;
+    matchedExpression = matchedExpression.promote(matchedType);
     DartType targetObjectType = node.type;
 
     bool typeCheckForTargetNeeded =
@@ -415,7 +419,8 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitRecordPattern(
       RecordPattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = matchedExpression.getType(base);
+    DartType matchedType = node.matchedType;
+    matchedExpression = matchedExpression.promote(matchedType);
     bool typeCheckNeeded = !base.isAssignable(node.type, matchedType) ||
         matchedType is DynamicType;
 
@@ -530,7 +535,8 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitVariablePattern(
       VariablePattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = matchedExpression.getType(base);
+    DartType matchedType = node.matchedType;
+    matchedExpression = matchedExpression.promote(matchedType);
     DelayedExpression? matchingExpression;
     if (node.type != null) {
       matchingExpression = new DelayedIsExpression(

@@ -23,9 +23,9 @@ static method test2(core::Iterable<core::List<core::String>> x) → dynamic {
     core::String y;
     {
       final dynamic #0#0 = #t3;
-      late final core::int #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-      late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(#0#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
-      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::String && (let final dynamic #t4 = y = #0#6{core::String} in true))))
+      late final core::int #0#1 = #0#0{core::List<core::String>}.{core::List::length}{core::int};
+      late final core::String #0#4 = #0#0{core::List<core::String>}.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::String};
+      if(!(#0#1.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#4 is{ForNonNullableByDefault} core::String && (let final dynamic #t4 = y = #0#4 in true))))
         throw new _in::ReachabilityError::•();
     }
     if(y.{core::String::startsWith}("f"){(core::Pattern, [core::int]) → core::bool}) {

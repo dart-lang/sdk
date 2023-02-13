@@ -76,7 +76,7 @@ static method test5((core::int, core::double, {required bar: dynamic, required f
     final(core::int, core::double, {required bar: dynamic, required foo: core::String}) #0#0 = x;
     late final core::Object? #0#2 = #0#0.$2{core::Object?};
     late final core::Object? #0#3 = #0#0.foo{core::Object?};
-    if(#0#0.$1{core::Object?} is{ForNonNullableByDefault} core::int && (#0#2 is{ForNonNullableByDefault} core::double && (let final dynamic #t3 = y = #0#2 in true)) && (let final dynamic #t4 = #0#3! in #0#3! is{ForNonNullableByDefault} core::String) && true) {
+    if(#0#0.$1{core::Object?} is{ForNonNullableByDefault} core::int && (#0#2{core::double} is{ForNonNullableByDefault} core::double && (let final dynamic #t3 = y = #0#2{core::double} in true)) && (let final dynamic #t4 = #0#3! in #0#3! is{ForNonNullableByDefault} core::String) && true) {
       return 0;
     }
     else {

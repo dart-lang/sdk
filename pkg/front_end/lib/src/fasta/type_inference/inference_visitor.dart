@@ -9481,6 +9481,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
+    node.matchedType = flow.getMatchedValueType();
+
     DartType inferredType = analyzeDeclaredVariablePattern(
         context, node, node.variable, node.variable.name!, node.type);
     instrumentation?.record(uriForInstrumentation, node.variable.fileOffset,
@@ -9676,6 +9678,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
+    node.matchedType = flow.getMatchedValueType();
+
     analyzeListPattern(context, node,
         elements: node.patterns, elementType: node.typeArgument);
 
@@ -9702,6 +9706,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void visitObjectPattern(ObjectPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
+
+    node.matchedType = flow.getMatchedValueType();
 
     analyzeObjectPattern(context, node,
         fields: <RecordPatternField<TreeNode, Pattern>>[
@@ -9786,6 +9792,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
+    node.matchedType = flow.getMatchedValueType();
+
     DartType mapType = analyzeMapPattern(context, node,
         typeArguments: new MapPatternTypeArguments<DartType>(
             keyType: node.keyType ?? const DynamicType(),
@@ -9836,6 +9844,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void visitRecordPattern(RecordPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
+
+    node.matchedType = flow.getMatchedValueType();
 
     List<RecordPatternField<TreeNode, Pattern>> fields = [
       for (Pattern fieldPattern in node.patterns)
@@ -9949,6 +9959,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       AssignedVariablePattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
+
+    node.matchedType = flow.getMatchedValueType();
 
     // TODO(johnniwinther): Share this through the type analyzer.
     VariableDeclarationImpl variable = node.variable as VariableDeclarationImpl;

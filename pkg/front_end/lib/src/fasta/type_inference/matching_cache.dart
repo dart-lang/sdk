@@ -846,6 +846,9 @@ abstract class CacheableExpression implements DelayedExpression {
   /// and `Map.length`, respectively, so we must generated two different
   /// expressions to have statically typed access to each.
   AccessKey get accessKey;
+
+  /// Returns a [CacheableExpression] that promotes this expression to [type].
+  CacheableExpression promote(DartType type);
 }
 
 /// A cacheable expression that can promote the type of the underlying
@@ -908,6 +911,12 @@ class PromotedCacheableExpression implements CacheableExpression {
   bool uses(DelayedExpression expression) {
     return identical(this, expression) || _expression.uses(expression);
   }
+
+  @override
+  CacheableExpression promote(DartType type) {
+    if (type == _promotedType) return this;
+    return new PromotedCacheableExpression(_expression, type);
+  }
 }
 
 /// A [CacheableExpression] created using a potentially shared [Cache].
@@ -943,6 +952,12 @@ class CacheExpression implements CacheableExpression {
   @override
   bool uses(DelayedExpression expression) =>
       identical(this, expression) || expression.uses(expression);
+
+  @override
+  CacheableExpression promote(DartType type) {
+    // TODO(johnniwinther): Promote only when needed.
+    return new PromotedCacheableExpression(this, type);
+  }
 }
 
 /// Object that tracks computation of cacheable value.

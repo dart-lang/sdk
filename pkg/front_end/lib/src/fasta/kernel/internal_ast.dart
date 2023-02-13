@@ -3885,6 +3885,11 @@ class ListPattern extends Pattern {
   DartType? typeArgument;
   List<Pattern> patterns;
 
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
   @override
   List<VariableDeclaration> get declaredVariables =>
       [for (Pattern pattern in patterns) ...pattern.declaredVariables];
@@ -3924,6 +3929,11 @@ class ListPattern extends Pattern {
 class ObjectPattern extends Pattern {
   final DartType type;
   final List<NamedPattern> fields;
+
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
 
   ObjectPattern(this.type, this.fields, int fileOffset) : super(fileOffset) {
     setParents(fields, this);
@@ -4107,6 +4117,11 @@ class PatternAssignment extends InternalExpression {
 class AssignedVariablePattern extends Pattern {
   final VariableDeclaration variable;
 
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
   AssignedVariablePattern(this.variable, {required int offset}) : super(offset);
 
   @override
@@ -4218,6 +4233,11 @@ class MapPattern extends Pattern {
   DartType? valueType;
   final List<MapPatternEntry> entries;
 
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
   @override
   List<VariableDeclaration> get declaredVariables =>
       [for (MapPatternEntry entry in entries) ...entry.value.declaredVariables];
@@ -4283,6 +4303,11 @@ class RecordPattern extends Pattern {
   final List<Pattern> patterns;
   late final RecordType type;
 
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
   @override
   List<VariableDeclaration> get declaredVariables =>
       [for (Pattern pattern in patterns) ...pattern.declaredVariables];
@@ -4318,6 +4343,11 @@ class VariablePattern extends Pattern {
   String name;
   VariableDeclaration variable;
 
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  late final DartType matchedType;
+
   @override
   List<VariableDeclaration> get declaredVariables => [variable];
 
@@ -4330,22 +4360,6 @@ class VariablePattern extends Pattern {
   @override
   R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
       visitor.visitVariablePattern(this, arg);
-
-  @override
-  R accept<R>(TreeVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultTreeNode(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
-  }
 
   @override
   void toTextInternal(AstPrinter printer) {
