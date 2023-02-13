@@ -2,25 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/problems.dart';
 import 'package:front_end/src/fasta/type_inference/delayed_expressions.dart';
 import 'package:front_end/src/fasta/type_inference/matching_cache.dart';
 import 'package:kernel/ast.dart';
 
-import '../fasta_codes.dart';
 import '../kernel/internal_ast.dart';
 import '../names.dart';
-import 'inference_visitor_base.dart';
-import 'object_access_target.dart';
 
 /// Visitor that creates the [DelayedExpression] needed to match expressions,
 /// using [MatchingCache] to create cacheable expressions.
 class MatchingExpressionVisitor
     implements PatternVisitor1<DelayedExpression, CacheableExpression> {
-  final InferenceVisitorBase base;
   final MatchingCache matchingCache;
 
-  MatchingExpressionVisitor(this.base, this.matchingCache);
+  MatchingExpressionVisitor(this.matchingCache);
 
   DelayedExpression visitPattern(
       Pattern node, CacheableExpression matchedExpression) {
@@ -33,8 +28,8 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression defaultPattern(
       Pattern node, CacheableExpression matchedExpression) {
-    unsupported("MatchingExpressionVisitor.defaultPattern", node.fileOffset,
-        base.helper.uri);
+    throw new UnsupportedError(
+        "Unexpected pattern $node (${node.runtimeType}).");
   }
 
   @override
@@ -48,11 +43,10 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitAssignedVariablePattern(
       AssignedVariablePattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = node.matchedType;
-    matchedExpression = matchedExpression.promote(matchedType);
+    matchedExpression = matchedExpression.promote(node.matchedType);
+
     CacheableExpression valueExpression;
-    if (!base.isAssignable(matchedType, node.variable.type) ||
-        matchedType is DynamicType) {
+    if (node.needsCheck) {
       valueExpression = new PromotedCacheableExpression(
           matchedExpression, node.variable.type);
     } else {
@@ -80,7 +74,11 @@ class MatchingExpressionVisitor
     CacheableExpression constExpression = matchingCache
         .createConstantExpression(node.expression, node.expressionType);
     return matchingCache.createEqualsExpression(
-        constExpression, matchedExpression,
+        constExpression,
+        matchedExpression,
+        new DelayedEqualsExpression(constExpression, matchedExpression,
+            node.equalsTarget, node.equalsType,
+            fileOffset: node.fileOffset),
         fileOffset: node.fileOffset);
   }
 
@@ -93,56 +91,51 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitListPattern(
       ListPattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = node.matchedType;
-    matchedExpression = matchedExpression.promote(matchedType);
-    DartType typeArgument = node.typeArgument ?? const DynamicType();
-    DartType targetListType = new InterfaceType(base.coreTypes.listClass,
-        Nullability.nonNullable, <DartType>[typeArgument]);
-
-    bool typeCheckForTargetListNeeded =
-        !base.isAssignable(targetListType, matchedType) ||
-            matchedType is DynamicType;
+    matchedExpression = matchedExpression.promote(node.matchedType);
 
     CacheableExpression? isExpression;
     CacheableExpression typedMatchedExpression;
-    if (typeCheckForTargetListNeeded) {
+    if (node.needsCheck) {
       isExpression = matchingCache.createIsExpression(
-          matchedExpression, targetListType,
+          matchedExpression, node.listType,
           fileOffset: node.fileOffset);
       typedMatchedExpression =
-          new PromotedCacheableExpression(matchedExpression, targetListType);
+          new PromotedCacheableExpression(matchedExpression, node.listType);
     } else {
       typedMatchedExpression = matchedExpression;
     }
 
-    ObjectAccessTarget lengthTarget = base.findInterfaceMember(
-        targetListType, lengthName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-
     CacheableExpression lengthGet = matchingCache.createPropertyGetExpression(
-        typedMatchedExpression, lengthName, lengthTarget,
+        typedMatchedExpression,
+        lengthName.text,
+        new DelayedInstanceGet(
+            typedMatchedExpression, node.lengthTarget, node.lengthType,
+            fileOffset: node.fileOffset),
         fileOffset: node.fileOffset);
 
     CacheableExpression lengthCheck;
-    bool hasRestPattern = false;
-    for (Pattern pattern in node.patterns) {
-      if (pattern is RestPattern) {
-        hasRestPattern = true;
-        break;
-      }
-    }
-    if (hasRestPattern) {
+    if (node.hasRestPattern) {
+      CacheableExpression constExpression = matchingCache.createIntConstant(
+          node.patterns.length - 1,
+          fileOffset: node.fileOffset);
+
       lengthCheck = matchingCache.createComparisonExpression(
           lengthGet,
-          greaterThanOrEqualsName,
-          matchingCache.createIntConstant(node.patterns.length - 1,
+          greaterThanOrEqualsName.text,
+          constExpression,
+          new DelayedInstanceInvocation(lengthGet, node.lengthCheckTarget,
+              node.lengthCheckType, [constExpression],
               fileOffset: node.fileOffset),
           fileOffset: node.fileOffset);
     } else {
+      CacheableExpression constExpression = matchingCache
+          .createIntConstant(node.patterns.length, fileOffset: node.fileOffset);
+
       lengthCheck = matchingCache.createEqualsExpression(
           lengthGet,
-          matchingCache.createIntConstant(node.patterns.length,
+          constExpression,
+          new DelayedEqualsExpression(lengthGet, constExpression,
+              node.lengthCheckTarget, node.lengthCheckType,
               fileOffset: node.fileOffset),
           fileOffset: node.fileOffset);
     }
@@ -165,21 +158,76 @@ class MatchingExpressionVisitor
         if (subPattern == null) {
           continue;
         }
+
         int nextIndex = i + 1;
+        int headSize = i;
+        int tailSize = node.patterns.length - nextIndex;
+
+        DelayedExpression expression;
+        if (tailSize > 0) {
+          expression = new DelayedInstanceInvocation(
+              typedMatchedExpression,
+              node.sublistTarget,
+              node.sublistType,
+              [
+                new IntegerExpression(headSize, fileOffset: node.fileOffset),
+                new DelayedInstanceInvocation(
+                    lengthGet,
+                    node.minusTarget,
+                    node.minusType,
+                    [
+                      new IntegerExpression(tailSize,
+                          fileOffset: node.fileOffset)
+                    ],
+                    fileOffset: node.fileOffset)
+              ],
+              fileOffset: node.fileOffset);
+        } else {
+          expression = new DelayedInstanceInvocation(
+              typedMatchedExpression,
+              node.sublistTarget,
+              node.sublistType,
+              [new IntegerExpression(headSize, fileOffset: node.fileOffset)],
+              fileOffset: node.fileOffset);
+        }
         elementExpression = matchingCache.createSublistExpression(
-            typedMatchedExpression,
-            lengthGet,
-            i,
-            node.patterns.length - nextIndex,
+            typedMatchedExpression, lengthGet, headSize, tailSize, expression,
             fileOffset: node.fileOffset);
       } else {
         if (!hasSeenRestPattern) {
+          int index = i;
           elementExpression = matchingCache.createHeadIndexExpression(
-              typedMatchedExpression, i,
+              typedMatchedExpression,
+              index,
+              new DelayedInstanceInvocation(
+                  typedMatchedExpression,
+                  node.indexGetTarget,
+                  node.indexGetType,
+                  [new IntegerExpression(index, fileOffset: node.fileOffset)],
+                  fileOffset: node.fileOffset),
               fileOffset: node.fileOffset);
         } else {
+          int index = node.patterns.length - i;
           elementExpression = matchingCache.createTailIndexExpression(
-              typedMatchedExpression, lengthGet, node.patterns.length - i,
+              typedMatchedExpression,
+              lengthGet,
+              index,
+              new DelayedInstanceInvocation(
+                  typedMatchedExpression,
+                  node.indexGetTarget,
+                  node.indexGetType,
+                  [
+                    new DelayedInstanceInvocation(
+                        lengthGet,
+                        node.minusTarget,
+                        node.minusType,
+                        [
+                          new IntegerExpression(index,
+                              fileOffset: node.fileOffset)
+                        ],
+                        fileOffset: node.fileOffset)
+                  ],
+                  fileOffset: node.fileOffset),
               fileOffset: node.fileOffset);
         }
       }
@@ -203,53 +251,51 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitMapPattern(
       MapPattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = node.matchedType;
-    matchedExpression = matchedExpression.promote(matchedType);
-    DartType keyType = node.keyType ?? const DynamicType();
-    DartType valueType = node.valueType ?? const DynamicType();
-    DartType targetMapType = new InterfaceType(
-        base.coreTypes.mapClass, Nullability.nonNullable, [keyType, valueType]);
-
-    bool typeCheckForTargetMapNeeded =
-        !base.isAssignable(targetMapType, matchedType) ||
-            matchedType is DynamicType;
+    matchedExpression = matchedExpression.promote(node.matchedType);
 
     CacheableExpression? isExpression;
     CacheableExpression typedMatchedExpression;
-    if (typeCheckForTargetMapNeeded) {
+    if (node.needsCheck) {
       isExpression = matchingCache.createIsExpression(
-          matchedExpression, targetMapType,
+          matchedExpression, node.mapType,
           fileOffset: node.fileOffset);
       typedMatchedExpression =
-          new PromotedCacheableExpression(matchedExpression, targetMapType);
+          new PromotedCacheableExpression(matchedExpression, node.mapType);
     } else {
       typedMatchedExpression = matchedExpression;
     }
 
-    ObjectAccessTarget lengthTarget = base.findInterfaceMember(
-        targetMapType, lengthName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-
     CacheableExpression lengthGet = matchingCache.createPropertyGetExpression(
-        typedMatchedExpression, lengthName, lengthTarget,
+        typedMatchedExpression,
+        lengthName.text,
+        new DelayedInstanceGet(
+            typedMatchedExpression, node.lengthTarget, node.lengthType,
+            fileOffset: node.fileOffset),
         fileOffset: node.fileOffset);
 
     CacheableExpression lengthCheck;
-    // In map patterns the rest pattern can appear only in the end.
-    bool hasRestPattern = node.entries.isNotEmpty &&
-        identical(node.entries.last, restMapPatternEntry);
-    if (hasRestPattern) {
+    if (node.hasRestPattern) {
+      CacheableExpression constExpression = matchingCache.createIntConstant(
+          node.entries.length - 1,
+          fileOffset: node.fileOffset);
+
       lengthCheck = matchingCache.createComparisonExpression(
           lengthGet,
-          greaterThanOrEqualsName,
-          matchingCache.createIntConstant(node.entries.length - 1,
+          greaterThanOrEqualsName.text,
+          constExpression,
+          new DelayedInstanceInvocation(lengthGet, node.lengthCheckTarget,
+              node.lengthCheckType, [constExpression],
               fileOffset: node.fileOffset),
           fileOffset: node.fileOffset);
     } else {
+      CacheableExpression constExpression = matchingCache
+          .createIntConstant(node.entries.length, fileOffset: node.fileOffset);
+
       lengthCheck = matchingCache.createEqualsExpression(
           lengthGet,
-          matchingCache.createIntConstant(node.entries.length,
+          constExpression,
+          new DelayedEqualsExpression(lengthGet, constExpression,
+              node.lengthCheckTarget, node.lengthCheckType,
               fileOffset: node.fileOffset),
           fileOffset: node.fileOffset);
     }
@@ -269,23 +315,31 @@ class MatchingExpressionVisitor
       CacheableExpression keyExpression =
           matchingCache.createConstantExpression(
               keyPattern.expression, keyPattern.expressionType);
-      CacheableExpression containsExpression = matchingCache
-          .createContainsKeyExpression(typedMatchedExpression, keyExpression,
+
+      CacheableExpression containsExpression =
+          matchingCache.createContainsKeyExpression(
+              typedMatchedExpression,
+              keyExpression,
+              new DelayedInstanceInvocation(typedMatchedExpression,
+                  node.containsKeyTarget, node.containsKeyType, [keyExpression],
+                  fileOffset: node.fileOffset),
               fileOffset: entry.fileOffset);
+
       matchingExpression = DelayedAndExpression.merge(
           matchingExpression, containsExpression,
           fileOffset: node.fileOffset);
 
-      ObjectAccessTarget invokeTarget = base.findInterfaceMember(
-          targetMapType, indexGetName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-
       CacheableExpression valueExpression = matchingCache.createIndexExpression(
-          typedMatchedExpression, keyExpression, invokeTarget,
+          typedMatchedExpression,
+          keyExpression,
+          new DelayedInstanceInvocation(typedMatchedExpression,
+              node.indexGetTarget, node.indexGetType, [keyExpression],
+              fileOffset: node.fileOffset),
           fileOffset: entry.fileOffset);
-      valueExpression =
-          new PromotedCacheableExpression(valueExpression, valueType);
+      valueExpression = new PromotedCacheableExpression(
+          valueExpression,
+          // TODO(johnniwinther): Compute the value type during inference.
+          node.valueType ?? const DynamicType());
 
       DelayedExpression subExpression =
           visitPattern(entry.value, valueExpression);
@@ -334,71 +388,95 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitObjectPattern(
       ObjectPattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = node.matchedType;
-    matchedExpression = matchedExpression.promote(matchedType);
-    DartType targetObjectType = node.type;
-
-    bool typeCheckForTargetNeeded =
-        !base.isAssignable(targetObjectType, matchedType) ||
-            matchedType is DynamicType;
+    matchedExpression = matchedExpression.promote(node.matchedType);
 
     DelayedExpression? matchingExpression;
     CacheableExpression typedMatchedExpression;
-    if (typeCheckForTargetNeeded) {
+    if (node.needsCheck) {
       matchingExpression = matchingCache.createIsExpression(
-          matchedExpression, targetObjectType,
+          matchedExpression, node.objectType,
           fileOffset: node.fileOffset);
       typedMatchedExpression =
-          new PromotedCacheableExpression(matchedExpression, targetObjectType);
+          new PromotedCacheableExpression(matchedExpression, node.objectType);
     } else {
       typedMatchedExpression = matchedExpression;
     }
 
     for (NamedPattern field in node.fields) {
-      String? fieldNameString;
-      if (field.name.isNotEmpty) {
-        fieldNameString = field.name;
-      } else {
-        // The name is defined by the nested variable pattern.
-        Pattern nestedPattern = field.pattern;
-        if (nestedPattern is VariablePattern) {
-          fieldNameString = nestedPattern.name;
-        }
+      DelayedExpression expression;
+      Member? staticTarget;
+      switch (field.accessKind) {
+        case ObjectAccessKind.Object:
+          expression = new DelayedInstanceGet(
+              typedMatchedExpression, field.target!, field.resultType!,
+              isObjectAccess: true, fileOffset: field.fileOffset);
+          break;
+        case ObjectAccessKind.Instance:
+          expression = new DelayedInstanceGet(
+              typedMatchedExpression, field.target!, field.resultType!,
+              isObjectAccess: false, fileOffset: field.fileOffset);
+          break;
+        case ObjectAccessKind.Static:
+          expression = new DelayedExtensionInvocation(
+              field.target as Procedure,
+              [typedMatchedExpression],
+              field.typeArguments!,
+              field.functionType!,
+              fileOffset: field.fileOffset);
+          staticTarget = field.target;
+          break;
+        case ObjectAccessKind.RecordNamed:
+          expression = new DelayedRecordNameGet(
+              typedMatchedExpression, field.recordType!, field.fieldName.text,
+              fileOffset: field.fileOffset);
+          break;
+        case ObjectAccessKind.RecordIndexed:
+          expression = new DelayedRecordIndexGet(typedMatchedExpression,
+              field.recordType!, field.recordFieldIndex!,
+              fileOffset: field.fileOffset);
+          break;
+        case ObjectAccessKind.Dynamic:
+          expression = new DelayedDynamicGet(typedMatchedExpression,
+              field.fieldName, DynamicAccessKind.Dynamic, const DynamicType(),
+              fileOffset: field.fileOffset);
+          break;
+        case ObjectAccessKind.Never:
+          expression = new DelayedDynamicGet(
+              typedMatchedExpression,
+              field.fieldName,
+              DynamicAccessKind.Never,
+              const NeverType.nonNullable(),
+              fileOffset: field.fileOffset);
+          break;
+        case ObjectAccessKind.Invalid:
+          expression = new DelayedDynamicGet(typedMatchedExpression,
+              field.fieldName, DynamicAccessKind.Invalid, const InvalidType(),
+              fileOffset: field.fileOffset);
+          break;
+        case ObjectAccessKind.FunctionTearOff:
+          expression = new DelayedFunctionTearOff(
+              typedMatchedExpression, node.objectType,
+              fileOffset: field.fileOffset);
+          break;
+        case ObjectAccessKind.Error:
+          expression = new FixedExpression(field.error!, const InvalidType());
+          break;
       }
+      CacheableExpression objectExpression =
+          matchingCache.createPropertyGetExpression(
+              typedMatchedExpression, field.fieldName.text, expression,
+              staticTarget: staticTarget, fileOffset: field.fileOffset);
 
-      if (fieldNameString != null) {
-        Name fieldName = new Name(fieldNameString);
-
-        ObjectAccessTarget fieldTarget = base.findInterfaceMember(
-            targetObjectType, fieldName, node.fileOffset,
-            includeExtensionMethods: true,
-            callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-
-        CacheableExpression objectExpression =
-            matchingCache.createPropertyGetExpression(
-                typedMatchedExpression, fieldName, fieldTarget,
-                fileOffset: node.fileOffset);
-        DelayedExpression subExpression =
-            visitPattern(field.pattern, objectExpression);
-        if (!subExpression.uses(objectExpression)) {
-          // Ensure that we perform the access even if we don't use the result.
-          matchingExpression = DelayedAndExpression.merge(matchingExpression,
-              new EffectExpression(objectExpression, subExpression),
-              fileOffset: node.fileOffset);
-        } else {
-          matchingExpression = DelayedAndExpression.merge(
-              matchingExpression, subExpression,
-              fileOffset: node.fileOffset);
-        }
+      DelayedExpression subExpression =
+          visitPattern(field.pattern, objectExpression);
+      if (!subExpression.uses(objectExpression)) {
+        // Ensure that we perform the access even if we don't use the result.
+        matchingExpression = DelayedAndExpression.merge(matchingExpression,
+            new EffectExpression(objectExpression, subExpression),
+            fileOffset: node.fileOffset);
       } else {
         matchingExpression = DelayedAndExpression.merge(
-            matchingExpression,
-            new FixedExpression(
-                base.helper.buildProblem(
-                    messageUnspecifiedGetterNameInObjectPattern,
-                    node.fileOffset,
-                    noLength),
-                const InvalidType()),
+            matchingExpression, subExpression,
             fileOffset: node.fileOffset);
       }
     }
@@ -419,14 +497,11 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitRecordPattern(
       RecordPattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = node.matchedType;
-    matchedExpression = matchedExpression.promote(matchedType);
-    bool typeCheckNeeded = !base.isAssignable(node.type, matchedType) ||
-        matchedType is DynamicType;
+    matchedExpression = matchedExpression.promote(node.matchedType);
 
     DelayedExpression? matchingExpression;
     CacheableExpression typedMatchedExpression;
-    if (typeCheckNeeded) {
+    if (node.needsCheck) {
       matchingExpression = matchingCache.createIsExpression(
           matchedExpression, node.type,
           fileOffset: node.fileOffset);
@@ -440,16 +515,12 @@ class MatchingExpressionVisitor
     for (Pattern fieldPattern in node.patterns) {
       CacheableExpression fieldExpression;
       if (fieldPattern is NamedPattern) {
-        Name fieldName =
-            new Name(fieldPattern.name, base.libraryBuilder.library);
-
-        ObjectAccessTarget fieldTarget = base.findInterfaceMember(
-            node.type, fieldName, node.fileOffset,
-            includeExtensionMethods: true,
-            callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-
         fieldExpression = matchingCache.createPropertyGetExpression(
-            typedMatchedExpression, fieldName, fieldTarget,
+            typedMatchedExpression,
+            fieldPattern.name,
+            new DelayedRecordNameGet(
+                typedMatchedExpression, node.recordType, fieldPattern.name,
+                fileOffset: fieldPattern.fileOffset),
             fileOffset: fieldPattern.fileOffset);
 
         // [type] is computed by the CFE, so the absence of the named field is
@@ -457,21 +528,15 @@ class MatchingExpressionVisitor
         // than reporting a compile-time error.
         assert(node.type.named.any((named) => named.name == fieldPattern.name));
       } else {
-        Name fieldName =
-            new Name('\$${recordFieldIndex + 1}', base.libraryBuilder.library);
-
-        ObjectAccessTarget fieldTarget = base.findInterfaceMember(
-            node.type, fieldName, node.fileOffset,
-            includeExtensionMethods: true,
-            callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-
+        final int fieldIndex = recordFieldIndex;
         fieldExpression = matchingCache.createPropertyGetExpression(
-            typedMatchedExpression, fieldName, fieldTarget,
+            typedMatchedExpression,
+            '\$${fieldIndex + 1}',
+            new DelayedRecordIndexGet(
+                typedMatchedExpression, node.recordType, fieldIndex,
+                fileOffset: fieldPattern.fileOffset),
             fileOffset: fieldPattern.fileOffset);
 
-        // [type] is computed by the CFE, so the field index out of range is an
-        // internal error, and we check the condition with an assert rather than
-        // reporting a compile-time error.
         assert(recordFieldIndex < node.type.positional.length);
 
         recordFieldIndex++;
@@ -493,33 +558,78 @@ class MatchingExpressionVisitor
       RelationalPattern node, CacheableExpression matchedExpression) {
     CacheableExpression constant = matchingCache.createConstantExpression(
         node.expression, node.expressionType);
-    Name name;
+
     switch (node.kind) {
       case RelationalPatternKind.equals:
       case RelationalPatternKind.notEquals:
         DelayedExpression expression = matchingCache.createEqualsExpression(
-            matchedExpression, constant,
+            matchedExpression,
+            constant,
+            new DelayedEqualsExpression(
+                matchedExpression, constant, node.target!, node.functionType!,
+                fileOffset: node.fileOffset),
             fileOffset: node.fileOffset);
+
         if (node.kind == RelationalPatternKind.notEquals) {
           expression = new DelayedNotExpression(expression);
         }
         return expression;
       case RelationalPatternKind.lessThan:
-        name = lessThanName;
-        break;
       case RelationalPatternKind.lessThanEqual:
-        name = lessThanOrEqualsName;
-        break;
       case RelationalPatternKind.greaterThan:
-        name = greaterThanName;
-        break;
       case RelationalPatternKind.greaterThanEqual:
-        name = greaterThanOrEqualsName;
-        break;
+        DelayedExpression expression;
+        Member? staticTarget;
+        switch (node.accessKind) {
+          case RelationAccessKind.Instance:
+            expression = new DelayedInstanceInvocation(
+                matchedExpression, node.target!, node.functionType!, [constant],
+                fileOffset: node.fileOffset);
+            break;
+          case RelationAccessKind.Static:
+            expression = new DelayedExtensionInvocation(
+                node.target!,
+                [matchedExpression, constant],
+                node.typeArguments!,
+                node.functionType!,
+                fileOffset: node.fileOffset);
+            staticTarget = node.target;
+            break;
+          case RelationAccessKind.Dynamic:
+            expression = new DelayedDynamicInvocation(
+                matchedExpression,
+                node.name,
+                [constant],
+                DynamicAccessKind.Dynamic,
+                const DynamicType(),
+                fileOffset: node.fileOffset);
+            break;
+          case RelationAccessKind.Never:
+            expression = new DelayedDynamicInvocation(
+                matchedExpression,
+                node.name,
+                [constant],
+                DynamicAccessKind.Never,
+                const NeverType.nonNullable(),
+                fileOffset: node.fileOffset);
+            break;
+          case RelationAccessKind.Invalid:
+            expression = new DelayedDynamicInvocation(
+                matchedExpression,
+                node.name,
+                [constant],
+                DynamicAccessKind.Invalid,
+                const InvalidType(),
+                fileOffset: node.fileOffset);
+            break;
+          case RelationAccessKind.Error:
+            expression = new FixedExpression(node.error!, const InvalidType());
+            break;
+        }
+        return matchingCache.createComparisonExpression(
+            matchedExpression, node.name.text, constant, expression,
+            staticTarget: staticTarget, fileOffset: node.fileOffset);
     }
-    return matchingCache.createComparisonExpression(
-        matchedExpression, name, constant,
-        fileOffset: node.fileOffset);
   }
 
   @override
@@ -528,8 +638,7 @@ class MatchingExpressionVisitor
     if (node.subPattern != null) {
       return visitPattern(node.subPattern!, matchedExpression);
     }
-    return unsupported("RestPattern.createMatchingExpression", node.fileOffset,
-        base.helper.uri);
+    throw new UnsupportedError("RestPattern without subpattern.");
   }
 
   @override
@@ -545,14 +654,8 @@ class MatchingExpressionVisitor
     }
     VariableDeclaration target =
         matchingCache.getUnaliasedVariable(node.variable);
-    CacheableExpression valueExpression;
-    if (!base.isAssignable(matchedType, target.type) ||
-        matchedType is DynamicType) {
-      valueExpression =
-          new PromotedCacheableExpression(matchedExpression, target.type);
-    } else {
-      valueExpression = matchedExpression;
-    }
+    CacheableExpression valueExpression =
+        new PromotedCacheableExpression(matchedExpression, target.type);
     return DelayedAndExpression.merge(
         matchingExpression,
         new EffectExpression(

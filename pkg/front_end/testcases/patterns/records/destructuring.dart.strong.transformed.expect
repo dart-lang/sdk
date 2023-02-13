@@ -16,7 +16,7 @@ static method main(core::List<core::String> arguments) → void {
   final core::double long;
   {
     final dynamic #0#0 = self::getLocation("Aarhus");
-    if(!((let final core::double #t1 = lat = #0#0{(core::double, core::double)}.$1{core::Object?} as{ForNonNullableByDefault} core::double in true) && (let final core::double #t2 = long = #0#0{(core::double, core::double)}.$2{core::Object?} as{ForNonNullableByDefault} core::double in true)))
+    if(!((let final core::double #t1 = lat = #0#0{(core::double, core::double)}.$1{core::double} in true) && (let final core::double #t2 = long = #0#0{(core::double, core::double)}.$2{core::double} in true)))
       throw new _in::ReachabilityError::•();
   }
   core::print("Current location: ${lat}, ${long}");
@@ -32,4 +32,4 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///destructuring.dart:7:12 -> RecordConstant(const (56.1629, 10.2039))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///destructuring.dart:9:12 -> RecordConstant(const (0.0, 0.0))
-Extra constant evaluation: evaluated: 35, effectively constant: 2
+Extra constant evaluation: evaluated: 33, effectively constant: 2

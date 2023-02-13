@@ -45,7 +45,8 @@ import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../names.dart';
-import '../problems.dart' as problems show internalProblem, unhandled;
+import '../problems.dart' as problems
+    show internalProblem, unhandled, unsupported;
 import '../source/constructor_declaration.dart';
 import '../source/source_library_builder.dart';
 import '../uri_offset.dart';
@@ -1892,7 +1893,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
-        new MatchingExpressionVisitor(this, matchingCache);
+        new MatchingExpressionVisitor(matchingCache);
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(node.expression, scrutineeType);
     DelayedExpression matchingExpression = matchingExpressionVisitor
@@ -1900,7 +1901,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     matchingExpression.registerUse();
 
-    Expression condition = matchingExpression.createExpression(this);
+    Expression condition =
+        matchingExpression.createExpression(typeSchemaEnvironment);
     Expression? guard = node.patternGuard.guard;
     if (guard != null) {
       condition =
@@ -7612,7 +7614,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
-        new MatchingExpressionVisitor(this, matchingCache);
+        new MatchingExpressionVisitor(matchingCache);
     // TODO(johnniwinther): Handle promoted scrutinee types.
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(expression, scrutineeType);
@@ -7652,7 +7654,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
 
       DelayedExpression matchingExpression = matchingExpressions[caseIndex];
-      Expression caseCondition = matchingExpression.createExpression(this);
+      Expression caseCondition =
+          matchingExpression.createExpression(typeSchemaEnvironment);
       if (guard != null) {
         caseCondition = createAndExpression(caseCondition, guard,
             fileOffset: guard.fileOffset);
@@ -7845,7 +7848,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
-        new MatchingExpressionVisitor(this, matchingCache);
+        new MatchingExpressionVisitor(matchingCache);
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(expression, scrutineeType);
 
@@ -7934,7 +7937,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         DelayedExpression matchingExpression =
             matchingExpressions[caseIndex][headIndex];
-        Expression headCondition = matchingExpression.createExpression(this);
+        Expression headCondition =
+            matchingExpression.createExpression(typeSchemaEnvironment);
         if (guard != null) {
           headCondition = createAndExpression(headCondition, guard,
               fileOffset: guard.fileOffset);
@@ -8519,7 +8523,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
-        new MatchingExpressionVisitor(this, matchingCache);
+        new MatchingExpressionVisitor(matchingCache);
     // TODO(cstefantsova): Do we need a more precise type for the variable?
     DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
@@ -8531,7 +8535,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     matchingExpression.registerUse();
 
     Expression readMatchingExpression =
-        matchingExpression.createExpression(this);
+        matchingExpression.createExpression(typeSchemaEnvironment);
 
     List<Statement> replacementStatements = [
       ...matchingCache.declarations,
@@ -9521,6 +9525,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.expressionType =
         analyzeConstantPattern(context, node, node.expression);
 
+    ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
+        node.expressionType, equalsName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    assert(equalsInvokeTarget.isInstanceMember ||
+        equalsInvokeTarget.isObjectMember ||
+        equalsInvokeTarget.isNever);
+
+    node.equalsTarget = equalsInvokeTarget.member as Procedure;
+    node.equalsType = equalsInvokeTarget.getFunctionType(this);
+
     assert(checkStack(node, stackBase, [
       /* expression = */ ValueKinds.Expression,
     ]));
@@ -9680,6 +9695,88 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     node.matchedType = flow.getMatchedValueType();
 
+    DartType typeArgument = node.typeArgument ?? const DynamicType();
+    DartType targetListType = new InterfaceType(
+        coreTypes.listClass, Nullability.nonNullable, <DartType>[typeArgument]);
+
+    node.needsCheck = _needsCheck(
+        matchedType: node.matchedType, requiredType: targetListType);
+
+    if (node.needsCheck) {
+      node.listType = targetListType;
+    } else {
+      node.listType = node.matchedType;
+    }
+
+    ObjectAccessTarget lengthTarget = findInterfaceMember(
+        node.listType, lengthName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+    assert(lengthTarget.isInstanceMember);
+
+    node.lengthType = lengthTarget.getGetterType(this);
+    node.lengthTarget = lengthTarget.member!;
+
+    ObjectAccessTarget sublistInvokeTarget = findInterfaceMember(
+        node.listType, sublistName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    assert(sublistInvokeTarget.isInstanceMember);
+
+    node.sublistTarget = sublistInvokeTarget.member as Procedure;
+    node.sublistType = sublistInvokeTarget.getFunctionType(this);
+
+    ObjectAccessTarget minusTarget = findInterfaceMember(
+        node.lengthType, minusName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    assert(minusTarget.isInstanceMember);
+    assert(minusTarget.isSpecialCasedBinaryOperator(this));
+
+    node.minusTarget = minusTarget.member as Procedure;
+    node.minusType = replaceReturnType(
+        minusTarget.getFunctionType(this),
+        typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
+            node.lengthType, coreTypes.intNonNullableRawType,
+            isNonNullableByDefault: isNonNullableByDefault));
+
+    ObjectAccessTarget indexGetTarget = findInterfaceMember(
+        node.listType, indexGetName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    assert(indexGetTarget.isInstanceMember);
+
+    node.indexGetTarget = indexGetTarget.member as Procedure;
+    node.indexGetType = indexGetTarget.getFunctionType(this);
+
+    for (Pattern pattern in node.patterns) {
+      if (pattern is RestPattern) {
+        node.hasRestPattern = true;
+        break;
+      }
+    }
+
+    if (node.hasRestPattern) {
+      ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
+          node.lengthType, greaterThanOrEqualsName, node.fileOffset,
+          includeExtensionMethods: true,
+          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+      assert(greaterThanOrEqualTarget.isInstanceMember);
+
+      node.lengthCheckTarget = greaterThanOrEqualTarget.member as Procedure;
+      node.lengthCheckType = greaterThanOrEqualTarget.getFunctionType(this);
+    } else {
+      ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
+          node.lengthType, equalsName, node.fileOffset,
+          includeExtensionMethods: true,
+          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+      assert(equalsInvokeTarget.isInstanceMember ||
+          equalsInvokeTarget.isObjectMember);
+
+      node.lengthCheckTarget = equalsInvokeTarget.member as Procedure;
+      node.lengthCheckType = equalsInvokeTarget.getFunctionType(this);
+    }
+
     analyzeListPattern(context, node,
         elements: node.patterns, elementType: node.typeArgument);
 
@@ -9700,6 +9797,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+  }
+
+  bool _needsCheck(
+      {required DartType matchedType, required DartType requiredType}) {
+    return !isAssignable(requiredType, matchedType) ||
+        matchedType is DynamicType;
   }
 
   @override
@@ -9726,6 +9829,104 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Object? rewrite = popRewrite();
       if (!identical(rewrite, field.pattern)) {
         field.pattern = (rewrite as Pattern)..parent = field;
+      }
+    }
+
+    node.needsCheck =
+        _needsCheck(matchedType: node.matchedType, requiredType: node.type);
+
+    if (node.needsCheck) {
+      node.objectType = node.type;
+    } else {
+      node.objectType = node.matchedType;
+    }
+
+    for (NamedPattern field in node.fields) {
+      String? fieldNameString;
+      if (field.name.isNotEmpty) {
+        fieldNameString = field.name;
+      } else {
+        // The name is defined by the nested variable pattern.
+        Pattern nestedPattern = field.pattern;
+        if (nestedPattern is VariablePattern) {
+          fieldNameString = nestedPattern.name;
+        }
+      }
+
+      if (fieldNameString != null) {
+        field.fieldName = new Name(fieldNameString);
+
+        ObjectAccessTarget fieldTarget = findInterfaceMember(
+            node.objectType, field.fieldName, field.fileOffset,
+            includeExtensionMethods: true,
+            callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+
+        switch (fieldTarget.kind) {
+          case ObjectAccessTargetKind.instanceMember:
+            field.target = fieldTarget.member!;
+            field.resultType = fieldTarget.getGetterType(this);
+            field.accessKind = ObjectAccessKind.Instance;
+            break;
+          case ObjectAccessTargetKind.objectMember:
+            field.target = fieldTarget.member!;
+            field.resultType = fieldTarget.getGetterType(this);
+            field.accessKind = ObjectAccessKind.Object;
+            break;
+          case ObjectAccessTargetKind.recordNamed:
+            field.recordType =
+                node.objectType.resolveTypeParameterType as RecordType;
+            field.accessKind = ObjectAccessKind.RecordNamed;
+            break;
+          case ObjectAccessTargetKind.recordIndexed:
+            field.recordType =
+                node.objectType.resolveTypeParameterType as RecordType;
+            field.accessKind = ObjectAccessKind.RecordIndexed;
+            field.recordFieldIndex = fieldTarget.recordFieldIndex!;
+            break;
+          case ObjectAccessTargetKind.nullableInstanceMember:
+          case ObjectAccessTargetKind.nullableExtensionMember:
+          case ObjectAccessTargetKind.nullableInlineClassMember:
+          case ObjectAccessTargetKind.nullableRecordIndexed:
+          case ObjectAccessTargetKind.nullableRecordNamed:
+          case ObjectAccessTargetKind.nullableCallFunction:
+          case ObjectAccessTargetKind.missing:
+          case ObjectAccessTargetKind.ambiguous:
+            // TODO(johnniwinther): Provide the right receiver.
+            field.error = createMissingPropertyGet(field.fileOffset,
+                new NullLiteral(), node.objectType, field.fieldName);
+            field.accessKind = ObjectAccessKind.Error;
+            break;
+          case ObjectAccessTargetKind.invalid:
+            field.accessKind = ObjectAccessKind.Invalid;
+            break;
+          case ObjectAccessTargetKind.callFunction:
+            field.accessKind = ObjectAccessKind.FunctionTearOff;
+            break;
+          case ObjectAccessTargetKind.superMember:
+          case ObjectAccessTargetKind.inlineClassRepresentation:
+          case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+            problems.unsupported('Object field target $fieldTarget',
+                node.fileOffset, helper.uri);
+          case ObjectAccessTargetKind.extensionMember:
+          case ObjectAccessTargetKind.inlineClassMember:
+            field.accessKind = ObjectAccessKind.Static;
+            field.functionType = fieldTarget.getFunctionType(this);
+            field.typeArguments = fieldTarget.receiverTypeArguments;
+            field.target = fieldTarget.member;
+            break;
+          case ObjectAccessTargetKind.dynamic:
+            field.accessKind = ObjectAccessKind.Dynamic;
+            break;
+          case ObjectAccessTargetKind.never:
+            field.accessKind = ObjectAccessKind.Dynamic;
+            break;
+        }
+      } else {
+        field.accessKind = ObjectAccessKind.Error;
+        field.error = helper.buildProblem(
+            messageUnspecifiedGetterNameInObjectPattern,
+            node.fileOffset,
+            noLength);
       }
     }
 
@@ -9766,6 +9967,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
+    node.matchedType = flow.getMatchedValueType();
+
     DartType expressionType =
         analyzeRelationalPattern(context, node, node.expression);
 
@@ -9779,6 +9982,106 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     node.expressionType = expressionType;
+
+    switch (node.kind) {
+      case RelationalPatternKind.equals:
+      case RelationalPatternKind.notEquals:
+        node.name = equalsName;
+        break;
+      case RelationalPatternKind.lessThan:
+        node.name = lessThanName;
+        break;
+      case RelationalPatternKind.lessThanEqual:
+        node.name = lessThanOrEqualsName;
+        break;
+      case RelationalPatternKind.greaterThan:
+        node.name = greaterThanName;
+        break;
+      case RelationalPatternKind.greaterThanEqual:
+        node.name = greaterThanOrEqualsName;
+        break;
+    }
+    ObjectAccessTarget invokeTarget = findInterfaceMember(
+        node.matchedType, node.name, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    switch (node.kind) {
+      case RelationalPatternKind.equals:
+      case RelationalPatternKind.notEquals:
+        assert(invokeTarget.isInstanceMember ||
+            invokeTarget.isObjectMember ||
+            invokeTarget.isNever);
+
+        node.functionType = invokeTarget.getFunctionType(this);
+        node.accessKind = RelationAccessKind.Instance;
+        Procedure? target = invokeTarget.member as Procedure?;
+        if (target == null) {
+          target = findInterfaceMember(
+                  const DynamicType(), equalsName, node.fileOffset,
+                  instrumented: false,
+                  callSiteAccessKind: CallSiteAccessKind.operatorInvocation)
+              .member as Procedure;
+          node.functionType = new FunctionType([const DynamicType()],
+              const NeverType.nonNullable(), libraryBuilder.nonNullable);
+        }
+        node.target = target;
+        break;
+      case RelationalPatternKind.lessThan:
+      case RelationalPatternKind.lessThanEqual:
+      case RelationalPatternKind.greaterThan:
+      case RelationalPatternKind.greaterThanEqual:
+        switch (invokeTarget.kind) {
+          case ObjectAccessTargetKind.instanceMember:
+            node.functionType = invokeTarget.getFunctionType(this);
+            node.target = invokeTarget.member as Procedure;
+            node.accessKind = RelationAccessKind.Instance;
+            break;
+          case ObjectAccessTargetKind.nullableInstanceMember:
+          case ObjectAccessTargetKind.nullableExtensionMember:
+          case ObjectAccessTargetKind.nullableInlineClassMember:
+          case ObjectAccessTargetKind.missing:
+          case ObjectAccessTargetKind.ambiguous:
+            // TODO(johnniwinther): Provide the right receiver and argument.
+            node.error = createMissingMethodInvocation(
+                node.fileOffset,
+                new NullLiteral(),
+                node.matchedType,
+                node.name,
+                new Arguments([])..fileOffset = node.fileOffset,
+                isExpressionInvocation: false);
+            node.accessKind = RelationAccessKind.Error;
+            break;
+          case ObjectAccessTargetKind.objectMember:
+          case ObjectAccessTargetKind.superMember:
+          case ObjectAccessTargetKind.callFunction:
+          case ObjectAccessTargetKind.nullableCallFunction:
+          case ObjectAccessTargetKind.recordIndexed:
+          case ObjectAccessTargetKind.recordNamed:
+          case ObjectAccessTargetKind.nullableRecordIndexed:
+          case ObjectAccessTargetKind.nullableRecordNamed:
+          case ObjectAccessTargetKind.inlineClassRepresentation:
+          case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+            problems.unsupported('Relational pattern target $invokeTarget',
+                node.fileOffset, helper.uri);
+          case ObjectAccessTargetKind.extensionMember:
+          case ObjectAccessTargetKind.inlineClassMember:
+            node.functionType = invokeTarget.getFunctionType(this);
+            node.typeArguments = invokeTarget.receiverTypeArguments;
+            node.target = invokeTarget.member as Procedure;
+            node.accessKind = RelationAccessKind.Static;
+            break;
+          case ObjectAccessTargetKind.dynamic:
+            node.accessKind = RelationAccessKind.Dynamic;
+            break;
+          case ObjectAccessTargetKind.never:
+            node.accessKind = RelationAccessKind.Never;
+            break;
+          case ObjectAccessTargetKind.invalid:
+            node.accessKind = RelationAccessKind.Invalid;
+            break;
+        }
+        break;
+    }
 
     pushRewrite(node);
 
@@ -9799,6 +10102,73 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             keyType: node.keyType ?? const DynamicType(),
             valueType: node.valueType ?? const DynamicType()),
         elements: node.entries);
+
+    // TODO(johnniwinther): How does `mapType` relate to `node.mapType`?
+    DartType keyType = node.keyType ?? const DynamicType();
+    DartType valueType = node.valueType ?? const DynamicType();
+    DartType targetMapType = new InterfaceType(
+        coreTypes.mapClass, Nullability.nonNullable, [keyType, valueType]);
+
+    node.needsCheck =
+        _needsCheck(matchedType: node.matchedType, requiredType: targetMapType);
+
+    if (node.needsCheck) {
+      node.mapType = targetMapType;
+    } else {
+      node.mapType = node.matchedType;
+    }
+
+    ObjectAccessTarget lengthTarget = findInterfaceMember(
+        node.mapType, lengthName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+    assert(lengthTarget.isInstanceMember);
+
+    node.lengthType = lengthTarget.getGetterType(this);
+    node.lengthTarget = lengthTarget.member!;
+
+    // In map patterns the rest pattern can appear only in the end.
+    node.hasRestPattern = node.entries.isNotEmpty &&
+        identical(node.entries.last, restMapPatternEntry);
+
+    if (node.hasRestPattern) {
+      ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
+          node.lengthType, greaterThanOrEqualsName, node.fileOffset,
+          includeExtensionMethods: true,
+          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+      assert(greaterThanOrEqualTarget.isInstanceMember);
+
+      node.lengthCheckTarget = greaterThanOrEqualTarget.member as Procedure;
+      node.lengthCheckType = greaterThanOrEqualTarget.getFunctionType(this);
+    } else {
+      ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
+          node.lengthType, equalsName, node.fileOffset,
+          includeExtensionMethods: true,
+          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+      assert(equalsInvokeTarget.isInstanceMember ||
+          equalsInvokeTarget.isObjectMember);
+
+      node.lengthCheckTarget = equalsInvokeTarget.member as Procedure;
+      node.lengthCheckType = equalsInvokeTarget.getFunctionType(this);
+    }
+
+    ObjectAccessTarget containsKeyTarget = findInterfaceMember(
+        targetMapType, containsKeyName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.methodInvocation);
+    assert(containsKeyTarget.isInstanceMember);
+
+    node.containsKeyTarget = containsKeyTarget.member as Procedure;
+    node.containsKeyType = containsKeyTarget.getFunctionType(this);
+
+    ObjectAccessTarget indexGetTarget = findInterfaceMember(
+        targetMapType, indexGetName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    assert(indexGetTarget.isInstanceMember);
+
+    node.indexGetTarget = indexGetTarget.member as Procedure;
+    node.indexGetType = indexGetTarget.getFunctionType(this);
 
     assert(checkStack(node, stackBase, [
       /* entries = */ ...repeatedKind(
@@ -9863,6 +10233,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
 
     node.type = recordType as RecordType;
+
+    // TODO(johnniwinther): How does `recordType` relate to `node.recordType`?
+    node.needsCheck =
+        _needsCheck(matchedType: node.matchedType, requiredType: node.type);
+    if (node.needsCheck) {
+      node.recordType = node.type;
+    } else {
+      DartType resolvedType = node.matchedType.resolveTypeParameterType;
+      if (resolvedType is RecordType) {
+        node.recordType = resolvedType;
+      } else {
+        // In case of the matched type being an invalid type we use the
+        // required type instead.
+        node.recordType = node.type;
+      }
+    }
+
     for (int i = node.patterns.length - 1; i >= 0; i--) {
       Pattern subPattern = node.patterns[i];
       Object? rewrite = popRewrite();
@@ -9917,7 +10304,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
-        new MatchingExpressionVisitor(this, matchingCache);
+        new MatchingExpressionVisitor(matchingCache);
     // TODO(cstefantsova): Do we need a more precise type for the variable?
     DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
@@ -9929,9 +10316,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     matchedExpression.registerUse();
     matchingExpression.registerUse();
 
-    Expression readMatchedExpression = matchedExpression.createExpression(this);
+    Expression readMatchedExpression =
+        matchedExpression.createExpression(typeSchemaEnvironment);
     Expression readMatchingExpression =
-        matchingExpression.createExpression(this);
+        matchingExpression.createExpression(typeSchemaEnvironment);
 
     List<Statement> replacementStatements = [
       ...node.pattern.declaredVariables,
@@ -9961,6 +10349,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStackBase(node, stackBase = stackHeight));
 
     node.matchedType = flow.getMatchedValueType();
+    node.needsCheck = _needsCheck(
+        matchedType: node.matchedType, requiredType: node.variable.type);
 
     // TODO(johnniwinther): Share this through the type analyzer.
     VariableDeclarationImpl variable = node.variable as VariableDeclarationImpl;
@@ -10183,6 +10573,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   RelationalOperatorResolution<DartType>? resolveRelationalPatternOperator(
       covariant RelationalPattern node, DartType matchedValueType) {
+    // TODO(johnniwinther): Reuse computed values between here and
+    // visitRelationalPattern.
     Name operatorName;
     RelationalOperatorKind kind = RelationalOperatorKind.other;
     switch (node.kind) {

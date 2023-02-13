@@ -106,10 +106,7 @@ static method argumentTypeNotAssignable(self::Class cls) → dynamic {
   #L1:
   {
     final self::Class #0#0 = cls;
-    if(#0#0.{self::Class::>=}(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:13:13: Error: The argument type 'int' can't be assigned to the parameter type 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/patterns/shared_errors.dart'.
-    case >= 0: // Error
-            ^" in #C1 as{TypeError,ForNonNullableByDefault} self::Class){(self::Class) → core::bool}) {
+    if(#0#0.{self::Class::>=}(#C1){(self::Class) → core::bool}) {
       {
         core::print(0);
       }
