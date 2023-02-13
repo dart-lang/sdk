@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,6 +27,7 @@ void f() {
   }
 
   test_literal_null() async {
+    noSoundNullSafety = false;
     await assertErrorsInCode(r'''
 // @dart = 2.9
 void f() {
@@ -37,6 +39,7 @@ void f() {
   }
 
   test_type_Null() async {
+    noSoundNullSafety = false;
     await assertErrorsInCode(r'''
 // @dart = 2.9
 void f(Null a) {

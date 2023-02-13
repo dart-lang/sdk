@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef B<unrelated X extends core::Object? = dynamic> = self::A;
+class A extends core::Object {
+  field core::int? field;
+  synthetic constructor •() → self::A
+    ;
+}
+static method test(dynamic x) → dynamic
+  ;
+static method _#B#new#tearOff<unrelated X extends core::Object? = dynamic>() → self::A
+  return new self::A::•();

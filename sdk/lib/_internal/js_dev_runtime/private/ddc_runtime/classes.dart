@@ -654,23 +654,27 @@ Object typeTagSymbol(String recipe) {
   return tagSymbol;
 }
 
-/// Attaches the type [recipe] and the type tag for the class to to [classRef].
+/// Attaches the class type recipe and the type tags for all implemented
+/// [interfaceRecipes] to [classRef].
 ///
 /// The tags are used for simple identification of instances in the dart:rti
 /// library.
 ///
-/// The first element of interface [interfaceRecipes] must always be the recipe
-/// for the type represented by [classRef].
-void addRtiResources(Object classRef, String recipe) {
-  // Attach the classes own interface type recipe.
+/// The first element of [interfaceRecipes] must always be the type recipe for
+/// the type represented by [classRef].
+void addRtiResources(Object classRef, JSArray<String> interfaceRecipes) {
+  // Attach the [classRef]'s own interface type recipe.
   // The recipe is used in dart:_rti to create an [rti.Rti] instance when
   // needed.
-  JS('', r'#.# = #', classRef, rti.interfaceTypeRecipePropertyName, recipe);
+  JS('', r'#.# = #[0]', classRef, rti.interfaceTypeRecipePropertyName,
+      interfaceRecipes);
   // Add specialized test resources used for fast interface type checks in
   // dart:_rti.
   var prototype = JS<Object>('!', '#.prototype', classRef);
-  var tagSymbol = typeTagSymbol(recipe);
-  JS('', '#.# = #', prototype, tagSymbol, true);
+  for (var recipe in interfaceRecipes) {
+    var tagSymbol = typeTagSymbol(recipe);
+    JS('', '#.# = #', prototype, tagSymbol, true);
+  }
 }
 
 /// Pre-initializes types with empty type caches.

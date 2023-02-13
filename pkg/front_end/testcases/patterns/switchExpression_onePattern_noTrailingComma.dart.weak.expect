@@ -1,0 +1,10 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method f(dynamic x) → dynamic
+  return block {
+    core::int #t1;
+    if(true)
+      #t1 = 0;
+  } =>#t1;

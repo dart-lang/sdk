@@ -33,7 +33,6 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
   @override
   // The private type in the return type is dictated by the signature of the
   // super-method and the class's super-class.
-  // ignore: library_private_types_in_public_api
   Future<ErrorOr<TextDocumentTypeDefinitionResult>> handle(
       TypeDefinitionParams params,
       MessageInfo message,

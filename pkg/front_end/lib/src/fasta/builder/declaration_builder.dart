@@ -8,6 +8,7 @@ import '../messages.dart';
 import '../scope.dart';
 import 'builder.dart';
 import 'library_builder.dart';
+import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'type_declaration_builder.dart';
 
@@ -16,10 +17,16 @@ abstract class DeclarationBuilder implements TypeDeclarationBuilder {
 
   LibraryBuilder get libraryBuilder;
 
+  @override
+  DeclarationBuilder get origin;
+
   /// Lookup a member accessed statically through this declaration.
   Builder? findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter = false});
+
+  MemberBuilder? findConstructorOrFactory(
+      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled = false, List<LocatedMessage>? context});
@@ -37,6 +44,8 @@ abstract class DeclarationBuilder implements TypeDeclarationBuilder {
   /// reported.
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false});
+
+  ConstructorScope get constructorScope;
 }
 
 abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
@@ -45,10 +54,19 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   final Scope scope;
 
   @override
+  final ConstructorScope constructorScope;
+
+  @override
   final Uri fileUri;
 
-  DeclarationBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
-      String name, LibraryBuilder parent, int charOffset, this.scope)
+  DeclarationBuilderImpl(
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      String name,
+      LibraryBuilder parent,
+      int charOffset,
+      this.scope,
+      this.constructorScope)
       : fileUri = parent.fileUri,
         super(metadata, modifiers, name, parent, charOffset);
 
@@ -56,6 +74,26 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   LibraryBuilder get libraryBuilder {
     LibraryBuilder library = parent as LibraryBuilder;
     return library.partOfLibrary ?? library;
+  }
+
+  @override
+  DeclarationBuilder get origin => this;
+
+  @override
+  MemberBuilder? findConstructorOrFactory(
+      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
+    if (accessingLibrary.nameOriginBuilder.origin !=
+            libraryBuilder.nameOriginBuilder.origin &&
+        name.startsWith("_")) {
+      return null;
+    }
+    MemberBuilder? declaration =
+        constructorScope.lookup(name == 'new' ? '' : name, charOffset, uri);
+    if (declaration == null && isPatch) {
+      return origin.findConstructorOrFactory(
+          name, charOffset, uri, accessingLibrary);
+    }
+    return declaration;
   }
 
   @override

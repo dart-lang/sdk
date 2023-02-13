@@ -79,12 +79,24 @@ static BoolPtr CopyData(const TypedDataBase& dst_array,
                            src_array.LengthInBytes()));
   ASSERT(Utils::RangeCheck(dst_offset_in_bytes, length_in_bytes,
                            dst_array.LengthInBytes()));
-  if (clamped) {
-    TypedData::ClampedCopy(dst_array, dst_offset_in_bytes, src_array,
-                           src_offset_in_bytes, length_in_bytes);
-  } else {
-    TypedData::Copy(dst_array, dst_offset_in_bytes, src_array,
-                    src_offset_in_bytes, length_in_bytes);
+  if (length_in_bytes > 0) {
+    NoSafepointScope no_safepoint;
+    if (clamped) {
+      uint8_t* dst_data =
+          reinterpret_cast<uint8_t*>(dst_array.DataAddr(dst_offset_in_bytes));
+      int8_t* src_data =
+          reinterpret_cast<int8_t*>(src_array.DataAddr(src_offset_in_bytes));
+      for (intptr_t ix = 0; ix < length_in_bytes; ix++) {
+        int8_t v = *src_data;
+        if (v < 0) v = 0;
+        *dst_data = v;
+        src_data++;
+        dst_data++;
+      }
+    } else {
+      memmove(dst_array.DataAddr(dst_offset_in_bytes),
+              src_array.DataAddr(src_offset_in_bytes), length_in_bytes);
+    }
   }
   return Bool::True().ptr();
 }

@@ -84,6 +84,7 @@ replacer(String key, value) {
 String? format(value) {
   // Avoid double-escaping strings.
   if (value is String) return value;
+  if (value is Function) value = allowInterop(value);
   return stringify(value, allowInterop(replacer), 4);
 }
 
@@ -214,7 +215,10 @@ window.ExampleJSClass = function ExampleJSClass(x) {
 
     addNestedFormatterGoldens('Iterable', iterable);
 
-    var s = new Set()..add("foo")..add(42)..add(true);
+    var s = new Set()
+      ..add("foo")
+      ..add(42)
+      ..add(true);
     addNestedFormatterGoldens('Set', s);
   });
 
@@ -244,7 +248,7 @@ window.ExampleJSClass = function ExampleJSClass(x) {
 
     addEventListener(String name, bool callback(Event e)) => null;
 
-    addFormatterGoldens('Function with functon arguments', addEventListener);
+    addFormatterGoldens('Function with function arguments', addEventListener);
 
     // Closure
     addGolden('dart:html method', window.addEventListener);

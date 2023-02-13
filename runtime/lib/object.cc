@@ -148,13 +148,12 @@ static bool HaveSameRuntimeTypeHelper(Zone* zone,
   if (left_cid == kRecordCid) {
     const auto& left_record = Record::Cast(left);
     const auto& right_record = Record::Cast(right);
-    const intptr_t num_fields = left_record.num_fields();
-    if ((num_fields != right_record.num_fields()) ||
-        (left_record.field_names() != right_record.field_names())) {
+    if (left_record.shape() != right_record.shape()) {
       return false;
     }
     Instance& left_field = Instance::Handle(zone);
     Instance& right_field = Instance::Handle(zone);
+    const intptr_t num_fields = left_record.num_fields();
     for (intptr_t i = 0; i < num_fields; ++i) {
       left_field ^= left_record.FieldAt(i);
       right_field ^= right_record.FieldAt(i);
@@ -336,7 +335,7 @@ DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
 }
 
 DEFINE_NATIVE_ENTRY(Internal_writeHeapSnapshotToFile, 0, 1) {
-#if !defined(PRODUCT)
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
   const String& filename =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   {

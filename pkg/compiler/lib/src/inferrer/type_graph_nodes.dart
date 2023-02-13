@@ -13,6 +13,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
+import '../universe/record_shape.dart' show RecordShape;
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Setlet;
 import 'abstract_value_domain.dart';
@@ -414,7 +415,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   ///
   /// The global information is summarized in [cleanup], after which [_callers]
   /// is set to `null`.
-  Map<MemberEntity, Setlet<ir.Node?>>? _callers;
+  Map<MemberEntity, Setlet<ir.Node>>? _callers;
 
   MemberTypeInformation._internal(
       AbstractValueDomain abstractValueDomain, this._member)
@@ -425,13 +426,13 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   @override
   String get debugName => '$member';
 
-  void addCall(MemberEntity caller, ir.Node? node) {
-    (_callers ??= <MemberEntity, Setlet<ir.Node?>>{})
-        .putIfAbsent(caller, () => Setlet())
+  void addCall(MemberEntity caller, ir.Node node) {
+    (_callers ??= <MemberEntity, Setlet<ir.Node>>{})
+        .putIfAbsent(caller, () => Setlet<ir.Node>())
         .add(node);
   }
 
-  void removeCall(MemberEntity caller, Object node) {
+  void removeCall(MemberEntity caller, ir.Node node) {
     final callers = _callers;
     if (callers == null) return;
     final calls = callers[caller];
@@ -949,7 +950,7 @@ bool validCallType(CallType callType, ir.Node? call) {
 /// and [selector] and [receiver] fields for dynamic calls.
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
-  final ir.Node? _call;
+  final ir.Node _call;
   final MemberEntity caller;
   final Selector? selector;
   final ArgumentsTypes? arguments;
@@ -963,8 +964,7 @@ abstract class CallSiteTypeInformation extends TypeInformation
       this.selector,
       this.arguments,
       this.inLoop)
-      : assert(_call is ir.Node || (_call == null && selector?.name == '==')),
-        super.noInputs(abstractValueDomain.uncomputedType, context);
+      : super.noInputs(abstractValueDomain.uncomputedType, context);
 
   @override
   String toString() => 'Call site $debugName $type';
@@ -1000,7 +1000,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   @override
   void addToGraph(InferrerEngine inferrer) {
     MemberTypeInformation callee = _getCalledTypeInfo(inferrer);
-    callee.addCall(caller, _call!);
+    callee.addCall(caller, _call);
     callee.addUser(this);
     if (arguments != null) {
       arguments!.forEach((info) => info.addUser(this));
@@ -1088,11 +1088,11 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   }
 
   void _addCall(MemberTypeInformation callee) {
-    callee.addCall(caller, _call!);
+    callee.addCall(caller, _call);
   }
 
   void _removeCall(MemberTypeInformation callee) {
-    callee.removeCall(caller, _call!);
+    callee.removeCall(caller, _call);
   }
 
   @override
@@ -1157,7 +1157,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   ///
   /// Returns the more precise TypeInformation, or `null` to defer to the
   /// library code.
-  TypeInformation? handleIntrisifiedSelector(
+  TypeInformation? handleIntrinsifiedSelector(
       Selector selector, AbstractValue? mask, InferrerEngine inferrer) {
     AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
     if (mask == null) return null;
@@ -1343,7 +1343,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
           return abstractValueDomain.getMapValueType(typeMask);
         } else {
           final info =
-              handleIntrisifiedSelector(localSelector, typeMask, inferrer);
+              handleIntrinsifiedSelector(localSelector, typeMask, inferrer);
           if (info != null) return info.type;
           return inferrer.typeOfMemberWithSelector(element, selector).type;
         }
@@ -1361,9 +1361,8 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   @override
   void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
     if (!abandonInferencing) {
-      final call = _call!;
       inferrer.updateSelectorInMember(
-          caller, _callType, call as ir.TreeNode, selector, mask);
+          caller, _callType, _call as ir.TreeNode, selector, mask);
       final oldTargets = concreteTargets;
       final localSelector = selector!;
       _hasClosureCallTargets =
@@ -1375,7 +1374,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
               inferrer.types.getInferredTypeOfMember(element);
-          callee.addCall(caller, call);
+          callee.addCall(caller, _call);
           inferrer.updateParameterInputs(this, element, arguments, selector,
               remove: false, addToQueue: true);
         }
@@ -2005,6 +2004,87 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
   String toString() => 'Value in Map $type';
 }
 
+/// A [RecordTypeInformation] is the constructor for a record, used for Record
+/// constants and literals.
+class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
+  final RecordShape recordShape;
+  final AbstractValue originalType;
+
+  final List<FieldInRecordTypeInformation> fieldTypes;
+
+  RecordTypeInformation(MemberTypeInformation? context, this.originalType,
+      this.recordShape, this.fieldTypes)
+      : super(originalType, context) {
+    for (final fieldType in fieldTypes) {
+      fieldType.addUser(this);
+    }
+  }
+
+  markAsInferred() {
+    for (final fieldType in fieldTypes) fieldType.inferred = true;
+  }
+
+  @override
+  addInput(TypeInformation other) {
+    throw UnsupportedError('addInput');
+  }
+
+  @override
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitRecordTypeInformation(this);
+  }
+
+  AbstractValue toTypeMask(InferrerEngine inferrer) {
+    AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
+    return abstractValueDomain.recordType;
+  }
+
+  @override
+  AbstractValue computeType(InferrerEngine inferrer) {
+    return toTypeMask(inferrer);
+  }
+
+  @override
+  // TODO(50701): This could be a top type of the record shape.
+  AbstractValue safeType(InferrerEngine inferrer) => originalType;
+
+  @override
+  bool hasStableType(InferrerEngine inferrer) {
+    return fieldTypes.every((type) => type.hasStableType(inferrer)) &&
+        super.hasStableType(inferrer);
+  }
+
+  @override
+  void cleanup() {
+    super.cleanup();
+    for (final fieldType in fieldTypes) {
+      fieldType.cleanup();
+    }
+    _flowsInto = null;
+  }
+
+  @override
+  String toString() {
+    return 'Record $type $fieldTypes';
+  }
+}
+
+/// A [FieldInRecordTypeInformation] holds the input of one position of a
+/// [RecordTypeInformation].
+class FieldInRecordTypeInformation extends InferredTypeInformation {
+  final int indexInShape;
+  FieldInRecordTypeInformation(super.abstractValueDomain, super.context,
+      this.indexInShape, super.parentType);
+
+  @override
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitFieldInRecordTypeInformation(this);
+  }
+
+  @override
+  String toString() => 'Field in Record $type';
+}
+
 /// A [PhiElementTypeInformation] is an union of
 /// [ElementTypeInformation], that is local to a method.
 class PhiElementTypeInformation extends TypeInformation {
@@ -2162,9 +2242,11 @@ abstract class TypeInformationVisitor<T> {
   T visitElementInSetTypeInformation(ElementInSetTypeInformation info);
   T visitKeyInMapTypeInformation(KeyInMapTypeInformation info);
   T visitValueInMapTypeInformation(ValueInMapTypeInformation info);
+  T visitFieldInRecordTypeInformation(FieldInRecordTypeInformation info);
   T visitListTypeInformation(ListTypeInformation info);
   T visitSetTypeInformation(SetTypeInformation info);
   T visitMapTypeInformation(MapTypeInformation info);
+  T visitRecordTypeInformation(RecordTypeInformation info);
   T visitConcreteTypeInformation(ConcreteTypeInformation info);
   T visitStringLiteralTypeInformation(StringLiteralTypeInformation info);
   T visitBoolLiteralTypeInformation(BoolLiteralTypeInformation info);
@@ -2210,6 +2292,8 @@ AbstractValue _narrowType(
         abstractValueDomain.createNonNullSubtype(annotation.element));
   } else if (annotation is FunctionType) {
     return _intersectionWith(abstractValueDomain.functionType);
+  } else if (annotation is RecordType) {
+    return _intersectionWith(abstractValueDomain.recordType);
   } else {
     throw 'Unexpected annotation type $annotation';
   }

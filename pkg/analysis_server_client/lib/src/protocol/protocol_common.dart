@@ -6,8 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-// ignore_for_file: constant_identifier_names
-
 import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server_client/src/protocol/protocol_base.dart';

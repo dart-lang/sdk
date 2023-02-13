@@ -277,7 +277,7 @@ void main() {
         expect(
             responseQueue,
             emitsThrough(rpcErrorResponse(
-                RPCError('streamSubcribe', 103, 'Stream already subscribed', {
+                RPCError('streamSubscribe', 103, 'Stream already subscribed', {
               'details': "The stream '$streamId' is already subscribed",
             }))));
       }

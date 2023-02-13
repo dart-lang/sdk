@@ -147,7 +147,7 @@ static void* ThreadStart(void* data_ptr) {
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
-    thread->set_name(name);
+    thread->SetName(name);
     UnblockSIGPROF();
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
@@ -216,6 +216,12 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
   return GetCurrentThreadId();
 }
 #endif  // SUPPORT_TIMELINE
+
+char* OSThread::GetCurrentThreadName() {
+  // TODO(derekx): |pthread_getname_np| isn't defined on Android, so we need to
+  // find an alternative solution.
+  return nullptr;
+}
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);

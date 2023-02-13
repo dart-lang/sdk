@@ -8,7 +8,7 @@ class A {
   const A();
   indexOf(item) => 42;
 
-  // This call get:indexOf has a known receiver type, so is is potentially
+  // This call get:indexOf has a known receiver type, so it is potentially
   // eligible for a dummy receiver optimization.
   getIndexOf() => this.indexOf;
 }

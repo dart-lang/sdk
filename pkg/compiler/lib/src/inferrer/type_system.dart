@@ -152,6 +152,9 @@ class TypeSystem {
   late final ConcreteTypeInformation functionType =
       getConcreteTypeFor(_abstractValueDomain.functionType);
 
+  late final ConcreteTypeInformation recordType =
+      getConcreteTypeFor(_abstractValueDomain.recordType);
+
   late final ConcreteTypeInformation listType =
       getConcreteTypeFor(_abstractValueDomain.listType);
 
@@ -509,6 +512,27 @@ class TypeSystem {
 
     allocatedMaps[node] = map;
     return map;
+  }
+
+  TypeInformation allocateRecord(ir.TreeNode node, RecordType recordType,
+      List<TypeInformation> fieldTypes, bool isConst) {
+    assert(fieldTypes.length == recordType.shape.fieldCount);
+
+    FieldInRecordTypeInformation makeField(int i) {
+      final field = FieldInRecordTypeInformation(
+          _abstractValueDomain, currentMember, i, fieldTypes[i]);
+      allocatedTypes.add(field);
+      return field;
+    }
+
+    final fields = List.generate(fieldTypes.length, makeField, growable: false);
+    final originalType = _abstractValueDomain.recordType;
+    final record = RecordTypeInformation(
+        currentMember, originalType, recordType.shape, fields);
+    if (isConst) record.markAsInferred();
+    // TODO(50081): When tracing is added for records, use `allocatedRecords`.
+    allocatedTypes.add(record);
+    return record;
   }
 
   AbstractValue? newTypedSelector(TypeInformation info, AbstractValue? mask) {

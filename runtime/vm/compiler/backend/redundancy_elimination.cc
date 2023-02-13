@@ -142,7 +142,7 @@ class CSEInstructionSet : public ValueObject {
 //     of the data type. Obviously X[C|S] and X[K|U] alias if and only if either
 //     C = RoundDown(K, S) or K = RoundDown(C, U).
 //     Note that not all accesses to typed data are aligned: e.g. ByteData
-//     allows unanaligned access through it's get*/set* methods.
+//     allows unaligned access through it's get*/set* methods.
 //     Check in Place::SetIndex ensures that we never create a place X[C|S]
 //     such that C is not aligned by S.
 //
@@ -169,7 +169,7 @@ class Place : public ValueObject {
     // nullptr instance.
     kStaticField,
 
-    // Instance field location. It is reprensented by a pair of instance
+    // Instance field location. It is represented by a pair of instance
     // and a Slot.
     kInstanceField,
 
@@ -792,7 +792,7 @@ class AliasedSet : public ZoneAllocated {
 
   const PhiPlaceMoves* phi_moves() const { return phi_moves_; }
 
-  void RollbackAliasedIdentites() {
+  void RollbackAliasedIdentities() {
     for (intptr_t i = 0; i < identity_rollback_.length(); ++i) {
       identity_rollback_[i]->SetIdentity(AliasIdentity::Unknown());
     }
@@ -949,7 +949,7 @@ class AliasedSet : public ZoneAllocated {
   }
 
   // When computing kill sets we let less generic alias insert its
-  // representatives into more generic alias'es kill set. For example
+  // representatives into more generic aliases kill set. For example
   // when visiting alias X[*] instead of searching for all aliases X[C]
   // and inserting their representatives into kill set for X[*] we update
   // kill set for X[*] each time we visit new X[C] for some C.
@@ -1783,7 +1783,7 @@ class LoadOptimizer : public ValueObject {
     }
   }
 
-  ~LoadOptimizer() { aliased_set_->RollbackAliasedIdentites(); }
+  ~LoadOptimizer() { aliased_set_->RollbackAliasedIdentities(); }
 
   Zone* zone() const { return graph_->zone(); }
 
@@ -2251,11 +2251,7 @@ class LoadOptimizer : public ValueObject {
                 forward_def = alloc->InputAt(pos)->definition();
               } else {
                 // Fields not provided as an input to the instruction are
-                // initialized to null during allocation (except
-                // Record::num_fields).
-                // Accesses to Record::num_fields should be folded in
-                // LoadFieldInstr::Canonicalize.
-                ASSERT(slot->kind() != Slot::Kind::kRecord_num_fields);
+                // initialized to null during allocation.
                 forward_def = graph_->constant_null();
               }
             }
@@ -3163,7 +3159,7 @@ class StoreOptimizer : public LivenessAnalysis {
               // still load from all places.
               live_in->CopyFrom(all_places);
             } else {
-              // If we are oustide of try-catch block, instructions that "may
+              // If we are outside of try-catch block, instructions that "may
               // throw" only "load from escaping places".
               // If we are inside of try-catch block, instructions that "may
               // throw" also "load from all places".
@@ -3310,7 +3306,7 @@ enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
 //     - strict, when only marked allocations are assumed to be allocation
 //       sinking candidates.
 //
-// Fix-point algorithm in CollectCandiates first collects a set of allocations
+// Fix-point algorithm in CollectCandidates first collects a set of allocations
 // optimistically and then checks each collected candidate strictly and unmarks
 // invalid candidates transitively until only strictly valid ones remain.
 static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
@@ -3839,7 +3835,7 @@ void AllocationSinking::CreateMaterializationAt(
   }
 
   const Class* cls = nullptr;
-  intptr_t num_elements = -1;
+  intptr_t length_or_shape = -1;
   if (auto instr = alloc->AsAllocateObject()) {
     cls = &(instr->cls());
   } else if (alloc->IsAllocateClosure()) {
@@ -3847,31 +3843,31 @@ void AllocationSinking::CreateMaterializationAt(
         flow_graph_->isolate_group()->object_store()->closure_class());
   } else if (auto instr = alloc->AsAllocateContext()) {
     cls = &Class::ZoneHandle(Object::context_class());
-    num_elements = instr->num_context_variables();
+    length_or_shape = instr->num_context_variables();
   } else if (auto instr = alloc->AsAllocateUninitializedContext()) {
     cls = &Class::ZoneHandle(Object::context_class());
-    num_elements = instr->num_context_variables();
+    length_or_shape = instr->num_context_variables();
   } else if (auto instr = alloc->AsCreateArray()) {
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->object_store()->array_class());
-    num_elements = instr->GetConstantNumElements();
+    length_or_shape = instr->GetConstantNumElements();
   } else if (auto instr = alloc->AsAllocateTypedData()) {
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->class_table()->At(instr->class_id()));
-    num_elements = instr->GetConstantNumElements();
+    length_or_shape = instr->GetConstantNumElements();
   } else if (auto instr = alloc->AsAllocateRecord()) {
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->class_table()->At(kRecordCid));
-    num_elements = instr->num_fields();
+    length_or_shape = instr->shape().AsInt();
   } else if (auto instr = alloc->AsAllocateSmallRecord()) {
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->class_table()->At(kRecordCid));
-    num_elements = instr->num_fields();
+    length_or_shape = instr->shape().AsInt();
   } else {
     UNREACHABLE();
   }
   MaterializeObjectInstr* mat = new (Z) MaterializeObjectInstr(
-      alloc->AsAllocation(), *cls, num_elements, slots, std::move(values));
+      alloc->AsAllocation(), *cls, length_or_shape, slots, std::move(values));
 
   flow_graph_->InsertBefore(exit, mat, nullptr, FlowGraph::kValue);
 

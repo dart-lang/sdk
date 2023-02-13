@@ -33,10 +33,11 @@ class Node5Hash extends Node5 {
 
 class Node5Manual extends Node5 {
   // This is a similar quality hashCode but with statically resolvable
-  // `hashCode` calls.
+  // `hashCode` calls and a 0 seed (instead of loading a unique random seed from
+  // global late-final variable).
   @override
   int get hashCode => _SystemHash.hash5(item1.hashCode, item2.hashCode,
-      item3.hashCode, item4.hashCode, item5.hashCode);
+      item3.hashCode, item4.hashCode, item5.hashCode, 0);
 }
 
 class Node5List extends Node5 {
@@ -190,10 +191,11 @@ void generalUses() {
   check(Object.hash(a6, a7, a1, a2, a3), Object.hash(a6, a7, a1, a2, a3));
   check(Object.hash(a7, a1, a2, a3, a4), Object.hash(a7, a1, a2, a3, a4));
 
-  check(_SystemHash.hash2(1, 2), _SystemHash.hash2(1, 2));
-  check(_SystemHash.hash3(1, 2, 3), _SystemHash.hash3(1, 2, 3));
-  check(_SystemHash.hash4(1, 2, 3, 4), _SystemHash.hash4(1, 2, 3, 4));
-  check(_SystemHash.hash5(1, 2, 3, 4, 5), _SystemHash.hash5(1, 2, 3, 4, 5));
+  check(_SystemHash.hash2(1, 2, 0), _SystemHash.hash2(1, 2, 0));
+  check(_SystemHash.hash3(1, 2, 3, 0), _SystemHash.hash3(1, 2, 3, 0));
+  check(_SystemHash.hash4(1, 2, 3, 4, 0), _SystemHash.hash4(1, 2, 3, 4, 0));
+  check(
+      _SystemHash.hash5(1, 2, 3, 4, 5, 0), _SystemHash.hash5(1, 2, 3, 4, 5, 0));
 
   // Pollute hashAll argument type.
   check(Object.hashAll({}), Object.hashAll([]));
@@ -217,14 +219,14 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
-  static int hash2(int v1, int v2, [int seed = 0]) {
+  static int hash2(int v1, int v2, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
     return finish(hash);
   }
 
-  static int hash3(int v1, int v2, int v3, [int seed = 0]) {
+  static int hash3(int v1, int v2, int v3, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -232,7 +234,7 @@ class _SystemHash {
     return finish(hash);
   }
 
-  static int hash4(int v1, int v2, int v3, int v4, [int seed = 0]) {
+  static int hash4(int v1, int v2, int v3, int v4, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -241,7 +243,7 @@ class _SystemHash {
     return finish(hash);
   }
 
-  static int hash5(int v1, int v2, int v3, int v4, int v5, [int seed = 0]) {
+  static int hash5(int v1, int v2, int v3, int v4, int v5, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);

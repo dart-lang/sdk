@@ -312,7 +312,10 @@ class _ClassVerifier {
           superMember: interfaceElement,
           errorReporter: reporter,
           errorNode: classNameToken,
-          errorCode: CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
+          errorCode: concreteElement is PropertyAccessorElement &&
+                  concreteElement.isSetter
+              ? CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER
+              : CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
         );
       }
 
@@ -358,10 +361,12 @@ class _ClassVerifier {
       }
 
       correctOverrideHelper.verify(
-        superMember: superMember,
-        errorReporter: reporter,
-        errorNode: node,
-      );
+          superMember: superMember,
+          errorReporter: reporter,
+          errorNode: node,
+          errorCode: member is PropertyAccessorElement && member.isSetter
+              ? CompileTimeErrorCode.INVALID_OVERRIDE_SETTER
+              : CompileTimeErrorCode.INVALID_OVERRIDE);
     }
 
     if (mixinIndex == -1) {
@@ -909,7 +914,16 @@ class _ClassVerifier {
     }
 
     _missingMustBeOverridden[classNameToken] = notOverridden.toList();
-    final namesForError = notOverridden.map((e) => e.name).toSet().toList();
+    final namesForError = notOverridden
+        .map((e) {
+          var name = e.name;
+          if (name.endsWith('=')) {
+            name = name.substring(0, name.length - 1);
+          }
+          return name;
+        })
+        .toSet()
+        .toList();
 
     if (namesForError.length == 1) {
       reporter.reportErrorForToken(

@@ -25,7 +25,6 @@ prebuilt_dart_action("build_observatory") {
     "-o",
     rebase_path(output),
     "--packages=" + rebase_path("../../.dart_tool/package_config.json"),
-    "--no-sound-null-safety",
     rebase_path("web/main.dart"),
   ]
   if (is_debug) {

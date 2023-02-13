@@ -90,17 +90,6 @@ class ThreadRegistry;
 class UserTag;
 class WeakTable;
 
-/*
- * Possible values of null safety flag
-  0 - not specified
-  1 - weak mode
-  2 - strong mode)
-*/
-constexpr int kNullSafetyOptionUnspecified = 0;
-constexpr int kNullSafetyOptionWeak = 1;
-constexpr int kNullSafetyOptionStrong = 2;
-extern int FLAG_sound_null_safety;
-
 class IsolateVisitor {
  public:
   IsolateVisitor() {}
@@ -1851,24 +1840,51 @@ class EnterIsolateGroupScope {
 
 // Ensure that isolate is not available for the duration of this scope.
 //
-// This can be used in code (e.g. GC, Kernel Loader) that should not operate on
-// an individual isolate.
+// This can be used in code (e.g. GC, Kernel Loader, Compiler) that should not
+// operate on an individual isolate.
 class NoActiveIsolateScope : public StackResource {
  public:
   NoActiveIsolateScope() : NoActiveIsolateScope(Thread::Current()) {}
   explicit NoActiveIsolateScope(Thread* thread)
       : StackResource(thread), thread_(thread) {
+    outer_ = thread_->no_active_isolate_scope_;
     saved_isolate_ = thread_->isolate_;
+
+    thread_->no_active_isolate_scope_ = this;
     thread_->isolate_ = nullptr;
   }
   ~NoActiveIsolateScope() {
     ASSERT(thread_->isolate_ == nullptr);
     thread_->isolate_ = saved_isolate_;
+    thread_->no_active_isolate_scope_ = outer_;
+  }
+
+ private:
+  friend class ActiveIsolateScope;
+
+  Thread* thread_;
+  Isolate* saved_isolate_;
+  NoActiveIsolateScope* outer_;
+};
+
+class ActiveIsolateScope : public StackResource {
+ public:
+  explicit ActiveIsolateScope(Thread* thread)
+      : ActiveIsolateScope(thread,
+                           thread->no_active_isolate_scope_->saved_isolate_) {}
+
+  ActiveIsolateScope(Thread* thread, Isolate* isolate)
+      : StackResource(thread), thread_(thread) {
+    RELEASE_ASSERT(thread->isolate() == nullptr);
+    thread_->isolate_ = isolate;
+  }
+  ~ActiveIsolateScope() {
+    ASSERT(thread_->isolate_ != nullptr);
+    thread_->isolate_ = nullptr;
   }
 
  private:
   Thread* thread_;
-  Isolate* saved_isolate_;
 };
 
 }  // namespace dart

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -14,50 +15,116 @@ main() {
 
 @reflectiveTest
 class PatternVariableDeclarationStatementResolutionTest
-    extends PatternsResolutionTest {
-  test_inferredType() async {
+    extends PubPackageResolutionTest {
+  test_final_typed() async {
     await assertNoErrorsInCode(r'''
-void f((int, String) x) {
-  var (a, b) = x;
+void f() {
+  final (num a) = 0;
+  a;
 }
 ''');
     final node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
-    keyword: var
-    pattern: RecordPattern
+    keyword: final
+    pattern: ParenthesizedPattern
       leftParenthesis: (
-      fields
-        RecordPatternField
-          pattern: VariablePattern
-            name: a
-            declaredElement: hasImplicitType a@33
-              type: int
-          fieldElement: <null>
-        RecordPatternField
-          pattern: VariablePattern
-            name: b
-            declaredElement: hasImplicitType b@36
-              type: String
-          fieldElement: <null>
+      pattern: DeclaredVariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: num
+            staticElement: dart:core::@class::num
+            staticType: null
+          type: num
+        name: a
+        declaredElement: isFinal a@24
+          type: num
       rightParenthesis: )
     equals: =
-    expression: SimpleIdentifier
-      token: x
-      staticElement: self::@function::f::@parameter::x
-      staticType: (int, String)
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    patternTypeSchema: num
   semicolon: ;
 ''');
   }
 
-  test_typeSchema_fromVariableType() async {
+  test_final_untyped() async {
     await assertNoErrorsInCode(r'''
 void f() {
-  var (int a) = g();
+  final (a) = 0;
+  a;
+}
+''');
+    final node = findNode.singlePatternVariableDeclarationStatement;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclarationStatement
+  declaration: PatternVariableDeclaration
+    keyword: final
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType isFinal a@20
+          type: int
+      rightParenthesis: )
+    equals: =
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    patternTypeSchema: _
+  semicolon: ;
+''');
+  }
+
+  test_rewrite_expression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  var (a) = A();
 }
 
-T g<T>() => throw 0;
+class A {}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+    ]);
+    final node = findNode.singlePatternVariableDeclarationStatement;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclarationStatement
+  declaration: PatternVariableDeclaration
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@18
+          type: A
+      rightParenthesis: )
+    equals: =
+    expression: InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: SimpleIdentifier
+            token: A
+            staticElement: self::@class::A
+            staticType: null
+          type: A
+        staticElement: self::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    patternTypeSchema: _
+  semicolon: ;
+''');
+  }
+
+  test_var_typed() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var (num a) = 0;
+  a;
+}
 ''');
     final node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -66,7 +133,44 @@ PatternVariableDeclarationStatement
     keyword: var
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: num
+            staticElement: dart:core::@class::num
+            staticType: null
+          type: num
+        name: a
+        declaredElement: a@22
+          type: num
+      rightParenthesis: )
+    equals: =
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    patternTypeSchema: num
+  semicolon: ;
+''');
+  }
+
+  test_var_typed_typeSchema() async {
+    await assertErrorsInCode(r'''
+void f() {
+  var (int a) = g();
+}
+
+T g<T>() => throw 0;
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+    ]);
+    final node = findNode.singlePatternVariableDeclarationStatement;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclarationStatement
+  declaration: PatternVariableDeclaration
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -90,7 +194,105 @@ PatternVariableDeclarationStatement
       staticType: int
       typeArgumentTypes
         int
+    patternTypeSchema: int
   semicolon: ;
 ''');
+  }
+
+  test_var_untyped() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var (a) = 0;
+  a;
+}
+''');
+    final node = findNode.singlePatternVariableDeclarationStatement;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclarationStatement
+  declaration: PatternVariableDeclaration
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@18
+          type: int
+      rightParenthesis: )
+    equals: =
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    patternTypeSchema: _
+  semicolon: ;
+''');
+  }
+
+  test_var_untyped_multiple() async {
+    await assertErrorsInCode(r'''
+void f((int, String) x) {
+  var (a, b) = x;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+    ]);
+    final node = findNode.singlePatternVariableDeclarationStatement;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclarationStatement
+  declaration: PatternVariableDeclaration
+    keyword: var
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        RecordPatternField
+          pattern: DeclaredVariablePattern
+            name: a
+            declaredElement: hasImplicitType a@33
+              type: int
+          fieldElement: <null>
+        RecordPatternField
+          pattern: DeclaredVariablePattern
+            name: b
+            declaredElement: hasImplicitType b@36
+              type: String
+          fieldElement: <null>
+      rightParenthesis: )
+      matchedValueType: (int, String)
+    equals: =
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: (int, String)
+    patternTypeSchema: (_, _)
+  semicolon: ;
+''');
+  }
+
+  test_var_withKeyword_final() async {
+    await assertErrorsInCode(r'''
+void f() {
+  var (final a) = 0;
+  a;
+}
+''', [
+      error(
+          CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          18,
+          5),
+    ]);
+  }
+
+  test_var_withKeyword_var() async {
+    await assertErrorsInCode(r'''
+void f() {
+  var (var a) = 0;
+  a;
+}
+''', [
+      error(
+          CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          18,
+          3),
+    ]);
   }
 }

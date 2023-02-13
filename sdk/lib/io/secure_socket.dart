@@ -486,7 +486,7 @@ abstract class _RawSocketBase {
 }
 
 class _RawSecureSocket extends Stream<RawSocketEvent>
-    implements RawSecureSocket {
+    implements RawSecureSocket, _RawSocketBase {
   // Status states
   static const int handshakeStatus = 201;
   static const int connectedStatus = 202;
@@ -635,7 +635,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       }
       // If we are upgrading a socket that is already closed for read,
       // report an error as if we received readClosed during the handshake.
-      if ((_socket as _RawSocketBase)._closedReadEventSent) {
+      if (_closedReadEventSent) {
         _eventDispatcher(RawSocketEvent.readClosed);
       }
       _socketSubscription
@@ -688,6 +688,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   InternetAddress get remoteAddress => _socket.remoteAddress;
 
   int get remotePort => _socket.remotePort;
+
+  bool get _closedReadEventSent =>
+      (_socket as _RawSocketBase)._closedReadEventSent;
 
   void set _owner(owner) {
     (_socket as _RawSocketBase)._owner = owner;

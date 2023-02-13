@@ -10,15 +10,26 @@ import 'dart:collection';
 
 import 'dart:_debugger' show stackTraceMapper, trackCall;
 import 'dart:_foreign_helper'
-    show JS, JS_CLASS_REF, JS_GET_FLAG, JS_GET_NAME, JSExportName, rest, spread;
+    show
+        JS,
+        JS_CLASS_REF,
+        JS_EMBEDDED_GLOBAL,
+        JS_GET_FLAG,
+        JS_GET_NAME,
+        JSExportName,
+        rest,
+        spread;
 import 'dart:_interceptors'
     show
-        JSArray,
-        jsNull,
-        JSFunction,
-        NativeError,
         JavaScriptObject,
-        LegacyJavaScriptObject;
+        JSArray,
+        JSInt,
+        jsNull,
+        JSNumNotInt,
+        JSFunction,
+        LegacyJavaScriptObject,
+        NativeError;
+
 import 'dart:_internal' as internal show LateError, Symbol;
 import 'dart:_js_helper'
     show
@@ -37,9 +48,13 @@ import 'dart:_js_helper'
 import 'dart:_js_shared_embedded_names';
 import 'dart:_rti' as rti
     show
+        createRuntimeType,
         constructorRtiCachePropertyName,
+        findType,
         instanceType,
-        interfaceTypeRecipePropertyName;
+        interfaceTypeRecipePropertyName,
+        isSubtype,
+        Rti;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 

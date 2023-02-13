@@ -112,7 +112,7 @@ def SrcSteps():
         sys.executable, 'tools/build.py', '--no-goma', '--mode=release',
         '--arch=x64', 'runtime'
     ])
-    # Copy in the installed binary to avoid poluting /usr/bin (and having to
+    # Copy in the installed binary to avoid polluting /usr/bin (and having to
     # run as root)
     Run(['cp', '/usr/bin/dart', 'out/ReleaseX64/dart'])
 

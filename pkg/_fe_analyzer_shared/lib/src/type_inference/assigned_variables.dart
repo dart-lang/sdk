@@ -75,11 +75,19 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   ///
   /// It is not required for the declaration to be seen prior to its use (this
   /// is to allow for error recovery in the analyzer).
-  void declare(Variable variable) {
+  ///
+  /// By default, this method contains assertions to make sure the client
+  /// doesn't call [declare] more than once on the same variable.  However,
+  /// there are some situations where it is difficult for the client to avoid
+  /// this, so the check can be disabled by passing `true` for
+  /// [ignoreDuplicates].
+  void declare(Variable variable, {bool ignoreDuplicates = false}) {
     assert(!_isFinished);
     int variableKey = promotionKeyStore.keyForVariable(variable);
-    _stack.last.declared.add(variableKey);
-    anywhere.declared.add(variableKey);
+    bool newlyDeclared = _stack.last.declared.add(variableKey);
+    assert(ignoreDuplicates || newlyDeclared);
+    newlyDeclared = anywhere.declared.add(variableKey);
+    assert(ignoreDuplicates || newlyDeclared);
   }
 
   /// This method may be called during pre-traversal, to mark the end of a
@@ -171,8 +179,11 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
       assert(_stack.length == 1, "Unexpected stack: $_stack");
       AssignedVariablesNodeInfo last = _stack.last;
       Set<int> undeclaredReads = last.read.difference(last.declared);
-      assert(undeclaredReads.isEmpty,
-          'Variables read from but not declared: $undeclaredReads');
+      List<Variable?> undeclaredReadVars = [
+        for (int key in undeclaredReads) promotionKeyStore.variableForKey(key)
+      ];
+      assert(undeclaredReadVars.isEmpty,
+          'Variables read from but not declared: $undeclaredReadVars');
       Set<int> undeclaredWrites = last.written.difference(last.declared);
       assert(undeclaredWrites.isEmpty,
           'Variables written to but not declared: $undeclaredWrites');

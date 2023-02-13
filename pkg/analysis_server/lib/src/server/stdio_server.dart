@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 import 'package:analysis_server/src/socket_server.dart';
 
@@ -23,9 +21,7 @@ class StdioAnalysisServer {
   ///
   /// Return a future that will be completed when stdin closes.
   Future serveStdio() {
-    var serverChannel = ByteStreamServerChannel(
-      stdin,
-      stdout,
+    var serverChannel = StdinStdoutLineStreamServerChannel(
       socketServer.instrumentationService,
       requestStatistics: socketServer.requestStatistics,
     );

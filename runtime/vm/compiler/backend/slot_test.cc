@@ -82,9 +82,8 @@ TEST_CASE(SlotFromGuardedField) {
   EXPECT_EQ(kSmiCid, slot1.nullable_cid());
 
   // Check that the field was added (once) to the list of guarded fields.
-  EXPECT_EQ(1, parsed_function->guarded_fields()->length());
-  EXPECT_EQ(parsed_function->guarded_fields()->At(0)->ptr(),
-            field_clone_1.ptr());
+  EXPECT_EQ(1, parsed_function->guarded_fields()->Length());
+  EXPECT(parsed_function->guarded_fields()->HasKey(&field_clone_1));
 
   // Change the guarded state of the field to "unknown" - emulating concurrent
   // modification of the guarded state in mutator) and create a new clone of
@@ -99,9 +98,8 @@ TEST_CASE(SlotFromGuardedField) {
       new (zone) ParsedFunction(thread, dummy_function);
   const Slot& slot3 = Slot::Get(field_clone_3, parsed_function2);
   EXPECT_EQ(&slot1, &slot3);
-  EXPECT_EQ(1, parsed_function2->guarded_fields()->length());
-  EXPECT_EQ(parsed_function2->guarded_fields()->At(0)->ptr(),
-            field_clone_1.ptr());
+  EXPECT_EQ(1, parsed_function2->guarded_fields()->Length());
+  EXPECT(parsed_function2->guarded_fields()->HasKey(&field_clone_1));
 }
 
 }  // namespace dart

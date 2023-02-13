@@ -184,7 +184,7 @@ class MiniAstBuilder extends StackListener {
     if (precedingComments != null) {
       push(Comment(precedingComments));
     } else {
-      push(NullValue.Comments);
+      push(NullValues.Comments);
     }
   }
 
@@ -321,7 +321,7 @@ class MiniAstBuilder extends StackListener {
   @override
   void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     debugEvent("Import");
-    pop(NullValue.Prefix); // Prefix identifier
+    pop(NullValues.Prefix); // Prefix identifier
     pop(); // URI
     pop(); // Metadata
     pop(); // Comment
@@ -365,7 +365,7 @@ class MiniAstBuilder extends StackListener {
     debugEvent("MetadataStar");
     push(
         popList(count, List<Annotation?>.filled(count, null, growable: true)) ??
-            NullValue.Metadata);
+            NullValues.Metadata);
   }
 
   @override
@@ -453,7 +453,7 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     if (isExpressionBody) pop();
-    push(NullValue.FunctionBody);
+    push(NullValues.FunctionBody);
   }
 
   @override
@@ -476,7 +476,7 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
     debugEvent("ImportPrefix");
-    pushIfNull(asKeyword, NullValue.Prefix);
+    pushIfNull(asKeyword, NullValues.Prefix);
   }
 
   @override
@@ -494,7 +494,7 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleInvalidTypeArguments(Token token) {
     debugEvent("InvalidTypeArguments");
-    pop(NullValue.TypeArguments);
+    pop(NullValues.TypeArguments);
   }
 
   @override
@@ -559,7 +559,7 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBodySkipped");
-    push(NullValue.FunctionBody);
+    push(NullValues.FunctionBody);
   }
 
   @override
@@ -588,7 +588,7 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleRecoverImport(Token? semicolon) {
     debugEvent("RecoverImport");
-    pop(NullValue.Prefix); // Prefix identifier
+    pop(NullValues.Prefix); // Prefix identifier
   }
 
   @override

@@ -139,8 +139,9 @@ abstract class CommonElements {
   late final LibraryEntity internalLibrary =
       _env.lookupLibrary(Uris.dart__internal, required: true)!;
 
-  /// The dart:js library.
-  late final LibraryEntity? dartJsLibrary = _env.lookupLibrary(Uris.dart_js);
+  /// The dart:js_util library.
+  late final LibraryEntity? dartJsUtilLibrary =
+      _env.lookupLibrary(Uris.dart_js_util);
 
   /// The package:js library.
   late final LibraryEntity? packageJsLibrary =
@@ -629,6 +630,28 @@ abstract class CommonElements {
   // impacts + constant emitter accordingly.
   late final ClassEntity constSetLiteralClass = unmodifiableSetClass;
 
+  /// Base class for all records.
+  late final ClassEntity recordBaseClass = _findHelperClass('_Record');
+
+  /// A function that is used to model the back-end impacts of record lowering
+  /// in the front-end.
+  late final FunctionEntity recordImpactModel =
+      _findHelperFunction('_recordImpactModel');
+
+  /// Base class for records with N fields. Can be a fixed-arity class or a
+  /// general class that works for any arity.
+  ClassEntity recordArityClass(int n) {
+    return _findClassOrNull(jsHelperLibrary, '_Record$n') ??
+        (n == 0 ? emptyRecordClass : recordGeneralBaseClass);
+  }
+
+  late final ClassEntity recordGeneralBaseClass = _findHelperClass('_RecordN');
+
+  late final ClassEntity emptyRecordClass = _findHelperClass('_EmptyRecord');
+
+  late final FunctionEntity recordTestByListHelper =
+      _findHelperFunction('_testRecordValues');
+
   late final ClassEntity jsInvocationMirrorClass =
       _findHelperClass('JSInvocationMirror');
 
@@ -826,6 +849,8 @@ abstract class CommonElements {
 
   late final FunctionEntity checkTypeBound = _findRtiFunction('checkTypeBound');
 
+  late final FunctionEntity pairwiseIsTest = _findRtiFunction('pairwiseIsTest');
+
   ClassEntity get _rtiImplClass => _findRtiClass('Rti');
 
   ClassEntity get _rtiUniverseClass => _findRtiClass('_Universe');
@@ -1015,21 +1040,9 @@ abstract class CommonElements {
         : objectClass;
   }
 
-  // From package:js
-  late final FunctionEntity? jsAllowInterop1 =
-      _findLibraryMember(dartJsLibrary, 'allowInterop', required: false);
-
-  // From dart:_js_annotations;
-  late final FunctionEntity? jsAllowInterop2 = _findLibraryMember(
-      dartJsAnnotationsLibrary, 'allowInterop',
-      required: false);
-
-  /// Returns `true` if [function] is `allowInterop`.
-  ///
-  /// This function can come from either `package:js` or `dart:_js_annotations`.
-  bool isJsAllowInterop(FunctionEntity function) {
-    return function == jsAllowInterop1 || function == jsAllowInterop2;
-  }
+  // From dart:js_util
+  late final FunctionEntity? jsAllowInterop =
+      _findLibraryMember(dartJsUtilLibrary, 'allowInterop', required: false);
 
   bool isCreateInvocationMirrorHelper(MemberEntity member) {
     return member.isTopLevel &&
@@ -1336,7 +1349,7 @@ abstract class ElementEnvironment {
   /// Create the instantiation of [cls] with the given [typeArguments] and
   /// [nullability].
   InterfaceType createInterfaceType(
-      ClassEntity /*!*/ cls, List<DartType /*!*/ > typeArguments);
+      ClassEntity cls, List<DartType> typeArguments);
 
   /// Returns the `dynamic` type.
   DartType get dynamicType;
@@ -1382,7 +1395,7 @@ abstract class ElementEnvironment {
   FunctionType getLocalFunctionType(Local local);
 
   /// Returns the type of [field].
-  DartType /*!*/ getFieldType(FieldEntity field);
+  DartType getFieldType(FieldEntity field);
 
   /// Returns `true` if [cls] is a Dart enum class.
   bool isEnumClass(ClassEntity cls);

@@ -645,16 +645,9 @@ void FlowGraphCompiler::EmitDispatchTableCall(
   // Would like cid_reg to be available on entry to the target function
   // for checking purposes.
   ASSERT(cid_reg != TMP);
-  intx_t imm = offset << compiler::target::kWordSizeLog2;
-  intx_t lo = ImmLo(imm);
-  intx_t hi = ImmHi(imm);
-  __ slli(TMP, cid_reg, compiler::target::kWordSizeLog2);
-  if (hi != 0) {
-    __ lui(TMP2, hi);
-    __ add(TMP, TMP, TMP2);
-  }
-  __ add(TMP, TMP, DISPATCH_TABLE_REG);
-  __ lx(TMP, compiler::Address(TMP, lo));
+  __ AddShifted(TMP, DISPATCH_TABLE_REG, cid_reg,
+                compiler::target::kWordSizeLog2);
+  __ LoadFromOffset(TMP, TMP, offset << compiler::target::kWordSizeLog2);
   __ jalr(TMP);
 }
 
@@ -881,8 +874,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
     const compiler::ffi::NativeLocation& source) {
   const auto& src_type = source.payload_type();
   const auto& dst_type = destination.payload_type();
-  ASSERT(src_type.IsFloat() == dst_type.IsFloat());
-  ASSERT(src_type.IsInt() == dst_type.IsInt());
+
   ASSERT(src_type.IsSigned() == dst_type.IsSigned());
   ASSERT(src_type.IsPrimitive());
   ASSERT(dst_type.IsPrimitive());
@@ -946,8 +938,23 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       }
 
     } else if (destination.IsFpuRegisters()) {
-      // Fpu Registers should only contain doubles and registers only ints.
-      UNIMPLEMENTED();
+      const auto& dst = destination.AsFpuRegisters();
+      ASSERT(src_size == dst_size);
+      ASSERT(src.num_regs() == 1);
+      switch (src_size) {
+        case 4:
+          __ fmvwx(dst.fpu_reg(), src.reg_at(0));
+          return;
+        case 8:
+#if XLEN == 32
+          UNIMPLEMENTED();
+#else
+          __ fmvdx(dst.fpu_reg(), src.reg_at(0));
+#endif
+          return;
+        default:
+          UNREACHABLE();
+      }
 
     } else {
       ASSERT(destination.IsStack());
@@ -963,8 +970,23 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
     ASSERT(src_type.Equals(dst_type));
 
     if (destination.IsRegisters()) {
-      // Fpu Registers should only contain doubles and registers only ints.
-      UNIMPLEMENTED();
+      const auto& dst = destination.AsRegisters();
+      ASSERT(src_size == dst_size);
+      ASSERT(dst.num_regs() == 1);
+      switch (src_size) {
+        case 4:
+          __ fmvxw(dst.reg_at(0), src.fpu_reg());
+          return;
+        case 8:
+#if XLEN == 32
+          UNIMPLEMENTED();
+#else
+          __ fmvxd(dst.reg_at(0), src.fpu_reg());
+#endif
+          return;
+        default:
+          UNREACHABLE();
+      }
 
     } else if (destination.IsFpuRegisters()) {
       const auto& dst = destination.AsFpuRegisters();

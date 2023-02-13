@@ -274,8 +274,9 @@ class Driver implements ServerStarter {
         : [this.instrumentationService!];
     if (logFilePath != null) {
       _rollLogFiles(logFilePath, 5);
-      allInstrumentationServices.add(
-          InstrumentationLogAdapter(FileInstrumentationLogger(logFilePath)));
+      allInstrumentationServices.add(InstrumentationLogAdapter(
+          FileInstrumentationLogger(logFilePath),
+          watchEventExclusionFiles: {logFilePath}));
     }
 
     var errorNotifier = ErrorNotifier();

@@ -9,6 +9,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(CatchClauseParameter)? catchClauseParameter;
   final void Function(DeclaredIdentifier)? declaredIdentifier;
+  final void Function(ForElement)? forElement;
+  final void Function(ForStatement)? forStatement;
   final void Function(FunctionDeclarationStatement)?
       functionDeclarationStatement;
   final void Function(FunctionExpression, bool)? functionExpression;
@@ -16,10 +18,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(IfStatement)? ifStatement;
   final void Function(Label)? label;
   final void Function(MethodInvocation)? methodInvocation;
+  final void Function(PatternAssignment)? patternAssignment;
   final void Function(PatternVariableDeclaration)? patternVariableDeclaration;
   final void Function(PatternVariableDeclarationStatement)?
       patternVariableDeclarationStatement;
   final void Function(SimpleIdentifier)? simpleIdentifier;
+  final void Function(SwitchExpression)? switchExpression;
   final void Function(SwitchExpressionCase)? switchExpressionCase;
   final void Function(SwitchPatternCase)? switchPatternCase;
   final void Function(VariableDeclaration)? variableDeclaration;
@@ -27,15 +31,19 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   FunctionAstVisitor({
     this.catchClauseParameter,
     this.declaredIdentifier,
+    this.forElement,
+    this.forStatement,
     this.functionDeclarationStatement,
     this.functionExpression,
     this.guardedPattern,
     this.ifStatement,
     this.label,
     this.methodInvocation,
+    this.patternAssignment,
     this.patternVariableDeclaration,
     this.patternVariableDeclarationStatement,
     this.simpleIdentifier,
+    this.switchExpression,
     this.switchExpressionCase,
     this.switchPatternCase,
     this.variableDeclaration,
@@ -53,6 +61,22 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
       declaredIdentifier!(node);
     }
     super.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitForElement(ForElement node) {
+    if (forElement != null) {
+      forElement!(node);
+    }
+    super.visitForElement(node);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    if (forStatement != null) {
+      forStatement!(node);
+    }
+    super.visitForStatement(node);
   }
 
   @override
@@ -102,6 +126,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPatternAssignment(PatternAssignment node) {
+    patternAssignment?.call(node);
+    super.visitPatternAssignment(node);
+  }
+
+  @override
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     patternVariableDeclaration?.call(node);
     super.visitPatternVariableDeclaration(node);
@@ -120,6 +150,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
       simpleIdentifier!(node);
     }
     super.visitSimpleIdentifier(node);
+  }
+
+  @override
+  void visitSwitchExpression(SwitchExpression node) {
+    switchExpression?.call(node);
+    super.visitSwitchExpression(node);
   }
 
   @override

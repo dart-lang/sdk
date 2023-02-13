@@ -113,43 +113,6 @@ part of dart.core;
 /// directly or through iterating an [Iterable] that is backed by the list, will
 /// break the iteration.
 abstract class List<E> implements EfficientLengthIterable<E> {
-  /// Creates a list of the given length.
-  ///
-  /// **NOTE**: This constructor cannot be used in null-safe code.
-  /// Use [List.filled] to create a non-empty list.
-  /// This requires a fill value to initialize the list elements with.
-  /// To create an empty list, use `[]` for a growable list or
-  /// `List.empty` for a fixed length list (or where growability is determined
-  /// at run-time).
-  ///
-  /// The created list is fixed-length if [length] is provided.
-  /// ```dart
-  /// var fixedLengthList = List(3);
-  /// fixedLengthList.length;     // 3
-  /// fixedLengthList.length = 1; // Error
-  /// ```
-  /// The list has length 0 and is growable if [length] is omitted.
-  /// ```dart
-  /// var growableList = List();
-  /// growableList.length; // 0;
-  /// growableList.length = 3;
-  /// ```
-  /// To create a growable list with a given length, for a nullable element type,
-  /// just assign the length right after creation:
-  /// ```dart
-  /// List<SomeNullableType> growableList = []..length = 500;
-  /// ```
-  /// For a non-nullable element type, an alternative is the following:
-  /// ```dart
-  /// List<int> growableList = List<int>.filled(500, 0, growable: true);
-  /// ```
-  /// The [length] must not be negative or null, if it is provided.
-  ///
-  /// If the element type is not nullable, [length] must not be greater than
-  /// zero.
-  @Deprecated("Use a list literal, [], or the List.filled constructor instead")
-  external factory List([int? length]);
-
   /// Creates a list of the given length with [fill] at each position.
   ///
   /// The [length] must be a non-negative integer.

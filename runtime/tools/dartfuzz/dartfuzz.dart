@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.94';
+const String version = '1.98';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -1763,7 +1763,7 @@ class DartFuzz {
     } else if (dartType.constructors(tp).isNotEmpty) {
       // Constructors serve as literals for non trivially constructable types.
       // Important note: We have to test for existence of a non trivial
-      // constructor before testing for list type assiciation, since some types
+      // constructor before testing for list type association, since some types
       // like ListInt32 are of list type but can not be constructed
       // from a literal.
       emitConstructorOrLiteral(depth + 1, tp, rhsFilter: rhsFilter);

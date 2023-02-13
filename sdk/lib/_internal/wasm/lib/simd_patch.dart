@@ -164,8 +164,7 @@ class _NaiveInt32x4List extends Object
   }
 
   Int32x4List sublist(int start, [int? end]) {
-    IndexError.check(start, length, indexable: this, name: "sublist");
-    int stop = _checkValidRange(start, end, length);
+    int stop = RangeError.checkValidRange(start, end, length);
     return _NaiveInt32x4List._externalStorage(
         _storage.sublist(start * 4, stop * 4));
   }
@@ -177,6 +176,9 @@ class _NaiveFloat32x4List extends Object
   final Float32List _storage;
 
   _NaiveFloat32x4List(int length) : _storage = Float32List(length * 4);
+
+  @override
+  Type get runtimeType => Float32x4List;
 
   _NaiveFloat32x4List._externalStorage(this._storage);
 
@@ -228,8 +230,7 @@ class _NaiveFloat32x4List extends Object
   }
 
   Float32x4List sublist(int start, [int? end]) {
-    IndexError.check(start, length, indexable: this, name: "sublist");
-    int stop = _checkValidRange(start, end, length);
+    int stop = RangeError.checkValidRange(start, end, length);
     return _NaiveFloat32x4List._externalStorage(
         _storage.sublist(start * 4, stop * 4));
   }
@@ -241,6 +242,9 @@ class _NaiveFloat64x2List extends Object
   final Float64List _storage;
 
   _NaiveFloat64x2List(int length) : _storage = Float64List(length * 2);
+
+  @override
+  Type get runtimeType => Float64x2List;
 
   _NaiveFloat64x2List._externalStorage(this._storage);
 
@@ -286,8 +290,7 @@ class _NaiveFloat64x2List extends Object
   }
 
   Float64x2List sublist(int start, [int? end]) {
-    IndexError.check(start, length, indexable: this, name: "sublist");
-    int stop = _checkValidRange(start, end, length);
+    int stop = RangeError.checkValidRange(start, end, length);
     return _NaiveFloat64x2List._externalStorage(
         _storage.sublist(start * 2, stop * 2));
   }
@@ -335,8 +338,15 @@ class _NaiveFloat32x4 implements Float32x4 {
 
   _NaiveFloat32x4._truncated(this.x, this.y, this.z, this.w);
 
+  @override
+  Type get runtimeType => Float32x4List;
+
+  @override
   String toString() {
-    return '[$x, $y, $z, $w]';
+    return '[${x.toStringAsFixed(6)}, '
+        '${y.toStringAsFixed(6)}, '
+        '${z.toStringAsFixed(6)}, '
+        '${w.toStringAsFixed(6)}]';
   }
 
   Float32x4 operator +(Float32x4 other) {
@@ -692,7 +702,8 @@ class _NaiveInt32x4 implements Int32x4 {
 
   _NaiveInt32x4._truncated(this.x, this.y, this.z, this.w);
 
-  String toString() => '[$x, $y, $z, $w]';
+  String toString() => '[${_int32ToHex(x)}, ${_int32ToHex(y)}, '
+      '${_int32ToHex(z)}, ${_int32ToHex(w)}]';
 
   Int32x4 operator |(Int32x4 other) {
     int _x = x | other.x;
@@ -863,17 +874,4 @@ class _NaiveInt32x4 implements Int32x4 {
   }
 }
 
-int _checkValidRange(int start, int? end, int length) {
-  if (start > length) {
-    throw RangeError.range(start, 0, length, 'checkValidRange');
-  }
-  if (end != null) {
-    if (end > length) {
-      throw RangeError.range(end, 0, length, 'checkValidRange');
-    }
-    if (start > end) {
-      throw RangeError.range(start, 0, end, 'checkValidRange');
-    }
-  }
-  return end ?? length;
-}
+String _int32ToHex(int i) => i.toRadixString(16).padLeft(8, '0');

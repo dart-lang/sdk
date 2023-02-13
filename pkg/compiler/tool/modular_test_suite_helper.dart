@@ -44,7 +44,7 @@ const txtId = DataId("txt");
 const fakeRoot = 'dev-dart-app:/';
 
 String getRootScheme(Module module) {
-  // We use non file-URI schemes for representeing source locations in a
+  // We use non file-URI schemes for representing source locations in a
   // root-agnostic way. This allows us to refer to file across modules and
   // across steps without exposing the underlying temporary folders that are
   // created by the framework. In build systems like bazel this is especially
@@ -125,7 +125,9 @@ abstract class CFEStep extends IOModularStep {
     // TODO(joshualitt): Ensure the kernel worker has some way to specify
     // --no-sound-null-safety
     List<String> args = [
+      '--no-sound-null-safety',
       _kernelWorkerScript,
+      '--no-sound-null-safety',
       ...stepArguments,
       '--exclude-non-sources',
       '--multi-root',
@@ -268,6 +270,7 @@ class ModularAnalysisStep extends IOModularStep {
     }
 
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       '--no-sound-null-safety',
@@ -343,10 +346,12 @@ class ConcatenateDillsStep extends IOModularStep {
         .toList();
     dataDependencies.add('${toUri(module, modularDataId)}');
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      Flags.noSoundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, dillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -403,10 +408,12 @@ class ComputeClosedWorldStep extends IOModularStep {
     if (_options.verbose)
       print("\nstep: dart2js compute closed world on $module");
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      Flags.noSoundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -452,10 +459,12 @@ class GlobalAnalysisStep extends IOModularStep {
       List<String> flags) async {
     if (_options.verbose) print("\nstep: dart2js global analysis on $module");
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      Flags.noSoundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -506,9 +515,11 @@ class Dart2jsCodegenStep extends IOModularStep {
       List<String> flags) async {
     if (_options.verbose) print("\nstep: dart2js backend on $module");
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      Flags.noSoundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -559,9 +570,11 @@ class Dart2jsEmissionStep extends IOModularStep {
       List<String> flags) async {
     if (_options.verbose) print("step: dart2js backend on $module");
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      Flags.noSoundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',

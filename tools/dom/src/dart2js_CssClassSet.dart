@@ -215,7 +215,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   // A collection of static methods for DomTokenList. These methods are a
-  // work-around for the lack of annotations to express the full behaviour of
+  // workaround for the lack of annotations to express the full behaviour of
   // the DomTokenList methods.
 
   static DomTokenList _classListOf(Element e) => JS(

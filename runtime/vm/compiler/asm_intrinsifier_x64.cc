@@ -1595,53 +1595,23 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // RCX: String length, untagged integer.
   // RDI: Loop counter, untagged integer.
   // RAX: Hash code, untagged integer.
-  Label loop, done, set_hash_code;
+  Label loop, done;
   __ Bind(&loop);
   __ cmpq(RDI, RCX);
   __ j(EQUAL, &done, Assembler::kNearJump);
   // Add to hash code: (hash_ is uint32)
-  // hash_ += ch;
-  // hash_ += hash_ << 10;
-  // hash_ ^= hash_ >> 6;
   // Get one characters (ch).
   __ movzxb(RDX, FieldAddress(RBX, RDI, TIMES_1,
                               target::OneByteString::data_offset()));
   // RDX: ch and temporary.
-  __ addl(RAX, RDX);
-  __ movq(RDX, RAX);
-  __ shll(RDX, Immediate(10));
-  __ addl(RAX, RDX);
-  __ movq(RDX, RAX);
-  __ shrl(RDX, Immediate(6));
-  __ xorl(RAX, RDX);
+  __ CombineHashes(RAX, RDX);
 
   __ incq(RDI);
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&done);
-  // Finalize:
-  // hash_ += hash_ << 3;
-  // hash_ ^= hash_ >> 11;
-  // hash_ += hash_ << 15;
-  __ movq(RDX, RAX);
-  __ shll(RDX, Immediate(3));
-  __ addl(RAX, RDX);
-  __ movq(RDX, RAX);
-  __ shrl(RDX, Immediate(11));
-  __ xorl(RAX, RDX);
-  __ movq(RDX, RAX);
-  __ shll(RDX, Immediate(15));
-  __ addl(RAX, RDX);
-  // hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
-  __ andl(
-      RAX,
-      Immediate(((static_cast<intptr_t>(1) << target::String::kHashBits) - 1)));
-
-  // return hash_ == 0 ? 1 : hash_;
-  __ cmpq(RAX, Immediate(0));
-  __ j(NOT_EQUAL, &set_hash_code, Assembler::kNearJump);
-  __ incq(RAX);
-  __ Bind(&set_hash_code);
+  // Finalize and fit to size kHashBits. Ensures hash is non-zero.
+  __ FinalizeHashForSize(target::String::kHashBits, RAX);
   __ shlq(RAX, Immediate(target::UntaggedObject::kHashTagPos));
   // lock+orq is an atomic read-modify-write.
   __ lock();
@@ -1862,72 +1832,22 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-// TODO(srdjan): Add combinations (one-byte/two-byte/external strings).
-static void StringEquality(Assembler* assembler,
-                           Label* normal_ir_body,
-                           intptr_t string_cid) {
-  Label is_true, is_false, loop;
+void AsmIntrinsifier::OneByteString_equality(Assembler* assembler,
+                                             Label* normal_ir_body) {
   __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // This.
   __ movq(RCX, Address(RSP, +1 * target::kWordSize));  // Other.
 
-  // Are identical?
-  __ OBJ(cmp)(RAX, RCX);
-  __ j(EQUAL, &is_true, Assembler::kNearJump);
-
-  // Is other same kind of string?
-  __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(ZERO, &is_false);  // Smi
-  __ CompareClassId(RCX, string_cid);
-  __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
-
-  // Have same length?
-  __ movq(RDI, FieldAddress(RAX, target::String::length_offset()));
-  __ cmpq(RDI, FieldAddress(RCX, target::String::length_offset()));
-  __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
-
-  if (string_cid == kOneByteStringCid) {
-    __ SmiUntag(RDI);
-  }
-  // Round up number of bytes to compare to word boundary since we
-  // are doing comparison in word chunks.
-  __ addq(RDI, Immediate(target::kWordSize - 1));
-  __ sarq(RDI, Immediate(target::kWordSizeLog2));
-  __ Bind(&loop);
-  __ decq(RDI);
-  __ j(LESS, &is_true, Assembler::kNearJump);
-  ASSERT(target::OneByteString::data_offset() ==
-         target::String::length_offset() + target::kWordSize);
-  ASSERT(target::TwoByteString::data_offset() ==
-         target::String::length_offset() + target::kWordSize);
-  COMPILE_ASSERT(target::kWordSize == 8);
-  __ movq(RBX, FieldAddress(RAX, RDI, TIMES_8,
-                            target::String::length_offset() +
-                                target::kWordSize));  // word with length itself
-  __ cmpq(RBX, FieldAddress(RCX, RDI, TIMES_8,
-                            target::String::length_offset() +
-                                target::kWordSize));  // word with length itself
-  __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
-  __ jmp(&loop, Assembler::kNearJump);
-
-  __ Bind(&is_true);
-  __ LoadObject(RAX, CastHandle<Object>(TrueObject()));
-  __ ret();
-
-  __ Bind(&is_false);
-  __ LoadObject(RAX, CastHandle<Object>(FalseObject()));
-  __ ret();
-
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::OneByteString_equality(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  StringEquality(assembler, normal_ir_body, kOneByteStringCid);
+  StringEquality(assembler, RAX, RCX, RDI, RBX, RAX, normal_ir_body,
+                 kOneByteStringCid);
 }
 
 void AsmIntrinsifier::TwoByteString_equality(Assembler* assembler,
                                              Label* normal_ir_body) {
-  StringEquality(assembler, normal_ir_body, kTwoByteStringCid);
+  __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // This.
+  __ movq(RCX, Address(RSP, +1 * target::kWordSize));  // Other.
+
+  StringEquality(assembler, RAX, RCX, RDI, RBX, RAX, normal_ir_body,
+                 kTwoByteStringCid);
 }
 
 void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,

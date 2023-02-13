@@ -7,6 +7,7 @@ import("../../build/dart/dart_action.gni")
 import("../../sdk_args.gni")
 import("../runtime_args.gni")
 import("../vm/compiler/compiler_sources.gni")
+import("../vm/ffi/ffi_sources.gni")
 import("../vm/heap/heap_sources.gni")
 import("../vm/vm_sources.gni")
 import("builtin_impl_sources.gni")
@@ -821,6 +822,7 @@ dart_executable("dart") {
     "loader.cc",
     "loader.h",
     "main.cc",
+    "main_impl.cc",
   ]
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
@@ -849,6 +851,7 @@ dart_executable("dart_precompiled_runtime") {
     "loader.cc",
     "loader.h",
     "main.cc",
+    "main_impl.cc",
     "snapshot_empty.cc",
   ]
 
@@ -880,6 +883,7 @@ dart_executable("dart_precompiled_runtime_product") {
     "loader.cc",
     "loader.h",
     "main.cc",
+    "main_impl.cc",
     "observatory_assets_empty.cc",
     "snapshot_empty.cc",
   ]
@@ -887,43 +891,39 @@ dart_executable("dart_precompiled_runtime_product") {
   extra_deps += [ ":elf_loader_product" ]
 }
 
-dart_executable("analyze_snapshot") {
-  extra_configs = [ "..:dart_precompiled_runtime_config" ]
-  extra_deps = [
-    "..:libdart_precompiled_runtime",
-    "../platform:libdart_platform_precompiled_runtime",
-  ]
+# This flag is set in runtime/runtime_args.gni
+# The analyze_snapshot tool is only supported on 64 bit AOT builds running under
+# linux and android platforms
+if (build_analyze_snapshot) {
+  dart_executable("analyze_snapshot") {
+    use_product_mode = dart_runtime_mode == "release"
+    extra_configs = [ "..:dart_precompiled_runtime_config" ]
 
-  extra_sources = [
-    "analyze_snapshot.cc",
-    "builtin.cc",
-    "loader.cc",
-    "loader.h",
-  ]
+    if (use_product_mode) {
+      extra_deps = [
+        "..:libdart_precompiled_runtime_product",
+        "../platform:libdart_platform_precompiled_runtime_product",
+      ]
+    } else {
+      extra_deps = [
+        "..:libdart_precompiled_runtime",
+        "../platform:libdart_platform_precompiled_runtime",
+      ]
+    }
 
-  if (dart_runtime_mode == "release") {
-    extra_deps += [ ":elf_loader_product" ]
-  } else {
-    extra_deps += [ ":elf_loader" ]
+    extra_sources = [
+      "analyze_snapshot.cc",
+      "builtin.cc",
+      "loader.cc",
+      "loader.h",
+    ]
+
+    if (use_product_mode) {
+      extra_deps += [ ":elf_loader_product" ]
+    } else {
+      extra_deps += [ ":elf_loader" ]
+    }
   }
-}
-
-dart_executable("analyze_snapshot_product") {
-  use_product_mode = true
-  extra_configs = [ "..:dart_precompiled_runtime_config" ]
-  extra_deps = [
-    "..:libdart_precompiled_runtime_product",
-    "../platform:libdart_platform_precompiled_runtime_product",
-  ]
-
-  extra_sources = [
-    "analyze_snapshot.cc",
-    "builtin.cc",
-    "loader.cc",
-    "loader.h",
-  ]
-
-  extra_deps += [ ":elf_loader_product" ]
 }
 
 executable("process_test") {

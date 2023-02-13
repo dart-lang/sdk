@@ -241,22 +241,22 @@ class MyMock1 extends self::B {
     ;
   method noSuchMethod(core::Invocation _) → dynamic
     ;
-  no-such-method-forwarder method interfaceMethod2() → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod2, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set property1(dynamic _) → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
   no-such-method-forwarder method abstractMethod() → dynamic
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#abstractMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} dynamic;
   no-such-method-forwarder method interfaceMethod1() → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
-  no-such-method-forwarder method interfaceMethod3() → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod3, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
-  no-such-method-forwarder set property3(dynamic _) → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
   no-such-method-forwarder set interfaceMethod1(dynamic value) → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
-  no-such-method-forwarder set property1(dynamic _) → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
+  no-such-method-forwarder method interfaceMethod2() → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod2, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
+  no-such-method-forwarder method interfaceMethod3() → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod3, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
   no-such-method-forwarder set property2(dynamic _) → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property2=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set property3(dynamic _) → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
 }
 class MyMock2 extends self::MyMock1 {
   synthetic constructor •() → self::MyMock2
@@ -325,9 +325,8 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> SymbolConstant(#interfaceMethod2)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> SymbolConstant(#property1=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> SymbolConstant(#abstractMethod)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <Type*>[])
@@ -337,20 +336,21 @@ Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> SymbolConstant(#interfaceMethod1=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> SymbolConstant(#interfaceMethod2)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> SymbolConstant(#interfaceMethod3)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> SymbolConstant(#property3=)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> SymbolConstant(#interfaceMethod1=)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> SymbolConstant(#property1=)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> SymbolConstant(#property2=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> SymbolConstant(#property3=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> ListConstant(const <Type*>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:42:7 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 73, effectively constant: 28

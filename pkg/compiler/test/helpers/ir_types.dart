@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:kernel/ast.dart' as ir;
 
 class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
@@ -130,8 +128,8 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
-  void visitViewType(ir.ViewType node, StringBuffer sb) {
-    writeType(node.representationType, sb);
+  void visitInlineType(ir.InlineType node, StringBuffer sb) {
+    writeType(node.instantiatedRepresentationType, sb);
   }
 
   @override

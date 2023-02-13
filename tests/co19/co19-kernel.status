@@ -3,12 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2wasm ]
-Language/Statements/Continue/async_loops_t07: Skip # https://github.com/dart-lang/sdk/issues/50122
-Language/Statements/Continue/async_loops_t08: Skip # https://github.com/dart-lang/sdk/issues/50122
-LibTest/async/Stream/Stream.fromFutures_all_t01: Skip # https://github.com/dart-lang/sdk/issues/50122
-LibTest/async/Stream/Stream.fromIterable_all_t01: Skip # https://github.com/dart-lang/sdk/issues/50122
-LibTest/async/StreamController/StreamController.broadcast_Stream_all_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/50122
-LibTest/async/StreamController/stream_all_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/50122
+LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # Uses FFI OS calls to trigger GC
+LibTest/ffi/*: SkipByDesign
+LibTest/html/*: SkipByDesign
+LibTest/io/*: SkipByDesign
+LibTest/isolate/*: SkipByDesign
+LibTest/mirrors/*: SkipByDesign
 
 [ $runtime == dart_precompiled ]
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported:

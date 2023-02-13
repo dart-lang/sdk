@@ -5,10 +5,12 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/internal_ast.dart';
+import '../source/constructor_declaration.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'closure_context.dart';
 import 'inference_helper.dart' show InferenceHelper;
@@ -59,8 +61,8 @@ abstract class TypeInferrer {
       DartType returnType, AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
-  InitializerInferenceResult inferInitializer(
-      InferenceHelper helper, Initializer initializer);
+  InitializerInferenceResult inferInitializer(InferenceHelper helper,
+      ConstructorDeclaration constructorDeclaration, Initializer initializer);
 
   /// Performs type inference on the given metadata annotations.
   void inferMetadata(
@@ -125,6 +127,11 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   final SourceLibraryBuilder libraryBuilder;
 
+  late final StaticTypeContext staticTypeContext =
+      new StaticTypeContextImpl.direct(
+          libraryBuilder.library, typeSchemaEnvironment,
+          thisType: thisType);
+
   TypeInferrerImpl(
       this.engine,
       this.uriForInstrumentation,
@@ -144,10 +151,12 @@ class TypeInferrerImpl implements TypeInferrer {
             unpromotablePrivateFieldNames:
                 libraryBuilder.unpromotablePrivateFieldNames);
 
-  InferenceVisitorBase _createInferenceVisitor(InferenceHelper helper) {
+  InferenceVisitorBase _createInferenceVisitor(InferenceHelper helper,
+      [ConstructorDeclaration? constructorDeclaration]) {
     // For full (non-top level) inference, we need access to the
     // InferenceHelper so that we can perform error reporting.
-    return new InferenceVisitorImpl(this, helper, operations);
+    return new InferenceVisitorImpl(
+        this, helper, constructorDeclaration, operations);
   }
 
   @override
@@ -214,22 +223,22 @@ class TypeInferrerImpl implements TypeInferrer {
     List<Expression> positionalArguments = <Expression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.positionalParameters) {
-      flowAnalysis.declare(parameter, true);
+      flowAnalysis.declare(parameter, parameter.type, initialized: true);
       positionalArguments
           .add(new VariableGetImpl(parameter, forNullGuardedAccess: false));
     }
     List<NamedExpression> namedArguments = <NamedExpression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.namedParameters) {
-      flowAnalysis.declare(parameter, true);
+      flowAnalysis.declare(parameter, parameter.type, initialized: true);
       namedArguments.add(new NamedExpression(parameter.name!,
           new VariableGetImpl(parameter, forNullGuardedAccess: false)));
     }
-    // If arguments are created using [Forest.createArguments], and the
+    // If arguments are created using [ArgumentsImpl], and the
     // type arguments are omitted, they are to be inferred.
-    ArgumentsImpl targetInvocationArguments = engine.forest.createArguments(
-        fileOffset, positionalArguments,
-        named: namedArguments);
+    ArgumentsImpl targetInvocationArguments =
+        new ArgumentsImpl(positionalArguments, named: namedArguments)
+          ..fileOffset = fileOffset;
 
     InvocationInferenceResult result = visitor.inferInvocation(
         visitor, typeContext, fileOffset, targetType, targetInvocationArguments,
@@ -244,14 +253,15 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  InitializerInferenceResult inferInitializer(
-      InferenceHelper helper, Initializer initializer) {
+  InitializerInferenceResult inferInitializer(InferenceHelper helper,
+      ConstructorDeclaration constructorDeclaration, Initializer initializer) {
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
     // TODO(paulberry): experiment to see if dynamic dispatch would be better,
     // so that the type hierarchy will be simpler (which may speed up "is"
     // checks).
-    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
+    InferenceVisitorBase visitor =
+        _createInferenceVisitor(helper, constructorDeclaration);
     InitializerInferenceResult result = visitor.inferInitializer(initializer);
     visitor.checkCleanState();
     return result;
@@ -356,11 +366,11 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   }
 
   @override
-  InitializerInferenceResult inferInitializer(
-      InferenceHelper helper, Initializer initializer) {
+  InitializerInferenceResult inferInitializer(InferenceHelper helper,
+      ConstructorDeclaration constructorDeclaration, Initializer initializer) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferInitializer);
     InitializerInferenceResult result =
-        impl.inferInitializer(helper, initializer);
+        impl.inferInitializer(helper, constructorDeclaration, initializer);
     benchmarker.endSubdivide();
     return result;
   }

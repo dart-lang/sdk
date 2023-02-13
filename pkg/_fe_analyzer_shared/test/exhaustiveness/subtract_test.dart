@@ -11,9 +11,9 @@ import 'utils.dart';
 
 void main() {
   group('empty', () {
-    var a = StaticType('A');
-    var b = StaticType('B', inherits: [a], fields: {'x': a, 'y': a});
-    var c = StaticType('C', inherits: [a]);
+    var a = StaticTypeImpl('A');
+    var b = StaticTypeImpl('B', inherits: [a], fields: {'x': a, 'y': a});
+    var c = StaticTypeImpl('C', inherits: [a]);
 
     expectSubtract('∅', '∅', '∅');
 
@@ -30,18 +30,28 @@ void main() {
     expectSubtract(ty(b, {'x': a}), '∅', 'B(x: A)');
   });
 
+  group('top and null', () {
+    expectSubtract(StaticType.nullableObject, StaticType.nullableObject, '∅');
+    expectSubtract(StaticType.nullableObject, StaticType.nullType, 'Object');
+    expectSubtract(StaticType.nonNullableObject, StaticType.nullType, 'Object');
+    expectSubtract(
+        StaticType.nullableObject, StaticType.nonNullableObject, 'Null');
+    expectSubtract(
+        StaticType.nonNullableObject, StaticType.nullableObject, '∅');
+  });
+
   group('union with sealed types', () {
     //   (A)
     //   /|\
     //  B C(D)
     //     / \
     //    E   F
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', isSealed: true, inherits: [a]);
-    var e = StaticType('E', inherits: [d]);
-    var f = StaticType('F', inherits: [d]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', isSealed: true, inherits: [a]);
+    var e = StaticTypeImpl('E', inherits: [d]);
+    var f = StaticTypeImpl('F', inherits: [d]);
 
     expectSubtract(a, b, 'C|D');
     expectSubtract(a, c, 'B|D');
@@ -73,11 +83,11 @@ void main() {
     // C   D
     //  \ /
     //   E
-    var a = StaticType('A');
-    var b = StaticType('B');
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [a, b]);
-    var e = StaticType('E', inherits: [c, d]);
+    var a = StaticTypeImpl('A');
+    var b = StaticTypeImpl('B');
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [a, b]);
+    var e = StaticTypeImpl('E', inherits: [c, d]);
 
     expectSubtract(a, a, '∅');
     expectSubtract(a, b, 'A');
@@ -114,10 +124,10 @@ void main() {
     //  X  A
     //  |  |
     //  Y  B
-    var x = StaticType('X');
-    var y = StaticType('Y', inherits: [x]);
-    var a = StaticType('A', fields: {'x': StaticType.top});
-    var b = StaticType('B', inherits: [a]);
+    var x = StaticTypeImpl('X');
+    var y = StaticTypeImpl('Y', inherits: [x]);
+    var a = StaticTypeImpl('A', fields: {'x': StaticType.nullableObject});
+    var b = StaticTypeImpl('B', inherits: [a]);
 
     Space A({required StaticType x}) => ty(a, {'x': x});
     Space B({required StaticType x}) => ty(b, {'x': x});
@@ -152,18 +162,19 @@ void main() {
     expectSubtract(b, B(x: x), 'B');
   });
 
-  group('sealed subtype and field', () {
+  group('sealed subtype and field 1', () {
     //   (X)    (A)
     //   /|\    /|\
     //  W Y Z  B C D
-    var x = StaticType('X', isSealed: true);
-    StaticType('W', inherits: [x]);
-    var y = StaticType('Y', inherits: [x]);
-    StaticType('Z', inherits: [x]);
-    var a = StaticType('A', isSealed: true, fields: {'x': StaticType.top});
-    var b = StaticType('B', inherits: [a]);
-    StaticType('C', inherits: [a]);
-    StaticType('D', inherits: [a]);
+    var x = StaticTypeImpl('X', isSealed: true);
+    StaticTypeImpl('W', inherits: [x]);
+    var y = StaticTypeImpl('Y', inherits: [x]);
+    StaticTypeImpl('Z', inherits: [x]);
+    var a = StaticTypeImpl('A',
+        isSealed: true, fields: {'x': StaticType.nullableObject});
+    var b = StaticTypeImpl('B', inherits: [a]);
+    StaticTypeImpl('C', inherits: [a]);
+    StaticTypeImpl('D', inherits: [a]);
 
     Space A({required StaticType x}) => ty(a, {'x': x});
     Space B({required StaticType x}) => ty(b, {'x': x});
@@ -201,18 +212,19 @@ void main() {
     expectSubtract(b, B(x: x), 'B');
   });
 
-  group('sealed subtype and field', () {
+  group('sealed subtype and field 2', () {
     //   (X)    (A)
     //   /|\    /|\
     //  W Y Z  B C D
-    var x = StaticType('X', isSealed: true);
-    var w = StaticType('W', inherits: [x]);
-    var y = StaticType('Y', inherits: [x]);
-    var z = StaticType('Z', inherits: [x]);
-    var a = StaticType('A', isSealed: true, fields: {'x': x, 'y': x, 'z': x});
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    StaticType('D', inherits: [a]);
+    var x = StaticTypeImpl('X', isSealed: true);
+    var w = StaticTypeImpl('W', inherits: [x]);
+    var y = StaticTypeImpl('Y', inherits: [x]);
+    var z = StaticTypeImpl('Z', inherits: [x]);
+    var a =
+        StaticTypeImpl('A', isSealed: true, fields: {'x': x, 'y': x, 'z': x});
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    StaticTypeImpl('D', inherits: [a]);
 
     Space A({StaticType? x, StaticType? y, StaticType? z}) => ty(a,
         {if (x != null) 'x': x, if (y != null) 'y': y, if (z != null) 'z': z});
@@ -240,6 +252,36 @@ void main() {
     expectSubtract(b, A(x: w, y: z), 'B(x: Y|Z, y: X)|B(x: X, y: W|Y)');
     expectSubtract(a, B(x: w, y: z), 'B(x: Y|Z, y: X)|B(x: X, y: W|Y)|C|D');
     expectSubtract(c, B(x: w, y: z), 'C');
+  });
+
+  group('null and object', () {
+    expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
+        Space.empty, 'Object?(hashCode: ())');
+    expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
+        Space.top, '∅');
+    expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
+        Space(StaticType.nullableObject, {'hashCode': Space.top}), '∅');
+    expectSubtract(
+        Space(StaticType.nullableObject, {'hashCode': Space.top}),
+        Space(StaticType.nonNullableObject, {'hashCode': Space.top}),
+        'Null(hashCode: ())');
+    expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
+        Space(StaticType.nullType), '(hashCode: ())');
+    expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
+        Space(StaticType.nullType, {'hashCode': Space.top}), '(hashCode: ())');
+
+    expectSubtract(Space(StaticType.nullType, {'hashCode': Space.top}),
+        Space.empty, 'Null(hashCode: ())');
+    expectSubtract(
+        Space(StaticType.nullType, {'hashCode': Space.top}), Space.top, '∅');
+    expectSubtract(Space(StaticType.nullType, {'hashCode': Space.top}),
+        Space(StaticType.nullType, {'hashCode': Space.top}), '∅');
+    expectSubtract(
+        Space(StaticType.nullType, {'hashCode': Space.top}),
+        Space(StaticType.neverType, {'hashCode': Space.top}),
+        'Null(hashCode: ())');
+    expectSubtract(Space(StaticType.nullType, {'hashCode': Space.top}),
+        Space(StaticType.nullType), '∅');
   });
 }
 

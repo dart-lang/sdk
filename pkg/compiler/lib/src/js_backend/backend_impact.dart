@@ -399,8 +399,7 @@ class BackendImpacts {
 
   late final BackendImpact allowInterop = BackendImpact(
     staticUses: [
-      _commonElements.jsAllowInterop1!,
-      _commonElements.jsAllowInterop2!,
+      _commonElements.jsAllowInterop!,
     ],
     features: EnumSet<BackendFeature>.fromValues([
       BackendFeature.needToInitializeIsolateAffinityTag,
@@ -632,6 +631,12 @@ class BackendImpacts {
     globalUses: [
       _commonElements.throwUnnamedLateFieldADI,
       _commonElements.throwLateFieldADI,
+    ],
+  );
+
+  late final BackendImpact recordInstantiation = BackendImpact(
+    globalUses: [
+      _commonElements.recordImpactModel,
     ],
   );
 }

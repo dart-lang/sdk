@@ -48,21 +48,6 @@ class DisableNativeProfileScope : public ValueObject {
   const bool FLAG_profile_vm_allocation_;
 };
 
-class DisableBackgroundCompilationScope : public ValueObject {
- public:
-  DisableBackgroundCompilationScope()
-      : FLAG_background_compilation_(FLAG_background_compilation) {
-    FLAG_background_compilation = false;
-  }
-
-  ~DisableBackgroundCompilationScope() {
-    FLAG_background_compilation = FLAG_background_compilation_;
-  }
-
- private:
-  const bool FLAG_background_compilation_;
-};
-
 // Temporarily adjust the maximum profile depth.
 class MaxProfileDepthScope : public ValueObject {
  public:
@@ -538,6 +523,16 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
     // the specified time range.
     EXPECT_EQ(0, profile.sample_count());
   }
+}
+
+ISOLATE_UNIT_TEST_CASE(Profiler_NullSampleBuffer) {
+  Isolate* isolate = thread->isolate();
+
+  SampleFilter filter(isolate->main_port(), Thread::kMutatorTask, -1, -1);
+  Profile profile;
+  profile.Build(thread, &filter, nullptr);
+
+  EXPECT_EQ(0, profile.sample_count());
 }
 
 #if defined(DART_USE_TCMALLOC) && defined(DART_HOST_OS_LINUX) &&               \
@@ -1487,7 +1482,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
   }
 }
 
-ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
+ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundary) {
   // The PC of frames below the top frame is a call's return address,
   // which can belong to a different inlining interval than the call.
   // This test checks the profiler service takes this into account; see

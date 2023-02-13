@@ -43,6 +43,12 @@
 //
 // TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
 
+#if defined(DART_COMPRESSED_POINTERS)
+#define COMPRESSED_ONLY(x) x
+#else
+#define COMPRESSED_ONLY(x)
+#endif
+
 #define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF,                \
                             PAYLOAD_SIZEOF, RANGE, CONSTANT)                   \
   ARRAY(Array, element_offset)                                                 \
@@ -56,6 +62,7 @@
   ARRAY(Record, field_offset)                                                  \
   ARRAY(TypeArguments, type_at_offset)                                         \
   ARRAY(TwoByteString, element_offset)                                         \
+  ARRAY(WeakArray, element_offset)                                             \
   ARRAY_SIZEOF(Array, InstanceSize, element_offset)                            \
   ARRAY_SIZEOF(Code, InstanceSize, element_offset)                             \
   ARRAY_SIZEOF(Context, InstanceSize, variable_offset)                         \
@@ -66,6 +73,7 @@
   ARRAY_SIZEOF(Record, InstanceSize, field_offset)                             \
   ARRAY_SIZEOF(TypeArguments, InstanceSize, type_at_offset)                    \
   ARRAY_SIZEOF(TwoByteString, InstanceSize, element_offset)                    \
+  ARRAY_SIZEOF(WeakArray, InstanceSize, element_offset)                        \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
   CONSTANT(Context, kMaxElements)                                              \
@@ -78,6 +86,11 @@
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
   CONSTANT(Page, kBytesPerCardLog2)                                            \
   CONSTANT(Record, kMaxElements)                                               \
+  CONSTANT(RecordShape, kFieldNamesIndexMask)                                  \
+  CONSTANT(RecordShape, kFieldNamesIndexShift)                                 \
+  CONSTANT(RecordShape, kMaxFieldNamesIndex)                                   \
+  CONSTANT(RecordShape, kMaxNumFields)                                         \
+  CONSTANT(RecordShape, kNumFieldsMask)                                        \
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceCidOrSignature)                          \
@@ -179,9 +192,11 @@
   FIELD(NativeArguments, thread_offset)                                        \
   FIELD(ObjectStore, double_type_offset)                                       \
   FIELD(ObjectStore, int_type_offset)                                          \
+  FIELD(ObjectStore, record_field_names_offset)                                \
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(ObjectStore, type_type_offset)                                         \
   FIELD(ObjectStore, suspend_state_await_offset)                               \
+  FIELD(ObjectStore, suspend_state_await_with_type_check_offset)               \
   FIELD(ObjectStore, suspend_state_handle_exception_offset)                    \
   FIELD(ObjectStore, suspend_state_init_async_offset)                          \
   FIELD(ObjectStore, suspend_state_init_async_star_offset)                     \
@@ -194,8 +209,7 @@
   FIELD(OneByteString, data_offset)                                            \
   FIELD(PointerBase, data_offset)                                              \
   FIELD(Pointer, type_arguments_offset)                                        \
-  FIELD(Record, num_fields_offset)                                             \
-  FIELD(Record, field_names_offset)                                            \
+  FIELD(Record, shape_offset)                                                  \
   FIELD(SingleTargetCache, entry_point_offset)                                 \
   FIELD(SingleTargetCache, lower_limit_offset)                                 \
   FIELD(SingleTargetCache, target_offset)                                      \
@@ -306,6 +320,7 @@
   FIELD(Thread, stack_overflow_shared_without_fpu_regs_stub_offset)            \
   FIELD(Thread, store_buffer_block_offset)                                     \
   FIELD(Thread, suspend_state_await_entry_point_offset)                        \
+  FIELD(Thread, suspend_state_await_with_type_check_entry_point_offset)        \
   FIELD(Thread, suspend_state_init_async_entry_point_offset)                   \
   FIELD(Thread, suspend_state_return_async_entry_point_offset)                 \
   FIELD(Thread, suspend_state_return_async_not_future_entry_point_offset)      \
@@ -322,7 +337,7 @@
   FIELD(Thread, vm_tag_offset)                                                 \
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
-  FIELD(Thread, heap_base_offset)                                              \
+  COMPRESSED_ONLY(FIELD(Thread, heap_base_offset))                             \
   FIELD(Thread, callback_code_offset)                                          \
   FIELD(Thread, callback_stack_return_offset)                                  \
   FIELD(Thread, next_task_id_offset)                                           \
@@ -359,6 +374,7 @@
   FIELD(FunctionType, type_parameters_offset)                                  \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
+  FIELD(TypeArguments, hash_offset)                                            \
   FIELD(TypeArguments, instantiations_offset)                                  \
   FIELD(TypeArguments, length_offset)                                          \
   FIELD(TypeArguments, nullability_offset)                                     \

@@ -13,7 +13,7 @@ import '../js_backend/string_reference.dart';
 import '../js_backend/type_reference.dart';
 import '../js_emitter/metadata_collector.dart';
 
-/// Estimates the size of the Javascript AST represented by the provided [Node].
+/// Estimates the size of the JavaScript AST represented by the provided [Node].
 int estimateSize(Node node) {
   var estimator = SizeEstimator();
   estimator.visit(node);

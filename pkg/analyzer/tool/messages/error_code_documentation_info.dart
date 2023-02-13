@@ -100,7 +100,7 @@ class _ErrorCodeDocumentationParser {
   /// the snippet.
   static const String languagePrefix = '%language=';
 
-  /// The prefix used on directive lines to indicate the uri of an auxiliary
+  /// The prefix used on directive lines to indicate the URI of an auxiliary
   /// file that is needed for testing purposes.
   static const String uriDirectivePrefix = '%uri="';
 

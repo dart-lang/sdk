@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:io';
 
@@ -57,7 +55,7 @@ Future testAnnotatedCode(String code,
   Map<String, AnnotatedCode> split =
       splitByPrefixes(annotatedCode, [kernelMarker]);
   print('---from kernel------------------------------------------------------');
-  await runTest(split[kernelMarker], kernelMarker,
+  await runTest(split[kernelMarker]!, kernelMarker,
       debug: debug, verbose: verbose);
 }
 
@@ -75,6 +73,7 @@ Future runTest(AnnotatedCode annotatedCode, String config,
     '--out=$outputFile',
     inputFile,
     Flags.disableInlining,
+    Flags.noSoundNullSafety,
     '--libraries-spec=$sdkLibrariesSpecificationUri',
   ];
   CompilationResult compilationResult = await entry.internalMain(arguments);

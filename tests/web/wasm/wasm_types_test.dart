@@ -18,11 +18,11 @@ external WasmExternRef? apply(WasmFuncRef? target, WasmExternRef? thisArgument,
 
 WasmAnyRef? anyRef;
 WasmEqRef? eqRef;
-WasmDataRef? dataRef;
+WasmStructRef? structRef;
 
 int funCount = 0;
 
-void fun(WasmEqRef arg) {
+WasmVoid? fun(WasmEqRef arg) {
   funCount++;
   Expect.equals("Dart object", arg.toObject());
 }
@@ -44,17 +44,17 @@ test() {
   // Upcast Dart objects to Wasm refs and put them in fields.
   anyRef = WasmAnyRef.fromObject(dartObject1);
   eqRef = WasmEqRef.fromObject(dartObject2);
-  dataRef = WasmDataRef.fromObject(dartObject3);
+  structRef = WasmStructRef.fromObject(dartObject3);
 
   // Dart objects are Dart objects.
   Expect.isTrue(anyRef!.isObject);
   Expect.isTrue(eqRef!.isObject);
-  Expect.isTrue(dataRef!.isObject);
+  Expect.isTrue(structRef!.isObject);
 
   // Casting back yields the original objects.
   Expect.identical(dartObject1, anyRef!.toObject());
   Expect.identical(dartObject2, eqRef!.toObject());
-  Expect.identical(dartObject3, dataRef!.toObject());
+  Expect.identical(dartObject3, structRef!.toObject());
 
   // Casting a JS object to a Dart object throws.
   Object o;
@@ -81,7 +81,7 @@ test() {
 
   // Cast a typed function reference to a `funcref` and back.
   WasmFuncRef funcref = WasmFuncRef.fromWasmFunction(ff);
-  var ff2 = WasmFunction<void Function(WasmEqRef)>.fromFuncRef(funcref);
+  var ff2 = WasmFunction<WasmVoid? Function(WasmEqRef)>.fromFuncRef(funcref);
   ff2.call(dartObjectRef);
 
   // Create a typed function reference from an import and call it.

@@ -56,9 +56,10 @@ class AnalysisOptionsProvider {
   }
 
   /// Provide the options found in [source].
-  /// Recursively merge options referenced by an include directive
-  /// and remove the include directive from the resulting options map.
-  /// Return an empty options map if the file does not exist.
+  ///
+  /// Recursively merge options referenced by an `include` directive and remove
+  /// the `include` directive from the resulting options map. Return an empty
+  /// options map if the file does not exist.
   YamlMap getOptionsFromSource(Source source) {
     YamlMap options = getOptionsFromString(_readAnalysisOptions(source));
     var node = options.valueAt(AnalyzerOptions.include);

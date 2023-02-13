@@ -15,7 +15,7 @@ import 'package:kernel/type_environment.dart';
 /// [Statement]s can be replaced by other [Expression]s and [Statement]s
 /// respectively. This means one cannot do `visitX() { super.visitX() as X }`.
 ///
-/// This transform must be run on the standard libaries as well. For example
+/// This transform must be run on the standard libraries as well. For example
 /// `NativeFinalizer`s `attach` implementation depends on it.
 mixin FinalizableTransformer on Transformer {
   TypeEnvironment get env;
@@ -297,7 +297,7 @@ mixin FinalizableTransformer on Transformer {
   /// executed multiple times. The context of this closure is restored on
   /// re-execution. These two things make it a continuation.
   /// The [YieldStatement]s are compiled into returns from that closure.
-  /// When inlining the iterator machinery and eleminating dead code, the
+  /// When inlining the iterator machinery and eliminating dead code, the
   /// compiler can see that we will never execute a re-entry if we just ask for
   /// only the first value of a stream from a sync* function.
   /// So, we need to insert fences for yields as if they were returns in sync*

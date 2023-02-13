@@ -48,6 +48,7 @@ Future<void> main(List<String> args) async {
     // Compile script to Kernel IR.
     await run(genKernel, <String>[
       '--aot',
+      '--no-sound-null-safety',
       '--platform=$platformDill',
       '-o',
       scriptDill,
@@ -59,6 +60,7 @@ Future<void> main(List<String> args) async {
     await run(genSnapshot, <String>[
       '--disassemble',
       '--disassemble_stubs',
+      '--no-sound-null-safety',
       '--always_generate_trampolines_for_testing',
       '--snapshot-kind=app-aot-elf',
       '--elf=$elfFile',

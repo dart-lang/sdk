@@ -198,7 +198,7 @@ abstract class ServiceEvent extends Event {
   /// The identifier of the service
   String get service;
 
-  /// The JSON-RPC 2.0 Method that identifes this instance
+  /// The JSON-RPC 2.0 Method that identifies this instance
   String get method;
 }
 

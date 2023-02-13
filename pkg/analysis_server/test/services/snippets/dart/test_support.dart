@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_manager.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_single_unit.dart';
@@ -34,7 +36,7 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
       offset: offsetFromMarker(code),
     );
 
-    final producer = generator(request);
+    final producer = generator(request, elementImportCache: {});
     expect(await producer.isValid(), isFalse);
   }
 
@@ -45,13 +47,40 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
       offset: offsetFromMarker(code),
     );
 
-    final producer = generator(request);
+    final producer = generator(request, elementImportCache: {});
     expect(await producer.isValid(), isTrue);
     return producer.compute();
   }
 }
 
 abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
+  /// Asserts that [change] matches the code in [expected], has a selection
+  /// matching its range and a single linked edit group containing all of its
+  /// positions.
+  void assertFlutterSnippetChange(
+    SourceChange change,
+    String linkedGroupText,
+    TestCode expected,
+  ) {
+    expect(change.edits, hasLength(1));
+    final code = SourceEdit.applySequence('', change.edits.single.edits);
+    expect(code, expected.code);
+
+    expect(change.selection!.file, testFile);
+    expect(change.selection!.offset, expected.range.sourceRange.offset);
+    expect(change.selectionLength, expected.range.sourceRange.length);
+    expect(change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          for (final position in expected.positions)
+            {'file': testFile, 'offset': position.offset},
+        ],
+        'length': linkedGroupText.length,
+        'suggestions': []
+      }
+    ]);
+  }
+
   /// Checks snippets can produce edits where the imports and snippet will be
   /// inserted at the same location.
   ///

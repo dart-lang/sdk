@@ -40,10 +40,13 @@ class DevelopmentIncrementalCompiler extends IncrementalCompiler {
 
 class SetupCompilerOptions {
   static final sdkRoot = computePlatformBinariesLocation();
-  static final sdkUnsoundSummaryPath = p.join(sdkRoot.path, 'ddc_sdk.dill');
-  static final sdkSoundSummaryPath =
-      p.join(sdkRoot.path, 'ddc_outline_sound.dill');
-  // TODO(46617) Call getSdkPath() from command.dart instead.
+  // Unsound .dill files are not longer in the released SDK so this file must be
+  // read from the build output directory.
+  static final sdkUnsoundSummaryPath =
+      computePlatformBinariesLocation(forceBuildDir: true)
+          .resolve('ddc_outline_unsound.dill');
+  // Use the outline copied to the released SDK.
+  static final sdkSoundSummaryPath = sdkRoot.resolve('ddc_outline.dill');
   static final librariesSpecificationUri =
       p.join(p.dirname(p.dirname(getSdkPath())), 'libraries.json');
 
@@ -51,11 +54,12 @@ class SetupCompilerOptions {
     var options = CompilerOptions()
       ..verbose = false // set to true for debugging
       ..sdkRoot = sdkRoot
-      ..target = DevCompilerTarget(TargetFlags())
+      ..target =
+          DevCompilerTarget(TargetFlags(soundNullSafety: soundNullSafety))
       ..librariesSpecificationUri = Uri.base.resolve('sdk/lib/libraries.json')
       ..omitPlatform = true
-      ..sdkSummary = sdkRoot.resolve(
-          soundNullSafety ? sdkSoundSummaryPath : sdkUnsoundSummaryPath)
+      ..sdkSummary =
+          soundNullSafety ? sdkSoundSummaryPath : sdkUnsoundSummaryPath
       ..environmentDefines = const {}
       ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak;
     return options;

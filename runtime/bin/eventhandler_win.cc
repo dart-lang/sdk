@@ -28,6 +28,8 @@
 namespace dart {
 namespace bin {
 
+// kBufferSize must be >= kMaxUDPPackageLength so that a complete UDP packet
+// can fit in the buffer.
 static const int kBufferSize = 64 * 1024;
 static const int kStdOverlappedBufferSize = 16 * 1024;
 static const int kMaxUDPPackageLength = 64 * 1024;
@@ -694,7 +696,13 @@ intptr_t Handle::SendTo(const void* buffer,
     return 0;
   }
   if (num_bytes > kBufferSize) {
-    num_bytes = kBufferSize;
+    ASSERT(kBufferSize >= kMaxUDPPackageLength);
+    // The provided buffer is larger than the maximum UDP datagram size so
+    // return an error immediately. If the buffer were larger and the data were
+    // actually passed to `WSASendTo()` then the operation would fail with
+    // ERROR_INVALID_USER_BUFFER anyway.
+    SetLastError(ERROR_INVALID_USER_BUFFER);
+    return -1;
   }
   ASSERT(SupportsOverlappedIO());
   if (completion_port_ == INVALID_HANDLE_VALUE) {

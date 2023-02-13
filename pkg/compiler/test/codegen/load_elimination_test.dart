@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import '../helpers/compiler_helper.dart';
@@ -262,7 +260,7 @@ main() {
     await test(TEST_12, 'return 6');
     await test(TEST_13, 'return 6');
     await test(TEST_14, 'return t1[0]');
-    await test(TEST_15, 'return 42');
+    await test(TEST_15, 'return \$.a = 42');
     await test(TEST_16, 'return \$.a');
     await test(TEST_17,
         RegExp(r'return (t1|\$\.x === 0 \? \$\.a = true : \$\.a = false);'));

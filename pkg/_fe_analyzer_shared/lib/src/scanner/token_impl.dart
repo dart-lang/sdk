@@ -41,8 +41,7 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    */
   StringTokenImpl.fromString(TokenType type, String value, int charOffset,
       {bool canonicalize = false, CommentToken? precedingComments})
-      : valueOrLazySubstring =
-            canonicalize ? canonicalizedString(value) : value,
+      : valueOrLazySubstring = canonicalize ? canonicalizeString(value) : value,
         super(type, charOffset, precedingComments);
 
   /**
@@ -55,8 +54,9 @@ class StringTokenImpl extends SimpleToken implements StringToken {
       : super(type, charOffset, precedingComments) {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
-      valueOrLazySubstring =
-          canonicalizedSubString(data, start, end, canonicalize);
+      valueOrLazySubstring = canonicalize
+          ? canonicalizeSubString(data, start, end)
+          : data.substring(start, end);
     } else {
       valueOrLazySubstring =
           new _LazySubstring(data, start, length, canonicalize);
@@ -73,7 +73,8 @@ class StringTokenImpl extends SimpleToken implements StringToken {
       : super(type, charOffset, precedingComments) {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
-      valueOrLazySubstring = decodeUtf8(data, start, end, asciiOnly);
+      valueOrLazySubstring =
+          canonicalizeUtf8SubString(data, start, end, asciiOnly);
     } else {
       valueOrLazySubstring = new _LazySubstring(data, start, length, asciiOnly);
     }
@@ -89,11 +90,14 @@ class StringTokenImpl extends SimpleToken implements StringToken {
       int start = valueOrLazySubstring.start;
       int end = start + (valueOrLazySubstring as _LazySubstring).length;
       if (data is String) {
-        valueOrLazySubstring = canonicalizedSubString(
-            data, start, end, valueOrLazySubstring.boolValue);
+        final bool canonicalize = valueOrLazySubstring.boolValue;
+        valueOrLazySubstring = canonicalize
+            ? canonicalizeSubString(data, start, end)
+            : data.substring(start, end);
       } else {
+        final bool isAscii = valueOrLazySubstring.boolValue;
         valueOrLazySubstring =
-            decodeUtf8(data, start, end, valueOrLazySubstring.boolValue);
+            canonicalizeUtf8SubString(data, start, end, isAscii);
       }
       return valueOrLazySubstring;
     }
@@ -104,22 +108,6 @@ class StringTokenImpl extends SimpleToken implements StringToken {
 
   @override
   String toString() => lexeme;
-
-  static final StringCanonicalizer canonicalizer = new StringCanonicalizer();
-
-  static String canonicalizedString(String s) {
-    return canonicalizer.canonicalizeString(s);
-  }
-
-  static String canonicalizedSubString(
-      String s, int start, int end, bool canonicalize) {
-    if (!canonicalize) return s.substring(start, end);
-    return canonicalizer.canonicalizeSubString(s, start, end);
-  }
-
-  static String decodeUtf8(List<int> data, int start, int end, bool asciiOnly) {
-    return canonicalizer.canonicalizeBytes(data, start, end, asciiOnly);
-  }
 
   @override
   String value() => lexeme;

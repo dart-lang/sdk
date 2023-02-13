@@ -86,7 +86,7 @@ class ScavengeStats {
 
   // Of all data before scavenge, what fraction was found to be garbage?
   // If this scavenge included growth, assume the extra capacity would become
-  // garbage to give the scavenger a chance to stablize at the new capacity.
+  // garbage to give the scavenger a chance to stabilize at the new capacity.
   double ExpectedGarbageFraction() const {
     double work =
         after_.used_in_words + promoted_in_words_ + abandoned_in_words_;
@@ -194,14 +194,18 @@ class Scavenger {
   // this allocation will make it exceed kMaxAddrSpaceInWords.
   bool AllocatedExternal(intptr_t size) {
     ASSERT(size >= 0);
-    intptr_t next_external_size_in_words =
-        (external_size_ >> kWordSizeLog2) + (size >> kWordSizeLog2);
-    if (next_external_size_in_words < 0 ||
-        next_external_size_in_words > kMaxAddrSpaceInWords) {
-      return false;
-    }
-    external_size_ += size;
-    ASSERT(external_size_ >= 0);
+    intptr_t expected = external_size_.load();
+    intptr_t desired;
+    do {
+      intptr_t next_external_size_in_words =
+          (external_size_ >> kWordSizeLog2) + (size >> kWordSizeLog2);
+      if (next_external_size_in_words < 0 ||
+          next_external_size_in_words > kMaxAddrSpaceInWords) {
+        return false;
+      }
+      desired = expected + size;
+      ASSERT(desired >= 0);
+    } while (!external_size_.compare_exchange_weak(expected, desired));
     return true;
   }
   void FreedExternal(intptr_t size) {
@@ -247,7 +251,8 @@ class Scavenger {
     ASSERT(heap_ != Dart::vm_isolate_group()->heap());
 
     const uword result = thread->top();
-    const intptr_t remaining = thread->end() - result;
+    const intptr_t remaining = static_cast<intptr_t>(thread->end()) - result;
+    ASSERT(remaining >= 0);
     if (UNLIKELY(remaining < size)) {
       return 0;
     }
@@ -272,8 +277,6 @@ class Scavenger {
   void IterateRoots(ScavengerVisitorBase<parallel>* visitor);
   void MournWeakHandles();
   void Epilogue(SemiSpace* from);
-
-  bool IsUnreachable(ObjectPtr* p);
 
   void VerifyStoreBuffers();
 

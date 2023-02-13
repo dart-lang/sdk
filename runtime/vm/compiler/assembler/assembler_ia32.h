@@ -254,6 +254,7 @@ class Assembler : public AssemblerBase {
   void pushl(Register reg);
   void pushl(const Address& address);
   void pushl(const Immediate& imm);
+  void PushImmediate(int32_t value) { pushl(Immediate(value)); }
 
   void popl(Register reg);
   void popl(const Address& address);
@@ -751,6 +752,7 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     addl(dest, src);
   }
+  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
                  Register src,
                  ScaleFactor scale,
@@ -759,10 +761,23 @@ class Assembler : public AssemblerBase {
   }
 
   void SubImmediate(Register reg, const Immediate& imm);
-  void SubRegisters(Register dest, Register src) {
-    subl(dest, src);
+  void SubRegisters(Register dest, Register src) { subl(dest, src); }
+  void MulImmediate(Register reg,
+                    int32_t imm,
+                    OperandSize width = kFourBytes) override {
+    ASSERT(width == kFourBytes);
+    if (Utils::IsPowerOfTwo(imm)) {
+      const intptr_t shift = Utils::ShiftForPowerOfTwo(imm);
+      shll(reg, Immediate(shift));
+    } else {
+      imull(reg, Immediate(imm));
+    }
   }
   void AndImmediate(Register dst, int32_t value) {
+    andl(dst, Immediate(value));
+  }
+  void AndImmediate(Register dst, Register src, int32_t value) {
+    MoveRegister(dst, src);
     andl(dst, Immediate(value));
   }
   void AndRegisters(Register dst,
@@ -773,6 +788,10 @@ class Assembler : public AssemblerBase {
   }
   void LslImmediate(Register dst, int32_t shift) {
     shll(dst, Immediate(shift));
+  }
+  void LslRegister(Register dst, Register shift) override {
+    ASSERT_EQUAL(shift, ECX);  // IA32 does not have a TMP.
+    shll(dst, shift);
   }
   void LsrImmediate(Register dst, int32_t shift) override {
     shrl(dst, Immediate(shift));
@@ -925,6 +944,11 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
+  void CombineHashes(Register dst, Register other) override;
+  void FinalizeHashForSize(intptr_t bit_size,
+                           Register dst,
+                           Register scratch = kNoRegister) override;
+
   // In debug mode, this generates code to check that:
   //   FP + kExitLinkSlotFromEntryFp == SP
   // or triggers breakpoint otherwise.
@@ -1064,10 +1088,18 @@ class Assembler : public AssemblerBase {
 
   void BranchIfSmi(Register reg,
                    Label* label,
-                   JumpDistance distance = kFarJump) {
+                   JumpDistance distance = kFarJump) override {
     testl(reg, Immediate(kSmiTagMask));
     j(ZERO, label, distance);
   }
+
+  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void CompareWords(Register reg1,
+                    Register reg2,
+                    intptr_t offset,
+                    Register count,
+                    Register temp,
+                    Label* equals) override;
 
   void Align(intptr_t alignment, intptr_t offset);
   void Bind(Label* label);
@@ -1180,9 +1212,9 @@ class Assembler : public AssemblerBase {
   void Breakpoint() override { int3(); }
 
   // Check if the given value is an integer value that can be directly
-  // emdedded into the code without additional XORing with jit_cookie.
+  // embedded into the code without additional XORing with jit_cookie.
   // We consider 16-bit integers, powers of two and corresponding masks
-  // as safe values that can be emdedded into the code object.
+  // as safe values that can be embedded into the code object.
   static bool IsSafeSmi(const Object& object) {
     if (!target::IsSmi(object)) {
       return false;

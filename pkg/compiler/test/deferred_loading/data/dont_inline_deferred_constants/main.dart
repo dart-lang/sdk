@@ -28,8 +28,6 @@
   lib2=(f2)]
 */
 
-// @dart = 2.7
-
 // TODO(sigmund): remove this indirection and move the main code here. This is
 // needed because of the id-equivalence frameworks overrides the entrypoint URI.
 export 'exported_main.dart';

@@ -174,8 +174,8 @@ class BenchInlinedRecord extends BenchmarkBase {
     int sum = 0;
     for (int i = 0; i < N; ++i) {
       final result = inlinedRecord();
-      final int r0 = result.$0;
-      final String r1 = result.$1;
+      final int r0 = result.$1;
+      final String r1 = result.$2;
       sum += r0 + r1.length;
     }
     if (sum != expectedSum) throw 'Bad result: $sum';
@@ -190,8 +190,8 @@ class BenchNotInlinedRecord extends BenchmarkBase {
     int sum = 0;
     for (int i = 0; i < N; ++i) {
       final result = notInlinedRecord();
-      final int r0 = result.$0;
-      final String r1 = result.$1;
+      final int r0 = result.$1;
+      final String r1 = result.$2;
       sum += r0 + r1.length;
     }
     if (sum != expectedSum) throw 'Bad result: $sum';
@@ -206,8 +206,8 @@ class BenchForwardedRecord extends BenchmarkBase {
     int sum = 0;
     for (int i = 0; i < N; ++i) {
       final result = forwardedRecord();
-      final int r0 = result.$0;
-      final String r1 = result.$1;
+      final int r0 = result.$1;
+      final String r1 = result.$2;
       sum += r0 + r1.length;
     }
     if (sum != expectedSum) throw 'Bad result: $sum';

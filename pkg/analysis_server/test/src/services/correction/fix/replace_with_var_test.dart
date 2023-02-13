@@ -336,13 +336,13 @@ String f() {
     await resolveTestCode(r'''
 String f() {
   (int, String) r = (3, '');
-  return r.$1;
+  return r.$2;
 }
 ''');
     await assertHasFix(r'''
 String f() {
   var r = (3, '');
-  return r.$1;
+  return r.$2;
 }
 ''');
   }

@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:math" as math;
+
+class Circle extends core::Object {
+  final field core::double radius;
+  constructor •(core::double radius) → self::Circle
+    ;
+}
+static field (dynamic) →? dynamic captured;
+static method test1(dynamic x) → dynamic
+  ;
+static method test2(dynamic x) → dynamic
+  ;
+static method test3(dynamic x) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expectEquals(dynamic x, dynamic y) → dynamic
+  ;

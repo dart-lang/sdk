@@ -177,6 +177,7 @@ class NoSuchParameter : public MethodParameter {
 #define ISOLATE_GROUP_PARAMETER new IdParameter("isolateGroupId", true)
 #define NO_ISOLATE_PARAMETER new NoSuchParameter("isolateId")
 #define RUNNABLE_ISOLATE_PARAMETER new RunnableIsolateParameter("isolateId")
+#define OBJECT_PARAMETER new IdParameter("objectId", true)
 
 class EnumListParameter : public MethodParameter {
  public:
@@ -409,6 +410,8 @@ StreamInfo Service::profiler_stream("Profiler");
 const uint8_t* Service::dart_library_kernel_ = NULL;
 intptr_t Service::dart_library_kernel_len_ = 0;
 
+// Keep streams_ in sync with the protected streams in
+// lib/developer/extension.dart
 static StreamInfo* const streams_[] = {
     &Service::vm_stream,       &Service::isolate_stream,
     &Service::debug_stream,    &Service::gc_stream,
@@ -2269,13 +2272,15 @@ static Breakpoint* LookupBreakpoint(Isolate* isolate,
 }
 
 static inline void AddParentFieldToResponseBasedOnRecord(
+    Thread* thread,
     Array* field_names_handle,
     String* name_handle,
     const JSONObject& jsresponse,
     const Record& record,
     const intptr_t field_slot_offset) {
-  const intptr_t num_positional_fields = record.NumPositionalFields();
-  *field_names_handle = record.field_names();
+  *field_names_handle = record.GetFieldNames(thread);
+  const intptr_t num_positional_fields =
+      record.num_fields() - field_names_handle->Length();
   const intptr_t field_index =
       (field_slot_offset - Record::field_offset(0)) / Record::kBytesPerElement;
   if (field_index < num_positional_fields) {
@@ -2317,9 +2322,10 @@ static void PrintInboundReferences(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
+        jselement.AddProperty("parentField", element_index);
       } else if (source.IsRecord()) {
-        AddParentFieldToResponseBasedOnRecord(&field_names, &name, jselement,
-                                              Record::Cast(source),
+        AddParentFieldToResponseBasedOnRecord(thread, &field_names, &name,
+                                              jselement, Record::Cast(source),
                                               slot_offset.Value());
       } else {
         if (source.IsInstance()) {
@@ -2347,6 +2353,7 @@ static void PrintInboundReferences(Thread* thread,
               (slot_offset.Value() - Context::variable_offset(0)) /
               Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
+          jselement.AddProperty("parentField", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
         }
@@ -2355,7 +2362,7 @@ static void PrintInboundReferences(Thread* thread,
   }
 
   // We nil out the array after generating the response to prevent
-  // reporting suprious references when repeatedly looking for the
+  // reporting spurious references when repeatedly looking for the
   // references to an object.
   for (intptr_t i = 0; i < path.Length(); i++) {
     path.SetAt(i, Object::null_object());
@@ -2441,9 +2448,10 @@ static void PrintRetainingPath(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
+        jselement.AddProperty("parentField", element_index);
       } else if (element.IsRecord()) {
-        AddParentFieldToResponseBasedOnRecord(&field_names, &name, jselement,
-                                              Record::Cast(element),
+        AddParentFieldToResponseBasedOnRecord(thread, &field_names, &name,
+                                              jselement, Record::Cast(element),
                                               slot_offset.Value());
       } else if (element.IsMap()) {
         map = static_cast<MapPtr>(path.At(i * 2));
@@ -2487,6 +2495,7 @@ static void PrintRetainingPath(Thread* thread,
               (slot_offset.Value() - Context::variable_offset(0)) /
               Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
+          jselement.AddProperty("parentField", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
         }
@@ -2998,7 +3007,8 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       method_name = frame->function().UserVisibleName();
       isStatic = true;
     } else {
-      const Class& method_cls = Class::Handle(zone, frame->function().origin());
+      Class& method_cls = Class::Handle(zone, frame->function().origin());
+      method_cls = method_cls.Mixin();
       library_uri = Library::Handle(zone, method_cls.library()).url();
       klass_name = method_cls.UserVisibleName();
       method_name = frame->function().UserVisibleName();
@@ -3034,6 +3044,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         Instance& instance = Instance::Handle(zone);
         instance ^= obj.ptr();
         cls = instance.clazz();
+        cls = cls.Mixin();
         isStatic = false;
       }
       if (!cls.IsTopLevel() &&
@@ -3511,25 +3522,20 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 
 static const MethodParameter* const get_instances_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
-    NULL,
+    new IdParameter("objectId", /*required=*/true),
+    new UIntParameter("limit", /*required=*/true),
+    new BoolParameter("includeSubclasses", /*required=*/false),
+    new BoolParameter("includeImplementers", /*required=*/false),
+    nullptr,
 };
 
 static void GetInstances(Thread* thread, JSONStream* js) {
   const char* object_id = js->LookupParam("objectId");
-  if (object_id == NULL) {
-    PrintMissingParamError(js, "objectId");
-    return;
-  }
-  const char* limit_cstr = js->LookupParam("limit");
-  if (limit_cstr == NULL) {
-    PrintMissingParamError(js, "limit");
-    return;
-  }
-  intptr_t limit;
-  if (!GetIntegerId(limit_cstr, &limit)) {
-    PrintInvalidParamError(js, "limit");
-    return;
-  }
+  const intptr_t limit = UIntParameter::Parse(js->LookupParam("limit"));
+  const bool include_subclasses =
+      BoolParameter::Parse(js->LookupParam("includeSubclasses"), false);
+  const bool include_implementers =
+      BoolParameter::Parse(js->LookupParam("includeImplementers"), false);
 
   const Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
   if (obj.ptr() == Object::sentinel().ptr() || !obj.IsClass()) {
@@ -3546,7 +3552,7 @@ static void GetInstances(Thread* thread, JSONStream* js) {
   {
     ObjectGraph graph(thread);
     HeapIterationScope iteration_scope(Thread::Current(), true);
-    MarkClasses(cls, false, false);
+    MarkClasses(cls, include_subclasses, include_implementers);
     graph.IterateObjects(&visitor);
     UnmarkClasses();
   }
@@ -3998,7 +4004,7 @@ static void RemoveBreakpoint(Thread* thread, JSONStream* js) {
   ObjectIdRing::LookupResult lookup_result;
   Isolate* isolate = thread->isolate();
   Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id, &lookup_result);
-  // TODO(turnidge): Should we return a different error for bpts whic
+  // TODO(turnidge): Should we return a different error for bpts which
   // have been already removed?
   if (bpt == NULL) {
     PrintInvalidParamError(js, "breakpointId");
@@ -4237,17 +4243,31 @@ static void GetVMTimeline(Thread* thread, JSONStream* js) {
   StackZone zone(thread);
   Timeline::ReclaimCachedBlocksFromThreads();
   TimelineEventRecorder* timeline_recorder = Timeline::recorder();
-  // TODO(johnmccutchan): Return an error.
-  ASSERT(timeline_recorder != NULL);
+  ASSERT(timeline_recorder != nullptr);
   const char* name = timeline_recorder->name();
-  if ((strcmp(name, FUCHSIA_RECORDER_NAME) == 0) ||
-      (strcmp(name, SYSTRACE_RECORDER_NAME) == 0)) {
+  if (strcmp(name, CALLBACK_RECORDER_NAME) == 0) {
     js->PrintError(kInvalidTimelineRequest,
-                   "A recorder of type \"%s\" is "
-                   "currently in use. As a result, timeline events are handled "
-                   "by the OS rather than the VM. See the VM service "
-                   "documentation for more details on where timeline events "
-                   "can be found for this recorder type.",
+                   "A recorder of type \"%s\" is currently in use. As a "
+                   "result, timeline events are handled by the embedder rather "
+                   "than the VM.",
+                   timeline_recorder->name());
+    return;
+  } else if (strcmp(name, FUCHSIA_RECORDER_NAME) == 0 ||
+             strcmp(name, SYSTRACE_RECORDER_NAME) == 0 ||
+             strcmp(name, MACOS_RECORDER_NAME) == 0) {
+    js->PrintError(
+        kInvalidTimelineRequest,
+        "A recorder of type \"%s\" is currently in use. As a result, timeline "
+        "events are handled by the OS rather than the VM. See the VM service "
+        "documentation for more details on where timeline events can be found "
+        "for this recorder type.",
+        timeline_recorder->name());
+    return;
+  } else if (strcmp(name, FILE_RECORDER_NAME) == 0) {
+    js->PrintError(kInvalidTimelineRequest,
+                   "A recorder of type \"%s\" is currently in use. As a "
+                   "result, timeline events are written directly to a file and "
+                   "thus cannot be retrieved through the VM Service.",
                    timeline_recorder->name());
     return;
   }
@@ -4977,6 +4997,42 @@ static void RespondWithMalformedObject(Thread* thread, JSONStream* js) {
   jsobj.AddProperty("bart", "simpson");
 }
 
+// Returns |true| if a heap object with the specified ID was successfully found,
+// and |false| otherwise. If an object was found, it will be stored at address
+// |obj|.
+// This function should be used to handle shared logic between |GetObject| and
+// |GetImplementationFields|.
+static bool GetHeapObjectCommon(Thread* thread,
+                                JSONStream* js,
+                                const char* id,
+                                Object* obj,
+                                ObjectIdRing::LookupResult* lookup_result) {
+  *obj = LookupHeapObject(thread, id, lookup_result);
+  ASSERT(obj != nullptr);
+  ASSERT(lookup_result != nullptr);
+  if (obj->ptr() != Object::sentinel().ptr()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // If obj is a script from dart:* and doesn't have source loaded, try and
+    // load the source before sending the response.
+    if (obj->IsScript()) {
+      const Script& script = Script::Cast(*obj);
+      script.LookupSourceAndLineStarts(thread->zone());
+      if (!script.HasSource() && script.IsPartOfDartColonLibrary() &&
+          Service::HasDartLibraryKernelForSources()) {
+        const uint8_t* kernel_buffer = Service::dart_library_kernel();
+        const intptr_t kernel_buffer_len =
+            Service::dart_library_kernel_length();
+        script.LoadSourceFromKernel(kernel_buffer, kernel_buffer_len);
+      }
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    // We found a heap object for this id.
+    return true;
+  }
+
+  return false;
+}
+
 static const MethodParameter* const get_object_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new UIntParameter("offset", false),
@@ -5008,25 +5064,9 @@ static void GetObject(Thread* thread, JSONStream* js) {
   }
 
   // Handle heap objects.
+  Object& obj = Object::Handle();
   ObjectIdRing::LookupResult lookup_result;
-  Object& obj = Object::Handle(LookupHeapObject(thread, id, &lookup_result));
-  if (obj.ptr() != Object::sentinel().ptr()) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // If obj is a script from dart:* and doesn't have source loaded, try and
-    // load the source before sending the response.
-    if (obj.IsScript()) {
-      const Script& script = Script::Cast(obj);
-      script.LookupSourceAndLineStarts(thread->zone());
-      if (!script.HasSource() && script.IsPartOfDartColonLibrary() &&
-          Service::HasDartLibraryKernelForSources()) {
-        const uint8_t* kernel_buffer = Service::dart_library_kernel();
-        const intptr_t kernel_buffer_len =
-            Service::dart_library_kernel_length();
-        script.LoadSourceFromKernel(kernel_buffer, kernel_buffer_len);
-      }
-    }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-    // We found a heap object for this id.  Return it.
+  if (GetHeapObjectCommon(thread, js, id, &obj, &lookup_result)) {
     obj.PrintJSON(js, false);
     return;
   } else if (lookup_result == ObjectIdRing::kCollected) {
@@ -5041,6 +5081,44 @@ static void GetObject(Thread* thread, JSONStream* js) {
   Breakpoint* bpt = LookupBreakpoint(thread->isolate(), id, &lookup_result);
   if (bpt != NULL) {
     bpt->PrintJSON(js);
+    return;
+  } else if (lookup_result == ObjectIdRing::kCollected) {
+    PrintSentinel(js, kCollectedSentinel);
+    return;
+  }
+
+  PrintInvalidParamError(js, "objectId");
+}
+
+static const MethodParameter* const get_implementation_fields_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    OBJECT_PARAMETER,
+    nullptr,
+};
+
+static void GetImplementationFields(Thread* thread, JSONStream* js) {
+  const char* id = js->LookupParam("objectId");
+
+  // Handle heap objects.
+  Object& obj = Object::Handle();
+  ObjectIdRing::LookupResult lookup_result;
+  if (GetHeapObjectCommon(thread, js, id, &obj, &lookup_result)) {
+    obj.PrintImplementationFields(js);
+    return;
+  } else if (lookup_result == ObjectIdRing::kCollected) {
+    PrintSentinel(js, kCollectedSentinel);
+    return;
+  } else if (lookup_result == ObjectIdRing::kExpired) {
+    PrintSentinel(js, kExpiredSentinel);
+    return;
+  }
+
+  // Handle non-heap objects.
+  Breakpoint* bpt = LookupBreakpoint(thread->isolate(), id, &lookup_result);
+  if (bpt != nullptr) {
+    const JSONObject jsobj(js);
+    jsobj.AddProperty("type", "ImplementationFields");
+    JSONArray jsarr_fields(&jsobj, "fields");
     return;
   } else if (lookup_result == ObjectIdRing::kCollected) {
     PrintSentinel(js, kCollectedSentinel);
@@ -5805,6 +5883,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,
     get_heap_map_params },
+  { "_getImplementationFields", GetImplementationFields,
+    get_implementation_fields_params },
   { "getInboundReferences", GetInboundReferences,
     get_inbound_references_params },
   { "getInstances", GetInstances,

@@ -357,21 +357,6 @@ class Error {
   }
 }
 
-@patch
-class FallThroughError {
-  @patch
-  FallThroughError._create(String url, int line);
-
-  @patch
-  String toString() => super.toString();
-}
-
-@patch
-class AbstractClassInstantiationError {
-  @patch
-  String toString() => "Cannot instantiate abstract class: '$_className'";
-}
-
 // Patch for DateTime implementation.
 @patch
 class DateTime {
@@ -1511,7 +1496,7 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator <<(int shiftAmount) {
     if (shiftAmount < 0) {
-      throw ArgumentError("shift-amount must be posititve $shiftAmount");
+      throw ArgumentError("shift-amount must be positive $shiftAmount");
     }
     if (_isZero) return this;
     final digitShift = shiftAmount ~/ _digitBits;
@@ -1575,7 +1560,7 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator >>(int shiftAmount) {
     if (shiftAmount < 0) {
-      throw ArgumentError("shift-amount must be posititve $shiftAmount");
+      throw ArgumentError("shift-amount must be positive $shiftAmount");
     }
     if (_isZero) return this;
     final digitShift = shiftAmount ~/ _digitBits;
@@ -1987,7 +1972,7 @@ class _BigIntImpl implements BigInt {
   /// The [multiplicandDigits] in the range [i] to [i]+[n]-1 are the
   /// multiplicand digits.
   ///
-  /// The [acculumatorDigits] in the range [j] to [j]+[n]-1 are the accumulator
+  /// The [accumulatorDigits] in the range [j] to [j]+[n]-1 are the accumulator
   /// digits.
   ///
   /// Adds the result of the multiplicand-digits * [x] to the accumulator.
@@ -2161,7 +2146,7 @@ class _BigIntImpl implements BigInt {
       resultDigits[resultUsed++] = 0;
     }
 
-    // Negate y so we can later use _mulAdd instead of non-existent _mulSub.
+    // Negate y so we can later use _mulAdd instead of nonexistent _mulSub.
     var nyDigits = Uint16List(yUsed + 2);
     nyDigits[yUsed] = 1;
     _absSub(nyDigits, yUsed + 1, yDigits, yUsed, nyDigits);

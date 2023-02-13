@@ -16,36 +16,47 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveComparison extends CorrectionProducer {
   @override
+  final FixKind fixKind;
+
+  @override
+  final FixKind multiFixKind;
+
+  /// Initialize a newly created instance with [DartFixKind.REMOVE_COMPARISON].
+  RemoveComparison()
+      : fixKind = DartFixKind.REMOVE_COMPARISON,
+        multiFixKind = DartFixKind.REMOVE_COMPARISON_MULTI;
+
+  /// Initialize a newly created instance with [DartFixKind.REMOVE_TYPE_CHECK].
+  RemoveComparison.typeCheck()
+      : fixKind = DartFixKind.REMOVE_TYPE_CHECK,
+        multiFixKind = DartFixKind.REMOVE_TYPE_CHECK_MULTI;
+
+  @override
   bool get canBeAppliedInBulk => true;
 
   @override
   bool get canBeAppliedToFile => true;
 
-  @override
-  FixKind get fixKind => DartFixKind.REMOVE_COMPARISON;
+  /// Return `true` if the condition will always return `false`.
+  bool get _conditionIsFalse {
+    var errorCode = (diagnostic as AnalysisError).errorCode;
+    return errorCode == HintCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
+        errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_FALSE ||
+        errorCode == HintCode.UNNECESSARY_TYPE_CHECK_FALSE;
+  }
 
-  @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_COMPARISON_MULTI;
-
-  /// Return `true` if the null comparison will always return `false`.
-  bool get _conditionIsFalse =>
-      (diagnostic as AnalysisError).errorCode ==
-      HintCode.UNNECESSARY_NULL_COMPARISON_FALSE;
-
-  /// Return `true` if the null comparison will always return `true`.
+  /// Return `true` if the condition will always return `true`.
   bool get _conditionIsTrue {
     var errorCode = (diagnostic as AnalysisError).errorCode;
-    return errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
+    return errorCode == HintCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
+        errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
+        errorCode == HintCode.UNNECESSARY_TYPE_CHECK_TRUE ||
         errorCode.name == LintNames.avoid_null_checks_in_equality_operators;
   }
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var binaryExpression = node;
-    if (binaryExpression is! BinaryExpression) {
-      return;
-    }
-    var parent = binaryExpression.parent;
+    var parent = node.parent;
     if (parent is AssertInitializer && _conditionIsTrue) {
       var constructor = parent.parent as ConstructorDeclaration;
       var list = constructor.initializers;
@@ -63,12 +74,10 @@ class RemoveComparison extends CorrectionProducer {
         builder.addDeletion(utils.getLinesRange(range.node(parent)));
       });
     } else if (parent is BinaryExpression) {
-      if (parent.operator.type == TokenType.AMPERSAND_AMPERSAND &&
-          _conditionIsTrue) {
-        await _removeOperatorAndOperand(builder, parent, binaryExpression);
-      } else if (parent.operator.type == TokenType.BAR_BAR &&
-          _conditionIsFalse) {
-        await _removeOperatorAndOperand(builder, parent, binaryExpression);
+      var type = parent.operator.type;
+      if ((type == TokenType.AMPERSAND_AMPERSAND && _conditionIsTrue) ||
+          (type == TokenType.BAR_BAR && _conditionIsFalse)) {
+        await _removeOperatorAndOperand(builder, parent);
       }
     } else if (parent is IfStatement) {
       if (parent.elseStatement == null && _conditionIsTrue) {
@@ -106,8 +115,8 @@ class RemoveComparison extends CorrectionProducer {
 
   /// Use the [builder] to add an edit to delete the operator and given
   /// [operand] from the [binary] expression.
-  Future<void> _removeOperatorAndOperand(ChangeBuilder builder,
-      BinaryExpression binary, Expression operand) async {
+  Future<void> _removeOperatorAndOperand(
+      ChangeBuilder builder, BinaryExpression binary) async {
     SourceRange operatorAndOperand;
     if (binary.leftOperand == node) {
       operatorAndOperand = range.startStart(node, binary.rightOperand);

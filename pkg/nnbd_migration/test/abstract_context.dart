@@ -56,6 +56,15 @@ class AbstractContextTest with ResourceProviderMixin {
     addPackageFile(
         internalUris ? 'third_party.dart_src.angular.angular' : 'angular',
         'angular.dart', '''
+class Component {
+  const Component({
+    required String selector,
+    // optional arguments skipped
+  })
+}
+class Attribute {
+  const Attribute(String attributeName);
+}
 class ContentChild {
   const ContentChild(Object selector, {Object? read});
 }
@@ -73,6 +82,9 @@ class ViewChildren {
 }
 class Injector {
   dynamic get(Object token, [Object? notFoundValue]) => null;
+}
+class Injectable {
+  const Injectable();
 }
 ''');
     if (internalUris) {

@@ -2111,20 +2111,20 @@ TEST_CASE(IsolateReload_EnumAddition) {
   const char* kReloadScript =
       "enum Fruit {\n"
       "  Apple,\n"
-      "  Cantalope,\n"
+      "  Cantaloupe,\n"
       "  Banana,\n"
       "}\n"
       "var x;\n"
       "main() {\n"
       "  String r = '${Fruit.Apple.index}/${Fruit.Apple} ';\n"
-      "  r += '${Fruit.Cantalope.index}/${Fruit.Cantalope} ';\n"
+      "  r += '${Fruit.Cantaloupe.index}/${Fruit.Cantaloupe} ';\n"
       "  r += '${Fruit.Banana.index}/${Fruit.Banana}';\n"
       "  return r;\n"
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("0/Fruit.Apple 1/Fruit.Cantalope 2/Fruit.Banana",
+  EXPECT_STREQ("0/Fruit.Apple 1/Fruit.Cantaloupe 2/Fruit.Banana",
                SimpleInvokeStr(lib, "main"));
 }
 
@@ -2183,11 +2183,11 @@ TEST_CASE(IsolateReload_EnumDelete) {
       "enum Fruit {\n"
       "  Apple,\n"
       "  Banana,\n"
-      "  Cantalope,\n"
+      "  Cantaloupe,\n"
       "}\n"
       "var x;\n"
       "main() {\n"
-      "  x = Fruit.Cantalope;\n"
+      "  x = Fruit.Cantaloupe;\n"
       "  return Fruit.Apple.toString();\n"
       "}\n";
 
@@ -2195,7 +2195,7 @@ TEST_CASE(IsolateReload_EnumDelete) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
-  // Delete 'Cantalope' but make sure that we can still invoke toString,
+  // Delete 'Cantaloupe' but make sure that we can still invoke toString,
   // and access the hashCode and index properties.
 
   const char* kReloadScript =
@@ -2220,7 +2220,7 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
       "enum Fruit {\n"
       "  Apple,\n"
       "  Banana,\n"
-      "  Cantalope,\n"
+      "  Cantaloupe,\n"
       "}\n"
       "var x;\n"
       "var y;\n"
@@ -2229,10 +2229,10 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
       "main() {\n"
       "  x = { Fruit.Apple: Fruit.Apple.index,\n"
       "        Fruit.Banana: Fruit.Banana.index,\n"
-      "        Fruit.Cantalope: Fruit.Cantalope.index};\n"
+      "        Fruit.Cantaloupe: Fruit.Cantaloupe.index};\n"
       "  y = Fruit.Apple;\n"
       "  z = Fruit.Banana;\n"
-      "  w = Fruit.Cantalope;\n"
+      "  w = Fruit.Cantaloupe;\n"
       "  return Fruit.Apple.toString();\n"
       "}\n";
 
@@ -2244,7 +2244,7 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
       "enum Fruit {\n"
       "  Apple,\n"
       "  Banana,\n"
-      "  Cantalope,\n"
+      "  Cantaloupe,\n"
       "}\n"
       "var x;\n"
       "var y;\n"
@@ -2260,10 +2260,10 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
       "  });\n"
       "  r += '${x[Fruit.Apple] == Fruit.Apple.index} ';\n"
       "  r += '${x[Fruit.Banana] == Fruit.Banana.index} ';\n"
-      "  r += '${x[Fruit.Cantalope] == Fruit.Cantalope.index} ';\n"
+      "  r += '${x[Fruit.Cantaloupe] == Fruit.Cantaloupe.index} ';\n"
       "  r += '${identical(y, Fruit.values[x[Fruit.Apple]])} ';\n"
       "  r += '${identical(z, Fruit.values[x[Fruit.Banana]])} ';\n"
-      "  r += '${identical(w, Fruit.values[x[Fruit.Cantalope]])} ';\n"
+      "  r += '${identical(w, Fruit.values[x[Fruit.Cantaloupe]])} ';\n"
       "  return r;\n"
       "}\n";
 
@@ -2329,12 +2329,12 @@ TEST_CASE(IsolateReload_EnumValuesToString) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple Fruit.Banana", SimpleInvokeStr(lib, "main"));
 
-  // Insert 'Cantalope'.
+  // Insert 'Cantaloupe'.
 
   const char* kReloadScript =
       "enum Fruit {\n"
       "  Apple,\n"
-      "  Cantalope,\n"
+      "  Cantaloupe,\n"
       "  Banana\n"
       "}\n"
       "var x;\n"
@@ -2342,7 +2342,7 @@ TEST_CASE(IsolateReload_EnumValuesToString) {
       "  String r = '';\n"
       "  r += Fruit.Apple.toString();\n"
       "  r += ' ';\n"
-      "  r += Fruit.Cantalope.toString();\n"
+      "  r += Fruit.Cantaloupe.toString();\n"
       "  r += ' ';\n"
       "  r += Fruit.Banana.toString();\n"
       "  return r;\n"
@@ -2350,7 +2350,7 @@ TEST_CASE(IsolateReload_EnumValuesToString) {
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("Fruit.Apple Fruit.Cantalope Fruit.Banana",
+  EXPECT_STREQ("Fruit.Apple Fruit.Cantaloupe Fruit.Banana",
                SimpleInvokeStr(lib, "main"));
 }
 
@@ -2974,7 +2974,7 @@ TEST_CASE(IsolateReload_ShapeChange_Const_AddSlot) {
   // change, they are allocated old. Because instructions normally contain
   // pointers only to old objects, the scavenger does not bother to ensure code
   // pages are writable when visiting the remembered set. Visiting the
-  // remembered involes writing to update the pointer for any target that gets
+  // remembered involves writing to update the pointer for any target that gets
   // promoted.
   const char* kScript = R"(
     import 'file:///test:isolate_reload_helper';
@@ -4826,7 +4826,7 @@ TEST_CASE(IsolateReload_SuperGetterReboundToMethod) {
 // with multicomponent Kernel binary. When loading kernel blobs through tag
 // handler (Dart_kKernelTag) we need to make sure to preserve a link between
 // KernelProgramInfo objects and original typed data, because it might be
-// comming with a finalizer, which otherwise might end up being called
+// coming with a finalizer, which otherwise might end up being called
 // prematurely.
 namespace {
 
@@ -4971,6 +4971,40 @@ TEST_CASE(IsolateReload_RegressB179030011) {
     GCTestHelper::CollectAllGarbage();
     EXPECT(!handler.was_finalized());
   }
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/50148.
+TEST_CASE(IsolateReload_GenericConstructorTearOff) {
+  const char* kScript = R"(
+    typedef Create<T, R> = T Function(R ref);
+
+    class Base<Input> {
+      Base(void Function(Create<void, Input> create) factory) : _factory = factory;
+
+      final void Function(Create<void, Input> create) _factory;
+
+      void fn() => _factory((ref) {});
+    }
+
+    class Check<T> {
+      Check(Create<Object?, List<T>> create);
+    }
+
+    final f = Base<List<int>>(Check<int>.new);
+
+    main() {
+      f.fn();
+      return "okay";
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  lib = TestCase::ReloadTestScript(kScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

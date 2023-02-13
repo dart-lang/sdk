@@ -17,7 +17,6 @@ import '../scanner/token.dart'
         ASSIGNMENT_PRECEDENCE,
         BeginToken,
         CASCADE_PRECEDENCE,
-        CAST_PATTERN_PRECEDENCE,
         EQUALITY_PRECEDENCE,
         Keyword,
         POSTFIX_PRECEDENCE,
@@ -525,8 +524,10 @@ class Parser {
           /* start = */ token,
           /* keyword = */ next,
           /* macroToken = */ null,
-          /* viewToken = */ null,
+          /* inlineToken = */ null,
           /* sealedToken = */ null,
+          /* baseToken = */ null,
+          /* interfaceToken = */ null,
           directiveState);
     }
     Token start = token;
@@ -534,10 +535,14 @@ class Parser {
     if (next.isModifier) {
       if (optional('var', next) ||
           optional('late', next) ||
-          ((optional('const', next) || optional('final', next)) &&
-              // Ignore `const class` and `final class` so that it is reported
-              // below as an invalid modifier on a class.
-              !optional('class', next.next!))) {
+          (optional('final', next) &&
+              (!optional('class', next.next!) &&
+                  !optional('mixin', next.next!))) ||
+          // Ignore using 'final' as a modifier for a class or a mixin, but
+          // allow in other contexts.
+          (optional('const', next) && !optional('class', next.next!))) {
+        // Ignore `const class` so that it is reported below as an invalid
+        // modifier on a class.
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(token);
       }
@@ -547,12 +552,14 @@ class Parser {
     }
     next = token.next!;
     Token? macroToken;
-    Token? viewToken;
+    Token? inlineToken;
     Token? sealedToken;
+    Token? baseToken;
+    Token? interfaceToken;
     if (next.isIdentifier &&
-        next.lexeme == 'view' &&
+        next.lexeme == 'inline' &&
         optional('class', next.next!)) {
-      viewToken = next;
+      inlineToken = next;
       next = next.next!;
     } else if (next.isIdentifier &&
         next.lexeme == 'macro' &&
@@ -570,14 +577,27 @@ class Parser {
         start = next;
         next = next.next!.next!;
       }
+    } else if (next.isIdentifier && next.lexeme == 'base') {
+      baseToken = next;
+      if (optional('class', next.next!) || optional('mixin', next.next!)) {
+        next = next.next!;
+      }
+    } else if (next.isIdentifier && next.lexeme == 'interface') {
+      interfaceToken = next;
+      if (optional('class', next.next!) || optional('mixin', next.next!)) {
+        next = next.next!;
+      }
+      // TODO(kallentu): Handle incorrect ordering of modifiers.
     }
     if (next.isTopLevelKeyword) {
       return parseTopLevelKeywordDeclaration(
           /* start = */ start,
           /* keyword = */ next,
           /* macroToken = */ macroToken,
-          /* viewToken = */ viewToken,
+          /* inlineToken = */ inlineToken,
           /* sealedToken = */ sealedToken,
+          /* baseToken = */ baseToken,
+          /* interfaceToken = */ interfaceToken,
           directiveState);
     } else if (next.isKeywordOrIdentifier) {
       // TODO(danrubel): improve parseTopLevelMember
@@ -614,19 +634,24 @@ class Parser {
       Token start,
       Token keyword,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       DirectiveContext? directiveState) {
     assert(keyword.isTopLevelKeyword);
     final String? value = keyword.stringValue;
     if (identical(value, 'class')) {
-      directiveState?.checkDeclaration();
-      ModifierContext context = new ModifierContext(this);
-      context.parseClassModifiers(start, keyword);
-      Token? abstractToken = context.abstractToken;
-      Token? augmentToken = context.augmentToken;
-      return parseClassOrNamedMixinApplication(abstractToken, macroToken,
-          viewToken, sealedToken, augmentToken, keyword);
+      return _handleModifiersForClassDeclaration(
+          start,
+          keyword,
+          macroToken,
+          inlineToken,
+          sealedToken,
+          baseToken,
+          interfaceToken,
+          /* mixinToken = */ null,
+          directiveState);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
       ModifierContext context = new ModifierContext(this);
@@ -684,9 +709,24 @@ class Parser {
           directiveState?.checkDeclaration();
           return parseTypedef(keyword);
         } else if (identical(value, 'mixin')) {
+          if (identical(nextValue, 'class')) {
+            // TODO(kallentu): Error handling for any class modifier here other
+            // than base. Only base mixin classes are allowed.
+            return _handleModifiersForClassDeclaration(
+                start,
+                keyword.next!,
+                macroToken,
+                inlineToken,
+                sealedToken,
+                baseToken,
+                /* interfaceToken = */ null,
+                keyword,
+                directiveState);
+          }
           context.parseMixinModifiers(start, keyword);
           directiveState?.checkDeclaration();
-          return parseMixin(context.augmentToken, sealedToken, keyword);
+          return parseMixin(context.augmentToken, sealedToken, baseToken,
+              interfaceToken, context.finalToken, keyword);
         } else if (identical(value, 'extension')) {
           context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkDeclaration();
@@ -709,6 +749,36 @@ class Parser {
     }
 
     throw "Internal error: Unhandled top level keyword '$value'.";
+  }
+
+  Token _handleModifiersForClassDeclaration(
+      Token start,
+      Token classKeyword,
+      Token? macroToken,
+      Token? inlineToken,
+      Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? mixinToken,
+      DirectiveContext? directiveState) {
+    directiveState?.checkDeclaration();
+    ModifierContext context = new ModifierContext(this);
+    if (mixinToken != null) {
+      context.parseClassModifiers(start, mixinToken);
+    } else {
+      context.parseClassModifiers(start, classKeyword);
+    }
+    return parseClassOrNamedMixinApplication(
+        context.abstractToken,
+        macroToken,
+        inlineToken,
+        sealedToken,
+        baseToken,
+        interfaceToken,
+        context.finalToken,
+        context.augmentToken,
+        mixinToken,
+        classKeyword);
   }
 
   bool _isIdentifierOrQuestionIdentifier(Token token) {
@@ -1215,7 +1285,7 @@ class Parser {
       reportRecoverableError(
           token, codes.messageMetadataTypeArgumentsUninstantiated);
     }
-    token = parseArgumentsOpt(token);
+    token = parseArgumentsOptMetadata(token, hasTypeArguments);
     listener.endMetadata(atToken, period, token.next!);
     return token;
   }
@@ -1309,7 +1379,7 @@ class Parser {
             bool recover = false;
             if (optional(';', endGroup.next!)) {
               // Missing parenthesis. Insert them.
-              // Turn "<whatever>;" in to "<whatever>();"
+              // Turn "<whatever>;" into "<whatever>();"
               // Insert missing 'Function' below.
               reportRecoverableError(endGroup,
                   missingParameterMessage(MemberKind.FunctionTypeAlias));
@@ -1875,9 +1945,6 @@ class Parser {
       next = token.next!;
     }
 
-    final bool isNamedParameter =
-        parameterKind == FormalParameterKind.optionalNamed;
-
     Token? thisKeyword;
     Token? superKeyword;
     Token? periodAfterThisOrSuper;
@@ -1987,6 +2054,7 @@ class Parser {
     if (periodAfterThisOrSuper != null) {
       token = periodAfterThisOrSuper;
     }
+    final bool isNamedParameter = parameterKind.isNamed;
     next = token.next!;
     if (inFunctionType &&
         !isNamedParameter &&
@@ -2465,9 +2533,13 @@ class Parser {
   Token parseClassOrNamedMixinApplication(
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token classKeyword) {
     assert(optional('class', classKeyword));
     Token begin = abstractToken ?? classKeyword;
@@ -2481,12 +2553,32 @@ class Parser {
       reportRecoverableError(sealedToken, codes.messageAbstractSealedClass);
     }
     if (optional('=', token.next!)) {
-      listener.beginNamedMixinApplication(begin, abstractToken, macroToken,
-          viewToken, sealedToken, augmentToken, name);
+      listener.beginNamedMixinApplication(
+          begin,
+          abstractToken,
+          macroToken,
+          inlineToken,
+          sealedToken,
+          baseToken,
+          interfaceToken,
+          finalToken,
+          augmentToken,
+          mixinToken,
+          name);
       return parseNamedMixinApplication(token, begin, classKeyword);
     } else {
-      listener.beginClassDeclaration(begin, abstractToken, macroToken,
-          viewToken, sealedToken, augmentToken, name);
+      listener.beginClassDeclaration(
+          begin,
+          abstractToken,
+          macroToken,
+          inlineToken,
+          sealedToken,
+          baseToken,
+          interfaceToken,
+          finalToken,
+          augmentToken,
+          mixinToken,
+          name);
       return parseClass(token, begin, classKeyword, name.lexeme);
     }
   }
@@ -2700,13 +2792,15 @@ class Parser {
   ///
   /// ```
   /// mixinDeclaration:
-  ///   metadata? 'augment'? 'sealed'? 'mixin' [SimpleIdentifier]
+  ///   metadata? 'augment'? mixinModifiers? 'mixin' [SimpleIdentifier]
   ///        [TypeParameterList]? [OnClause]? [ImplementsClause]?
   ///        '{' [ClassMember]* '}'
   /// ;
+  ///
+  /// mixinModifiers: 'sealed' | 'base' | 'interface' | 'final'
   /// ```
-  Token parseMixin(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword) {
+  Token parseMixin(Token? augmentToken, Token? sealedToken, Token? baseToken,
+      Token? interfaceToken, Token? finalToken, Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(mixinKeyword);
     Token name = ensureIdentifier(
@@ -2714,8 +2808,8 @@ class Parser {
     Token headerStart = computeTypeParamOrArg(
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
-    listener.beginMixinDeclaration(
-        augmentToken, sealedToken, mixinKeyword, name);
+    listener.beginMixinDeclaration(augmentToken, sealedToken, baseToken,
+        interfaceToken, finalToken, mixinKeyword, name);
     Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
     if (!optional('{', token.next!)) {
       // Recovery
@@ -4902,7 +4996,7 @@ class Parser {
   ///
   /// If [isFunctionExpression] is true, this method parses the rest of named
   /// function expression which isn't legal syntax in Dart.  Useful for
-  /// recovering from Javascript code being pasted into a Dart program, as it
+  /// recovering from JavaScript code being pasted into a Dart program, as it
   /// will interpret `function foo() {}` as a named function expression with
   /// return type `function` and name `foo`.
   ///
@@ -5233,25 +5327,24 @@ class Parser {
           token,
           /* lateToken = */ null,
           /* varFinalOrConst = */ null,
-          /* typeInfo = */ null,
-          /* onlyParseVariableDeclarationStart = */ false);
+          /* typeInfo = */ null);
     }
     final String? value = token.next!.stringValue;
     if (identical(value, '{')) {
       // The scanner ensures that `{` always has a closing `}`.
-      return parseBlock(token, BlockKind.statement);
+      if (allowPatterns && optional('=', token.next!.endGroup!.next!)) {
+        // Expression statement beginning with a pattern assignment
+        return parseExpressionStatement(token);
+      } else {
+        return parseBlock(token, BlockKind.statement);
+      }
     } else if (identical(value, 'return')) {
       return parseReturnStatement(token);
     } else if (identical(value, 'var') || identical(value, 'final')) {
       Token varOrFinal = token.next!;
       if (!isModifier(varOrFinal.next!)) {
-        return parseExpressionStatementOrDeclarationAfterModifiers(
-            varOrFinal,
-            token,
-            /* lateToken = */ null,
-            varOrFinal,
-            /* typeInfo = */ null,
-            /* onlyParseVariableDeclarationStart = */ false);
+        return parseExpressionStatementOrDeclarationAfterModifiers(varOrFinal,
+            token, /* lateToken = */ null, varOrFinal, /* typeInfo = */ null);
       }
       return parseExpressionStatementOrDeclaration(token);
     } else if (identical(value, 'if')) {
@@ -5858,9 +5951,6 @@ class Parser {
           _tokenRecoveryReplacements.containsKey(token.lexeme)) {
         _recoverAtPrecedenceLevel = true;
       }
-    } else if (forPattern && identical(type, TokenType.AS)) {
-      // Casts bind tighter in patterns.
-      return CAST_PATTERN_PRECEDENCE;
     }
 
     return type.precedence;
@@ -6303,12 +6393,14 @@ class Parser {
     Token next = token.next!;
     if (allowPatterns && optional('case', next)) {
       Token case_ = token = next;
-      token = parsePattern(token, isRefutableContext: true);
+      token = parsePattern(token, PatternContext.matching);
       next = token.next!;
       Token? when;
       if (optional('when', next)) {
         when = token = next;
+        listener.beginPatternGuard(when);
         token = parseExpression(token);
+        listener.endPatternGuard(when);
       }
       token = ensureCloseParen(token, begin);
       listener.handleParenthesizedCondition(begin, case_, when);
@@ -7117,6 +7209,46 @@ class Parser {
     }
   }
 
+  /// Parse optional arguments specifically for metadata as metadata arguments
+  /// has to follow the previous token without space.
+  /// See also
+  /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/records/records-feature-specification.md#ambiguity-with-metadata-annotations
+  Token parseArgumentsOptMetadata(Token token, bool hasTypeArguments) {
+    final Token next = token.next!;
+    if (!optional('(', next)) {
+      listener.handleNoArguments(next);
+      return token;
+    } else if (token.charEnd == next.charOffset) {
+      return parseArguments(token);
+    } else {
+      // There is a '(', but it's not technically arguments to the metadata.
+      // Decide if we should recover as if it is. This should only be done
+      // if we know that it isn't a record type.
+      if (hasTypeArguments) {
+        // Arguments are required, so parse as arguments anyway.
+        reportRecoverableError(
+            next, codes.messageMetadataSpaceBeforeParenthesis);
+        return parseArguments(token);
+      }
+      final Token startParen = next;
+      final Token endParen = startParen.endGroup!;
+      final Token afterParen = endParen.next!;
+      final String? value = afterParen.stringValue;
+      if (identical(value, 'class') || identical(value, 'enum')) {
+        // The 'class' and 'enum' keywords are reserved keywords and recovery
+        // should be safe. Other keywords aren't reserved and needs more
+        // lookahead to determine if recovery here would be good.
+        //For now we don't.
+        reportRecoverableError(
+            next, codes.messageMetadataSpaceBeforeParenthesis);
+        return parseArguments(token);
+      }
+
+      listener.handleNoArguments(next);
+      return token;
+    }
+  }
+
   Token parseArgumentsOpt(Token token) {
     Token next = token.next!;
     if (!optional('(', next)) {
@@ -7233,8 +7365,8 @@ class Parser {
         'is',
         'as',
         '..',
-        '|',
-        '&'
+        '||',
+        '&&'
       ])) {
         // TODO(danrubel): investigate other situations
         // where `?` should be considered part of the type info
@@ -7347,30 +7479,30 @@ class Parser {
         }
       }
       return parseExpressionStatementOrDeclarationAfterModifiers(
-          constToken,
-          start,
-          /* lateToken = */ null,
-          constToken,
-          typeInfo,
-          /* onlyParseVariableDeclarationStart = */ false);
+          constToken, start, /* lateToken = */ null, constToken, typeInfo);
     }
     return parseExpressionStatementOrDeclaration(start);
   }
 
   /// This method has two modes based upon [onlyParseVariableDeclarationStart].
   ///
-  /// If [onlyParseVariableDeclarationStart] is `false` (the default) then this
-  /// method will parse a local variable declaration, a local function,
-  /// or an expression statement, and then return the last consumed token.
+  /// If [forPartsContext] is `null` (the default), then the parser is currently
+  /// processing a statement or declaration.  This method will parse a local
+  /// variable declaration, a local function, or an expression statement, and
+  /// then return the last consumed token.
   ///
-  /// If [onlyParseVariableDeclarationStart] is `true` then this method
-  /// will only parse the metadata, modifiers, and type of a local variable
-  /// declaration if it exists. It is the responsibility of the caller to
-  /// call [parseVariablesDeclarationRest] to finish parsing the local variable
-  /// declaration. If a local variable declaration is not found then this
-  /// method will return [start].
+  /// If [forPartsContext] is non-null, then this method will only parse the
+  /// metadata, modifiers, and type of a local variable declaration if it
+  /// exists; it is the responsibility of the caller to call
+  /// [parseVariablesDeclarationRest] to finish parsing the local variable
+  /// declaration.  Or it will parse the metadata, `var` or `final` keyword, and
+  /// pattern of a pattern variable declaration, and store the `var` or `final`
+  /// keyword in [forPartsContext]; it is the responsibility of the caller to
+  /// consume the rest of the pattern variable declaration.  Or, if neither a
+  /// local variable declaration nor a pattern variable declaration is found,
+  /// then this method will return [start].
   Token parseExpressionStatementOrDeclaration(final Token start,
-      [bool onlyParseVariableDeclarationStart = false]) {
+      [ForPartsContext? forPartsContext]) {
     Token token = start;
     Token next = token.next!;
     if (optional('@', next)) {
@@ -7413,13 +7545,8 @@ class Parser {
       }
     }
 
-    return parseExpressionStatementOrDeclarationAfterModifiers(
-        token,
-        start,
-        lateToken,
-        varFinalOrConst,
-        /* typeInfo = */ null,
-        onlyParseVariableDeclarationStart);
+    return parseExpressionStatementOrDeclarationAfterModifiers(token, start,
+        lateToken, varFinalOrConst, /* typeInfo = */ null, forPartsContext);
   }
 
   /// See [parseExpressionStatementOrDeclaration].
@@ -7427,13 +7554,9 @@ class Parser {
   /// If `start.next` is an `@` token (i.e. this is a declaration with metadata)
   /// then the caller should parse it before calling this method; otherwise,
   /// this method will handle the lack of metadata appropriately.
-  Token parseExpressionStatementOrDeclarationAfterModifiers(
-      Token beforeType,
-      Token start,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      TypeInfo? typeInfo,
-      bool onlyParseVariableDeclarationStart) {
+  Token parseExpressionStatementOrDeclarationAfterModifiers(Token beforeType,
+      Token start, Token? lateToken, Token? varFinalOrConst, TypeInfo? typeInfo,
+      [ForPartsContext? forPartsContext]) {
     // In simple cases check for bad 'late' modifier in non-nnbd-mode.
     if (typeInfo == null &&
         lateToken == null &&
@@ -7458,17 +7581,27 @@ class Parser {
         lateToken == null &&
         varFinalOrConst != null &&
         (optional('var', varFinalOrConst) ||
-            optional('final', varFinalOrConst)) &&
-        !onlyParseVariableDeclarationStart &&
-        looksLikeOuterPatternEquals(beforeType)) {
-      // If there was any metadata, then the caller was responsible for parsing
-      // it; if not, then we need to let the listener know there wasn't any.
-      if (!optional('@', start.next!)) {
-        listener.beginMetadataStar(start.next!);
-        listener.endMetadataStar(/* count = */ 0);
+            optional('final', varFinalOrConst))) {
+      Token? afterOuterPattern = skipOuterPattern(beforeType);
+      if (afterOuterPattern != null &&
+          (optional('=', afterOuterPattern.next!) ||
+              (forPartsContext != null &&
+                  optional('in', afterOuterPattern.next!)))) {
+        // If there was any metadata, then the caller was responsible for
+        // parsing it; if not, then we need to let the listener know there
+        // wasn't any.
+        if (!optional('@', start.next!)) {
+          listener.beginMetadataStar(start.next!);
+          listener.endMetadataStar(/* count = */ 0);
+        }
+        if (forPartsContext != null) {
+          forPartsContext.patternKeyword = varFinalOrConst;
+          return parsePattern(beforeType, PatternContext.declaration);
+        } else {
+          return parsePatternVariableDeclarationStatement(
+              beforeType, start, varFinalOrConst);
+        }
       }
-      return parsePatternVariableDeclarationStatement(
-          beforeType, start, varFinalOrConst);
     }
 
     typeInfo ??= computeType(beforeType, /* required = */ false);
@@ -7476,7 +7609,7 @@ class Parser {
     Token token = typeInfo.skipType(beforeType);
     Token next = token.next!;
 
-    if (onlyParseVariableDeclarationStart) {
+    if (forPartsContext != null) {
       if (lateToken != null) {
         reportRecoverableErrorWithToken(
             lateToken, codes.templateExtraneousModifier);
@@ -7564,7 +7697,7 @@ class Parser {
     if (token == start) {
       // If no annotation, modifier, or type, and this is not a local function
       // then this must be an expression statement.
-      if (onlyParseVariableDeclarationStart) {
+      if (forPartsContext != null) {
         return start;
       } else {
         return parseExpressionStatement(start);
@@ -7581,7 +7714,7 @@ class Parser {
         if (EQ_TOKEN != kind &&
             SEMICOLON_TOKEN != kind &&
             COMMA_TOKEN != kind) {
-          if (onlyParseVariableDeclarationStart) {
+          if (forPartsContext != null) {
             if (!optional('in', next.next!)) {
               return start;
             }
@@ -7616,7 +7749,7 @@ class Parser {
     token = typeInfo.parseType(beforeType, this);
     next = token.next!;
     listener.beginVariablesDeclaration(next, lateToken, varFinalOrConst);
-    if (!onlyParseVariableDeclarationStart) {
+    if (forPartsContext == null) {
       token =
           parseVariablesDeclarationRest(token, /* endWithSemicolon = */ true);
     }
@@ -7683,6 +7816,7 @@ class Parser {
   ///    | expression? ';' expression? ';' expressionList?
   ///    | localVariableDeclaration 'in' expression
   ///    | identifier 'in' expression
+  ///    | metadata ( 'final' | 'var' ) outerPattern 'in' expression
   /// ;
   ///
   /// forInitializerStatement:
@@ -7696,12 +7830,30 @@ class Parser {
     assert(optional('for', token));
     listener.beginForStatement(forToken);
 
-    token = parseForLoopPartsStart(awaitToken, forToken);
+    ForPartsContext forPartsContext = new ForPartsContext();
+    token = parseForLoopPartsStart(awaitToken, forToken, forPartsContext);
+    Token? patternKeyword = forPartsContext.patternKeyword;
+    if (patternKeyword != null) {
+      if (optional('=', token.next!)) {
+        // Process `for ( pattern = expression ; ... ; ... )`
+        Token equals = token.next!;
+        token = parseExpression(equals);
+        listener.handleForInitializerPatternVariableAssignment(
+            patternKeyword, equals);
+        return parseForRest(awaitToken, token, forToken);
+      } else {
+        // Process `for ( pattern in expression )`
+        assert(optional('in', token.next!));
+        return parseForInRest(token, awaitToken, forToken, patternKeyword,
+            /* identifier = */ null);
+      }
+    }
     Token identifier = token.next!;
     token = parseForLoopPartsMid(token, awaitToken, forToken);
     if (optional('in', token.next!) || optional(':', token.next!)) {
       // Process `for ( ... in ... )`
-      return parseForInRest(token, awaitToken, forToken, identifier);
+      return parseForInRest(
+          token, awaitToken, forToken, /* patternKeyword = */ null, identifier);
     } else {
       // Process `for ( ... ; ... ; ... )`
       return parseForRest(awaitToken, token, forToken);
@@ -7710,7 +7862,8 @@ class Parser {
 
   /// Parse the start of a for loop control structure
   /// from the open parenthesis up to but not including the identifier.
-  Token parseForLoopPartsStart(Token? awaitToken, Token forToken) {
+  Token parseForLoopPartsStart(
+      Token? awaitToken, Token forToken, ForPartsContext forPartsContext) {
     Token leftParenthesis = forToken.next!;
     if (!optional('(', leftParenthesis)) {
       // Recovery
@@ -7746,7 +7899,7 @@ class Parser {
     // declaration if it exists. This enables capturing [beforeIdentifier]
     // for later error reporting.
     return parseExpressionStatementOrDeclaration(
-        leftParenthesis, /* onlyParseVariableDeclarationStart = */ true);
+        leftParenthesis, forPartsContext);
   }
 
   /// Parse the remainder of the local variable declaration
@@ -7854,11 +8007,13 @@ class Parser {
   ///    | expression? ';' expression? ';' expressionList?
   ///    | localVariableDeclaration 'in' expression
   ///    | identifier 'in' expression
+  ///    | metadata ( 'final' | 'var' ) outerPattern 'in' expression
   /// ;
   /// ```
-  Token parseForInRest(
-      Token token, Token? awaitToken, Token forToken, Token identifier) {
-    token = parseForInLoopPartsRest(token, awaitToken, forToken, identifier);
+  Token parseForInRest(Token token, Token? awaitToken, Token forToken,
+      Token? patternKeyword, Token? identifier) {
+    token = parseForInLoopPartsRest(
+        token, awaitToken, forToken, patternKeyword, identifier);
     listener.beginForInBody(token.next!);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;
@@ -7869,37 +8024,38 @@ class Parser {
     return token;
   }
 
-  Token parseForInLoopPartsRest(
-      Token token, Token? awaitToken, Token forToken, Token identifier) {
+  Token parseForInLoopPartsRest(Token token, Token? awaitToken, Token forToken,
+      Token? patternKeyword, Token? identifier) {
     Token inKeyword = token.next!;
     assert(optional('for', forToken));
     assert(optional('(', forToken.next!));
     assert(optional('in', inKeyword) || optional(':', inKeyword));
 
-    if (!identifier.isIdentifier) {
-      // TODO(jensj): This should probably (sometimes) be
-      // templateExpectedIdentifierButGotKeyword instead.
-      reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
-    } else if (identifier != token) {
-      if (optional('=', identifier.next!)) {
-        reportRecoverableError(
-            identifier.next!, codes.messageInitializedVariableInForEach);
-      } else {
+    if (identifier != null) {
+      if (!identifier.isIdentifier) {
+        // TODO(jensj): This should probably (sometimes) be
+        // templateExpectedIdentifierButGotKeyword instead.
         reportRecoverableErrorWithToken(
-            identifier.next!, codes.templateUnexpectedToken);
+            identifier, codes.templateExpectedIdentifier);
+      } else if (identifier != token) {
+        if (optional('=', identifier.next!)) {
+          reportRecoverableError(
+              identifier.next!, codes.messageInitializedVariableInForEach);
+        } else {
+          reportRecoverableErrorWithToken(
+              identifier.next!, codes.templateUnexpectedToken);
+        }
+      } else if (awaitToken != null && !inAsync) {
+        // TODO(danrubel): consider reporting the error on awaitToken
+        reportRecoverableError(inKeyword, codes.messageAwaitForNotAsync);
       }
-    } else if (awaitToken != null && !inAsync) {
-      // TODO(danrubel): consider reporting the error on awaitToken
-      reportRecoverableError(inKeyword, codes.messageAwaitForNotAsync);
     }
-
     listener.beginForInExpression(inKeyword.next!);
     token = parseExpression(inKeyword);
     token = ensureCloseParen(token, forToken.next!);
     listener.endForInExpression(token);
     listener.handleForInLoopParts(
-        awaitToken, forToken, forToken.next!, inKeyword);
+        awaitToken, forToken, forToken.next!, patternKeyword, inKeyword);
     return token;
   }
 
@@ -8165,16 +8321,11 @@ class Parser {
       Token? onKeyword = null;
       if (identical(value, 'on')) {
         // 'on' type catchPart?
+        // Note https://github.com/dart-lang/language/blob/master/accepted/future-releases/records/records-feature-specification.md#ambiguity-with-on-clauses
+        // "Whenever on appears after a try block or after a preceding on clause
+        // on a try block, we unconditionally parse it as an on clause".
         onKeyword = token;
         TypeInfo typeInfo = computeType(token, /* required = */ true);
-        if (catchCount > 0 && (typeInfo == noType || typeInfo.recovered)) {
-          // Not a valid on-clause and we have enough catch counts to be a valid
-          // try block already.
-          // This could for instance be code like `on([...])` or `on = 42` after
-          // some actual catch/on as that could be a valid method call, local
-          // function, assignment etc.
-          break;
-        }
         listener.beginCatchClause(token);
         didBeginCatchClause = true;
         lastConsumed = typeInfo.ensureTypeNotVoid(token, this);
@@ -8353,7 +8504,7 @@ class Parser {
           }
           listener.beginCaseExpression(caseKeyword);
           if (allowPatterns) {
-            token = parsePattern(caseKeyword, isRefutableContext: true);
+            token = parsePattern(caseKeyword, PatternContext.matching);
           } else {
             token = parseExpression(caseKeyword);
           }
@@ -8361,7 +8512,11 @@ class Parser {
           Token? when;
           if (optional('when', next)) {
             when = token = next;
+            listener.beginSwitchCaseWhenClause(when);
             token = parseExpression(token);
+            listener.endSwitchCaseWhenClause(token);
+          } else {
+            listener.handleSwitchCaseNoWhenClause(token);
           }
           token = ensureColon(token);
           listener.endCaseExpression(caseKeyword, when, token);
@@ -9216,20 +9371,13 @@ class Parser {
   /// nullAssertPattern ::= primaryPattern '!'
   /// nullCheckPattern ::= primaryPattern '?'
   ///
-  /// [isRefutableContext] should be `true` if the pattern occurs in a
-  /// `guardedPattern` or any of its sub-patterns (i.e. in a
-  /// `switchStatementCase`, `switchExpressionCase`, or `ifCondition`); these
-  /// are contexts where a pattern match might be expected to fail, and bare
-  /// identifiers are treated as constant patterns.  It should be `false` if the
-  /// pattern occurs in a `localVariableDeclaration`, `forLoopParts`, or
-  /// `patternAssignment`; these are contexts where a pattern match failure is
-  /// either prohibited statically or causes a runtime exception, and bare
-  /// identifiers are treated as variable patterns.
-  Token parsePattern(Token token,
-      {int precedence = 1, required bool isRefutableContext}) {
+  /// [patternContext] indicates whether the pattern is refutable or
+  /// irrefutable, and whether it occurs as part of a patternAssignment.
+  Token parsePattern(Token token, PatternContext patternContext,
+      {int precedence = 1}) {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
-    token = parsePrimaryPattern(token, isRefutableContext: isRefutableContext);
+    token = parsePrimaryPattern(token, patternContext);
     while (true) {
       Token next = token.next!;
       int tokenLevel = _computePrecedence(next, forPattern: true);
@@ -9256,13 +9404,12 @@ class Parser {
           listener.handleNullCheckPattern(next);
           token = next;
           break;
-        case '&':
-        case '|':
+        case '&&':
+        case '||':
           listener.beginBinaryPattern(next);
           // Left associative so we parse the RHS one precedence level higher
-          token = parsePattern(next,
-              precedence: tokenLevel + 1,
-              isRefutableContext: isRefutableContext);
+          token =
+              parsePattern(next, patternContext, precedence: tokenLevel + 1);
           listener.endBinaryPattern(next);
           break;
         default:
@@ -9299,7 +9446,7 @@ class Parser {
   ///                   | 'const' typeArguments? '{' elements? '}'
   ///                   | 'const' '(' expression ')'
   /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
-  Token parsePrimaryPattern(Token token, {required bool isRefutableContext}) {
+  Token parsePrimaryPattern(Token token, PatternContext patternContext) {
     Token start = token;
     TypeParamOrArgInfo typeArg =
         computeTypeParamOrArg(token, /* inDeclaration = */ true);
@@ -9309,8 +9456,7 @@ class Parser {
       case '[':
         // listPattern ::= typeArguments? '[' patterns? ']'
         token = typeArg.parseArguments(token, this);
-        token = parseListPatternSuffix(token,
-            isRefutableContext: isRefutableContext);
+        token = parseListPatternSuffix(token, patternContext);
         // A list pattern is a valid form of outerPattern, so verify that
         // skipOuterPattern would have skipped this pattern properly.
         assert(
@@ -9321,8 +9467,7 @@ class Parser {
         // mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
         // mapPatternEntry   ::= expression ':' pattern
         token = typeArg.parseArguments(token, this);
-        token = parseMapPatternSuffix(token,
-            isRefutableContext: isRefutableContext);
+        token = parseMapPatternSuffix(token, patternContext);
         // A map pattern is a valid form of outerPattern, so verify that
         // skipOuterPattern would have skipped this pattern properly.
         assert(
@@ -9337,8 +9482,19 @@ class Parser {
       case 'var':
       case 'final':
         // variablePattern ::= ( 'var' | 'final' | 'final'? type )? identifier
-        return parseVariablePattern(token);
+        return parseVariablePattern(token, patternContext);
       case '(':
+        // "(" could start a record type (which has to be followed by an
+        // identifier though), e.g. `(int, int) foo`.
+        if (next.endGroup!.next!.isIdentifier) {
+          TypeInfo typeInfo = computeVariablePatternType(token);
+          if (typeInfo is ComplexTypeInfo &&
+              typeInfo.isRecordType &&
+              !typeInfo.recovered) {
+            return parseVariablePattern(token, patternContext,
+                typeInfo: typeInfo);
+          }
+        }
         // parenthesizedPattern  ::= '(' pattern ')'
         // recordPattern         ::= '(' patternFields? ')'
         // patternFields         ::= patternField ( ',' patternField )* ','?
@@ -9348,8 +9504,8 @@ class Parser {
           listener.handleRecordPattern(next, /* count = */ 0);
           token = nextNext;
         } else {
-          token = parseParenthesizedPatternOrRecordPattern(token,
-              isRefutableContext: isRefutableContext);
+          token =
+              parseParenthesizedPatternOrRecordPattern(token, patternContext);
         }
         // A record or parenthesized pattern is a valid form of outerPattern, so
         // verify that skipOuterPattern would have skipped this pattern
@@ -9373,9 +9529,10 @@ class Parser {
         // the grammar.  Pay careful attention to making sure that constructs
         // like `const const Foo()`, `const const []`, and `const const {}`
         // lead to errors.
+        listener.beginConstantPattern(const_);
         token = parsePrecedenceExpression(
             const_, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
-        listener.handleConstantPattern(const_);
+        listener.endConstantPattern(const_);
         return token;
     }
     TokenType type = next.type;
@@ -9394,7 +9551,7 @@ class Parser {
     }
     TypeInfo typeInfo = computeVariablePatternType(token);
     if (typeInfo != noType) {
-      return parseVariablePattern(token, typeInfo: typeInfo);
+      return parseVariablePattern(token, patternContext, typeInfo: typeInfo);
     }
     // objectPattern ::= typeName typeArguments? '(' patternFields? ')'
     // TODO(paulberry): Make sure OTHER_IDENTIFIER is handled
@@ -9423,8 +9580,7 @@ class Parser {
       if (optional('(', afterToken) && !potentialTypeArg.recovered) {
         TypeParamOrArgInfo typeArg = potentialTypeArg;
         token = typeArg.parseArguments(token, this);
-        token = parseObjectPatternRest(token,
-            isRefutableContext: isRefutableContext);
+        token = parseObjectPatternRest(token, patternContext);
         listener.handleObjectPattern(firstIdentifier, dot, secondIdentifier);
         // An object pattern is a valid form of outerPattern, so verify that
         // skipOuterPattern would have skipped this pattern properly.
@@ -9434,10 +9590,10 @@ class Parser {
       } else if (dot == null) {
         // It's a single identifier.  If it's a wildcard pattern or we're in an
         // irrefutable context, parse it as a variable pattern.
-        if (!isRefutableContext || firstIdentifier.lexeme == '_') {
+        if (!patternContext.isRefutable || firstIdentifier.lexeme == '_') {
           // It's a wildcard pattern with no preceding type, so parse it as a
           // variable pattern.
-          return parseVariablePattern(beforeFirstIdentifier,
+          return parseVariablePattern(beforeFirstIdentifier, patternContext,
               typeInfo: typeInfo);
         }
       }
@@ -9446,9 +9602,10 @@ class Parser {
     }
     // TODO(paulberry): report error if this constant is not permitted by the
     // grammar
+    listener.beginConstantPattern(/* constKeyword = */ null);
     token = parsePrecedenceExpression(
         token, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
-    listener.handleConstantPattern(/* constKeyword = */ null);
+    listener.endConstantPattern(/* constKeyword = */ null);
     return token;
   }
 
@@ -9456,7 +9613,8 @@ class Parser {
   /// about the type appearing after [token], if any.
   ///
   /// variablePattern ::= ( 'var' | 'final' | 'final'? type )? identifier
-  Token parseVariablePattern(Token token, {TypeInfo typeInfo = noType}) {
+  Token parseVariablePattern(Token token, PatternContext patternContext,
+      {TypeInfo typeInfo = noType}) {
     Token? keyword;
     if (typeInfo != noType) {
       token = typeInfo.parseType(token, this);
@@ -9464,10 +9622,11 @@ class Parser {
       Token next = token.next!;
       if (optional('var', next) || optional('final', next)) {
         token = keyword = next;
+        bool nextIsParen = optional("(", token.next!);
         // TODO(paulberry): this accepts `var <type> name` as a variable
         // pattern.  We want to accept that for error recovery, but don't forget
         // to report the appropriate error.
-        typeInfo = computeVariablePatternType(token);
+        typeInfo = computeVariablePatternType(token, nextIsParen);
         token = typeInfo.parseType(token, this);
       } else {
         // Bare identifier pattern
@@ -9482,7 +9641,8 @@ class Parser {
       token = insertSyntheticIdentifier(
           token, IdentifierContext.localVariableDeclaration);
     }
-    listener.handleVariablePattern(keyword, token);
+    listener.handleVariablePattern(keyword, token,
+        inAssignmentPattern: patternContext == PatternContext.assignment);
     return token;
   }
 
@@ -9490,8 +9650,7 @@ class Parser {
   /// bracket.
   ///
   /// listPattern ::= typeArguments? '[' patterns? ']'
-  Token parseListPatternSuffix(Token token,
-      {required bool isRefutableContext}) {
+  Token parseListPatternSuffix(Token token, PatternContext patternContext) {
     Token beforeToken = token;
     Token beginToken = token = token.next!;
     assert(optional('[', token) || optional('[]', token));
@@ -9505,6 +9664,8 @@ class Parser {
       );
       return token.next!;
     }
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
     while (true) {
       Token next = token.next!;
       if (optional(']', next)) {
@@ -9517,11 +9678,11 @@ class Parser {
         next = token.next!;
         bool hasSubPattern = looksLikePatternStart(next);
         if (hasSubPattern) {
-          token = parsePattern(token, isRefutableContext: isRefutableContext);
+          token = parsePattern(token, patternContext);
         }
         listener.handleRestPattern(dots, hasSubPattern: hasSubPattern);
       } else {
-        token = parsePattern(token, isRefutableContext: isRefutableContext);
+        token = parsePattern(token, patternContext);
       }
       next = token.next!;
       ++count;
@@ -9555,6 +9716,7 @@ class Parser {
       token = next;
     }
     listener.handleListPattern(count, beginToken, token);
+    mayParseFunctionExpressions = old;
     return token;
   }
 
@@ -9564,7 +9726,7 @@ class Parser {
   /// mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
   /// mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
   /// mapPatternEntry   ::= expression ':' pattern
-  Token parseMapPatternSuffix(Token token, {required bool isRefutableContext}) {
+  Token parseMapPatternSuffix(Token token, PatternContext patternContext) {
     Token leftBrace = token = token.next!;
     assert(optional('{', leftBrace));
     Token next = token.next!;
@@ -9573,16 +9735,19 @@ class Parser {
       return next;
     }
 
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
     int count = 0;
     while (true) {
       if (optional('...', next)) {
         Token dots = next;
         token = next;
-        // TODO(paulberry): users might assume that `...pattern` is valid inside
-        // a map (because it's valid inside a list).  Consider accepting this
-        // and reporting the error at a later stage of the compilation pipeline
-        // so that the error is more useful.
-        listener.handleRestPattern(dots, hasSubPattern: false);
+        next = token.next!;
+        bool hasSubPattern = looksLikePatternStart(next);
+        if (hasSubPattern) {
+          token = parsePattern(token, patternContext);
+        }
+        listener.handleRestPattern(dots, hasSubPattern: hasSubPattern);
       } else {
         token = parseExpression(token);
         Token colon = token.next!;
@@ -9594,7 +9759,7 @@ class Parser {
               codes.templateExpectedButGot.withArguments(':'),
               new SyntheticToken(TokenType.PERIOD, next.charOffset));
         }
-        token = parsePattern(colon, isRefutableContext: isRefutableContext);
+        token = parsePattern(colon, patternContext);
         listener.handleMapPatternEntry(colon, token.next!);
       }
       ++count;
@@ -9606,8 +9771,7 @@ class Parser {
         next = token.next!;
       }
       if (optional('}', next)) {
-        listener.handleMapPattern(count, leftBrace, next);
-        return next;
+        break;
       }
 
       if (comma == null) {
@@ -9626,11 +9790,13 @@ class Parser {
               next, codes.templateExpectedButGot.withArguments('}'));
           // Scanner guarantees a closing curly bracket
           next = leftBrace.endGroup!;
-          listener.handleMapPattern(count, leftBrace, next);
-          return next;
+          break;
         }
       }
     }
+    mayParseFunctionExpressions = old;
+    listener.handleMapPattern(count, leftBrace, next);
+    return next;
   }
 
   /// Parses either a parenthesizedPattern or a recordPattern.
@@ -9639,10 +9805,12 @@ class Parser {
   /// recordPattern         ::= '(' patternFields? ')'
   /// patternFields         ::= patternField ( ',' patternField )* ','?
   /// patternField          ::= ( identifier? ':' )? pattern
-  Token parseParenthesizedPatternOrRecordPattern(Token token,
-      {required bool isRefutableContext}) {
+  Token parseParenthesizedPatternOrRecordPattern(
+      Token token, PatternContext patternContext) {
     Token begin = token.next!;
     assert(optional('(', begin));
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
 
     token = begin;
     int count = 0;
@@ -9671,7 +9839,7 @@ class Parser {
         colon = token;
         wasValidRecord = true;
       }
-      token = parsePattern(token, isRefutableContext: isRefutableContext);
+      token = parsePattern(token, patternContext);
       next = token.next!;
       if (wasRecord || colon != null) {
         listener.handlePatternField(colon);
@@ -9706,6 +9874,7 @@ class Parser {
       listener.handleParenthesizedPattern(begin);
     }
 
+    mayParseFunctionExpressions = old;
     return token;
   }
 
@@ -9713,8 +9882,7 @@ class Parser {
   /// `(`.
   ///
   /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
-  Token parseObjectPatternRest(Token token,
-      {required bool isRefutableContext}) {
+  Token parseObjectPatternRest(Token token, PatternContext patternContext) {
     Token begin = token = token.next!;
     assert(optional('(', begin));
     int argumentCount = 0;
@@ -9736,7 +9904,7 @@ class Parser {
                 .next!;
         colon = token;
       }
-      token = parsePattern(token, isRefutableContext: isRefutableContext);
+      token = parsePattern(token, patternContext);
       next = token.next!;
       listener.handlePatternField(colon);
       ++argumentCount;
@@ -9841,7 +10009,7 @@ class Parser {
   ///                                expression
   Token parsePatternVariableDeclarationStatement(
       Token keyword, Token start, Token varOrFinal) {
-    Token token = parsePattern(keyword, isRefutableContext: false);
+    Token token = parsePattern(keyword, PatternContext.declaration);
     Token equals = token.next!;
     // Caller should have assured that the pattern was followed by an `=`.
     assert(optional('=', equals));
@@ -9854,7 +10022,7 @@ class Parser {
 
   /// patternAssignment ::= outerPattern '=' expression
   Token parsePatternAssignment(Token token) {
-    token = parsePattern(token, isRefutableContext: false);
+    token = parsePattern(token, PatternContext.assignment);
     Token equals = token.next!;
     // Caller should have assured that the pattern was followed by an `=`.
     assert(optional('=', equals));
@@ -9870,6 +10038,8 @@ class Parser {
   Token parseSwitchExpression(Token token) {
     Token switchKeyword = token.next!;
     assert(optional('switch', switchKeyword));
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
     listener.beginSwitchExpression(switchKeyword);
     token = ensureParenthesizedCondition(switchKeyword, allowCase: false);
     Token beginSwitch =
@@ -9878,9 +10048,11 @@ class Parser {
     Token next = token.next!;
     int caseCount = 0;
     if (!optional('}', next)) {
+      mayParseFunctionExpressions = false;
       while (true) {
         listener.beginSwitchExpressionCase();
-        token = parsePattern(token, isRefutableContext: true);
+        token = parsePattern(token, PatternContext.matching);
+        listener.handleSwitchExpressionCasePattern(token);
         Token? when;
         next = token.next!;
         if (optional('when', next)) {
@@ -9888,7 +10060,9 @@ class Parser {
           token = parseExpression(token);
         }
         Token arrow = token = ensureFunctionArrow(token);
+        mayParseFunctionExpressions = true;
         token = parseExpression(token);
+        mayParseFunctionExpressions = false;
         listener.endSwitchExpressionCase(when, arrow, token);
         ++caseCount;
         next = token.next!;
@@ -9924,6 +10098,7 @@ class Parser {
       }
     }
     listener.endSwitchExpressionBlock(caseCount, beginSwitch, next);
+    mayParseFunctionExpressions = old;
     token = next;
     assert(token.isEof || optional('}', token));
     listener.endSwitchExpression(switchKeyword, token);
@@ -9935,3 +10110,34 @@ class Parser {
 typedef _MessageWithArgument<T> = codes.Message Function(T);
 
 enum AwaitOrYieldContext { Statement, UnaryExpression }
+
+/// Data structure tracking additional information when parsing the
+/// `forLoopParts` grammar production.
+class ForPartsContext {
+  /// If `forLoopParts` began with `( 'final' | 'var' ) outerPattern`, followed
+  /// by either `=` or `in`, the `final` or `var` keyword.  Otherwise `null`.
+  Token? patternKeyword;
+
+  @override
+  String toString() => 'ForPartsContext($patternKeyword)';
+}
+
+/// Enum describing the different contexts in which a pattern can occur.
+enum PatternContext {
+  /// The pattern is part of a localVariableDeclaration or forLoopParts, meaning
+  /// bare identifiers refer to freshly declared variables.
+  declaration(isRefutable: false),
+
+  /// The pattern is part of a guardedPattern inside an if-case, switch
+  /// expression, or switch statement, meaning bare identifiers refer to
+  /// constants.
+  matching(isRefutable: true),
+
+  /// The pattern is part of a pattern assignment, meaning bare identifiers
+  /// refer to previously declared variables.
+  assignment(isRefutable: false);
+
+  final bool isRefutable;
+
+  const PatternContext({required this.isRefutable});
+}

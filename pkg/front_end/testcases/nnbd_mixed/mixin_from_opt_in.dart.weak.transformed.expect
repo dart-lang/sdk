@@ -9,6 +9,7 @@ abstract class _Class&Object&Mixin extends core::Object implements mix::Mixin /*
   const synthetic constructor •() → self::_Class&Object&Mixin*
     : super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   method /*isNonNullableByDefault, from org-dartlang-testcase:///mixin_from_opt_in_lib.dart */ method(core::int? i) → core::int
     return let final core::int? #t1 = i in #t1 == null ?{core::int} 0 : #t1{core::int};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -19,7 +20,6 @@ abstract class _Class&Object&Mixin extends core::Object implements mix::Mixin /*
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Class extends self::_Class&Object&Mixin {

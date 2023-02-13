@@ -495,7 +495,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 // explicitly as Array objects into the snapshot and instead utilize a different
 // encoding: objects in a cluster representing a canonical set are sorted
 // to appear in the same order they appear in the Array representing the set,
-// and we additionaly write out array of values describing gaps between objects.
+// and we additionally write out array of values describing gaps between objects.
 //
 // In some situations not all canonical objects of the some type need to
 // be added to the resulting canonical set because they are cached in some
@@ -624,7 +624,7 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
                                      const char* name)
       : DeserializationCluster(name, is_canonical),
         is_root_unit_(is_root_unit),
-        table_(Array::Handle()) {}
+        table_(SetType::ArrayHandle::Handle()) {}
 
   void BuildCanonicalSetFromLayout(Deserializer* d) {
     if (!is_root_unit_ || !is_canonical()) {
@@ -645,11 +645,11 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
  protected:
   const bool is_root_unit_;
   intptr_t first_element_;
-  Array& table_;
+  typename SetType::ArrayHandle& table_;
 
   void VerifyCanonicalSet(Deserializer* d,
                           const Array& refs,
-                          const Array& current_table) {
+                          const typename SetType::ArrayHandle& current_table) {
 #if defined(DEBUG)
     // First check that we are not overwriting a table and loosing information.
     if (!current_table.IsNull()) {
@@ -672,7 +672,7 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
 
  private:
   struct DeserializationFinger {
-    ArrayPtr table;
+    typename SetType::ArrayPtr table;
     intptr_t current_index;
     ObjectPtr gap_element;
 
@@ -687,12 +687,12 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
       table->untag()->data()[current_index++] = object;
     }
 
-    ArrayPtr Finish() {
-      if (table != Array::null()) {
+    typename SetType::ArrayPtr Finish() {
+      if (table != SetType::ArrayHandle::null()) {
         FillGap(Smi::Value(table->untag()->length()) - current_index);
       }
       auto result = table;
-      table = Array::null();
+      table = SetType::ArrayHandle::null();
       return result;
     }
   };
@@ -700,17 +700,25 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
   static DeserializationFinger StartDeserialization(Deserializer* d,
                                                     intptr_t length,
                                                     intptr_t count) {
-    const intptr_t instance_size = Array::InstanceSize(length);
-    ArrayPtr table = static_cast<ArrayPtr>(
+    const intptr_t instance_size = SetType::ArrayHandle::InstanceSize(length);
+    typename SetType::ArrayPtr table = static_cast<typename SetType::ArrayPtr>(
         d->heap()->old_space()->AllocateSnapshot(instance_size));
-    Deserializer::InitializeHeader(table, kArrayCid, instance_size);
-    table->untag()->type_arguments_ = TypeArguments::null();
+    Deserializer::InitializeHeader(table, SetType::Storage::ArrayCid,
+                                   instance_size);
+    InitTypeArgsOrNext(table);
     table->untag()->length_ = Smi::New(length);
     for (intptr_t i = 0; i < SetType::kFirstKeyIndex; i++) {
       table->untag()->data()[i] = Smi::New(0);
     }
     table->untag()->data()[SetType::kOccupiedEntriesIndex] = Smi::New(count);
     return {table, SetType::kFirstKeyIndex, SetType::UnusedMarker().ptr()};
+  }
+
+  static void InitTypeArgsOrNext(ArrayPtr table) {
+    table->untag()->type_arguments_ = TypeArguments::null();
+  }
+  static void InitTypeArgsOrNext(WeakArrayPtr table) {
+    table->untag()->next_seen_by_gc_ = WeakArray::null();
   }
 };
 
@@ -1100,7 +1108,7 @@ DART_FORCE_INLINE static CodePtr GetCodeAndEntryPointByIndex(
   }
   code_index -= base;
 
-  // At this point code_index is refering to a code object which is either
+  // At this point code_index is referring to a code object which is either
   // discarded or exists in the Code cluster. Non-discarded Code objects
   // are associated with the tail of the instruction table and have the
   // same order there and in the Code cluster. This means that
@@ -1382,13 +1390,7 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
       FfiTrampolineDataPtr const data = objects_[i];
       AutoTraceObject(data);
       WriteFromTo(data);
-
-      if (s->kind() == Snapshot::kFullAOT) {
-        s->Write<int32_t>(data->untag()->callback_id_);
-      } else {
-        // FFI callbacks can only be written to AOT snapshots.
-        ASSERT(data->untag()->callback_target() == Object::null());
-      }
+      s->Write<int32_t>(data->untag()->callback_id_);
     }
   }
 
@@ -1416,8 +1418,7 @@ class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(data, kFfiTrampolineDataCid,
                                      FfiTrampolineData::InstanceSize());
       d.ReadFromTo(data);
-      data->untag()->callback_id_ =
-          d_->kind() == Snapshot::kFullAOT ? d.Read<int32_t>() : -1;
+      data->untag()->callback_id_ = d.Read<int32_t>();
     }
   }
 };
@@ -1533,7 +1534,8 @@ class FieldDeserializationCluster : public DeserializationCluster {
       ASSERT(d_->kind() != Snapshot::kFullAOT);
       field->untag()->guarded_list_length_ = static_cast<SmiPtr>(d.ReadRef());
       if (kind == Snapshot::kFullJIT) {
-        field->untag()->dependent_code_ = static_cast<ArrayPtr>(d.ReadRef());
+        field->untag()->dependent_code_ =
+            static_cast<WeakArrayPtr>(d.ReadRef());
       }
       field->untag()->token_pos_ = d.ReadTokenPosition();
       field->untag()->end_token_pos_ = d.ReadTokenPosition();
@@ -3072,7 +3074,8 @@ class RODataDeserializationCluster
   void PostLoad(Deserializer* d, const Array& refs, bool primary) {
     if (!table_.IsNull()) {
       auto object_store = d->isolate_group()->object_store();
-      VerifyCanonicalSet(d, refs, Array::Handle(object_store->symbol_table()));
+      VerifyCanonicalSet(d, refs,
+                         WeakArray::Handle(object_store->symbol_table()));
       object_store->set_symbol_table(table_);
       if (d->isolate_group() == Dart::vm_isolate_group()) {
         Symbols::InitFromSnapshot(d->isolate_group());
@@ -4569,8 +4572,8 @@ class TypeParameterSerializationCluster
     AutoTraceObject(type);
     WriteFromTo(type);
     s->Write<int32_t>(type->untag()->parameterized_class_id_);
-    s->Write<uint8_t>(type->untag()->base_);
-    s->Write<uint8_t>(type->untag()->index_);
+    s->Write<uint16_t>(type->untag()->base_);
+    s->Write<uint16_t>(type->untag()->index_);
     ASSERT(Utils::IsUint(8, type->untag()->flags()));
     s->Write<uint8_t>(type->untag()->flags());
   }
@@ -4603,8 +4606,8 @@ class TypeParameterDeserializationCluster
                                      mark_canonical);
       d.ReadFromTo(type);
       type->untag()->parameterized_class_id_ = d.Read<int32_t>();
-      type->untag()->base_ = d.Read<uint8_t>();
-      type->untag()->index_ = d.Read<uint8_t>();
+      type->untag()->base_ = d.Read<uint16_t>();
+      type->untag()->index_ = d.Read<uint16_t>();
       type->untag()->set_flags(d.Read<uint8_t>());
     }
   }
@@ -4941,8 +4944,7 @@ class RecordSerializationCluster : public SerializationCluster {
     RecordPtr record = Record::RawCast(object);
     objects_.Add(record);
 
-    s->Push(record->untag()->field_names());
-    const intptr_t num_fields = Smi::Value(record->untag()->num_fields());
+    const intptr_t num_fields = Record::NumFields(record);
     for (intptr_t i = 0; i < num_fields; ++i) {
       s->Push(record->untag()->field(i));
     }
@@ -4955,7 +4957,7 @@ class RecordSerializationCluster : public SerializationCluster {
       RecordPtr record = objects_[i];
       s->AssignRef(record);
       AutoTraceObject(record);
-      const intptr_t num_fields = Smi::Value(record->untag()->num_fields());
+      const intptr_t num_fields = Record::NumFields(record);
       s->WriteUnsigned(num_fields);
       target_memory_size_ += compiler::target::Record::InstanceSize(num_fields);
     }
@@ -4966,9 +4968,9 @@ class RecordSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; ++i) {
       RecordPtr record = objects_[i];
       AutoTraceObject(record);
-      const intptr_t num_fields = Smi::Value(record->untag()->num_fields());
-      s->WriteUnsigned(num_fields);
-      WriteField(record, field_names());
+      const RecordShape shape(record->untag()->shape());
+      s->WriteUnsigned(shape.AsInt());
+      const intptr_t num_fields = shape.num_fields();
       for (intptr_t j = 0; j < num_fields; ++j) {
         s->WriteElementRef(record->untag()->field(j), j);
       }
@@ -5005,12 +5007,12 @@ class RecordDeserializationCluster
     const bool stamp_canonical = primary && is_canonical();
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       RecordPtr record = static_cast<RecordPtr>(d.Ref(id));
-      const intptr_t num_fields = d.ReadUnsigned();
+      const intptr_t shape = d.ReadUnsigned();
+      const intptr_t num_fields = RecordShape(shape).num_fields();
       Deserializer::InitializeHeader(record, kRecordCid,
                                      Record::InstanceSize(num_fields),
                                      stamp_canonical);
-      record->untag()->num_fields_ = Smi::New(num_fields);
-      record->untag()->field_names_ = static_cast<ArrayPtr>(d.ReadRef());
+      record->untag()->shape_ = Smi::New(shape);
       for (intptr_t j = 0; j < num_fields; ++j) {
         record->untag()->data()[j] = d.ReadRef();
       }
@@ -5509,6 +5511,8 @@ class WeakPropertySerializationCluster : public SerializationCluster {
   void Trace(Serializer* s, ObjectPtr object) {
     WeakPropertyPtr property = WeakProperty::RawCast(object);
     objects_.Add(property);
+
+    s->PushWeak(property->untag()->key());
   }
 
   void RetraceEphemerons(Serializer* s) {
@@ -5866,6 +5870,92 @@ class ArrayDeserializationCluster
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class WeakArraySerializationCluster : public SerializationCluster {
+ public:
+  WeakArraySerializationCluster()
+      : SerializationCluster("WeakArray", kWeakArrayCid, kSizeVaries) {}
+  ~WeakArraySerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) {
+    WeakArrayPtr array = WeakArray::RawCast(object);
+    objects_.Add(array);
+
+    const intptr_t length = Smi::Value(array->untag()->length());
+    for (intptr_t i = 0; i < length; i++) {
+      s->PushWeak(array->untag()->element(i));
+    }
+  }
+
+  void WriteAlloc(Serializer* s) {
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      WeakArrayPtr array = objects_[i];
+      s->AssignRef(array);
+      AutoTraceObject(array);
+      const intptr_t length = Smi::Value(array->untag()->length());
+      s->WriteUnsigned(length);
+      target_memory_size_ += compiler::target::WeakArray::InstanceSize(length);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      WeakArrayPtr array = objects_[i];
+      AutoTraceObject(array);
+      const intptr_t length = Smi::Value(array->untag()->length());
+      s->WriteUnsigned(length);
+      for (intptr_t j = 0; j < length; j++) {
+        if (s->HasRef(array->untag()->element(j))) {
+          s->WriteElementRef(array->untag()->element(j), j);
+        } else {
+          s->WriteElementRef(Object::null(), j);
+        }
+      }
+    }
+  }
+
+ private:
+  GrowableArray<WeakArrayPtr> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class WeakArrayDeserializationCluster : public DeserializationCluster {
+ public:
+  WeakArrayDeserializationCluster() : DeserializationCluster("WeakArray") {}
+  ~WeakArrayDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(
+          old_space->AllocateSnapshot(WeakArray::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_, bool primary) {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      WeakArrayPtr array = static_cast<WeakArrayPtr>(d.Ref(id));
+      const intptr_t length = d.ReadUnsigned();
+      Deserializer::InitializeHeader(array, kWeakArrayCid,
+                                     WeakArray::InstanceSize(length), false);
+      array->untag()->next_seen_by_gc_ = WeakArray::null();
+      array->untag()->length_ = Smi::New(length);
+      for (intptr_t j = 0; j < length; j++) {
+        array->untag()->data()[j] = d.ReadRef();
+      }
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class StringSerializationCluster
     : public CanonicalSetSerializationCluster<CanonicalStringSet,
                                               String,
@@ -6027,7 +6117,8 @@ class StringDeserializationCluster
   void PostLoad(Deserializer* d, const Array& refs, bool primary) {
     if (!table_.IsNull()) {
       auto object_store = d->isolate_group()->object_store();
-      VerifyCanonicalSet(d, refs, Array::Handle(object_store->symbol_table()));
+      VerifyCanonicalSet(d, refs,
+                         WeakArray::Handle(object_store->symbol_table()));
       object_store->set_symbol_table(table_);
       if (d->isolate_group() == Dart::vm_isolate_group()) {
         Symbols::InitFromSnapshot(d->isolate_group());
@@ -6063,7 +6154,8 @@ class FakeSerializationCluster : public SerializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class VMSerializationRoots : public SerializationRoots {
  public:
-  explicit VMSerializationRoots(const Array& symbols, bool should_write_symbols)
+  explicit VMSerializationRoots(const WeakArray& symbols,
+                                bool should_write_symbols)
       : symbols_(symbols),
         should_write_symbols_(should_write_symbols),
         zone_(Thread::Current()->zone()) {}
@@ -6076,6 +6168,7 @@ class VMSerializationRoots : public SerializationRoots {
     s->AddBaseObject(Object::sentinel().ptr(), "Null", "sentinel");
     s->AddBaseObject(Object::transition_sentinel().ptr(), "Null",
                      "transition_sentinel");
+    s->AddBaseObject(Object::optimized_out().ptr(), "Null", "<optimized out>");
     s->AddBaseObject(Object::empty_array().ptr(), "Array", "<empty_array>");
     s->AddBaseObject(Object::empty_instantiations_cache_array().ptr(), "Array",
                      "<empty_instantiations_cache_array>");
@@ -6165,7 +6258,7 @@ class VMSerializationRoots : public SerializationRoots {
     }
 
     if (!should_write_symbols_ && s->profile_writer() != nullptr) {
-      // If writing V8 snapshot profile create an artifical node representing
+      // If writing V8 snapshot profile create an artificial node representing
       // VM isolate symbol table.
       ASSERT(!s->IsReachable(symbols_.ptr()));
       s->AssignArtificialRef(symbols_.ptr());
@@ -6182,7 +6275,7 @@ class VMSerializationRoots : public SerializationRoots {
   }
 
  private:
-  const Array& symbols_;
+  const WeakArray& symbols_;
   const bool should_write_symbols_;
   Zone* zone_;
 };
@@ -6190,7 +6283,7 @@ class VMSerializationRoots : public SerializationRoots {
 
 class VMDeserializationRoots : public DeserializationRoots {
  public:
-  VMDeserializationRoots() : symbol_table_(Array::Handle()) {}
+  VMDeserializationRoots() : symbol_table_(WeakArray::Handle()) {}
 
   bool AddBaseObjects(Deserializer* d) {
     // These objects are always allocated by Object::InitOnce, so they are not
@@ -6199,6 +6292,7 @@ class VMDeserializationRoots : public DeserializationRoots {
     d->AddBaseObject(Object::null());
     d->AddBaseObject(Object::sentinel().ptr());
     d->AddBaseObject(Object::transition_sentinel().ptr());
+    d->AddBaseObject(Object::optimized_out().ptr());
     d->AddBaseObject(Object::empty_array().ptr());
     d->AddBaseObject(Object::empty_instantiations_cache_array().ptr());
     d->AddBaseObject(Object::dynamic_type().ptr());
@@ -6275,7 +6369,7 @@ class VMDeserializationRoots : public DeserializationRoots {
   }
 
  private:
-  Array& symbol_table_;
+  WeakArray& symbol_table_;
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -6296,7 +6390,7 @@ static const char* const kObjectStoreFieldNames[] = {
 class ProgramSerializationRoots : public SerializationRoots {
  public:
 #define RESET_ROOT_LIST(V)                                                     \
-  V(symbol_table, Array, HashTables::New<CanonicalStringSet>(4))               \
+  V(symbol_table, WeakArray, HashTables::New<CanonicalStringSet>(4))           \
   V(canonical_types, Array, HashTables::New<CanonicalTypeSet>(4))              \
   V(canonical_function_types, Array,                                           \
     HashTables::New<CanonicalFunctionTypeSet>(4))                              \
@@ -7204,6 +7298,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
     case kImmutableArrayCid:
       return new (Z)
           ArraySerializationCluster(is_canonical, kImmutableArrayCid);
+    case kWeakArrayCid:
+      return new (Z) WeakArraySerializationCluster();
     case kStringCid:
       return new (Z) StringSerializationCluster(
           is_canonical, cluster_represents_canonical_set && !vm_);
@@ -7649,6 +7745,18 @@ void Serializer::Push(ObjectPtr object, intptr_t cid_override) {
   }
 }
 
+void Serializer::PushWeak(ObjectPtr object) {
+  // The GC considers immediate objects to always be alive. This doesn't happen
+  // automatically in the serializer because the serializer does not have
+  // immediate objects: it handles Smis as ref indices like all other objects.
+  // This visit causes the serializer to reproduce the GC's semantics for
+  // weakness, which in particular allows the templates in hash_table.h to work
+  // with weak arrays because the metadata Smis always survive.
+  if (!object->IsHeapObject() || vm_) {
+    Push(object);
+  }
+}
+
 void Serializer::Trace(ObjectPtr object, intptr_t cid_override) {
   intptr_t cid;
   bool is_canonical;
@@ -7787,7 +7895,7 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   // computation. Note that reachability is computed monotonically (an object
   // can change from not reachable to reachable, but never the reverse), which
   // is technically a conservative approximation for WSRs, but doing a strict
-  // analysis that allows non-motonoic reachability may not halt.
+  // analysis that allows non-monotonic reachability may not halt.
   //
   // To see this, take a WSR whose replacement causes the target of another WSR
   // to become reachable, which then causes the target of the first WSR to
@@ -7920,7 +8028,7 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
     // targets in reachable WSRs if writing a v8 snapshot profile, since they
     // will be used in AttributeReference().
     //
-    // Unreachable WSRs may also need artifical nodes, as they may be members
+    // Unreachable WSRs may also need artificial nodes, as they may be members
     // of other unreachable objects that have artificial nodes in the profile,
     // but they are instead lazily handled in CreateArtificialNodeIfNeeded().
     wsr_cluster->CreateArtificialTargetNodesIfNeeded(this);
@@ -7975,7 +8083,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
 #if defined(DART_PRECOMPILER)
   if (kind() != Snapshot::kFullAOT) return;
 
-  // Create an artifical node to which the bytes should be attributed. We
+  // Create an artificial node to which the bytes should be attributed. We
   // don't attribute them to entries.ptr(), as we don't want to attribute the
   // bytes for printing out a length of 0 to Object::null() when the dispatch
   // table is empty.
@@ -8037,7 +8145,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
       }
       continue;
     }
-    // Emit any outsanding repeat count before handling the new code value.
+    // Emit any outstanding repeat count before handling the new code value.
     if (repeat_count > 0) {
       Write(repeat_count);
       repeat_count = 0;
@@ -8374,6 +8482,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case kImmutableArrayCid:
       return new (Z)
           ArrayDeserializationCluster(is_canonical, kImmutableArrayCid);
+    case kWeakArrayCid:
+      return new (Z) WeakArrayDeserializationCluster();
     case kStringCid:
       return new (Z) StringDeserializationCluster(
           is_canonical,
@@ -8865,7 +8975,8 @@ ZoneGrowableArray<Object*>* FullSnapshotWriter::WriteVMSnapshot() {
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(true);
   VMSerializationRoots roots(
-      Array::Handle(Dart::vm_isolate_group()->object_store()->symbol_table()),
+      WeakArray::Handle(
+          Dart::vm_isolate_group()->object_store()->symbol_table()),
       /*should_write_symbols=*/!Snapshot::IncludesStringsInROData(kind_));
   ZoneGrowableArray<Object*>* objects = serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
@@ -9111,17 +9222,15 @@ char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
 #undef SET_FLAG
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_sound_null_safety == kNullSafetyOptionUnspecified) {
-      if (strncmp(cursor, "null-safety", end - cursor) == 0) {
-        FLAG_sound_null_safety = kNullSafetyOptionStrong;
-        cursor = end;
-        continue;
-      }
-      if (strncmp(cursor, "no-null-safety", end - cursor) == 0) {
-        FLAG_sound_null_safety = kNullSafetyOptionWeak;
-        cursor = end;
-        continue;
-      }
+    if (strncmp(cursor, "null-safety", end - cursor) == 0) {
+      FLAG_sound_null_safety = true;
+      cursor = end;
+      continue;
+    }
+    if (strncmp(cursor, "no-null-safety", end - cursor) == 0) {
+      FLAG_sound_null_safety = false;
+      cursor = end;
+      continue;
     }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 

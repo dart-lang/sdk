@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -56,7 +54,8 @@ Future runTest() async {
       return IterationStep.CONTINUE;
 
     TypeMask mask = new TypeMask.nonNullSubclass(cls, closedWorld);
-    TypeMask receiverType = closedWorld.computeReceiverType(callSelector, mask);
+    final receiverType =
+        closedWorld.computeReceiverType(callSelector, mask) as TypeMask;
     if (cls.isClosure) {
       // TODO(johnniwinther): Expect mask based on 'cls' when all synthesized
       // call methods are registered.
@@ -65,7 +64,7 @@ Future runTest() async {
           "Unexpected receiver type for $callSelector on $mask");
       closureCount++;
     } else {
-      String expected = expectedMap[cls.name];
+      String expected = expectedMap[cls.name]!;
       Expect.equals(expected, '$receiverType',
           "Unexpected receiver type for $callSelector on $mask");
     }

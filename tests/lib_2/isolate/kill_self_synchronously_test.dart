@@ -15,7 +15,7 @@ void main(List<String> args) {
     throw "QQQ Should not be reached";
   } else {
     var exec = Platform.resolvedExecutable;
-    var args = new List<String>();
+    var args = <String>[];
     args.addAll(Platform.executableArguments);
     args.add(Platform.script.toFilePath());
     args.add("--child");

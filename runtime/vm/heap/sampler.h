@@ -7,6 +7,8 @@
 
 #if !defined(PRODUCT)
 
+#include <atomic>
+
 #include "include/dart_api.h"
 
 #include "vm/globals.h"
@@ -26,51 +28,137 @@ class Thread;
 class HeapProfileSampler {
  public:
   explicit HeapProfileSampler(Thread* thread);
-  ~HeapProfileSampler();
 
-  void Enable(bool enabled);
+  // Enables or disables heap profiling for all threads.
+  //
+  // NOTE: the enabled state will update on a thread-by-thread basis once
+  // the thread performs an interrupt check. There is no guarantee that the
+  // enabled state will be updated for each thread by the time this method
+  // returns.
+  static void Enable(bool enabled);
+  static bool enabled() { return enabled_; }
 
-  void HandleNewTLAB(intptr_t old_tlab_remaining_space);
+  // Updates the heap profiling sampling interval for all threads.
+  //
+  // NOTE: the sampling interval will update on a thread-by-thread basis once
+  // the thread performs an interrupt check. There is no guarantee that the
+  // sampling interval will be updated for each thread by the time this method
+  // returns.
+  static void SetSamplingInterval(intptr_t bytes_interval);
 
-  void SetSamplingInterval(intptr_t bytes_interval);
+  // Updates the callback that's invoked when a sample is collected.
+  static void SetSamplingCallback(Dart_HeapSamplingCallback callback);
 
-  void SetSamplingCallback(Dart_HeapSamplingCallback callback);
+  void Initialize();
+  void Cleanup() {
+    ResetState();
+    last_sample_size_ = kUninitialized;
+  }
 
-  void InvokeCallbackForLastSample(Dart_PersistentHandle type_name,
+  // Notifies the thread that it needs to update the enabled state of the heap
+  // sampling profiler.
+  //
+  // This method is safe to call from any thread.
+  void ScheduleUpdateThreadEnable();
+
+  // Returns true if [ScheduleUpdateThreadEnable()] has been invoked.
+  //
+  // Calling this method will clear the state set by
+  // [ScheduleUpdateThreadEnable()].
+  //
+  // This method is safe to call from any thread.
+  bool ShouldUpdateThreadEnable() {
+    return schedule_thread_enable_.exchange(false);
+  }
+
+  // Updates the enabled state of the thread's heap sampling profiler.
+  //
+  // WARNING: This method can only be called by the thread associated with this
+  // profiler instance to avoid concurrent modification of the thread's TLAB.
+  void UpdateThreadEnable();
+
+  // Notifies the thread that it needs to update the sampling interval of its
+  // heap sampling profiler.
+  //
+  // This method is safe to call from any thread.
+  void ScheduleSetThreadSamplingInterval();
+
+  // Returns true if [ScheduleSetThreadSamplingInterval()] has been invoked.
+  //
+  // Calling this method will clear the state set by
+  // [ScheduleSetThreadEnable()].
+  //
+  // This method is safe to call from any thread.
+  bool ShouldSetThreadSamplingInterval() {
+    return schedule_thread_set_sampling_interval_.exchange(false);
+  }
+
+  // Updates the sampling interval of the thread's heap sampling profiler.
+  //
+  // WARNING: This method can only be called by the thread associated with this
+  // profiler instance to avoid concurrent modification of the thread's TLAB.
+  void SetThreadSamplingInterval();
+
+  // Updates internal book keeping tracking the remaining size of the sampling
+  // interval. This method must be called when a TLAB is torn down to ensure
+  // that a future TLAB is initialized with the correct sampling interval.
+  void HandleReleasedTLAB(Thread* thread);
+
+  // Handles the creation of a new TLAB by updating its boundaries based on the
+  // remaining sampling interval.
+  //
+  // is_first_tlab should be set to true if this is the first TLAB associated
+  // with thread_ in order to correctly set the TLAB boundaries to match the
+  // remaining sampling interval that's been used to keep track of old space
+  // allocations.
+  void HandleNewTLAB(intptr_t old_tlab_remaining_space, bool is_first_tlab);
+
+  void InvokeCallbackForLastSample(const char* type_name,
                                    Dart_WeakPersistentHandle obj);
 
   bool HasOutstandingSample() const {
     return last_sample_size_ != kUninitialized;
   }
 
-  // Returns number of bytes that should be be attributed to the sample.
-  // If returned size is 0, the allocation should not be sampled.
-  //
-  // Due to how the poission sampling works, some samples should be accounted
-  // multiple times if they cover allocations larger than the average sampling
-  // rate.
-  void SampleSize(intptr_t allocation_size);
+  void SampleNewSpaceAllocation(intptr_t allocation_size);
+  void SampleOldSpaceAllocation(intptr_t allocation_size);
 
  private:
-  intptr_t SetNextSamplingIntervalLocked(intptr_t next_interval);
+  void ResetState();
+  void ResetIntervalState() { interval_to_next_sample_ = kUninitialized; }
+
+  void UpdateThreadEnableLocked();
+
+  void SetThreadSamplingIntervalLocked();
+  void SetNextSamplingIntervalLocked(intptr_t next_interval);
 
   intptr_t GetNextSamplingIntervalLocked();
   intptr_t NumberOfSamplesLocked(intptr_t allocation_size);
 
+  // Helper to calculate the remaining sampling interval based on TLAB
+  // boundaries. Returns kUninitialized if there's no active TLAB.
+  intptr_t remaining_TLAB_interval() const;
+
+  std::atomic<bool> schedule_thread_enable_ = false;
+  std::atomic<bool> schedule_thread_set_sampling_interval_ = false;
+
   // Protects sampling logic from modifications of callback_, sampling_interval,
   // and enabled_ while collecting a sample.
-  RwLock* lock_;
+  //
+  // This lock should be acquired using WriteRwLocker when modifying static
+  // state, and should be acquired using ReadRwLocker when accessing static
+  // state from instances of HeapProfileSampler.
+  static RwLock* lock_;
+  static bool enabled_;
+  static Dart_HeapSamplingCallback callback_;
+  static intptr_t sampling_interval_;
 
-  bool enabled_ = false;
+  static const intptr_t kUninitialized = -1;
+  static const intptr_t kDefaultSamplingInterval = 512 * KB;
 
-  Dart_HeapSamplingCallback callback_;
-
-  const intptr_t kUninitialized = -1;
-  const intptr_t kDefaultSamplingInterval = 1 << 19;  // 512KiB
-  intptr_t sampling_interval_ = kDefaultSamplingInterval;
-  intptr_t interval_to_next_sample_;
+  bool thread_enabled_ = false;
+  intptr_t interval_to_next_sample_ = kUninitialized;
   intptr_t next_tlab_offset_ = kUninitialized;
-
   intptr_t last_sample_size_ = kUninitialized;
 
   Thread* thread_;

@@ -1,0 +1,42 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method foo(core::num n) → core::num {
+    core::print(n.{core::Object::runtimeType}{core::Type});
+    return 1.1;
+  }
+}
+abstract class B<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X%>
+    : super core::Object::•()
+    ;
+  abstract method foo(covariant-by-class self::B::X% x) → self::B::X%;
+}
+abstract class _C&A&B = self::A with self::B<core::num> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C&A&B
+    : super self::A::•()
+    ;
+  forwarding-stub method foo(covariant-by-class core::num x) → core::num
+    return super.{self::A::foo}(x);
+}
+class C extends self::_C&A&B {
+  synthetic constructor •() → self::C
+    : super self::_C&A&B::•()
+    ;
+}
+static method main() → void {
+  self::B<core::Object> b = new self::C::•();
+  try {
+    b.{self::B::foo}(true){(core::Object) → core::Object};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print(e);
+    return;
+  }
+  throw "Missing type error";
+}

@@ -127,7 +127,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void visitAsExpression(AsExpression node) {
     if (checkConstantUpdate2018 && node.inConstantContext) {
       _errorReporter.reportErrorForNode(
-          HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT, node);
+          WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT, node);
     }
     super.visitAsExpression(node);
   }
@@ -138,7 +138,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       TokenType operatorType = node.operator.type;
       if (operatorType == TokenType.GT_GT_GT) {
         _errorReporter.reportErrorForToken(
-            HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.operator);
+            WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.operator);
       } else if (checkConstantUpdate2018) {
         if ((operatorType == TokenType.AMPERSAND ||
                 operatorType == TokenType.BAR ||
@@ -146,7 +146,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
             node.inConstantContext) {
           if (node.leftOperand.typeOrThrow.isDartCoreBool) {
             _errorReporter.reportErrorForToken(
-                HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
+                WarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
                 node.operator,
                 [node.operator.lexeme]);
           }
@@ -162,7 +162,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
           if (!primitive(node.leftOperand) || !primitive(node.rightOperand)) {
             _errorReporter.reportErrorForToken(
-                HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT,
+                WarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT,
                 node.operator);
           }
         }
@@ -175,7 +175,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     if (checkExtensionMethods) {
       _errorReporter.reportErrorForToken(
-          HintCode.SDK_VERSION_EXTENSION_METHODS, node.extensionKeyword);
+          WarningCode.SDK_VERSION_EXTENSION_METHODS, node.extensionKeyword);
     }
     super.visitExtensionDeclaration(node);
   }
@@ -184,7 +184,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void visitExtensionOverride(ExtensionOverride node) {
     if (checkExtensionMethods) {
       _errorReporter.reportErrorForNode(
-          HintCode.SDK_VERSION_EXTENSION_METHODS, node.extensionName);
+          WarningCode.SDK_VERSION_EXTENSION_METHODS, node.extensionName);
     }
     super.visitExtensionOverride(node);
   }
@@ -218,7 +218,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void visitIsExpression(IsExpression node) {
     if (checkConstantUpdate2018 && node.inConstantContext) {
       _errorReporter.reportErrorForNode(
-          HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT, node);
+          WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT, node);
     }
     super.visitIsExpression(node);
   }
@@ -227,7 +227,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (checkTripleShift && node.isOperator && node.name.lexeme == '>>>') {
       _errorReporter.reportErrorForToken(
-          HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name);
+          WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name);
     }
     super.visitMethodDeclaration(node);
   }
@@ -235,7 +235,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     if (node.isSet && checkSetLiterals && !_inSetLiteral) {
-      _errorReporter.reportErrorForNode(HintCode.SDK_VERSION_SET_LITERAL, node);
+      _errorReporter.reportErrorForNode(
+          WarningCode.SDK_VERSION_SET_LITERAL, node);
     }
     bool wasInSetLiteral = _inSetLiteral;
     _inSetLiteral = true;
@@ -268,9 +269,11 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
         }
       }
       _errorReporter.reportErrorForNode(
-          HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, node, [element.name]);
+          WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE,
+          node,
+          [element.name]);
     } else if (checkNnbd && element == _typeProvider.neverType.element) {
-      _errorReporter.reportErrorForNode(HintCode.SDK_VERSION_NEVER, node);
+      _errorReporter.reportErrorForNode(WarningCode.SDK_VERSION_NEVER, node);
     }
   }
 
@@ -289,7 +292,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// SDK that does not support the feature.
   void _validateUiAsCode(AstNode node) {
     if (checkUiAsCode && !_inUiAsCode) {
-      _errorReporter.reportErrorForNode(HintCode.SDK_VERSION_UI_AS_CODE, node);
+      _errorReporter.reportErrorForNode(
+          WarningCode.SDK_VERSION_UI_AS_CODE, node);
     }
   }
 
@@ -301,7 +305,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
         !_inUiAsCode &&
         node.thisOrAncestorOfType<TypedLiteral>()!.isConst) {
       _errorReporter.reportErrorForNode(
-          HintCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT, node);
+          WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT, node);
     }
   }
 }

@@ -20,6 +20,7 @@ import 'dart:_foreign_helper'
         LEGACY_TYPE_REF;
 import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
+import 'dart:_js_helper' show createRecordTypePredicate;
 import 'dart:_js_names'
     show getSpecializedTestTag, unmangleGlobalNameIfPreservedAnyways;
 import 'dart:_js_shared_embedded_names';
@@ -371,6 +372,16 @@ class Rti {
     var s = _getCanonicalRecipe(rti);
     return JS('String', '#.replace(/\\*/g, "")', s);
   }
+}
+
+@pragma('dart2js:types:trust')
+@pragma('dart2js:index-bounds:trust')
+bool pairwiseIsTest(JSArray fieldRtis, JSArray values) {
+  final length = values.length;
+  for (int i = 0; i < length; i++) {
+    if (!Rti._isCheck(_Utils.asRti(fieldRtis[i]), values[i])) return false;
+  }
+  return true;
 }
 
 class _FunctionParameters {
@@ -828,22 +839,68 @@ Type getRuntimeType(Object? object) {
 }
 
 /// Called from generated code.
+@pragma('dart2js:never-inline')
 Type createRuntimeType(Rti rti) {
-  _Type? type = Rti._getCachedRuntimeType(rti);
-  if (type != null) return type;
+  return Rti._getCachedRuntimeType(rti) ?? _createAndCacheRuntimeType(rti);
+}
+
+_Type _createAndCacheRuntimeType(Rti rti) {
+  final type = _createRuntimeType(rti);
+  Rti._setCachedRuntimeType(rti, type);
+  return type;
+}
+
+_Type _createRuntimeType(Rti rti) {
   if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
     return _Type(rti);
-  } else {
-    String recipe = Rti._getCanonicalRecipe(rti);
-    String starErasedRecipe = Rti.getLegacyErasedRecipe(rti);
-    if (starErasedRecipe == recipe) {
-      return _Type(rti);
-    }
-    Rti starErasedRti = _Universe.eval(_theUniverse(), starErasedRecipe, true);
-    type = Rti._getCachedRuntimeType(starErasedRti) ?? _Type(starErasedRti);
-    Rti._setCachedRuntimeType(rti, type);
-    return type;
   }
+  String recipe = Rti._getCanonicalRecipe(rti);
+  String starErasedRecipe = Rti.getLegacyErasedRecipe(rti);
+  if (starErasedRecipe == recipe) {
+    return _Type(rti);
+  }
+  Rti starErasedRti = _Universe.eval(_theUniverse(), starErasedRecipe, true);
+  return Rti._getCachedRuntimeType(starErasedRti) ??
+      _createAndCacheRuntimeType(starErasedRti);
+}
+
+Type getRuntimeTypeOfRecord(String recordRecipe, List valuesList) {
+  JSArray values = JS('', '#', valuesList);
+  final length = values.length;
+  if (length == 0) {
+    // TODO(50081): Remove this when DDC can handle `TYPE_REF<()>`.
+    if (JS_GET_FLAG('DEV_COMPILER')) {
+      throw UnimplementedError('getRuntimeTypeOfRecord not supported for DDC');
+    } else {
+      return createRuntimeType(TYPE_REF<()>());
+    }
+  }
+
+  Rti bindings = _rtiEval(
+      _fieldTypeForRuntimeTypeOfRecord(values[0]),
+      '${Recipe.pushDynamicString}'
+      '${Recipe.startTypeArgumentsString}'
+      '0'
+      '${Recipe.endTypeArgumentsString}');
+
+  for (int i = 1; i < length; i++) {
+    bindings = _rtiBind(bindings, _fieldTypeForRuntimeTypeOfRecord(values[i]));
+  }
+
+  final recordRti = _rtiEval(bindings, recordRecipe);
+  return createRuntimeType(recordRti);
+}
+
+Rti _fieldTypeForRuntimeTypeOfRecord(Object? object) {
+  // Since some objects override `get runtimeType`, we call that to get the
+  // type, otherwise we print e.g. `int` as `JSInt`.
+
+  // TODO(50081): SDK types that override `.runtimeType` are 'reasonable' in
+  // that they return the type of some interface. Get clarity on whether
+  // user-defined overrides of `.runtimeType` can affect the result of a record
+  // with a field of the type with the override.
+  Type type = object.runtimeType;
+  return (type as _Type)._rti;
 }
 
 /// Called from generated code in the constant pool.
@@ -893,6 +950,10 @@ bool _installSpecializedIsTest(Object? object) {
   //
   //   `null is Never`  --> `false`
   //   `null is Never*` --> `true`
+  if (Rti._getKind(testRti) == Rti.kindNever) {
+    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isNever));
+  }
+
   Rti unstarred = Rti._getKind(testRti) == Rti.kindStar
       ? Rti._getStarArgument(testRti)
       : testRti;
@@ -927,6 +988,9 @@ bool _installSpecializedIsTest(Object? object) {
   } else if (Rti._getKind(testRti) == Rti.kindQuestion) {
     return _finishIsFn(testRti, object,
         RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation));
+  } else if (Rti._getKind(unstarred) == Rti.kindRecord) {
+    isFn = _recordSpecializedIsTest(unstarred);
+    return _finishIsFn(testRti, object, isFn);
   }
   return _finishIsFn(
       testRti, object, RAW_DART_FUNCTION_REF(_generalIsTestImplementation));
@@ -952,6 +1016,13 @@ Object? _simpleSpecializedIsTest(Rti testRti) {
     isFn = RAW_DART_FUNCTION_REF(_isBool);
   }
   return isFn;
+}
+
+Object? _recordSpecializedIsTest(Rti testRti) {
+  final partialShapeTag = Rti._getRecordPartialShapeTag(testRti);
+  final fieldRtis = Rti._getRecordFields(testRti);
+  final predicate = createRecordTypePredicate(partialShapeTag, fieldRtis);
+  return predicate ?? RAW_DART_FUNCTION_REF(_isNever);
 }
 
 /// Called from generated code.
@@ -1086,6 +1157,7 @@ Object? _generalNullableAsCheckImplementation(Object? object) {
 }
 
 void _failedAsCheck(Object? object, Rti testRti) {
+  // We need to generate an Rti for a record type to print it here.
   Rti objectRti = instanceOrFunctionType(object, testRti);
   String message =
       _Error.compose(object, objectRti, _rtiToString(testRti, null));
@@ -1125,7 +1197,7 @@ class _Error extends Error {
   String toString() => _message;
 }
 
-class _TypeError extends _Error implements TypeError, CastError {
+class _TypeError extends _Error implements TypeError {
   _TypeError.fromMessage(String message) : super('TypeError: $message');
 
   factory _TypeError.forType(object, String type) {
@@ -1164,6 +1236,12 @@ bool _isTop(Object? object) {
 /// Called from generated code via Rti `_as` methods.
 Object? _asTop(Object? object) {
   return object;
+}
+
+/// Specialization for 'is Never'.
+/// Called from generated code via Rti '_is' method.
+bool _isNever(Object? object) {
+  return false;
 }
 
 /// Specialization for 'is bool'.
@@ -2336,7 +2414,7 @@ class _Universe {
 ///
 ///   When first element is an Rti: Creates binding Rti wrapping the first
 ///   element. Binding Rtis are flattened: if the first element is a binding
-///   Rti, the new binding Rti has the concatentation of the first element
+///   Rti, the new binding Rti has the concatenation of the first element
 ///   bindings and new type.
 ///
 ///
@@ -2354,8 +2432,8 @@ class _Universe {
 /// type is passed without creating a 1-tuple object. This means that the
 /// interface Rti for, say, `Map<num,dynamic>` serves as two environments with
 /// different shapes. It is a class environment (K=num, V=dynamic) and a simple
-/// 1-tuple environment. This is supported by index '0' refering to the whole
-/// type, and '1 and '2' refering to K and V positionally:
+/// 1-tuple environment. This is supported by index '0' referring to the whole
+/// type, and '1 and '2' referring to K and V positionally:
 ///
 ///     interface("Map", [num,dynamic])
 ///     0                 1   2

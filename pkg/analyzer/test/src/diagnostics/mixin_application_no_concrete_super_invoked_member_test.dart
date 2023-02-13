@@ -16,54 +16,6 @@ main() {
 @reflectiveTest
 class MixinApplicationNoConcreteSuperInvokedMemberTest
     extends PubPackageResolutionTest {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50496')
-  test_cache() async {
-    addTestFile('''
-abstract class A {
-  set foo(_);
-}
-mixin M on A {
-  void bar() {
-    super.foo = 0;
-  }
-}
-abstract class X extends A with M {}
-''');
-    await resolveTestFile();
-
-    assertErrorsInResolvedUnit(result, [
-      error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
-          122,
-          1,
-          messageContains: ["foo"]),
-    ]);
-
-    modifyFile(testFile.path, '''
-abstract class A {
-  set boo(_);
-}
-mixin M on A {
-  void bar() {
-    super.boo = 0;
-  }
-}
-abstract class X extends A with M {}
-''');
-
-    await resolveTestFile();
-
-    assertErrorsInResolvedUnit(result, [
-      error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
-          122,
-          1,
-          messageContains: ["boo"]),
-    ]);
-  }
-
   test_class_getter() async {
     await assertErrorsInCode(r'''
 abstract class A {
@@ -290,7 +242,7 @@ abstract class X extends A with M {}
 ''', [
       error(
           CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER,
           129,
           1),
     ]);
@@ -433,7 +385,7 @@ enum E with M1, M2 {
 ''', [
       error(
           CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER,
           106,
           2),
     ]);

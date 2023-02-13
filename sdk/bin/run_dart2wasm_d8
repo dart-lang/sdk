@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Run the output of dart2wasm on d8.
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+PROG_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+SDK_DIR="$(cd "${PROG_DIR}/../.." ; pwd -P)"
+D8_DIR="$(cd "${PROG_DIR}/../../third_party/d8" ; pwd -P)"
+
+# Locate D8 executable. Only macos and linux are supported.
+if [[ `uname` == 'Darwin' ]]; then
+  D8_EXEC="$D8_DIR/macos/d8"
+else
+  D8_EXEC="$D8_DIR/linux/d8"
+fi
+
+# We allow extra d8 options to be passed in through an environment variable.
+if [[ $D8_OPTIONS ]]; then
+  read -a OPTIONS <<< "$D8_OPTIONS"
+  EXTRA_D8_OPTIONS+=("${OPTIONS[@]}")
+fi
+
+# Find the JS runtime based on the input wasm file.
+exec "$D8_EXEC" --experimental-wasm-gc --experimental-wasm-stack-switching \
+  --experimental-wasm-type-reflection "${EXTRA_D8_OPTIONS[@]}" \
+  "$SDK_DIR/pkg/dart2wasm/bin/run_wasm.js" -- "$(realpath -- "${1%.*}.mjs")" "$@"

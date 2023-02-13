@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String? name]) {
@@ -48,9 +49,12 @@ List<Element> getClassMembers(InterfaceElement clazz, [String? name]) {
 }
 
 /// Returns a [Set] with direct subclasses of [seed].
-Future<Set<InterfaceElement>> getDirectSubClasses(
-    SearchEngine searchEngine, InterfaceElement seed) async {
-  var matches = await searchEngine.searchSubtypes(seed);
+///
+/// The given [searchEngineCache] will be used or filled out as needed
+/// so subsequent calls can utilize it to speed up the computation.
+Future<Set<InterfaceElement>> getDirectSubClasses(SearchEngine searchEngine,
+    InterfaceElement seed, SearchEngineCache searchEngineCache) async {
+  var matches = await searchEngine.searchSubtypes(seed, searchEngineCache);
   return matches.map((match) => match.element).cast<InterfaceElement>().toSet();
 }
 
@@ -79,7 +83,9 @@ List<Element> getExtensionMembers(ExtensionElement extension, [String? name]) {
 /// Return all implementations of the given [member], its superclasses, and
 /// their subclasses.
 Future<Set<ClassMemberElement>> getHierarchyMembers(
-    SearchEngine searchEngine, ClassMemberElement member) async {
+    SearchEngine searchEngine, ClassMemberElement member,
+    {OperationPerformanceImpl? performance}) async {
+  performance ??= OperationPerformanceImpl("<root>");
   Set<ClassMemberElement> result = HashSet<ClassMemberElement>();
   // extension member
   var enclosingElement = member.enclosingElement;
@@ -99,20 +105,25 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
       ...enclosingElement.allSupertypes.map((e) => e.element),
       enclosingElement,
     ];
+    var subClasses = <InterfaceElement>{};
     for (var superClass in searchClasses) {
       // ignore if super- class does not declare member
       if (getClassMembers(superClass, name).isEmpty) {
         continue;
       }
       // check all sub- classes
-      var subClasses = await searchEngine.searchAllSubtypes(superClass);
+      await performance.runAsync(
+          "appendAllSubtypes",
+          (performance) => searchEngine.appendAllSubtypes(
+              superClass, subClasses, performance));
       subClasses.add(superClass);
-      for (var subClass in subClasses) {
-        var subClassMembers = getChildren(subClass, name);
-        for (var member in subClassMembers) {
-          if (member is ClassMemberElement) {
-            result.add(member);
-          }
+    }
+
+    for (var subClass in subClasses) {
+      var subClassMembers = getChildren(subClass, name);
+      for (var member in subClassMembers) {
+        if (member is ClassMemberElement) {
+          result.add(member);
         }
       }
     }

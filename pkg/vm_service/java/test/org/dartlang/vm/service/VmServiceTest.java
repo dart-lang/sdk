@@ -587,17 +587,17 @@ public class VmServiceTest {
   private static void vmPauseOnException(IsolateRef isolate, ExceptionPauseMode mode) {
     System.out.println("Request pause on exception: " + mode);
     final OpLatch latch = new OpLatch();
-    vmService.setExceptionPauseMode(isolate.getId(), mode, new SuccessConsumer() {
-      @Override
-      public void onError(RPCError error) {
-        showRPCError(error);
-      }
+    vmService.setIsolatePauseMode(isolate.getId(), mode, new SuccessConsumer() {
+        @Override
+        public void onError(RPCError error) {
+            showRPCError(error);
+        }
 
-      @Override
-      public void received(Success response) {
-        System.out.println("Successfully set pause on exception");
-        latch.opComplete();
-      }
+        @Override
+        public void received(Success response) {
+            System.out.println("Successfully set pause on exception");
+            latch.opComplete();
+        }
     });
     latch.waitAndAssertOpComplete();
   }

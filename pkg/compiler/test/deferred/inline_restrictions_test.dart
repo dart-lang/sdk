@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test that we do not accidentally leak code from deferred libraries but do
 // allow inlining of empty functions and from main.
 
@@ -19,25 +17,25 @@ void main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
-    var closedWorld = compiler.backendClosedWorldForTesting;
+    var closedWorld = compiler.backendClosedWorldForTesting!;
     var env = closedWorld.elementEnvironment;
     var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
     lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
-    var inlineMeAway = env.lookupLibraryMember(lib1, "inlineMeAway");
+    var inlineMeAway = env.lookupLibraryMember(lib1, "inlineMeAway")!;
     var ou_lib1 = outputUnitForMember(inlineMeAway);
 
     dynamic lib3 = lookupLibrary("memory:lib3.dart");
-    var sameContextInline = env.lookupLibraryMember(lib3, "sameContextInline");
+    var sameContextInline = env.lookupLibraryMember(lib3, "sameContextInline")!;
     var ou_lib3 = outputUnitForMember(sameContextInline);
 
     // Test that we actually got different output units.
     Expect.notEquals(ou_lib1.name, ou_lib3.name);
 
-    String mainOutput = collector.getOutput("", api.OutputType.js);
+    String mainOutput = collector.getOutput("", api.OutputType.js)!;
     String lib1Output =
-        collector.getOutput("out_${ou_lib1.name}", api.OutputType.jsPart);
-    String lib3Output =
+        collector.getOutput("out_${ou_lib1.name}", api.OutputType.jsPart)!;
+    String? lib3Output =
         collector.getOutput("out_${ou_lib3.name}", api.OutputType.jsPart);
 
     // Test that inlineMeAway was inlined and its argument thus dropped.

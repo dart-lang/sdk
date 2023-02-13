@@ -259,7 +259,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get futureDynamicType {
     return _futureDynamicType ??= InterfaceTypeImpl(
       element: futureElement,
-      typeArguments: [dynamicType],
+      typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -273,7 +273,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get futureNullType {
     return _futureNullType ??= InterfaceTypeImpl(
       element: futureElement,
-      typeArguments: [nullType],
+      typeArguments: fixedTypeList(nullType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -287,7 +287,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get futureOrNullType {
     return _futureOrNullType ??= InterfaceTypeImpl(
       element: futureOrElement,
-      typeArguments: [nullType],
+      typeArguments: fixedTypeList(nullType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -310,7 +310,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get iterableDynamicType {
     return _iterableDynamicType ??= InterfaceTypeImpl(
       element: iterableElement,
-      typeArguments: [dynamicType],
+      typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -324,7 +324,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get iterableObjectType {
     return _iterableObjectType ??= InterfaceTypeImpl(
       element: iterableElement,
-      typeArguments: [objectType],
+      typeArguments: fixedTypeList(objectType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -343,7 +343,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get mapObjectObjectType {
     return _mapObjectObjectType ??= InterfaceTypeImpl(
       element: mapElement,
-      typeArguments: [objectType, objectType],
+      typeArguments: fixedTypeList(objectType, objectType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -420,7 +420,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get streamDynamicType {
     return _streamDynamicType ??= InterfaceTypeImpl(
       element: streamElement,
-      typeArguments: [dynamicType],
+      typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -469,7 +469,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType futureOrType(DartType valueType) {
     return futureOrElement.instantiate(
-      typeArguments: [valueType],
+      typeArguments: fixedTypeList(valueType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -477,7 +477,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType futureType(DartType valueType) {
     return futureElement.instantiate(
-      typeArguments: [valueType],
+      typeArguments: fixedTypeList(valueType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -496,7 +496,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType iterableType(DartType elementType) {
     return iterableElement.instantiate(
-      typeArguments: [elementType],
+      typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -504,7 +504,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType listType(DartType elementType) {
     return listElement.instantiate(
-      typeArguments: [elementType],
+      typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -512,7 +512,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType mapType(DartType keyType, DartType valueType) {
     return mapElement.instantiate(
-      typeArguments: [keyType, valueType],
+      typeArguments: fixedTypeList(keyType, valueType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -520,7 +520,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType setType(DartType elementType) {
     return setElement.instantiate(
-      typeArguments: [elementType],
+      typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }
@@ -528,7 +528,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType streamType(DartType elementType) {
     return streamElement.instantiate(
-      typeArguments: [elementType],
+      typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: _nullabilitySuffix,
     );
   }

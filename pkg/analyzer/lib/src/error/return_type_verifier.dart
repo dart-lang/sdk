@@ -156,7 +156,7 @@ class ReturnTypeVerifier {
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
         _errorReporter.reportErrorForNode(
-          HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
           expression,
           [S, T],
         );
@@ -275,7 +275,7 @@ class ReturnTypeVerifier {
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
         _errorReporter.reportErrorForNode(
-          HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
           expression,
           [S, T],
         );

@@ -20,6 +20,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Checks if creating a method with the given [name] in [interfaceElement] will
 /// cause any conflicts.
@@ -275,7 +276,9 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
   Future<RefactoringStatus> validate() async {
     _checkClassAlreadyDeclares();
     // do chained computations
-    var subClasses = await searchEngine.searchAllSubtypes(interfaceElement);
+    var subClasses = <InterfaceElement>{};
+    await searchEngine.appendAllSubtypes(
+        interfaceElement, subClasses, OperationPerformanceImpl("<root>"));
     // check shadowing of class names
     if (interfaceElement.name == name) {
       result.addError(
@@ -363,7 +366,9 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     _checkClassAlreadyDeclares();
     // do chained computations
     await _prepareReferences();
-    var subClasses = await searchEngine.searchAllSubtypes(interfaceElement);
+    var subClasses = <InterfaceElement>{};
+    await searchEngine.appendAllSubtypes(
+        interfaceElement, subClasses, OperationPerformanceImpl("<root>"));
     // check shadowing of class names
     for (var element in elements) {
       var enclosingElement = element.enclosingElement;

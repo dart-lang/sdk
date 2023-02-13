@@ -1,8 +1,41 @@
 # Changelog
 
+## 11.0.2
+- Reduce number of type checks in `toJson()` methods.
+
+## 11.0.1
+- Fix bug where code would try to call `.toJson()` on `int`s.
+
+## 11.0.0
+- Change `HttpProfileRequestRef.id` type from `int` to `String`.
+- Change `SocketStatistic.id` type from `int` to `String`.
+- Change `ext.dart.io.getHttpProfileRequest` `id` parameter type from `int` to `String`.
+- Change `ext.dart.io.socketProfilingEnabled` parameter from 'enable' to 'enabled'.
+
+## 10.1.2
+- Fix bug where code would try to call `.toJson()` on `String`s.
+
+## 10.1.0
+- Update to version `4.1` of the spec.
+- Add optional `includeSubclasses` and `includeImplementers` parameters to
+  `getInstances`.
+
 ## 10.0.0
-- Update to version `3.62` of the spec.
-- Update for incorrectly documented types for WeakReference's target, WeakProperty's key and value, and MirrorReference's mirrorReferent.
+- Update to version `4.0` of the spec.
+- Update for incorrectly documented types for `WeakReference`'s `target`,
+  `WeakProperty`'s `key` and `value`, and `MirrorReference`'s `mirrorReferent`.
+- Add `Set`, `Record`, and `RecordType` to `InstanceKind`.
+- Add deprecation notice to the `decl` property of `BoundField`.
+- Add `name` property to `BoundField`.
+- Add deprecation notice to the `parentListIndex` property of
+  `InboundReference`.
+- Change the type of the `parentField` property of `InboundReference` from
+  `FieldRef` to `FieldRef|String|int`.
+- Add deprecation notice to the `parentListIndex` property of `RetainingObject`.
+- Change the type of the `parentField` property of `RetainingObject` from
+  `String` to `String|int`.
+- Remove deprecated `timeSpan` property from `CpuSamples`.
+- Remove deprecated `timeSpan` property from `CpuSamplesEvent`.
 
 ## 9.4.0
 - Update to version `3.61` of the spec.
@@ -220,7 +253,7 @@
 
 ## 4.0.0
 - **breaking**: RPCs which can return a `Sentinel` will now throw a `SentinelException`
-  if a `Sential` is received as a response.
+  if a `Sentinel` is received as a response.
 - **breaking**: RPCs which can return multiple values now return
   `Future<Response>` rather than `Future<dynamic>`.
 - `RPCError` now implements `Exception`.

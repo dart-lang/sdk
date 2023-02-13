@@ -239,7 +239,7 @@ testRenameSync() {
 
 void testLinkErrorSync() {
   Expect.throws(
-      () => new Link('some-dir-that-doent exist/some link file/bla/fisk')
+      () => new Link('some-dir-that-does-not exist/some link file/bla/fisk')
           .createSync('bla bla bla/b lalal/blfir/sdfred/es'),
       (e) => e is PathNotFoundException);
 }

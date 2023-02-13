@@ -50,7 +50,7 @@ class CompletionKeyHandler extends KeyHandler {
   }
 }
 
-void main() async {
+Future<void> main(List<String> args) async {
   final console = SmartConsole();
 
   console.write('The ');
@@ -66,6 +66,24 @@ void main() async {
   final cliState = CliState(errors);
 
   console.completionHandler = CompletionKeyHandler(cliState);
+
+  if (args.isNotEmpty) {
+    if (args.length == 1 && args.single.trim().isNotEmpty) {
+      console.setForegroundColor(ConsoleColor.brightYellow);
+      console.writeLine('Will try to load ${args.single.trim()}.');
+      console.resetColorAttributes();
+      console.writeLine('');
+      if (await cliCommandRunner.run(cliState, ['load', args.single.trim()])) {
+        return;
+      }
+    } else {
+      console.setForegroundColor(ConsoleColor.brightRed);
+      console.writeLine('When giving arguments, only one argument - '
+          'the snapshot to load - is supported. Ignoring arguments.');
+      console.resetColorAttributes();
+      console.writeLine('');
+    }
+  }
 
   while (true) {
     final response = console.smartReadLine();

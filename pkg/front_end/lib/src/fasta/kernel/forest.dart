@@ -391,7 +391,9 @@ class Forest {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     // TODO(johnniwinther): Use [label]?
-    return new BreakStatementImpl(isContinue: false)..fileOffset = fileOffset;
+    return new BreakStatementImpl(isContinue: false)
+      ..fileOffset = fileOffset
+      ..target = label is LabeledStatement ? label : dummyLabeledStatement;
   }
 
   /// Return a representation of a catch clause.
@@ -474,6 +476,14 @@ class Forest {
     assert(fileOffset != null);
     return new IfStatement(condition, thenStatement, elseStatement)
       ..fileOffset = fileOffset;
+  }
+
+  /// Return a representation of a `switch` statement.
+  Statement createSwitchStatement(
+      int fileOffset, Expression expression, List<SwitchCase> cases) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new SwitchStatement(expression, cases)..fileOffset = fileOffset;
   }
 
   /// Return a representation of an `is` expression at the given [fileOffset].
@@ -686,10 +696,6 @@ class Forest {
       ..fileOffset = expression.fileOffset;
   }
 
-  Let createLet(VariableDeclaration variable, Expression body) {
-    return new Let(variable, body);
-  }
-
   FunctionNode createFunctionNode(int fileOffset, Statement body,
       {List<TypeParameter>? typeParameters,
       List<VariableDeclaration>? positionalParameters,
@@ -817,13 +823,6 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
-  VariableSet createVariableSet(
-      int fileOffset, VariableDeclaration variable, Expression value) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
-    return new VariableSet(variable, value)..fileOffset = fileOffset;
-  }
-
   EqualsExpression createEquals(
       int fileOffset, Expression left, Expression right,
       {required bool isNot}) {
@@ -833,21 +832,6 @@ class Forest {
     assert(isNot != null);
     return new EqualsExpression(left, right, isNot: isNot)
       ..fileOffset = fileOffset;
-  }
-
-  EqualsCall createEqualsCall(int fileOffset, Expression left, Expression right,
-      FunctionType functionType, Procedure interfaceTarget) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
-    return new EqualsCall(left, right,
-        functionType: functionType, interfaceTarget: interfaceTarget)
-      ..fileOffset = fileOffset;
-  }
-
-  EqualsNull createEqualsNull(int fileOffset, Expression expression) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
-    return new EqualsNull(expression)..fileOffset = fileOffset;
   }
 
   BinaryExpression createBinary(

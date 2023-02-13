@@ -703,6 +703,44 @@ class FlatTypeMask extends TypeMask {
   }
 
   @override
+  Iterable<DynamicCallTarget> findRootsOfTargets(Selector selector,
+      MemberHierarchyBuilder memberHierarchyBuilder, JClosedWorld closedWorld) {
+    if (isEmptyOrFlagged) return const [];
+    final baseCls = base!;
+    if (closedWorld.isDefaultSuperclass(baseCls)) {
+      // Filter roots using the mask's class since each default superclass has
+      // distinct roots.
+      final results =
+          memberHierarchyBuilder.rootsForSelector(baseCls, selector);
+      return results.isEmpty ? const [] : results;
+    }
+
+    if (isExact) {
+      // Return the member that declares the selector on the mask's class
+      // (check only superclasses).
+      final match = memberHierarchyBuilder
+          .findSuperclassTarget(baseCls, selector, virtualResult: false);
+      return match != null ? [match] : const [];
+    }
+
+    // Try to find a superclass that contains a matching member.
+    final superclassMatch = memberHierarchyBuilder
+        .findSuperclassTarget(baseCls, selector, virtualResult: true);
+
+    if (superclassMatch != null) return [superclassMatch];
+
+    // Try to find a supertype that contains a matching member.
+    final supertypeMatch =
+        memberHierarchyBuilder.findSupertypeTarget(baseCls, selector);
+    if (supertypeMatch != null) return [supertypeMatch];
+
+    // Default to a list of superclasses/supertypes that encompasses all
+    // subclasses/subtypes of this type cone.
+    return memberHierarchyBuilder.findMatchingAncestors(baseCls, selector,
+        isSubtype: isSubtype);
+  }
+
+  @override
   bool operator ==(var other) {
     if (identical(this, other)) return true;
     if (other is! FlatTypeMask) return false;

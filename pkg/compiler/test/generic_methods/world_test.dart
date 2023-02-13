@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/universe/call_structure.dart';
@@ -88,7 +86,7 @@ main() {
         await runCompiler(memorySourceFiles: {'main.dart': code});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    CodegenWorld codegenWorld = compiler.codegenWorldForTesting;
+    CodegenWorld codegenWorld = compiler.codegenWorldForTesting!;
 
     CallStructure noTypeArguments = new CallStructure(0, [], 0);
     CallStructure oneTypeArgument = new CallStructure(0, [], 1);
@@ -97,7 +95,7 @@ main() {
       return codegenWorld
               .invocationsByName(name)
               ?.keys
-              ?.map((s) => s.callStructure) ??
+              .map((s) => s.callStructure) ??
           [];
     }
 

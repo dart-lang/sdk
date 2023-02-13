@@ -36,7 +36,7 @@ class ExportCreator extends Transformer {
   ExportCreator(
       this._typeEnvironment, this._diagnosticReporter, this._exportChecker)
       : _allowInterop = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure('dart:js', 'allowInterop'),
+            .getTopLevelProcedure('dart:js_util', 'allowInterop'),
         _createDartExport = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'createDartExport'),
         _createStaticInteropMock = _typeEnvironment.coreTypes.index
@@ -86,6 +86,7 @@ class ExportCreator extends Transformer {
         return _createExport(node, dartType, staticInteropType, proto);
       }
     }
+    node.transformChildren(this);
     return node;
   }
 

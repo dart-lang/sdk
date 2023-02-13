@@ -2,6 +2,23 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $builder_tag == canary && ($compiler == dartdevc || $compiler == dartdevk) ]
+async/catch_errors11_test: Skip # Issue 50666
+async/catch_errors12_test: Skip # Issue 50666
+async/catch_errors15_test: Skip # Issue 50666
+async/catch_errors17_test: Skip # Issue 50666
+async/catch_errors20_test: Skip # Issue 50666
+async/catch_errors21_test: Skip # Issue 50666
+async/catch_errors23_test: Skip # Issue 50666
+async/catch_errors24_test: Skip # Issue 50666
+async/catch_errors26_test: Skip # Issue 50666
+async/catch_errors27_test: Skip # Issue 50666
+async/catch_errors5_test: Skip # Issue 50666
+async/catch_errors7_test: Skip # Issue 50666
+async/catch_errors8_test: Skip # Issue 50666
+async/stream_iterator_test: Skip # Issue 50666
+async/stream_zones_test: Skip # Issue 50666
+
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
 

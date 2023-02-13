@@ -17,7 +17,7 @@ class Array;
 class Object;
 class CountingPage;
 
-#if !defined(PRODUCT)
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
 
 // Utility to traverse the object graph in an ordered fashion.
 // Example uses:
@@ -136,6 +136,20 @@ class FileHeapSnapshotWriter : public ChunkedWriter {
 
  private:
   void* file_ = nullptr;
+};
+
+class CallbackHeapSnapshotWriter : public ChunkedWriter {
+ public:
+  CallbackHeapSnapshotWriter(Thread* thread,
+                             Dart_HeapSnapshotWriteChunkCallback callback,
+                             void* context);
+  ~CallbackHeapSnapshotWriter();
+
+  virtual void WriteChunk(uint8_t* buffer, intptr_t size, bool last);
+
+ private:
+  Dart_HeapSnapshotWriteChunkCallback callback_;
+  void* context_;
 };
 
 class VmServiceHeapSnapshotChunkedWriter : public ChunkedWriter {
@@ -278,7 +292,7 @@ class CountObjectsVisitor : public ObjectVisitor, public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(CountObjectsVisitor);
 };
 
-#endif  // !defined(PRODUCT)
+#endif  // !defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
 
 }  // namespace dart
 

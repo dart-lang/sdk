@@ -82,7 +82,6 @@ abstract class TokenStreamRewriter {
       throw 'Internal Error: Rewriting at eof.';
     }
 
-    // ignore:unnecessary_null_comparison
     assert(endGroup.beforeSynthetic != null);
     if (token == endGroup) return endGroup;
     Token? errorToken;

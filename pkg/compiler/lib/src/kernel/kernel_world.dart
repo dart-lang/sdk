@@ -87,6 +87,8 @@ class KClosedWorld implements BuiltWorld {
   @override
   final Iterable<InterfaceType> instantiatedTypes;
 
+  final Iterable<RecordType> instantiatedRecordTypes;
+
   RuntimeTypesNeed get rtiNeed => _rtiNeed;
 
   KClosedWorld(this.elementMap,
@@ -118,7 +120,8 @@ class KClosedWorld implements BuiltWorld {
       required this.genericLocalFunctions,
       required this.closurizedMembersWithFreeTypeVariables,
       required this.localFunctions,
-      required this.instantiatedTypes})
+      required this.instantiatedTypes,
+      required this.instantiatedRecordTypes})
       : _implementedClasses = implementedClasses {
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(this, options);
     assert(_checkIntegrity());

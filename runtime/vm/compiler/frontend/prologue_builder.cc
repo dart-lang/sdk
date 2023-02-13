@@ -244,7 +244,7 @@ Fragment PrologueBuilder::BuildParameterHandling() {
       LocalVariable* tuple_diff = MakeTemporary();
 
       // Let's load position from arg descriptor (to see which parameter is the
-      // name) and move kEntrySize forward in ArgDescriptopr names array.
+      // name) and move kEntrySize forward in ArgDescriptor names array.
       //
       // Later we'll either add this fragment directly to the copy_args_prologue
       // if no check is needed or add an appropriate check.
@@ -352,7 +352,7 @@ Fragment PrologueBuilder::BuildClosureContextHandling() {
   LocalVariable* context = parsed_function_->current_context_var();
 
   // Load closure.context & store it into the context variable.
-  // (both load/store happen on the copyied-down places).
+  // (both load/store happen on the copied-down places).
   Fragment populate_context;
   populate_context += LoadLocal(closure_parameter);
   populate_context += LoadNativeField(Slot::Closure_context());

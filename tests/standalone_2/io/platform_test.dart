@@ -96,7 +96,7 @@ testVersion() {
     Expect.isNotNull(match, version);
     var major = int.parse(match.group(1));
     // Major version.
-    Expect.isTrue(major == 1 || major == 2);
+    Expect.isTrue(major == 1 || major == 2 || major == 3);
     // Minor version.
     Expect.isTrue(int.parse(match.group(2)) >= 0);
     // Patch version.
@@ -131,6 +131,7 @@ testVersion() {
   // Ensure we can match valid versions.
   checkValidVersion('1.9.0');
   checkValidVersion('2.0.0');
+  checkValidVersion('3.0.0');
   checkValidVersion('1.9.0-dev.0.0');
   checkValidVersion('1.9.0-edge');
   checkValidVersion('1.9.0-edge.r41234');

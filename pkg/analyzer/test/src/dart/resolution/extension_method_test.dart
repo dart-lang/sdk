@@ -1002,7 +1002,7 @@ f(Never a) {
   a.foo();
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 57, 1),
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 57, 1),
       error(HintCode.DEAD_CODE, 62, 3),
     ]);
 

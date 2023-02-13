@@ -1,5 +1,6 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:source_maps/source_maps.dart';
 
 main(List<String> args) {
@@ -8,7 +9,7 @@ main(List<String> args) {
     exit(1);
   }
 
-  var sourcemapFile = new File.fromUri(Uri.base.resolve(args[0]));
+  var sourcemapFile = File.fromUri(Uri.base.resolve(args[0]));
   if (!sourcemapFile.existsSync()) {
     print('no source-map-file in ${args[0]}');
   }

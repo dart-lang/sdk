@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This file contains tests written in a deprecated way. Please do not add any
+/// tests to this file. Instead, add tests to the files in `declaration`,
+/// `location`, or `relevance`.
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
@@ -10,6 +14,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,6 +34,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NULL,
+    Keyword.SWITCH,
     Keyword.TRUE,
   ];
 
@@ -38,6 +44,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.CONST,
     Keyword.FALSE,
     Keyword.NULL,
+    Keyword.SWITCH,
     Keyword.SUPER,
     Keyword.THIS,
     Keyword.TRUE,
@@ -47,6 +54,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.CONST,
     Keyword.FALSE,
     Keyword.NULL,
+    Keyword.SWITCH,
     Keyword.TRUE,
   ];
 
@@ -433,7 +441,12 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       }
     }
     if (!_equalSets(expectedCompletions, actualCompletions)) {
+      var target = CompletionTarget.forOffset(result.unit, completionOffset);
+
       var msg = StringBuffer();
+      msg.write('Completion at ');
+      msg.write('target = ${target.containingNode.runtimeType}, ');
+      msg.writeln('entity = ${target.entity}.');
       msg.writeln('Expected:');
       _appendCompletions(msg, expectedCompletions, actualCompletions);
       msg.writeln('but found:');
@@ -1465,13 +1478,13 @@ class A {
   Future<void> test_if_condition_isKeyword() async {
     addTestSource('void f() { if (v i^) {} }');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.IS]);
+    assertSuggestKeywords([Keyword.CASE, Keyword.IS]);
   }
 
   Future<void> test_if_condition_isKeyword2() async {
     addTestSource('void f() { if (v i^ && false) {} }');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.IS]);
+    assertSuggestKeywords([Keyword.CASE, Keyword.IS]);
   }
 
   Future<void> test_if_expression_in_class() async {
@@ -2032,7 +2045,7 @@ f() => <int>{1, ^, 2};
   Future<void> test_is_expression_partial() async {
     addTestSource('void f() {if (x i^)}');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.IS]);
+    assertSuggestKeywords([Keyword.CASE, Keyword.IS]);
   }
 
   Future<void> test_library() async {
@@ -2401,13 +2414,37 @@ f() => [...^];
   }
 
   Future<void> test_switch_statement_case_break_insideClass() async {
-    addTestSource('class A{foo() {switch(1) {case 1: b^}}}');
+    addTestSource('''
+class A{foo() {switch(1) {case 1: b^}}}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(statementStartInSwitchCaseInClass);
+  }
+
+  Future<void>
+      test_switch_statement_case_break_insideClass_language219() async {
+    addTestSource('''
+// @dart=2.19
+class A{foo() {switch(1) {case 1: b^}}}
+''');
     await computeSuggestions();
     assertSuggestKeywords(statementStartInSwitchCaseInClass);
   }
 
   Future<void> test_switch_statement_case_break_outsideClass() async {
-    addTestSource('foo() {switch(1) {case 1: b^}}');
+    addTestSource('''
+foo() {switch(1) {case 1: b^}}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(statementStartInSwitchCaseOutsideClass);
+  }
+
+  Future<void>
+      test_switch_statement_case_break_outsideClass_language219() async {
+    addTestSource('''
+// @dart=2.19
+foo() {switch(1) {case 1: b^}}
+''');
     await computeSuggestions();
     assertSuggestKeywords(statementStartInSwitchCaseOutsideClass);
   }

@@ -466,7 +466,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // we only emit a 32-bit callback ID.
   __ uxtw(R9, R9);
 
-  // Save THR (callee-saved) and LR on real real C stack (CSP). Keeps it
+  // Save THR (callee-saved) and LR on the real C stack (CSP). Keeps it
   // aligned.
   COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
   SPILLS_LR_TO_FRAME(__ stp(
@@ -702,7 +702,7 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       __ BranchIf(EQ, &length);
 #endif
       {
-        // Allocate a mint, reload the two registers and popualte the mint.
+        // Allocate a mint, reload the two registers and populate the mint.
         __ PushRegister(NULL_REG);
         __ CallRuntime(kAllocateMintRuntimeEntry, /*argument_count=*/0);
         __ PopRegister(RangeErrorABI::kIndexReg);
@@ -2147,7 +2147,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
           AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
-    }  // kClsIdReg = R4, kTypeOffestReg = R5
+    }  // kClsIdReg = R4, kTypeOffsetReg = R5
 
     __ AddImmediate(AllocateObjectABI::kResultReg,
                     AllocateObjectABI::kResultReg, kHeapObjectTag);
@@ -2221,8 +2221,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   classid_t cls_id = target::Class::GetId(cls);
   ASSERT(cls_id != kIllegalCid);
 
-  RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
-
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = target::Class::NumTypeArguments(cls) > 0;
   ASSERT(!is_cls_parameterized || target::Class::TypeArgumentsFieldOffset(
@@ -2230,7 +2228,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
 
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
-  RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
 
   const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
@@ -2243,6 +2240,9 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   if (!FLAG_use_slow_path && FLAG_inline_alloc &&
       !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
+    RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
+    RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
+
     if (is_cls_parameterized) {
       if (!IsSameObject(NullObject(),
                         CastHandle<Object>(allocat_object_parametrized))) {
@@ -3257,7 +3257,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   Register tmp1 = R0, tmp2 = R1;
   // Check if we exited generated from FFI. If so do transition - this is needed
   // because normally runtime calls transition back to generated via destructor
-  // of TransititionGeneratedToVM/Native that is part of runtime boilerplate
+  // of TransitionGeneratedToVM/Native that is part of runtime boilerplate
   // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
   // have this boilerplate, don't have this stack resource, have to transition
   // explicitly.
@@ -3393,7 +3393,7 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ CompareObjectRegisters(left, right);
   // None of the branches above go directly here to avoid generating a
   // conditional branch to a ret instruction.
-  // This is an attempt to work-around a possible CPU on Exynos 2100 SoC.
+  // This is an attempt to workaround a possible CPU on Exynos 2100 SoC.
   // See https://github.com/flutter/flutter/issues/88261
   __ ret();
 }

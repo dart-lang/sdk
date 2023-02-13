@@ -51,7 +51,7 @@ export 'src/foo.dart';
 ''');
 
     assertErrorsInResult([
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
     ]);
   }
 
@@ -79,7 +79,7 @@ export 'src/foo.dart';
 ''');
 
     assertErrorsInResult([
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
     ]);
   }
 
@@ -107,7 +107,7 @@ export 'src/foo.dart';
 ''');
 
     assertErrorsInResult([
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
     ]);
   }
 
@@ -146,7 +146,7 @@ import 'package:meta/meta.dart';
     await assertErrorsInCode(r'''
 export 'package:dart.my/src/foo.dart';
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38),
     ]);
   }
 
@@ -159,7 +159,7 @@ import 'package:meta/meta.dart';
     await assertErrorsInCode(r'''
 export 'package:dart.my/src/foo.dart';
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38),
     ]);
   }
 
@@ -172,7 +172,7 @@ import 'package:meta/meta.dart';
     await assertErrorsInCode(r'''
 export 'package:dart.my/src/foo.dart';
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38),
     ]);
   }
 }
@@ -198,7 +198,7 @@ export 'package:test/src/foo.dart';
 ''');
 
     assertErrorsInResult([
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
     ]);
   }
 
@@ -230,7 +230,7 @@ export 'package:test/src/foo.dart';
 ''');
 
     assertErrorsInResult([
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
     ]);
   }
 
@@ -256,7 +256,7 @@ import 'package:meta/meta.dart';
     await assertErrorsInCode(r'''
 export 'package:test/src/foo.dart';
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
     ]);
   }
 
@@ -270,7 +270,7 @@ import 'package:meta/meta.dart';
     await assertErrorsInCode(r'''
 export 'package:test/src/foo.dart';
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
     ]);
   }
 }
@@ -299,7 +299,7 @@ export 'src/foo.dart';
 ''');
 
     assertErrorsInResult([
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
     ]);
   }
 
@@ -338,7 +338,7 @@ import 'package:meta/meta.dart';
     await assertErrorsInCode(r'''
 export 'package:test/src/foo.dart';
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
     ]);
   }
 }
@@ -371,7 +371,7 @@ class Two {}
     await assertErrorsInCode(r'''
 export 'src/foo.dart' hide Two;
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 31),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 31),
     ]);
   }
 
@@ -385,7 +385,7 @@ int func(IntFunc f, int x) => f(x);
     await assertErrorsInCode(r'''
 export 'src/foo.dart' show func;
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
     ]);
   }
 
@@ -399,7 +399,7 @@ int func(IntFunc f, int x) => f(x);
     await assertErrorsInCode(r'''
 export 'src/foo.dart' show func;
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
     ]);
   }
 
@@ -413,7 +413,7 @@ int func(IntFunc<num> f, int x) => f(x);
     await assertErrorsInCode(r'''
 export 'src/foo.dart' show func;
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
     ]);
   }
 
@@ -427,7 +427,7 @@ IntFunc func() => (int x) => x;
     await assertErrorsInCode(r'''
 export 'src/foo.dart' show func;
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
     ]);
   }
 
@@ -441,7 +441,7 @@ void func<T extends IntFunc>() {}
     await assertErrorsInCode(r'''
 export 'src/foo.dart' show func;
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
     ]);
   }
 
@@ -466,7 +466,7 @@ import 'package:meta/meta.dart';
     await assertErrorsInCode(r'''
 export 'src/foo.dart';
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
     ]);
   }
 
@@ -483,7 +483,7 @@ import 'package:meta/meta.dart';
     await assertErrorsInCode(r'''
 export 'src/foo.dart';
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
     ]);
   }
 
@@ -498,7 +498,7 @@ import 'package:meta/meta.dart';
     await assertErrorsInCode(r'''
 export 'src/foo.dart';
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
     ]);
   }
 
@@ -544,7 +544,7 @@ class Two {}
     await assertErrorsInCode(r'''
 export 'src/foo.dart' show One;
 ''', [
-      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 31),
+      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 31),
     ]);
   }
 }

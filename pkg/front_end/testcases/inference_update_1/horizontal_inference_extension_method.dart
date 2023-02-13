@@ -8,7 +8,6 @@
 // process.  We need to make sure that the dependency tracking logic properly
 // accounts for this extra argument.
 
-// SharedOptions=--enable-experiment=inference-update-1
 
 testLaterUnnamedParameter(int i) {
   i._laterUnnamedParameter(0, (x) {

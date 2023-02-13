@@ -11,8 +11,8 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 
-import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
-    show StringTokenImpl;
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart'
+    show clearStringCanonicalizationCache;
 
 import 'package:kernel/ast.dart' show Source;
 
@@ -137,7 +137,7 @@ class CompilerContext {
   }
 
   void clear() {
-    StringTokenImpl.canonicalizer.clear();
+    clearStringCanonicalizationCache();
     errors.clear();
     dependencies.clear();
   }

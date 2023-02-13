@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
+// Other-library declarations used by sealed_mixin_with_error_test.dart and
+// sealed_mixin_with_test.dart.
+
 sealed mixin SealedMixin {
   int nonAbstractFoo = 0;
   abstract int foo;
@@ -11,33 +14,26 @@ sealed mixin SealedMixin {
   int bar(int value);
 }
 
+sealed mixin MixinForEnum {}
+
 abstract class A with SealedMixin {}
 
 class AImpl extends A {
-  @override
   int foo = 1;
-
-  @override
   int bar(int value) => value + 1;
 }
 
 class B with SealedMixin {
-  @override
   int nonAbstractFoo = 100;
-  
-  @override
   int foo = 2;
-
-  @override
   int bar(int value) => value;
 }
 
 abstract class C = Object with SealedMixin;
 
 class CImpl extends C {
-  @override
   int foo = 3;
-
-  @override
   int bar(int value) => value - 1;
 }
+
+enum EnumInside with MixinForEnum { x }

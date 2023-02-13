@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
-import 'package:meta/meta.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -255,8 +254,7 @@ class DartDevelopmentServiceClient {
 
     // When invoked within a fallback, the next fallback will start executing.
     // The final fallback forwards the request to the VM service directly.
-    @alwaysThrows
-    nextFallback() => throw json_rpc.RpcException.methodNotFound('');
+    Never nextFallback() => throw json_rpc.RpcException.methodNotFound('');
 
     // Handle service extension invocations.
     _clientPeer.registerFallback((parameters) async {

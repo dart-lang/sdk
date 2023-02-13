@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';
@@ -123,13 +124,17 @@ void main(List<String> args) {
       );
     });
 
-    test('includes variable getters when evaluateGettersInDebugViews=true',
+    test('includes public getters when evaluateGettersInDebugViews=true',
         () async {
       final client = dap.client;
       final testFile = dap.createTestFile('''
 void main(List<String> args) {
-  final myVariable = DateTime(2000, 1, 1);
+  final myVariable = A();
   print('Hello!'); $breakpointMarker
+}
+class A {
+  String get publicString => '';
+  String get _privateString => '';
 }
     ''');
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -145,28 +150,56 @@ void main(List<String> args) {
       await client.expectLocalVariable(
         stop.threadId!,
         expectedName: 'myVariable',
-        expectedDisplayString: 'DateTime',
+        expectedDisplayString: 'A',
         expectedVariables: '''
-            day: 1, eval: myVariable.day
-            hour: 0, eval: myVariable.hour
-            isUtc: false, eval: myVariable.isUtc
-            microsecond: 0, eval: myVariable.microsecond
-            millisecond: 0, eval: myVariable.millisecond
-            minute: 0, eval: myVariable.minute
-            month: 1, eval: myVariable.month
-            runtimeType: Type (DateTime), eval: myVariable.runtimeType
-            second: 0, eval: myVariable.second
-            timeZoneOffset: Duration, eval: myVariable.timeZoneOffset
-            weekday: 6, eval: myVariable.weekday
-            year: 2000, eval: myVariable.year
+            publicString: "", eval: myVariable.publicString
+            runtimeType: Type (A), eval: myVariable.runtimeType
         ''',
-        ignore: {
-          // Don't check fields that may very based on timezone as it'll make
-          // these tests fragile, and this isn't really what's being tested.
-          'timeZoneName',
-          'microsecondsSinceEpoch',
-          'millisecondsSinceEpoch',
-        },
+        ignorePrivate: false,
+      );
+    });
+
+    test('includes record fields', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+void main(List<String> args) {
+  final (String?, int, {String? namedString, (int, int) namedRecord}) myRecord
+      = (namedString: '', namedRecord: (10, 11), '', 2);
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        // TODO(dantup): Remove toolArgs when this is no longer required.
+        toolArgs: ['--enable-experiment=records'],
+      );
+
+      // Check the fields directly on the record.
+      final variables = await client.expectLocalVariable(
+        stop.threadId!,
+        expectedName: 'myRecord',
+        expectedDisplayString: 'Record',
+        expectedVariables: r'''
+            $0: "", eval: myRecord.$0
+            $1: 2, eval: myRecord.$1
+            namedRecord: Record, eval: myRecord.namedRecord
+            namedString: "", eval: myRecord.namedString
+        ''',
+      );
+
+      // Check the fields nested inside `namedRecord`.
+      final namedRecordVariable = variables.variables
+          .singleWhere((variable) => variable.name == 'namedRecord');
+      expect(namedRecordVariable.variablesReference, isPositive);
+      await client.expectVariables(
+        namedRecordVariable.variablesReference,
+        r'''
+            $0: 10
+            $1: 11
+        ''',
       );
     });
 
@@ -613,6 +646,50 @@ void main() {
         ''',
         ignore: {'runtimeType'},
       );
+    });
+
+    group('value formats', () {
+      test('can trigger invalidation from the DAP client', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile(simpleBreakpointProgram);
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+        await client.hitBreakpoint(testFile, breakpointLine);
+
+        // Expect the server to emit an "invalidated" event after we call
+        // our custom '_invalidateAreas' request.
+        final invalidatedEventFuture = client.event('invalidated');
+        await client.sendRequest({
+          'areas': ['a', 'b'],
+        }, overrideCommand: '_invalidateAreas');
+
+        final invalidatedEvent = await invalidatedEventFuture;
+        final body = InvalidatedEventBody.fromJson(
+          invalidatedEvent.body as Map<String, Object?>,
+        );
+        expect(body.areas, ['a', 'b']);
+      });
+
+      test('supports format.hex in variables arguments', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+  void main(List<String> args) {
+    var i = 12345;
+    print('Hello!'); $breakpointMarker
+  }''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        final topFrameId = await client.getTopFrameId(stop.threadId!);
+        await client.expectScopeVariables(
+          topFrameId,
+          'Locals',
+          '''
+            i: 0x3039, eval: i
+        ''',
+          ignore: {'args'},
+          format: ValueFormat(hex: true),
+        );
+      });
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);

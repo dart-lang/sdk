@@ -32,7 +32,8 @@ class TypeVariableGraph extends Graph<int> {
         // Dummy value.
         -1);
     Map<TypeParameter, int> typeParameterIndices = <TypeParameter, int>{};
-    edges = new List<List<int>>.filled(typeParameters.length,
+    edges = new List<List<int>>.filled(
+        typeParameters.length,
         // Dummy value.
         const []);
     for (int i = 0; i < vertices.length; i++) {
@@ -86,7 +87,7 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   }
 
   @override
-  void visitViewType(ViewType node) {
+  void visitInlineType(InlineType node) {
     for (DartType argument in node.typeArguments) {
       argument.accept(this);
     }
@@ -811,14 +812,14 @@ class VarianceCalculator
   }
 
   @override
-  int visitViewType(
-      ViewType node, Map<TypeParameter, Map<DartType, int>> computedVariances) {
+  int visitInlineType(InlineType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
     int result = Variance.unrelated;
     for (int i = 0; i < node.typeArguments.length; ++i) {
       result = Variance.meet(
           result,
           Variance.combine(
-              node.view.typeParameters[i].variance,
+              node.inlineClass.typeParameters[i].variance,
               computeVariance(typeParameter, node.typeArguments[i],
                   computedVariances: computedVariances)));
     }

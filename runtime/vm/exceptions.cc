@@ -732,8 +732,13 @@ static void ThrowExceptionHelper(Thread* thread,
   bool use_preallocated_stacktrace = false;
   Instance& exception = Instance::Handle(zone, incoming_exception.ptr());
   if (exception.IsNull()) {
-    exception ^=
-        Exceptions::Create(Exceptions::kNullThrown, Object::empty_array());
+    const Array& args = Array::Handle(zone, Array::New(4));
+    const Smi& line_col = Smi::Handle(zone, Smi::New(-1));
+    args.SetAt(0, Symbols::OptimizedOut());
+    args.SetAt(1, line_col);
+    args.SetAt(2, line_col);
+    args.SetAt(3, String::Handle(String::New("Throw of null.")));
+    exception ^= Exceptions::Create(Exceptions::kType, args);
   } else if (existing_stacktrace.IsNull() &&
              (exception.ptr() == object_store->out_of_memory() ||
               exception.ptr() == object_store->stack_overflow())) {
@@ -865,8 +870,7 @@ InstancePtr Exceptions::NewInstance(const char* class_name) {
   return Instance::New(cls);
 }
 
-// Allocate, initialize, and throw a TypeError or CastError.
-// If error_msg is not null, throw a TypeError, even for a type cast.
+// Allocate, initialize, and throw a TypeError.
 void Exceptions::CreateAndThrowTypeError(TokenPosition location,
                                          const AbstractType& src_type,
                                          const AbstractType& dst_type,
@@ -876,8 +880,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   Zone* zone = thread->zone();
   const Array& args = Array::Handle(zone, Array::New(4));
 
-  ExceptionType exception_type =
-      (dst_name.ptr() == Symbols::InTypeCast().ptr()) ? kCast : kType;
+  ExceptionType exception_type = kType;
 
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
@@ -908,9 +911,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     pieces.Add(Symbols::TypeQuote());
     pieces.Add(String::Handle(zone, dst_type.UserVisibleName()));
     pieces.Add(Symbols::SingleQuote());
-    if (exception_type == kCast) {
-      pieces.Add(dst_name);
-    } else if (dst_name.Length() > 0) {
+    if (dst_name.Length() > 0) {
       pieces.Add(Symbols::SpaceOfSpace());
       pieces.Add(Symbols::SingleQuote());
       pieces.Add(dst_name);
@@ -944,7 +945,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     THR_Print("%s\n", error_msg.ToCString());
   }
 
-  // Throw TypeError or CastError instance.
+  // Throw TypeError instance.
   Exceptions::ThrowByType(exception_type, args);
   UNREACHABLE();
 }
@@ -1138,10 +1139,6 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::UnsupportedError();
       break;
-    case kNullThrown:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::NullThrownError();
-      break;
     case kIsolateSpawn:
       library = Library::IsolateLibrary();
       class_name = &Symbols::IsolateSpawnException();
@@ -1151,24 +1148,23 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
       class_name = &Symbols::AssertionError();
       constructor_name = &Symbols::DotCreate();
       break;
-    case kCast:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::CastError();
-      constructor_name = &Symbols::DotCreate();
-      break;
     case kType:
       library = Library::CoreLibrary();
       class_name = &Symbols::TypeError();
       constructor_name = &Symbols::DotCreate();
       break;
     case kAbstractClassInstantiation:
-      library = Library::CoreLibrary();
+#if defined(DART_PRECOMPILED_RUNTIME)
+      UNREACHABLE();
+#else
+      library = Library::MirrorsLibrary();
       class_name = &Symbols::AbstractClassInstantiationError();
       constructor_name = &Symbols::DotCreate();
       break;
+#endif
     case kCyclicInitializationError:
       library = Library::CoreLibrary();
-      class_name = &Symbols::CyclicInitializationError();
+      class_name = &Symbols::_CyclicInitializationError();
       break;
     case kCompileTimeError:
       library = Library::CoreLibrary();

@@ -15,7 +15,7 @@ class A {
   A(this.field);
 }
 
-dynamic c = () => new List(42)[0];
+dynamic c = () => new List.filled(42, null)[0];
 
 main() {
   bar();

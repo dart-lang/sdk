@@ -284,7 +284,7 @@ class FileByteStoreValidator {
 
 class FuturePool {
   int _available;
-  List waiting = [];
+  List<Future Function()> waiting = [];
 
   FuturePool(this._available);
 

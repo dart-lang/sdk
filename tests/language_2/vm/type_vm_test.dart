@@ -28,7 +28,7 @@ class TypeTest {
     }
 
     try {
-      List<int> a = new List<int>(1);
+      List<int> a = new List<int>.filled(1, null);
       a[0] = 0;
       a[index()]++; // Type check succeeds, but does not create side effects.
       Expect.equals(1, a[0]);
@@ -124,10 +124,10 @@ class TypeTest {
     return 1;
   }
 
-  static int testListAssigment() {
+  static int testListAssignment() {
     int result = 0;
     {
-      var a = new List(5);
+      var a = new List<dynamic>.filled(5, null);
       List a0 = a;
       List<Object> ao = a;  // No error.
       List<int> ai = a;  //# 30: runtime error
@@ -135,7 +135,7 @@ class TypeTest {
       List<String> as = a;  //# 32: runtime error
     }
     {
-      var a = new List<Object>(5);
+      var a = new List<Object>.filled(5, null);
       List a0 = a;
       List<Object> ao = a;
       List<int> ai = a;  //# 33: runtime error
@@ -143,7 +143,7 @@ class TypeTest {
       List<String> as = a;  //# 35: runtime error
     }
     {
-      var a = new List<int>(5);
+      var a = new List<int>.filled(5, null);
       List a0 = a;
       List<Object> ao = a;
       List<int> ai = a;
@@ -151,7 +151,7 @@ class TypeTest {
       List<String> as = a; //# 22: compile-time error
     }
     {
-      var a = new List<num>(5);
+      var a = new List<num>.filled(5, null);
       List a0 = a;
       List<Object> ao = a;
       List<int> ai = a;  //# 36: runtime error
@@ -159,7 +159,7 @@ class TypeTest {
       List<String> as = a; //# 24: compile-time error
     }
     {
-      var a = new List<String>(5);
+      var a = new List<String>.filled(5, null);
       List a0 = a;
       List<Object> ao = a;
       List<int> ai = a; //# 25: compile-time error
@@ -180,7 +180,7 @@ class TypeTest {
     Expect.equals(1, testFunctionNum());
     Expect.equals(9, testBoolCheck());
     Expect.equals(1, testFactory());
-    Expect.equals(8, testListAssigment());
+    Expect.equals(8, testListAssignment());
   }
 }
 

@@ -1007,7 +1007,9 @@ class A {
 }
 
 void f(A a) {
-  switch (a.foo()) {}
+  switch (a.foo()) {
+    default:
+  }
 }
 ''');
   }

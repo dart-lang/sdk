@@ -1,6 +1,8 @@
 include: package:lints/recommended.yaml
 
 analyzer:
+  errors:
+    illegal_language_version_override: ignore
   exclude:
     # These files have intentional errors.
     - test/lib_ex2.7_test.dart

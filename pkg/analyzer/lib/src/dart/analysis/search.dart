@@ -142,20 +142,26 @@ class FindDeclarations {
   final int? maxResults;
   final RegExp? regExp;
   final String? onlyForFile;
+  final bool onlyAnalyzed;
 
   FindDeclarations(this.drivers, this.result, this.regExp, this.maxResults,
-      {this.onlyForFile});
+      {this.onlyForFile, this.onlyAnalyzed = false});
 
   Future<void> compute([CancellationToken? cancellationToken]) async {
     var searchedFiles = SearchedFiles();
-    await Future.wait(drivers.map((driver) => driver.discoverAvailableFiles()));
     // Add analyzed files first, so priority is given to drivers that analyze
     // files over those that just reference them.
     for (var driver in drivers) {
       searchedFiles.ownAnalyzed(driver.search);
     }
-    for (var driver in drivers) {
-      searchedFiles.ownKnown(driver.search);
+    if (!onlyAnalyzed) {
+      await Future.wait(
+        drivers.map((driver) => driver.discoverAvailableFiles()),
+      );
+
+      for (var driver in drivers) {
+        searchedFiles.ownKnown(driver.search);
+      }
     }
 
     await _FindDeclarations(searchedFiles, result, regExp, maxResults,
@@ -264,6 +270,24 @@ class Search {
     return elements;
   }
 
+  /// Return the prefixes used to reference the [element] in any of the
+  /// compilation units in the [library]. The returned set will include an empty
+  /// string if the element is referenced without a prefix.
+  Future<Set<String>> prefixesUsedInLibrary(
+      LibraryElementImpl library, Element element) async {
+    var prefixes = <String>{};
+    for (var unit in library.units) {
+      var index = await _driver.getIndex(unit.source.fullName);
+      if (index != null) {
+        _IndexRequest request = _IndexRequest(index);
+        int elementId = request.findElementId(element);
+        var prefixList = index.elementImportPrefixes[elementId].split(',');
+        prefixes.addAll(prefixList);
+      }
+    }
+    return prefixes;
+  }
+
   /// Returns references to the [element].
   Future<List<SearchResult>> references(
       Element? element, SearchedFiles searchedFiles) async {
@@ -293,6 +317,8 @@ class Search {
       return _searchReferences_Function(element, searchedFiles);
     } else if (element is LibraryImportElement) {
       return _searchReferences_Import(element, searchedFiles);
+    } else if (element is PatternVariableElementImpl) {
+      return _searchReferences_PatternVariable(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
       return _searchReferences_Local(element, (n) => n is Block, searchedFiles);
@@ -315,20 +341,27 @@ class Search {
   /// [Search] object, so should be only searched by it to avoid duplicate
   /// results; and updated to take ownership if the file is not owned yet.
   Future<List<SearchResult>> subTypes(
-      InterfaceElement? type, SearchedFiles searchedFiles) async {
+      InterfaceElement? type, SearchedFiles searchedFiles,
+      {List<FileState>? filesToCheck}) async {
     if (type == null) {
       return const <SearchResult>[];
     }
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, type, searchedFiles, const {
-      IndexRelationKind.IS_EXTENDED_BY:
-          SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE,
-      IndexRelationKind.IS_MIXED_IN_BY:
-          SearchResultKind.REFERENCE_IN_WITH_CLAUSE,
-      IndexRelationKind.IS_IMPLEMENTED_BY:
-          SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE,
-      IndexRelationKind.CONSTRAINS: SearchResultKind.REFERENCE_IN_ON_CLAUSE,
-    });
+    await _addResults(
+      results,
+      type,
+      searchedFiles,
+      const {
+        IndexRelationKind.IS_EXTENDED_BY:
+            SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE,
+        IndexRelationKind.IS_MIXED_IN_BY:
+            SearchResultKind.REFERENCE_IN_WITH_CLAUSE,
+        IndexRelationKind.IS_IMPLEMENTED_BY:
+            SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE,
+        IndexRelationKind.CONSTRAINS: SearchResultKind.REFERENCE_IN_ON_CLAUSE,
+      },
+      filesToCheck: filesToCheck,
+    );
     return results;
   }
 
@@ -434,7 +467,8 @@ class Search {
       List<SearchResult> results,
       Element element,
       SearchedFiles searchedFiles,
-      Map<IndexRelationKind, SearchResultKind> relationToResultKind) async {
+      Map<IndexRelationKind, SearchResultKind> relationToResultKind,
+      {List<FileState>? filesToCheck}) async {
     // Prepare the element name.
     String name = element.displayName;
     if (element is ConstructorElement) {
@@ -458,7 +492,15 @@ class Search {
         }
       }
     } else {
-      files = await _driver.getFilesReferencingName(name);
+      if (filesToCheck != null) {
+        for (FileState file in filesToCheck) {
+          if (file.referencedNames.contains(name)) {
+            files.add(file.path);
+          }
+        }
+      } else {
+        files = await _driver.getFilesReferencingName(name);
+      }
       if (searchedFiles.add(path, this) && !files.contains(path)) {
         files.add(path);
       }
@@ -668,8 +710,7 @@ class Search {
     }
 
     // Find the matches.
-    _LocalReferencesVisitor visitor =
-        _LocalReferencesVisitor(element, unit.declaredElement!);
+    var visitor = _LocalReferencesVisitor({element}, unit.declaredElement!);
     enclosingNode.accept(visitor);
     return visitor.results;
   }
@@ -693,6 +734,40 @@ class Search {
     return results;
   }
 
+  Future<List<SearchResult>> _searchReferences_PatternVariable(
+    PatternVariableElementImpl element,
+    SearchedFiles searchedFiles,
+  ) async {
+    var rootVariable = element.rootVariable;
+    var transitiveVariables = rootVariable is JoinPatternVariableElementImpl
+        ? rootVariable.transitiveVariables
+        : [rootVariable];
+
+    // Prepare a binding element for the variable.
+    var bindElement = transitiveVariables
+        .whereType<BindPatternVariableElementImpl>()
+        .firstOrNull;
+    if (bindElement == null) {
+      return const <SearchResult>[];
+    }
+
+    // Prepare the root node for search.
+    var rootNode = bindElement.node.thisOrAncestorMatching(
+      (node) => node is SwitchExpression || node is Block,
+    );
+    if (rootNode == null) {
+      return const <SearchResult>[];
+    }
+
+    // Find the matches.
+    var visitor = _LocalReferencesVisitor(
+      transitiveVariables.toSet(),
+      bindElement.enclosingUnit,
+    );
+    rootNode.accept(visitor);
+    return visitor.results;
+  }
+
   Future<List<SearchResult>> _searchReferences_Prefix(
       PrefixElement element, SearchedFiles searchedFiles) async {
     String path = element.source.fullName;
@@ -706,7 +781,7 @@ class Search {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResult(unitPath);
       if (unitResult is ResolvedUnitResult) {
-        var visitor = _LocalReferencesVisitor(element, unitElement);
+        var visitor = _LocalReferencesVisitor({element}, unitElement);
         unitResult.unit.accept(visitor);
         results.addAll(visitor.results);
       }
@@ -1336,17 +1411,18 @@ class _IndexRequest {
 class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
 
-  final Element element;
+  final Set<Element> elements;
   final CompilationUnitElement enclosingUnitElement;
 
-  _LocalReferencesVisitor(this.element, this.enclosingUnitElement);
+  _LocalReferencesVisitor(this.elements, this.enclosingUnitElement);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
     }
-    if (node.staticElement == element) {
+    var element = node.staticElement;
+    if (elements.contains(element)) {
       var parent = node.parent;
       SearchResultKind kind = SearchResultKind.REFERENCE;
       if (element is FunctionElement) {

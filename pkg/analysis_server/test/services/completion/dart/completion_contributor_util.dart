@@ -46,7 +46,7 @@ abstract class DartCompletionContributorTest
   @override
   Future<List<CompletionSuggestion>> computeContributedSuggestions(
       DartCompletionRequest request) async {
-    var builder = SuggestionBuilder(request);
+    var builder = SuggestionBuilder(request, useFilter: false);
     var contributor = createContributor(request, builder);
     await contributor.computeSuggestions();
     return builder.suggestions.map((e) => e.build()).toList();

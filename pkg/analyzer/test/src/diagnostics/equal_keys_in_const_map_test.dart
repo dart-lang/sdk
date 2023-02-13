@@ -143,7 +143,7 @@ var c = const {1: null, ...{1: null}};
     await assertErrorsInCode('''
 var c = {1: null, 2: null, 1: null};
 ''', [
-      error(HintCode.EQUAL_KEYS_IN_MAP, 27, 1),
+      error(WarningCode.EQUAL_KEYS_IN_MAP, 27, 1),
     ]);
   }
 }

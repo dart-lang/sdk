@@ -89,7 +89,7 @@ self.download = function(uri) {
   req.send();
 };
 
-// Note that a new hunk is already avaiable to be loaded, wait until all
+// Note that a new hunk is already available to be loaded, wait until all
 // expected hunks are available and then evaluate their contents to actually
 // load them.
 self.increment = function() {

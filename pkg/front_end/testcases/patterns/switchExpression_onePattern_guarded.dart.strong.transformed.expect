@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method f(dynamic x) → dynamic
+  return block {
+    core::int #t1;
+    if(true && true)
+      #t1 = 0;
+  } =>#t1;
+
+
+Extra constant evaluation status:
+Evaluated: LogicalExpression @ org-dartlang-testcase:///switchExpression_onePattern_guarded.dart:6:10 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 4, effectively constant: 1

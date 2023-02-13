@@ -1,10 +1,16 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
   #L1:
-  invalid-expression "PatternSwitchStatement(switch (x) {
-  case int as!:
-    break label0;
-})";
+  {
+    core::int as;
+    final dynamic #0#0 = x;
+    if(let final dynamic #t1 = #0#0! in #0#0! is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = as = #0#0! as{ForNonNullableByDefault} core::int in true)) {
+      {
+        break #L1;
+      }
+    }
+  }
 }

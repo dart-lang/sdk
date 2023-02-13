@@ -13,11 +13,29 @@ import 'sealed_class_mixin_on_lib.dart';
 mixin MA on SealedClass {}
 mixin MB on SealedClass {}
 
-class C extends A with MA, MB {
+class ConcreteA extends A with MA, MB {
+  int foo = 0;
+}
+
+mixin MC on SealedClass, SealedMixin {}
+
+class ConcreteC extends C with MC {
+  int foo = 0;
+}
+
+mixin MCSingular on SealedMixin {}
+
+class ConcreteD extends D with MCSingular {
   int foo = 0;
 }
 
 main() {
-  var c = C();
-  Expect.equals(0, c.foo);
+  var concreteA = ConcreteA();
+  Expect.equals(0, concreteA.foo);
+
+  var concreteC = ConcreteC();
+  Expect.equals(0, concreteC.foo);
+
+  var concreteD = ConcreteD();
+  Expect.equals(0, concreteD.foo);
 }

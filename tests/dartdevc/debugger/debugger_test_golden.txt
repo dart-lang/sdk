@@ -4294,7 +4294,7 @@ Value:
     ]
 ]
 -----------------------------------
-Test: Function with functon arguments formatting header
+Test: Function with function arguments formatting header
 Value:
 [
     "span",
@@ -4304,7 +4304,7 @@ Value:
     "(String, (Event$) => bool) => Null"
 ]
 -----------------------------------
-Test: Function with functon arguments formatting body
+Test: Function with function arguments formatting body
 Value:
 [
     "ol",
@@ -4587,6 +4587,32 @@ Value:
                 "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "TestGenericClass<dynamic, dynamic>: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "ExampleJSClass: "
         ],
         [
             "span",

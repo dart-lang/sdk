@@ -18,8 +18,10 @@
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
+#include "vm/compiler/method_recognizer.h"
 #include "vm/flags.h"
 #include "vm/kernel.h"
+#include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -254,62 +256,73 @@ struct InlinedInfo {
         bailout_reason(reason) {}
 };
 
+// Heuristic that maps the loop nesting depth to a static estimate of number
+// of times code at that depth is executed (code at each higher nesting
+// depth is assumed to execute 10x more often up to depth 3).
+static intptr_t AotCallCountApproximation(intptr_t nesting_depth) {
+  switch (nesting_depth) {
+    case 0:
+      // The value 1 makes most sense, but it may give a high ratio to call
+      // sites outside loops. Therefore, such call sites are subject to
+      // subsequent stricter heuristic to limit code size increase.
+      return 1;
+    case 1:
+      return 10;
+    case 2:
+      return 10 * 10;
+    default:
+      return 10 * 10 * 10;
+  }
+}
+
 // A collection of call sites to consider for inlining.
 class CallSites : public ValueObject {
  public:
-  explicit CallSites(intptr_t threshold)
+  template <typename CallType>
+  struct CallInfo {
+    FlowGraph* caller_graph;
+    CallType* call;
+    intptr_t call_depth;
+    intptr_t nesting_depth;
+    intptr_t call_count;
+    double ratio = 0.0;
+
+    CallInfo(FlowGraph* caller_graph,
+             CallType* call,
+             intptr_t call_depth,
+             intptr_t nesting_depth)
+        : caller_graph(caller_graph),
+          call(call),
+          call_depth(call_depth),
+          nesting_depth(nesting_depth) {
+      if (CompilerState::Current().is_aot()) {
+        call_count = AotCallCountApproximation(nesting_depth);
+      } else {
+        call_count = call->CallCount();
+      }
+    }
+
+    const Function& caller() const { return caller_graph->function(); }
+  };
+
+  explicit CallSites(intptr_t threshold,
+                     GrowableArray<CallInfo<InstanceCallInstr>>* calls)
       : inlining_depth_threshold_(threshold),
         static_calls_(),
         closure_calls_(),
-        instance_calls_() {}
+        instance_calls_(),
+        calls_(calls) {}
 
-  struct InstanceCallInfo {
-    PolymorphicInstanceCallInstr* call;
-    double ratio;
-    const FlowGraph* caller_graph;
-    intptr_t nesting_depth;
-    InstanceCallInfo(PolymorphicInstanceCallInstr* call_arg,
-                     FlowGraph* flow_graph,
-                     intptr_t depth)
-        : call(call_arg),
-          ratio(0.0),
-          caller_graph(flow_graph),
-          nesting_depth(depth) {}
-    const Function& caller() const { return caller_graph->function(); }
-  };
-
-  struct StaticCallInfo {
-    StaticCallInstr* call;
-    double ratio;
-    FlowGraph* caller_graph;
-    intptr_t nesting_depth;
-    StaticCallInfo(StaticCallInstr* value,
-                   FlowGraph* flow_graph,
-                   intptr_t depth)
-        : call(value),
-          ratio(0.0),
-          caller_graph(flow_graph),
-          nesting_depth(depth) {}
-    const Function& caller() const { return caller_graph->function(); }
-  };
-
-  struct ClosureCallInfo {
-    ClosureCallInstr* call;
-    FlowGraph* caller_graph;
-    ClosureCallInfo(ClosureCallInstr* value, FlowGraph* flow_graph)
-        : call(value), caller_graph(flow_graph) {}
-    const Function& caller() const { return caller_graph->function(); }
-  };
-
-  const GrowableArray<InstanceCallInfo>& instance_calls() const {
+  const GrowableArray<CallInfo<PolymorphicInstanceCallInstr>>& instance_calls()
+      const {
     return instance_calls_;
   }
 
-  const GrowableArray<StaticCallInfo>& static_calls() const {
+  const GrowableArray<CallInfo<StaticCallInstr>>& static_calls() const {
     return static_calls_;
   }
 
-  const GrowableArray<ClosureCallInfo>& closure_calls() const {
+  const GrowableArray<CallInfo<ClosureCallInstr>>& closure_calls() const {
     return closure_calls_;
   }
 
@@ -329,22 +342,26 @@ class CallSites : public ValueObject {
     instance_calls_.Clear();
   }
 
-  // Heuristic that maps the loop nesting depth to a static estimate of number
-  // of times code at that depth is executed (code at each higher nesting
-  // depth is assumed to execute 10x more often up to depth 3).
-  static intptr_t AotCallCountApproximation(intptr_t nesting_depth) {
-    switch (nesting_depth) {
-      case 0:
-        // The value 1 makes most sense, but it may give a high ratio to call
-        // sites outside loops. Therefore, such call sites are subject to
-        // subsequent stricter heuristic to limit code size increase.
-        return 1;
-      case 1:
-        return 10;
-      case 2:
-        return 10 * 10;
-      default:
-        return 10 * 10 * 10;
+  template <typename CallType>
+  static intptr_t ComputeMaxCallCount(
+      const GrowableArray<CallInfo<CallType>>& calls,
+      intptr_t start_index) {
+    intptr_t max_count = 0;
+    for (intptr_t i = start_index; i < calls.length(); ++i) {
+      const auto count = calls[i].call_count;
+      if (count > max_count) {
+        max_count = count;
+      }
+    }
+    return max_count;
+  }
+
+  template <typename CallType>
+  static void ComputeCallRatio(GrowableArray<CallInfo<CallType>>& calls,
+                               intptr_t start_index,
+                               intptr_t max_count) {
+    for (intptr_t i = start_index; i < calls.length(); ++i) {
+      calls[i].ratio = static_cast<double>(calls[i].call_count) / max_count;
     }
   }
 
@@ -352,52 +369,25 @@ class CallSites : public ValueObject {
   // number of times a call site is executed over the maximum number of
   // times any call site is executed in the method. JIT uses actual call
   // counts whereas AOT uses a static estimate based on nesting depth.
-  void ComputeCallSiteRatio(intptr_t static_call_start_ix,
-                            intptr_t instance_call_start_ix) {
-    const intptr_t num_static_calls =
-        static_calls_.length() - static_call_start_ix;
-    const intptr_t num_instance_calls =
-        instance_calls_.length() - instance_call_start_ix;
-
+  void ComputeCallSiteRatio(intptr_t static_calls_start_ix,
+                            intptr_t instance_calls_start_ix,
+                            intptr_t calls_start_ix) {
     intptr_t max_count = 0;
-    GrowableArray<intptr_t> instance_call_counts(num_instance_calls);
-    for (intptr_t i = 0; i < num_instance_calls; ++i) {
-      const InstanceCallInfo& info =
-          instance_calls_[i + instance_call_start_ix];
-      intptr_t aggregate_count =
-          CompilerState::Current().is_aot()
-              ? AotCallCountApproximation(info.nesting_depth)
-              : info.call->CallCount();
-      instance_call_counts.Add(aggregate_count);
-      if (aggregate_count > max_count) max_count = aggregate_count;
+    max_count = Utils::Maximum(
+        max_count,
+        ComputeMaxCallCount(instance_calls_, instance_calls_start_ix));
+    max_count = Utils::Maximum(
+        max_count, ComputeMaxCallCount(static_calls_, static_calls_start_ix));
+    max_count =
+        Utils::Maximum(max_count, ComputeMaxCallCount(*calls_, calls_start_ix));
+
+    if (max_count == 0) {
+      return;
     }
 
-    GrowableArray<intptr_t> static_call_counts(num_static_calls);
-    for (intptr_t i = 0; i < num_static_calls; ++i) {
-      const StaticCallInfo& info = static_calls_[i + static_call_start_ix];
-      intptr_t aggregate_count =
-          CompilerState::Current().is_aot()
-              ? AotCallCountApproximation(info.nesting_depth)
-              : info.call->CallCount();
-      static_call_counts.Add(aggregate_count);
-      if (aggregate_count > max_count) max_count = aggregate_count;
-    }
-
-    // Note that max_count can be 0 if none of the calls was executed.
-    for (intptr_t i = 0; i < num_instance_calls; ++i) {
-      const double ratio =
-          (max_count == 0)
-              ? 0.0
-              : static_cast<double>(instance_call_counts[i]) / max_count;
-      instance_calls_[i + instance_call_start_ix].ratio = ratio;
-    }
-    for (intptr_t i = 0; i < num_static_calls; ++i) {
-      const double ratio =
-          (max_count == 0)
-              ? 0.0
-              : static_cast<double>(static_call_counts[i]) / max_count;
-      static_calls_[i + static_call_start_ix].ratio = ratio;
-    }
+    ComputeCallRatio(instance_calls_, instance_calls_start_ix, max_count);
+    ComputeCallRatio(static_calls_, static_calls_start_ix, max_count);
+    ComputeCallRatio(*calls_, calls_start_ix, max_count);
   }
 
   static void RecordAllNotInlinedFunction(
@@ -432,6 +422,142 @@ class CallSites : public ValueObject {
     }
   }
 
+  template <typename CallType>
+  static void PruneRemovedCallsIn(GrowableArray<CallInfo<CallType>>* arr) {
+    intptr_t j = 0;
+    for (intptr_t i = 0; i < arr->length(); i++) {
+      if ((*arr)[i].call->previous() != nullptr) {
+        if (i != j) {
+          (*arr)[j] = (*arr)[i];
+        }
+        j++;
+      }
+    }
+    arr->TruncateTo(j);
+  }
+
+  // Attempt to devirtualize collected call-sites by applying Canonicalization
+  // rules.
+  void TryDevirtualize(FlowGraph* graph) {
+    GrowableArray<Definition*> worklist(calls_->length());
+    BitVector processed(graph->zone(), graph->current_ssa_temp_index());
+
+    auto add_to_worklist = [&](Definition* defn) {
+      ASSERT(defn->HasSSATemp());
+      const auto ssa_index = defn->ssa_temp_index();
+      if (ssa_index < processed.length() && !processed.Contains(ssa_index)) {
+        processed.Add(ssa_index);
+        worklist.Add(defn);
+        return true;
+      }
+      return false;
+    };
+
+    auto add_transitive_dependencies_to_worklist = [&](intptr_t from_index) {
+      // Caveat: worklist is growing as we are iterating over it. This loop
+      // goes up to |worklist.length()| and thus is going to visit all newly
+      // added definitions and add their dependencies to the worklist
+      // transitively.
+      for (intptr_t i = from_index; i < worklist.length(); i++) {
+        auto defn = worklist[i];
+        for (auto input : defn->inputs()) {
+          add_to_worklist(input);
+        }
+        // For instructions with arguments we don't expect push arguments to
+        // be inserted yet.
+        ASSERT(defn->ArgumentCount() == 0 || !defn->HasPushArguments());
+      }
+    };
+
+    // Step 1: add all calls to worklist and then transitively add all
+    // their dependencies (values that flow into inputs). Calls will
+    // form the prefix of the worklist followed by their inputs.
+    for (auto& call_info : *calls_) {
+      // Call might not have an SSA temp assigned because its result is
+      // not used. We still want to add such call to worklist but we
+      // should not try to update the bitvector.
+      if (call_info.call->HasSSATemp()) {
+        add_to_worklist(call_info.call);
+      } else {
+        worklist.Add(call_info.call);
+      }
+    }
+    RELEASE_ASSERT(worklist.length() == calls_->length());
+    add_transitive_dependencies_to_worklist(0);
+
+    // Step 2: canonicalize each definition from the worklist. We process
+    // worklist backwards which means we will usually canonicalize inputs before
+    // we canonicalize the instruction that uses them.
+    // Note: worklist is not topologically sorted, so we might end up
+    // processing some uses before the defs.
+    bool changed = false;
+    intptr_t last_unhandled_call_index = calls_->length() - 1;
+    while (!worklist.is_empty()) {
+      auto defn = worklist.RemoveLast();
+
+      // Once we reach the prefix of the worklist we know that we are processing
+      // calls we are interested in.
+      CallInfo<InstanceCallInstr>* call_info = nullptr;
+      if (worklist.length() == last_unhandled_call_index) {
+        call_info = &(*calls_)[last_unhandled_call_index];
+        RELEASE_ASSERT(call_info->call == defn);
+        last_unhandled_call_index--;
+      }
+
+      // Can't apply canonicalization rule to this definition.
+      if (defn->HasUnmatchedInputRepresentations() &&
+          defn->SpeculativeModeOfInputs() == Instruction::kGuardInputs) {
+        continue;
+      }
+
+      auto replacement = defn->Canonicalize(graph);
+      if (replacement != defn) {
+        changed = true;
+        if (replacement != nullptr) {
+          defn->ReplaceUsesWith(replacement);
+          if (replacement->ssa_temp_index() == -1) {
+            graph->EnsureSSATempIndex(defn, replacement);
+          }
+
+          // Add the replacement with all of its dependencies to the worklist.
+          if (add_to_worklist(replacement)) {
+            add_transitive_dependencies_to_worklist(worklist.length() - 1);
+          }
+
+          // We have devirtualized |InstanceCall| into |StaticCall| check
+          // inlining heuristics and add the |StaticCall| into |static_calls_|
+          // if heuristics suggest inlining.
+          //
+          // Note: currently |InstanceCallInstr::Canonicalize| can only return
+          // a newly constructed |StaticCallInstr|, so the check below is
+          // redundant (it will always succeed). Nevertheless we add it to
+          // catch situations in the future when canonicalization rule is
+          // strengthened.
+          const bool newly_inserted =
+              replacement->ssa_temp_index() >= processed.length();
+          if (call_info != nullptr && replacement->IsStaticCall() &&
+              newly_inserted) {
+            HandleDevirtualization(call_info,
+                                   replacement->Cast<StaticCallInstr>());
+          }
+        }
+        if (auto phi = defn->AsPhi()) {
+          phi->UnuseAllInputs();
+          phi->block()->RemovePhi(phi);
+        } else {
+          defn->RemoveFromGraph();
+        }
+      }
+    }
+
+    if (changed) {
+      PruneRemovedCallsIn(&instance_calls_);
+      PruneRemovedCallsIn(&static_calls_);
+      PruneRemovedCallsIn(&closure_calls_);
+      PruneRemovedCallsIn(calls_);
+    }
+  }
+
   void FindCallSites(FlowGraph* graph,
                      intptr_t depth,
                      GrowableArray<InlinedInfo>* inlined_info) {
@@ -450,27 +576,26 @@ class CallSites : public ValueObject {
         (depth >= inlining_depth_threshold_);
 
     // In AOT, compute loop hierarchy.
-    if (CompilerState::Current().is_aot()) {
+    const bool is_aot = CompilerState::Current().is_aot();
+    if (is_aot) {
       graph->GetLoopHierarchy();
     }
 
-    const intptr_t instance_call_start_ix = instance_calls_.length();
-    const intptr_t static_call_start_ix = static_calls_.length();
+    const intptr_t instance_calls_start_ix = instance_calls_.length();
+    const intptr_t static_calls_start_ix = static_calls_.length();
+    const intptr_t calls_start_ix = calls_->length();
     for (BlockIterator block_it = graph->postorder_iterator(); !block_it.Done();
          block_it.Advance()) {
       BlockEntryInstr* entry = block_it.Current();
-      const intptr_t depth = entry->NestingDepth();
-      for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-        Instruction* current = it.Current();
-        if (current->IsPolymorphicInstanceCall()) {
-          PolymorphicInstanceCallInstr* instance_call =
-              current->AsPolymorphicInstanceCall();
+      const intptr_t nesting_depth = entry->NestingDepth();
+      for (auto current : entry->instructions()) {
+        if (auto instance_call = current->AsPolymorphicInstanceCall()) {
           if (!inline_only_profitable_methods ||
               instance_call->IsSureToCallSingleRecognizedTarget() ||
               instance_call->HasOnlyDispatcherOrImplicitAccessorTargets()) {
             // Consider instance call for further inlining. Note that it will
             // still be subject to all the inlining heuristics.
-            instance_calls_.Add(InstanceCallInfo(instance_call, graph, depth));
+            instance_calls_.Add({graph, instance_call, depth, nesting_depth});
           } else {
             // No longer consider the instance call because inlining is too
             // deep and the method is not deemed profitable by other criteria.
@@ -481,45 +606,74 @@ class CallSites : public ValueObject {
                                             instance_call, "Too deep"));
             }
           }
-        } else if (current->IsStaticCall()) {
-          StaticCallInstr* static_call = current->AsStaticCall();
-          const Function& function = static_call->function();
-          if (!inline_only_profitable_methods || function.IsRecognized() ||
-              function.IsDispatcherOrImplicitAccessor() ||
-              (function.is_const() && function.IsGenerativeConstructor())) {
-            // Consider static call for further inlining. Note that it will
-            // still be subject to all the inlining heuristics.
-            static_calls_.Add(StaticCallInfo(static_call, graph, depth));
-          } else {
-            // No longer consider the static call because inlining is too
-            // deep and the method is not deemed profitable by other criteria.
-            if (FLAG_print_inlining_tree) {
-              const Function* caller = &graph->function();
-              const Function* target = &static_call->function();
-              inlined_info->Add(InlinedInfo(caller, target, depth + 1,
-                                            static_call, "Too deep"));
-            }
-          }
-        } else if (current->IsClosureCall()) {
+        } else if (auto call = current->AsInstanceCall()) {
+          calls_->Add({graph, call, depth, nesting_depth});
+        } else if (auto static_call = current->AsStaticCall()) {
+          HandleStaticCall(static_call, inline_only_profitable_methods, graph,
+                           depth, nesting_depth, inlined_info);
+        } else if (auto closure_call = current->AsClosureCall()) {
           if (!inline_only_profitable_methods) {
             // Consider closure for further inlining. Note that it will
             // still be subject to all the inlining heuristics.
-            ClosureCallInstr* closure_call = current->AsClosureCall();
-            closure_calls_.Add(ClosureCallInfo(closure_call, graph));
+            closure_calls_.Add({graph, closure_call, depth, nesting_depth});
           } else {
             // No longer consider the closure because inlining is too deep.
           }
         }
       }
     }
-    ComputeCallSiteRatio(static_call_start_ix, instance_call_start_ix);
+    ComputeCallSiteRatio(static_calls_start_ix, instance_calls_start_ix,
+                         calls_start_ix);
   }
 
  private:
+  bool HandleStaticCall(StaticCallInstr* static_call,
+                        bool inline_only_profitable_methods,
+                        FlowGraph* graph,
+                        intptr_t depth,
+                        intptr_t nesting_depth,
+                        GrowableArray<InlinedInfo>* inlined_info) {
+    const Function& function = static_call->function();
+    if (!inline_only_profitable_methods || function.IsRecognized() ||
+        function.IsDispatcherOrImplicitAccessor() ||
+        (function.is_const() && function.IsGenerativeConstructor())) {
+      // Consider static call for further inlining. Note that it will
+      // still be subject to all the inlining heuristics.
+      static_calls_.Add({graph, static_call, depth, nesting_depth});
+      return true;
+    } else if (inlined_info != nullptr) {
+      // No longer consider the static call because inlining is too
+      // deep and the method is not deemed profitable by other criteria.
+      if (FLAG_print_inlining_tree) {
+        const Function* caller = &graph->function();
+        const Function* target = &static_call->function();
+        inlined_info->Add(
+            InlinedInfo(caller, target, depth + 1, static_call, "Too deep"));
+      }
+    }
+    return false;
+  }
+
+  bool HandleDevirtualization(CallInfo<InstanceCallInstr>* call_info,
+                              StaticCallInstr* static_call) {
+    // Found devirtualized call and associated information.
+    const bool inline_only_profitable_methods =
+        (call_info->call_depth >= inlining_depth_threshold_);
+    if (HandleStaticCall(static_call, inline_only_profitable_methods,
+                         call_info->caller_graph, call_info->call_depth,
+                         call_info->nesting_depth,
+                         /*inlined_info=*/nullptr)) {
+      static_calls_.Last().ratio = call_info->ratio;
+      return true;
+    }
+    return false;
+  }
+
   intptr_t inlining_depth_threshold_;
-  GrowableArray<StaticCallInfo> static_calls_;
-  GrowableArray<ClosureCallInfo> closure_calls_;
-  GrowableArray<InstanceCallInfo> instance_calls_;
+  GrowableArray<CallInfo<StaticCallInstr>> static_calls_;
+  GrowableArray<CallInfo<ClosureCallInstr>> closure_calls_;
+  GrowableArray<CallInfo<PolymorphicInstanceCallInstr>> instance_calls_;
+  GrowableArray<CallInfo<InstanceCallInstr>>* calls_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSites);
 };
@@ -944,8 +1098,9 @@ class CallSiteInliner : public ValueObject {
       return;
     }
     // Create two call site collections to swap between.
-    CallSites sites1(inlining_depth_threshold_);
-    CallSites sites2(inlining_depth_threshold_);
+    GrowableArray<CallSites::CallInfo<InstanceCallInstr>> calls;
+    CallSites sites1(inlining_depth_threshold_, &calls);
+    CallSites sites2(inlining_depth_threshold_, &calls);
     CallSites* call_sites_temp = NULL;
     collected_call_sites_ = &sites1;
     inlining_call_sites_ = &sites2;
@@ -974,6 +1129,7 @@ class CallSiteInliner : public ValueObject {
       bool inlined_statics = InlineStaticCalls();
       bool inlined_closures = InlineClosureCalls();
       if (inlined_instance || inlined_statics || inlined_closures) {
+        collected_call_sites_->TryDevirtualize(caller_graph());
         // Increment the inlining depths. Checked before subsequent inlining.
         ++inlining_depth_;
         if (inlined_recursive_call_) {
@@ -1058,7 +1214,7 @@ class CallSiteInliner : public ValueObject {
     // to reduce code size and make sure we use the intrinsic code.
     if (CompilerState::Current().is_aot() && function.is_intrinsic() &&
         !inliner_->AlwaysInline(function)) {
-      TRACE_INLINING(THR_Print("     Bailout: intrinisic\n"));
+      TRACE_INLINING(THR_Print("     Bailout: intrinsic\n"));
       PRINT_INLINING_TREE("intrinsic", &call_data->caller, &function,
                           call_data->call);
       return false;
@@ -1202,6 +1358,11 @@ class CallSiteInliner : public ValueObject {
         {
           COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
           callee_graph = builder.BuildGraph();
+          // Make sure SSA temp indices in the callee graph
+          // do not intersect with SSA temp indices in the caller.
+          ASSERT(callee_graph->current_ssa_temp_index() == 0);
+          callee_graph->set_current_ssa_temp_index(
+              caller_graph_->current_ssa_temp_index());
 #if defined(DEBUG)
           // The inlining IDs of instructions in the callee graph are unset
           // until we call SetInliningID later.
@@ -1294,8 +1455,7 @@ class CallSiteInliner : public ValueObject {
         {
           // Compute SSA on the callee graph, catching bailouts.
           COMPILER_TIMINGS_TIMER_SCOPE(thread(), ComputeSSA);
-          callee_graph->ComputeSSA(caller_graph_->current_ssa_temp_index(),
-                                   param_stubs);
+          callee_graph->ComputeSSA(param_stubs);
 #if defined(DEBUG)
           // The inlining IDs of instructions in the callee graph are unset
           // until we call SetInliningID later.
@@ -1446,11 +1606,11 @@ class CallSiteInliner : public ValueObject {
 
         // When inlined, we add the guarded fields of the callee to the caller's
         // list of guarded fields.
-        const ZoneGrowableArray<const Field*>& callee_guarded_fields =
-            *callee_graph->parsed_function().guarded_fields();
-        for (intptr_t i = 0; i < callee_guarded_fields.length(); ++i) {
-          caller_graph()->parsed_function().AddToGuardedFields(
-              callee_guarded_fields[i]);
+        const FieldSet* callee_guarded_fields =
+            callee_graph->parsed_function().guarded_fields();
+        FieldSet::Iterator it = callee_guarded_fields->GetIterator();
+        while (const Field** field = it.Next()) {
+          caller_graph()->parsed_function().AddToGuardedFields(*field);
         }
 
         {
@@ -1519,7 +1679,7 @@ class CallSiteInliner : public ValueObject {
   }
 
   void PrintInlinedInfoFor(const Function& caller, intptr_t depth) {
-    // Prevent duplicate printing as inlined_info aggregates all inlinining.
+    // Prevent duplicate printing as inlined_info aggregates all inlining.
     GrowableArray<intptr_t> call_instructions_printed;
     // Print those that were inlined.
     for (intptr_t i = 0; i < inlined_info_.length(); i++) {
@@ -1599,8 +1759,7 @@ class CallSiteInliner : public ValueObject {
 
   bool InlineStaticCalls() {
     bool inlined = false;
-    const GrowableArray<CallSites::StaticCallInfo>& call_info =
-        inlining_call_sites_->static_calls();
+    const auto& call_info = inlining_call_sites_->static_calls();
     TRACE_INLINING(THR_Print("  Static Calls (%" Pd ")\n", call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       StaticCallInstr* call = call_info[call_idx].call;
@@ -1657,8 +1816,7 @@ class CallSiteInliner : public ValueObject {
     // TODO(sjindel): move testing closure calls after first check
     if (FLAG_enable_testing_pragmas) return false;  // keep all closures
     bool inlined = false;
-    const GrowableArray<CallSites::ClosureCallInfo>& call_info =
-        inlining_call_sites_->closure_calls();
+    const auto& call_info = inlining_call_sites_->closure_calls();
     TRACE_INLINING(
         THR_Print("  Closure Calls (%" Pd ")\n", call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
@@ -1706,8 +1864,7 @@ class CallSiteInliner : public ValueObject {
 
   bool InlineInstanceCalls() {
     bool inlined = false;
-    const GrowableArray<CallSites::InstanceCallInfo>& call_info =
-        inlining_call_sites_->instance_calls();
+    const auto& call_info = inlining_call_sites_->instance_calls();
     TRACE_INLINING(THR_Print("  Polymorphic Instance Calls (%" Pd ")\n",
                              call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
@@ -3186,6 +3343,11 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
       value_check = Cids::CreateMonomorphic(Z, kFloat32x4Cid);
       break;
     }
+    case kTypedDataFloat64x2ArrayCid: {
+      // Check that value is always Float64x2.
+      value_check = Cids::CreateMonomorphic(Z, kFloat64x2Cid);
+      break;
+    }
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
       // StoreIndexedInstr takes unboxed int64, so value is
@@ -3965,6 +4127,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
                                      kTypedDataFloat32x4ArrayCid, graph_entry,
                                      entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetFloat64x2:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataFloat64x2ArrayCid, graph_entry,
+                                     entry, last, result);
     case MethodRecognizer::kByteArrayBaseGetInt32x4:
       if (!ShouldInlineSimd()) {
         return false;
@@ -4024,6 +4193,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       }
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
                                       receiver_cid, kTypedDataFloat32x4ArrayCid,
+                                      graph_entry, entry, last, result);
+    case MethodRecognizer::kByteArrayBaseSetFloat64x2:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
+                                      receiver_cid, kTypedDataFloat64x2ArrayCid,
                                       graph_entry, entry, last, result);
     case MethodRecognizer::kByteArrayBaseSetInt32x4:
       if (!ShouldInlineSimd()) {
@@ -4158,29 +4334,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return true;
     }
 
-    case MethodRecognizer::kListFactory: {
-      // We only want to inline new List(n) which decreases code size and
-      // improves performance. We don't want to inline new List().
-      if (call->ArgumentCount() != 2) {
-        return false;
-      }
-
-      const auto type = new (Z) Value(call->ArgumentAt(0));
-      const auto num_elements = new (Z) Value(call->ArgumentAt(1));
-      *entry = new (Z)
-          FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
-                             call->GetBlock()->try_index(), DeoptId::kNone);
-      (*entry)->InheritDeoptTarget(Z, call);
-      *last = new (Z) CreateArrayInstr(call->source(), type, num_elements,
-                                       call->deopt_id());
-      flow_graph->AppendTo(
-          *entry, *last,
-          call->deopt_id() != DeoptId::kNone ? call->env() : NULL,
-          FlowGraph::kValue);
-      *result = (*last)->AsDefinition();
-      return true;
-    }
-
     case MethodRecognizer::kObjectArrayAllocate: {
       Value* num_elements = new (Z) Value(call->ArgumentAt(1));
       intptr_t length = 0;
@@ -4278,6 +4431,41 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
 
       // We need a return value to replace uses of the original definition.
       // The final instruction is a use of 'void operator[]=()', so we use null.
+      *result = flow_graph->constant_null();
+      return true;
+    }
+
+    case MethodRecognizer::kMemCopy: {
+      // Keep consistent with kernel_to_il.cc (except unboxed param).
+      *entry = new (Z)
+          FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                             call->GetBlock()->try_index(), DeoptId::kNone);
+      (*entry)->InheritDeoptTarget(Z, call);
+      Definition* arg_target = call->ArgumentAt(0);
+      Definition* arg_target_offset_in_bytes = call->ArgumentAt(1);
+      Definition* arg_source = call->ArgumentAt(2);
+      Definition* arg_source_offset_in_bytes = call->ArgumentAt(3);
+      Definition* arg_length_in_bytes = call->ArgumentAt(4);
+
+      auto env = call->deopt_id() != DeoptId::kNone ? call->env() : nullptr;
+
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      arg_length_in_bytes =
+          UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(arg_length_in_bytes),
+                             call->deopt_id(), Instruction::kNotSpeculative);
+      arg_length_in_bytes->AsUnboxInteger()->mark_truncating();
+      flow_graph->AppendTo(*entry, arg_length_in_bytes, env, FlowGraph::kValue);
+
+      *last = new (Z)
+          MemoryCopyInstr(new (Z) Value(arg_source), new (Z) Value(arg_target),
+                          new (Z) Value(arg_source_offset_in_bytes),
+                          new (Z) Value(arg_target_offset_in_bytes),
+                          new (Z) Value(arg_length_in_bytes),
+                          /*src_cid=*/kTypedDataUint8ArrayCid,
+                          /*dest_cid=*/kTypedDataUint8ArrayCid, true);
+      flow_graph->AppendTo(arg_length_in_bytes, *last, env, FlowGraph::kEffect);
+
       *result = flow_graph->constant_null();
       return true;
     }

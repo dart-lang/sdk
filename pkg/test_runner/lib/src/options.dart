@@ -107,7 +107,7 @@ none:             No runtime, compile only.''')
     ..addMultiOption('arch',
         abbr: 'a',
         allowed: ['all', ...Architecture.names],
-        defaultsTo: [Architecture.x64.name],
+        defaultsTo: [Architecture.host.name],
         hide: true,
         help: '''The architecture to run tests for.
 
@@ -132,6 +132,12 @@ riscv32, riscv64, simriscv32, simriscv64''')
         hide: true,
         help: '''The named test configuration that supplies the values for all
 test options, specifying how tests should be run.''')
+    ..addFlag('detect-host',
+        aliases: ['detect_host'],
+        help: 'Replace the system and architecture options in named '
+            'configurations to match the local host. Provided only as a '
+            'convenience when running tests locally. It is an error use this '
+            'flag with without specifying a named configuration.')
     ..addFlag('build',
         help: 'Build the necessary targets to test this configuration')
     // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
@@ -290,7 +296,7 @@ Allowed values are: legacy, weak, strong''')
     ..addFlag('write-logs',
         aliases: ['write_logs'],
         hide: true,
-        help: 'Write failing test stdout and stderr to to the '
+        help: 'Write failing test stdout and stderr to the '
             '"${TestUtils.logsFileName}" file')
     ..addFlag('reset-browser-configuration',
         aliases: ['reset_browser_configuration'],
@@ -347,6 +353,10 @@ options. Used to be able to make sane updates to the status files.''',
         aliases: ['dart2js_options'],
         hide: true,
         help: 'Extra options for dart2js compilation step.')
+    ..addMultiOption('ddc-options',
+        aliases: ['ddc_options'],
+        hide: true,
+        help: 'Extra command line options passed to the DDC compiler.')
     ..addMultiOption('shared-options',
         aliases: ['shared_options'], hide: true, help: 'Extra shared options.')
     ..addMultiOption('enable-experiment',
@@ -628,6 +638,7 @@ has been specified on the command line.''')
     }
 
     var dart2jsOptions = listOption("dart2js-options");
+    var ddcOptions = listOption("ddc-options");
     var vmOptions = listOption("vm-options");
     var sharedOptions = listOption("shared-options");
     var experiments = data["enable-experiment"] as List<String>?;
@@ -735,12 +746,32 @@ has been specified on the command line.''')
     }
 
     var namedConfigurations = data["named-configuration"] as List<String>;
+    var detectHost = data['detect-host'] as bool;
+    if (detectHost && namedConfigurations.isEmpty) {
+      _fail('The `--detect-host` flag is only supported for named '
+          'configurations.');
+    }
     if (namedConfigurations.isNotEmpty) {
       var testMatrix = TestMatrix.fromPath(_testMatrixFile);
       for (var namedConfiguration in namedConfigurations) {
         try {
           var configuration = testMatrix.configurations
               .singleWhere((c) => c.name == namedConfiguration);
+          if (configuration.system != System.host ||
+              configuration.architecture != Architecture.host) {
+            print("-- WARNING -- \n"
+                "The provided named configuration does not match the host "
+                "system or architecture:\n"
+                "    ${configuration.name}");
+            if (detectHost) {
+              configuration = Configuration.detectHost(configuration);
+              print("Detecting host configuration:\n"
+                  "    $configuration");
+            } else {
+              print("Passing the `--detect-host` flag will modify the named "
+                  "configuration to match the local system and architecture.");
+            }
+          }
           addConfiguration(configuration, namedConfiguration);
         } on StateError {
           var names = testMatrix.configurations
@@ -819,6 +850,7 @@ has been specified on the command line.''')
                   isMinified: data["minified"] as bool,
                   vmOptions: vmOptions,
                   dart2jsOptions: dart2jsOptions,
+                  ddcOptions: ddcOptions,
                   experiments: experiments,
                   babel: data['babel'] as String?,
                   builderTag: data["builder-tag"] as String?,
@@ -935,7 +967,7 @@ void findConfigurations(Map<String, dynamic> options) {
   var architectureOption = options['arch'] as List<String>;
   var architectures = [
     if (architectureOption.isEmpty)
-      Architecture.x64
+      Architecture.host
     else if (!architectureOption.contains('all'))
       ...architectureOption.map(Architecture.find)
   ];
@@ -1005,7 +1037,6 @@ void listConfigurations(Map<String, dynamic> options) {
 }
 
 /// Throws an [OptionParseException] with [message].
-// ignore: sdk_version_never
 Never _fail(String message) {
   throw OptionParseException(message);
 }

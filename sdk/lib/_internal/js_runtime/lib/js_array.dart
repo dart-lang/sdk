@@ -509,7 +509,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
       // type annotation checks on the stores.
       for (int i = length - 1; i >= 0; i--) {
         // Use JS to avoid bounds check (the bounds check elimination
-        // optimzation is too weak). The 'E' type annotation is a store type
+        // optimization is too weak). The 'E' type annotation is a store type
         // check - we can't rely on iterable, it could be List<dynamic>.
         E element = otherList[otherStart + i];
         JS('', '#[#] = #', this, start + i, element);

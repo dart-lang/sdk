@@ -11,6 +11,7 @@ import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
 import '../ir/class_relation.dart';
 import '../serialization/serialization.dart';
+import '../universe/member_hierarchy.dart';
 import '../universe/selector.dart';
 
 /// Enum-like values used for reporting known and unknown truth values.
@@ -113,6 +114,10 @@ abstract class AbstractValueDomain {
   /// The [AbstractValue] that represents a non-null subtype of `Function` at
   /// runtime.
   AbstractValue get functionType;
+
+  /// The [AbstractValue] that represents a non-null subtype of `Record` at
+  /// runtime.
+  AbstractValue get recordType;
 
   /// The [AbstractValue] that represents a non-null subtype of `bool` at
   /// runtime.
@@ -626,6 +631,12 @@ abstract class AbstractValueDomain {
 
   /// Returns compact a textual representation for [value] used for debugging.
   String getCompactText(AbstractValue value);
+
+  /// Returns a set of members that are ancestors of all possible targets for
+  /// a call targeting [selector] on an entity with type represented by
+  /// [receiver].
+  Iterable<DynamicCallTarget> findRootsOfTargets(AbstractValue receiver,
+      Selector selector, MemberHierarchyBuilder memberHierarchyBuilder);
 
   /// Deserializes an [AbstractValue] for this domain from [source].
   // TODO(48820): Remove covariant when DataSourceReader is migrated.

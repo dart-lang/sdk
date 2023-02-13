@@ -24,8 +24,9 @@ bool isExhaustive(Space value, List<Space> cases) {
 /// Returns a string containing any unreachable case or non-exhaustive match
 /// errors. Returns an empty string if all cases are reachable and the cases
 /// are exhaustive.
-String reportErrors(StaticType valueType, List<Space> cases) {
-  List<String> errors = <String>[];
+List<ExhaustivenessError> reportErrors(StaticType valueType, List<Space> cases,
+    [List<Space>? remainingSpaces]) {
+  List<ExhaustivenessError> errors = <ExhaustivenessError>[];
 
   Space remaining = new Space(valueType);
   for (int i = 0; i < cases.length; i++) {
@@ -33,17 +34,45 @@ String reportErrors(StaticType valueType, List<Space> cases) {
     if (i > 0) {
       Space previous = new Space.union(cases.sublist(0, i));
       if (subtract(cases[i], previous) == Space.empty) {
-        errors.add('Case #${i + 1} ${cases[i]} is covered by $previous.');
+        errors.add(new UnreachableCaseError(valueType, cases, i, previous));
       }
     }
 
+    remainingSpaces?.add(remaining);
     remaining = subtract(remaining, cases[i]);
   }
+  remainingSpaces?.add(remaining);
 
   if (remaining != Space.empty) {
-    errors.add(
-        '$valueType is not exhaustively matched by ${new Space.union(cases)}.');
+    errors.add(new NonExhaustiveError(valueType, cases, remaining));
   }
 
-  return errors.join('\n');
+  return errors;
+}
+
+class ExhaustivenessError {}
+
+class NonExhaustiveError implements ExhaustivenessError {
+  final StaticType valueType;
+  final List<Space> cases;
+  final Space remaining;
+
+  NonExhaustiveError(this.valueType, this.cases, this.remaining);
+
+  @override
+  String toString() =>
+      '$valueType is not exhaustively matched by ${new Space.union(cases)}.';
+}
+
+class UnreachableCaseError implements ExhaustivenessError {
+  final StaticType valueType;
+  final List<Space> cases;
+  final int index;
+  final Space previous;
+
+  UnreachableCaseError(this.valueType, this.cases, this.index, this.previous);
+
+  @override
+  String toString() =>
+      'Case #${index + 1} ${cases[index]} is covered by $previous.';
 }

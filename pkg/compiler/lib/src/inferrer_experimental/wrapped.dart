@@ -9,6 +9,7 @@ import '../elements/types.dart' show DartType;
 import '../ir/class_relation.dart';
 import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
+import '../universe/member_hierarchy.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';
@@ -597,8 +598,20 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
       WrappedAbstractValue(_abstractValueDomain.functionType);
 
   @override
+  AbstractValue get recordType =>
+      WrappedAbstractValue(_abstractValueDomain.recordType);
+
+  @override
   AbstractValue get typeType =>
       WrappedAbstractValue(_abstractValueDomain.typeType);
+
+  @override
+  Iterable<DynamicCallTarget> findRootsOfTargets(
+          covariant WrappedAbstractValue receiver,
+          Selector selector,
+          MemberHierarchyBuilder memberHierarchyBuilder) =>
+      _abstractValueDomain.findRootsOfTargets(
+          receiver._abstractValue, selector, memberHierarchyBuilder);
 }
 
 class WrappedAbstractValueStrategy implements AbstractValueStrategy {

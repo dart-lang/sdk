@@ -9,11 +9,11 @@ library test.instantiate_abstract_class;
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
-assertInstanitationErrorOnGenerativeConstructors(classMirror) {
+assertInstantiationErrorOnGenerativeConstructors(classMirror) {
   classMirror.declarations.values.forEach((decl) {
     if (decl is! MethodMirror) return;
     if (!decl.isGenerativeConstructor) return;
-    var args = new List(decl.parameters.length);
+    var args = new List.filled(decl.parameters.length, null);
     Expect.throws(
         () => classMirror.newInstance(decl.constructorName, args),
         (e) => e is AbstractClassInstantiationError,
@@ -25,7 +25,7 @@ runFactoryConstructors(classMirror) {
   classMirror.declarations.values.forEach((decl) {
     if (decl is! MethodMirror) return;
     if (!decl.isFactoryConstructor) return;
-    var args = new List(decl.parameters.length);
+    var args = new List.filled(decl.parameters.length, null);
     classMirror.newInstance(decl.constructorName, args); // Should not throw.
   });
 }
@@ -39,10 +39,10 @@ abstract class AbstractClass {
 class ConcreteClass implements AbstractClass {}
 
 main() {
-  assertInstanitationErrorOnGenerativeConstructors(reflectType(num));
-  assertInstanitationErrorOnGenerativeConstructors(reflectType(double));
-  assertInstanitationErrorOnGenerativeConstructors(reflectType(StackTrace));
+  assertInstantiationErrorOnGenerativeConstructors(reflectType(num));
+  assertInstantiationErrorOnGenerativeConstructors(reflectType(double));
+  assertInstantiationErrorOnGenerativeConstructors(reflectType(StackTrace));
 
-  assertInstanitationErrorOnGenerativeConstructors(reflectType(AbstractClass));
+  assertInstantiationErrorOnGenerativeConstructors(reflectType(AbstractClass));
   runFactoryConstructors(reflectType(AbstractClass));
 }

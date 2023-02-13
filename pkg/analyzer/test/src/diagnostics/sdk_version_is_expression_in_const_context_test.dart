@@ -28,7 +28,7 @@ const c = a is int;
 const dynamic a = 2;
 const c = a is int;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT, 31, 8),
+      error(WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT, 31, 8),
     ]);
   }
 }

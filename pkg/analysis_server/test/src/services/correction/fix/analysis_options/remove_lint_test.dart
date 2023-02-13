@@ -24,7 +24,7 @@ class RemoveLintTest extends AnalysisOptionsFixTest {
 linter:
   rules:
     - camel_case_types
-    - super_goes_last
+    - avoid_returning_null
 ''', '''
 linter:
   rules:
@@ -36,7 +36,7 @@ linter:
     await assertHasFix('''
 linter:
   rules:
-    - super_goes_last
+    - avoid_returning_null
 ''', '''
 ''');
   }
@@ -46,7 +46,7 @@ linter:
 linter:
   rules:
     - camel_case_types
-    - super_goes_last
+    - avoid_returning_null
 section:
   - foo
 ''', '''
@@ -67,7 +67,7 @@ analyzer:
 linter:
   rules:
     - camel_case_types
-    - super_goes_last
+    - avoid_returning_null
 ''', '''
 analyzer:
   exclude:

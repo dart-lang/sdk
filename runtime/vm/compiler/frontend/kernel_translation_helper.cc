@@ -26,7 +26,6 @@ namespace kernel {
 TranslationHelper::TranslationHelper(Thread* thread)
     : thread_(thread),
       zone_(thread->zone()),
-      isolate_(thread->isolate()),
       isolate_group_(thread->isolate_group()),
       allocation_space_(Heap::kNew),
       string_offsets_(TypedData::Handle(Z)),
@@ -42,7 +41,6 @@ TranslationHelper::TranslationHelper(Thread* thread)
 TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
     : thread_(thread),
       zone_(thread->zone()),
-      isolate_(thread->isolate()),
       isolate_group_(thread->isolate_group()),
       allocation_space_(space),
       string_offsets_(TypedData::Handle(Z)),
@@ -1287,7 +1285,7 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      flags_ = helper_->ReadFlags();  // read flags.
+      flags_ = helper_->ReadUInt();  // read flags.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kNameIndex:
@@ -2224,11 +2222,11 @@ void KernelReaderHelper::SkipDartType() {
       }
       return;
     }
-    case kViewType: {
+    case kInlineType: {
       ReadNullability();
       SkipCanonicalNameReference();  // read index for canonical name.
       SkipListOfDartTypes();         // read type arguments
-      SkipDartType();                // read representation type.
+      SkipDartType();                // read instantiated representation type.
       break;
     }
     case kTypedefType:
@@ -2962,7 +2960,7 @@ const String& KernelReaderHelper::GetSourceFor(intptr_t index) {
 
 TypedDataPtr KernelReaderHelper::GetLineStartsFor(intptr_t index) {
   // Line starts are delta encoded. So get the max delta first so that we
-  // can store them as tighly as possible.
+  // can store them as tightly as possible.
   AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());  // skip uri.
@@ -3195,8 +3193,8 @@ void TypeTranslator::BuildTypeInternal() {
     case kIntersectionType:
       BuildIntersectionType();
       break;
-    case kViewType:
-      BuildViewType();
+    case kInlineType:
+      BuildInlineType();
       break;
     default:
       helper_->ReportUnexpectedTag("type", tag);
@@ -3385,11 +3383,13 @@ void TypeTranslator::BuildRecordType() {
   if (named_count != 0) {
     field_names.MakeImmutable();
   }
+  const RecordShape shape =
+      RecordShape::Register(H.thread(), num_fields, field_names);
 
   finalize_ = finalize;
 
-  RecordType& rec = RecordType::Handle(
-      Z, RecordType::New(field_types, field_names, nullability));
+  RecordType& rec =
+      RecordType::Handle(Z, RecordType::New(shape, field_types, nullability));
 
   if (finalize_) {
     rec ^= ClassFinalizer::FinalizeType(rec);
@@ -3507,12 +3507,12 @@ void TypeTranslator::BuildIntersectionType() {
   helper_->SkipDartType();  // read right.
 }
 
-void TypeTranslator::BuildViewType() {
-  // We skip the view type and only use the representation type.
+void TypeTranslator::BuildInlineType() {
+  // We skip the inline type and only use the representation type.
   helper_->ReadNullability();
   helper_->SkipCanonicalNameReference();  // read index for canonical name.
   helper_->SkipListOfDartTypes();         // read type arguments
-  BuildTypeInternal();                    // read representation type.
+  BuildTypeInternal();  // read instantiated representation type.
 }
 
 const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {

@@ -586,6 +586,10 @@ class Assembler : public AssemblerBase {
   void AndImmediate(Register dst, int64_t value) {
     AndImmediate(dst, Immediate(value));
   }
+  void AndImmediate(Register dst, Register src, int64_t value) {
+    MoveRegister(dst, src);
+    AndImmediate(dst, value);
+  }
   void AndRegisters(Register dst,
                     Register src1,
                     Register src2 = kNoRegister) override;
@@ -597,6 +601,7 @@ class Assembler : public AssemblerBase {
   void LslImmediate(Register dst, int32_t shift) {
     shlq(dst, Immediate(shift));
   }
+  void LslRegister(Register dst, Register shift) override;
   void LsrImmediate(Register dst, int32_t shift) override {
     shrq(dst, Immediate(shift));
   }
@@ -659,6 +664,11 @@ class Assembler : public AssemblerBase {
   void MulImmediate(Register reg,
                     const Immediate& imm,
                     OperandSize width = kEightBytes);
+  void MulImmediate(Register reg,
+                    int64_t imm,
+                    OperandSize width = kEightBytes) override {
+    MulImmediate(reg, Immediate(imm), width);
+  }
 
   void shll(Register reg, const Immediate& imm);
   void shll(Register operand, Register shifter);
@@ -777,6 +787,7 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     addq(dest, src);
   }
+  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
                  Register src,
                  ScaleFactor scale,
@@ -1061,10 +1072,18 @@ class Assembler : public AssemblerBase {
 
   void BranchIfSmi(Register reg,
                    Label* label,
-                   JumpDistance distance = kFarJump) {
+                   JumpDistance distance = kFarJump) override {
     testq(reg, Immediate(kSmiTagMask));
     j(ZERO, label, distance);
   }
+
+  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void CompareWords(Register reg1,
+                    Register reg2,
+                    intptr_t offset,
+                    Register count,
+                    Register temp,
+                    Label* equals) override;
 
   void Align(int alignment, intptr_t offset);
   void Bind(Label* label);
@@ -1303,6 +1322,11 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
+
+  void CombineHashes(Register dst, Register other) override;
+  void FinalizeHashForSize(intptr_t bit_size,
+                           Register dst,
+                           Register scratch = TMP) override;
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.

@@ -127,7 +127,7 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
         // at its exit, so this provides a mapping for that location.
         var column = _column - 1;
         if (column >= 0) {
-          // Adjust the colum, because any ending brace or semicolon is already in
+          // Adjust the column, because any ending brace or semicolon is already in
           // the output.
           var jsEnd =
               SourceLocation(buffer.length - 1, line: _line, column: column);

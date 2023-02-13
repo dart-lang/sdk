@@ -103,6 +103,13 @@ abstract class DartDevelopmentService {
   /// Stop accepting requests after gracefully handling existing requests.
   Future<void> shutdown();
 
+  /// Registers an external DevTools server with this instance of
+  /// [DartDevelopmentService] to allow for DDS to redirect DevTools requests
+  /// to the DevTools server.
+  ///
+  /// Throws a [StateError] if DevTools is already being served by DDS.
+  void setExternalDevToolsUri(Uri uri);
+
   /// Set to `true` if this instance of [DartDevelopmentService] requires an
   /// authentication code to connect.
   bool get authCodesEnabled;
@@ -153,7 +160,7 @@ abstract class DartDevelopmentService {
 
   /// The version of the DDS protocol supported by this [DartDevelopmentService]
   /// instance.
-  static const String protocolVersion = '1.3';
+  static const String protocolVersion = '1.4';
 }
 
 class DartDevelopmentServiceException implements Exception {
@@ -169,8 +176,14 @@ class DartDevelopmentServiceException implements Exception {
   /// Set when a connection error has occurred after startup.
   static const int connectionError = 3;
 
-  factory DartDevelopmentServiceException.existingDdsInstance(String message) {
-    return DartDevelopmentServiceException._(existingDdsInstanceError, message);
+  factory DartDevelopmentServiceException.existingDdsInstance(
+    String message, {
+    Uri? ddsUri,
+  }) {
+    return ExistingDartDevelopmentServiceException._(
+      message,
+      ddsUri: ddsUri,
+    );
   }
 
   factory DartDevelopmentServiceException.failedToStart() {
@@ -189,6 +202,24 @@ class DartDevelopmentServiceException implements Exception {
 
   final int errorCode;
   final String message;
+}
+
+class ExistingDartDevelopmentServiceException
+    extends DartDevelopmentServiceException {
+  ExistingDartDevelopmentServiceException._(
+    String message, {
+    this.ddsUri,
+  }) : super._(
+          DartDevelopmentServiceException.existingDdsInstanceError,
+          message,
+        );
+
+  /// The URI of the existing DDS instance, if available.
+  ///
+  /// This URL is the base HTTP URI such as `http://127.0.0.1:1234/AbcDefg=/`,
+  /// not the WebSocket URI (which can be obtained by mapping the scheme to
+  /// `ws` (or `wss`) and appending `ws` to the path segments).
+  final Uri? ddsUri;
 }
 
 class DevToolsConfiguration {

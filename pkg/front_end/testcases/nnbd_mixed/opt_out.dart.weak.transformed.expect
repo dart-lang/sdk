@@ -43,7 +43,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:18:25: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:18:25: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
 // class B extends A<String?> {}
 //                         ^
@@ -51,7 +51,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:20:28: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:20:28: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
 // typedef F = void Function()?;
 //                            ^
@@ -59,7 +59,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:22:12: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:22:12: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
 // List<String?> l = [];
 //            ^
@@ -67,7 +67,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:23:7: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:23:7: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
 // String? s = null;
 //       ^
@@ -75,7 +75,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:28:21: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:28:21: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
 // void method(void f()?, {int a}) {}
 //                     ^
@@ -83,7 +83,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:24:10: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:24:10: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
 // var t = s!;
 //          ^
@@ -91,7 +91,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:32:14: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:32:14: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
 //   List<String?> l = null;
 //              ^
@@ -99,7 +99,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:33:9: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:33:9: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
 //   String? s = null;
 //         ^
@@ -107,7 +107,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:34:12: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:34:12: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
 //   var t = s!;
 //            ^
@@ -125,7 +125,7 @@ library;
 //   c?..f;
 //      ^
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:37:5: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:37:5: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
 //   c?[0];
 //     ^
@@ -142,6 +142,7 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self2::A<self2::A::T*>*
     : super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -150,7 +151,6 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class B extends self2::A<core::String*> {

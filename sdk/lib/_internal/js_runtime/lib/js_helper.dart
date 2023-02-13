@@ -17,6 +17,7 @@ import 'dart:_js_embedded_names'
         IS_HUNK_INITIALIZED,
         LEAF_TAGS,
         NATIVE_SUPERCLASS_TAG_NAME,
+        RECORD_TYPE_TEST_COMBINATORS_PROPERTY,
         RUNTIME_METRICS,
         STARTUP_METRICS,
         STATIC_FUNCTION_NAME_PROPERTY_NAME,
@@ -63,9 +64,11 @@ import 'dart:_rti' as newRti
         createRuntimeType,
         evalInInstance,
         getRuntimeType,
+        getRuntimeTypeOfRecord,
         getTypeFromTypesTable,
         instanceTypeName,
         instantiatedGenericFunctionType,
+        pairwiseIsTest,
         throwTypeError;
 
 import 'dart:_load_library_priority';
@@ -77,6 +80,10 @@ part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'linked_hash_map.dart';
+part 'records.dart';
+
+const JS_FUNCTION_PROPERTY_NAME = r'$dart_jsFunction';
+const JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS = r'_$dart_jsFunctionCaptureThis';
 
 /// Marks the internal map in dart2js, so that internal libraries can is-check
 /// them.
@@ -1010,7 +1017,7 @@ class Primitives {
           }
         }
         if (used != namedArguments.length) {
-          // Named argument with name not accected by function.
+          // Named argument with name not accepted by function.
           return functionNoSuchMethod(function, arguments, namedArguments);
         }
       }
@@ -1122,7 +1129,7 @@ String checkString(value) {
 /// object out of the wrapper again.
 @pragma('dart2js:noInline')
 wrapException(ex) {
-  if (ex == null) ex = new NullThrownError();
+  if (ex == null) ex = new TypeError();
   var wrapper = JS('', 'new Error()');
   // [unwrapException] looks for the property 'dartException'.
   JS('void', '#.dartException = #', wrapper, ex);
@@ -1586,8 +1593,8 @@ class ExceptionAndStackTrace {
 /// Some native exceptions are mapped to new Dart instances, others are
 /// returned unmodified.
 Object unwrapException(Object? ex) {
-  // Dart converts `null` to `NullThrownError()`. JavaScript can still throw a
-  // nullish value.
+  // Null safe Dart can't throw null, and it is now a `TypeError` in unsound
+  // code. JavaScript can still throw a nullish value.
   if (ex == null) {
     return NullThrownFromJavaScriptException(ex);
   }
@@ -2570,11 +2577,6 @@ void checkDeferredIsLoaded(String loadId) {
 /// visible to anyone, and is only injected into special libraries.
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
-class FallThroughErrorImplementation extends FallThroughError {
-  FallThroughErrorImplementation();
-  String toString() => 'Switch case fall-through.';
-}
-
 /// Helper function for implementing asserts. The compiler treats this
 /// specially.
 ///
@@ -2606,7 +2608,26 @@ void assertHelper(condition) {
 /// Called by generated code when a static field's initializer references the
 /// field that is currently being initialized.
 void throwCyclicInit(String staticName) {
-  throw new CyclicInitializationError(staticName);
+  throw new _CyclicInitializationError(staticName);
+}
+
+/// Error thrown when a lazily initialized variable cannot be initialized.
+///
+/// Cyclic dependencies are no longer detected at runtime in null safe code.
+/// Such code will fail in other ways instead,
+/// possibly with a [StackOverflowError].
+///
+/// Will be removed when support for non-null-safe code is discontinued.
+@Deprecated("Remove when no longer supporting non-null-safe code.")
+class _CyclicInitializationError extends Error {
+  final String? variableName;
+  _CyclicInitializationError([this.variableName]);
+  String toString() {
+    var variableName = this.variableName;
+    return variableName == null
+        ? "Reading static variable during its initialization"
+        : "Reading static variable '$variableName' during its initialization";
+  }
 }
 
 /// Error thrown when a runtime error occurs.
@@ -2679,13 +2700,11 @@ DeferredLoadCallback? deferredLoadHook;
 ///   - `0` for `LoadLibraryPriority.normal`
 ///   - `1` for `LoadLibraryPriority.high`
 Future<Null> loadDeferredLibrary(String loadId, int priority) {
-  // Convert [priority] to the enum value as form of validation:
-  final unusedPriorityEnum = LoadLibraryPriority.values[priority];
-  // The enum's values may be checked via the `index`:
-  assert(priority == LoadLibraryPriority.normal.index ||
-      priority == LoadLibraryPriority.high.index);
-
-  // TODO(sra): Implement prioritization.
+  // Validate the priority using the index to allow the actual enum to get
+  // tree-shaken.
+  if (priority < 0 || priority >= LoadLibraryPriority.values.length) {
+    throw DeferredLoadException('Invalid library priority: $priority');
+  }
 
   // For each loadId there is a list of parts to load. The parts are represented
   // by an index. There are two arrays, one that maps the index into a Uri and
@@ -2749,7 +2768,7 @@ Future<Null> loadDeferredLibrary(String loadId, int priority) {
       waitingForLoad[i] = false;
       return new Future.value();
     }
-    return _loadHunk(uris[i], loadId).then((Null _) {
+    return _loadHunk(uris[i], loadId, priority).then((Null _) {
       waitingForLoad[i] = false;
       initializeSomeLoadedHunks();
     });
@@ -2905,7 +2924,7 @@ String _computeThisScriptFromTrace() {
   throw new UnsupportedError('Cannot extract URI from "$stack"');
 }
 
-Future<Null> _loadHunk(String hunkName, String loadId) {
+Future<Null> _loadHunk(String hunkName, String loadId, int priority) {
   var future = _loadingLibraries[hunkName];
   _eventLog.add(' - _loadHunk: $hunkName');
   if (future != null) {
@@ -2949,8 +2968,8 @@ Future<Null> _loadHunk(String hunkName, String loadId) {
     try {
       // Share the loadId that hunk belongs to, this will allow for any
       // additional loadId based bundling optimizations.
-      JS('void', '#(#, #, #, #)', deferredLibraryLoader, uriAsString, jsSuccess,
-          jsFailure, loadId);
+      JS('void', '#(#, #, #, #, #)', deferredLibraryLoader, uriAsString,
+          jsSuccess, jsFailure, loadId, priority);
     } catch (error, stackTrace) {
       failure(error, "invoking dartDeferredLibraryLoader hook", stackTrace);
     }
@@ -2997,6 +3016,9 @@ Future<Null> _loadHunk(String hunkName, String loadId) {
     }
     if (_crossOrigin != null && _crossOrigin != '') {
       JS('', '#.crossOrigin = #', script, _crossOrigin);
+    }
+    if (priority == LoadLibraryPriority.high.index) {
+      JS('', '#.fetchPriority = "high"', script);
     }
     JS('', '#.addEventListener("load", #, false)', script, jsSuccess);
     JS('', '#.addEventListener("error", #, false)', script, jsFailure);

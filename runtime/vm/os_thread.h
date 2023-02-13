@@ -106,13 +106,6 @@ class OSThread : public BaseThread {
 
   void SetName(const char* name);
 
-  void set_name(const char* name) {
-    ASSERT(OSThread::Current() == this);
-    ASSERT(name_ == NULL);
-    ASSERT(name != NULL);
-    name_ = Utils::StrDup(name);
-  }
-
   Mutex* timeline_block_lock() const { return &timeline_block_lock_; }
 
   // Only safe to access when holding |timeline_block_lock_|.
@@ -199,7 +192,7 @@ class OSThread : public BaseThread {
   typedef void (*ThreadDestructor)(void* parameter);
 
   // Start a thread running the specified function. Returns 0 if the
-  // thread started successfuly and a system specific error code if
+  // thread started successfully and a system specific error code if
   // the thread failed to start.
   static int Start(const char* name,
                    ThreadStartFunction function,
@@ -219,7 +212,7 @@ class OSThread : public BaseThread {
   static bool Compare(ThreadId a, ThreadId b);
 
   // This function can be called only once per OSThread, and should only be
-  // called when the retunred id will eventually be passed to OSThread::Join().
+  // called when the returned id will eventually be passed to OSThread::Join().
   static ThreadJoinId GetCurrentThreadJoinId(OSThread* thread);
 
   // Called at VM startup and shutdown.
@@ -254,6 +247,11 @@ class OSThread : public BaseThread {
 #ifdef SUPPORT_TIMELINE
   static ThreadId GetCurrentThreadTraceId();
 #endif  // SUPPORT_TIMELINE
+
+  // Retrieves the name given to the current thread at the OS level and returns
+  // it as a heap-allocated string that must eventually be freed by the caller
+  // using free. Returns |nullptr| when the name cannot be retrieved.
+  static char* GetCurrentThreadName();
   static OSThread* GetOSThreadFromThread(ThreadState* thread);
   static void AddThreadToListLocked(OSThread* thread);
   static void RemoveThreadFromList(OSThread* thread);

@@ -62,7 +62,7 @@ See [How to test Fasta](TESTING.md)
 ./sdk/bin/dart pkg/compiler/lib/src/dart2js.dart.dill pkg/front_end/test/fasta/hello.dart
 ```
 
-The output of dart2js will be `out.js`, and it can be run on any Javascript engine, for example, d8 which is included with the Dart SDK sources:
+The output of dart2js will be `out.js`, and it can be run on any JavaScript engine, for example, d8 which is included with the Dart SDK sources:
 
 ```
 ./third_party/d8/<OS>/d8 out.js

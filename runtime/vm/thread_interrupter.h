@@ -93,7 +93,7 @@ class ThreadInterrupter : public AllStatic {
   static intptr_t interrupt_period_;
   static intptr_t current_wait_time_;
 
-  // Something like a reader-writer lock. Positive values indictate there are
+  // Something like a reader-writer lock. Positive values indicate there are
   // outstanding signal handlers that can write to the sample buffer. Negative
   // values indicate there are outstanding sample buffer processors that can
   // read from the sample buffer. A reader will spin-wait to enter the lock. A

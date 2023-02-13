@@ -94,7 +94,7 @@ FOR_EACH_SECTION_TYPE(DECLARE_SECTION_TYPE_CLASS)
 class BitsContainer;
 class Segment;
 
-// Align note sections and segments to 4 byte boundries.
+// Align note sections and segments to 4 byte boundaries.
 static constexpr intptr_t kNoteAlignment = 4;
 
 class Section : public ZoneAllocated {
@@ -1565,7 +1565,7 @@ ProgramTable* SectionTable::CreateProgramTable(SymbolTable* symtab) {
   //     table to initialize that segment.
   //
   //   - The Android dynamic linker in Jelly Bean incorrectly assumes that all
-  //     non-writable segments are continguous. Thus we write them all together.
+  //     non-writable segments are contiguous. Thus we write them all together.
   //     The bug is here: https://github.com/aosp-mirror/platform_bionic/blob/94963af28e445384e19775a838a29e6a71708179/linker/linker.c#L1991-L2001
   //
   //   - On Android native libraries can be mapped directly from an APK

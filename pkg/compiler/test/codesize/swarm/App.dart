@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of swarmlib;
 
 /// The base class that should be extended by all HTML applications.
@@ -49,7 +47,8 @@ class App {
     // Swap and reload the cache if ready
     if (!swapAndReloadCache()) {
       // Otherwise wait until an update to the cache is ready
-      window.applicationCache.onUpdateReady.listen((e) => swapAndReloadCache());
+      window.applicationCache!.onUpdateReady
+          .listen((e) => swapAndReloadCache());
     }
   }
 
@@ -68,13 +67,13 @@ class App {
   /// Swaps and reloads the app cache if an update is ready. Returns false if
   /// an update is not ready.
   bool swapAndReloadCache() {
-    ApplicationCache appCache = window.applicationCache;
+    ApplicationCache appCache = window.applicationCache!;
     if (!identical(appCache.status, ApplicationCache.UPDATEREADY)) {
       return false;
     }
 
     print('App cache update ready, now swapping...');
-    window.applicationCache.swapCache();
+    window.applicationCache!.swapCache();
     print('App cache swapped, now reloading page...');
     window.location.reload();
     return true;

@@ -9,6 +9,7 @@ analyzer:
   exclude:
     - test/constants/data/**
     - test/constants/data_2/**
+    - test/exhaustiveness/data/**
     - test/flow_analysis/assigned_variables/data/**
     - test/flow_analysis/definite_assignment/data/**
     - test/flow_analysis/definite_unassignment/data/**

@@ -222,7 +222,7 @@ abstract class File implements FileSystemEntity {
   /// non-existing parent paths are created first.
   ///
   /// If [exclusive] is `true` and to-be-created file already exists, this
-  /// operation completes the future with a [FileSystemException].
+  /// operation completes the future with a [PathExistsException].
   ///
   /// If [exclusive] is `false`, existing files are left untouched by [create].
   /// Calling [create] on an existing file still might fail if there are
@@ -640,7 +640,7 @@ abstract class RandomAccessFile {
 
   /// Synchronously reads into an existing [buffer].
   ///
-  /// Reads bytes and writes then into the range of [buffer]
+  /// Reads bytes and writes them into the range of [buffer]
   /// from [start] to [end].
   /// The [start] must be non-negative and no greater than [buffer].length.
   /// If [end] is omitted, it defaults to [buffer].length.
@@ -900,9 +900,21 @@ class FileSystemException implements IOException {
   /// will be returned.
   @pragma("vm:entry-point")
   factory FileSystemException._fromOSError(
-      OSError err, String message, String? path) {
+      OSError err, String message, String path) {
     if (Platform.isWindows) {
       switch (err.errorCode) {
+        case _errorAccessDenied:
+        case _errorCurrentDirectory:
+        case _errorWriteProtect:
+        case _errorBadLength:
+        case _errorSharingViolation:
+        case _errorLockViolation:
+        case _errorNetworkAccessDenied:
+        case _errorDriveLocked:
+          return PathAccessException(path, err, message);
+        case _errorFileExists:
+        case _errorAlreadyExists:
+          return PathExistsException(path, err, message);
         case _errorFileNotFound:
         case _errorPathNotFound:
         case _errorInvalidDrive:
@@ -911,14 +923,19 @@ class FileSystemException implements IOException {
         case _errorBadNetName:
         case _errorBadPathName:
         case _errorFilenameExedRange:
-          return PathNotFoundException(path!, err, message);
+          return PathNotFoundException(path, err, message);
         default:
           return FileSystemException(message, path, err);
       }
     } else {
       switch (err.errorCode) {
+        case _ePerm:
+        case _eAccess:
+          return PathAccessException(path, err, message);
+        case _eExist:
+          return PathExistsException(path, err, message);
         case _eNoEnt:
-          return PathNotFoundException(path!, err, message);
+          return PathNotFoundException(path, err, message);
         default:
           return FileSystemException(message, path, err);
       }
@@ -952,6 +969,24 @@ class FileSystemException implements IOException {
   }
 }
 
+/// Exception thrown when a file operation fails because the necessary access
+/// rights are not available.
+class PathAccessException extends FileSystemException {
+  const PathAccessException(String path, OSError osError, [String message = ""])
+      : super(message, path, osError);
+
+  String toString() => _toStringHelper("PathAccessException");
+}
+
+/// Exception thrown when a file operation fails because the target path
+/// already exists.
+class PathExistsException extends FileSystemException {
+  const PathExistsException(String path, OSError osError, [String message = ""])
+      : super(message, path, osError);
+
+  String toString() => _toStringHelper("PathExistsException");
+}
+
 /// Exception thrown when a file operation fails because a file or
 /// directory does not exist.
 class PathNotFoundException extends FileSystemException {
@@ -959,9 +994,7 @@ class PathNotFoundException extends FileSystemException {
       [String message = ""])
       : super(message, path, osError);
 
-  String toString() {
-    return _toStringHelper("PathNotFoundException");
-  }
+  String toString() => _toStringHelper("PathNotFoundException");
 }
 
 /// The "read" end of an [Pipe] created by [Pipe.create].

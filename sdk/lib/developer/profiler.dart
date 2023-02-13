@@ -10,11 +10,6 @@ abstract class UserTag {
   /// The maximum number of UserTag instances that can be created by a program.
   static const maxUserTags = 64;
 
-  @Deprecated("Use 'maxUserTags' instead. Will be removed in Dart 3.0.")
-  // TODO(bkonyi): We shouldn't be using SCREAMING_CAPS for constants, so this
-  // should be removed for Dart 3.0.
-  static const MAX_USER_TAGS = maxUserTags;
-
   external factory UserTag(String label);
 
   /// Label of [this].

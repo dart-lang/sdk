@@ -148,7 +148,7 @@ abstract class _HashVMImmutableBase extends _HashVMBase
 }
 
 // This mixin can be applied to _HashFieldBase or _HashVMBase (for
-// normal and VM-internalized classes, respectiveley), which provide the
+// normal and VM-internalized classes, respectively), which provide the
 // actual fields/accessors that this mixin assumes.
 mixin _HashBase on _HashAbstractBase {
   // The number of bits used for each component is determined by table size.
@@ -666,9 +666,6 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   V? operator [](Object? o) => _validKey(o) ? super[o] : null;
   V? remove(Object? o) => _validKey(o) ? super.remove(o) : null;
 
-  @pragma("wasm:entry-point")
-  void operator []=(K key, V value);
-
   _CompactLinkedCustomHashMap(
       this._equality, this._hasher, bool Function(Object?)? validKey)
       : _validKey = validKey ?? _TypeTest<K>().test;
@@ -1105,9 +1102,6 @@ class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
   bool contains(Object? o) => _validKey(o) ? super.contains(o) : false;
   E? lookup(Object? o) => _validKey(o) ? super.lookup(o) : null;
   bool remove(Object? o) => _validKey(o) ? super.remove(o) : false;
-
-  @pragma("wasm:entry-point")
-  bool add(E key);
 
   _CompactLinkedCustomHashSet(
       this._equality, this._hasher, bool Function(Object?)? validKey)

@@ -910,12 +910,27 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
 }
 
 void FlowGraph::ComputeSSA(
-    intptr_t next_virtual_register_number,
     ZoneGrowableArray<Definition*>* inlining_parameters) {
-  ASSERT((next_virtual_register_number == 0) || (inlining_parameters != NULL));
-  current_ssa_temp_index_ = next_virtual_register_number;
   GrowableArray<BitVector*> dominance_frontier;
   GrowableArray<intptr_t> idom;
+
+#ifdef DEBUG
+  if (inlining_parameters != nullptr) {
+    for (intptr_t i = 0, n = inlining_parameters->length(); i < n; ++i) {
+      Definition* defn = (*inlining_parameters)[i];
+      if (defn->IsConstant()) {
+        ASSERT(defn->previous() == graph_entry_);
+        ASSERT(defn->HasSSATemp());
+        ASSERT(defn->ssa_temp_index() < current_ssa_temp_index());
+      } else {
+        ASSERT(defn->previous() == nullptr);
+        ASSERT(!defn->HasSSATemp());
+      }
+    }
+  } else {
+    ASSERT(current_ssa_temp_index() == 0);
+  }
+#endif
 
   ComputeDominators(&dominance_frontier);
 
@@ -1113,7 +1128,7 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
 
 void FlowGraph::CreateCommonConstants() {
   constant_null_ = GetConstant(Object::ZoneHandle());
-  constant_dead_ = GetConstant(Symbols::OptimizedOut());
+  constant_dead_ = GetConstant(Object::optimized_out());
 }
 
 void FlowGraph::AddSyntheticPhis(BlockEntryInstr* block) {
@@ -1643,7 +1658,7 @@ void FlowGraph::ValidatePhis() {
           if (phi == nullptr && !IsImmortalVariable(j)) {
             // We have no phi node for the this variable.
             // Double check we do not have a different value in our env.
-            // If we do, we would have needed a phi-node in the successsor.
+            // If we do, we would have needed a phi-node in the successor.
             ASSERT(last_instruction->env() != nullptr);
             Definition* current_definition =
                 last_instruction->env()->ValueAt(j)->definition();
@@ -2000,18 +2015,14 @@ void FlowGraph::InsertRecordBoxing(Definition* def) {
   ASSERT(target != nullptr && !target->IsNull());
   const auto& type = AbstractType::Handle(Z, target->result_type());
   ASSERT(type.IsRecordType());
-  const auto& field_names =
-      Array::Handle(Z, RecordType::Cast(type).field_names());
-  Value* field_names_value = (field_names.Length() != 0)
-                                 ? new (Z) Value(GetConstant(field_names))
-                                 : nullptr;
+  const RecordShape shape = RecordType::Cast(type).shape();
   auto* x = new (Z)
       ExtractNthOutputInstr(new (Z) Value(def), 0, kTagged, kDynamicCid);
   auto* y = new (Z)
       ExtractNthOutputInstr(new (Z) Value(def), 1, kTagged, kDynamicCid);
-  auto* alloc = new (Z) AllocateSmallRecordInstr(
-      InstructionSource(), 2, field_names_value, new (Z) Value(x),
-      new (Z) Value(y), nullptr, def->deopt_id());
+  auto* alloc = new (Z)
+      AllocateSmallRecordInstr(InstructionSource(), shape, new (Z) Value(x),
+                               new (Z) Value(y), nullptr, def->deopt_id());
   def->ReplaceUsesWith(alloc);
   // Uses of 'def' in 'x' and 'y' should not be replaced as 'x' and 'y'
   // are not added to the flow graph yet.
@@ -2053,7 +2064,16 @@ class PhiUnboxingHeuristic : public ValueObject {
     switch (phi->Type()->ToCid()) {
       case kDoubleCid:
         if (CanUnboxDouble()) {
-          unboxed = kUnboxedDouble;
+          // Could be UnboxedDouble or UnboxedFloat
+          unboxed = DetermineIfAnyIncomingUnboxedFloats(phi) ? kUnboxedFloat
+                                                             : kUnboxedDouble;
+#if defined(DEBUG)
+          if (unboxed == kUnboxedFloat) {
+            for (auto input : phi->inputs()) {
+              ASSERT(input->representation() != kUnboxedDouble);
+            }
+          }
+#endif
         }
         break;
       case kFloat32x4Cid:
@@ -2117,10 +2137,10 @@ class PhiUnboxingHeuristic : public ValueObject {
       // unboxed operation prefer to keep it unboxed.
       // We use this heuristic instead of eagerly unboxing all the phis
       // because we are concerned about the code size and register pressure.
-      const bool has_unboxed_incomming_value = HasUnboxedIncommingValue(phi);
+      const bool has_unboxed_incoming_value = HasUnboxedIncomingValue(phi);
       const bool flows_into_unboxed_use = FlowsIntoUnboxedUse(phi);
 
-      if (has_unboxed_incomming_value && flows_into_unboxed_use) {
+      if (has_unboxed_incoming_value && flows_into_unboxed_use) {
         unboxed =
             RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
                 ? kUnboxedInt32
@@ -2133,10 +2153,30 @@ class PhiUnboxingHeuristic : public ValueObject {
   }
 
  private:
+  // Returns [true] if there are UnboxedFloats representation flowing into
+  // the |phi|.
+  // This function looks through phis.
+  bool DetermineIfAnyIncomingUnboxedFloats(PhiInstr* phi) {
+    worklist_.Clear();
+    worklist_.Add(phi);
+    for (intptr_t i = 0; i < worklist_.definitions().length(); i++) {
+      const auto defn = worklist_.definitions()[i];
+      for (auto input : defn->inputs()) {
+        if (input->representation() == kUnboxedFloat) {
+          return true;
+        }
+        if (input->IsPhi()) {
+          worklist_.Add(input);
+        }
+      }
+    }
+    return false;
+  }
+
   // Returns |true| iff there is an unboxed definition among all potential
   // definitions that can flow into the |phi|.
   // This function looks through phis.
-  bool HasUnboxedIncommingValue(PhiInstr* phi) {
+  bool HasUnboxedIncomingValue(PhiInstr* phi) {
     worklist_.Clear();
     worklist_.Add(phi);
     for (intptr_t i = 0; i < worklist_.definitions().length(); i++) {
@@ -2489,9 +2529,10 @@ bool FlowGraph::Canonicalize() {
     if (auto join = block->AsJoinEntry()) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
         PhiInstr* current = it.Current();
-        if (current->HasUnmatchedInputRepresentations()) {
+        if (current->HasUnmatchedInputRepresentations() &&
+            (current->SpeculativeModeOfInputs() == Instruction::kGuardInputs)) {
           // Can't canonicalize this instruction until all conversions for its
-          // inputs are inserted.
+          // speculative inputs are inserted.
           continue;
         }
 
@@ -2508,9 +2549,10 @@ bool FlowGraph::Canonicalize() {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (current->HasUnmatchedInputRepresentations()) {
+      if (current->HasUnmatchedInputRepresentations() &&
+          (current->SpeculativeModeOfInputs() == Instruction::kGuardInputs)) {
         // Can't canonicalize this instruction until all conversions for its
-        // inputs are inserted.
+        // speculative inputs are inserted.
         continue;
       }
 
@@ -2519,7 +2561,19 @@ bool FlowGraph::Canonicalize() {
       if (replacement != current) {
         // For non-definitions Canonicalize should return either NULL or
         // this.
-        ASSERT((replacement == NULL) || current->IsDefinition());
+        if (replacement != nullptr) {
+          ASSERT(current->IsDefinition());
+          if (!unmatched_representations_allowed()) {
+            RELEASE_ASSERT(!replacement->HasUnmatchedInputRepresentations());
+            if ((replacement->representation() != current->representation()) &&
+                current->AsDefinition()->HasUses()) {
+              // Can't canonicalize this instruction as unmatched
+              // representations are not allowed at this point, but
+              // replacement has a different representation.
+              continue;
+            }
+          }
+        }
         ReplaceCurrentInstruction(&it, current, replacement);
         changed = true;
       }

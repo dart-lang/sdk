@@ -530,10 +530,6 @@ throwRuntimeError(message) {
   throw RuntimeError(message);
 }
 
-throwAbstractClassInstantiationError(className) {
-  throw AbstractClassInstantiationError(className);
-}
-
 throwConcurrentModificationError(collection) {
   throw ConcurrentModificationError(collection);
 }
@@ -590,12 +586,6 @@ bool jsHasOwnProperty(jsObject, String property) {
 jsPropertyAccess(jsObject, String property) {
   return JS('var', r'#[#]', jsObject, property);
 }
-
-/**
- * Called at the end of unaborted switch cases to get the singleton
- * FallThroughError exception that will be thrown.
- */
-getFallThroughError() => FallThroughErrorImplementation();
 
 /**
  * A metadata annotation describing the types instantiated by a native element.
@@ -689,16 +679,12 @@ class JSName {
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
 /// Thrown by type assertions that fail.
-class TypeErrorImpl extends Error implements TypeError, CastError {
+class TypeErrorImpl extends Error implements TypeError {
   final String _message;
 
   TypeErrorImpl(this._message);
 
   String toString() => _message;
-}
-
-class FallThroughErrorImplementation extends FallThroughError {
-  String toString() => "Switch case fall-through.";
 }
 
 /**
@@ -833,4 +819,9 @@ void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
   if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
   return Zone.current.bindUnaryCallbackGuarded(callback);
+}
+
+/// [createRecordTypePredicate] is currently unused by DDC.
+Object? createRecordTypePredicate(Object? partialShapeTag, Object? fieldRtis) {
+  throw UnimplementedError('createRecordTypePredicate');
 }

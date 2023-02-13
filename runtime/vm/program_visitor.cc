@@ -291,10 +291,10 @@ void ProgramVisitor::WalkProgram(Zone* zone,
 // being stored, whereas S is a trait appropriate for a DirectChainedHashMap
 // based set containing those canonical objects.
 template <typename T, typename S>
-class Dedupper : public ValueObject {
+class Deduper : public ValueObject {
  public:
-  explicit Dedupper(Zone* zone) : zone_(zone), canonical_objects_(zone) {}
-  virtual ~Dedupper() {}
+  explicit Deduper(Zone* zone) : zone_(zone), canonical_objects_(zone) {}
+  virtual ~Deduper() {}
 
  protected:
   // Predicate for objects of type T. Must be overridden for class hierarchies
@@ -642,12 +642,12 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Thread* thread) {
   // references to the _old_ global table in the object store, if any.
   class NormalizeAndDedupCompressedStackMapsVisitor
       : public CodeVisitor,
-        public Dedupper<CompressedStackMaps,
+        public Deduper<CompressedStackMaps,
                         PointerSetKeyValueTrait<const CompressedStackMaps>> {
    public:
     NormalizeAndDedupCompressedStackMapsVisitor(Zone* zone,
                                                 IsolateGroup* isolate_group)
-        : Dedupper(zone),
+        : Deduper(zone),
           old_global_table_(CompressedStackMaps::Handle(
               zone,
               isolate_group->object_store()
@@ -749,10 +749,10 @@ class PcDescriptorsKeyValueTrait {
 void ProgramVisitor::DedupPcDescriptors(Thread* thread) {
   class DedupPcDescriptorsVisitor
       : public CodeVisitor,
-        public Dedupper<PcDescriptors, PcDescriptorsKeyValueTrait> {
+        public Deduper<PcDescriptors, PcDescriptorsKeyValueTrait> {
    public:
     explicit DedupPcDescriptorsVisitor(Zone* zone)
-        : Dedupper(zone), pc_descriptor_(PcDescriptors::Handle(zone)) {
+        : Deduper(zone), pc_descriptor_(PcDescriptors::Handle(zone)) {
       if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
         // Prefer existing objects in the VM isolate.
         AddVMBaseObjects();
@@ -792,9 +792,9 @@ class TypedDataKeyValueTrait {
   }
 };
 
-class TypedDataDedupper : public Dedupper<TypedData, TypedDataKeyValueTrait> {
+class TypedDataDeduper : public Deduper<TypedData, TypedDataKeyValueTrait> {
  public:
-  explicit TypedDataDedupper(Zone* zone) : Dedupper(zone) {}
+  explicit TypedDataDeduper(Zone* zone) : Deduper(zone) {}
 
  private:
   bool IsCorrectType(const Object& obj) const { return obj.IsTypedData(); }
@@ -802,10 +802,10 @@ class TypedDataDedupper : public Dedupper<TypedData, TypedDataKeyValueTrait> {
 
 void ProgramVisitor::DedupDeoptEntries(Thread* thread) {
   class DedupDeoptEntriesVisitor : public CodeVisitor,
-                                   public TypedDataDedupper {
+                                   public TypedDataDeduper {
    public:
     explicit DedupDeoptEntriesVisitor(Zone* zone)
-        : TypedDataDedupper(zone),
+        : TypedDataDeduper(zone),
           deopt_table_(Array::Handle(zone)),
           deopt_entry_(TypedData::Handle(zone)),
           offset_(Smi::Handle(zone)),
@@ -843,10 +843,10 @@ void ProgramVisitor::DedupDeoptEntries(Thread* thread) {
 #if defined(DART_PRECOMPILER)
 void ProgramVisitor::DedupCatchEntryMovesMaps(Thread* thread) {
   class DedupCatchEntryMovesMapsVisitor : public CodeVisitor,
-                                          public TypedDataDedupper {
+                                          public TypedDataDeduper {
    public:
     explicit DedupCatchEntryMovesMapsVisitor(Zone* zone)
-        : TypedDataDedupper(zone),
+        : TypedDataDeduper(zone),
           catch_entry_moves_maps_(TypedData::Handle(zone)) {}
 
     void VisitCode(const Code& code) {
@@ -887,10 +887,10 @@ class UnlinkedCallKeyValueTrait {
 void ProgramVisitor::DedupUnlinkedCalls(Thread* thread) {
   class DedupUnlinkedCallsVisitor
       : public CodeVisitor,
-        public Dedupper<UnlinkedCall, UnlinkedCallKeyValueTrait> {
+        public Deduper<UnlinkedCall, UnlinkedCallKeyValueTrait> {
    public:
     explicit DedupUnlinkedCallsVisitor(Zone* zone, IsolateGroup* isolate_group)
-        : Dedupper(zone),
+        : Deduper(zone),
           entry_(Object::Handle(zone)),
           pool_(ObjectPool::Handle(zone)) {
       auto& gop = ObjectPool::Handle(
@@ -1028,10 +1028,10 @@ class CodeSourceMapKeyValueTrait {
 void ProgramVisitor::DedupCodeSourceMaps(Thread* thread) {
   class DedupCodeSourceMapsVisitor
       : public CodeVisitor,
-        public Dedupper<CodeSourceMap, CodeSourceMapKeyValueTrait> {
+        public Deduper<CodeSourceMap, CodeSourceMapKeyValueTrait> {
    public:
     explicit DedupCodeSourceMapsVisitor(Zone* zone)
-        : Dedupper(zone), code_source_map_(CodeSourceMap::Handle(zone)) {
+        : Deduper(zone), code_source_map_(CodeSourceMap::Handle(zone)) {
       if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
         // Prefer existing objects in the VM isolate.
         AddVMBaseObjects();
@@ -1088,10 +1088,10 @@ class ArrayKeyValueTrait {
 
 void ProgramVisitor::DedupLists(Thread* thread) {
   class DedupListsVisitor : public CodeVisitor,
-                            public Dedupper<Array, ArrayKeyValueTrait> {
+                            public Deduper<Array, ArrayKeyValueTrait> {
    public:
     explicit DedupListsVisitor(Zone* zone)
-        : Dedupper(zone),
+        : Deduper(zone),
           list_(Array::Handle(zone)),
           field_(Field::Handle(zone)) {}
 
@@ -1112,7 +1112,7 @@ void ProgramVisitor::DedupLists(Thread* thread) {
     }
 
     void VisitFunction(const Function& function) {
-      // Don't bother dedupping the positional names in precompiled mode, as
+      // Don't bother deduping the positional names in precompiled mode, as
       // they'll be dropped anyway.
       if (!FLAG_precompiled_mode) {
         list_ = function.positional_parameter_names();
@@ -1229,11 +1229,11 @@ class CodeKeyValueTrait {
 void ProgramVisitor::DedupInstructions(Thread* thread) {
   class DedupInstructionsVisitor
       : public CodeVisitor,
-        public Dedupper<Instructions, InstructionsKeyValueTrait>,
+        public Deduper<Instructions, InstructionsKeyValueTrait>,
         public ObjectVisitor {
    public:
     explicit DedupInstructionsVisitor(Zone* zone)
-        : Dedupper(zone),
+        : Deduper(zone),
           code_(Code::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {
       if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
@@ -1278,10 +1278,10 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
 #if defined(DART_PRECOMPILER)
   class DedupInstructionsWithSameMetadataVisitor
       : public CodeVisitor,
-        public Dedupper<Code, CodeKeyValueTrait> {
+        public Deduper<Code, CodeKeyValueTrait> {
    public:
     explicit DedupInstructionsWithSameMetadataVisitor(Zone* zone)
-        : Dedupper(zone),
+        : Deduper(zone),
           canonical_(Code::Handle(zone)),
           code_(Code::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {}

@@ -13,7 +13,7 @@ class B {}
 
 class ListTest {
   static void TestIterator() {
-    List<int> a = new List<int>(10);
+    List<int> a = new List<int>.filled(10, null);
     int count = 0;
 
     // Basic iteration over ObjectList.
@@ -24,7 +24,7 @@ class ListTest {
     Expect.equals(10, count);
 
     // List length is 0.
-    List<int> fa = new List<int>();
+    List<int> fa = <int>[];
     count = 0;
     for (int elem in fa) {
       count++;
@@ -49,18 +49,18 @@ class ListTest {
   }
 
   static void testSublistTypeArguments() {
-    final list1 = new List<A>(0).sublist(0);
+    final list1 = new List<A>.filled(0, null).sublist(0);
     Expect.isTrue(list1 is List<A>);
     Expect.isTrue(list1 is! List<B>);
 
-    final list2 = new List<A>(0).toList(growable: false);
+    final list2 = new List<A>.filled(0, null).toList(growable: false);
     Expect.isTrue(list2 is List<A>);
     Expect.isTrue(list2 is! List<B>);
   }
 
   static void testMain() {
     int len = 10;
-    List a = new List(len);
+    List a = new List.filled(len, null);
     Expect.equals(true, a is List);
     Expect.equals(len, a.length);
     a.forEach((element) {
@@ -71,22 +71,22 @@ class ListTest {
     Expect.throwsRangeError(() => a[len]);
 
     Expect.throws(() {
-      List a = new List(4);
+      List a = new List.filled(4, null);
       a.setRange(1, 2, a, null);
     });
 
     Expect.throws(() {
-      List a = new List(4);
+      List a = new List.filled(4, null);
       a.setRange(1, 2, const [1, 2, 3, 4], null);
     });
 
     Expect.throwsRangeError(() {
-      List a = new List(4);
+      List a = new List.filled(4, null);
       a.setRange(10, 11, a, 1);
     });
 
-    a = new List(4);
-    List b = new List(4);
+    a = new List.filled(4, null);
+    List b = new List.filled(4, null);
     b.setRange(0, 4, a, 0);
 
     List<int> unsorted = [4, 3, 9, 12, -4, 9];
@@ -119,10 +119,10 @@ class ListTest {
     int element = unsorted[2];
     Expect.equals(9, element);
 
-    Expect.throws(() => new List(-1));
-    Expect.throws(() => new List(0x7ffffffffffff000));
+    Expect.throws(() => new List.filled(-1, null));
+    Expect.throws(() => new List.filled(0x7ffffffffffff000, null));
 
-    List list = new List();
+    List list = [];
     Expect.throwsRangeError(list.removeLast);
     Expect.equals(0, list.length);
   }

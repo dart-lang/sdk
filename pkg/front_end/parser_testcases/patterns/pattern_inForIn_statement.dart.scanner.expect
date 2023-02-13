@@ -1,0 +1,9 @@
+void f(x) {
+for (var (a, b) in x) {}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] ([BeginToken]a[StringToken],[SimpleToken] b[StringToken])[SimpleToken] in[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

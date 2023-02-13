@@ -73,8 +73,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  TreeNode visitView(View node) {
-    throw 'Cloning of views is not implemented';
+  TreeNode visitInlineClass(InlineClass node) {
+    throw 'Cloning of inline classes is not implemented';
   }
 
   @override

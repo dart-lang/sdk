@@ -19,6 +19,6 @@ void set setter(int arg) {
   a = 10;
 }
 
-var list = new List<int>();
+var list = <int>[];
 
 var closure = (int arg) => 3;

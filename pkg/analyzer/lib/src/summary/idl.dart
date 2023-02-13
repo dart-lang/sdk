@@ -147,6 +147,11 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   factory AnalysisDriverUnitIndex.fromBuffer(List<int> buffer) =>
       generated.readAnalysisDriverUnitIndex(buffer);
 
+  /// Each item of this list corresponds to a unique referenced element. It is
+  /// a list of the prefixes associated with references to the element.
+  @Id(20)
+  List<String> get elementImportPrefixes;
+
   /// Each item of this list corresponds to a unique referenced element.  It is
   /// the kind of the synthetic element.
   @Id(4)

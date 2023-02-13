@@ -128,7 +128,26 @@
 #define ASSEMBLER_TEST_RUN(name, test)                                         \
   ASSEMBLER_TEST_RUN_WITH_EXPECTATION(name, test, "Pass")
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+// We don't have simulators for these architectures, but define the macros so
+// they can be used in architecture-independent tests.
+#define EXECUTE_TEST_CODE_INT32(name, entry) reinterpret_cast<name>(entry)()
+#define EXECUTE_TEST_CODE_INT64(name, entry) reinterpret_cast<name>(entry)()
+#define EXECUTE_TEST_CODE_INT64_LL(name, entry, long_arg0, long_arg1)          \
+  reinterpret_cast<name>(entry)(long_arg0, long_arg1)
+#define EXECUTE_TEST_CODE_FLOAT(name, entry) reinterpret_cast<name>(entry)()
+#define EXECUTE_TEST_CODE_DOUBLE(name, entry) reinterpret_cast<name>(entry)()
+#define EXECUTE_TEST_CODE_INT32_F(name, entry, float_arg)                      \
+  reinterpret_cast<name>(entry)(float_arg)
+#define EXECUTE_TEST_CODE_INT32_D(name, entry, double_arg)                     \
+  reinterpret_cast<name>(entry)(double_arg)
+#define EXECUTE_TEST_CODE_INTPTR_INTPTR(name, entry, pointer_arg)              \
+  reinterpret_cast<name>(entry)(pointer_arg)
+#define EXECUTE_TEST_CODE_INT32_INTPTR(name, entry, pointer_arg)               \
+  reinterpret_cast<name>(entry)(pointer_arg)
+#define EXECUTE_TEST_CODE_UWORD_UWORD_UINT32(name, entry, arg0, arg1)          \
+  reinterpret_cast<name>(entry)(arg0, arg1)
+#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                \
     defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 #if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64) ||                      \
     defined(HOST_ARCH_RISCV32) || defined(HOST_ARCH_RISCV64)
@@ -147,6 +166,8 @@
   reinterpret_cast<name>(entry)(pointer_arg)
 #define EXECUTE_TEST_CODE_INT32_INTPTR(name, entry, pointer_arg)               \
   reinterpret_cast<name>(entry)(pointer_arg)
+#define EXECUTE_TEST_CODE_UWORD_UWORD_UINT32(name, entry, arg0, arg1)          \
+  reinterpret_cast<name>(entry)(arg0, arg1)
 #else
 // Not running on ARM hardware, call simulator to execute code.
 #if defined(ARCH_IS_64_BIT)
@@ -198,6 +219,8 @@
       Utils::Low32Bits(bit_cast<int64_t, double>(double_arg)),                 \
       Utils::High32Bits(bit_cast<int64_t, double>(double_arg)), 0, 0, false,   \
       true))
+#define EXECUTE_TEST_CODE_UWORD_UWORD_UINT32(name, entry, arg0, arg1)          \
+  static_cast<uint32_t>(Simulator::Current()->Call(entry, arg0, arg1, 0, 0))
 #endif  // defined(HOST_ARCH_ARM)
 #endif  // defined(TARGET_ARCH_{ARM, ARM64})
 
@@ -730,6 +753,21 @@ class SetFlagScope : public ValueObject {
  private:
   T* flag_;
   T original_value_;
+};
+
+class DisableBackgroundCompilationScope : public ValueObject {
+ public:
+  DisableBackgroundCompilationScope()
+      : FLAG_background_compilation_(FLAG_background_compilation) {
+    FLAG_background_compilation = false;
+  }
+
+  ~DisableBackgroundCompilationScope() {
+    FLAG_background_compilation = FLAG_background_compilation_;
+  }
+
+ private:
+  const bool FLAG_background_compilation_;
 };
 
 }  // namespace dart

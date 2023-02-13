@@ -129,7 +129,7 @@ class NonExistingSource extends Source {
 ///
 /// If the instances that implement this API are the system of record, then they
 /// will typically be unique. In that case, sources that are created that
-/// represent non-existent files must also be retained so that if those files
+/// represent nonexistent files must also be retained so that if those files
 /// are created at a later date the long-lived sources representing those files
 /// will know that they now exist.
 abstract class Source {

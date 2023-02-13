@@ -24,9 +24,11 @@ import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_context.dart';
 import 'package:analysis_server/src/services/snippets/snippet_producer.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 
-typedef SnippetProducerGenerator = SnippetProducer Function(DartSnippetRequest);
+typedef SnippetProducerGenerator = SnippetProducer Function(DartSnippetRequest,
+    {required Map<Element, LibraryElement?> elementImportCache});
 
 /// [DartSnippetManager] determines if a snippet request is Dart specific
 /// and forwards those requests to all Snippet Producers that return `true` from
@@ -61,8 +63,9 @@ class DartSnippetManager {
   };
 
   Future<List<Snippet>> computeSnippets(
-    DartSnippetRequest request,
-  ) async {
+    DartSnippetRequest request, {
+    bool Function(String input)? filter,
+  }) async {
     var pathContext = request.resourceProvider.pathContext;
     if (!file_paths.isDart(pathContext, request.filePath)) {
       return const [];
@@ -74,9 +77,12 @@ class DartSnippetManager {
       if (generators == null) {
         return snippets;
       }
+      final elementImportCache = <Element, LibraryElement?>{};
       for (final generator in generators) {
-        final producer = generator(request);
-        if (await producer.isValid()) {
+        final producer =
+            generator(request, elementImportCache: elementImportCache);
+        final matchesFilter = filter?.call(producer.snippetPrefix) ?? true;
+        if (matchesFilter && await producer.isValid()) {
           snippets.add(await producer.compute());
         }
       }

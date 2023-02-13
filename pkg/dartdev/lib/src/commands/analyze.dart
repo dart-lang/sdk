@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
+import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
@@ -50,6 +51,12 @@ class AnalyzeCommand extends DartdevCommand {
         'cache',
         valueHelp: 'path',
         help: 'Override the location of the analysis cache.',
+        hide: !verbose,
+      )
+      ..addFlag(
+        'memory',
+        help: 'Attempt to print memory usage before exiting. '
+            'Will only print if format is json.',
         hide: !verbose,
       )
       ..addOption(
@@ -112,6 +119,7 @@ class AnalyzeCommand extends DartdevCommand {
 
     final machineFormat = args['format'] == 'machine';
     final jsonFormat = args['format'] == 'json';
+    final printMemory = args['memory'] && jsonFormat;
 
     io.Directory sdkPath;
     if (args.wasParsed('sdk-path')) {
@@ -171,7 +179,7 @@ class AnalyzeCommand extends DartdevCommand {
           error.type != 'TODO' || error.severity != 'INFO'));
     });
 
-    await server.start();
+    int pid = await server.start();
 
     bool analysisFinished = false;
 
@@ -190,12 +198,20 @@ class AnalyzeCommand extends DartdevCommand {
     await server.analysisFinished;
     analysisFinished = true;
 
+    UsageInfo? usageInfo;
+    if (printMemory) {
+      usageInfo =
+          await ProcessProfiler.getProfilerForPlatform()?.getProcessUsage(pid);
+    }
+
     await server.shutdown();
 
     progress?.finish(showTiming: true);
 
     if (errors.isEmpty) {
-      if (!machineFormat) {
+      if (printMemory && usageInfo != null) {
+        emitJsonFormat(log, errors, usageInfo);
+      } else if (!machineFormat) {
         log.stdout('No issues found!');
       }
       return 0;
@@ -206,7 +222,7 @@ class AnalyzeCommand extends DartdevCommand {
     if (machineFormat) {
       emitMachineFormat(log, errors);
     } else if (jsonFormat) {
-      emitJsonFormat(log, errors);
+      emitJsonFormat(log, errors, usageInfo);
     } else {
       var relativeTo = targets.length == 1 ? targets.single : null;
 
@@ -325,7 +341,8 @@ class AnalyzeCommand extends DartdevCommand {
   }
 
   @visibleForTesting
-  static void emitJsonFormat(Logger log, List<AnalysisError> errors) {
+  static void emitJsonFormat(
+      Logger log, List<AnalysisError> errors, UsageInfo? usageInfo) {
     Map<String, dynamic> location(
             String filePath, Map<String, dynamic> range) =>
         {
@@ -382,6 +399,7 @@ class AnalyzeCommand extends DartdevCommand {
     log.stdout(json.encode({
       'version': 1,
       'diagnostics': diagnostics,
+      if (usageInfo != null) 'memory': usageInfo.memoryKB
     }));
   }
 

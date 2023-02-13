@@ -31,6 +31,10 @@ abstract class JsToFrontendMap {
   ConstantValue? toBackendConstant(ConstantValue? value,
       {bool allowNull = false});
 
+  Set<DartType> toBackendTypeSet(Iterable<DartType> set) {
+    return {for (final type in set.map(toBackendType)) type!};
+  }
+
   Set<LibraryEntity> toBackendLibrarySet(Iterable<LibraryEntity> set) {
     return set.map(toBackendLibrary).toSet();
   }

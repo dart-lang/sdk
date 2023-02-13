@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class DuplicateRecordPatternFieldTest extends PatternsResolutionTest {
+class DuplicateRecordPatternFieldTest extends PubPackageResolutionTest {
   test_objectPattern() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
@@ -54,6 +54,7 @@ void f(x) {
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD, 45, 1,
           contextMessages: [message('/home/test/lib/test.dart', 37, 3)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 3),
     ]);
   }
 
@@ -66,6 +67,7 @@ void f(x) {
   }
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 3),
       error(CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD, 47, 3,
           contextMessages: [message('/home/test/lib/test.dart', 37, 1)]),
     ]);

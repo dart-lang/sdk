@@ -1,9 +1,10 @@
 import 'dart:math' show max;
-import 'package:stack_trace/stack_trace.dart';
-import 'package:dart2js_tools/src/trace.dart';
+
 import 'package:dart2js_tools/src/name_decoder.dart';
-import 'package:dart2js_tools/src/util.dart';
+import 'package:dart2js_tools/src/trace.dart';
 import 'package:dart2js_tools/src/trace_decoder.dart';
+import 'package:dart2js_tools/src/util.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 /// Deobfuscates the given [obfuscatedTrace].
 ///

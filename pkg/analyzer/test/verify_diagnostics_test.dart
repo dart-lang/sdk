@@ -38,6 +38,11 @@ class DocumentationValidator {
     'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT',
+    // These docs need to be published until there are few enough users that
+    // are on a pre-3.0 SDK that we're OK with the possibility of them
+    // encountering a broken link.
+    // todo(pq): remove (some time) post 3.0
+    'CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR',
     // The mock SDK doesn't define any internal libraries.
     'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
     // Has code in the example section that needs to be skipped (because it's
@@ -58,8 +63,6 @@ class DocumentationValidator {
     'CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.NON_SYNC_FACTORY',
-    // This isn't enabled yet, but will be enabled in 3.0.
-    'CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE',
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
     'CompileTimeErrorCode.PART_OF_NON_PART',
@@ -81,13 +84,14 @@ class DocumentationValidator {
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // Produces multiple diagnostic because of poor recovery.
     'CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR',
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50502
-    // 'CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER',
-    // 'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
-    // 'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
-    // 'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION',
-    // 'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
-    // 'CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY',
+
+    // This is not reported after 2.12, and the examples don't compile after 3.0.
+    'FfiCode.FIELD_INITIALIZER_IN_STRUCT',
+    // This is not reported after 2.12, and the examples don't compile after 3.0.
+    'FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER',
+
+    // This no longer works in 3.0.
+    'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
     // Produces more than one error range by design.
@@ -98,6 +102,7 @@ class DocumentationValidator {
     // Produces two diagnostics when it should only produce one (see
     // https://github.com/dart-lang/sdk/issues/43051)
     'HintCode.UNNECESSARY_NULL_COMPARISON_FALSE',
+
     // Produces two diagnostics when it should only produce one (see
     // https://github.com/dart-lang/sdk/issues/43263)
     'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',

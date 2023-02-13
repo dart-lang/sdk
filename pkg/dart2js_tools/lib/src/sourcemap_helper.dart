@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Utility functions to make it easier to work with source-map files.
-import 'package:source_span/source_span.dart';
+
 import 'package:source_maps/source_maps.dart';
+// ignore: implementation_imports
 import 'package:source_maps/src/utils.dart';
+import 'package:source_span/source_span.dart';
+
 import 'util.dart' show FileProvider;
 
 /// Search backwards in [sources] for a function declaration that includes the
@@ -73,7 +76,7 @@ TargetLineEntry? findLine(SingleMapping sourceMap, int line) {
 ///
 /// Copied from [SingleMapping._findColumn].
 TargetEntry? findColumn(int line, int column, TargetLineEntry? lineEntry) {
-  if (lineEntry == null || lineEntry.entries.length == 0) return null;
+  if (lineEntry == null || lineEntry.entries.isEmpty) return null;
   if (lineEntry.line != line) return lineEntry.entries.last;
   var entries = lineEntry.entries;
   int index = binarySearch(entries, (e) => e.column > column);

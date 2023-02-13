@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of view;
 
 class PageState {
@@ -32,8 +30,8 @@ class PagedContentView extends CompositeView {
 /// Displays current page and a left/right arrow. Used with [PagedColumnView] */
 class PageNumberView extends View {
   final PageState pages;
-  Element _label;
-  Element _left, _right;
+  late Element _label;
+  late Element _left, _right;
 
   PageNumberView(this.pages);
 
@@ -49,9 +47,9 @@ class PageNumberView extends View {
           <div class="page-number-right">&rsaquo;</div>
         </div>
         ''');
-    _left = node.querySelector('.page-number-left');
-    _label = node.querySelector('.page-number-label');
-    _right = node.querySelector('.page-number-right');
+    _left = node.querySelector('.page-number-left')!;
+    _label = node.querySelector('.page-number-label')!;
+    _right = node.querySelector('.page-number-right')!;
     return node;
   }
 
@@ -92,10 +90,10 @@ class PagedColumnView extends View {
 
   final PageState pages;
 
-  Element _container;
-  int _columnGap, _columnWidth;
-  int _viewportSize;
-  Scroller scroller;
+  late Element _container;
+  late int _columnGap, _columnWidth;
+  late num _viewportSize;
+  late Scroller scroller;
 
   PagedColumnView(this.pages, this.contentView);
 
@@ -105,7 +103,7 @@ class PagedColumnView extends View {
       <div class="paged-column">
         <div class="paged-column-container"></div>
       </div>''');
-    _container = node.querySelector('.paged-column-container');
+    _container = node.querySelector('.paged-column-container')!;
     _container.nodes.add(contentView.node);
 
     // TODO(jmesserly): if we end up with empty columns on the last page,
@@ -115,7 +113,7 @@ class PagedColumnView extends View {
 
     // TODO(jacobr): use named arguments when available.
     scroller = Scroller(_container, false /* verticalScrollEnabled */,
-        true /* horizontalScrollEnabled */, true /* momementumEnabled */, () {
+        true /* horizontalScrollEnabled */, true /* momentumEnabled */, () {
       return Size(_getViewLength(_container), 1);
     }, Scroller.FAST_SNAP_DECELERATION_FACTOR);
 
@@ -142,7 +140,7 @@ class PagedColumnView extends View {
 
       // Hook img onload events, so we find out about changes in content size
       for (ImageElement img in contentView.node.querySelectorAll("img")) {
-        if (!img.complete) {
+        if (!img.complete!) {
           img.onLoad.listen((e) {
             _updatePageCount(null);
           });
@@ -188,7 +186,7 @@ class PagedColumnView extends View {
     _updatePageCount(null);
   }
 
-  bool _updatePageCount(Callback callback) {
+  void _updatePageCount(Callback? callback) {
     int pageLength = 1;
     scheduleMicrotask(() {
       if (_container.scrollWidth > _container.offset.width) {
@@ -228,11 +226,12 @@ class PagedColumnView extends View {
     scheduleMicrotask(() {
       int pageSize = _computePageSize(_container);
       int destination;
-      num currentPageNumber = -(current / pageSize).round();
+      int currentPageNumber = -(current / pageSize).round();
       num pageNumber = -currentTarget / pageSize;
+      int newPageNumber;
       if (current == currentTarget) {
         // User was just static dragging so round to the nearest page.
-        pageNumber = pageNumber.round();
+        newPageNumber = pageNumber.round();
       } else {
         if (currentPageNumber == pageNumber.round() &&
             (pageNumber - currentPageNumber).abs() > MIN_THROW_PAGE_FRACTION &&
@@ -240,20 +239,20 @@ class PagedColumnView extends View {
             current < 0) {
           // The user is trying to throw so we want to round up to the
           // nearest page in the direction they are throwing.
-          pageNumber = currentTarget < current
+          newPageNumber = currentTarget < current
               ? currentPageNumber + 1
               : currentPageNumber - 1;
         } else {
-          pageNumber = pageNumber.round();
+          newPageNumber = pageNumber.round();
         }
       }
-      num translate = -pageNumber * pageSize;
-      pages.current.value = pageNumber;
+      num translate = -newPageNumber * pageSize;
+      pages.current.value = newPageNumber;
       if (currentTarget != translate) {
         scroller.throwTo(translate, 0);
       } else {
         // Update the target page number when we are done animating.
-        pages.target.value = pageNumber;
+        pages.target.value = newPageNumber;
       }
     });
   }

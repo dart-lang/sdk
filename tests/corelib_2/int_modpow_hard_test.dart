@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// Extreme values from int_modulo_arith_test. Test cases that that have
+// Extreme values from int_modulo_arith_test. Test cases that have
 // intermediate values that overflow the precision of 'int'.
 
 import "package:expect/expect.dart";

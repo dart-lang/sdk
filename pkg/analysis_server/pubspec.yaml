@@ -22,8 +22,10 @@ dependencies:
   stream_channel: any
   telemetry: any
   test: any
+  vm_service: any
   watcher: any
   yaml: any
+  yaml_edit: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:

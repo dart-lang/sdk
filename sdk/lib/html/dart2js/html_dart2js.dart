@@ -10112,22 +10112,6 @@ class Document extends Node {
 
   String queryCommandValue(String commandId) native;
 
-  @deprecated
-  Function registerElement2(String type, [Map? options]) {
-    if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _registerElement2_1(type, options_1);
-    }
-    return _registerElement2_2(type);
-  }
-
-  @JSName('registerElement')
-  @deprecated
-  Function _registerElement2_1(type, options) native;
-  @JSName('registerElement')
-  @deprecated
-  Function _registerElement2_2(type) native;
-
   @JSName('webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -10423,29 +10407,6 @@ class Document extends Node {
    */
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
       new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
-
-  /// Checks if [registerElement] is supported on the current platform.
-  @deprecated
-  bool get supportsRegisterElement {
-    return JS('bool', '("registerElement" in #)', this);
-  }
-
-  /// *Deprecated*: use [supportsRegisterElement] instead.
-  @deprecated
-  bool get supportsRegister => supportsRegisterElement;
-
-  /// **Deprecated**: This is a legacy API based on a deprecated Web Components
-  /// v0.5 specification. Web Components v0.5 doesn't work on modern browsers
-  /// and can only be used with a polyfill.
-  ///
-  /// The latest Web Components specification is supported indirectly via
-  /// JSInterop and doesn't have an explicit API in the `dart:html` library.
-  @deprecated
-  void registerElement(String tag, Type customElementClass,
-      {String? extendsTag}) {
-    registerElement2(
-        tag, {'prototype': customElementClass, 'extends': extendsTag});
-  }
 
   @pragma('dart2js:tryInline') // Almost all call sites have one argument.
   Element createElement(String tagName, [String? typeExtension]) {
@@ -13088,7 +13049,7 @@ class Element extends Node
   }
 
   /**
-   * Finds all descendent elements of this element that match the specified
+   * Finds all descendant elements of this element that match the specified
    * group of selectors.
    *
    * [selectors] should be a string using CSS selector syntax.
@@ -17838,67 +17799,6 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void exitFullscreen() {
     _webkitExitFullscreen();
-  }
-
-  /**
-   * **Deprecated**: This is a legacy API based on a deprecated Web Components
-   * v0.5 specification. This method doesn't work on modern browsers and can
-   * only be used with a polyfill.
-   *
-   * The latest Web Components specification is supported indirectly via
-   * JSInterop and doesn't have an explicit API in the `dart:html` library.
-   *
-   * *Original documentation before deprecation*:
-   *
-   * Register a custom subclass of Element to be instantiatable by the DOM.
-   *
-   * This is necessary to allow the construction of any custom elements.
-   *
-   * The class being registered must either subclass HtmlElement or SvgElement.
-   * If they subclass these directly then they can be used as:
-   *
-   *     class FooElement extends HtmlElement{
-   *        void created() {
-   *          print('FooElement created!');
-   *        }
-   *     }
-   *
-   *     main() {
-   *       document.registerElement('x-foo', FooElement);
-   *       var myFoo = new Element.tag('x-foo');
-   *       // prints 'FooElement created!' to the console.
-   *     }
-   *
-   * The custom element can also be instantiated via HTML using the syntax
-   * `<x-foo></x-foo>`
-   *
-   * Other elements can be subclassed as well:
-   *
-   *     class BarElement extends InputElement{
-   *        void created() {
-   *          print('BarElement created!');
-   *        }
-   *     }
-   *
-   *     main() {
-   *       document.registerElement('x-bar', BarElement);
-   *       var myBar = new Element.tag('input', 'x-bar');
-   *       // prints 'BarElement created!' to the console.
-   *     }
-   *
-   * This custom element can also be instantiated via HTML using the syntax
-   * `<input is="x-bar"></input>`
-   *
-   */
-  @deprecated
-  Function registerElement2(String tag, [Map? options]) {
-    return _registerCustomElement(JS('', 'window'), this, tag, options);
-  }
-
-  /** *Deprecated*: use [registerElement] instead. */
-  @deprecated
-  void register(String tag, Type customElementClass, {String? extendsTag}) {
-    return registerElement(tag, customElementClass, extendsTag: extendsTag);
   }
 
   /**
@@ -23562,7 +23462,7 @@ class Node extends EventTarget {
   @JSName('textContent')
 
   /**
-   * All text within this node and its descendents.
+   * All text within this node and its descendants.
    *
    * ## Other resources
    *
@@ -32835,7 +32735,7 @@ class Window extends EventTarget
    * ## Other resources
    *
    * * [Measuring page load speed with navigation
-   *   timeing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)
+   *   timing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)
    *   from HTML5Rocks.
    * * [Navigation timing
    *   specification](http://www.w3.org/TR/navigation-timing/) from W3C.
@@ -34637,7 +34537,6 @@ abstract class _DocumentType extends Node implements ChildNode {
   }
 
   // From ChildNode
-
 }
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -35752,7 +35651,6 @@ abstract class _WorkerLocation extends JavaScriptObject
   }
 
   // From URLUtilsReadOnly
-
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35770,7 +35668,6 @@ abstract class _WorkerNavigator extends NavigatorConcurrentHardware
   // From NavigatorID
 
   // From NavigatorOnLine
-
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -38490,7 +38387,7 @@ abstract class _KeyName {
   static const String BROWSER_BACK = "BrowserBack";
 
   /** The Browser Favorites key */
-  static const String BROWSER_FAVORTIES = "BrowserFavorites";
+  static const String BROWSER_FAVORITES = "BrowserFavorites";
 
   /** The Browser Forward key */
   static const String BROWSER_FORWARD = "BrowserForward";

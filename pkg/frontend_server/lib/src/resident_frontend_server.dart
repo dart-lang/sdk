@@ -14,7 +14,6 @@ import 'package:args/args.dart';
 // are a temporary state of things until frontend team builds better api
 // that would replace api used below. This api was made private in
 // an effort to discourage further use.
-// ignore_for_file: implementation_imports
 import 'package:front_end/src/api_unstable/vm.dart';
 
 import '../frontend_server.dart';
@@ -127,7 +126,7 @@ class ResidentCompiler {
           await _getSourceFilesToRecompile(_lastCompileStartTime);
       // No changes to source files detected and cached kernel file exists
       // If a kernel file is removed in between compilation requests,
-      // fall through to procude the kernel in recompileDelta.
+      // fall through to produce the kernel in recompileDelta.
       if (invalidatedUris.isEmpty && _outputDill.existsSync()) {
         return _encodeCompilerOutput(
             _outputDill.path, _formattedOutput, _compiler.errors.length,
@@ -339,7 +338,7 @@ class ResidentFrontendServer {
         '--protobuf-tree-shaker-v2',
       if (request['define'] != null)
         for (var define in request['define']) define,
-      if (request['enable-experiement'] != null)
+      if (request['enable-experiment'] != null)
         for (var experiment in request['enable-experiment']) experiment,
     ]);
   }
@@ -365,7 +364,7 @@ class ResidentFrontendServer {
       bool? treeShakeWriteOnlyFields,
       bool? protobufTreeShakerV2,
       List<String>? define,
-      List<String>? enableExperiement,
+      List<String>? enableExperiment,
       bool verbose = false}) {
     return jsonEncode(<String, Object>{
       "command": "compile",
@@ -374,7 +373,7 @@ class ResidentFrontendServer {
       if (aot != null) "aot": true,
       if (define != null) "define": define,
       if (enableAsserts != null) "enable-asserts": true,
-      if (enableExperiement != null) "enable-experiment": enableExperiement,
+      if (enableExperiment != null) "enable-experiment": enableExperiment,
       if (packages != null) "packages": packages,
       if (protobufTreeShakerV2 != null) "protobuf-tree-shaker-v2": true,
       if (rta != null) "rta": true,
@@ -421,7 +420,7 @@ Future<void> residentServerCleanup(
     ServerSocket server, File serverInfoFile) async {
   try {
     if (_cleanupHandler != null) {
-      _cleanupHandler!.cancel();
+      await _cleanupHandler!.cancel();
     }
   } catch (_) {
   } finally {

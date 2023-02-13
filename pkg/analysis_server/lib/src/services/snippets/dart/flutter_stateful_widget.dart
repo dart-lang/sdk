@@ -21,7 +21,10 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
   @override
   late ClassElement? classKey;
 
-  FlutterStatefulWidget(super.request);
+  FlutterStatefulWidget(super.request, {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   @override
   Future<Snippet> compute() async {
@@ -31,7 +34,9 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
     final classStatefulWidget = this.classStatefulWidget!;
     final classState = this.classState!;
 
-    await builder.addDartFileEdit(request.filePath, (builder) {
+    await builder.addDartFileEdit(request.filePath, (builder) async {
+      await addImports(builder);
+
       builder.addReplacement(request.replacementRange, (builder) {
         // Write the StatefulWidget class
         builder.writeClassDeclaration(

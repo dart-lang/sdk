@@ -48,7 +48,7 @@ main(List<String> args) async {
 
   await withTempDir("split-literals-test", (String tempDir) async {
     final source =
-        path.join(sdkDir, "runtime/tests/vm/dart_2/split_literals.dart");
+        path.join(sdkDir, "runtime/tests/vm/dart/split_literals.dart");
     final dill = path.join(tempDir, "split_literals.dart.dill");
     final snapshot = path.join(tempDir, "split_literals.so");
     final manifest = path.join(tempDir, "split_literals.txt");

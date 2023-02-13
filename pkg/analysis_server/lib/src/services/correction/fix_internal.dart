@@ -62,7 +62,6 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_generic_
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_initializing_formal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_named_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
@@ -103,7 +102,9 @@ import 'package:analysis_server/src/services/correction/dart/make_conditional_on
 import 'package:analysis_server/src/services/correction/dart/make_field_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_field_public.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
+import 'package:analysis_server/src/services/correction/dart/make_required_named_parameters_first.dart';
 import 'package:analysis_server/src/services/correction/dart/make_return_type_nullable.dart';
+import 'package:analysis_server/src/services/correction/dart/make_super_invocation_last.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/move_annotation_to_library_directive.dart';
@@ -117,6 +118,8 @@ import 'package:analysis_server/src/services/correction/dart/remove_argument.dar
 import 'package:analysis_server/src/services/correction/dart/remove_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_break.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_character.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_constructor_name.dart';
@@ -185,20 +188,20 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_bracke
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_extension_name.dart';
-import 'package:analysis_server/src/services/correction/dart/replace_with_filled.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_identifier.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
-import 'package:analysis_server/src/services/correction/dart/use_const.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/use_effective_integer_division.dart';
 import 'package:analysis_server/src/services/correction/dart/use_eq_eq_null.dart';
@@ -372,6 +375,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.always_put_control_body_on_new_line: [
       UseCurlyBraces.nonBulk,
     ],
+    LintNames.always_put_required_named_parameters_first: [
+      MakeRequiredNamedParametersFirst.new,
+    ],
     LintNames.always_require_non_null_named_parameters: [
       AddRequired.new,
     ],
@@ -528,7 +534,6 @@ class FixProcessor extends BaseProcessor {
       RemoveOperator.new,
     ],
     LintNames.prefer_collection_literals: [
-      ConvertToListLiteral.new,
       ConvertToMapLiteral.new,
       ConvertToSetLiteral.new,
     ],
@@ -658,6 +663,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_brace_in_string_interps: [
       RemoveInterpolationBraces.new,
     ],
+    LintNames.unnecessary_breaks: [
+      RemoveBreak.new,
+    ],
     LintNames.unnecessary_const: [
       RemoveUnnecessaryConst.new,
     ],
@@ -770,6 +778,9 @@ class FixProcessor extends BaseProcessor {
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.INVALID_OVERRIDE: [
+      DataDriven.new,
+    ],
+    CompileTimeErrorCode.INVALID_OVERRIDE_SETTER: [
       DataDriven.new,
     ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
@@ -889,7 +900,7 @@ class FixProcessor extends BaseProcessor {
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.new,
     ],
-    HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
+    WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
       ImportLibrary.dartAsync,
     ],
   };
@@ -942,7 +953,8 @@ class FixProcessor extends BaseProcessor {
       MakeClassAbstract.new,
     ],
     CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE: [
-      UseConst.new,
+      RemoveConst.new,
+      RemoveNew.new,
     ],
     CompileTimeErrorCode.CONST_INSTANCE_FIELD: [
       AddStatic.new,
@@ -953,9 +965,8 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
     ],
-    CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
-      ConvertToListLiteral.new,
-      ReplaceWithFilled.new,
+    CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION: [
+      AddConst.new,
     ],
     CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER: [
       RemoveDefaultValue.new,
@@ -964,9 +975,16 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER: [
       ConvertIntoBlockBody.new,
     ],
+    CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS: [
+      RemoveNameFromDeclarationClause.new,
+    ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       ChangeTo.classOrMixin,
       CreateClass.new,
+      RemoveNameFromDeclarationClause.new,
+    ],
+    CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER: [
+      RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
       ReplaceWithExtensionName.new,
@@ -1014,9 +1032,6 @@ class FixProcessor extends BaseProcessor {
       RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER: [
-      RemoveNameFromDeclarationClause.new,
-    ],
-    CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS: [
       RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
@@ -1067,6 +1082,12 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       ChangeTo.classOrMixin,
       CreateClass.new,
+    ],
+    CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE: [
+      RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
@@ -1134,6 +1155,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE: [
       RemoveQuestionMark.new,
     ],
+    CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE: [
+      ReplaceColonWithEquals.new
+    ],
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION: [
       MakeReturnTypeNullable.new,
       ReplaceReturnType.new,
@@ -1148,6 +1172,9 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: [
       ChangeTo.superFormalParameter,
+    ],
+    CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST: [
+      MakeSuperInvocationLast.new,
     ],
     CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [
       AddSwitchCaseBreak.new,
@@ -1279,6 +1306,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.URI_DOES_NOT_EXIST: [
       CreateFile.new,
     ],
+    CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT: [
+      RemoveVar.new,
+    ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
       MoveTypeArgumentsToClass.new,
       RemoveTypeArguments.new,
@@ -1286,11 +1316,16 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.YIELD_OF_INVALID_TYPE: [
       MakeReturnTypeNullable.new,
     ],
-
+    FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS: [
+      RemoveNameFromDeclarationClause.new,
+    ],
     FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS: [
       RemoveNameFromDeclarationClause.new,
     ],
     FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS: [
       RemoveNameFromDeclarationClause.new,
     ],
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS: [
@@ -1298,10 +1333,6 @@ class FixProcessor extends BaseProcessor {
     ],
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH: [
       RemoveNameFromDeclarationClause.new,
-    ],
-
-    HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
-      AddReturnNull.new,
     ],
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
       ReplaceWithNullAware.inChain,
@@ -1322,45 +1353,27 @@ class FixProcessor extends BaseProcessor {
     HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
       ReplaceColonWithEquals.new,
     ],
-    HintCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
-      RemoveNameFromDeclarationClause.new,
-    ],
-    HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
-      RemoveDeprecatedNewInCommentReference.new,
-    ],
     HintCode.DIVISION_OPTIMIZATION: [
       UseEffectiveIntegerDivision.new,
     ],
-    HintCode.DUPLICATE_HIDDEN_NAME: [
-      RemoveNameFromCombinator.new,
-    ],
-    HintCode.DUPLICATE_IMPORT: [
-      RemoveUnusedImport.new,
-    ],
-    HintCode.DUPLICATE_SHOWN_NAME: [
-      RemoveNameFromCombinator.new,
-    ],
     // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
 //    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
-    HintCode.INVALID_FACTORY_ANNOTATION: [
+    HintCode.INVALID_IMMUTABLE_ANNOTATION: [
       RemoveAnnotation.new,
     ],
-    HintCode.INVALID_IMMUTABLE_ANNOTATION: [
+    HintCode.INVALID_INTERNAL_ANNOTATION: [
       RemoveAnnotation.new,
     ],
     HintCode.INVALID_LITERAL_ANNOTATION: [
       RemoveAnnotation.new,
     ],
-    HintCode.INVALID_REQUIRED_NAMED_PARAM: [
+    HintCode.INVALID_NON_VIRTUAL_ANNOTATION: [
       RemoveAnnotation.new,
     ],
-    HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM: [
+    HintCode.INVALID_VISIBILITY_ANNOTATION: [
       RemoveAnnotation.new,
     ],
-    HintCode.INVALID_REQUIRED_POSITIONAL_PARAM: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.INVALID_SEALED_ANNOTATION: [
+    HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION: [
       RemoveAnnotation.new,
     ],
     HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE: [
@@ -1384,9 +1397,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.MUST_CALL_SUPER: [
       AddCallSuper.new,
     ],
-    HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
-      RemoveQuestionMark.new,
-    ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
       RemoveAnnotation.new,
     ],
@@ -1399,46 +1409,21 @@ class FixProcessor extends BaseProcessor {
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
       RemoveAnnotation.new,
     ],
+    HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
+      RemoveCharacter.new,
+      ReplaceWithUnicodeEscape.new,
+    ],
+    HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL: [
+      RemoveCharacter.new,
+      ReplaceWithUnicodeEscape.new,
+    ],
     // TODO(brianwilkerson) Add a fix to normalize the path.
 //    HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT: [],
-    HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      UpdateSdkConstraints.version_2_1_0,
-    ],
-    HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_EXTENSION_METHODS: [
-      UpdateSdkConstraints.version_2_6_0,
-    ],
-    HintCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
-      UpdateSdkConstraints.version_2_14_0,
-    ],
-    HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_SET_LITERAL: [
-      UpdateSdkConstraints.version_2_2_0,
-    ],
-    HintCode.SDK_VERSION_UI_AS_CODE: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
     HintCode.TYPE_CHECK_IS_NOT_NULL: [
       UseNotEqNull.new,
     ],
     HintCode.TYPE_CHECK_IS_NULL: [
       UseEqEqNull.new,
-    ],
-    HintCode.UNDEFINED_HIDDEN_NAME: [
-      RemoveNameFromCombinator.new,
-    ],
-    HintCode.UNDEFINED_SHOWN_NAME: [
-      RemoveNameFromCombinator.new,
     ],
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.new,
@@ -1452,23 +1437,31 @@ class FixProcessor extends BaseProcessor {
 //    HintCode.UNNECESSARY_NO_SUCH_METHOD: [
 // TODO(brianwilkerson) Add a fix to remove the method.
 //    ],
+    HintCode.UNNECESSARY_NAN_COMPARISON_FALSE: [
+      RemoveComparison.new,
+      ReplaceWithIsNan.new,
+    ],
+    HintCode.UNNECESSARY_NAN_COMPARISON_TRUE: [
+      RemoveComparison.new,
+      ReplaceWithIsNan.new,
+    ],
     HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
       RemoveComparison.new,
     ],
     HintCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
       RemoveComparison.new,
     ],
-//    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
-// TODO(brianwilkerson) Add a fix to remove the type check.
-//    ],
-//    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [
-// TODO(brianwilkerson) Add a fix to remove the type check.
-//    ],
-    HintCode.UNUSED_CATCH_CLAUSE: [
-      RemoveUnusedCatchClause.new,
+    HintCode.UNNECESSARY_QUESTION_MARK: [
+      RemoveQuestionMark.new,
     ],
-    HintCode.UNUSED_CATCH_STACK: [
-      RemoveUnusedCatchStack.new,
+    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
+      RemoveComparison.typeCheck,
+    ],
+    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [
+      RemoveComparison.typeCheck,
+    ],
+    HintCode.UNREACHABLE_SWITCH_CASE: [
+      RemoveDeadCode.new,
     ],
     HintCode.UNUSED_ELEMENT: [
       RemoveUnusedElement.new,
@@ -1512,6 +1505,7 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.VAR_RETURN_TYPE: [
       RemoveVar.new,
     ],
+
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.new,
     ],
@@ -1526,6 +1520,91 @@ class FixProcessor extends BaseProcessor {
     ],
     StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
       RemoveNonNullAssertion.new,
+    ],
+    StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN: [
+      RemoveQuestionMark.new,
+    ],
+    StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN: [
+      RemoveNonNullAssertion.new,
+    ],
+
+    WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
+      AddReturnNull.new,
+    ],
+    WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
+      RemoveDeprecatedNewInCommentReference.new,
+    ],
+    WarningCode.DUPLICATE_HIDDEN_NAME: [
+      RemoveNameFromCombinator.new,
+    ],
+    WarningCode.DUPLICATE_IMPORT: [
+      RemoveUnusedImport.new,
+    ],
+    WarningCode.DUPLICATE_SHOWN_NAME: [
+      RemoveNameFromCombinator.new,
+    ],
+    WarningCode.INVALID_ANNOTATION_TARGET: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.INVALID_FACTORY_ANNOTATION: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.INVALID_REQUIRED_NAMED_PARAM: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.INVALID_SEALED_ANNOTATION: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
+      RemoveQuestionMark.new,
+    ],
+    WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
+      UpdateSdkConstraints.version_2_1_0,
+    ],
+    WarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.SDK_VERSION_EXTENSION_METHODS: [
+      UpdateSdkConstraints.version_2_6_0,
+    ],
+    WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
+      UpdateSdkConstraints.version_2_14_0,
+    ],
+    WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.SDK_VERSION_SET_LITERAL: [
+      UpdateSdkConstraints.version_2_2_0,
+    ],
+    WarningCode.SDK_VERSION_UI_AS_CODE: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.UNDEFINED_HIDDEN_NAME: [
+      RemoveNameFromCombinator.new,
+    ],
+    WarningCode.UNDEFINED_SHOWN_NAME: [
+      RemoveNameFromCombinator.new,
+    ],
+    WarningCode.UNUSED_CATCH_CLAUSE: [
+      RemoveUnusedCatchClause.new,
+    ],
+    WarningCode.UNUSED_CATCH_STACK: [
+      RemoveUnusedCatchStack.new,
     ],
   };
 

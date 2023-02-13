@@ -260,7 +260,7 @@ static Dart_NativeFunction NativeResolver(Dart_Handle name,
 //
 BENCHMARK(KernelServiceCompileAll) {
   // kernel_service.dill is built with sound null safety.
-  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
+  if (!FLAG_sound_null_safety) {
     return;
   }
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);

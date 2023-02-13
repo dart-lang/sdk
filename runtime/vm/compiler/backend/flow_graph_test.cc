@@ -140,6 +140,64 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_LateVariablePhiUnboxing) {
   EXPECT_PROPERTY(late_var, it.representation() == kTagged);
 }
 
+ISOLATE_UNIT_TEST_CASE(FlowGraph_UnboxedFloatPhi) {
+  using compiler::BlockBuilder;
+
+  CompilerState S(thread, /*is_aot=*/true, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H;
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+  auto then_body = H.TargetEntry();
+  auto else_body = H.TargetEntry();
+  auto join_exit = H.JoinEntry();
+
+  PhiInstr* phi;
+  Definition* double_to_float_1;
+  Definition* double_to_float_2;
+
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    builder.AddBranch(
+        new StrictCompareInstr(
+            InstructionSource(), Token::kEQ_STRICT, new Value(H.IntConstant(1)),
+            new Value(H.IntConstant(1)),
+            /*needs_number_check=*/false, S.GetNextDeoptId()),
+        then_body, else_body);
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), then_body);
+    double_to_float_1 = builder.AddDefinition(new DoubleToFloatInstr(
+        new Value(H.DoubleConstant(1)), S.GetNextDeoptId(),
+        Instruction::kNotSpeculative));
+    builder.AddInstruction(new GotoInstr(join_exit, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), else_body);
+    double_to_float_2 = builder.AddDefinition(new DoubleToFloatInstr(
+        new Value(H.DoubleConstant(2)), S.GetNextDeoptId(),
+        Instruction::kNotSpeculative));
+    builder.AddInstruction(new GotoInstr(join_exit, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), join_exit);
+    phi = new PhiInstr(join_exit, 3);
+    phi->SetInputAt(0, new Value(double_to_float_1));
+    phi->SetInputAt(1, new Value(double_to_float_2));
+    phi->SetInputAt(2, new Value(phi));
+    builder.AddPhi(phi);
+    builder.AddReturn(new Value(phi));
+  }
+  H.FinishGraph();
+
+  FlowGraphTypePropagator::Propagate(H.flow_graph());
+  H.flow_graph()->SelectRepresentations();
+
+  EXPECT_PROPERTY(phi, it.representation() == kUnboxedFloat);
+}
+
 void TestLargeFrame(const char* type,
                     const char* zero,
                     const char* one,
@@ -270,7 +328,7 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_PhiUnboxingHeuristic_Double) {
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
   }));
-  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
+  if (!FLAG_sound_null_safety) {
     RELEASE_ASSERT(cursor.TryMatch({
         kMatchAndMoveBranchFalse,
         kMatchAndMoveTargetEntry,
@@ -324,7 +382,7 @@ static void TestPhiUnboxingHeuristicSimd(const char* script) {
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
   }));
-  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
+  if (!FLAG_sound_null_safety) {
     RELEASE_ASSERT(cursor.TryMatch({
         kMatchAndMoveBranchFalse,
         kMatchAndMoveTargetEntry,

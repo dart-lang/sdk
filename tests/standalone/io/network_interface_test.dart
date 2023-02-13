@@ -43,9 +43,6 @@ void testListIndex() {
 }
 
 void main() {
-  if (!NetworkInterface.listSupported) {
-    return;
-  }
   testListLoopback();
   testListLinkLocal();
   testListIndex();

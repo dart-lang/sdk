@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/elements/names.dart';
 
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -28,7 +26,7 @@ main() {
     OutputCollector output = OutputCollector();
 
     var options = CompilerOptions()
-      ..target = Dart2jsTarget("dart2js", TargetFlags(enableNullSafety: true))
+      ..target = Dart2jsTarget("dart2js", TargetFlags())
       ..nnbdMode = NnbdMode.Strong
       ..packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json')
       ..additionalDills = <Uri>[
@@ -38,31 +36,31 @@ main() {
       ..verify = true;
 
     List<int> kernelBinary =
-        serializeComponent((await kernelForProgram(uri, options)).component);
+        serializeComponent((await kernelForProgram(uri, options))!.component!);
     var compiler = compilerFor(
         entryPoint: uri,
         memorySourceFiles: {'main.dill': kernelBinary},
         diagnosticHandler: diagnostics,
         outputProvider: output);
-    load_kernel.Output result = await load_kernel.run(load_kernel.Input(
+    load_kernel.Output result = (await load_kernel.run(load_kernel.Input(
         compiler.options,
         compiler.provider,
         compiler.reporter,
         compiler.initializedCompilerState,
-        false));
+        false)))!;
     compiler.frontendStrategy
-        .registerLoadedLibraries(result.component, result.libraries);
+        .registerLoadedLibraries(result.component, result.libraries!);
 
     Expect.equals(0, diagnostics.errors.length);
     Expect.equals(0, diagnostics.warnings.length);
 
     ElementEnvironment environment =
         compiler.frontendStrategy.elementEnvironment;
-    LibraryEntity library = environment.lookupLibrary(uri);
+    LibraryEntity? library = environment.lookupLibrary(uri);
     Expect.isNotNull(library);
-    ClassEntity clss = environment.lookupClass(library, 'ListLiteralTest');
+    ClassEntity? clss = environment.lookupClass(library!, 'ListLiteralTest');
     Expect.isNotNull(clss);
-    var member = environment.lookupClassMember(clss, PublicName('testMain'));
+    var member = environment.lookupClassMember(clss!, PublicName('testMain'));
     Expect.isNotNull(member);
   });
 }

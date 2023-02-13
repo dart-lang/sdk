@@ -1738,7 +1738,7 @@ void Assembler::StoreIntoObject(Register object,
   if (memory_order == kRelease) {
     StoreRelease(value, dest);
   } else {
-    str(value, dest);
+    StoreToOffset(value, dest);
   }
 
   // In parallel, test whether
@@ -1874,7 +1874,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   if (memory_order == kRelease) {
     StoreRelease(value, dest);
   } else {
-    str(value, dest);
+    StoreToOffset(value, dest);
   }
 #if defined(DEBUG)
   // We can't assert the incremental barrier is not needed here, only the
@@ -1995,7 +1995,7 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   Stop("New value must be Smi.");
   Bind(&done);
 #endif  // defined(DEBUG)
-  str(value, dest);
+  StoreToOffset(value, dest);
 }
 
 void Assembler::ExtractClassIdFromTags(Register result,
@@ -2814,38 +2814,15 @@ void Assembler::LoadQImmediate(QRegister qd, simd128_value_t value) {
   LoadMultipleDFromOffset(EvenDRegisterOf(qd), 2, PP, offset);
 }
 
-void Assembler::LoadFromOffset(Register reg,
-                               const Address& address,
-                               OperandSize size,
-                               Condition cond) {
-  switch (size) {
-    case kByte:
-      ldrsb(reg, address, cond);
-      break;
-    case kUnsignedByte:
-      ldrb(reg, address, cond);
-      break;
-    case kTwoBytes:
-      ldrsh(reg, address, cond);
-      break;
-    case kUnsignedTwoBytes:
-      ldrh(reg, address, cond);
-      break;
-    case kUnsignedFourBytes:
-    case kFourBytes:
-      ldr(reg, address, cond);
-      break;
-    default:
-      UNREACHABLE();
-  }
-}
-
-void Assembler::LoadFromOffset(Register reg,
-                               Register base,
-                               int32_t offset,
-                               OperandSize size,
-                               Condition cond) {
+Address Assembler::PrepareLargeLoadOffset(const Address& address,
+                                          OperandSize size,
+                                          Condition cond) {
   ASSERT(size != kWordPair);
+  if (address.kind() != Address::Immediate) {
+    return address;
+  }
+  Register base = address.base();
+  int32_t offset = address.offset();
   int32_t offset_mask = 0;
   if (!Address::CanHoldLoadOffset(size, offset, &offset_mask)) {
     ASSERT(base != IP);
@@ -2853,7 +2830,53 @@ void Assembler::LoadFromOffset(Register reg,
     base = IP;
     offset = offset & offset_mask;
   }
-  LoadFromOffset(reg, Address(base, offset), size, cond);
+  return Address(base, offset);
+}
+
+Address Assembler::PrepareLargeStoreOffset(const Address& address,
+                                           OperandSize size,
+                                           Condition cond) {
+  ASSERT(size != kWordPair);
+  if (address.kind() != Address::Immediate) {
+    return address;
+  }
+  Register base = address.base();
+  int32_t offset = address.offset();
+  int32_t offset_mask = 0;
+  if (!Address::CanHoldStoreOffset(size, offset, &offset_mask)) {
+    ASSERT(base != IP);
+    AddImmediate(IP, base, offset & ~offset_mask, cond);
+    base = IP;
+    offset = offset & offset_mask;
+  }
+  return Address(base, offset);
+}
+
+void Assembler::LoadFromOffset(Register reg,
+                               const Address& address,
+                               OperandSize size,
+                               Condition cond) {
+  const Address& addr = PrepareLargeLoadOffset(address, size, cond);
+  switch (size) {
+    case kByte:
+      ldrsb(reg, addr, cond);
+      break;
+    case kUnsignedByte:
+      ldrb(reg, addr, cond);
+      break;
+    case kTwoBytes:
+      ldrsh(reg, addr, cond);
+      break;
+    case kUnsignedTwoBytes:
+      ldrh(reg, addr, cond);
+      break;
+    case kUnsignedFourBytes:
+    case kFourBytes:
+      ldr(reg, addr, cond);
+      break;
+    default:
+      UNREACHABLE();
+  }
 }
 
 void Assembler::LoadFromStack(Register dst, intptr_t depth) {
@@ -2875,95 +2898,53 @@ void Assembler::StoreToOffset(Register reg,
                               const Address& address,
                               OperandSize size,
                               Condition cond) {
+  const Address& addr = PrepareLargeStoreOffset(address, size, cond);
   switch (size) {
     case kUnsignedByte:
     case kByte:
-      strb(reg, address, cond);
+      strb(reg, addr, cond);
       break;
     case kUnsignedTwoBytes:
     case kTwoBytes:
-      strh(reg, address, cond);
+      strh(reg, addr, cond);
       break;
     case kUnsignedFourBytes:
     case kFourBytes:
-      str(reg, address, cond);
+      str(reg, addr, cond);
       break;
     default:
       UNREACHABLE();
   }
 }
 
-void Assembler::StoreToOffset(Register reg,
-                              Register base,
-                              int32_t offset,
-                              OperandSize size,
-                              Condition cond) {
-  ASSERT(size != kWordPair);
-  int32_t offset_mask = 0;
-  if (!Address::CanHoldStoreOffset(size, offset, &offset_mask)) {
-    ASSERT(reg != IP);
-    ASSERT(base != IP);
-    AddImmediate(IP, base, offset & ~offset_mask, cond);
-    base = IP;
-    offset = offset & offset_mask;
-  }
-  StoreToOffset(reg, Address(base, offset), size, cond);
-}
-
 void Assembler::LoadSFromOffset(SRegister reg,
                                 Register base,
                                 int32_t offset,
                                 Condition cond) {
-  int32_t offset_mask = 0;
-  if (!Address::CanHoldLoadOffset(kSWord, offset, &offset_mask)) {
-    ASSERT(base != IP);
-    AddImmediate(IP, base, offset & ~offset_mask, cond);
-    base = IP;
-    offset = offset & offset_mask;
-  }
-  vldrs(reg, Address(base, offset), cond);
+  vldrs(reg, PrepareLargeLoadOffset(Address(base, offset), kSWord, cond), cond);
 }
 
 void Assembler::StoreSToOffset(SRegister reg,
                                Register base,
                                int32_t offset,
                                Condition cond) {
-  int32_t offset_mask = 0;
-  if (!Address::CanHoldStoreOffset(kSWord, offset, &offset_mask)) {
-    ASSERT(base != IP);
-    AddImmediate(IP, base, offset & ~offset_mask, cond);
-    base = IP;
-    offset = offset & offset_mask;
-  }
-  vstrs(reg, Address(base, offset), cond);
+  vstrs(reg, PrepareLargeStoreOffset(Address(base, offset), kSWord, cond),
+        cond);
 }
 
 void Assembler::LoadDFromOffset(DRegister reg,
                                 Register base,
                                 int32_t offset,
                                 Condition cond) {
-  int32_t offset_mask = 0;
-  if (!Address::CanHoldLoadOffset(kDWord, offset, &offset_mask)) {
-    ASSERT(base != IP);
-    AddImmediate(IP, base, offset & ~offset_mask, cond);
-    base = IP;
-    offset = offset & offset_mask;
-  }
-  vldrd(reg, Address(base, offset), cond);
+  vldrd(reg, PrepareLargeLoadOffset(Address(base, offset), kDWord, cond), cond);
 }
 
 void Assembler::StoreDToOffset(DRegister reg,
                                Register base,
                                int32_t offset,
                                Condition cond) {
-  int32_t offset_mask = 0;
-  if (!Address::CanHoldStoreOffset(kDWord, offset, &offset_mask)) {
-    ASSERT(base != IP);
-    AddImmediate(IP, base, offset & ~offset_mask, cond);
-    base = IP;
-    offset = offset & offset_mask;
-  }
-  vstrd(reg, Address(base, offset), cond);
+  vstrd(reg, PrepareLargeStoreOffset(Address(base, offset), kDWord, cond),
+        cond);
 }
 
 void Assembler::LoadMultipleDFromOffset(DRegister first,
@@ -3094,6 +3075,19 @@ void Assembler::AndImmediate(Register rd,
   }
 }
 
+void Assembler::AndImmediateSetFlags(Register rd,
+                                     Register rs,
+                                     int32_t imm,
+                                     Condition cond) {
+  Operand o;
+  if (Operand::CanHold(imm, &o)) {
+    ands(rd, rs, Operand(o), cond);
+  } else {
+    LoadImmediate(TMP, imm, cond);
+    ands(rd, rs, Operand(TMP), cond);
+  }
+}
+
 void Assembler::OrImmediate(Register rd,
                             Register rs,
                             int32_t imm,
@@ -3157,6 +3151,31 @@ static int NumRegsBelowFP(RegList regs) {
     }
   }
   return count;
+}
+
+void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
+  Asr(reg, reg, Operand(shift));
+}
+
+void Assembler::CompareWords(Register reg1,
+                             Register reg2,
+                             intptr_t offset,
+                             Register count,
+                             Register temp,
+                             Label* equals) {
+  Label loop;
+
+  AddImmediate(reg1, offset - kHeapObjectTag);
+  AddImmediate(reg2, offset - kHeapObjectTag);
+
+  COMPILE_ASSERT(target::kWordSize == 4);
+  Bind(&loop);
+  BranchIfZero(count, equals, Assembler::kNearJump);
+  AddImmediate(count, -1);
+  ldr(temp, Address(reg1, 4, Address::PostIndex));
+  ldr(TMP, Address(reg2, 4, Address::PostIndex));
+  cmp(temp, Operand(TMP));
+  BranchIf(EQUAL, &loop, Assembler::kNearJump);
 }
 
 void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
@@ -3455,6 +3474,36 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   while (CodeSize() < target::Instructions::kPolymorphicEntryOffsetJIT) {
     bkpt(0);
   }
+}
+
+void Assembler::CombineHashes(Register hash, Register other) {
+  // hash += other_hash
+  add(hash, hash, Operand(other));
+  // hash += hash << 10
+  add(hash, hash, Operand(hash, LSL, 10));
+  // hash ^= hash >> 6
+  eor(hash, hash, Operand(hash, LSR, 6));
+}
+
+void Assembler::FinalizeHashForSize(intptr_t bit_size,
+                                    Register hash,
+                                    Register scratch) {
+  ASSERT(bit_size > 0);  // Can't avoid returning 0 if there are no hash bits!
+  // While any 32-bit hash value fits in X bits, where X > 32, the caller may
+  // reasonably expect that the returned values fill the entire bit space.
+  ASSERT(bit_size <= kBitsPerInt32);
+  // hash += hash << 3;
+  add(hash, hash, Operand(hash, LSL, 3));
+  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
+  eor(hash, hash, Operand(hash, LSR, 11));
+  // hash += hash << 15;
+  adds(hash, hash, Operand(hash, LSL, 15));
+  if (bit_size < kBitsPerInt32) {
+    // Size to fit.
+    AndImmediateSetFlags(hash, hash, Utils::NBitMask(bit_size), NOT_ZERO);
+  }
+  // return (hash == 0) ? 1 : hash;
+  LoadImmediate(hash, 1, ZERO);
 }
 
 #ifndef PRODUCT

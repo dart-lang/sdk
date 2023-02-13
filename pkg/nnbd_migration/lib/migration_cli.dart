@@ -358,12 +358,10 @@ class MigrationCli {
           logger: isVerbose ? loggerFactory(true) : null);
     } on Object catch (exception) {
       handleArgParsingException(exception);
-      return null;
     }
   }
 
-  @alwaysThrows
-  void handleArgParsingException(Object exception) {
+  Never handleArgParsingException(Object exception) {
     String message;
     if (exception is FormatException) {
       message = exception.message;
@@ -533,7 +531,7 @@ class MigrationCliRunner implements DartFixListenerClient {
   /// All files to be migrated must be included in the returned set.  It is
   /// permissible for the set to contain additional files that could help the
   /// migration tool build up a more complete nullability graph (for example
-  /// generated files, or usages of the code-to-be-migrated by one one of its
+  /// generated files, or usages of the code-to-be-migrated by one of its
   /// clients).
   ///
   /// By default returns the set of all `.dart` files contained in the context.
@@ -755,7 +753,7 @@ sources' action.
   ///
   /// This method should return `false` for files that are being considered by
   /// the migration tool for information only (for example generated files, or
-  /// usages of the code-to-be-migrated by one one of its clients).
+  /// usages of the code-to-be-migrated by one of its clients).
   ///
   /// By default returns `true` if the file is contained within the context
   /// root.  This means that if a client overrides [computePathsToProcess] to

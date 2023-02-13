@@ -10,7 +10,7 @@ class Tag {
 
   static const int Class = 2;
   static const int Extension = 115;
-  static const int View = 85;
+  static const int InlineClass = 85;
 
   static const int FunctionNode = 3;
 
@@ -81,7 +81,7 @@ class Tag {
   static const int BlockExpression = 82;
   static const int TypedefTearOff = 83;
   static const int RedirectingFactoryTearOff = 84;
-  // 85 is occupied by [View].
+  // 85 is occupied by [InlineClass].
 
   static const int RecordIndexGet = 101;
   static const int RecordNameGet = 102;
@@ -135,7 +135,7 @@ class Tag {
   // 82 is occupied by [BlockExpression] (expression).
   // 83 is occupied by [TypedefTearOff] (expression).
   // 84 is occupied by [RedirectingFactoryTearOff] (expression).
-  // 85 is occupied by [View].
+  // 85 is occupied by [InlineClass].
 
   // Types
   static const int TypedefType = 87;
@@ -153,7 +153,7 @@ class Tag {
   static const int RecordType = 100;
   // 101 is occupied by [RecordIndexGet] (expression).
   // 102 is occupied by [RecordNameGet] (expression).
-  static const int ViewType = 103;
+  static const int InlineType = 103;
 
   // 104 is occupied by [RecordLiteral] (expression).
   // 105 is occupied by [ConstRecordLiteral] (expression).
@@ -195,7 +195,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 89;
+  static const int BinaryFormatVersion = 93;
 }
 
 abstract class ConstantTag {

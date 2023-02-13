@@ -528,6 +528,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
+      ...testFile.dart2wasmOptions,
       // The file being compiled is the last argument.
       args.last
     ];
@@ -570,13 +571,15 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact? artifact) {
+    final filename = artifact!.filename;
     return [
       '--experimental-wasm-gc',
       '--experimental-wasm-stack-switching',
       '--experimental-wasm-type-reflection',
       'pkg/dart2wasm/bin/run_wasm.js',
       '--',
-      artifact!.filename,
+      '${filename.substring(0, filename.lastIndexOf('.'))}.mjs',
+      filename,
       ...testFile.sharedObjects
           .map((obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm'),
     ];
@@ -602,11 +605,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
       ...testFile.sharedOptions,
-      ..._configuration.sharedOptions,
-      ..._experimentsArgument(_configuration, testFile),
       ...testFile.ddcOptions,
-      if (_configuration.nnbdMode == NnbdMode.strong) '--sound-null-safety',
-      if (_configuration.configuration.builderTag == 'canary') '--canary',
+      ..._configuration.sharedOptions,
+      ..._configuration.ddcOptions,
+      ..._experimentsArgument(_configuration, testFile),
+      if (_configuration.nnbdMode == NnbdMode.strong)
+        '--sound-null-safety'
+      else
+        '--no-sound-null-safety',
       // The file being compiled is the last argument.
       args.last
     ];
@@ -620,14 +626,17 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // the bootstrapping code, instead of a compiler option.
     var options = sharedOptions.toList();
     options.remove('--null-assertions');
-    if (!_useSdk) {
+    if (!_useSdk || _configuration.nnbdMode != NnbdMode.strong) {
       // If we're testing a built SDK, DDC will find its own summary.
+      //
+      // Unsound summary files are not longer bundled with the built SDK so they
+      // must always be specified manually.
       //
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
       var sdkSummaryFile = _configuration.nnbdMode == NnbdMode.strong
-          ? 'ddc_outline_sound.dill'
-          : 'ddc_outline.dill';
+          ? 'ddc_outline.dill'
+          : 'ddc_outline_unsound.dill';
       var sdkSummary = Path(_configuration.buildDirectory)
           .append(sdkSummaryFile)
           .absolute
@@ -695,7 +704,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     if (_configuration.runtime == Runtime.d8) {
       // TODO(sigmund): ddc should have a flag to emit an entrypoint file like
-      // the one below, otherwise it is succeptible to break, for example, if
+      // the one below, otherwise it is susceptible to break, for example, if
       // library naming conventions were to change in the future.
       runFile = "$tempDir/$moduleName.d8.js";
       var nonNullAsserts = arguments.contains('--null-assertions');
@@ -919,6 +928,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ],
       if (_isAndroid && _isArm) '--no-sim-use-hardfp',
       if (_configuration.isMinified) '--obfuscate',
+      ..._nnbdModeArgument(_configuration),
       // The SIMARM precompiler assumes support for integer division, but the
       // Qemu arm cpus do not support integer division.
       if (_configuration.useQemu) '--no-use-integer-division',
@@ -930,9 +940,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ..._replaceDartFiles(arguments, tempKernelFile(tempDir)),
     ];
 
-    return CompilationCommand('precompiler', tempDir, bootstrapDependencies(),
-        exec!, args, environmentOverrides,
+    var command = CompilationCommand('precompiler', tempDir,
+        bootstrapDependencies(), exec!, args, environmentOverrides,
         alwaysCompile: !_useSdk);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   Command computeILCompareCommand(String tempDir, List<String> arguments,

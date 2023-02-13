@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
+import 'package:analyzer_plugin/src/utilities/extensions/token.dart';
 import 'package:collection/collection.dart';
 
 typedef SuggestionsFilter = int? Function(DartType dartType, int relevance);
@@ -63,6 +64,12 @@ class OpType {
 
   /// Indicates whether the completion target is prefixed.
   bool isPrefixed = false;
+
+  /// Indicates whether the completion location requires a constant expression
+  /// without being a constant context.
+  // TODO(brianwilkerson) Consider using this value to control whether non-const
+  //  elements are suggested.
+  bool mustBeConst = false;
 
   /// The suggested completion kind.
   CompletionSuggestionKind suggestKind = CompletionSuggestionKind.INVOCATION;
@@ -347,6 +354,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeReturnValueSuggestions = true;
       optype.includeVoidReturnSuggestions = true;
       optype.isPrefixed = true;
+    }
+  }
+
+  @override
+  void visitCastPattern(CastPattern node) {
+    if (identical(entity, node.type)) {
+      optype.completionLocation = 'CastPattern_type';
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -939,6 +954,15 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitListPattern(ListPattern node) {
+    optype.completionLocation = 'ListPattern_element';
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+    optype.includeVarNameSuggestions = true;
+    optype.mustBeConst = true;
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     optype.completionLocation = 'MapLiteralEntry_value';
     optype.includeReturnValueSuggestions = true;
@@ -1060,6 +1084,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitObjectPattern(ObjectPattern node) {
+    optype.completionLocation = 'ObjectPattern_fieldName';
+  }
+
+  @override
   void visitOnClause(OnClause node) {
     optype.completionLocation = 'OnClause_superclassConstraint';
     optype.includeTypeNameSuggestions = true;
@@ -1157,6 +1186,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitRecordPatternField(RecordPatternField node) {
+    optype.completionLocation = 'RecordPatternField_pattern';
+    optype.includeTypeNameSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
+  }
+
+  @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
     optype.completionLocation = 'RecordTypeAnnotation_positionalFields';
 
@@ -1196,6 +1232,23 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   ) {
     optype.completionLocation = 'RecordTypeAnnotationPositionalField_name';
     optype.includeVarNameSuggestions = true;
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    var operator = node.operator;
+    if (offset >= operator.end) {
+      if (operator.type == TokenType.LT &&
+          operator.nextNotSynthetic.type == TokenType.GT) {
+        // This is most likely a type argument list.
+        optype.completionLocation = 'TypeArgumentList_argument';
+        optype.includeTypeNameSuggestions = true;
+        return;
+      }
+      // TODO(brianwilkerson) Suggest things valid for a constant expression.
+      optype.completionLocation = 'RelationalPattern_operand';
+      optype.mustBeConst = true;
+    }
   }
 
   @override
@@ -1309,6 +1362,25 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.completionLocation = 'SwitchCase_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    } else if (node.statements.contains(entity)) {
+      optype.completionLocation = 'SwitchMember_statement';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
+    }
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    if (identical(entity, node.colon)) {
+      var guardedPattern = node.guardedPattern;
+      var pattern = guardedPattern.pattern;
+      if (guardedPattern.whenClause == null &&
+          pattern is DeclaredVariablePattern &&
+          pattern.name.lexeme == 'as') {
+        optype.completionLocation = 'CastPattern_type';
+        optype.includeTypeNameSuggestions = true;
+      }
     } else if (node.statements.contains(entity)) {
       optype.completionLocation = 'SwitchMember_statement';
       optype.includeReturnValueSuggestions = true;

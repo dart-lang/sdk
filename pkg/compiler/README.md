@@ -53,7 +53,7 @@ The current compiler phases are:
      The result of this phase is what we call a "closed world" (w1). The closed
      world is also a datastructure that can answer interesting queries, such as:
      Is this interface implemented by a single class? Is this method available
-     in any stubtype of some interface? The answers to these questions can help
+     in any subtype of some interface? The answers to these questions can help
      the compiler generate higher quality JavaScript.
 
   4. **global analysis**: Run a global analysis that assumes closed world
@@ -61,7 +61,7 @@ The current compiler phases are:
      further understand what values flow through the program. This phase is
      very valuable in narrowing down possibilities that are ambiguous based
      solely on type information written by developers. It often finds
-     oportunities that enable the compiler to devirtualize or inline method
+     opportunities that enable the compiler to devirtualize or inline method
      calls, generate code specializations, or trigger performance optimizations.
 
      The result of this phase is a "global result" (g).
@@ -227,7 +227,7 @@ functionality is publicly exposed.
     to elements that are understood directly in Dart.
 
   * `lib/src/js_backend/backend_helpers.dart`: provides a way to lookup internal
-    elements of the Javascript backend, like our internal
+    elements of the JavaScript backend, like our internal
     representation of JSInt31, JSArray, and other implementation-specific
     elements.
 
@@ -246,7 +246,7 @@ functionality is publicly exposed.
 
 * Tree-shaking: The compiler does two phases of reducing the program size by
   throwing away unreachable code. The first phase is done while resolving the
-  program (reachablity is basically based on dependencies that appear in the
+  program (reachability is basically based on dependencies that appear in the
   code), the second phase is done as functions are optimized (which in turn can
   delete branches of the code and make more code unreachable). Externally
   we refer to it as tree-shaking, but it behaves more like a tree-growing

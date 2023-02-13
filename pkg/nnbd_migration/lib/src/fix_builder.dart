@@ -198,7 +198,6 @@ class FixBuilder {
         source!,
         typeProvider,
         errorListener,
-        null /* inferenceErrorListener */,
         _typeSystem,
         FeatureSet.fromEnableFlags2(
           sdkLanguageVersion: Feature.non_nullable.releaseVersion!,
@@ -680,6 +679,10 @@ class MigrationResolutionHooksImpl
     return change.resultType;
   }
 
+  bool _canBeInvokedOnNullable(Identifier identifier) =>
+      isDeclaredOnObject(identifier.name) ||
+      isNullableExtensionMember(identifier.staticElement);
+
   ExpressionChange _createExpressionChange(
       Expression node, DartType expressionType, DartType contextType) {
     var expressionFutureTypeArgument = _getFutureTypeArgument(expressionType);
@@ -698,9 +701,16 @@ class MigrationResolutionHooksImpl
       return _createNullCheckChange(node, expressionType);
     } else {
       _flowAnalysis!.asExpression_end(node, contextType);
-      return IntroduceAsChange(contextType,
-          isDowncast:
-              _fixBuilder._typeSystem.isSubtypeOf(contextType, expressionType));
+      var glb = _fixBuilder._typeSystem
+          .getGreatestLowerBound(contextType, expressionType);
+
+      if (glb != _fixBuilder._typeSystem.typeProvider.neverType &&
+          !identical(glb, expressionType)) {
+        return IntroduceAsChange(glb, isDowncast: true);
+      }
+      // there is no sense to do casts of unrelated types, let it fail at
+      // compile time, so users see it earlier.
+      return NoValidMigrationChange(contextType);
     }
   }
 
@@ -831,27 +841,27 @@ class MigrationResolutionHooksImpl
         }
       }
     } else if (parent is PrefixedIdentifier) {
-      if (isDeclaredOnObject(parent.identifier.name) ||
-          isNullableExtensionMember(parent.identifier.staticElement)) {
+      if (_canBeInvokedOnNullable(parent.identifier)) {
         return false;
       }
       return identical(node, parent.prefix);
     } else if (parent is PropertyAccess) {
-      if (isDeclaredOnObject(parent.propertyName.name) ||
-          isNullableExtensionMember(parent.propertyName.staticElement)) {
+      if (_canBeInvokedOnNullable(parent.propertyName)) {
         return false;
       }
-      // TODO(paulberry): what about cascaded?
-      return parent.operator.type == TokenType.PERIOD &&
-          identical(node, parent.target);
+      return !parent.isNullAware && identical(node, parent.target);
     } else if (parent is MethodInvocation) {
-      if (isDeclaredOnObject(parent.methodName.name) ||
-          isNullableExtensionMember(parent.methodName.staticElement)) {
+      if (_canBeInvokedOnNullable(parent.methodName)) {
         return false;
       }
-      // TODO(paulberry): what about cascaded?
-      return parent.operator!.type == TokenType.PERIOD &&
-          identical(node, parent.target);
+      return !parent.isNullAware && identical(node, parent.target);
+    } else if (parent is CascadeExpression) {
+      if (parent.cascadeSections.every((e) =>
+          e is MethodInvocation && _canBeInvokedOnNullable(e.methodName) ||
+          e is PropertyAccess && _canBeInvokedOnNullable(e.propertyName))) {
+        return false;
+      }
+      return !parent.isNullAware && identical(node, parent.target);
     } else if (parent is IndexExpression) {
       if (identical(node, parent.target)) {
         return !isNullableExtensionMember(parent.staticElement);

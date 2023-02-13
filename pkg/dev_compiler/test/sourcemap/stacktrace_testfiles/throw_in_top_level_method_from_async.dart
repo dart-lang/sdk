@@ -6,7 +6,7 @@ void main() {
   /*1:main*/ test1();
 }
 
-Future<void> test1 /*ddk.2:test1*/ () /*ddc.2:test1*/ async {
+Future<void> test1 /*2:test1*/ () async {
   /*3:test1*/ test2();
 }
 

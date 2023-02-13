@@ -278,9 +278,6 @@ class SocketBase : public AllStatic {
   static bool RawAddrToString(RawAddr* addr, char* str);
   static bool FormatNumericAddress(const RawAddr& addr, char* address, int len);
 
-  // Whether ListInterfaces is supported.
-  static bool ListInterfacesSupported();
-
   // List interfaces. Returns a AddressList of InterfaceSocketAddress's.
   static AddressList<InterfaceSocketAddress>* ListInterfaces(
       int type,

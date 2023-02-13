@@ -42,6 +42,7 @@ Client workspace settings are requested with `workspace/configuration` during in
 - `dart.enableSnippets` (`bool?`): Whether to include code snippets (such as `class`, `stful`, `switch`) in code completion. When unspecified, snippets will be included.
 - `dart.updateImportsOnRename` (`bool?`): Whether to update imports and other directives when files are renamed. When unspecified, imports will be updated if the client supports `willRenameFiles` requests.
 - `dart.documentation` (`none`, `summary` or `full`): The typekind of dartdocs to include in Hovers, Code Completion, Signature Help and other similar requests. If not set, defaults to `full`.
+- `dart.includeDependenciesInWorkspaceSymbols` (`bool?`): Whether to include symbols from dependencies and Dart/Flutter SDKs in Workspace Symbol results. If not set, defaults to `true`.
 
 ## Method Status
 

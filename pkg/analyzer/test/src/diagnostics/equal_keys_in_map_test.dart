@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ const a = 1;
 const b = 1;
 var s = {a: 2, b: 3};
 ''', [
-      error(HintCode.EQUAL_KEYS_IN_MAP, 41, 1),
+      error(WarningCode.EQUAL_KEYS_IN_MAP, 41, 1),
     ]);
   }
 
@@ -30,7 +30,7 @@ var s = {a: 2, b: 3};
 const one = 1;
 var s = {1: 2, one: 3};
 ''', [
-      error(HintCode.EQUAL_KEYS_IN_MAP, 30, 3),
+      error(WarningCode.EQUAL_KEYS_IN_MAP, 30, 3),
     ]);
   }
 
@@ -38,7 +38,7 @@ var s = {1: 2, one: 3};
     await assertErrorsInCode('''
 var s = {1: 2, 1: 3};
 ''', [
-      error(HintCode.EQUAL_KEYS_IN_MAP, 15, 1),
+      error(WarningCode.EQUAL_KEYS_IN_MAP, 15, 1),
     ]);
   }
 }

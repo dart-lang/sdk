@@ -24,15 +24,24 @@ class Console {
 external Console get console;
 
 @JS('console.log')
+external Function get _log;
+
+@JS('console.log')
 external void log(String s);
 
 String dartStaticMethod() => 'hello';
 
 @JS('jsStaticVariable')
-external set _jsStaticVariable(Function f);
+external Function? get _jsStaticVariable;
+
+@JS('jsStaticVariable')
+external set _jsStaticVariable(Function? f);
 
 @JS('jsStaticVariable')
 external void jsStaticVariable(String s);
+
+@JS('jsStaticFunction')
+external Function get _jsStaticFunction;
 
 @JS('jsStaticFunction')
 external set _jsStaticFunction(Function f);
@@ -66,14 +75,14 @@ void main() {
   Function(String) jsFunc = helper.JS('', '(x) => {}');
   Expect.equals(dart.assertInterop(jsFunc), jsFunc);
 
-  Expect.equals(dart.assertInterop(log), log);
+  Expect.equals(dart.assertInterop(_log), _log);
   Expect.equals(dart.assertInterop(console.log), console.log);
   Expect.throws(() => dart.assertInterop(dartStaticMethod));
 
-  Expect.isNull(jsStaticVariable);
+  Expect.isNull(_jsStaticVariable);
   _jsStaticVariable = jsFunc;
-  Expect.isNotNull(jsStaticVariable);
-  Expect.equals(dart.assertInterop(jsStaticVariable), jsStaticVariable);
+  Expect.isNotNull(_jsStaticVariable);
+  Expect.equals(dart.assertInterop(_jsStaticVariable), _jsStaticVariable);
 
   final dynamic wrappedDartStaticMethod = allowInterop(dartStaticMethod);
 
@@ -82,7 +91,7 @@ void main() {
   final Function? localNullableLegacy = () => 'hello';
   final String Function()? localNullable = () => 'hello';
 
-  // Assigment to JS static field.
+  // Assignment to JS static field.
   Expect.throws(() {
     _jsStaticVariable = () => 'hello';
   });
@@ -293,7 +302,7 @@ void main() {
   // Stored Function typed getter
   method = someClass.jsFunctionFieldGetter;
   // We lose safety after calling a getter that returns a function, which takes
-  // a function as an argument. Since this can be modeled with a method, isntead
+  // a function as an argument. Since this can be modeled with a method, instead
   // of a getter returning a function, we don't expect this is a pattern likely
   // to show up in real code.
   //Expect.throws(() {

@@ -9,6 +9,7 @@ import '../elements/types.dart' show DartType;
 import '../ir/class_relation.dart';
 import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
+import '../universe/member_hierarchy.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';
@@ -369,6 +370,13 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
   }
 
   @override
+  Iterable<DynamicCallTarget> findRootsOfTargets(
+          covariant TrivialAbstractValue receiver,
+          Selector selector,
+          MemberHierarchyBuilder memberHierarchyBuilder) =>
+      const [];
+
+  @override
   AbstractValue get asyncStarStreamType => const TrivialAbstractValue();
 
   @override
@@ -444,6 +452,9 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
   AbstractValue get functionType => const TrivialAbstractValue();
 
   @override
+  AbstractValue get recordType => const TrivialAbstractValue();
+
+  @override
   AbstractValue get typeType => const TrivialAbstractValue();
 }
 
@@ -482,7 +493,7 @@ class TrivialUniverseSelectorConstraints
   const TrivialUniverseSelectorConstraints();
 
   @override
-  bool addReceiverConstraint(Object constraint) => false;
+  bool addReceiverConstraint(Object? constraint) => false;
 
   @override
   bool needsNoSuchMethodHandling(Selector selector, World world) => true;

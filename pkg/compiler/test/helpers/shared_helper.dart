@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -226,6 +224,22 @@ class ConstantToTextVisitor
         visit(value, sb);
         comma = ',';
       });
+    }
+    sb.write(')');
+  }
+
+  @override
+  void visitRecord(RecordConstantValue constant, StringBuffer sb) {
+    sb.write('Record(');
+    final shape = constant.shape;
+    final values = constant.values;
+    for (int i = 0; i < values.length; i++) {
+      if (i > 0) sb.write(',');
+      if (i >= shape.positionalFieldCount) {
+        sb.write(shape.fieldNames[i - shape.positionalFieldCount]);
+        sb.write(':');
+      }
+      visit(values[i], sb);
     }
     sb.write(')');
   }

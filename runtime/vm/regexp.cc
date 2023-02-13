@@ -565,7 +565,7 @@ void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
             }
             // SET_REGISTER is currently only used for newly introduced loop
             // counters. They can have a significant previous value if they
-            // occour in a loop. TODO(lrn): Propagate this information, so we
+            // occur in a loop. TODO(lrn): Propagate this information, so we
             // can set undo_action to ACTION_IGNORE if we know there is no
             // value to restore.
             undo_action = ACTION_RESTORE;
@@ -2372,7 +2372,7 @@ static void UpdateBoundsCheck(intptr_t index, intptr_t* checked_up_to) {
 // do the test for that character first.  We do this in separate passes.  The
 // 'preloaded' argument indicates that we are doing such a 'pass'.  If such a
 // pass has been performed then subsequent passes will have true in
-// first_element_checked to indicate that that character does not need to be
+// first_element_checked to indicate that character does not need to be
 // checked again.
 //
 // In addition to all this we are passed a Trace, which can

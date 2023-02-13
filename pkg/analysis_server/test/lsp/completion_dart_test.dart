@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
@@ -1125,6 +1126,7 @@ final a = Stri^
   }
 
   Future<void> test_fromPlugin_dartFile() async {
+    if (!AnalysisServer.supportsPlugins) return;
     final content = '''
     void f() {
       var x = '';
@@ -1161,6 +1163,7 @@ final a = Stri^
   }
 
   Future<void> test_fromPlugin_dartFile_withImports() async {
+    if (!AnalysisServer.supportsPlugins) return;
     final content = '''
 void f() {
   ^
@@ -1212,6 +1215,7 @@ void f() {
   }
 
   Future<void> test_fromPlugin_nonDartFile() async {
+    if (!AnalysisServer.supportsPlugins) return;
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
     final content = '''
@@ -1252,6 +1256,7 @@ void f() {
   }
 
   Future<void> test_fromPlugin_tooSlow() async {
+    if (!AnalysisServer.supportsPlugins) return;
     final content = '''
     void f() {
       var x = '';
@@ -1609,7 +1614,7 @@ void f() {
     // but 'b'` to have its own.
     //
     // Additionally, because the caret is before the identifier, we will have
-    // seperate default insert/replace ranges.
+    // separate default insert/replace ranges.
     final content = '''
 void f(String a, {String? b}) {
   f([[^b]]);
@@ -3726,8 +3731,7 @@ void f() {
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';''';
+import 'package:flutter/widgets.dart';''';
 
   /// Nullability suffix expected in this test class.
   ///
@@ -4002,9 +4006,7 @@ class FlutterSnippetCompletionWithoutNullSafetyTest
     extends FlutterSnippetCompletionTest {
   @override
   String get expectedImports => '''
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';''';
+import 'package:flutter/widgets.dart';''';
 
   @override
   String get expectedNullableSuffix => '';

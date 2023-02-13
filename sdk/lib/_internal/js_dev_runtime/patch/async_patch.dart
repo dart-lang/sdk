@@ -129,6 +129,17 @@ _async<T>(Function() initGenerator) {
   return asyncFuture;
 }
 
+/// Checks that the value being awaited is a Future of the expected type and
+/// if not the value is wrapped in a new Future.
+///
+/// Calls to the method are generated from the compiler when it detects a type
+/// check is required on the expression in an await.
+///
+/// Closes a soundness hole where null could leak from an awaited Future.
+@JSExportName('awaitWithTypeCheck')
+_awaitWithTypeCheck<T>(Object? value) =>
+    value is T ? value : _Future.value(value);
+
 @patch
 class _AsyncRun {
   @patch
@@ -165,15 +176,6 @@ class _AsyncRun {
       dart.removeAsyncCallback();
       callback();
     });
-  }
-}
-
-@patch
-class DeferredLibrary {
-  @patch
-  Future<Null> load() {
-    throw 'DeferredLibrary not supported. '
-        'please use the `import "lib.dart" deferred as lib` syntax.';
   }
 }
 

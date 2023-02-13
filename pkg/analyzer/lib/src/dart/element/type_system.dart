@@ -31,11 +31,11 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
-import 'package:analyzer/src/dart/error/inference_error_listener.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Fresh type parameters created to unify two lists of type parameters.
 class RelatedTypeParameters {
-  static final _empty = RelatedTypeParameters._([], []);
+  static final _empty = RelatedTypeParameters._(const [], const []);
 
   final List<TypeParameterElement> typeParameters;
   final List<TypeParameterType> typeParameterTypes;
@@ -494,13 +494,7 @@ class TypeSystemImpl implements TypeSystem {
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     var inferrer = GenericInferrer(this, fnType.typeFormals,
-        inferenceErrorListener: errorReporter == null
-            ? null
-            : InferenceErrorReporter(
-                errorReporter,
-                isNonNullableByDefault: isNonNullableByDefault,
-                isGenericMetadataEnabled: genericMetadataIsEnabled,
-              ),
+        errorReporter: errorReporter,
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
@@ -665,7 +659,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     List<DartType> orderedArguments =
-        typeFormals.map((p) => defaults[p]!).toList();
+        typeFormals.map((p) => defaults[p]!).toFixedList();
     return orderedArguments;
   }
 
@@ -1271,7 +1265,7 @@ class TypeSystemImpl implements TypeSystem {
     var inferredTypes = inferrer
         .upwardsInfer()
         .map(_removeBoundsOfGenericFunctionTypes)
-        .toList();
+        .toFixedList();
     var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
 
     for (int i = 0; i < srcTypes.length; i++) {
@@ -1409,7 +1403,7 @@ class TypeSystemImpl implements TypeSystem {
     }
   }
 
-  /// Given two lists of type parameters, check that that they have the same
+  /// Given two lists of type parameters, check that they have the same
   /// number of elements, and their bounds are equal.
   ///
   /// The return value will be a new list of fresh type parameters, that can
@@ -1425,21 +1419,20 @@ class TypeSystemImpl implements TypeSystem {
       return RelatedTypeParameters._empty;
     }
 
-    var freshTypeParameters = <TypeParameterElementImpl>[];
-    var freshTypeParameterTypes = <TypeParameterType>[];
-    for (var i = 0; i < typeParameters1.length; i++) {
-      var freshTypeParameter = TypeParameterElementImpl(
-        typeParameters1[i].name,
+    var length = typeParameters1.length;
+    var freshTypeParameters = List.generate(length, (index) {
+      return TypeParameterElementImpl(
+        typeParameters1[index].name,
         -1,
       );
-      freshTypeParameters.add(freshTypeParameter);
-      freshTypeParameterTypes.add(
-        TypeParameterTypeImpl(
-          element: freshTypeParameter,
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
+    }, growable: false);
+
+    var freshTypeParameterTypes = List.generate(length, (index) {
+      return TypeParameterTypeImpl(
+        element: freshTypeParameters[index],
+        nullabilitySuffix: NullabilitySuffix.none,
       );
-    }
+    }, growable: false);
 
     var substitution1 = Substitution.fromPairs(
       typeParameters1,
@@ -1540,7 +1533,6 @@ class TypeSystemImpl implements TypeSystem {
       required DartType declaredReturnType,
       required DartType? contextReturnType,
       ErrorReporter? errorReporter,
-      InferenceErrorListener? inferenceErrorListener,
       AstNode? errorNode,
       required bool genericMetadataIsEnabled,
       bool isConst = false}) {
@@ -1548,15 +1540,8 @@ class TypeSystemImpl implements TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    if (errorReporter != null) {
-      inferenceErrorListener ??= InferenceErrorReporter(
-        errorReporter,
-        isNonNullableByDefault: isNonNullableByDefault,
-        isGenericMetadataEnabled: genericMetadataIsEnabled,
-      );
-    }
     var inferrer = GenericInferrer(this, typeParameters,
-        inferenceErrorListener: inferenceErrorListener,
+        errorReporter: errorReporter,
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled);
 
@@ -1653,7 +1638,7 @@ class TypeSystemImpl implements TypeSystem {
     return typeParameters.map((typeParameter) {
       var typeParameterImpl = typeParameter as TypeParameterElementImpl;
       return typeParameterImpl.defaultType!;
-    }).toList();
+    }).toFixedList();
   }
 
   DartType _refineBinaryExpressionTypeLegacy(DartType leftType,

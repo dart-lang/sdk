@@ -190,7 +190,7 @@ EOF
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
-    ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dart_precompiled_runtime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot dartdevc_test
+    ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dart_precompiled_runtime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot dartdevc_test dart2wasm_benchmark
   elif [ "$command" = linux-x64-archive ]; then
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -275,6 +275,8 @@ EOF
       -- \
       out/ReleaseX64/dart2js_platform.dill \
       out/ReleaseX64/dart2js_platform_unsound.dill \
+      out/ReleaseX64/dart2wasm_outline.dill \
+      out/ReleaseX64/dart2wasm_platform.dill \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/gen/kernel_service.dill \
@@ -282,14 +284,16 @@ EOF
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/kernel-service.dart.snapshot \
+      out/ReleaseX64/dart2wasm.snapshot \
+      out/ReleaseX64/wasm-opt \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64 \
       third_party/firefox_jsshell/ \
       out/ReleaseX64/dart_precompiled_runtime \
       out/ReleaseX64/gen/utils/dartdevc/kernel/ \
-      out/ReleaseX64/ddc_outline.dill \
+      out/ReleaseX64/ddc_outline_unsound.dill \
       out/ReleaseX64/gen/utils/dartdevc/sound/ \
-      out/ReleaseX64/ddc_outline_sound.dill \
+      out/ReleaseX64/ddc_outline.dill \
       sdk \
       pkg/compiler/test/codesize/swarm \
       third_party/pkg \
@@ -314,6 +318,8 @@ EOF
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --sound-null-safety hello.dart blob.bin
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
     out/ReleaseX64/dart --profile-period=10000 --optimization-counter-threshold=-1 hello.dart
+    DART_CONFIGURATION=ReleaseX64 pkg/dart2wasm/tool/compile_benchmark hello.dart hello.wasm
+    DART_CONFIGURATION=ReleaseX64 pkg/dart2wasm/tool/run_benchmark hello.wasm
     out/ReleaseX64/dart-sdk/bin/dart compile js --no-sound-null-safety --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart compile js --sound-null-safety --out=out.js -m hello.dart

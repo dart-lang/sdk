@@ -8,6 +8,8 @@ class LintNames {
       'always_declare_return_types';
   static const String always_put_control_body_on_new_line =
       'always_put_control_body_on_new_line';
+  static const String always_put_required_named_parameters_first =
+      'always_put_required_named_parameters_first';
   static const String always_require_non_null_named_parameters =
       'always_require_non_null_named_parameters';
   static const String always_specify_types = 'always_specify_types';
@@ -138,6 +140,7 @@ class LintNames {
   static const String unawaited_futures = 'unawaited_futures';
   static const String unnecessary_brace_in_string_interps =
       'unnecessary_brace_in_string_interps';
+  static const String unnecessary_breaks = 'unnecessary_breaks';
   static const String unnecessary_const = 'unnecessary_const';
   static const String unnecessary_constructor_name =
       'unnecessary_constructor_name';

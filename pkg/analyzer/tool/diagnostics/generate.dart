@@ -142,6 +142,9 @@ class DocumentationGenerator {
     for (var errorEntry in messages.entries) {
       var errorName = errorEntry.key;
       var errorCodeInfo = errorEntry.value;
+      if (errorCodeInfo is AliasErrorCodeInfo) {
+        continue;
+      }
       var name = errorCodeInfo.sharedName ?? errorName;
       var info = infoByName[name];
       var message = convertTemplate(
@@ -192,6 +195,7 @@ doesn't conform to the language specification or
 that might work in unexpected ways.
 
 [ffi]: https://dart.dev/guides/libraries/c-interop
+[IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 [meta-doNotStore]: https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html
 [meta-factory]: https://pub.dev/documentation/meta/latest/meta/factory-constant.html
 [meta-immutable]: https://pub.dev/documentation/meta/latest/meta/immutable-constant.html

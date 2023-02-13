@@ -13,12 +13,12 @@ void main() {
     //  B C(D)
     //     / \
     //    E   F
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', isSealed: true, inherits: [a]);
-    var e = StaticType('E', inherits: [d]);
-    var f = StaticType('F', inherits: [d]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', isSealed: true, inherits: [a]);
+    var e = StaticTypeImpl('E', inherits: [d]);
+    var f = StaticTypeImpl('F', inherits: [d]);
 
     expectIntersect(a, a, a);
     expectIntersect(a, b, b);
@@ -28,22 +28,22 @@ void main() {
     expectIntersect(a, f, f);
 
     expectIntersect(b, b, b);
-    expectIntersect(b, c, null);
-    expectIntersect(b, d, null);
-    expectIntersect(b, e, null);
-    expectIntersect(b, f, null);
+    expectIntersect(b, c, StaticType.neverType);
+    expectIntersect(b, d, StaticType.neverType);
+    expectIntersect(b, e, StaticType.neverType);
+    expectIntersect(b, f, StaticType.neverType);
 
     expectIntersect(c, c, c);
-    expectIntersect(c, d, null);
-    expectIntersect(c, e, null);
-    expectIntersect(c, f, null);
+    expectIntersect(c, d, StaticType.neverType);
+    expectIntersect(c, e, StaticType.neverType);
+    expectIntersect(c, f, StaticType.neverType);
 
     expectIntersect(d, d, d);
     expectIntersect(d, e, e);
     expectIntersect(d, f, f);
 
     expectIntersect(e, e, e);
-    expectIntersect(e, f, null);
+    expectIntersect(e, f, StaticType.neverType);
   });
 
   test('sealed with multiple paths', () {
@@ -52,11 +52,11 @@ void main() {
     //   (B)  C
     //   / \ /
     //  D   E
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [b]);
-    var e = StaticType('E', inherits: [b, c]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [b]);
+    var e = StaticTypeImpl('E', inherits: [b, c]);
 
     expectIntersect(a, a, a);
     expectIntersect(a, b, b);
@@ -64,14 +64,14 @@ void main() {
     expectIntersect(a, d, d);
     expectIntersect(a, e, e);
     expectIntersect(b, b, b);
-    expectIntersect(b, c, null);
+    expectIntersect(b, c, StaticType.neverType);
     expectIntersect(b, d, d);
     expectIntersect(b, e, e);
     expectIntersect(c, c, c);
-    expectIntersect(c, d, null);
+    expectIntersect(c, d, StaticType.neverType);
     expectIntersect(c, e, e);
     expectIntersect(d, d, d);
-    expectIntersect(d, e, null);
+    expectIntersect(d, e, StaticType.neverType);
     expectIntersect(e, e, e);
   });
 
@@ -79,11 +79,11 @@ void main() {
     // A
     // |
     // B
-    var a = StaticType('A');
-    var b = StaticType('B', inherits: [a]);
+    var a = StaticTypeImpl('A');
+    var b = StaticTypeImpl('B', inherits: [a]);
 
     expectIntersect(a, a.nullable, a);
-    expectIntersect(a, StaticType.nullType, null);
+    expectIntersect(a, StaticType.nullType, StaticType.neverType);
     expectIntersect(a.nullable, StaticType.nullType, StaticType.nullType);
 
     expectIntersect(a, b.nullable, b);
@@ -92,7 +92,7 @@ void main() {
   });
 }
 
-void expectIntersect(StaticType left, StaticType right, StaticType? expected) {
+void expectIntersect(StaticType left, StaticType right, StaticType expected) {
   // Intersection is symmetric so try both directions.
   expect(intersectTypes(left, right), expected);
   expect(intersectTypes(right, left), expected);

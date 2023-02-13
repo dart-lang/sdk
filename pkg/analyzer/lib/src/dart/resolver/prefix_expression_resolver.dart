@@ -159,7 +159,7 @@ class PrefixExpressionResolver {
       var readType = node.readType ?? operand.typeOrThrow;
       if (identical(readType, NeverTypeImpl.instance)) {
         _resolver.errorReporter.reportErrorForNode(
-          HintCode.RECEIVER_OF_TYPE_NEVER,
+          WarningCode.RECEIVER_OF_TYPE_NEVER,
           operand,
         );
         return;

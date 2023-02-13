@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable-experiment=records
-// @dart=2.19
+// @dart=3.0
 // ignore_for_file: experiment_not_enabled
 
 library get_object_rpc_test;
 
+import 'dart:collection';
 import 'dart:convert' show base64Decode;
 import 'dart:typed_data';
 
@@ -693,19 +694,28 @@ var tests = <IsolateTest>[
             as InstanceRef;
     final objectId = evalResult.id!;
     final result = await service.getObject(isolateId, objectId) as Instance;
-    expect(result.kind, '_Record');
+    expect(result.kind, InstanceKind.kRecord);
     expect(result.json!['_vmType'], 'Record');
     expect(result.id, startsWith('objects/'));
     expect(result.valueAsString, isNull);
     expect(result.classRef!.name, '_Record');
     expect(result.size, isPositive);
-    final fields = result.fields!;
-    expect(fields.length, 4);
-    // TODO(derekx): Include field names in this test once they are accessible
-    // through package:vm_service.
-    Set<String> fieldValues =
-        Set.from(fields.map((f) => f.value.valueAsString));
-    expect(fieldValues.containsAll(['1', '2', '3.0', '4.0']), true);
+    expect(result.length, 4);
+    final fieldsMap = HashMap.fromEntries(
+        result.fields!.map((f) => MapEntry(f.name, f.value)));
+    expect(fieldsMap.keys.length, result.length);
+    // [BoundField]s have fields with type [dynamic], and such fields have
+    // broken [toJson()] in the past. So, we make the following call just to
+    // ensure that it doesn't throw.
+    result.fields!.first.toJson();
+    expect(fieldsMap.containsKey(0), true);
+    expect(fieldsMap[0].valueAsString, '1');
+    expect(fieldsMap.containsKey("x"), true);
+    expect(fieldsMap["x"].valueAsString, '2');
+    expect(fieldsMap.containsKey(1), true);
+    expect(fieldsMap[1].valueAsString, '3.0');
+    expect(fieldsMap.containsKey("y"), true);
+    expect(fieldsMap["y"].valueAsString, '4.0');
   },
 
   // library.
@@ -774,6 +784,34 @@ var tests = <IsolateTest>[
       expect(e.code, equals(RPCError.kInvalidParams));
       expect(e.message, "Invalid params");
     }
+  },
+
+  // A PlainInstance.
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    final evalResult = await service.invoke(
+        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+    final objectId = evalResult.id!;
+    final result = await service.getObject(isolateId, objectId) as Instance;
+    expect(result.kind, InstanceKind.kPlainInstance);
+    expect(result.id, startsWith('objects/'));
+    expect(result.valueAsString, isNull);
+    expect(result.classRef!.name, '_DummyClass');
+    expect(result.name, isNull);
+    expect(result.typeParameters, isNull);
+    expect(result.size, isPositive);
+    expect(result.length, 3);
+    final fieldsMap = HashMap.fromEntries(
+        result.fields!.map((f) => MapEntry(f.name, f.value)));
+        print(fieldsMap);
+    expect(fieldsMap.keys.length, result.length);
+    expect(fieldsMap.containsKey('dummyList'), true);
+    expect((fieldsMap['dummyList'] as InstanceRef).kind, InstanceKind.kList);
+    expect(fieldsMap.containsKey('dummyLateVarWithInit'), true);
+    expect((fieldsMap['dummyLateVarWithInit'] as Sentinel).kind, SentinelKind.kNotInitialized);
+    expect(fieldsMap.containsKey('dummyLateVar'), true);
+    expect((fieldsMap['dummyLateVar'] as Sentinel).kind, SentinelKind.kNotInitialized);
   },
 
   // class

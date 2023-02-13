@@ -54,23 +54,28 @@ AnalysisOptionsErrorCode:
       Parameters:
       0: the error message from the parse error
 AnalysisOptionsHintCode:
-  PREVIEW_DART_2_SETTING_DEPRECATED:
-    problemMessage: "The 'enablePreviewDart2' setting is deprecated."
-    correctionMessage: It is no longer necessary to explicitly enable Dart 2.
-    comment: |-
-      An error code indicating that the enablePreviewDart2 setting is
-      deprecated.
   STRONG_MODE_SETTING_DEPRECATED:
     problemMessage: "The 'strong-mode: true' setting is deprecated."
     correctionMessage: It is no longer necessary to explicitly enable strong mode.
     comment: "An error code indicating that strong-mode: true is deprecated."
-  SUPER_MIXINS_SETTING_DEPRECATED:
-    problemMessage: "The 'enableSuperMixins' setting is deprecated."
-    correctionMessage: "Support has been added to the language for 'mixin' based mixins."
-    comment: |-
-      An error code indicating that the enablePreviewDart2 setting is
-      deprecated.
 AnalysisOptionsWarningCode:
+  ANALYSIS_OPTION_DEPRECATED:
+    problemMessage: "The option '{0}' is no longer supported."
+    comment: |
+      An error code indicating that the given option is deprecated.
+
+      Parameters:
+      0: the option name
+  ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
+    sharedName: ANALYSIS_OPTION_DEPRECATED
+    problemMessage: "The option '{0}' is no longer supported."
+    correctionMessage: "Try using the new '{1}' option."
+    comment: |-
+      An error code indicating that the given option is deprecated.
+
+      Parameters:
+      0: the option name
+      1: the replacement option name
   INCLUDED_FILE_WARNING:
     problemMessage: "Warning in the included options file {0}({1}..{2}): {3}"
     comment: |-
@@ -87,7 +92,7 @@ AnalysisOptionsWarningCode:
       An error code indicating a specified include file could not be found.
 
       Parameters:
-      0: the uri of the file to be included
+      0: the URI of the file to be included
       1: the path of the file containing the include directive
       2: the path of the context being analyzed
   INVALID_OPTION:
@@ -106,6 +111,42 @@ AnalysisOptionsWarningCode:
 
       Parameters:
       0: the section name
+  MULTIPLE_PLUGINS:
+    problemMessage: "Multiple plugins can't be enabled."
+    correctionMessage: "Remove all plugins following the first, '{0}'."
+    comment: |-
+      An error code indicating multiple plugins have been specified as enabled.
+
+      Parameters:
+      0: the name of the first plugin
+  RECURSIVE_INCLUDE_FILE:
+    problemMessage: "The include file '{0}' in '{1}' includes itself recursively."
+    correctionMessage: "Try changing the chain of 'include's to not re-include this file."
+    comment: |-
+      An error code indicating a specified include file includes itself recursively.
+
+      Parameters:
+      0: the URI of the file to be included
+      1: the path of the file containing the include directive
+  REMOVED_LINT:
+    problemMessage: "'{0}' was removed in Dart '{1}'"
+    correctionMessage: "Remove the reference to '{0}'."
+    comment: |-
+      An error code indicating a removed lint rule.
+
+      Parameters:
+      0: the rule name
+      1: the SDK version in which the lint was removed
+  REPLACED_LINT:
+    problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'."
+    correctionMessage: "Replace '{0}' with '{1}'."
+    comment: |-
+      An error code indicating a removed lint rule.
+
+      Parameters:
+      0: the rule name
+      1: the SDK version in which the lint was removed
+      2: the name of a replacing lint
   SPEC_MODE_REMOVED:
     problemMessage: "The option 'strong-mode: false' is no longer supported."
     correctionMessage: "It's recommended to remove the 'strong-mode:' setting (and make your code Dart 2 compliant)."
@@ -980,7 +1021,7 @@ CompileTimeErrorCode:
       ```
   ASYNC_FOR_IN_WRONG_CONTEXT:
     problemMessage: The async for-in loop can only be used in an async function.
-    correctionMessage: "Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for-in loop."
+    correctionMessage: Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for-in loop.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
@@ -1081,13 +1122,25 @@ CompileTimeErrorCode:
       ```
   AWAIT_IN_WRONG_CONTEXT:
     problemMessage: The await expression can only be used in an async function.
-    correctionMessage: "Try marking the function body with either 'async' or 'async*'."
+    correctionMessage: Try marking the function body with either 'async' or 'async*'.
     comment: |-
       16.30 Await Expressions: It is a compile-time error if the function
       immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
       await expression.)
+  BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The class '{0}' can't be implemented outside of its library because it's a base class."
+    comment: |-
+      Parameters:
+      0: the name of the base class being implemented
+  BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The mixin '{0}' can't be implemented outside of its library because it's a base mixin."
+    comment: |-
+      Parameters:
+      0: the name of the base mixin being implemented
   BODY_MIGHT_COMPLETE_NORMALLY:
-    problemMessage: "The body might complete normally, causing 'null' to be returned, but the return type, '{0}', is a potentially non-nullable type."
+    problemMessage: The body might complete normally, causing 'null' to be returned, but the return type, '{0}', is a potentially non-nullable type.
     correctionMessage: Try adding either a return or a throw statement at the end.
     hasPublishedDocs: true
     comment: |-
@@ -1166,7 +1219,7 @@ CompileTimeErrorCode:
       }
       ```
   BREAK_LABEL_ON_SWITCH_MEMBER:
-    problemMessage: "A break label resolves to the 'case' or 'default' statement."
+    problemMessage: A break label resolves to the 'case' or 'default' statement.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
@@ -1223,7 +1276,7 @@ CompileTimeErrorCode:
       }
       ```
   BUILT_IN_IDENTIFIER_AS_TYPE:
-    problemMessage: "The built-in identifier '{0}' can't be used as a type."
+    problemMessage: The built-in identifier '{0}' can't be used as a type.
     correctionMessage: Try correcting the name to match an existing type.
     hasPublishedDocs: true
     comment: |-
@@ -1544,6 +1597,11 @@ CompileTimeErrorCode:
       num x = 0;
       int y = x as int;
       ```
+  CLASS_USED_AS_MIXIN:
+    problemMessage: "The class '{0}' can't be used as a mixin because it isn't a mixin class nor a mixin."
+    comment: |-
+      Parameters:
+      0: the name of the class being used as a mixin
   CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER:
     sharedName: CLASS_INSTANTIATION_ACCESS_TO_MEMBER
     problemMessage: "The instance member '{0}' can't be accessed on a class instantiation."
@@ -1640,7 +1698,7 @@ CompileTimeErrorCode:
       ```dart
       import 'a.dart' deferred as a;
 
-      var l = const [[!a.zero!]];
+      var l = const [a.[!zero!]];
       ```
 
       #### Common fixes
@@ -1669,6 +1727,10 @@ CompileTimeErrorCode:
       ```dart
       var l = const [0];
       ```
+  PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
+    problemMessage: Constant values from a deferred library can't be used in patterns.
+    correctionMessage: Try removing the keyword 'deferred' from the import.
+    comment: No parameters.
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' set literal."
@@ -2454,7 +2516,7 @@ CompileTimeErrorCode:
       ```dart
       import 'dart:math' deferred as math;
 
-      const pi = [!math.pi!];
+      const pi = math.[!pi!];
       ```
 
       #### Common fixes
@@ -2878,9 +2940,15 @@ CompileTimeErrorCode:
 
       Parameters:
       0: the name of the type
-  CONTINUE_LABEL_ON_SWITCH:
-    problemMessage: A `continue` label resolves to a `switch` statement, but the label must be on a loop or a switch member.
+  CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION:
+    problemMessage: The expression of a constant pattern must be a valid constant.
+    correctionMessage: Try making the expression a valid constant.
+    comment: No parameters.
+  CONTINUE_LABEL_INVALID:
+    previousName: CONTINUE_LABEL_ON_SWITCH
     hasPublishedDocs: true
+    problemMessage: The label used in a 'continue' statement must be defined on either a loop or a switch member.
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -2896,7 +2964,7 @@ CompileTimeErrorCode:
       void f(int i) {
         l: switch (i) {
           case 0:
-            continue [!l!];
+            [!continue l;!]
         }
       }
       ```
@@ -3523,12 +3591,21 @@ CompileTimeErrorCode:
 
       part 'part.dart';
       ```
+  DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
+    problemMessage: The variable '{0}' is already assigned in this pattern.
+    correctionMessage: Try renaming the variable.
+    comment: |-
+      Parameters:
+      0: the name of the variable
   DUPLICATE_RECORD_PATTERN_FIELD:
     problemMessage: The field '{0}' is already matched in this pattern.
     correctionMessage: Try removing the duplicate field.
     comment: |-
       Parameters:
       0: the name of the field
+  DUPLICATE_REST_ELEMENT_IN_PATTERN:
+    problemMessage: At most one rest element is allowed in a list or map pattern.
+    correctionMessage: Try removing the duplicate rest element.
   DUPLICATE_VARIABLE_PATTERN:
     problemMessage: The variable '{0}' is already defined in this pattern.
     correctionMessage: Try renaming the variable.
@@ -3799,6 +3876,10 @@ CompileTimeErrorCode:
       Note that literal maps preserve the order of their entries, so the choice
       of which entry to remove might affect the order in which keys and values
       are returned by an iterator.
+  EQUAL_KEYS_IN_MAP_PATTERN:
+    problemMessage: Two keys in a map pattern can't be equal.
+    correctionMessage: Change or remove the duplicate key.
+    comment: No parameters.
   EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
     problemMessage: List patterns require one type argument or none, but {0} found.
     correctionMessage: Try adjusting the number of type arguments.
@@ -3892,12 +3973,18 @@ CompileTimeErrorCode:
       ```dart
       var m = <int, String>{};
       ```
+  EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS:
+    problemMessage: Map patterns require two type arguments or none, but {0} found.
+    correctionMessage: Try adjusting the number of type arguments.
+    comment: |-
+      Parameters:
+      0: the number of provided type arguments
   EXPORT_INTERNAL_LIBRARY:
     problemMessage: "The library '{0}' is internal and can't be exported."
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the uri pointing to a library
+      0: the URI pointing to a library
     documentation: |-
       #### Description
 
@@ -3975,7 +4062,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the uri pointing to a non-library declaration
+      0: the URI pointing to a non-library declaration
     documentation: |-
       #### Description
 
@@ -4931,6 +5018,18 @@ CompileTimeErrorCode:
         C(String s) : f = int.parse(s);
       }
       ```
+  FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The class '{0}' can't be extended outside of its library because it's a final class."
+    comment: |-
+      Parameters:
+      0: the name of the final class being extended.
+  FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The class '{0}' can't be implemented outside of its library because it's a final class."
+    comment: |-
+      Parameters:
+      0: the name of the final class being implemented.
   FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
     problemMessage: "'{0}' is final and was given a value when it was declared, so it can't be set to a new value."
     correctionMessage: Try removing one of the initializations.
@@ -4980,6 +5079,18 @@ CompileTimeErrorCode:
         C(this.f);
       }
       ```
+  FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The mixin '{0}' can't be implemented outside of its library because it's a final mixin."
+    comment: |-
+      Parameters:
+      0: the name of the final mixin being implemented.
+  FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The mixin '{0}' can't be mixed-in outside of its library because it's a final mixin."
+    comment: |-
+      Parameters:
+      0: the name of the final mixin being mixed in.
   FINAL_NOT_INITIALIZED:
     problemMessage: "The final variable '{0}' must be initialized."
     correctionMessage: Try initializing the variable.
@@ -5192,7 +5303,7 @@ CompileTimeErrorCode:
       }
       ```
   FOR_IN_OF_INVALID_TYPE:
-    problemMessage: "The type '{0}' used in the 'for' loop must implement {1}."
+    problemMessage: "The type '{0}' used in the 'for' loop must implement '{1}'."
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -5906,7 +6017,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the uri pointing to a library
+      0: the URI pointing to a library
     documentation: |-
       #### Description
 
@@ -5930,7 +6041,7 @@ CompileTimeErrorCode:
     correctionMessage: Try importing the library that the part is a part of.
     comment: |-
       Parameters:
-      0: the uri pointing to a non-library declaration
+      0: the URI pointing to a non-library declaration
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -6062,7 +6173,7 @@ CompileTimeErrorCode:
 
       ```dart
       %uri="lib/part.dart"
-      // @dart = 2.6
+      // @dart = 2.14
       part of 'test.dart';
       ```
 
@@ -6070,7 +6181,7 @@ CompileTimeErrorCode:
       must have the same language version as the defining compilation unit:
 
       ```dart
-      // @dart = 2.5
+      // @dart = 2.15
       part [!'part.dart'!];
       ```
 
@@ -6088,6 +6199,18 @@ CompileTimeErrorCode:
       compilation unit to be appropriate for the code in the part, or migrate
       the code in the [part file][] to be consistent with the new language
       version.
+  INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
+    problemMessage: "The variable '{0}' has a different type and/or finality in this branch of the logical-or pattern."
+    correctionMessage: Try declaring the variable pattern with the same type and finality in both branches.
+    comment: |-
+      Parameters:
+      0: the name of the pattern variable
+  INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE:
+    problemMessage: "The variable '{0}' doesn't have the same type and/or finality in all cases that share this body."
+    correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
+    comment: |-
+      Parameters:
+      0: the name of the pattern variable
   INITIALIZER_FOR_NON_EXISTENT_FIELD:
     problemMessage: "'{0}' isn't a field in the enclosing class."
     correctionMessage: "Try correcting the name to match an existing field, or defining a field named '{0}'."
@@ -6613,6 +6736,18 @@ CompileTimeErrorCode:
       ```dart
       var x = BigInt.parse('9223372036854775810');
       ```
+  INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The class '{0}' can't be extended outside of its library because it's an interface class."
+    comment: |-
+      Parameters:
+      0: the name of the interface class being extended.
+  INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The mixin '{0}' can't be mixed-in outside of its library because it's an interface mixin."
+    comment: |-
+      Parameters:
+      0: the name of the interface mixin being mixed in.
   INVALID_ANNOTATION:
     problemMessage: Annotation must be either a const variable reference or const constructor invocation.
     hasPublishedDocs: true
@@ -6713,7 +6848,7 @@ CompileTimeErrorCode:
         const C(double d);
       }
 
-      @C([!math.pi!])
+      @C(math.[!pi!])
       void f () {}
       ```
 
@@ -6840,7 +6975,7 @@ CompileTimeErrorCode:
 
       This error is only reported in libraries which are not null safe.
   INVALID_CAST_FUNCTION_EXPR:
-    problemMessage: "The function expression type '{0}' isn't of type '{1}'. This means its parameter or return type doesn't match what is expected. Consider changing parameter type(s) or the returned type(s)."
+    problemMessage: The function expression type '{0}' isn't of type '{1}'. This means its parameter or return type doesn't match what is expected. Consider changing parameter type(s) or the returned type(s).
     comment: |-
       Parameters:
       0: the type of the torn-off function expression
@@ -7137,6 +7272,20 @@ CompileTimeErrorCode:
         int add(num a) => a.floor();
       }
       ```
+  INVALID_IMPLEMENTATION_OVERRIDE_SETTER:
+    sharedName: INVALID_IMPLEMENTATION_OVERRIDE
+    problemMessage: "The setter '{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' ('{4}')."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the declared setter that is not a valid override.
+      1: the name of the interface that declares the setter.
+      2: the type of the declared setter in the interface.
+      3: the name of the interface with the overridden setter.
+      4: the type of the overridden setter.
+
+      These parameters must be kept in sync with those of
+      [CompileTimeErrorCode.INVALID_OVERRIDE].
   INVALID_INLINE_FUNCTION_TYPE:
     problemMessage: "Inline function types can't be used for parameters in a generic function type."
     correctionMessage: "Try using a generic function type (returnType 'Function(' parameters ')')."
@@ -7320,6 +7469,17 @@ CompileTimeErrorCode:
         void m2(String s) {}
       }
       ```
+  INVALID_OVERRIDE_SETTER:
+    sharedName: INVALID_OVERRIDE
+    problemMessage: "The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}')."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the declared setter that is not a valid override.
+      1: the name of the interface that declares the setter.
+      2: the type of the declared setter in the interface.
+      3: the name of the interface with the overridden setter.
+      4: the type of the overridden setter.
   INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
     problemMessage: Generative enum constructors can only be used as targets of redirection.
     correctionMessage: Try using an enum constant, or a factory constructor.
@@ -8575,6 +8735,13 @@ CompileTimeErrorCode:
 
       class X = A with M;
       ```
+  MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER:
+    sharedName: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+    problemMessage: "The class doesn't have a concrete implementation of the super-invoked setter '{0}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the display name of the setter without a concrete implementation
   MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER:
     problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '{0}'."
     hasPublishedDocs: true
@@ -9435,7 +9602,7 @@ CompileTimeErrorCode:
 
       void f(int x) {
         switch (x) {
-          case [!a.zero!]:
+          case a.[!zero!]:
             // ...
             break;
         }
@@ -9560,7 +9727,7 @@ CompileTimeErrorCode:
       ```dart
       import 'a.dart' deferred as a;
 
-      void f({int x = [!a.zero!]}) {}
+      void f({int x = a.[!zero!]}) {}
       ```
 
       #### Common fixes
@@ -9706,6 +9873,10 @@ CompileTimeErrorCode:
       var a = 'a';
       var m = {a: 0};
       ```
+  NON_CONSTANT_MAP_PATTERN_KEY:
+    problemMessage: Key expressions in map patterns must be constants.
+    correctionMessage: Try using constants instead.
+    comment: No parameters.
   NON_CONSTANT_MAP_VALUE:
     problemMessage: The values in a const map literal must be constant.
     correctionMessage: "Try removing the keyword 'const' from the map literal."
@@ -9742,6 +9913,10 @@ CompileTimeErrorCode:
       var a = 'a';
       var m = {0: a};
       ```
+  NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
+    problemMessage: The relational pattern expression must be a constant.
+    correctionMessage: Try using a constant instead.
+    comment: No parameters.
   NON_CONSTANT_SET_ELEMENT:
     problemMessage: The values in a const set literal must be constants.
     correctionMessage: "Try removing the keyword 'const' from the set literal."
@@ -9786,6 +9961,13 @@ CompileTimeErrorCode:
       13.2 Expression Statements: It is a compile-time error if a non-constant
       map literal that has no explicit type arguments appears in a place where a
       statement is expected.
+  NON_EXHAUSTIVE_SWITCH:
+    problemMessage: "The type '{0}' is not exhaustively matched by the switch cases."
+    correctionMessage: "Try adding a default case or cases that match {1}."
+    comment: |-
+      Parameters:
+      0: the type of the switch scrutinee
+      1: the unmatched space
   NON_FINAL_FIELD_IN_ENUM:
     problemMessage: Enums can only declare final fields.
     correctionMessage: Try making the field final.
@@ -10282,12 +10464,6 @@ CompileTimeErrorCode:
       #### Common fixes
 
       Replace the name with the name of a type.
-  NOT_CONSISTENT_VARIABLE_PATTERN:
-    problemMessage: "Variable pattern '{0}' has a different type or finality in this branch of the logical-or pattern."
-    correctionMessage: "Try declaring the variable pattern with the same type and finality in both branches."
-    comment: |-
-      Parameters:
-      0: the name of the variable pattern
   NOT_BINARY_OPERATOR:
     problemMessage: "'{0}' isn't a binary operator."
     hasPublishedDocs: true
@@ -10925,8 +11101,9 @@ CompileTimeErrorCode:
       7.9 Superclasses: It is a compile-time error to specify an extends clause
       for class Object.
   OBSOLETE_COLON_FOR_DEFAULT_VALUE:
-    problemMessage: "Using a colon as a separator before a default value is no longer supported."
-    correctionMessage: "Try replacing the colon with an equal sign."
+    problemMessage: Using a colon as a separator before a default value is no longer supported.
+    correctionMessage: Try replacing the colon with an equal sign.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -11077,7 +11254,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the uri pointing to a non-library declaration
+      0: the URI pointing to a non-library declaration
     documentation: |-
       #### Description
 
@@ -11159,6 +11336,19 @@ CompileTimeErrorCode:
       %uri="lib/part_file.dart"
       part of 'test.dart';
       ```
+  PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE:
+    problemMessage: Only local variables or formal parameters can be used in pattern assignments.
+    correctionMessage: Try assigning to a local variable.
+  PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
+    problemMessage: "The matched value of type '{0}' isn't assignable to the required type '{1}'."
+    correctionMessage: "Try changing the required type of the pattern, or the matched value type."
+    comment: |-
+      Parameters:
+      0: the matched type
+      1: the required type
+  PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
+    problemMessage: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+    correctionMessage: Try assigning to a different variable.
   POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
     problemMessage: Positional super parameters can't be used when the super constructor invocation has a positional argument.
     correctionMessage: Try making all the positional parameters passed to the super constructor be either all super parameters or all normal parameters.
@@ -11382,16 +11572,16 @@ CompileTimeErrorCode:
 
       ```dart
       %uri="lib/a.dart"
-      class A {
+      mixin A {
         void _foo() {}
       }
 
-      class B {
+      mixin B {
         void _foo() {}
       }
       ```
 
-      The following code produces this diagnostic because the classes `A` and `B`
+      The following code produces this diagnostic because the mixins `A` and `B`
       both define the method `_foo`:
 
       ```dart
@@ -12255,9 +12445,18 @@ CompileTimeErrorCode:
         print(x);
       }
       ```
+  REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
+    problemMessage: Refutable patterns can't be used in an irrefutable context.
+    correctionMessage: Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
   RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
     problemMessage: The return type of operators used in relational patterns must be assignable to 'bool'.
     correctionMessage: Try updating the operator declaration to return 'bool'.
+  REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
+    problemMessage: A rest element in a map pattern can't have a subpattern.
+    correctionMessage: Try removing the subpattern.
+  REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN:
+    problemMessage: A rest element in a map pattern must be the last element.
+    correctionMessage: Try moving the rest element to be the last element.
   RETHROW_OUTSIDE_CATCH:
     problemMessage: A rethrow must be inside of a catch clause.
     correctionMessage: "Try moving the expression into a catch clause, or using a 'throw' expression."
@@ -12533,6 +12732,18 @@ CompileTimeErrorCode:
         return 0;
       }
       ```
+  SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The class '{0}' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
+    comment: |-
+      Parameters:
+      0: the name of the sealed class being extended, implemented, or mixed in
+  SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The mixin '{0}' can't be mixed in outside of its library because it's a sealed mixin."
+    comment: |-
+      Parameters:
+      0: the name of the sealed mixin being mixed in
   SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the set type '{1}'."
     hasPublishedDocs: true
@@ -15108,7 +15319,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the URI pointing to a non-existent file
+      0: the URI pointing to a nonexistent file
     documentation: |-
       #### Description
 
@@ -15135,7 +15346,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the URI pointing to a non-existent file
+      0: the URI pointing to a nonexistent file
     documentation: |-
       #### Description
 
@@ -15290,6 +15501,9 @@ CompileTimeErrorCode:
         void getValues() {}
       }
       ```
+  VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
+    problemMessage: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+    correctionMessage: Try removing the keyword.
   VARIABLE_TYPE_MISMATCH:
     problemMessage: "A value of type '{0}' can't be assigned to a const variable of type '{1}'."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"
@@ -17575,66 +17789,6 @@ FfiCode:
       1: the name of the class being extended, implemented, or mixed in
     hasPublishedDocs: true
 HintCode:
-  ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
-    problemMessage: "The argument type '{0}' can't be assigned to the parameter type '{1} Function(Object)' or '{1} Function(Object, StackTrace)'."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the actual argument type
-      1: the name of the expected function return type
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an invocation of
-      `Future.catchError` has an argument that is a function whose parameters
-      aren't compatible with the arguments that will be passed to the function
-      when it's invoked. The static type of the first argument to `catchError`
-      is just `Function`, even though the function that is passed in is expected
-      to have either a single parameter of type `Object` or two parameters of
-      type `Object` and `StackTrace`.
-
-      #### Examples
-
-      The following code produces this diagnostic because the closure being
-      passed to `catchError` doesn't take any parameters, but the function is
-      required to take at least one parameter:
-
-      ```dart
-      void f(Future<int> f) {
-        f.catchError([!() => 0!]);
-      }
-      ```
-
-      The following code produces this diagnostic because the closure being
-      passed to `catchError` takes three parameters, but it can't have more than
-      two required parameters:
-
-      ```dart
-      void f(Future<int> f) {
-        f.catchError([!(one, two, three) => 0!]);
-      }
-      ```
-
-      The following code produces this diagnostic because even though the closure
-      being passed to `catchError` takes one parameter, the closure doesn't have
-      a type that is compatible with `Object`:
-
-      ```dart
-      void f(Future<int> f) {
-        f.catchError([!(String error) => 0!]);
-      }
-      ```
-
-      #### Common fixes
-
-      Change the function being passed to `catchError` so that it has either one
-      or two required parameters, and the parameters have the required types:
-
-      ```dart
-      void f(Future<int> f) {
-        f.catchError((Object error) => 0);
-      }
-      ```
   ASSIGNMENT_OF_DO_NOT_STORE:
     problemMessage: "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable."
     correctionMessage: Try removing the assignment.
@@ -17670,101 +17824,14 @@ HintCode:
 
       Replace references to the field or variable with invocations of the
       function producing the value.
-  BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
-    problemMessage: "This 'onError' handler must return a value assignable to '{0}', but ends without returning a value."
-    correctionMessage: Try adding a return statement.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the return type as derived by the type of the [Future].
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the closure passed to the
-      `onError` parameter of the `Future.catchError` method is required to
-      return a non-`null` value (because of the `Future`s type argument) but can
-      implicitly return `null`.
-
-      #### Example
-
-      The following code produces this diagnostic because the closure passed to
-      the `catchError` method is required to return an `int` but doesn't end
-      with an explicit `return`, causing it to implicitly return `null`:
-
-      ```dart
-      void g(Future<int> f) {
-        f.catchError((e, st) [!{!]});
-      }
-      ```
-
-      #### Common fixes
-
-      If the closure should sometimes return a non-`null` value, then add an
-      explicit return to the closure:
-
-      ```dart
-      void g(Future<int> f) {
-        f.catchError((e, st) {
-          return -1;
-        });
-      }
-      ```
-
-      If the closure should always return `null`, then change the type argument
-      of the `Future` to be either `void` or `Null`:
-
-      ```dart
-      void g(Future<void> f) {
-        f.catchError((e, st) {});
-      }
-      ```
-  BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
-    problemMessage: "This function has a nullable return type of '{0}', but ends without returning a value."
-    correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the name of the declared return type
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a method or function can
-      implicitly return `null` by falling off the end. While this is valid Dart
-      code, it's better for the return of `null` to be explicit.
-
-      #### Example
-
-      The following code produces this diagnostic because the function `f`
-      implicitly returns `null`:
-
-      ```dart
-      String? [!f!]() {}
-      ```
-
-      #### Common fixes
-
-      If the return of `null` is intentional, then make it explicit:
-
-      ```dart
-      String? f() {
-        return null;
-      }
-      ```
-
-      If the function should return a non-null value along that path, then add
-      the missing return statement:
-
-      ```dart
-      String? f() {
-        return '';
-      }
-      ```
   CAN_BE_NULL_AFTER_NULL_AWARE:
     problemMessage: "The receiver uses '?.', so its value can be null."
     correctionMessage: "Replace the '.' with a '?.' in the invocation."
     comment: |-
       When the target expression uses '?.' operator, it can be `null`, so all the
       subsequent invocations should also use '?.' operator.
+
+      Note: This diagnostic is only generated in pre-null safe code.
   DEAD_CODE:
     problemMessage: Dead code.
     correctionMessage: Try removing the code, or fixing the code before it so that it can be reached.
@@ -17936,7 +18003,8 @@ HintCode:
       ```
   DEPRECATED_COLON_FOR_DEFAULT_VALUE:
     problemMessage: Using a colon as a separator before a default value is deprecated and will not be supported in language version 3.0 and later.
-    correctionMessage: "Try replacing the colon with an equal sign."
+    correctionMessage: Try replacing the colon with an equal sign.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -17964,6 +18032,7 @@ HintCode:
   DEPRECATED_EXPORT_USE:
     problemMessage: "The ability to import '{0}' indirectly is deprecated."
     correctionMessage: "Try importing '{0}' directly."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the element
@@ -18092,103 +18161,6 @@ HintCode:
       Parameters:
       0: the name of the member
       1: message details
-  DEPRECATED_NEW_IN_COMMENT_REFERENCE:
-    problemMessage: "Using the 'new' keyword in a comment reference is deprecated."
-    correctionMessage: Try referring to a constructor by its name.
-    comment: No parameters.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a comment reference (the name
-      of a declaration enclosed in square brackets in a documentation comment)
-      uses the keyword `new` to refer to a constructor. This form is deprecated.
-
-      #### Examples
-
-      The following code produces this diagnostic because the unnamed
-      constructor is being referenced using `new C`:
-
-      ```dart
-      /// See [[!new!] C].
-      class C {
-        C();
-      }
-      ```
-
-      The following code produces this diagnostic because the constructor named
-      `c` is being referenced using `new C.c`:
-
-      ```dart
-      /// See [[!new!] C.c].
-      class C {
-        C.c();
-      }
-      ```
-
-      #### Common fixes
-
-      If you're referencing a named constructor, then remove the keyword `new`:
-
-      ```dart
-      /// See [C.c].
-      class C {
-        C.c();
-      }
-      ```
-
-      If you're referencing the unnamed constructor, then remove the keyword
-      `new` and append `.new` after the class name:
-
-      ```dart
-      /// See [C.new].
-      class C {
-        C.c();
-      }
-      ```
-  DEPRECATED_MIXIN_FUNCTION:
-    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
-    problemMessage: "Mixing in 'Function' is deprecated."
-    correctionMessage: "Try removing 'Function' from the 'with' clause."
-    hasPublishedDocs: true
-    comment: No parameters.
-  DEPRECATED_IMPLEMENTS_FUNCTION:
-    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
-    problemMessage: "Implementing 'Function' has no effect."
-    correctionMessage: "Try removing 'Function' from the 'implements' clause."
-    hasPublishedDocs: true
-    comment: No parameters.
-  DEPRECATED_EXTENDS_FUNCTION:
-    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
-    problemMessage: "Extending 'Function' is deprecated."
-    correctionMessage: "Try removing 'Function' from the 'extends' clause."
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the class `Function` is used in
-      either the `extends`, `implements`, or `with` clause of a class or mixin.
-      Using the class `Function` in this way has no semantic value, so it's
-      effectively dead code.
-
-      #### Example
-
-      The following code produces this diagnostic because `Function` is used as
-      the superclass of `F`:
-
-      ```dart
-      class F extends [!Function!] {}
-      ```
-
-      #### Common fixes
-
-      Remove the class `Function` from whichever clause it's in, and remove the
-      whole clause if `Function` is the only type in the clause:
-
-      ```dart
-      class F {}
-      ```
   DIVISION_OPTIMIZATION:
     problemMessage: The operator x ~/ y is more efficient than (x / y).toInt().
     correctionMessage: "Try re-writing the expression to use the '~/' operator."
@@ -18217,296 +18189,6 @@ HintCode:
       ```dart
       int divide(num x, num y) => x ~/ y;
       ```
-  DUPLICATE_HIDDEN_NAME:
-    problemMessage: Duplicate hidden name.
-    correctionMessage: Try removing the repeated name from the list of hidden members.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a name occurs multiple times in
-      a `hide` clause. Repeating the name is unnecessary.
-
-      #### Example
-
-      The following code produces this diagnostic because the name `min` is
-      hidden more than once:
-
-      ```dart
-      import 'dart:math' hide min, [!min!];
-
-      var x = pi;
-      ```
-
-      #### Common fixes
-
-      If the name was mistyped in one or more places, then correct the mistyped
-      names:
-
-      ```dart
-      import 'dart:math' hide max, min;
-
-      var x = pi;
-      ```
-
-      If the name wasn't mistyped, then remove the unnecessary name from the
-      list:
-
-      ```dart
-      import 'dart:math' hide min;
-
-      var x = pi;
-      ```
-  DUPLICATE_EXPORT:
-    problemMessage: Duplicate export.
-    correctionMessage: Try removing all but one export of the library.
-    hasPublishedDocs: false
-    comment: |-
-      Duplicate exports.
-
-      No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an export directive is found
-      that is the same as an export before it in the file. The second export
-      doesn't add value and should be removed.
-
-      #### Example
-
-      The following code produces this diagnostic because the same library is
-      being exported twice:
-
-      ```dart
-      export 'package:meta/meta.dart';
-      export [!'package:meta/meta.dart'!];
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary export:
-
-      ```dart
-      export 'package:meta/meta.dart';
-      ```
-  DUPLICATE_IGNORE:
-    problemMessage: "The diagnostic '{0}' doesn't need to be ignored here because it's already being ignored."
-    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the diagnostic being ignored
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a diagnostic name appears in an
-      `ignore` comment, but the diagnostic is already being ignored, either
-      because it's already included in the same `ignore` comment or because it
-      appears in an `ignore-in-file` comment.
-
-      #### Examples
-
-      The following code produces this diagnostic because the diagnostic named
-      `unused_local_variable` is already being ignored for the whole file so it
-      doesn't need to be ignored on a specific line:
-
-      ```dart
-      // ignore_for_file: unused_local_variable
-      void f() {
-        // ignore: [!unused_local_variable!]
-        var x = 0;
-      }
-      ```
-
-      The following code produces this diagnostic because the diagnostic named
-      `unused_local_variable` is being ignored twice on the same line:
-
-      ```dart
-      void f() {
-        // ignore: unused_local_variable, [!unused_local_variable!]
-        var x = 0;
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the ignore comment, or remove the unnecessary diagnostic name if the
-      ignore comment is ignoring more than one diagnostic:
-
-      ```dart
-      // ignore_for_file: unused_local_variable
-      void f() {
-        var x = 0;
-      }
-      ```
-  DUPLICATE_IMPORT:
-    problemMessage: Duplicate import.
-    correctionMessage: Try removing all but one import of the library.
-    hasPublishedDocs: true
-    comment: |-
-      Duplicate imports.
-
-      No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an import directive is found
-      that is the same as an import before it in the file. The second import
-      doesn't add value and should be removed.
-
-      #### Example
-
-      The following code produces this diagnostic:
-
-      ```dart
-      import 'package:meta/meta.dart';
-      import [!'package:meta/meta.dart'!];
-
-      @sealed class C {}
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary import:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @sealed class C {}
-      ```
-  DUPLICATE_SHOWN_NAME:
-    problemMessage: Duplicate shown name.
-    correctionMessage: Try removing the repeated name from the list of shown members.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a name occurs multiple times in
-      a `show` clause. Repeating the name is unnecessary.
-
-      #### Example
-
-      The following code produces this diagnostic because the name `min` is shown
-      more than once:
-
-      ```dart
-      import 'dart:math' show min, [!min!];
-
-      var x = min(2, min(0, 1));
-      ```
-
-      #### Common fixes
-
-      If the name was mistyped in one or more places, then correct the mistyped
-      names:
-
-      ```dart
-      import 'dart:math' show max, min;
-
-      var x = max(2, min(0, 1));
-      ```
-
-      If the name wasn't mistyped, then remove the unnecessary name from the
-      list:
-
-      ```dart
-      import 'dart:math' show min;
-
-      var x = min(2, min(0, 1));
-      ```
-  EQUAL_ELEMENTS_IN_SET:
-    problemMessage: "Two elements in a set literal shouldn't be equal."
-    correctionMessage: Change or remove the duplicate element.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an element in a non-constant set
-      is the same as a previous element in the same set. If two elements are the
-      same, then the second value is ignored, which makes having both elements
-      pointless and likely signals a bug.
-
-      #### Example
-
-      The following code produces this diagnostic because the element `1` appears
-      twice:
-
-      ```dart
-      const a = 1;
-      const b = 1;
-      var s = <int>{a, [!b!]};
-      ```
-
-      #### Common fixes
-
-      If both elements should be included in the set, then change one of the
-      elements:
-
-      ```dart
-      const a = 1;
-      const b = 2;
-      var s = <int>{a, b};
-      ```
-
-      If only one of the elements is needed, then remove the one that isn't
-      needed:
-
-      ```dart
-      const a = 1;
-      var s = <int>{a};
-      ```
-
-      Note that literal sets preserve the order of their elements, so the choice
-      of which element to remove might affect the order in which elements are
-      returned by an iterator.
-  EQUAL_KEYS_IN_MAP:
-    problemMessage: "Two keys in a map literal shouldn't be equal."
-    correctionMessage: Change or remove the duplicate key.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a key in a non-constant map is
-      the same as a previous key in the same map. If two keys are the same, then
-      the second value overwrites the first value, which makes having both pairs
-      pointless and likely signals a bug.
-
-      #### Example
-
-      The following code produces this diagnostic because the keys `a` and `b`
-      have the same value:
-
-      ```dart
-      const a = 1;
-      const b = 1;
-      var m = <int, String>{a: 'a', [!b!]: 'b'};
-      ```
-
-      #### Common fixes
-
-      If both entries should be included in the map, then change one of the keys:
-
-      ```dart
-      const a = 1;
-      const b = 2;
-      var m = <int, String>{a: 'a', b: 'b'};
-      ```
-
-      If only one of the entries is needed, then remove the one that isn't
-      needed:
-
-      ```dart
-      const a = 1;
-      var m = <int, String>{a: 'a'};
-      ```
-
-      Note that literal maps preserve the order of their entries, so the choice
-      of which entry to remove might affect the order in which the keys and
-      values are returned by an iterator.
   FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE:
     problemMessage: "A file in the 'lib' directory shouldn't import a file outside the 'lib' directory."
     correctionMessage: "Try removing the import, or moving the imported file inside the 'lib' directory."
@@ -18520,7 +18202,7 @@ HintCode:
     problemMessage: "A file outside the 'lib' directory shouldn't reference a file inside the 'lib' directory using a relative path."
     correctionMessage: "Try using a 'package:' URI instead."
     comment: |-
-      It is a bad practice for a source file ouside a package "lib" directory
+      It is a bad practice for a source file outside a package "lib" directory
       hierarchy to traverse into that directory hierarchy. For example, a source
       file in the "web" directory should not contain a directive such as
       `import '../lib/some.dart'` which references a file inside the lib
@@ -18598,10 +18280,6 @@ HintCode:
         a.Library();
       }
       ```
-
-      If type arguments shouldn't be required for the class, then mark the class
-      with the `[optionalTypeArgs][meta-optionalTypeArgs]` annotation (from
-      `package:meta`):
   IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
     problemMessage: "The library '{0}' is legacy, and shouldn't be imported into a null safe library."
     correctionMessage: Try migrating the imported library.
@@ -18712,216 +18390,6 @@ HintCode:
 
       Parameters:
       0: the name of the parameter
-  INVALID_ANNOTATION_TARGET:
-    problemMessage: "The annotation '{0}' can only be used on {1}."
-    comment: |-
-      Parameters:
-      0: the name of the annotation
-      1: the list of valid targets
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an annotation is applied to a
-      kind of declaration that it doesn't support.
-
-      #### Example
-
-      The following code produces this diagnostic because the `optionalTypeArgs`
-      annotation isn't defined to be valid for top-level variables:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @[!optionalTypeArgs!]
-      int x = 0;
-      ```
-
-      #### Common fixes
-
-      Remove the annotation from the declaration.
-  INVALID_EXPORT_OF_INTERNAL_ELEMENT:
-    problemMessage: "The member '{0}' can't be exported as a part of a package's public API."
-    correctionMessage: "Try using a hide clause to hide '{0}'."
-    comment: |-
-      Parameters:
-      0: the name of the element
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a [public library][] exports a
-      declaration that is marked with the `[internal][meta-internal]`
-      annotation.
-
-      #### Example
-
-      Given a file named `a.dart` in the `src` directory that contains:
-
-      ```dart
-      %uri="lib/src/a.dart"
-      import 'package:meta/meta.dart';
-
-      @internal class One {}
-      ```
-
-      The following code, when found in a [public library][] produces this
-      diagnostic because the `export` directive is exporting a name that is only
-      intended to be used internally:
-
-      ```dart
-      [!export 'src/a.dart';!]
-      ```
-
-      #### Common fixes
-
-      If the export is needed, then add a `hide` clause to hide the internal
-      names:
-
-      ```dart
-      export 'src/a.dart' hide One;
-      ```
-
-      If the export isn't needed, then remove it.
-  INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
-    problemMessage: "The member '{0}' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of '{1}'."
-    correctionMessage: "Try using a hide clause to hide '{0}'."
-    comment: |-
-      Parameters:
-      0: the name of the element
-      1: ?
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a [public library][] exports a
-      top-level function  with a return type or at least one parameter type that
-      is marked with the `[internal][meta-internal]` annotation.
-
-      #### Example
-
-      Given a file named `a.dart` in the `src` directory that contains the
-      following:
-
-      ```dart
-      %uri="lib/src/a.dart"
-      import 'package:meta/meta.dart';
-
-      @internal
-      typedef IntFunction = int Function();
-
-      int f(IntFunction g) => g();
-      ```
-
-      The following code produces this diagnostic because the function `f` has a
-      parameter of type `IntFunction`, and `IntFunction` is only intended to be
-      used internally:
-
-      ```dart
-      [!export 'src/a.dart' show f;!]
-      ```
-
-      #### Common fixes
-
-      If the function must be public, then make all the types in the function's
-      signature public types.
-
-      If the function doesn't need to be exported, then stop exporting it,
-      either by removing it from the `show` clause, adding it to the `hide`
-      clause, or by removing the export.
-  INVALID_FACTORY_ANNOTATION:
-    problemMessage: Only methods can be annotated as factories.
-    comment: |-
-      This hint is generated anywhere a @factory annotation is associated with
-      anything other than a method.
-  INVALID_FACTORY_METHOD_DECL:
-    problemMessage: "Factory method '{0}' must have a return type."
-    comment: |-
-      Parameters:
-      0: The name of the method
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a method that is annotated with
-      the `[factory][meta-factory]` annotation has a return type of `void`.
-
-      #### Example
-
-      The following code produces this diagnostic because the method `createC`
-      is annotated with the `[factory][meta-factory]` annotation but doesn't
-      return any value:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class Factory {
-        @factory
-        void [!createC!]() {}
-      }
-
-      class C {}
-      ```
-
-      #### Common fixes
-
-      Change the return type to something other than `void`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class Factory {
-        @factory
-        C createC() => C();
-      }
-
-      class C {}
-      ```
-  INVALID_FACTORY_METHOD_IMPL:
-    problemMessage: "Factory method '{0}' doesn't return a newly allocated object."
-    comment: |-
-      Parameters:
-      0: the name of the method
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a method that is annotated with
-      the `[factory][meta-factory]` annotation doesn't return a newly allocated
-      object.
-
-      #### Example
-
-      The following code produces this diagnostic because the method `createC`
-      returns the value of a field rather than a newly created instance of `C`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class Factory {
-        C c = C();
-
-        @factory
-        C [!createC!]() => c;
-      }
-
-      class C {}
-      ```
-
-      #### Common fixes
-
-      Change the method to return a newly created instance of the return type:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class Factory {
-        @factory
-        C createC() => C();
-      }
-
-      class C {}
-      ```
   INVALID_IMMUTABLE_ANNOTATION:
     problemMessage: Only classes can be annotated as being immutable.
     comment: |-
@@ -18984,95 +18452,6 @@ HintCode:
       ```dart
       class C {}
       ```
-  INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The language version override can't specify a version greater than the latest known language version: {0}.{1}."
-    correctionMessage: Try removing the language version override.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the latest major version
-      1: the latest minor version
-  INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override number must begin with '@dart'."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a comment that appears to be an
-      attempt to specify a language version override doesn't conform to the
-      requirements for such a comment. For more information, see
-      [Per-library language version selection](https://dart.dev/guides/language/evolution#per-library-language-version-selection).
-
-      #### Example
-
-      The following code produces this diagnostic because the word `dart` must
-      be lowercase in such a comment and because there's no equal sign between
-      the word `dart` and the version number:
-
-      ```dart
-      [!// @Dart 2.9!]
-      ```
-
-      #### Common fixes
-
-      If the comment is intended to be a language version override, then change
-      the comment to follow the correct format:
-
-      ```dart
-      // @dart = 2.9
-      ```
-  INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: The language version override must be specified before any declaration or directive.
-    correctionMessage: Try moving the language version override to the top of the file.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override comment must be specified with the word 'dart' in all lower case."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override comment must be specified with a version number, like '2.0', after the '=' character."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override number can't be prefixed with a letter."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override comment can't be followed by any non-whitespace characters."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: The Dart language version override comment must be specified with exactly two slashes.
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override comment must be specified with an '=' character."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
   INVALID_LITERAL_ANNOTATION:
     problemMessage: Only const constructors can have the `@literal` annotation.
     hasPublishedDocs: true
@@ -19274,137 +18653,6 @@ HintCode:
 
       class B extends A {
         @override
-        void m() {}
-      }
-      ```
-  INVALID_REQUIRED_NAMED_PARAM:
-    problemMessage: "The type parameter '{0}' is annotated with @required but only named parameters without a default value can be annotated with it."
-    correctionMessage: Remove @required.
-    comment: |-
-      This hint is generated anywhere where `@required` annotates a named
-      parameter with a default value.
-
-      Parameters:
-      0: the name of the member
-  INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
-    problemMessage: "Incorrect use of the annotation @required on the optional positional parameter '{0}'. Optional positional parameters cannot be required."
-    correctionMessage: Remove @required.
-    comment: |-
-      This hint is generated anywhere where `@required` annotates an optional
-      positional parameter.
-
-      Parameters:
-      0: the name of the member
-  INVALID_REQUIRED_POSITIONAL_PARAM:
-    problemMessage: "Redundant use of the annotation @required on the required positional parameter '{0}'."
-    correctionMessage: Remove @required.
-    comment: |-
-      This hint is generated anywhere where `@required` annotates a non optional
-      positional parameter.
-
-      Parameters:
-      0: the name of the member
-  RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
-    sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR
-    problemMessage: "The return type '{0}' isn't assignable to '{1}', as required by 'Future.catchError'."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the return type of the function
-      1: the expected return type as defined by the type of the Future
-  RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
-    sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR
-    problemMessage: "A value of type '{0}' can't be returned by the 'onError' handler because it must be assignable to '{1}'."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the return type as declared in the return statement
-      1: the expected return type as defined by the type of the Future
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an invocation of
-      `Future.catchError` has an argument whose return type isn't compatible with
-      the type returned by the instance of `Future`. At runtime, the method
-      `catchError` attempts to return the value from the callback as the result
-      of the future, which results in another exception being thrown.
-
-      #### Examples
-
-      The following code produces this diagnostic because `future` is declared to
-      return an `int` while `callback` is declared to return a `String`, and
-      `String` isn't a subtype of `int`:
-
-      ```dart
-      void f(Future<int> future, String Function(dynamic, StackTrace) callback) {
-        future.catchError([!callback!]);
-      }
-      ```
-
-      The following code produces this diagnostic because the closure being
-      passed to `catchError` returns an `int` while `future` is declared to
-      return a `String`:
-
-      ```dart
-      void f(Future<String> future) {
-        future.catchError((error, stackTrace) => [!3!]);
-      }
-      ```
-
-      #### Common fixes
-
-      If the instance of `Future` is declared correctly, then change the callback
-      to match:
-
-      ```dart
-      void f(Future<int> future, int Function(dynamic, StackTrace) callback) {
-        future.catchError(callback);
-      }
-      ```
-
-      If the declaration of the instance of `Future` is wrong, then change it to
-      match the callback:
-
-      ```dart
-      void f(Future<String> future, String Function(dynamic, StackTrace) callback) {
-        future.catchError(callback);
-      }
-      ```
-  INVALID_SEALED_ANNOTATION:
-    problemMessage: "The annotation '@sealed' can only be applied to classes."
-    correctionMessage: Try removing the '@sealed' annotation.
-    hasPublishedDocs: true
-    comment: |-
-      This hint is generated anywhere where `@sealed` annotates something other
-      than a class.
-
-      No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a declaration other than a
-      class declaration has the `@sealed` annotation on it.
-
-      #### Example
-
-      The following code produces this diagnostic because the `@sealed`
-      annotation is on a method declaration:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        [!@sealed!]
-        void m() {}
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the annotation:
-
-      ```dart
-      class A {
         void m() {}
       }
       ```
@@ -19656,9 +18904,9 @@ HintCode:
       ```
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete override implementation of '{0}'."
+    problemMessage: "Missing concrete implementation of '{0}'."
     correctionMessage: Try overriding the missing member.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the member
@@ -19716,18 +18964,18 @@ HintCode:
       ```
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete override implementation of '{0}' and '{1}'."
+    problemMessage: "Missing concrete implementations of '{0}' and '{1}'."
     correctionMessage: Try overriding the missing members.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the first member
       1: the name of the second member
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete override implementation of '{0}', '{1}', and {2} more."
+    problemMessage: "Missing concrete implementations of '{0}', '{1}', and {2} more."
     correctionMessage: Try overriding the missing members.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the first member
@@ -20036,104 +19284,11 @@ HintCode:
 
       void f() => const C();
       ```
-  NULLABLE_TYPE_IN_CATCH_CLAUSE:
-    problemMessage: "A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression."
-    correctionMessage: Try using a non-nullable type.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the type following `on` in a
-      `catch` clause is a nullable type. It isn't valid to specify a nullable
-      type because it isn't possible to catch `null` (because it's a runtime
-      error to throw `null`).
-
-      #### Example
-
-      The following code produces this diagnostic because the exception type is
-      specified to allow `null` when `null` can't be thrown:
-
-      ```dart
-      void f() {
-        try {
-          // ...
-        } on [!FormatException?!] {
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the question mark from the type:
-
-      ```dart
-      void f() {
-        try {
-          // ...
-        } on FormatException {
-        }
-      }
-      ```
-  NULL_ARGUMENT_TO_NON_NULL_TYPE:
-    problemMessage: "'{0}' shouldn't be called with a null argument for the non-nullable type argument '{1}'."
-    correctionMessage: Try adding a non-null argument.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the method being invoked
-      1: the type argument associated with the method
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when `null` is passed to either the
-      constructor `Future.value` or the method `Completer.complete` when the type
-      argument used to create the instance was non-nullable. Even though the type
-      system can't express this restriction, passing in a `null` results in a
-      runtime exception.
-
-      #### Example
-
-      The following code produces this diagnostic because `null` is being passed
-      to the constructor `Future.value` even though the type argument is the
-      non-nullable type `String`:
-
-      ```dart
-      Future<String> f() {
-        return Future.value([!null!]);
-      }
-      ```
-
-      #### Common fixes
-
-      Pass in a non-null value:
-
-      ```dart
-      Future<String> f() {
-        return Future.value('');
-      }
-      ```
-  NULL_AWARE_BEFORE_OPERATOR:
-    problemMessage: "The left operand uses '?.', so its value can be null."
-    comment: |-
-      When the left operand of a binary expression uses '?.' operator, it can be
-      `null`.
-  NULL_AWARE_IN_CONDITION:
-    problemMessage: "The value of the '?.' operator can be 'null', which isn't appropriate in a condition."
-    correctionMessage: "Try replacing the '?.' with a '.', testing the left-hand side for null if necessary."
-    comment: |-
-      A condition in a control flow statement could evaluate to `null` because it
-      uses the null-aware '?.' operator.
-  NULL_AWARE_IN_LOGICAL_OPERATOR:
-    problemMessage: "The value of the '?.' operator can be 'null', which isn't appropriate as an operand of a logical operator."
-    comment: |-
-      A condition in operands of a logical operator could evaluate to `null`
-      because it uses the null-aware '?.' operator.
   CAST_FROM_NULL_ALWAYS_FAILS:
     problemMessage: "This cast always throws an exception because the expression always evaluates to 'null'."
     comment: |-
       No parameters.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20163,7 +19318,7 @@ HintCode:
   CAST_FROM_NULLABLE_ALWAYS_FAILS:
     problemMessage: "This cast will always throw an exception because the nullable local variable '{0}' is not assigned."
     correctionMessage: "Try giving it an initializer expression, or ensure that it's assigned on every execution path."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the unassigned variable
@@ -20328,720 +19483,6 @@ HintCode:
       given package, or more generally, it is bad practice for a package import
       to contain a "..". For example, a source file should not contain a
       directive such as `import 'package:foo/../some.dart'`.
-  RECEIVER_OF_TYPE_NEVER:
-    problemMessage: "The receiver is of type 'Never', and will never complete with a value."
-    correctionMessage: Try checking for throw expressions or type errors in the receiver
-    comment: |-
-      It is not an error to call or tear-off a method, setter, or getter, or to
-      read or write a field, on a receiver of static type `Never`.
-      Implementations that provide feedback about dead or unreachable code are
-      encouraged to indicate that any arguments to the invocation are
-      unreachable.
-
-      It is not an error to apply an expression of type `Never` in the function
-      position of a function call. Implementations that provide feedback about
-      dead or unreachable code are encouraged to indicate that any arguments to
-      the call are unreachable.
-
-      Parameters: none
-  RETURN_OF_DO_NOT_STORE:
-    problemMessage: "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless '{1}' is also annotated."
-    correctionMessage: "Annotate '{1}' with 'doNotStore'."
-    comment: |-
-      Parameters:
-      0: the name of the annotated function being invoked
-      1: the name of the function containing the return
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a value that is annotated with
-      the `[doNotStore][meta-doNotStore]` annotation is returned from a method,
-      getter, or function that doesn't have the same annotation.
-
-      #### Example
-
-      The following code produces this diagnostic because the result of invoking
-      `f` shouldn't be stored, but the function `g` isn't annotated to preserve
-      that semantic:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @doNotStore
-      int f() => 0;
-
-      int g() => [!f()!];
-      ```
-
-      #### Common fixes
-
-      If the value that shouldn't be stored is the correct value to return, then
-      mark the function with the `[doNotStore][meta-doNotStore]` annotation:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @doNotStore
-      int f() => 0;
-
-      @doNotStore
-      int g() => f();
-      ```
-
-      Otherwise, return a different value from the function:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @doNotStore
-      int f() => 0;
-
-      int g() => 0;
-      ```
-  SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
-    problemMessage: "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this code is required to be able to run on earlier versions."
-    correctionMessage: "Try either importing 'dart:async' or updating the SDK constraints."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the class
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when either the class `Future` or
-      `Stream` is referenced in a library that doesn't import `dart:async` in
-      code that has an SDK constraint whose lower bound is less than 2.1.0. In
-      earlier versions, these classes weren't defined in `dart:core`, so the
-      import was necessary.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.1.0:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-        sdk: '>=2.0.0 <2.4.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces this
-      diagnostic:
-
-      ```dart
-      void f([!Future!] f) {}
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the classes to be referenced:
-
-      ```yaml
-      environment:
-        sdk: '>=2.1.0 <2.4.0'
-      ```
-
-      If you need to support older versions of the SDK, then import the
-      `dart:async` library.
-
-      ```dart
-      import 'dart:async';
-
-      void f(Future f) {}
-      ```
-  SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
-    problemMessage: "The use of an as expression in a constant expression wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
-    correctionMessage: Try updating the SDK constraints.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an `as` expression inside a
-      [constant context][] is found in code that has an SDK constraint whose
-      lower bound is less than 2.3.2. Using an `as` expression in a
-      [constant context][] wasn't supported in earlier versions, so this code
-      won't be able to run against earlier versions of the SDK.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.3.2:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-        sdk: '>=2.1.0 <2.4.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces
-      this diagnostic:
-
-      ```dart
-      const num n = 3;
-      const int i = [!n as int!];
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the expression to be used:
-
-      ```yaml
-      environment:
-        sdk: '>=2.3.2 <2.4.0'
-      ```
-
-      If you need to support older versions of the SDK, then either rewrite the
-      code to not use an `as` expression, or change the code so that the `as`
-      expression isn't in a [constant context][]:
-
-      ```dart
-      num x = 3;
-      int y = x as int;
-      ```
-  SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT:
-    problemMessage: "The use of the operator '{0}' for 'bool' operands in a constant context wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
-    correctionMessage: Try updating the SDK constraints.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the operator
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when any use of the `&`, `|`, or `^`
-      operators on the class `bool` inside a [constant context][] is found in
-      code that has an SDK constraint whose lower bound is less than 2.3.2. Using
-      these operators in a [constant context][] wasn't supported in earlier
-      versions, so this code won't be able to run against earlier versions of the
-      SDK.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.3.2:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-        sdk: '>=2.1.0 <2.4.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces this
-      diagnostic:
-
-      ```dart
-      const bool a = true;
-      const bool b = false;
-      const bool c = a [!&!] b;
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the operators to be used:
-
-      ```yaml
-      environment:
-       sdk: '>=2.3.2 <2.4.0'
-      ```
-
-      If you need to support older versions of the SDK, then either rewrite the
-      code to not use these operators, or change the code so that the expression
-      isn't in a [constant context][]:
-
-      ```dart
-      const bool a = true;
-      const bool b = false;
-      bool c = a & b;
-      ```
-  SDK_VERSION_CONSTRUCTOR_TEAROFFS:
-    problemMessage: "Tearing off a constructor requires the 'constructor-tearoffs' language feature."
-    correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
-    hasPublishedDocs: true
-    comment: |-
-      No parameters.
-
-      There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
-      some cases of constructor tearoff features (like `List<int>.filled;`).
-      Other constructor tearoff cases are not realized until resolution
-      (like `List.filled;`).
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a constructor tear-off is found
-      in code that has an SDK constraint whose lower bound is less than 2.15.
-      Constructor tear-offs weren't supported in earlier versions, so this code
-      won't be able to run against earlier versions of the SDK.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.15:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-        sdk: '>=2.9.0 <2.15.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces this
-      diagnostic:
-
-      ```dart
-      %language=2.14
-      var setConstructor = [!Set.identity!];
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the operator to be used:
-
-      ```yaml
-      environment:
-        sdk: '>=2.15.0 <2.16.0'
-      ```
-
-      If you need to support older versions of the SDK, then rewrite the code to
-      not use constructor tear-offs:
-
-      ```dart
-      %language=2.14
-      var setConstructor = () => Set.identity();
-      ```
-  SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT:
-    problemMessage: "Using the operator '==' for non-primitive types wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
-    correctionMessage: Try updating the SDK constraints.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the operator `==` is used on a
-      non-primitive type inside a [constant context][] is found in code that has
-      an SDK constraint whose lower bound is less than 2.3.2. Using this operator
-      in a [constant context][] wasn't supported in earlier versions, so this
-      code won't be able to run against earlier versions of the SDK.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.3.2:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-        sdk: '>=2.1.0 <2.4.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces this
-      diagnostic:
-
-      ```dart
-      %language=2.9
-      class C {}
-      const C a = null;
-      const C b = null;
-      const bool same = a [!==!] b;
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the operator to be used:
-
-      ```yaml
-      environment:
-        sdk: '>=2.3.2 <2.4.0'
-      ```
-
-      If you need to support older versions of the SDK, then either rewrite the
-      code to not use the `==` operator, or change the code so that the
-      expression isn't in a [constant context][]:
-
-      ```dart
-      %language=2.9
-      class C {}
-      const C a = null;
-      const C b = null;
-      bool same = a == b;
-      ```
-  SDK_VERSION_EXTENSION_METHODS:
-    problemMessage: "Extension methods weren't supported until version 2.6.0, but this code is required to be able to run on earlier versions."
-    correctionMessage: Try updating the SDK constraints.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an extension declaration or an
-      extension override is found in code that has an SDK constraint whose lower
-      bound is less than 2.6.0. Using extensions wasn't supported in earlier
-      versions, so this code won't be able to run against earlier versions of the
-      SDK.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.6.0:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-       sdk: '>=2.4.0 <2.7.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces
-      this diagnostic:
-
-      ```dart
-      [!extension!] E on String {
-        void sayHello() {
-          print('Hello $this');
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the syntax to be used:
-
-      ```yaml
-      environment:
-        sdk: '>=2.6.0 <2.7.0'
-      ```
-
-      If you need to support older versions of the SDK, then rewrite the code to
-      not make use of extensions. The most common way to do this is to rewrite
-      the members of the extension as top-level functions (or methods) that take
-      the value that would have been bound to `this` as a parameter:
-
-      ```dart
-      void sayHello(String s) {
-        print('Hello $s');
-      }
-      ```
-  SDK_VERSION_GT_GT_GT_OPERATOR:
-    problemMessage: "The operator '>>>' wasn't supported until version 2.14.0, but this code is required to be able to run on earlier versions."
-    correctionMessage: Try updating the SDK constraints.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the operator `>>>` is used in
-      code that has an SDK constraint whose lower bound is less than 2.14.0. This
-      operator wasn't supported in earlier versions, so this code won't be able
-      to run against earlier versions of the SDK.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.14.0:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-       sdk: '>=2.0.0 <2.15.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces this
-      diagnostic:
-
-      ```dart
-      int x = 3 [!>>>!] 4;
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the operator to be used:
-
-      ```yaml
-      environment:
-        sdk: '>=2.14.0 <2.15.0'
-      ```
-
-      If you need to support older versions of the SDK, then rewrite the code to
-      not use the `>>>` operator:
-
-      ```dart
-      int x = logicalShiftRight(3, 4);
-
-      int logicalShiftRight(int leftOperand, int rightOperand) {
-        int divisor = 1 << rightOperand;
-        if (divisor == 0) {
-          return 0;
-        }
-        return leftOperand ~/ divisor;
-      }
-      ```
-  SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT:
-    problemMessage: "The use of an is expression in a constant context wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
-    correctionMessage: Try updating the SDK constraints.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an `is` expression inside a
-      [constant context][] is found in code that has an SDK constraint whose
-      lower bound is less than 2.3.2. Using an `is` expression in a
-      [constant context][] wasn't supported in earlier versions, so this code
-      won't be able to run against earlier versions of the SDK.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.3.2:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-        sdk: '>=2.1.0 <2.4.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces
-      this diagnostic:
-
-      ```dart
-      const Object x = 4;
-      const y = [!x is int!] ? 0 : 1;
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the expression to be used:
-
-      ```yaml
-      environment:
-        sdk: '>=2.3.2 <2.4.0'
-      ```
-
-      If you need to support older versions of the SDK, then either rewrite the
-      code to not use the `is` operator, or, if that isn't possible, change the
-      code so that the `is` expression isn't in a
-      [constant context][]:
-
-      ```dart
-      const Object x = 4;
-      var y = x is int ? 0 : 1;
-      ```
-  SDK_VERSION_NEVER:
-    problemMessage: "The type 'Never' wasn't supported until version 2.12.0, but this code is required to be able to run on earlier versions."
-    correctionMessage: Try updating the SDK constraints.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a reference to the class `Never`
-      is found in code that has an SDK constraint whose lower bound is less than
-      2.12.0. This class wasn't defined in earlier versions, so this code won't
-      be able to run against earlier versions of the SDK.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.12.0:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-        sdk: '>=2.5.0 <2.6.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces this
-      diagnostic:
-
-      ```dart
-      %language=2.9
-      [!Never!] n;
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the type to be used:
-
-      ```yaml
-      environment:
-        sdk: '>=2.12.0 <2.13.0'
-      ```
-
-      If you need to support older versions of the SDK, then rewrite the code to
-      not reference this class:
-
-      ```dart
-      dynamic x;
-      ```
-  SDK_VERSION_SET_LITERAL:
-    problemMessage: "Set literals weren't supported until version 2.2, but this code is required to be able to run on earlier versions."
-    correctionMessage: Try updating the SDK constraints.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a set literal is found in code
-      that has an SDK constraint whose lower bound is less than 2.2.0. Set
-      literals weren't supported in earlier versions, so this code won't be able
-      to run against earlier versions of the SDK.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.2.0:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-        sdk: '>=2.1.0 <2.4.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces this
-      diagnostic:
-
-      ```dart
-      var s = [!<int>{}!];
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the syntax to be used:
-
-      ```yaml
-      environment:
-        sdk: '>=2.2.0 <2.4.0'
-      ```
-
-      If you do need to support older versions of the SDK, then replace the set
-      literal with code that creates the set without the use of a literal:
-
-      ```dart
-      var s = new Set<int>();
-      ```
-  SDK_VERSION_UI_AS_CODE:
-    problemMessage: "The for, if, and spread elements weren't supported until version 2.3.0, but this code is required to be able to run on earlier versions."
-    correctionMessage: Try updating the SDK constraints.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a for, if, or spread element is
-      found in code that has an SDK constraint whose lower bound is less than
-      2.3.0. Using a for, if, or spread element wasn't supported in earlier
-      versions, so this code won't be able to run against earlier versions of the
-      SDK.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.3.0:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-        sdk: '>=2.2.0 <2.4.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces
-      this diagnostic:
-
-      ```dart
-      var digits = [[!for (int i = 0; i < 10; i++) i!]];
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the syntax to be used:
-
-      ```yaml
-      environment:
-        sdk: '>=2.3.0 <2.4.0'
-      ```
-
-      If you need to support older versions of the SDK, then rewrite the code to
-      not make use of those elements:
-
-      ```dart
-      var digits = _initializeDigits();
-
-      List<int> _initializeDigits() {
-        var digits = <int>[];
-        for (int i = 0; i < 10; i++) {
-          digits.add(i);
-        }
-        return digits;
-      }
-      ```
-  SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
-    problemMessage: "The if and spread elements weren't supported in constant expressions until version 2.5.0, but this code is required to be able to run on earlier versions."
-    correctionMessage: Try updating the SDK constraints.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an if or spread element inside
-      a [constant context][] is found in code that has an SDK constraint whose
-      lower bound is less than 2.5.0. Using an if or spread element inside a
-      [constant context][] wasn't supported in earlier versions, so this code
-      won't be able to run against earlier versions of the SDK.
-
-      #### Example
-
-      Here's an example of a pubspec that defines an SDK constraint with a lower
-      bound of less than 2.5.0:
-
-      ```yaml
-      %uri="pubspec.yaml"
-      environment:
-        sdk: '>=2.4.0 <2.6.0'
-      ```
-
-      In the package that has that pubspec, code like the following produces
-      this diagnostic:
-
-      ```dart
-      const a = [1, 2];
-      const b = [[!...a!]];
-      ```
-
-      #### Common fixes
-
-      If you don't need to support older versions of the SDK, then you can
-      increase the SDK constraint to allow the syntax to be used:
-
-      ```yaml
-      environment:
-        sdk: '>=2.5.0 <2.6.0'
-      ```
-
-      If you need to support older versions of the SDK, then rewrite the code to
-      not make use of those elements:
-
-      ```dart
-      const a = [1, 2];
-      const b = [1, 2];
-      ```
-
-      If that isn't possible, change the code so that the element isn't in a
-      [constant context][]:
-
-      ```dart
-      const a = [1, 2];
-      var b = [...a];
-      ```
   STRICT_RAW_TYPE:
     problemMessage: "The generic type '{0}' should have explicit type arguments but doesn't."
     correctionMessage: "Use explicit type arguments for '{0}'."
@@ -21245,41 +19686,6 @@ HintCode:
     correctionMessage: "Try replacing the 'is Null' check with '== null'."
     hasPublishedDocs: true
     comment: No parameters.
-  UNDEFINED_HIDDEN_NAME:
-    problemMessage: "The library '{0}' doesn't export a member with the hidden name '{1}'."
-    correctionMessage: Try removing the name from the list of hidden members.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the library being imported
-      1: the name in the hide clause that isn't defined in the library
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a hide combinator includes a
-      name that isn't defined by the library being imported.
-
-      #### Example
-
-      The following code produces this diagnostic because `dart:math` doesn't
-      define the name `String`:
-
-      ```dart
-      import 'dart:math' hide [!String!], max;
-
-      var x = min(0, 1);
-      ```
-
-      #### Common fixes
-
-      If a different name should be hidden, then correct the name. Otherwise,
-      remove the name from the list:
-
-      ```dart
-      import 'dart:math' hide max;
-
-      var x = min(0, 1);
-      ```
   UNDEFINED_REFERENCED_PARAMETER:
     problemMessage: "The parameter '{0}' isn't defined by '{1}'."
     hasPublishedDocs: true
@@ -21316,41 +19722,6 @@ HintCode:
 
       @UseResult.unless(parameterDefined: 'a')
       int f([int? a]) => a ?? 0;
-      ```
-  UNDEFINED_SHOWN_NAME:
-    problemMessage: "The library '{0}' doesn't export a member with the shown name '{1}'."
-    correctionMessage: Try removing the name from the list of shown members.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the library being imported
-      1: the name in the show clause that isn't defined in the library
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a show combinator includes a
-      name that isn't defined by the library being imported.
-
-      #### Example
-
-      The following code produces this diagnostic because `dart:math` doesn't
-      define the name `String`:
-
-      ```dart
-      import 'dart:math' show min, [!String!];
-
-      var x = min(0, 1);
-      ```
-
-      #### Common fixes
-
-      If a different name should be shown, then correct the name. Otherwise,
-      remove the name from the list:
-
-      ```dart
-      import 'dart:math' show min;
-
-      var x = min(0, 1);
       ```
   UNIGNORABLE_IGNORE:
     problemMessage: "The diagnostic '{0}' can't be ignored."
@@ -21457,8 +19828,8 @@ HintCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the uri that is not necessary
-      1: the uri that makes it unnecessary
+      0: the URI that is not necessary
+      1: the URI that makes it unnecessary
     documentation: |-
       #### Description
 
@@ -21502,6 +19873,49 @@ HintCode:
       If some of the names imported by this import are intended to be used but
       aren't yet, and if those names aren't imported by other imports, then add
       the missing references to those names.
+  UNNECESSARY_NAN_COMPARISON_FALSE:
+    sharedName: UNNECESSARY_NAN_COMPARISON
+    problemMessage: A double can't equal 'double.nan', so the condition is always 'false'.
+    correctionMessage: Try using 'double.isNan', or removing the condition.
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a value is compared to
+      `double.nan` using either `==` or `!=`.
+
+      Dart follows the [IEEE 754] floating-point standard for the semantics of
+      floating point operations, which states that, for any floating point value
+      `x` (including NaN, positive infinity, and negative infinity),
+      - `NaN == x` is always false
+      - `NaN != x` is always true
+
+      As a result, comparing any value to NaN is pointless because the result is
+      already known (based on the comparison operator being used).
+
+      #### Example
+
+      The following code produces this diagnostic because `d` is being compared
+      to `double.nan`:
+
+      ```dart
+      bool isNaN(double d) => d [!== double.nan!];
+      ```
+
+      #### Common fixes
+
+      Use the getter `double.isNaN` instead:
+
+      ```dart
+      bool isNaN(double d) => d.isNaN;
+      ```
+  UNNECESSARY_NAN_COMPARISON_TRUE:
+    sharedName: UNNECESSARY_NAN_COMPARISON
+    problemMessage: A double can't equal 'double.nan', so the condition is always 'true'.
+    correctionMessage: Try using 'double.isNan', or removing the condition.
+    hasPublishedDocs: false
+    comment: No parameters.
   UNNECESSARY_NO_SUCH_METHOD:
     problemMessage: "Unnecessary 'noSuchMethod' declaration."
     correctionMessage: "Try removing the declaration of 'noSuchMethod'."
@@ -21553,7 +19967,7 @@ HintCode:
       ```
   UNNECESSARY_NULL_COMPARISON_FALSE:
     sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand can't be null, so the condition is always false."
+    problemMessage: "The operand can't be null, so the condition is always 'false'."
     correctionMessage: Try removing the condition, an enclosing condition, or the whole conditional statement.
     hasPublishedDocs: true
     comment: No parameters.
@@ -21611,7 +20025,7 @@ HintCode:
       ```
   UNNECESSARY_NULL_COMPARISON_TRUE:
     sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand can't be null, so the condition is always true."
+    problemMessage: "The operand can't be null, so the condition is always 'true'."
     correctionMessage: Remove the condition.
     hasPublishedDocs: true
     comment: No parameters.
@@ -21644,6 +20058,11 @@ HintCode:
       ```dart
       dynamic x;
       ```
+  UNNECESSARY_SET_LITERAL:
+    problemMessage: Braces unnecessarily wrap this expression in a set literal.
+    correctionMessage: Try removing the set literal around the expression.
+    hasPublishedDocs: false
+    comment: No parameters.
   UNNECESSARY_TYPE_CHECK_FALSE:
     sharedName: UNNECESSARY_TYPE_CHECK
     problemMessage: "Unnecessary type check; the result is always 'false'."
@@ -21686,89 +20105,9 @@ HintCode:
     correctionMessage: Try correcting the type check, or removing the type check.
     hasPublishedDocs: true
     comment: No parameters.
-  UNUSED_CATCH_CLAUSE:
-    problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
-    correctionMessage: Try removing the catch clause.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the exception variable
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a `catch` clause is found, and
-      neither the exception parameter nor the optional stack trace parameter are
-      used in the `catch` block.
-
-      #### Example
-
-      The following code produces this diagnostic because `e` isn't referenced:
-
-      ```dart
-      void f() {
-        try {
-          int.parse(';');
-        } on FormatException catch ([!e!]) {
-          // ignored
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the unused `catch` clause:
-
-      ```dart
-      void f() {
-        try {
-          int.parse(';');
-        } on FormatException {
-          // ignored
-        }
-      }
-      ```
-  UNUSED_CATCH_STACK:
-    problemMessage: "The stack trace variable '{0}' isn't used and can be removed."
-    correctionMessage: Try removing the stack trace variable, or using it.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the stack trace variable
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the stack trace parameter in a
-      `catch` clause isn't referenced within the body of the `catch` block.
-
-      #### Example
-
-      The following code produces this diagnostic because `stackTrace` isn't
-      referenced:
-
-      ```dart
-      void f() {
-        try {
-          // ...
-        } catch (exception, [!stackTrace!]) {
-          // ...
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      If you need to reference the stack trace parameter, then add a reference to
-      it. Otherwise, remove it:
-
-      ```dart
-      void f() {
-        try {
-          // ...
-        } catch (exception) {
-          // ...
-        }
-      }
-      ```
+  UNREACHABLE_SWITCH_CASE:
+    problemMessage: "This case is covered by the previous cases."
+    comment: No parameters.
   UNUSED_ELEMENT:
     problemMessage: "The declaration '{0}' isn't referenced."
     correctionMessage: "Try removing the declaration of '{0}'."
@@ -21882,7 +20221,7 @@ HintCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the content of the unused import's uri
+      0: the content of the unused import's URI
     documentation: |-
       #### Description
 
@@ -23225,6 +21564,7 @@ StaticWarningCode:
       isn't handled:
 
       ```dart
+      %language=2.19
       enum E { e1, e2 }
 
       void f(E e) {
@@ -23300,4 +21640,1991 @@ StaticWarningCode:
         return x;
       }
       ```
+  UNNECESSARY_NULL_ASSERT_PATTERN:
+    problemMessage: The null-assert pattern will have no effect because the matched type isn't nullable.
+    correctionMessage: Try replacing the null-assert pattern with its nested pattern.
+    comment: No parameters.
+  UNNECESSARY_NULL_CHECK_PATTERN:
+    problemMessage: The null-check pattern will have no effect because the matched type isn't nullable.
+    correctionMessage: Try replacing the null-check pattern with its nested pattern.
+    comment: No parameters.
+WarningCode:
+  ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
+    problemMessage: "The argument type '{0}' can't be assigned to the parameter type '{1} Function(Object)' or '{1} Function(Object, StackTrace)'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the actual argument type
+      1: the name of the expected function return type
+    documentation: |-
+      #### Description
 
+      The analyzer produces this diagnostic when an invocation of
+      `Future.catchError` has an argument that is a function whose parameters
+      aren't compatible with the arguments that will be passed to the function
+      when it's invoked. The static type of the first argument to `catchError`
+      is just `Function`, even though the function that is passed in is expected
+      to have either a single parameter of type `Object` or two parameters of
+      type `Object` and `StackTrace`.
+
+      #### Examples
+
+      The following code produces this diagnostic because the closure being
+      passed to `catchError` doesn't take any parameters, but the function is
+      required to take at least one parameter:
+
+      ```dart
+      void f(Future<int> f) {
+        f.catchError([!() => 0!]);
+      }
+      ```
+
+      The following code produces this diagnostic because the closure being
+      passed to `catchError` takes three parameters, but it can't have more than
+      two required parameters:
+
+      ```dart
+      void f(Future<int> f) {
+        f.catchError([!(one, two, three) => 0!]);
+      }
+      ```
+
+      The following code produces this diagnostic because even though the closure
+      being passed to `catchError` takes one parameter, the closure doesn't have
+      a type that is compatible with `Object`:
+
+      ```dart
+      void f(Future<int> f) {
+        f.catchError([!(String error) => 0!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Change the function being passed to `catchError` so that it has either one
+      or two required parameters, and the parameters have the required types:
+
+      ```dart
+      void f(Future<int> f) {
+        f.catchError((Object error) => 0);
+      }
+      ```
+  BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
+    problemMessage: "This 'onError' handler must return a value assignable to '{0}', but ends without returning a value."
+    correctionMessage: Try adding a return statement.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the return type as derived by the type of the [Future].
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the closure passed to the
+      `onError` parameter of the `Future.catchError` method is required to
+      return a non-`null` value (because of the `Future`s type argument) but can
+      implicitly return `null`.
+
+      #### Example
+
+      The following code produces this diagnostic because the closure passed to
+      the `catchError` method is required to return an `int` but doesn't end
+      with an explicit `return`, causing it to implicitly return `null`:
+
+      ```dart
+      void g(Future<int> f) {
+        f.catchError((e, st) [!{!]});
+      }
+      ```
+
+      #### Common fixes
+
+      If the closure should sometimes return a non-`null` value, then add an
+      explicit return to the closure:
+
+      ```dart
+      void g(Future<int> f) {
+        f.catchError((e, st) {
+          return -1;
+        });
+      }
+      ```
+
+      If the closure should always return `null`, then change the type argument
+      of the `Future` to be either `void` or `Null`:
+
+      ```dart
+      void g(Future<void> f) {
+        f.catchError((e, st) {});
+      }
+      ```
+  BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
+    problemMessage: "This function has a nullable return type of '{0}', but ends without returning a value."
+    correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the declared return type
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method or function can
+      implicitly return `null` by falling off the end. While this is valid Dart
+      code, it's better for the return of `null` to be explicit.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f`
+      implicitly returns `null`:
+
+      ```dart
+      String? [!f!]() {}
+      ```
+
+      #### Common fixes
+
+      If the return of `null` is intentional, then make it explicit:
+
+      ```dart
+      String? f() {
+        return null;
+      }
+      ```
+
+      If the function should return a non-null value along that path, then add
+      the missing return statement:
+
+      ```dart
+      String? f() {
+        return '';
+      }
+      ```
+  DEAD_CODE:
+    aliasFor: HintCode.DEAD_CODE
+    comment: This is the new replacement for [HintCode.DEAD_CODE].
+  DEPRECATED_EXTENDS_FUNCTION:
+    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
+    problemMessage: "Extending 'Function' is deprecated."
+    correctionMessage: "Try removing 'Function' from the 'extends' clause."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the class `Function` is used in
+      either the `extends`, `implements`, or `with` clause of a class or mixin.
+      Using the class `Function` in this way has no semantic value, so it's
+      effectively dead code.
+
+      #### Example
+
+      The following code produces this diagnostic because `Function` is used as
+      the superclass of `F`:
+
+      ```dart
+      class F extends [!Function!] {}
+      ```
+
+      #### Common fixes
+
+      Remove the class `Function` from whichever clause it's in, and remove the
+      whole clause if `Function` is the only type in the clause:
+
+      ```dart
+      class F {}
+      ```
+  DEPRECATED_IMPLEMENTS_FUNCTION:
+    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
+    problemMessage: "Implementing 'Function' has no effect."
+    correctionMessage: "Try removing 'Function' from the 'implements' clause."
+    hasPublishedDocs: true
+    comment: No parameters.
+  DEPRECATED_MIXIN_FUNCTION:
+    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
+    problemMessage: "Mixing in 'Function' is deprecated."
+    correctionMessage: "Try removing 'Function' from the 'with' clause."
+    hasPublishedDocs: true
+    comment: No parameters.
+  DEPRECATED_NEW_IN_COMMENT_REFERENCE:
+    problemMessage: "Using the 'new' keyword in a comment reference is deprecated."
+    correctionMessage: Try referring to a constructor by its name.
+    comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a comment reference (the name
+      of a declaration enclosed in square brackets in a documentation comment)
+      uses the keyword `new` to refer to a constructor. This form is deprecated.
+
+      #### Examples
+
+      The following code produces this diagnostic because the unnamed
+      constructor is being referenced using `new C`:
+
+      ```dart
+      /// See [[!new!] C].
+      class C {
+        C();
+      }
+      ```
+
+      The following code produces this diagnostic because the constructor named
+      `c` is being referenced using `new C.c`:
+
+      ```dart
+      /// See [[!new!] C.c].
+      class C {
+        C.c();
+      }
+      ```
+
+      #### Common fixes
+
+      If you're referencing a named constructor, then remove the keyword `new`:
+
+      ```dart
+      /// See [C.c].
+      class C {
+        C.c();
+      }
+      ```
+
+      If you're referencing the unnamed constructor, then remove the keyword
+      `new` and append `.new` after the class name:
+
+      ```dart
+      /// See [C.new].
+      class C {
+        C.c();
+      }
+      ```
+  DUPLICATE_EXPORT:
+    problemMessage: Duplicate export.
+    correctionMessage: Try removing all but one export of the library.
+    hasPublishedDocs: true
+    comment: |-
+      Duplicate exports.
+
+      No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an export directive is found
+      that is the same as an export before it in the file. The second export
+      doesn't add value and should be removed.
+
+      #### Example
+
+      The following code produces this diagnostic because the same library is
+      being exported twice:
+
+      ```dart
+      export 'package:meta/meta.dart';
+      export [!'package:meta/meta.dart'!];
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary export:
+
+      ```dart
+      export 'package:meta/meta.dart';
+      ```
+  DUPLICATE_HIDDEN_NAME:
+    problemMessage: Duplicate hidden name.
+    correctionMessage: Try removing the repeated name from the list of hidden members.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a name occurs multiple times in
+      a `hide` clause. Repeating the name is unnecessary.
+
+      #### Example
+
+      The following code produces this diagnostic because the name `min` is
+      hidden more than once:
+
+      ```dart
+      import 'dart:math' hide min, [!min!];
+
+      var x = pi;
+      ```
+
+      #### Common fixes
+
+      If the name was mistyped in one or more places, then correct the mistyped
+      names:
+
+      ```dart
+      import 'dart:math' hide max, min;
+
+      var x = pi;
+      ```
+
+      If the name wasn't mistyped, then remove the unnecessary name from the
+      list:
+
+      ```dart
+      import 'dart:math' hide min;
+
+      var x = pi;
+      ```
+  DUPLICATE_IGNORE:
+    problemMessage: "The diagnostic '{0}' doesn't need to be ignored here because it's already being ignored."
+    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the diagnostic being ignored
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a diagnostic name appears in an
+      `ignore` comment, but the diagnostic is already being ignored, either
+      because it's already included in the same `ignore` comment or because it
+      appears in an `ignore-in-file` comment.
+
+      #### Examples
+
+      The following code produces this diagnostic because the diagnostic named
+      `unused_local_variable` is already being ignored for the whole file so it
+      doesn't need to be ignored on a specific line:
+
+      ```dart
+      // ignore_for_file: unused_local_variable
+      void f() {
+        // ignore: [!unused_local_variable!]
+        var x = 0;
+      }
+      ```
+
+      The following code produces this diagnostic because the diagnostic named
+      `unused_local_variable` is being ignored twice on the same line:
+
+      ```dart
+      void f() {
+        // ignore: unused_local_variable, [!unused_local_variable!]
+        var x = 0;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the ignore comment, or remove the unnecessary diagnostic name if the
+      ignore comment is ignoring more than one diagnostic:
+
+      ```dart
+      // ignore_for_file: unused_local_variable
+      void f() {
+        var x = 0;
+      }
+      ```
+  DUPLICATE_IMPORT:
+    problemMessage: Duplicate import.
+    correctionMessage: Try removing all but one import of the library.
+    hasPublishedDocs: true
+    comment: |-
+      Duplicate imports.
+
+      No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an import directive is found
+      that is the same as an import before it in the file. The second import
+      doesn't add value and should be removed.
+
+      #### Example
+
+      The following code produces this diagnostic:
+
+      ```dart
+      import 'package:meta/meta.dart';
+      import [!'package:meta/meta.dart'!];
+
+      @sealed class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary import:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @sealed class C {}
+      ```
+  DUPLICATE_SHOWN_NAME:
+    problemMessage: Duplicate shown name.
+    correctionMessage: Try removing the repeated name from the list of shown members.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a name occurs multiple times in
+      a `show` clause. Repeating the name is unnecessary.
+
+      #### Example
+
+      The following code produces this diagnostic because the name `min` is shown
+      more than once:
+
+      ```dart
+      import 'dart:math' show min, [!min!];
+
+      var x = min(2, min(0, 1));
+      ```
+
+      #### Common fixes
+
+      If the name was mistyped in one or more places, then correct the mistyped
+      names:
+
+      ```dart
+      import 'dart:math' show max, min;
+
+      var x = max(2, min(0, 1));
+      ```
+
+      If the name wasn't mistyped, then remove the unnecessary name from the
+      list:
+
+      ```dart
+      import 'dart:math' show min;
+
+      var x = min(2, min(0, 1));
+      ```
+  EQUAL_ELEMENTS_IN_SET:
+    problemMessage: "Two elements in a set literal shouldn't be equal."
+    correctionMessage: Change or remove the duplicate element.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an element in a non-constant set
+      is the same as a previous element in the same set. If two elements are the
+      same, then the second value is ignored, which makes having both elements
+      pointless and likely signals a bug.
+
+      #### Example
+
+      The following code produces this diagnostic because the element `1` appears
+      twice:
+
+      ```dart
+      const a = 1;
+      const b = 1;
+      var s = <int>{a, [!b!]};
+      ```
+
+      #### Common fixes
+
+      If both elements should be included in the set, then change one of the
+      elements:
+
+      ```dart
+      const a = 1;
+      const b = 2;
+      var s = <int>{a, b};
+      ```
+
+      If only one of the elements is needed, then remove the one that isn't
+      needed:
+
+      ```dart
+      const a = 1;
+      var s = <int>{a};
+      ```
+
+      Note that literal sets preserve the order of their elements, so the choice
+      of which element to remove might affect the order in which elements are
+      returned by an iterator.
+  EQUAL_KEYS_IN_MAP:
+    problemMessage: "Two keys in a map literal shouldn't be equal."
+    correctionMessage: Change or remove the duplicate key.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a key in a non-constant map is
+      the same as a previous key in the same map. If two keys are the same, then
+      the second value overwrites the first value, which makes having both pairs
+      pointless and likely signals a bug.
+
+      #### Example
+
+      The following code produces this diagnostic because the keys `a` and `b`
+      have the same value:
+
+      ```dart
+      const a = 1;
+      const b = 1;
+      var m = <int, String>{a: 'a', [!b!]: 'b'};
+      ```
+
+      #### Common fixes
+
+      If both entries should be included in the map, then change one of the keys:
+
+      ```dart
+      const a = 1;
+      const b = 2;
+      var m = <int, String>{a: 'a', b: 'b'};
+      ```
+
+      If only one of the entries is needed, then remove the one that isn't
+      needed:
+
+      ```dart
+      const a = 1;
+      var m = <int, String>{a: 'a'};
+      ```
+
+      Note that literal maps preserve the order of their entries, so the choice
+      of which entry to remove might affect the order in which the keys and
+      values are returned by an iterator.
+  INVALID_ANNOTATION_TARGET:
+    problemMessage: "The annotation '{0}' can only be used on {1}."
+    comment: |-
+      Parameters:
+      0: the name of the annotation
+      1: the list of valid targets
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an annotation is applied to a
+      kind of declaration that it doesn't support.
+
+      #### Example
+
+      The following code produces this diagnostic because the `optionalTypeArgs`
+      annotation isn't defined to be valid for top-level variables:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @[!optionalTypeArgs!]
+      int x = 0;
+      ```
+
+      #### Common fixes
+
+      Remove the annotation from the declaration.
+  INVALID_EXPORT_OF_INTERNAL_ELEMENT:
+    problemMessage: "The member '{0}' can't be exported as a part of a package's public API."
+    correctionMessage: "Try using a hide clause to hide '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the element
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a [public library][] exports a
+      declaration that is marked with the `[internal][meta-internal]`
+      annotation.
+
+      #### Example
+
+      Given a file named `a.dart` in the `src` directory that contains:
+
+      ```dart
+      %uri="lib/src/a.dart"
+      import 'package:meta/meta.dart';
+
+      @internal class One {}
+      ```
+
+      The following code, when found in a [public library][] produces this
+      diagnostic because the `export` directive is exporting a name that is only
+      intended to be used internally:
+
+      ```dart
+      [!export 'src/a.dart';!]
+      ```
+
+      #### Common fixes
+
+      If the export is needed, then add a `hide` clause to hide the internal
+      names:
+
+      ```dart
+      export 'src/a.dart' hide One;
+      ```
+
+      If the export isn't needed, then remove it.
+  INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
+    problemMessage: "The member '{0}' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of '{1}'."
+    correctionMessage: "Try using a hide clause to hide '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the element
+      1: ?
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a [public library][] exports a
+      top-level function  with a return type or at least one parameter type that
+      is marked with the `[internal][meta-internal]` annotation.
+
+      #### Example
+
+      Given a file named `a.dart` in the `src` directory that contains the
+      following:
+
+      ```dart
+      %uri="lib/src/a.dart"
+      import 'package:meta/meta.dart';
+
+      @internal
+      typedef IntFunction = int Function();
+
+      int f(IntFunction g) => g();
+      ```
+
+      The following code produces this diagnostic because the function `f` has a
+      parameter of type `IntFunction`, and `IntFunction` is only intended to be
+      used internally:
+
+      ```dart
+      [!export 'src/a.dart' show f;!]
+      ```
+
+      #### Common fixes
+
+      If the function must be public, then make all the types in the function's
+      signature public types.
+
+      If the function doesn't need to be exported, then stop exporting it,
+      either by removing it from the `show` clause, adding it to the `hide`
+      clause, or by removing the export.
+  INVALID_FACTORY_ANNOTATION:
+    problemMessage: Only methods can be annotated as factories.
+    comment: |-
+      This hint is generated anywhere a @factory annotation is associated with
+      anything other than a method.
+  INVALID_FACTORY_METHOD_DECL:
+    problemMessage: "Factory method '{0}' must have a return type."
+    comment: |-
+      Parameters:
+      0: The name of the method
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method that is annotated with
+      the `[factory][meta-factory]` annotation has a return type of `void`.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `createC`
+      is annotated with the `[factory][meta-factory]` annotation but doesn't
+      return any value:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        @factory
+        void [!createC!]() {}
+      }
+
+      class C {}
+      ```
+
+      #### Common fixes
+
+      Change the return type to something other than `void`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        @factory
+        C createC() => C();
+      }
+
+      class C {}
+      ```
+  INVALID_FACTORY_METHOD_IMPL:
+    problemMessage: "Factory method '{0}' doesn't return a newly allocated object."
+    comment: |-
+      Parameters:
+      0: the name of the method
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method that is annotated with
+      the `[factory][meta-factory]` annotation doesn't return a newly allocated
+      object.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `createC`
+      returns the value of a field rather than a newly created instance of `C`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        C c = C();
+
+        @factory
+        C [!createC!]() => c;
+      }
+
+      class C {}
+      ```
+
+      #### Common fixes
+
+      Change the method to return a newly created instance of the return type:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        @factory
+        C createC() => C();
+      }
+
+      class C {}
+      ```
+  INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The language version override can't specify a version greater than the latest known language version: {0}.{1}."
+    correctionMessage: Try removing the language version override.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the latest major version
+      1: the latest minor version
+  INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override number must begin with '@dart'."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a comment that appears to be an
+      attempt to specify a language version override doesn't conform to the
+      requirements for such a comment. For more information, see
+      [Per-library language version selection](https://dart.dev/guides/language/evolution#per-library-language-version-selection).
+
+      #### Example
+
+      The following code produces this diagnostic because the word `dart` must
+      be lowercase in such a comment and because there's no equal sign between
+      the word `dart` and the version number:
+
+      ```dart
+      [!// @Dart 2.13!]
+      ```
+
+      #### Common fixes
+
+      If the comment is intended to be a language version override, then change
+      the comment to follow the correct format:
+
+      ```dart
+      // @dart = 2.13
+      ```
+  INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: The language version override must be specified before any declaration or directive.
+    correctionMessage: Try moving the language version override to the top of the file.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override comment must be specified with the word 'dart' in all lower case."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override comment must be specified with a version number, like '2.0', after the '=' character."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override number can't be prefixed with a letter."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override comment can't be followed by any non-whitespace characters."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: The Dart language version override comment must be specified with exactly two slashes.
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override comment must be specified with an '=' character."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+  INVALID_REQUIRED_NAMED_PARAM:
+    problemMessage: "The type parameter '{0}' is annotated with @required but only named parameters without a default value can be annotated with it."
+    correctionMessage: Remove @required.
+    comment: |-
+      This hint is generated anywhere where `@required` annotates a named
+      parameter with a default value.
+
+      Parameters:
+      0: the name of the member
+  INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
+    problemMessage: "Incorrect use of the annotation @required on the optional positional parameter '{0}'. Optional positional parameters cannot be required."
+    correctionMessage: Remove @required.
+    comment: |-
+      This hint is generated anywhere where `@required` annotates an optional
+      positional parameter.
+
+      Parameters:
+      0: the name of the member
+  INVALID_REQUIRED_POSITIONAL_PARAM:
+    problemMessage: "Redundant use of the annotation @required on the required positional parameter '{0}'."
+    correctionMessage: Remove @required.
+    comment: |-
+      This hint is generated anywhere where `@required` annotates a non optional
+      positional parameter.
+
+      Parameters:
+      0: the name of the member
+  RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
+    sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR
+    problemMessage: "The return type '{0}' isn't assignable to '{1}', as required by 'Future.catchError'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the return type of the function
+      1: the expected return type as defined by the type of the Future
+  RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
+    sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR
+    problemMessage: "A value of type '{0}' can't be returned by the 'onError' handler because it must be assignable to '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the return type as declared in the return statement
+      1: the expected return type as defined by the type of the Future
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an invocation of
+      `Future.catchError` has an argument whose return type isn't compatible with
+      the type returned by the instance of `Future`. At runtime, the method
+      `catchError` attempts to return the value from the callback as the result
+      of the future, which results in another exception being thrown.
+
+      #### Examples
+
+      The following code produces this diagnostic because `future` is declared to
+      return an `int` while `callback` is declared to return a `String`, and
+      `String` isn't a subtype of `int`:
+
+      ```dart
+      void f(Future<int> future, String Function(dynamic, StackTrace) callback) {
+        future.catchError([!callback!]);
+      }
+      ```
+
+      The following code produces this diagnostic because the closure being
+      passed to `catchError` returns an `int` while `future` is declared to
+      return a `String`:
+
+      ```dart
+      void f(Future<String> future) {
+        future.catchError((error, stackTrace) => [!3!]);
+      }
+      ```
+
+      #### Common fixes
+
+      If the instance of `Future` is declared correctly, then change the callback
+      to match:
+
+      ```dart
+      void f(Future<int> future, int Function(dynamic, StackTrace) callback) {
+        future.catchError(callback);
+      }
+      ```
+
+      If the declaration of the instance of `Future` is wrong, then change it to
+      match the callback:
+
+      ```dart
+      void f(Future<String> future, String Function(dynamic, StackTrace) callback) {
+        future.catchError(callback);
+      }
+      ```
+  INVALID_SEALED_ANNOTATION:
+    problemMessage: "The annotation '@sealed' can only be applied to classes."
+    correctionMessage: Try removing the '@sealed' annotation.
+    hasPublishedDocs: true
+    comment: |-
+      This hint is generated anywhere where `@sealed` annotates something other
+      than a class.
+
+      No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a declaration other than a
+      class declaration has the `@sealed` annotation on it.
+
+      #### Example
+
+      The following code produces this diagnostic because the `@sealed`
+      annotation is on a method declaration:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        [!@sealed!]
+        void m() {}
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      class A {
+        void m() {}
+      }
+      ```
+  NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
+    aliasFor: HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
+    comment: This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
+  NULLABLE_TYPE_IN_CATCH_CLAUSE:
+    problemMessage: "A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression."
+    correctionMessage: Try using a non-nullable type.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the type following `on` in a
+      `catch` clause is a nullable type. It isn't valid to specify a nullable
+      type because it isn't possible to catch `null` (because it's a runtime
+      error to throw `null`).
+
+      #### Example
+
+      The following code produces this diagnostic because the exception type is
+      specified to allow `null` when `null` can't be thrown:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } on [!FormatException?!] {
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the question mark from the type:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } on FormatException {
+        }
+      }
+      ```
+  NULL_ARGUMENT_TO_NON_NULL_TYPE:
+    problemMessage: "'{0}' shouldn't be called with a null argument for the non-nullable type argument '{1}'."
+    correctionMessage: Try adding a non-null argument.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the method being invoked
+      1: the type argument associated with the method
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when `null` is passed to either the
+      constructor `Future.value` or the method `Completer.complete` when the type
+      argument used to create the instance was non-nullable. Even though the type
+      system can't express this restriction, passing in a `null` results in a
+      runtime exception.
+
+      #### Example
+
+      The following code produces this diagnostic because `null` is being passed
+      to the constructor `Future.value` even though the type argument is the
+      non-nullable type `String`:
+
+      ```dart
+      Future<String> f() {
+        return Future.value([!null!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Pass in a non-null value:
+
+      ```dart
+      Future<String> f() {
+        return Future.value('');
+      }
+      ```
+  NULL_AWARE_BEFORE_OPERATOR:
+    problemMessage: "The left operand uses '?.', so its value can be null."
+    comment: |-
+      When the left operand of a binary expression uses '?.' operator, it can be
+      `null`.
+  NULL_AWARE_IN_CONDITION:
+    problemMessage: "The value of the '?.' operator can be 'null', which isn't appropriate in a condition."
+    correctionMessage: "Try replacing the '?.' with a '.', testing the left-hand side for null if necessary."
+    comment: |-
+      A condition in a control flow statement could evaluate to `null` because it
+      uses the null-aware '?.' operator.
+  NULL_AWARE_IN_LOGICAL_OPERATOR:
+    problemMessage: "The value of the '?.' operator can be 'null', which isn't appropriate as an operand of a logical operator."
+    comment: |-
+      A condition in operands of a logical operator could evaluate to `null`
+      because it uses the null-aware '?.' operator.
+  OVERRIDE_ON_NON_OVERRIDING_FIELD:
+    aliasFor: HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD
+    comment: This is the new replacement for [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD].
+  RECEIVER_OF_TYPE_NEVER:
+    problemMessage: "The receiver is of type 'Never', and will never complete with a value."
+    correctionMessage: Try checking for throw expressions or type errors in the receiver
+    comment: |-
+      It is not an error to call or tear-off a method, setter, or getter, or to
+      read or write a field, on a receiver of static type `Never`.
+      Implementations that provide feedback about dead or unreachable code are
+      encouraged to indicate that any arguments to the invocation are
+      unreachable.
+
+      It is not an error to apply an expression of type `Never` in the function
+      position of a function call. Implementations that provide feedback about
+      dead or unreachable code are encouraged to indicate that any arguments to
+      the call are unreachable.
+
+      Parameters: none
+  REMOVED_LINT_USE:
+    problemMessage: "'{0}' was removed in Dart '{1}'"
+    correctionMessage: "Remove the reference to '{0}'."
+    comment: |-
+      An error code indicating use of a removed lint rule.
+
+      Parameters:
+      0: the rule name
+      1: the SDK version in which the lint was removed
+  REPLACED_LINT_USE:
+    problemMessage:  "'{0}' was replaced by '{2}' in Dart '{1}'."
+    correctionMessage: "Replace '{0}' with '{1}'."
+    comment: |-
+      An error code indicating use of a removed lint rule.
+
+      Parameters:
+      0: the rule name
+      1: the SDK version in which the lint was removed
+      2: the name of a replacing lint
+  RETURN_OF_DO_NOT_STORE:
+    problemMessage: "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless '{1}' is also annotated."
+    correctionMessage: "Annotate '{1}' with 'doNotStore'."
+    comment: |-
+      Parameters:
+      0: the name of the annotated function being invoked
+      1: the name of the function containing the return
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a value that is annotated with
+      the `[doNotStore][meta-doNotStore]` annotation is returned from a method,
+      getter, or function that doesn't have the same annotation.
+
+      #### Example
+
+      The following code produces this diagnostic because the result of invoking
+      `f` shouldn't be stored, but the function `g` isn't annotated to preserve
+      that semantic:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @doNotStore
+      int f() => 0;
+
+      int g() => [!f()!];
+      ```
+
+      #### Common fixes
+
+      If the value that shouldn't be stored is the correct value to return, then
+      mark the function with the `[doNotStore][meta-doNotStore]` annotation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @doNotStore
+      int f() => 0;
+
+      @doNotStore
+      int g() => f();
+      ```
+
+      Otherwise, return a different value from the function:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @doNotStore
+      int f() => 0;
+
+      int g() => 0;
+      ```
+  SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
+    problemMessage: "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this code is required to be able to run on earlier versions."
+    correctionMessage: "Try either importing 'dart:async' or updating the SDK constraints."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when either the class `Future` or
+      `Stream` is referenced in a library that doesn't import `dart:async` in
+      code that has an SDK constraint whose lower bound is less than 2.1.0. In
+      earlier versions, these classes weren't defined in `dart:core`, so the
+      import was necessary.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.1.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.0.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces this
+      diagnostic:
+
+      ```dart
+      void f([!Future!] f) {}
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the classes to be referenced:
+
+      ```yaml
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then import the
+      `dart:async` library.
+
+      ```dart
+      import 'dart:async';
+
+      void f(Future f) {}
+      ```
+  SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
+    problemMessage: "The use of an as expression in a constant expression wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `as` expression inside a
+      [constant context][] is found in code that has an SDK constraint whose
+      lower bound is less than 2.3.2. Using an `as` expression in a
+      [constant context][] wasn't supported in earlier versions, so this code
+      won't be able to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.3.2:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces
+      this diagnostic:
+
+      ```dart
+      const num n = 3;
+      const int i = [!n as int!];
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the expression to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.3.2 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then either rewrite the
+      code to not use an `as` expression, or change the code so that the `as`
+      expression isn't in a [constant context][]:
+
+      ```dart
+      num x = 3;
+      int y = x as int;
+      ```
+  SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT:
+    problemMessage: "The use of the operator '{0}' for 'bool' operands in a constant context wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the operator
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when any use of the `&`, `|`, or `^`
+      operators on the class `bool` inside a [constant context][] is found in
+      code that has an SDK constraint whose lower bound is less than 2.3.2. Using
+      these operators in a [constant context][] wasn't supported in earlier
+      versions, so this code won't be able to run against earlier versions of the
+      SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.3.2:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces this
+      diagnostic:
+
+      ```dart
+      const bool a = true;
+      const bool b = false;
+      const bool c = a [!&!] b;
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the operators to be used:
+
+      ```yaml
+      environment:
+       sdk: '>=2.3.2 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then either rewrite the
+      code to not use these operators, or change the code so that the expression
+      isn't in a [constant context][]:
+
+      ```dart
+      const bool a = true;
+      const bool b = false;
+      bool c = a & b;
+      ```
+  SDK_VERSION_CONSTRUCTOR_TEAROFFS:
+    problemMessage: "Tearing off a constructor requires the 'constructor-tearoffs' language feature."
+    correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
+    hasPublishedDocs: true
+    comment: |-
+      No parameters.
+
+      There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
+      some cases of constructor tearoff features (like `List<int>.filled;`).
+      Other constructor tearoff cases are not realized until resolution
+      (like `List.filled;`).
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a constructor tear-off is found
+      in code that has an SDK constraint whose lower bound is less than 2.15.
+      Constructor tear-offs weren't supported in earlier versions, so this code
+      won't be able to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.15:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.9.0 <2.15.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces this
+      diagnostic:
+
+      ```dart
+      %language=2.14
+      var setConstructor = [!Set.identity!];
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the operator to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.15.0 <2.16.0'
+      ```
+
+      If you need to support older versions of the SDK, then rewrite the code to
+      not use constructor tear-offs:
+
+      ```dart
+      %language=2.14
+      var setConstructor = () => Set.identity();
+      ```
+  SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT:
+    problemMessage: "Using the operator '==' for non-primitive types wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the operator `==` is used on a
+      non-primitive type inside a [constant context][] is found in code that has
+      an SDK constraint whose lower bound is less than 2.3.2. Using this operator
+      in a [constant context][] wasn't supported in earlier versions, so this
+      code won't be able to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.3.2:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces this
+      diagnostic:
+
+      ```dart
+      %language=2.9
+      class C {}
+      const C a = null;
+      const C b = null;
+      const bool same = a [!==!] b;
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the operator to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.3.2 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then either rewrite the
+      code to not use the `==` operator, or change the code so that the
+      expression isn't in a [constant context][]:
+
+      ```dart
+      %language=2.9
+      class C {}
+      const C a = null;
+      const C b = null;
+      bool same = a == b;
+      ```
+  SDK_VERSION_EXTENSION_METHODS:
+    problemMessage: "Extension methods weren't supported until version 2.6.0, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an extension declaration or an
+      extension override is found in code that has an SDK constraint whose lower
+      bound is less than 2.6.0. Using extensions wasn't supported in earlier
+      versions, so this code won't be able to run against earlier versions of the
+      SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.6.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+       sdk: '>=2.4.0 <2.7.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces
+      this diagnostic:
+
+      ```dart
+      [!extension!] E on String {
+        void sayHello() {
+          print('Hello $this');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the syntax to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.6.0 <2.7.0'
+      ```
+
+      If you need to support older versions of the SDK, then rewrite the code to
+      not make use of extensions. The most common way to do this is to rewrite
+      the members of the extension as top-level functions (or methods) that take
+      the value that would have been bound to `this` as a parameter:
+
+      ```dart
+      void sayHello(String s) {
+        print('Hello $s');
+      }
+      ```
+  SDK_VERSION_GT_GT_GT_OPERATOR:
+    problemMessage: "The operator '>>>' wasn't supported until version 2.14.0, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the operator `>>>` is used in
+      code that has an SDK constraint whose lower bound is less than 2.14.0. This
+      operator wasn't supported in earlier versions, so this code won't be able
+      to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.14.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+       sdk: '>=2.0.0 <2.15.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces this
+      diagnostic:
+
+      ```dart
+      int x = 3 [!>>>!] 4;
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the operator to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.14.0 <2.15.0'
+      ```
+
+      If you need to support older versions of the SDK, then rewrite the code to
+      not use the `>>>` operator:
+
+      ```dart
+      int x = logicalShiftRight(3, 4);
+
+      int logicalShiftRight(int leftOperand, int rightOperand) {
+        int divisor = 1 << rightOperand;
+        if (divisor == 0) {
+          return 0;
+        }
+        return leftOperand ~/ divisor;
+      }
+      ```
+  SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT:
+    problemMessage: "The use of an is expression in a constant context wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `is` expression inside a
+      [constant context][] is found in code that has an SDK constraint whose
+      lower bound is less than 2.3.2. Using an `is` expression in a
+      [constant context][] wasn't supported in earlier versions, so this code
+      won't be able to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.3.2:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces
+      this diagnostic:
+
+      ```dart
+      const Object x = 4;
+      const y = [!x is int!] ? 0 : 1;
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the expression to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.3.2 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then either rewrite the
+      code to not use the `is` operator, or, if that isn't possible, change the
+      code so that the `is` expression isn't in a
+      [constant context][]:
+
+      ```dart
+      const Object x = 4;
+      var y = x is int ? 0 : 1;
+      ```
+  SDK_VERSION_NEVER:
+    problemMessage: "The type 'Never' wasn't supported until version 2.12.0, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a reference to the class `Never`
+      is found in code that has an SDK constraint whose lower bound is less than
+      2.12.0. This class wasn't defined in earlier versions, so this code won't
+      be able to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.12.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.5.0 <2.6.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces this
+      diagnostic:
+
+      ```dart
+      %language=2.9
+      [!Never!] n;
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the type to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.12.0 <2.13.0'
+      ```
+
+      If you need to support older versions of the SDK, then rewrite the code to
+      not reference this class:
+
+      ```dart
+      dynamic x;
+      ```
+  SDK_VERSION_SET_LITERAL:
+    problemMessage: "Set literals weren't supported until version 2.2, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a set literal is found in code
+      that has an SDK constraint whose lower bound is less than 2.2.0. Set
+      literals weren't supported in earlier versions, so this code won't be able
+      to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.2.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces this
+      diagnostic:
+
+      ```dart
+      var s = [!<int>{}!];
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the syntax to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.2.0 <2.4.0'
+      ```
+
+      If you do need to support older versions of the SDK, then replace the set
+      literal with code that creates the set without the use of a literal:
+
+      ```dart
+      var s = new Set<int>();
+      ```
+  SDK_VERSION_UI_AS_CODE:
+    problemMessage: "The for, if, and spread elements weren't supported until version 2.3.0, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a for, if, or spread element is
+      found in code that has an SDK constraint whose lower bound is less than
+      2.3.0. Using a for, if, or spread element wasn't supported in earlier
+      versions, so this code won't be able to run against earlier versions of the
+      SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.3.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.2.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces
+      this diagnostic:
+
+      ```dart
+      var digits = [[!for (int i = 0; i < 10; i++) i!]];
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the syntax to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.3.0 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then rewrite the code to
+      not make use of those elements:
+
+      ```dart
+      var digits = _initializeDigits();
+
+      List<int> _initializeDigits() {
+        var digits = <int>[];
+        for (int i = 0; i < 10; i++) {
+          digits.add(i);
+        }
+        return digits;
+      }
+      ```
+  SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
+    problemMessage: "The if and spread elements weren't supported in constant expressions until version 2.5.0, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an if or spread element inside
+      a [constant context][] is found in code that has an SDK constraint whose
+      lower bound is less than 2.5.0. Using an if or spread element inside a
+      [constant context][] wasn't supported in earlier versions, so this code
+      won't be able to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.5.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.4.0 <2.6.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces
+      this diagnostic:
+
+      ```dart
+      const a = [1, 2];
+      const b = [[!...a!]];
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the syntax to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.5.0 <2.6.0'
+      ```
+
+      If you need to support older versions of the SDK, then rewrite the code to
+      not make use of those elements:
+
+      ```dart
+      const a = [1, 2];
+      const b = [1, 2];
+      ```
+
+      If that isn't possible, change the code so that the element isn't in a
+      [constant context][]:
+
+      ```dart
+      const a = [1, 2];
+      var b = [...a];
+      ```
+  UNDEFINED_HIDDEN_NAME:
+    problemMessage: "The library '{0}' doesn't export a member with the hidden name '{1}'."
+    correctionMessage: Try removing the name from the list of hidden members.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the library being imported
+      1: the name in the hide clause that isn't defined in the library
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a hide combinator includes a
+      name that isn't defined by the library being imported.
+
+      #### Example
+
+      The following code produces this diagnostic because `dart:math` doesn't
+      define the name `String`:
+
+      ```dart
+      import 'dart:math' hide [!String!], max;
+
+      var x = min(0, 1);
+      ```
+
+      #### Common fixes
+
+      If a different name should be hidden, then correct the name. Otherwise,
+      remove the name from the list:
+
+      ```dart
+      import 'dart:math' hide max;
+
+      var x = min(0, 1);
+      ```
+  UNDEFINED_SHOWN_NAME:
+    problemMessage: "The library '{0}' doesn't export a member with the shown name '{1}'."
+    correctionMessage: Try removing the name from the list of shown members.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the library being imported
+      1: the name in the show clause that isn't defined in the library
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a show combinator includes a
+      name that isn't defined by the library being imported.
+
+      #### Example
+
+      The following code produces this diagnostic because `dart:math` doesn't
+      define the name `String`:
+
+      ```dart
+      import 'dart:math' show min, [!String!];
+
+      var x = min(0, 1);
+      ```
+
+      #### Common fixes
+
+      If a different name should be shown, then correct the name. Otherwise,
+      remove the name from the list:
+
+      ```dart
+      import 'dart:math' show min;
+
+      var x = min(0, 1);
+      ```
+  UNNECESSARY_CAST:
+    aliasFor: HintCode.UNNECESSARY_CAST
+    comment: This is the new replacement for [HintCode.UNNECESSARY_CAST].
+  UNNECESSARY_CAST_PATTERN:
+    problemMessage: Unnecessary cast pattern.
+    correctionMessage: Try removing the cast pattern.
+    comment: No parameters.
+  UNNECESSARY_FINAL:
+    aliasFor: HintCode.UNNECESSARY_FINAL
+    comment: This is the new replacement for [HintCode.UNNECESSARY_FINAL].
+  UNUSED_CATCH_CLAUSE:
+    problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
+    correctionMessage: Try removing the catch clause.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the exception variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `catch` clause is found, and
+      neither the exception parameter nor the optional stack trace parameter are
+      used in the `catch` block.
+
+      #### Example
+
+      The following code produces this diagnostic because `e` isn't referenced:
+
+      ```dart
+      void f() {
+        try {
+          int.parse(';');
+        } on FormatException catch ([!e!]) {
+          // ignored
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unused `catch` clause:
+
+      ```dart
+      void f() {
+        try {
+          int.parse(';');
+        } on FormatException {
+          // ignored
+        }
+      }
+      ```
+  UNUSED_CATCH_STACK:
+    problemMessage: "The stack trace variable '{0}' isn't used and can be removed."
+    correctionMessage: Try removing the stack trace variable, or using it.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the stack trace variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the stack trace parameter in a
+      `catch` clause isn't referenced within the body of the `catch` block.
+
+      #### Example
+
+      The following code produces this diagnostic because `stackTrace` isn't
+      referenced:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } catch (exception, [!stackTrace!]) {
+          // ...
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If you need to reference the stack trace parameter, then add a reference to
+      it. Otherwise, remove it:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } catch (exception) {
+          // ...
+        }
+      }
+      ```
+  UNUSED_ELEMENT:
+    aliasFor: HintCode.UNUSED_ELEMENT
+    comment: This is the new replacement for [HintCode.UNUSED_ELEMENT].
+  UNUSED_ELEMENT_PARAMETER:
+    aliasFor: HintCode.UNUSED_ELEMENT_PARAMETER
+    comment: This is the new replacement for [HintCode.UNUSED_ELEMENT_PARAMETER].
+  UNUSED_FIELD:
+    aliasFor: HintCode.UNUSED_FIELD
+    comment: This is the new replacement for [HintCode.UNUSED_FIELD].
+  UNUSED_IMPORT:
+    aliasFor: HintCode.UNUSED_IMPORT
+    comment: This is the new replacement for [HintCode.UNUSED_IMPORT].
+  UNUSED_LOCAL_VARIABLE:
+    aliasFor: HintCode.UNUSED_LOCAL_VARIABLE
+    comment: This is the new replacement for [HintCode.UNUSED_LOCAL_VARIABLE].

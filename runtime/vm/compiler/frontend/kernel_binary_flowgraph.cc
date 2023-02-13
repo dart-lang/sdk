@@ -3391,10 +3391,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     case MethodRecognizer::kFfiAsFunctionInternal:
       return BuildFfiAsFunctionInternal();
     case MethodRecognizer::kFfiNativeCallbackFunction:
-      if (CompilerState::Current().is_aot()) {
-        return BuildFfiNativeCallbackFunction();
-      }
-      break;
+      return BuildFfiNativeCallbackFunction();
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
       return BuildLoadAbiSpecificInt(/*at_index=*/false);
     case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
@@ -3882,27 +3879,14 @@ Fragment StreamingFlowGraphBuilder::BuildRecordIsTest(TokenPosition position,
     instructions.current = is_record;
   }
 
-  // Test number of fields.
-  {
-    TargetEntryInstr* same_num_fields;
-    TargetEntryInstr* different_num_fields;
-
-    instructions += LoadLocal(instance);
-    instructions += LoadNativeField(Slot::Record_num_fields());
-    instructions += IntConstant(type.NumFields());
-    instructions += BranchIfEqual(&same_num_fields, &different_num_fields);
-    Fragment(different_num_fields) + Goto(is_false);
-    instructions.current = same_num_fields;
-  }
-
   // Test record shape.
   {
     TargetEntryInstr* same_shape;
     TargetEntryInstr* different_shape;
 
     instructions += LoadLocal(instance);
-    instructions += LoadNativeField(Slot::Record_field_names());
-    instructions += Constant(Array::ZoneHandle(Z, type.field_names()));
+    instructions += LoadNativeField(Slot::Record_shape());
+    instructions += IntConstant(type.shape().AsInt());
     instructions += BranchIfEqual(&same_shape, &different_shape);
     Fragment(different_shape) + Goto(is_false);
     instructions.current = same_shape;
@@ -4164,20 +4148,17 @@ Fragment StreamingFlowGraphBuilder::BuildRecordLiteral(TokenPosition* p) {
         names.SetAt(i, name);
       }
       names.MakeImmutable();
-      names ^= H.Canonicalize(names);
       field_names = &names;
     }
   }
   const intptr_t num_fields = positional_count + named_count;
+  const RecordShape shape =
+      RecordShape::Register(thread(), num_fields, *field_names);
   Fragment instructions;
 
   if (num_fields == 2 ||
       (num_fields == 3 && AllocateSmallRecordABI::kValue2Reg != kNoRegister)) {
     // Generate specialized allocation for a small number of fields.
-    const bool has_named_fields = named_count > 0;
-    if (has_named_fields) {
-      instructions += Constant(*field_names);
-    }
     for (intptr_t i = 0; i < positional_count; ++i) {
       instructions += BuildExpression();  // read ith expression.
     }
@@ -4188,14 +4169,12 @@ Fragment StreamingFlowGraphBuilder::BuildRecordLiteral(TokenPosition* p) {
     }
     SkipDartType();  // read recordType.
 
-    instructions +=
-        B->AllocateSmallRecord(position, num_fields, has_named_fields);
+    instructions += B->AllocateSmallRecord(position, shape);
 
     return instructions;
   }
 
-  instructions += Constant(*field_names);
-  instructions += B->AllocateRecord(position, num_fields);
+  instructions += B->AllocateRecord(position, shape);
   LocalVariable* record = MakeTemporary();
 
   // List of positional.
@@ -4236,19 +4215,23 @@ Fragment StreamingFlowGraphBuilder::BuildRecordFieldGet(TokenPosition* p,
       RecordType::Cast(T.BuildType());  // read recordType.
 
   intptr_t field_index = -1;
+  const Array& field_names =
+      Array::Handle(Z, record_type.GetFieldNames(H.thread()));
+  const intptr_t num_positional_fields =
+      record_type.NumFields() - field_names.Length();
   if (is_named) {
     const String& field_name = H.DartSymbolPlain(ReadStringReference());
-    for (intptr_t i = 0, n = record_type.NumNamedFields(); i < n; ++i) {
-      if (record_type.FieldNameAt(i) == field_name.ptr()) {
+    for (intptr_t i = 0, n = field_names.Length(); i < n; ++i) {
+      if (field_names.At(i) == field_name.ptr()) {
         field_index = i;
         break;
       }
     }
-    ASSERT(field_index >= 0 && field_index < record_type.NumNamedFields());
-    field_index += record_type.NumPositionalFields();
+    ASSERT(field_index >= 0 && field_index < field_names.Length());
+    field_index += num_positional_fields;
   } else {
     field_index = ReadUInt();
-    ASSERT(field_index < record_type.NumPositionalFields());
+    ASSERT(field_index < num_positional_fields);
   }
 
   instructions += B->LoadNativeField(Slot::GetRecordFieldSlot(
@@ -4484,15 +4467,28 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
 
   instructions += BuildExpression();  // read operand.
 
+  SuspendInstr::StubId stub_id = SuspendInstr::StubId::kAwait;
   if (ReadTag() == kSomething) {
-    // TODO(50529): Use runtime check type when present.
-    SkipDartType();  // read runtime check type.
+    const AbstractType& type = T.BuildType();  // read runtime check type.
+    if (!type.IsType() ||
+        !Class::Handle(Z, type.type_class()).IsFutureClass()) {
+      FATAL("Unexpected type for runtime check in await: %s", type.ToCString());
+    }
+    ASSERT(type.IsFinalized());
+    const auto& type_args = TypeArguments::ZoneHandle(Z, type.arguments());
+    if (!type_args.IsNull()) {
+      const auto& type_arg = AbstractType::Handle(Z, type_args.TypeAt(0));
+      if (!type_arg.IsTopTypeForSubtyping()) {
+        instructions += TranslateInstantiatedTypeArguments(type_args);
+        stub_id = SuspendInstr::StubId::kAwaitWithTypeCheck;
+      }
+    }
   }
 
   if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
     instructions += DebugStepCheck(pos);
   }
-  instructions += B->Suspend(pos, SuspendInstr::StubId::kAwait);
+  instructions += B->Suspend(pos, stub_id);
   return instructions;
 }
 
@@ -4622,7 +4618,7 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
 
 Fragment StreamingFlowGraphBuilder::BuildLabeledStatement(
     TokenPosition* position) {
-  // There can be serveral cases:
+  // There can be several cases:
   //
   //   * the body contains a break
   //   * the body doesn't contain a break
@@ -4947,42 +4943,14 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchCase(SwitchHelper* helper,
     body_fragment += Drop();
   }
 
-  // The Dart language specification mandates fall-throughs in [SwitchCase]es
-  // to be runtime errors.
+  // TODO(http://dartbug.com/50595): The CFE does not insert breaks for
+  // unterminated cases which never reach the end of their control flow.
+  // If the CFE inserts synthesized breaks, we can add an assert here instead.
   if (!is_default && body_fragment.is_open() &&
       (case_index < (helper->case_count() - 1))) {
-    const Class& klass = Class::ZoneHandle(
-        Z, Library::LookupCoreClass(Symbols::FallThroughError()));
-    ASSERT(!klass.IsNull());
-    const auto& error = klass.EnsureIsFinalized(thread());
-    ASSERT(error == Error::null());
-
-    GrowableHandlePtrArray<const String> pieces(Z, 3);
-    pieces.Add(Symbols::FallThroughError());
-    pieces.Add(Symbols::Dot());
-    pieces.Add(H.DartSymbolObfuscate("_create"));
-
-    const Function& constructor = Function::ZoneHandle(
-        Z, klass.LookupConstructorAllowPrivate(String::ZoneHandle(
-               Z, Symbols::FromConcatAll(H.thread(), pieces))));
-    ASSERT(!constructor.IsNull());
-    const String& url = H.DartSymbolPlain(
-        parsed_function()->function().ToLibNamePrefixedQualifiedCString());
-
-    // Create instance of _FallThroughError
-    body_fragment += AllocateObject(TokenPosition::kNoSource, klass, 0);
-    LocalVariable* instance = MakeTemporary();
-
-    // Call _FallThroughError._create constructor.
-    body_fragment += LoadLocal(instance);  // this
-    body_fragment += Constant(url);        // url
-    body_fragment += NullConstant();       // line
-
-    body_fragment +=
-        StaticCall(TokenPosition::kNoSource, constructor, 3, ICData::kStatic);
-    body_fragment += Drop();
-
-    // Throw the exception
+    const auto& error =
+        String::ZoneHandle(Z, Symbols::New(thread(), "Unreachable code."));
+    body_fragment += Constant(error);
     body_fragment += ThrowException(TokenPosition::kNoSource);
     body_fragment += Drop();
   }
@@ -6381,10 +6349,9 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_sig, &error);
   ReportIfNotNull(error);
 
-  const Function& result = Function::ZoneHandle(
-      Z,
-      compiler::ffi::NativeCallbackFunction(
-          native_sig, target, exceptional_return, /*register_function=*/true));
+  const Function& result =
+      Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(
+                                  native_sig, target, exceptional_return));
   code += Constant(result);
 
   return code;

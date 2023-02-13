@@ -14,9 +14,21 @@ void main() {
   });
 }
 
-mixin EnumTestCases on AbstractCompletionDriverTest {
+@reflectiveTest
+class LibraryTest1 extends AbstractCompletionDriverTest with LibraryTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class LibraryTest2 extends AbstractCompletionDriverTest with LibraryTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
+mixin LibraryTestCases on AbstractCompletionDriverTest {
   Future<void> test_dart_noInternalLibraries() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f() {
   ^
 }
@@ -29,16 +41,4 @@ void f() {
       }
     }
   }
-}
-
-@reflectiveTest
-class LibraryTest1 extends AbstractCompletionDriverTest with EnumTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class LibraryTest2 extends AbstractCompletionDriverTest with EnumTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }

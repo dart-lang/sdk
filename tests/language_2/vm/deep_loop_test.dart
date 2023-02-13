@@ -349,7 +349,7 @@ bar(List<int> a) {
 main() {
   // To avoid executing the deep loops completely, we pass in a list
   // with null values, so that each first iteration throws an exception.
-  List<int> a = new List<int>(300);
+  List<int> a = new List<int>.filled(300, null);
   int tryCallingPlusOnNull = 0;
   try {
     foo(a);

@@ -228,6 +228,12 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   }
 
   @override
+  void visitFieldInRecordTypeInformation(FieldInRecordTypeInformation info) {
+    // TODO(50701): Implement better inference for records.
+    bailout('Used as field of Record');
+  }
+
+  @override
   void visitValueInMapTypeInformation(ValueInMapTypeInformation info) {
     addNewEscapeInformation(info);
   }
@@ -245,6 +251,11 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   @override
   void visitMapTypeInformation(MapTypeInformation info) {
     mapsToAnalyze.add(info);
+  }
+
+  @override
+  void visitRecordTypeInformation(RecordTypeInformation info) {
+    // TODO(50701): Implement better inference for records.
   }
 
   @override
@@ -420,7 +431,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Used as key in Map');
     }
 
-    // "a[...] = x" could be a list (container) or map assignemnt.
+    // "a[...] = x" could be a list (container) or map assignment.
     if (isIndexSetValue(info)) {
       var receiverType = info.receiver.type;
       if (inferrer.abstractValueDomain.isContainer(receiverType)) {

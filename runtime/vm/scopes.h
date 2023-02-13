@@ -27,7 +27,7 @@ class Slot;
 //
 // There are generally 4 different kinds of [LocalVariable]s:
 //
-//    a) [LocalVariable]s refering to a parameter: The indices for those
+//    a) [LocalVariable]s referring to a parameter: The indices for those
 //       variables are assigned by the flow graph builder. Parameter n gets
 //       assigned the index (function.num_parameters - n - 1). I.e. the last
 //       parameter has index 1.
@@ -72,15 +72,19 @@ class VariableIndex {
 
 class LocalVariable : public ZoneAllocated {
  public:
+  static constexpr intptr_t kNoKernelOffset = -1;
+
   LocalVariable(TokenPosition declaration_pos,
                 TokenPosition token_pos,
                 const String& name,
                 const AbstractType& type,
+                intptr_t kernel_offset = kNoKernelOffset,
                 CompileType* parameter_type = nullptr,
                 const Object* parameter_value = nullptr)
       : declaration_pos_(declaration_pos),
         token_pos_(token_pos),
         name_(name),
+        kernel_offset_(kernel_offset),
         owner_(NULL),
         type_(type),
         parameter_type_(parameter_type),
@@ -105,6 +109,7 @@ class LocalVariable : public ZoneAllocated {
   TokenPosition token_pos() const { return token_pos_; }
   TokenPosition declaration_token_pos() const { return declaration_pos_; }
   const String& name() const { return name_; }
+  intptr_t kernel_offset() const { return kernel_offset_; }
   LocalScope* owner() const { return owner_; }
   void set_owner(LocalScope* owner) {
     ASSERT(owner_ == NULL);
@@ -220,6 +225,7 @@ class LocalVariable : public ZoneAllocated {
   const TokenPosition declaration_pos_;
   const TokenPosition token_pos_;
   const String& name_;
+  const intptr_t kernel_offset_;
   LocalScope* owner_;  // Local scope declaring this variable.
 
   const AbstractType& type_;  // Declaration type of local variable.
@@ -325,7 +331,7 @@ class LocalScope : public ZoneAllocated {
   int num_context_variables() const { return context_variables().length(); }
 
   // Add a variable to the scope. Returns false if a variable with the
-  // same name is already present.
+  // same name and kernel offset is already present.
   bool AddVariable(LocalVariable* variable);
 
   // Add a variable to the scope as a context allocated variable and assigns
@@ -339,14 +345,20 @@ class LocalScope : public ZoneAllocated {
   bool InsertParameterAt(intptr_t pos, LocalVariable* parameter);
 
   // Lookup a variable in this scope only.
-  LocalVariable* LocalLookupVariable(const String& name) const;
+  LocalVariable* LocalLookupVariable(const String& name,
+                                     intptr_t kernel_offset) const;
 
   // Lookup a variable in this scope and its parents. If the variable
   // is found in a parent scope and 'test_only' is not true, we insert
   // aliases of the variable in the current and intermediate scopes up to
   // the declaration scope in order to detect "used before declared" errors.
   // We mark a variable as 'captured' when applicable.
-  LocalVariable* LookupVariable(const String& name, bool test_only);
+  LocalVariable* LookupVariable(const String& name,
+                                intptr_t kernel_offset,
+                                bool test_only);
+
+  // Lookup a variable in this scope and its parents by name.
+  LocalVariable* LookupVariableByName(const String& name);
 
   // Mark this variable as captured by this scope.
   void CaptureVariable(LocalVariable* variable);

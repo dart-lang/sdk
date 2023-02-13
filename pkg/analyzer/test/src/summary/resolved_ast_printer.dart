@@ -111,6 +111,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitAssignedVariablePattern(
+    covariant AssignedVariablePatternImpl node,
+  ) {
+    _writeln('AssignedVariablePattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        writeElement('element', node.element);
+      }
+    });
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _writeln('AssignmentExpression');
     _withIndent(() {
@@ -153,14 +166,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeElement('staticElement', node.staticElement);
       _writeType('staticInvokeType', node.staticInvokeType);
       _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitBinaryPattern(BinaryPattern node) {
-    _writeln('BinaryPattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
     });
   }
 
@@ -376,6 +381,29 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredVariablePattern(
+    covariant DeclaredVariablePatternImpl node,
+  ) {
+    _writeln('DeclaredVariablePattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        final element = node.declaredElement;
+        if (element != null) {
+          _sink.write(_indent);
+          _sink.write('declaredElement: ');
+          _writeIf(element.hasImplicitType, 'hasImplicitType ');
+          _writeIf(element.isFinal, 'isFinal ');
+          _sink.writeln('${element.name}@${element.nameOffset}');
+          _withIndent(() {
+            _writeType('type', element.type);
+          });
+        }
+      }
+    });
+  }
+
+  @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     _writeln('DefaultFormalParameter');
     _withIndent(() {
@@ -551,6 +579,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    _writeln('ForEachPartsWithPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitForElement(ForElement node) {
+    _writeln('ForElement');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     _writeln('FormalParameterList');
     _withIndent(() {
@@ -569,6 +613,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitForPartsWithExpression(ForPartsWithExpression node) {
     _writeln('ForPartsWithExpression');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitForPartsWithPattern(ForPartsWithPattern node) {
+    _writeln('ForPartsWithPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -861,6 +913,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    _writeln('LogicalAndPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    _writeln('LogicalOrPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _writeln('SetOrMapLiteral');
     _withIndent(() {
@@ -873,6 +941,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('MapPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeType('requiredType', node.requiredType);
     });
   }
 
@@ -948,6 +1017,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    _writeln('NullAssertPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    _writeln('NullCheckPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     _writeln('NullLiteral');
     _withIndent(() {
@@ -1010,10 +1095,23 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+  void visitPatternAssignment(covariant PatternAssignmentImpl node) {
+    _writeln('PatternAssignment');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeType('patternTypeSchema', node.patternTypeSchema);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
+  ) {
     _writeln('PatternVariableDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeType('patternTypeSchema', node.patternTypeSchema);
     });
   }
 
@@ -1040,14 +1138,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       }
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitPostfixPattern(PostfixPattern node) {
-    _writeln('PostfixPattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
     });
   }
 
@@ -1103,6 +1193,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('RecordPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeType('matchedValueType', node.matchedValueType);
     });
   }
 
@@ -1322,6 +1413,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('SwitchExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1462,27 +1555,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitVariablePattern(covariant VariablePatternImpl node) {
-    _writeln('VariablePattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
-      if (_withResolution) {
-        final element = node.declaredElement;
-        if (element != null) {
-          _sink.write(_indent);
-          _sink.write('declaredElement: ');
-          _writeIf(element.hasImplicitType, 'hasImplicitType ');
-          _writeIf(element.isFinal, 'isFinal ');
-          _sink.writeln('${element.name}@${element.nameOffset}');
-          _withIndent(() {
-            _writeType('type', element.type);
-          });
-        }
-      }
-    });
-  }
-
-  @override
   void visitWhenClause(WhenClause node) {
     _writeln('WhenClause');
     _withIndent(() {
@@ -1493,6 +1565,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitWhileStatement(WhileStatement node) {
     _writeln('WhileStatement');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitWildcardPattern(
+    covariant WildcardPatternImpl node,
+  ) {
+    _writeln('WildcardPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -1597,13 +1679,13 @@ Expected parent: (${parent.runtimeType}) $parent
           ? _elementToReferenceString(enclosingElement)
           : 'root';
       return '$enclosingStr::@parameter::${element.name}';
-    } else if (element is VariablePatternJoinElementImpl) {
+    } else if (element is JoinPatternVariableElementImpl) {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',
         element.name,
         '[',
-        element.components.map(_elementToReferenceString).join(', '),
+        element.variables.map(_elementToReferenceString).join(', '),
         ']',
       ].join('');
     } else {

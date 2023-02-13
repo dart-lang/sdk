@@ -121,7 +121,12 @@ class Module with SerializerMixin {
   /// Insert a recursion group split in the list of type definitions. Types can
   /// only reference other types in the same or earlier recursion groups.
   void splitRecursionGroup() {
-    recursionGroupSplits.add(defTypes.length);
+    int typeCount = defTypes.length;
+    if (typeCount > 0 &&
+        (recursionGroupSplits.isEmpty ||
+            recursionGroupSplits.last != typeCount)) {
+      recursionGroupSplits.add(typeCount);
+    }
   }
 
   /// Add a new function to the module with the given function type.

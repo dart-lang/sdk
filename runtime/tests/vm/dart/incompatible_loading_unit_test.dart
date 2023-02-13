@@ -48,9 +48,9 @@ main(List<String> args) async {
 
   await withTempDir("incompatible-loading-unit-test", (String tempDir) async {
     final source1 = path.join(
-        sdkDir, "runtime/tests/vm/dart_2/incompatible_loading_unit_1.dart");
+        sdkDir, "runtime/tests/vm/dart/incompatible_loading_unit_1.dart");
     final source2 = path.join(
-        sdkDir, "runtime/tests/vm/dart_2/incompatible_loading_unit_2.dart");
+        sdkDir, "runtime/tests/vm/dart/incompatible_loading_unit_2.dart");
     final dill1 = path.join(tempDir, "incompatible_loading_unit_1.dart.dill");
     final dill2 = path.join(tempDir, "incompatible_loading_unit_2.dart.dill");
     final snapshot1 = path.join(tempDir, "incompatible_loading_unit_1.so");

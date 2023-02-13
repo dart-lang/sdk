@@ -13,7 +13,7 @@ void main() {
 }
 
 int foo() {
-  var list = new List<int>(1024);
+  var list = new List<int>.filled(1024, null);
 
   for (int i = 0; i < list.length; i++) list[i] = -i;
 

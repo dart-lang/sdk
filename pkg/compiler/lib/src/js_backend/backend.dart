@@ -6,6 +6,7 @@ library js_backend.backend;
 
 import '../common.dart';
 import '../common/codegen.dart';
+import '../common/tasks.dart';
 import '../elements/entities.dart';
 import '../inferrer/types.dart';
 import '../js_model/elements.dart';
@@ -19,7 +20,7 @@ abstract class FunctionCompiler {
   /// Generates JavaScript code for [member].
   CodegenResult compile(MemberEntity member);
 
-  Iterable get tasks;
+  List<CompilerTask> get tasks;
 }
 
 /*

@@ -17,8 +17,8 @@ class B {}
 class C {}
 
 main() {
-  Expect.isTrue(new A<Iterable<B>>().foo(new List<B>()));
-  Expect.isFalse(new A<Iterable<C>>().foo(new List<B>()));
+  Expect.isTrue(new A<Iterable<B>>().foo(<B>[]));
+  Expect.isFalse(new A<Iterable<C>>().foo(<B>[]));
 
   Expect.isTrue(new A<Pattern>().foo('hest'));
 

@@ -57,25 +57,7 @@ class RemoveDeadCode extends CorrectionProducer {
       } else if (parent is ForParts) {
         var forStatement = parent.parent;
         if (forStatement is! ForStatement) return;
-
-        var updaters = parent.updaters;
-        if (updaters.contains(coveredNode)) {
-          var isFirstNode = updaters.first == coveredNode;
-          var rightParenthesis = forStatement.rightParenthesis;
-          var isComma = !isFirstNode &&
-              rightParenthesis.previous?.type == TokenType.COMMA;
-
-          var previous = coveredNode.beginToken.previous!;
-
-          var deletionRange = isComma
-              ? range.endStart(previous, rightParenthesis)
-              : range.startStart(
-                  isFirstNode ? coveredNode : previous, rightParenthesis);
-
-          await builder.addDartFileEdit(file, (builder) {
-            builder.addDeletion(deletionRange);
-          });
-        }
+        await _computeForStatementParts(builder, forStatement, parent);
       }
     } else if (coveredNode is Block) {
       var block = coveredNode;
@@ -121,18 +103,11 @@ class RemoveDeadCode extends CorrectionProducer {
       var forStatement = coveredNode.parent;
       if (forStatement is! ForStatement) return;
 
-      var problemMessage = diagnostic?.problemMessage;
-      if (problemMessage == null) return;
-
-      var updaters = coveredNode.updaters;
-      var beginOffset = updaters.beginToken!.offset;
-      if (problemMessage.offset == beginOffset &&
-          problemMessage.length == updaters.endToken!.end - beginOffset) {
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addDeletion(range.startOffsetEndOffset(
-              beginOffset, forStatement.rightParenthesis.offset));
-        });
-      }
+      await _computeForStatementParts(builder, forStatement, coveredNode);
+    } else if (coveredNode is SwitchPatternCase) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(range.deletionRange(coveredNode));
+      });
     }
   }
 
@@ -195,6 +170,47 @@ class RemoveDeadCode extends CorrectionProducer {
       }
     }
     return false;
+  }
+
+  Future<void> _computeForStatementParts(ChangeBuilder builder,
+      ForStatement forStatement, ForParts forParts) async {
+    var beginNode = coveredNode;
+    if (beginNode == null) return;
+    var updaters = forParts.updaters;
+    if (!updaters.contains(beginNode)) {
+      var problemMessage = diagnostic?.problemMessage;
+      if (problemMessage == null) return;
+
+      beginNode = null;
+      var problemOffset = problemMessage.offset;
+      var problemLength = problemMessage.length;
+      var updatersEnd = updaters.endToken!.end;
+
+      for (var node in updaters) {
+        var nodeOffset = node.offset;
+        if (problemOffset == nodeOffset &&
+            problemLength == updatersEnd - nodeOffset) {
+          beginNode = node;
+          break;
+        }
+      }
+      if (beginNode == null) return;
+    }
+    var isFirstNode = updaters.first == beginNode;
+    var rightParenthesis = forStatement.rightParenthesis;
+    var isComma =
+        !isFirstNode && rightParenthesis.previous?.type == TokenType.COMMA;
+
+    var previous = beginNode.beginToken.previous!;
+
+    var deletionRange = isComma
+        ? range.endStart(previous, rightParenthesis)
+        : range.startStart(
+            isFirstNode ? beginNode : previous, rightParenthesis);
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addDeletion(deletionRange);
+    });
   }
 
   void _deleteLineRange(DartFileEditBuilder builder, SourceRange sourceRange) {

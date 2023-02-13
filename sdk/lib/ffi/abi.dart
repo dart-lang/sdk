@@ -82,11 +82,6 @@ class Abi {
   /// The ABIs that the DartVM can run on.
   ///
   /// Does not contain a `macosIA32`. We have stopped supporting 32-bit MacOS.
-  ///
-  /// Includes [windowsArm64], even though it is currently not supported.
-  /// Support has been requested for Flutter.
-  /// https://github.com/flutter/flutter/issues/53120
-  // TODO(http://dartbug.com/47824): Remove the above comment when supported.
   static const values = [
     androidArm,
     androidArm64,

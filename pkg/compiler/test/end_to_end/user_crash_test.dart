@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/fasta/messages.dart'
     show templateCantReadFile, messageMissingMain;
 import 'package:compiler/compiler_api.dart' as api;
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 final EXCEPTION = 'Crash-marker';
@@ -67,7 +66,7 @@ void test(String title, RunResult result,
 
 Future<RunResult> run(
     {Map<String, String> memorySourceFiles = const {'main.dart': 'main() {}'},
-    api.CompilerDiagnostics diagnostics}) async {
+    api.CompilerDiagnostics? diagnostics}) async {
   RunResult result = new RunResult();
   await runZoned(() async {
     try {
@@ -75,7 +74,7 @@ Future<RunResult> run(
           entryPoint: entryPoint,
           memorySourceFiles: memorySourceFiles,
           diagnosticHandler: diagnostics,
-          unsafeToTouchSourceFiles: true);
+          options: [Flags.soundNullSafety]);
     } catch (e) {
       result.exceptions.add(e);
     }
@@ -94,7 +93,7 @@ class RunResult {
 class CrashingDiagnostics extends DiagnosticCollector {
   @override
   void report(
-      code, Uri uri, int begin, int end, String text, api.Diagnostic kind) {
+      code, Uri? uri, int? begin, int? end, String text, api.Diagnostic kind) {
     throw EXCEPTION;
   }
 }

@@ -94,23 +94,14 @@ Future writeAppendedMachOExecutable(
   // First, write the new headers.
   outputHeaders.writeSync(output);
   // If the newer headers are smaller, add appropriate padding to fit.
-  //
-  // TODO(49783): Once linker flags are in place in g3, this check should always
-  // succeed and should be removed.
-  if (outputHeaders.size <= aotRuntimeHeaders.size) {
-    addPadding(outputHeaders.size, aotRuntimeHeaders.size);
-  }
-  // TODO(49783): Once linker flags are in place in g3, this should always be
-  // aotRuntimeHeaders.size, but for now allow for the possibility of
-  // overwriting part of the original contents with the header as before.
-  final originalStart = max(aotRuntimeHeaders.size, outputHeaders.size);
+  addPadding(outputHeaders.size, aotRuntimeHeaders.size);
 
   // Now write the original contents from the header to the __LINKEDIT segment
   // contents.
   final aotRuntimeStream = await aotRuntimeFile.open();
-  await aotRuntimeStream.setPosition(originalStart);
+  await aotRuntimeStream.setPosition(aotRuntimeHeaders.size);
   await pipeStream(aotRuntimeStream, output,
-      numToWrite: oldLinkEdit.fileOffset - originalStart);
+      numToWrite: oldLinkEdit.fileOffset - aotRuntimeHeaders.size);
 
   // Now insert the snapshot contents at this position in the file.
   // There may be additional padding needed between the old __LINKEDIT file

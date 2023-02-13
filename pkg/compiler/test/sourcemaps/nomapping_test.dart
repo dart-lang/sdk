@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:io';
 
@@ -24,14 +22,14 @@ main() {}
 void main(List<String> arguments) {
   bool verbose = false;
   bool writeJs = false;
-  List<int> indices;
+  List<int>? indices;
   for (String arg in arguments) {
     if (arg == '-v') {
       verbose = true;
     } else if (arg == '--write-js') {
       writeJs = true;
     } else {
-      int index = int.tryParse(arg);
+      int? index = int.tryParse(arg);
       if (index != null) {
         indices ??= <int>[];
         if (index < 0 || index >= TESTS.length * 2) {
@@ -46,7 +44,7 @@ void main(List<String> arguments) {
     indices = new List<int>.generate(TESTS.length * 2, (i) => i);
   }
   asyncTest(() async {
-    for (int index in indices) {
+    for (int index in indices!) {
       bool useNewSourceInfo = index % 2 == 1;
       await runTest(index, TESTS[index ~/ 2],
           writeJs: writeJs,
@@ -57,7 +55,9 @@ void main(List<String> arguments) {
 }
 
 Future runTest(int index, String code,
-    {bool writeJs, bool verbose = false, bool useNewSourceInfo = false}) async {
+    {required bool writeJs,
+    bool verbose = false,
+    bool useNewSourceInfo = false}) async {
   print("--$index------------------------------------------------------------");
   print("Compiling dart2js ${useNewSourceInfo ? Flags.useNewSourceInfo : ''}\n"
       "${code}");
@@ -73,11 +73,11 @@ Future runTest(int index, String code,
       options: options);
   Expect.isTrue(compilationResult.isSuccess,
       "Unsuccessful compilation of test:\n${code}");
-  String sourceMapText = collector.getOutput('', api.OutputType.sourceMap);
-  SingleMapping sourceMap = parse(sourceMapText);
+  String sourceMapText = collector.getOutput('', api.OutputType.sourceMap)!;
+  final sourceMap = parse(sourceMapText) as SingleMapping;
   if (writeJs) {
     new File('out.js')
-        .writeAsStringSync(collector.getOutput('', api.OutputType.js));
+        .writeAsStringSync(collector.getOutput('', api.OutputType.js)!);
     new File('out.js.map').writeAsStringSync(sourceMapText);
   }
   Expect.isTrue(sourceMap.lines.isNotEmpty);
@@ -107,12 +107,12 @@ String entryToString(
   sb.write(',');
   if (entry.sourceUrlId != null) {
     sb.write('sourceUrl=');
-    sb.write(mapping.urls[entry.sourceUrlId]);
+    sb.write(mapping.urls[entry.sourceUrlId!]);
     sb.write(',');
   }
   if (entry.sourceNameId != null) {
     sb.write('sourceName=');
-    sb.write(mapping.names[entry.sourceNameId]);
+    sb.write(mapping.names[entry.sourceNameId!]);
     sb.write(',');
   }
   if (entry.sourceLine != null) {

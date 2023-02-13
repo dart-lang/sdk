@@ -47,7 +47,7 @@ main() {
       final output = outputEvents
           .skip(1)
           .map((e) => e.output)
-          // The stdout also contains the Observatory+DevTools banners.
+          // The stdout also contains the VM Service+DevTools banners.
           .where(
             (line) =>
                 !line.startsWith('The Dart VM service is listening on') &&
@@ -100,7 +100,7 @@ main() {
       final output = outputEvents
           .skip(1)
           .map((e) => e.output)
-          // The stdout also contains the Observatory+DevTools banners.
+          // The stdout also contains the VM Service+DevTools banners.
           .where(
             (line) =>
                 !line.startsWith('The Dart VM service is listening on') &&

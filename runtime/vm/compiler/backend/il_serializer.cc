@@ -28,6 +28,7 @@ namespace dart {
 FlowGraphSerializer::FlowGraphSerializer(NonStreamingWriteStream* stream)
     : stream_(stream),
       zone_(Thread::Current()->zone()),
+      thread_(Thread::Current()),
       isolate_group_(IsolateGroup::Current()),
       heap_(IsolateGroup::Current()->heap()) {}
 
@@ -925,8 +926,7 @@ const Function& FlowGraphDeserializer::ReadTrait<const Function&>::Read(
         const Instance& exceptional_return = d->Read<const Instance&>();
         return Function::ZoneHandle(
             zone, compiler::ffi::NativeCallbackFunction(
-                      c_signature, callback_target, exceptional_return,
-                      /*register_function=*/true));
+                      c_signature, callback_target, exceptional_return));
       } else {
         const String& name = d->Read<const String&>();
         const FunctionType& signature = d->Read<const FunctionType&>();
@@ -1601,11 +1601,9 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
     case kRecordCid: {
       ASSERT(x.IsCanonical());
       const auto& record = Record::Cast(x);
-      const intptr_t num_fields = record.num_fields();
-      Write<intptr_t>(num_fields);
-      Write<const Array&>(Array::Handle(Z, record.field_names()));
+      Write<RecordShape>(record.shape());
       auto& field = Object::Handle(Z);
-      for (intptr_t i = 0; i < num_fields; ++i) {
+      for (intptr_t i = 0, n = record.num_fields(); i < n; ++i) {
         field = record.FieldAt(i);
         Write<const Object&>(field);
       }
@@ -1616,16 +1614,18 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       ASSERT(rec.IsFinalized());
       TypeScope type_scope(this, rec.IsRecursive());
       Write<int8_t>(static_cast<int8_t>(rec.nullability()));
-      Write<const Array&>(Array::Handle(Z, rec.field_names()));
+      Write<RecordShape>(rec.shape());
       Write<const Array&>(Array::Handle(Z, rec.field_types()));
       Write<bool>(type_scope.CanBeCanonicalized());
       break;
     }
     case kSentinelCid:
       if (x.ptr() == Object::sentinel().ptr()) {
-        Write<bool>(true);
+        Write<uint8_t>(0);
       } else if (x.ptr() == Object::transition_sentinel().ptr()) {
-        Write<bool>(false);
+        Write<uint8_t>(1);
+      } else if (x.ptr() == Object::optimized_out().ptr()) {
+        Write<uint8_t>(2);
       } else {
         UNIMPLEMENTED();
       }
@@ -1882,11 +1882,9 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
                                 Symbols::FromLatin1(thread(), latin1, length));
     }
     case kRecordCid: {
-      const intptr_t num_fields = Read<intptr_t>();
-      const auto& field_names = Read<const Array&>();
-      auto& record =
-          Record::ZoneHandle(Z, Record::New(num_fields, field_names));
-      for (intptr_t i = 0; i < num_fields; ++i) {
+      const RecordShape shape = Read<RecordShape>();
+      auto& record = Record::ZoneHandle(Z, Record::New(shape));
+      for (intptr_t i = 0, n = shape.num_fields(); i < n; ++i) {
         record.SetFieldAt(i, Read<const Object&>());
       }
       record ^= record.Canonicalize(thread());
@@ -1894,16 +1892,25 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
     }
     case kRecordTypeCid: {
       const Nullability nullability = static_cast<Nullability>(Read<int8_t>());
-      const Array& field_names = Read<const Array&>();
+      const RecordShape shape = Read<RecordShape>();
       const Array& field_types = Read<const Array&>();
       RecordType& rec = RecordType::ZoneHandle(
-          Z, RecordType::New(field_types, field_names, nullability));
+          Z, RecordType::New(shape, field_types, nullability));
       rec.SetIsFinalized();
       rec ^= MaybeCanonicalize(rec, object_index, Read<bool>());
       return rec;
     }
     case kSentinelCid:
-      return Read<bool>() ? Object::sentinel() : Object::transition_sentinel();
+      switch (Read<uint8_t>()) {
+        case 0:
+          return Object::sentinel();
+        case 1:
+          return Object::transition_sentinel();
+        case 2:
+          return Object::optimized_out();
+        default:
+          UNREACHABLE();
+      }
     case kSmiCid:
       return Smi::ZoneHandle(Z, Smi::New(Read<intptr_t>()));
     case kTwoByteStringCid: {
@@ -2133,6 +2140,22 @@ RangeBoundary::RangeBoundary(FlowGraphDeserializer* d)
     : kind_(static_cast<Kind>(d->Read<int8_t>())),
       value_(d->Read<int64_t>()),
       offset_(d->Read<int64_t>()) {}
+
+template <>
+void FlowGraphSerializer::WriteTrait<RecordShape>::Write(FlowGraphSerializer* s,
+                                                         RecordShape x) {
+  s->Write<intptr_t>(x.num_fields());
+  s->Write<const Array&>(
+      Array::Handle(s->zone(), x.GetFieldNames(s->thread())));
+}
+
+template <>
+RecordShape FlowGraphDeserializer::ReadTrait<RecordShape>::Read(
+    FlowGraphDeserializer* d) {
+  const intptr_t num_fields = d->Read<intptr_t>();
+  const auto& field_names = d->Read<const Array&>();
+  return RecordShape::Register(d->thread(), num_fields, field_names);
+}
 
 void RegisterSet::Write(FlowGraphSerializer* s) const {
   s->Write<uintptr_t>(cpu_registers_.data());

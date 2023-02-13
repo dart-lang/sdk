@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class RelationalPatternResolutionTest extends PatternsResolutionTest {
+class RelationalPatternResolutionTest extends PubPackageResolutionTest {
   test_equal_ofClass() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -425,14 +425,17 @@ RelationalPattern
   }
 
   test_rewrite_operand() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(x, int Function() a) {
   switch (x) {
     case == a():
       break;
   }
 }
-''');
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 57,
+          3),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern

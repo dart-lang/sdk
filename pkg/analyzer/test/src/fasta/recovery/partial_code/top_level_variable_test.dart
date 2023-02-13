@@ -131,6 +131,7 @@ class TopLevelVariableTest extends PartialCodeTest {
               'functionVoid',
               'functionNonVoid',
               'getter',
+              'mixin',
               'setter'
             ],
             expectedErrorsInValidCode: [

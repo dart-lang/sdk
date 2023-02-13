@@ -8,9 +8,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:collection/collection.dart';
 
 /// A lazy computer for Type Hierarchies.
@@ -81,7 +81,7 @@ class DartLazyTypeHierarchyComputer {
 
   /// Finds a target for starting type hierarchy navigation at [offset].
   TypeHierarchyItem? findTarget(int offset) {
-    final node = NodeLocator2(offset).searchWithin(_result.unit);
+    final node = _result.unit.nodeCovering(offset: offset);
 
     DartType? type;
 
@@ -129,7 +129,8 @@ class DartLazyTypeHierarchyComputer {
       }
     }
 
-    var matches = await searchEngine.searchSubtypes(target);
+    var matches =
+        await searchEngine.searchSubtypes(target, SearchEngineCache());
     return matches.map(toHierarchyItem).toList();
   }
 

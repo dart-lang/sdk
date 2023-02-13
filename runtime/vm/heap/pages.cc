@@ -1410,6 +1410,10 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       // heuristics instead.
       grow_heap =
           Utils::Maximum(static_cast<intptr_t>(heap_growth_max_), grow_pages);
+    } else if (garbage_collection_time_ratio_ == 0) {
+      // Exclude time from the growth policy decision for --deterministic.
+      grow_heap =
+          Utils::Maximum(static_cast<intptr_t>(heap_growth_max_), grow_pages);
     } else {
       // Find minimum 'grow_heap' such that after increasing capacity by
       // 'grow_heap' pages and filling them, we expect a GC to be worthwhile.

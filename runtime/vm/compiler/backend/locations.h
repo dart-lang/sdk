@@ -491,8 +491,14 @@ Location LocationExceptionLocation();
 Location LocationStackTraceLocation();
 // Constants.
 Location LocationRegisterOrConstant(Value* value);
-Location LocationRegisterOrSmiConstant(Value* value);
-Location LocationWritableRegisterOrSmiConstant(Value* value);
+Location LocationRegisterOrSmiConstant(
+    Value* value,
+    intptr_t min_value = compiler::target::kSmiMin,
+    intptr_t max_value = compiler::target::kSmiMax);
+Location LocationWritableRegisterOrSmiConstant(
+    Value* value,
+    intptr_t min_value = compiler::target::kSmiMin,
+    intptr_t max_value = compiler::target::kSmiMax);
 Location LocationFixedRegisterOrConstant(Value* value, Register reg);
 Location LocationFixedRegisterOrSmiConstant(Value* value, Register reg);
 Location LocationAnyOrConstant(Value* value);
@@ -703,6 +709,10 @@ class RegisterSet : public ValueObject {
 
   intptr_t CpuRegisterCount() const { return RegisterCount(cpu_registers()); }
   intptr_t FpuRegisterCount() const { return RegisterCount(fpu_registers()); }
+
+  bool IsEmpty() const {
+    return CpuRegisterCount() == 0 && FpuRegisterCount() == 0;
+  }
 
   static intptr_t RegisterCount(intptr_t registers);
   static bool Contains(uintptr_t register_set, intptr_t reg) {

@@ -52,8 +52,8 @@ void VerifyPointersVisitor::VisitPointers(ObjectPtr* from, ObjectPtr* to) {
             allocated_set_->Contains(Page::ToWritable(obj))) {
           continue;
         }
-        uword addr = UntaggedObject::ToAddr(obj);
-        FATAL("Invalid object pointer encountered %#" Px "\n", addr);
+        FATAL("Invalid pointer: *0x%" Px " = 0x%" Px "\n",
+              reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
       }
     }
   }
@@ -70,8 +70,8 @@ void VerifyPointersVisitor::VisitCompressedPointers(uword heap_base,
             allocated_set_->Contains(Page::ToWritable(obj))) {
           continue;
         }
-        uword addr = UntaggedObject::ToAddr(obj);
-        FATAL("Invalid object pointer encountered %#" Px "\n", addr);
+        FATAL("Invalid pointer: *0x%" Px " = 0x%" Px "\n",
+              reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
       }
     }
   }

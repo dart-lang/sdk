@@ -58,11 +58,10 @@ import "dart:ffi" show Pointer, Struct, Union, NativePort;
 
 import "dart:isolate" show Isolate, RawReceivePort;
 
-import "dart:typed_data" show Uint8List, Uint16List;
+import "dart:typed_data" show Uint8List, Uint16List, Int32List;
 
 /// These are the additional parts of this patch library:
 part "array.dart";
-part "date_patch.dart";
 part "double.dart";
 part "double_patch.dart";
 part "errors_patch.dart";
@@ -80,7 +79,6 @@ part "record_patch.dart";
 part "regexp_patch.dart";
 part "stacktrace.dart";
 part "stopwatch_patch.dart";
-part "string_buffer_patch.dart";
 part "string_patch.dart";
 part "type_patch.dart";
 part "uri_patch.dart";

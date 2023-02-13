@@ -17,16 +17,16 @@ main(List<String> args) {
     exit(1);
   }
   var uri = Uri.base.resolve(args[0]);
-  var provider = new CachingFileProvider();
+  var provider = CachingFileProvider();
 
   var mapping = provider.mappingFor(uri);
   var starts = functionStarts(provider.sourcesFor(uri));
   var file = provider.fileFor(uri);
   var frames = mapping!.frames;
   var offsets = frames.keys.toList()..sort();
-  var sb = new StringBuffer();
+  var sb = StringBuffer();
   int depth = 0;
-  int? lastFunctionStart = null;
+  int? lastFunctionStart;
   for (var offset in offsets) {
     int functionStart = nextFunctionStart(starts, offset, lastFunctionStart);
     if (lastFunctionStart == null || functionStart > lastFunctionStart) {
@@ -44,7 +44,7 @@ main(List<String> args) {
     sb.write(offsetPrefix);
     bool first = true;
     for (var frame in frames[offset]!) {
-      if (!first) sb.write('$pad');
+      if (!first) sb.write(pad);
       sb.write(' $frame\n');
       first = false;
       if (frame.isPush) depth++;
@@ -63,7 +63,7 @@ main(List<String> args) {
   print('$sb');
 }
 
-var _functionDeclarationRegExp = new RegExp(r':( )?function\(');
+var _functionDeclarationRegExp = RegExp(r':( )?function\(');
 
 List<int> functionStarts(String sources) {
   List<int> result = [];
@@ -77,7 +77,7 @@ List<int> functionStarts(String sources) {
 
 int nextFunctionStart(List<int> starts, int offset, int? last) {
   int j = last ?? 0;
-  for (; j < starts.length && starts[j] <= offset; j++);
+  for (; j < starts.length && starts[j] <= offset; j++) {}
   return j - 1;
 }
 

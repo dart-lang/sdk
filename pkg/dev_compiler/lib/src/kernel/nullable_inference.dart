@@ -46,7 +46,7 @@ class NullableInference extends ExpressionVisitor<bool> {
   NullableInference(this.jsTypeRep, this._staticTypeContext,
       {SharedCompilerOptions? options})
       : coreTypes = jsTypeRep.coreTypes,
-        _soundNullSafety = options?.soundNullSafety ?? false {
+        _soundNullSafety = options?.soundNullSafety ?? true {
     _variableInference._nullInference = this;
   }
 

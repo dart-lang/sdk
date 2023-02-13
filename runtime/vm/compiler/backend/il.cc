@@ -26,6 +26,7 @@
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/object.h"
@@ -375,7 +376,7 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
       TypeArguments::Handle(zone, Type::Cast(type).arguments());
   ASSERT(ta.Length() == num_type_arguments);
 
-  // The last [num_type_pararameters] entries in the [TypeArguments] vector [ta]
+  // The last [num_type_parameters] entries in the [TypeArguments] vector [ta]
   // are the values we have to check against.  Ensure we can handle all of them
   // via [CidRange]-based checks or that it is a type parameter.
   AbstractType& type_arg = AbstractType::Handle(zone);
@@ -386,6 +387,23 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
     }
   }
 
+  return true;
+}
+
+bool HierarchyInfo::CanUseRecordSubtypeRangeCheckFor(const AbstractType& type) {
+  ASSERT(type.IsFinalized());
+  if (!type.IsRecordType()) {
+    return false;
+  }
+  const RecordType& rec = RecordType::Cast(type);
+  Zone* zone = thread()->zone();
+  auto& field_type = AbstractType::Handle(zone);
+  for (intptr_t i = 0, n = rec.NumFields(); i < n; ++i) {
+    field_type = rec.FieldTypeAt(i);
+    if (!CanUseSubtypeRangeCheckFor(field_type)) {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -1078,20 +1096,14 @@ ConstantInstr::ConstantInstr(const Object& value,
   if (!value.IsNull() && !value.IsSmi() && value.IsInstance() &&
       !value.IsCanonical() && (value.ptr() != Object::sentinel().ptr())) {
     // Arrays in ConstantInstrs are usually immutable and canonicalized, but
-    // there are at least a couple of cases where one or both is not true:
+    // the Arrays created as backing for ArgumentsDescriptors may not be
+    // canonicalized for space reasons when inlined in the IL. However, they
+    // are still immutable.
     //
-    // * The Arrays created as backing for ArgumentsDescriptors may not be
-    //   canonicalized for space reasons when inlined in the IL. However, they
-    //   are still immutable.
-    // * The backtracking stack for IRRegExps is put into a ConstantInstr for
-    //   immediate use as an argument to the operations on that stack. In this
-    //   case, the Array representing it is neither immutable or canonical.
-    //
-    // In addition to complicating the story for Arrays, IRRegExp compilation
-    // also uses other non-canonical values as "constants". For example, the bit
-    // tables used for certain character classes are represented as TypedData,
-    // and so those values are also neither immutable (as there are no immutable
-    // TypedData values) or canonical.
+    // IRRegExp compilation uses TypeData non-canonical values as "constants".
+    // Specifically, the bit tables used for certain character classes are
+    // represented as TypedData, and so those values are also neither immutable
+    // (as there are no immutable TypedData values) or canonical.
     //
     // LibraryPrefixes are also never canonicalized since their equality is
     // their identity.
@@ -2531,7 +2543,7 @@ Definition* Definition::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
-  // Must not remove Redifinitions without uses until LICM, even though
+  // Must not remove Redefinitions without uses until LICM, even though
   // Redefinition might not have any uses itself it can still be dominating
   // uses of the value it redefines and must serve as a barrier for those
   // uses. RenameUsesDominatedByRedefinitions would normalize the graph and
@@ -2687,16 +2699,9 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
       }
       return false;
 
-    case Slot::Kind::kRecord_num_fields:
+    case Slot::Kind::kRecord_shape:
       if (instance.IsRecord()) {
-        *result = Smi::New(Record::Cast(instance).num_fields());
-        return true;
-      }
-      return false;
-
-    case Slot::Kind::kRecord_field_names:
-      if (instance.IsRecord()) {
-        *result = Record::Cast(instance).field_names();
+        *result = Record::Cast(instance).shape().AsSmi();
         return true;
       }
       return false;
@@ -2826,37 +2831,17 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         }
       }
       break;
-    case Slot::Kind::kRecord_num_fields:
+    case Slot::Kind::kRecord_shape:
       ASSERT(!calls_initializer());
       if (auto* alloc_rec = orig_instance->AsAllocateRecord()) {
-        return flow_graph->GetConstant(
-            Smi::Handle(Smi::New(alloc_rec->num_fields())));
+        return flow_graph->GetConstant(Smi::Handle(alloc_rec->shape().AsSmi()));
       } else if (auto* alloc_rec = orig_instance->AsAllocateSmallRecord()) {
-        return flow_graph->GetConstant(
-            Smi::Handle(Smi::New(alloc_rec->num_fields())));
+        return flow_graph->GetConstant(Smi::Handle(alloc_rec->shape().AsSmi()));
       } else {
         const AbstractType* type = instance()->Type()->ToAbstractType();
         if (type->IsRecordType()) {
           return flow_graph->GetConstant(
-              Smi::Handle(Smi::New(RecordType::Cast(*type).NumFields())));
-        }
-      }
-      break;
-    case Slot::Kind::kRecord_field_names:
-      ASSERT(!calls_initializer());
-      if (auto* alloc_rec = orig_instance->AsAllocateRecord()) {
-        return alloc_rec->field_names()->definition();
-      } else if (auto* alloc_rec = orig_instance->AsAllocateSmallRecord()) {
-        if (alloc_rec->has_named_fields()) {
-          return alloc_rec->field_names()->definition();
-        } else {
-          return flow_graph->GetConstant(Object::empty_array());
-        }
-      } else {
-        const AbstractType* type = instance()->Type()->ToAbstractType();
-        if (type->IsRecordType()) {
-          return flow_graph->GetConstant(
-              Array::Handle(RecordType::Cast(*type).field_names()));
+              Smi::Handle(RecordType::Cast(*type).shape().AsSmi()));
         }
       }
       break;
@@ -2913,6 +2898,30 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       if (result.IsSmi() || result.IsOld()) {
         return flow_graph->GetConstant(result);
       }
+    }
+  }
+
+  if (instance()->definition()->IsAllocateObject() && slot().is_immutable()) {
+    StoreFieldInstr* initializing_store = nullptr;
+    for (auto use : instance()->definition()->input_uses()) {
+      if (auto store = use->instruction()->AsStoreField()) {
+        if (store->slot().IsIdentical(slot())) {
+          if (initializing_store == nullptr) {
+            initializing_store = store;
+          } else {
+            initializing_store = nullptr;
+            break;
+          }
+        }
+      }
+    }
+
+    // If we find an initializing store then it *must* by construction
+    // dominate the load.
+    if (initializing_store != nullptr &&
+        initializing_store->is_initialization()) {
+      ASSERT(IsDominatedBy(initializing_store));
+      return initializing_store->value()->definition();
     }
   }
 
@@ -3064,6 +3073,12 @@ Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
     return value()->definition();
   }
 
+  // Fold away Box<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
+
   // Fold away Box<rep>(Unbox<rep>(v)) if value is known to be of the
   // right class.
   UnboxInstr* unbox_defn = value()->definition()->AsUnbox();
@@ -3085,6 +3100,12 @@ Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == nullptr) {
     // Environments can accommodate any representation. No need to box.
     return value()->definition();
+  }
+
+  // Fold away Box<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
   }
 
   return this;
@@ -3132,6 +3153,12 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !CanDeoptimize()) return NULL;
 
+  // Fold away Unbox<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
+
   // Fold away Unbox<rep>(Box<rep>(v)).
   BoxInstr* box_defn = value()->definition()->AsBox();
   if ((box_defn != NULL) &&
@@ -3156,6 +3183,12 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !CanDeoptimize()) return NULL;
+
+  // Fold away Unbox<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
 
   // Do not attempt to fold this instruction if we have not matched
   // input/output representations yet.
@@ -3255,7 +3288,7 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
 
   IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
-    // If the first convertion can erase bits (or deoptimize) we can't
+    // If the first conversion can erase bits (or deoptimize) we can't
     // canonicalize it away.
     auto src_defn = box_defn->value()->definition();
     if ((box_defn->from() == kUnboxedInt64) &&
@@ -3289,7 +3322,7 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   UnboxInt64Instr* unbox_defn = value()->definition()->AsUnboxInt64();
   if (unbox_defn != NULL && (from() == kUnboxedInt64) &&
       (to() == kUnboxedInt32) && unbox_defn->HasOnlyInputUse(value())) {
-    // TODO(vegorov): there is a duplication of code between UnboxedIntCoverter
+    // TODO(vegorov): there is a duplication of code between UnboxedIntConverter
     // and code path that unboxes Mint into Int32. We should just schedule
     // these instructions close to each other instead of fusing them.
     Definition* replacement =
@@ -3909,7 +3942,7 @@ const CallTargets* CallTargets::CreateAndExpand(Zone* zone,
     // into a suffix that consists purely of abstract classes to
     // shorten the range.
     // However such spreading is beneficial when it allows to
-    // merge to consequtive ranges.
+    // merge to consecutive ranges.
     intptr_t cid_end_including_abstract = target_info->cid_end;
     for (int i = target_info->cid_end + 1; i < upper_limit_cid; i++) {
       bool class_is_abstract = false;
@@ -4163,14 +4196,17 @@ void NativeEntryInstr::SaveArgument(
       ASSERT(pointer_loc.IsStack());
       // It's already on the stack, so we don't have to save it.
     }
-  } else {
-    ASSERT(nloc.IsMultiple());
+  } else if (nloc.IsMultiple()) {
     const auto& multiple = nloc.AsMultiple();
     const intptr_t num = multiple.locations().length();
     // Save the argument registers, in reverse order.
     for (intptr_t i = num; i-- > 0;) {
       SaveArgument(compiler, *multiple.locations().At(i));
     }
+  } else {
+    ASSERT(nloc.IsBoth());
+    const auto& both = nloc.AsBoth();
+    SaveArgument(compiler, both.location(0));
   }
 }
 
@@ -4944,6 +4980,20 @@ static FunctionPtr FindBinarySmiOp(Zone* zone, const String& name) {
   return smi_op_target.ptr();
 }
 
+void InstanceCallInstr::EnsureICData(FlowGraph* graph) {
+  if (HasICData()) {
+    return;
+  }
+
+  const Array& arguments_descriptor =
+      Array::Handle(graph->zone(), GetArgumentsDescriptor());
+  const ICData& ic_data = ICData::ZoneHandle(
+      graph->zone(),
+      ICData::New(graph->function(), function_name(), arguments_descriptor,
+                  deopt_id(), checked_argument_count(), ICData::kInstance));
+  set_ic_data(&ic_data);
+}
+
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Zone* zone = compiler->zone();
 
@@ -5306,14 +5356,20 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 
   // We could turn cold call sites for known receiver cids into a StaticCall.
   // However, that keeps the ICData of the InstanceCall from being updated.
+  //
   // This is fine if there is no later deoptimization, but if there is, then
   // the InstanceCall with the updated ICData for this receiver may then be
   // better optimized by the compiler.
   //
+  // This optimization is safe to apply in AOT mode because deoptimization is
+  // not a concern there.
+  //
   // TODO(dartbug.com/37291): Allow this optimization, but accumulate affected
   // InstanceCallInstrs and the corresponding receiver cids during compilation.
   // After compilation, add receiver checks to the ICData for those call sites.
-  if (Targets().is_empty()) return this;
+  if (!CompilerState::Current().is_aot() && Targets().is_empty()) {
+    return this;
+  }
 
   const CallTargets* new_target =
       FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
@@ -6274,7 +6330,7 @@ Definition* PhiInstr::Canonicalize(FlowGraph* flow_graph) {
     // If we are replacing a Phi which has redefinitions as all of its inputs
     // then to maintain the redefinition chain we are going to insert a
     // redefinition. If any input is *not* a redefinition that means that
-    // whatever properties were infered for a Phi also hold on a path
+    // whatever properties were inferred for a Phi also hold on a path
     // that does not pass through any redefinitions so there is no need
     // to redefine this value.
     auto zone = flow_graph->zone();
@@ -6530,6 +6586,44 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   return RepresentationOfArrayElement(class_id());
 }
 
+Instruction* MemoryCopyInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!length()->BindsToSmiConstant() || !src_start()->BindsToSmiConstant() ||
+      !dest_start()->BindsToSmiConstant()) {
+    // TODO(https://dartbug.com/51031): Consider adding support for src/dest
+    // starts to be in bytes rather than element size.
+    return this;
+  }
+
+  intptr_t new_length = length()->BoundSmiConstant();
+  intptr_t new_src_start = src_start()->BoundSmiConstant();
+  intptr_t new_dest_start = dest_start()->BoundSmiConstant();
+  intptr_t new_element_size = element_size_;
+  while (((new_length | new_src_start | new_dest_start) & 1) == 0 &&
+         new_element_size < compiler::target::kWordSize) {
+    new_length >>= 1;
+    new_src_start >>= 1;
+    new_dest_start >>= 1;
+    new_element_size <<= 1;
+  }
+  if (new_element_size == element_size_) {
+    return this;
+  }
+
+  Zone* const zone = flow_graph->zone();
+  auto* const length_instr = flow_graph->GetConstant(
+      Integer::ZoneHandle(zone, Integer::New(new_length, Heap::kOld)),
+      unboxed_length_ ? kUnboxedIntPtr : kTagged);
+  auto* const src_start_instr = flow_graph->GetConstant(
+      Integer::ZoneHandle(zone, Integer::New(new_src_start, Heap::kOld)));
+  auto* const dest_start_instr = flow_graph->GetConstant(
+      Integer::ZoneHandle(zone, Integer::New(new_dest_start, Heap::kOld)));
+  length()->BindTo(length_instr);
+  src_start()->BindTo(src_start_instr);
+  dest_start()->BindTo(dest_start_instr);
+  element_size_ = new_element_size;
+  return this;
+}
+
 bool Utf8ScanInstr::IsScanFlagsUnboxed() const {
   return scan_flags_field_.is_unboxed();
 }
@@ -6651,7 +6745,22 @@ void NativeCallInstr::SetupNative() {
     return;
   }
 
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  // Currently we perform unoptimized compilations only on mutator threads. If
+  // the compiler has to resolve a native to a function pointer it calls out to
+  // the embedder to do so.
+  //
+  // Unfortunately that embedder API was designed by giving it a handle to a
+  // string. So the embedder will have to call back into the VM to convert it to
+  // a C string - which requires an active isolate.
+  //
+  // => To allow this `dart-->jit-compiler-->embedder-->dart api` we set the
+  //    active isolate again.
+  //
+  ActiveIsolateScope active_isolate(thread);
+
   const Class& cls = Class::Handle(zone, function().Owner());
   const Library& library = Library::Handle(zone, cls.library());
 
@@ -6729,9 +6838,19 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
     }
   }
 
+#if defined(TARGET_ARCH_X64) && !defined(DART_TARGET_OS_WINDOWS)
+  // Only use R13 if really needed, having R13 free causes less spilling.
+  const Register target_address =
+      marshaller_.contains_varargs()
+          ? R13
+          : CallingConventions::kFirstNonArgumentRegister;  // RAX
+  summary->set_in(TargetAddressIndex(),
+                  Location::RegisterLocation(target_address));
+#else
   summary->set_in(TargetAddressIndex(),
                   Location::RegisterLocation(
                       CallingConventions::kFirstNonArgumentRegister));
+#endif
   for (intptr_t i = 0, n = marshaller_.NumDefinitions(); i < n; ++i) {
     summary->set_in(i, marshaller_.LocInFfiCall(i));
   }
@@ -6811,7 +6930,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
         // Can't occur because we currently don't inline FFI trampolines (see
-        // http://dartbug.com/45055), which means all incomming arguments
+        // http://dartbug.com/45055), which means all incoming arguments
         // originate from parameters and thus are non-constant.
         UNREACHABLE();
       }
@@ -6878,7 +6997,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                    compiler::FieldAddress(
                        temp0, compiler::target::PointerBase::data_offset()));
 
-      // Copy chuncks.
+      // Copy chunks.
       const intptr_t sp_offset =
           marshaller_.PassByPointerStackOffset(arg_index);
       // Struct size is rounded up to a multiple of target::kWordSize.
@@ -7678,12 +7797,24 @@ void Call1ArgStubInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              locs(), deopt_id(), env());
 }
 
+Definition* SuspendInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (stub_id() == StubId::kAwaitWithTypeCheck &&
+      !operand()->Type()->CanBeFuture()) {
+    type_args()->RemoveFromUseList();
+    stub_id_ = StubId::kAwait;
+  }
+  return this;
+}
+
 LocationSummary* SuspendInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = has_type_args() ? 2 : 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(SuspendStubABI::kArgumentReg));
+  if (has_type_args()) {
+    locs->set_in(1, Location::RegisterLocation(SuspendStubABI::kTypeArgsReg));
+  }
   locs->set_out(0, Location::RegisterLocation(CallingConventions::kReturnReg));
   return locs;
 }
@@ -7697,6 +7828,9 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (stub_id_) {
     case StubId::kAwait:
       stub = object_store->await_stub();
+      break;
+    case StubId::kAwaitWithTypeCheck:
+      stub = object_store->await_with_type_check_stub();
       break;
     case StubId::kYieldAsyncStar:
       stub = object_store->yield_async_star_stub();
@@ -7729,12 +7863,10 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AllocateRecordInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0,
-               Location::RegisterLocation(AllocateRecordABI::kFieldNamesReg));
   locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
   return locs;
 }
@@ -7743,8 +7875,8 @@ void AllocateRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(),
       compiler->isolate_group()->object_store()->allocate_record_stub());
-  __ LoadImmediate(AllocateRecordABI::kNumFieldsReg,
-                   Smi::RawValue(num_fields()));
+  __ LoadImmediate(AllocateRecordABI::kShapeReg,
+                   Smi::RawValue(shape().AsInt()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                              locs(), deopt_id(), env());
 }
@@ -7756,35 +7888,25 @@ LocationSummary* AllocateSmallRecordInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  if (has_named_fields()) {
+  locs->set_in(0,
+               Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
+  locs->set_in(1,
+               Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
+  if (num_fields() > 2) {
     locs->set_in(
-        0, Location::RegisterLocation(AllocateSmallRecordABI::kFieldNamesReg));
-    locs->set_in(
-        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
-    locs->set_in(
-        2, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
-    if (num_fields() > 2) {
-      locs->set_in(
-          3, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
-    }
-  } else {
-    locs->set_in(
-        0, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
-    locs->set_in(
-        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
-    if (num_fields() > 2) {
-      locs->set_in(
-          2, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
-    }
+        2, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
   }
-  locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
+  locs->set_out(0,
+                Location::RegisterLocation(AllocateSmallRecordABI::kResultReg));
   return locs;
 }
 
 void AllocateSmallRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto object_store = compiler->isolate_group()->object_store();
   Code& stub = Code::ZoneHandle(compiler->zone());
-  if (has_named_fields()) {
+  if (shape().HasNamedFields()) {
+    __ LoadImmediate(AllocateSmallRecordABI::kShapeReg,
+                     Smi::RawValue(shape().AsInt()));
     switch (num_fields()) {
       case 2:
         stub = object_store->allocate_record2_named_stub();

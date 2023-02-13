@@ -30,6 +30,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -48,6 +49,7 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
 ///
@@ -57,7 +59,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// analyzed files to the most recent [AnalysisResult] delivered to [results]
 /// for each file. Let the "current file state" represent a map from file path
 /// to the file contents most recently read from that file, or fetched from the
-/// content cache (considering all possible possible file paths, regardless of
+/// content cache (considering all possible file paths, regardless of
 /// whether they're in the set of explicitly analyzed files). Let the
 /// "analysis state" be either "analyzing" or "idle".
 ///
@@ -85,7 +87,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 250;
+  static const int DATA_VERSION = 258;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -114,6 +116,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// This [ContentCache] is consulted for a file content before reading
   /// the content from the file.
   final FileContentCache _fileContentCache;
+
+  /// The already loaded unlinked units,  consulted before deserializing
+  /// from file again.
+  final UnlinkedUnitStore _unlinkedUnitStore;
 
   late final StoredFileContentStrategy _fileContentStrategy;
 
@@ -265,6 +271,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     this.macroExecutor,
     this.analysisContext,
     FileContentCache? fileContentCache,
+    UnlinkedUnitStore? unlinkedUnitStore,
     this.enableIndex = false,
     SummaryDataStore? externalSummaries,
     DeclaredVariables? declaredVariables,
@@ -275,6 +282,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _byteStore = byteStore,
         _fileContentCache =
             fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
+        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         _analysisOptions = analysisOptions,
         _logger = logger,
         _packages = packages,
@@ -674,9 +682,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     var completer = Completer<SomeErrorsResult>();
-    _errorsRequestedFiles
-        .putIfAbsent(path, () => <Completer<SomeErrorsResult>>[])
-        .add(completer);
+    _errorsRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify(this);
     return completer.future;
   }
@@ -733,9 +739,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return Future.value();
     }
     var completer = Completer<AnalysisDriverUnitIndex?>();
-    _indexRequestedFiles
-        .putIfAbsent(path, () => <Completer<AnalysisDriverUnitIndex?>>[])
-        .add(completer);
+    _indexRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify(this);
     return completer.future;
   }
@@ -744,7 +748,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// [uri], which is either resynthesized from the provided external summary
   /// store, or built for a file to which the given [uri] is resolved.
   Future<SomeLibraryElementResult> getLibraryByUri(String uri) async {
-    var uriObj = Uri.parse(uri);
+    var uriObj = uriCache.parse(uri);
     var fileOr = _fsState.getFileForUri(uriObj);
     return fileOr.map(
       (file) async {
@@ -874,9 +878,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     final kind = file.kind;
     if (kind is LibraryFileKind) {
       final completer = Completer<SomeResolvedLibraryResult>();
-      _requestedLibraries
-          .putIfAbsent(kind, () => <Completer<SomeResolvedLibraryResult>>[])
-          .add(completer);
+      _requestedLibraries.putIfAbsent(kind, () => []).add(completer);
       _scheduler.notify(this);
       return completer.future;
     } else if (kind is AugmentationFileKind) {
@@ -963,9 +965,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // Schedule analysis.
     var completer = Completer<SomeResolvedUnitResult>();
-    _requestedFiles
-        .putIfAbsent(path, () => <Completer<SomeResolvedUnitResult>>[])
-        .add(completer);
+    _requestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify(this);
     return completer.future;
   }
@@ -992,9 +992,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     var completer = Completer<SomeUnitElementResult>();
-    _unitElementRequestedFiles
-        .putIfAbsent(path, () => <Completer<SomeUnitElementResult>>[])
-        .add(completer);
+    _unitElementRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify(this);
     return completer.future;
   }
@@ -1498,6 +1496,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _saltForElements,
       featureSetProvider,
       fileContentStrategy: _fileContentStrategy,
+      unlinkedUnitStore: _unlinkedUnitStore,
       prefetchFiles: null,
       isGenerated: (_) => false,
       testData: testView?.fileSystem,
@@ -1530,7 +1529,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     _hasDartCoreDiscovered = true;
 
-    _fsState.getFileForUri(Uri.parse('dart:core')).map(
+    _fsState.getFileForUri(uriCache.parse('dart:core')).map(
       (file) {
         final kind = file?.kind as LibraryFileKind;
         kind.discoverReferencedFiles();
@@ -1656,7 +1655,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   bool _hasLibraryByUri(String uriStr) {
-    var uri = Uri.parse(uriStr);
+    var uri = uriCache.parse(uriStr);
     var fileOr = _fsState.getFileForUri(uri);
     return fileOr.map(
       (file) => file != null && file.exists,
@@ -2022,7 +2021,7 @@ class AnalysisDriverScheduler {
     }
   }
 
-  /// Notify that there is a change to the [driver], it it might need to
+  /// Notify that there is a change to the [driver], it might need to
   /// perform some work.
   void notify(AnalysisDriverGeneric? driver) {
     // TODO(brianwilkerson) Consider removing the parameter, given that it isn't

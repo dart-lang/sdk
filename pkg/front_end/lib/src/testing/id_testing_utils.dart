@@ -737,8 +737,8 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
   }
 
   @override
-  void visitViewType(ViewType node) {
-    sb.write(node.view.name);
+  void visitInlineType(InlineType node) {
+    sb.write(node.inlineClass.name);
     if (node.typeArguments.isNotEmpty) {
       sb.write('<');
       visitList(node.typeArguments);

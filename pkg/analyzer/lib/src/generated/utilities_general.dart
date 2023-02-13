@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
 /// Test if the given [value] is `false` or the string "false"
@@ -19,7 +20,7 @@ bool isTrue(Object value) =>
 /// value could not be converted.
 bool? toBool(Object value) {
   if (value is YamlScalar) {
-    value = value.value;
+    value = value.valueOrThrow;
   }
   if (value is bool) {
     return value;

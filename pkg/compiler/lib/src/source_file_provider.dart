@@ -298,7 +298,7 @@ typedef MessageCallback = void Function(String message);
 
 class RandomAccessFileOutputProvider implements api.CompilerOutput {
   final Uri out;
-  final Uri sourceMapOut;
+  final Uri? sourceMapOut;
   final MessageCallback onInfo;
 
   // TODO(48820): Make [onFailure] return `Never`. The value passed in for the
@@ -331,7 +331,7 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
         break;
       case api.OutputType.sourceMap:
         if (name == '') {
-          uri = sourceMapOut;
+          uri = sourceMapOut!;
         } else {
           uri = out.resolve('$name.$extension');
         }

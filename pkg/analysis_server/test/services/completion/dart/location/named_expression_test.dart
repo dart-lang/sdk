@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -32,17 +31,11 @@ mixin NamedExpressionExpressionTestCases on AbstractCompletionDriverTest {
   @override
   Future<void> setUp() async {
     await super.setUp();
-
-    printerConfiguration = printer.Configuration(
-      filter: (suggestion) {
-        final completion = suggestion.completion;
-        return const {'x'}.contains(completion);
-      },
-    );
+    allowedIdentifiers = const {'x'};
   }
 
   Future<void> test_beforePositional() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f(int x) {
   g(b: ^, 0);
 }
@@ -50,15 +43,25 @@ void f(int x) {
 void g(int a, {required int b}) {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   x
     kind: parameter
+  const
+    kind: keyword
+  true
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
 ''');
   }
 
   Future<void> test_lastArgument() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f(int x) {
   g(0, b: ^);
 }
@@ -66,15 +69,25 @@ void f(int x) {
 void g(int a, {required int b}) {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   x
     kind: parameter
+  const
+    kind: keyword
+  true
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
 ''');
   }
 
   Future<void> test_onlyArgument() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f(int x) {
   g(a: ^);
 }
@@ -82,10 +95,20 @@ void f(int x) {
 void g({required int a}) {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   x
     kind: parameter
+  const
+    kind: keyword
+  true
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
 ''');
   }
 }

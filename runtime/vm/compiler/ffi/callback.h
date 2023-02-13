@@ -21,8 +21,7 @@ namespace ffi {
 
 FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
                                    const Function& dart_target,
-                                   const Instance& exceptional_return,
-                                   bool register_function);
+                                   const Instance& exceptional_return);
 
 }  // namespace ffi
 

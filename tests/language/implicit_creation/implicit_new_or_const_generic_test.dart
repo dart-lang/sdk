@@ -9,7 +9,7 @@ import "implicit_new_or_const_generic_test.dart" as prefix;
 // Test that const constructors with const arguments do not become const
 // if not in a const context.
 
-// This test uses a generic class cosntructor with no prefix,
+// This test uses a generic class constructor with no prefix,
 // which requires new Dart 2 syntax.
 
 main() {

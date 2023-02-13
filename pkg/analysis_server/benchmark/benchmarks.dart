@@ -10,22 +10,25 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as path;
 
 import 'perf/benchmarks_impl.dart';
+import 'perf/dart_analyze.dart';
 import 'perf/flutter_analyze_benchmark.dart';
 import 'perf/flutter_completion_benchmark.dart';
 
 Future main(List<String> args) async {
-  var benchmarks = <Benchmark>[
+  var benchmarks = [
     ColdAnalysisBenchmark(ServerBenchmark.das),
     ColdAnalysisBenchmark(ServerBenchmark.lsp),
     AnalysisBenchmark(ServerBenchmark.das),
     AnalysisBenchmark(ServerBenchmark.lsp),
+    CmdLineSmallFileBenchmark(),
+    CmdLineOneProjectBenchmark(),
+    CmdLineSeveralProjectsBenchmark(),
     FlutterAnalyzeBenchmark(),
     FlutterCompletionBenchmark.das,
     FlutterCompletionBenchmark.lsp,
@@ -46,7 +49,7 @@ String get analysisServerSrcPath {
 
 void deleteServerCache() {
   // ~/.dartServer/.analysis-driver/
-  ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+  var resourceProvider = PhysicalResourceProvider.INSTANCE;
   var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
   try {
     stateLocation?.delete();
@@ -92,7 +95,7 @@ abstract class Benchmark {
 }
 
 class BenchMarkResult {
-  /// One of 'bytes', 'micros', or 'compound'.
+  /// One of 'bytes', 'kb', 'micros', or 'compound'.
   final String kindName;
 
   final int value;

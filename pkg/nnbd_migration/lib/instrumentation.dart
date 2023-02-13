@@ -251,6 +251,7 @@ enum EdgeOriginKind {
   alreadyMigratedType,
   alwaysNullableType,
   angularAnnotation,
+  angularConstructorArgument,
   argumentErrorCheckNotNull,
   assignmentFromAngularInjectorGet,
   builtValueNullableAnnotation,

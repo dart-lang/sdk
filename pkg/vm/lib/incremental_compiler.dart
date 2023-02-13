@@ -29,29 +29,36 @@ class IncrementalCompiler {
   bool initialized = false;
   bool fullComponent = false;
   Uri? initializeFromDillUri;
-  List<Uri> _entryPoints;
+  List<Uri> _latestAcceptedEntryPoints;
+  List<Uri> _latestUsedEntryPoints;
   final bool forExpressionCompilationOnly;
 
-  List<Uri> get entryPoints => _entryPoints;
+  List<Uri> get entryPoints => _latestAcceptedEntryPoints;
   IncrementalKernelGenerator get generator => _generator;
   IncrementalCompilerResult? get lastKnownGoodResult => _lastKnownGood;
 
-  IncrementalCompiler(this._compilerOptions, this._entryPoints,
+  IncrementalCompiler(this._compilerOptions, this._latestAcceptedEntryPoints,
       {this.initializeFromDillUri, bool incrementalSerialization = true})
-      : forExpressionCompilationOnly = false {
+      : forExpressionCompilationOnly = false,
+        _latestUsedEntryPoints = _latestAcceptedEntryPoints {
     if (incrementalSerialization) {
       incrementalSerializer = new IncrementalSerializer();
     }
-    _generator = new IncrementalKernelGenerator(_compilerOptions, _entryPoints,
-        initializeFromDillUri, false, incrementalSerializer);
+    _generator = new IncrementalKernelGenerator(
+        _compilerOptions,
+        _latestAcceptedEntryPoints,
+        initializeFromDillUri,
+        false,
+        incrementalSerializer);
     _pendingDeltas = <IncrementalCompilerResult>[];
   }
 
-  IncrementalCompiler.forExpressionCompilationOnly(
-      Component component, this._compilerOptions, this._entryPoints)
-      : forExpressionCompilationOnly = true {
+  IncrementalCompiler.forExpressionCompilationOnly(Component component,
+      this._compilerOptions, this._latestAcceptedEntryPoints)
+      : forExpressionCompilationOnly = true,
+        _latestUsedEntryPoints = _latestAcceptedEntryPoints {
     _generator = new IncrementalKernelGenerator.forExpressionCompilationOnly(
-        _compilerOptions, _entryPoints, component);
+        _compilerOptions, _latestAcceptedEntryPoints, component);
     _pendingDeltas = <IncrementalCompilerResult>[];
   }
 
@@ -64,9 +71,9 @@ class IncrementalCompiler {
     final task = new TimelineTask();
     try {
       task.start("IncrementalCompiler.compile");
-      _entryPoints = entryPoints ?? _entryPoints;
+      _latestUsedEntryPoints = entryPoints ?? _latestAcceptedEntryPoints;
       IncrementalCompilerResult compilerResult = await _generator.computeDelta(
-          entryPoints: _entryPoints, fullComponent: fullComponent);
+          entryPoints: _latestUsedEntryPoints, fullComponent: fullComponent);
       initialized = true;
       fullComponent = false;
       _pendingDeltas.add(compilerResult);
@@ -150,6 +157,8 @@ class IncrementalCompiler {
       lastKnownGood.component.addMetadataRepository(repo);
     }
     _pendingDeltas.clear();
+
+    _latestAcceptedEntryPoints = _latestUsedEntryPoints;
   }
 
   /// This lets incremental compiler know that results of last [compile] call
@@ -174,9 +183,13 @@ class IncrementalCompiler {
     // loading from it below is basically nonsense, it will just start over).
     _lastKnownGood?.component.relink();
 
-    _generator = new IncrementalKernelGenerator.fromComponent(_compilerOptions,
-        _entryPoints, _lastKnownGood?.component, false, incrementalSerializer);
-    await _generator.computeDelta(entryPoints: _entryPoints);
+    _generator = new IncrementalKernelGenerator.fromComponent(
+        _compilerOptions,
+        _latestAcceptedEntryPoints,
+        _lastKnownGood?.component,
+        false,
+        incrementalSerializer);
+    await _generator.computeDelta(entryPoints: _latestAcceptedEntryPoints);
   }
 
   /// This tells incremental compiler that it needs rescan [uri] file during

@@ -15,7 +15,6 @@ class Mock {
   }
 }
 
-@proxy
 class MockBodyElement extends Mock implements BodyElement {
   Node append(Node e) => e;
 }
@@ -24,29 +23,24 @@ class _EventListeners {
   Stream<Event> get onBlur => new Stream.fromIterable([]);
 }
 
-@proxy
 class MockHtmlDocument extends Mock
     with _EventListeners
     implements HtmlDocument {
   BodyElement get body => new MockBodyElement();
 }
 
-@proxy
 class MockWindow extends Mock with _EventListeners implements Window {
   Stream<Event> get onBeforeUnload => new Stream.fromIterable([]);
 
   String? name = "MOCK_NAME";
 }
 
-@proxy
 class MockLocation extends Mock implements Location {
   String href = "MOCK_HREF";
 }
 
-@proxy
 class MockFileList extends Mock implements FileList {}
 
-@proxy
 class MockFile extends Mock implements File {}
 
 main() {

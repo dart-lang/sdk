@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
@@ -37,11 +35,16 @@ class AnnotationDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new AnnotationIrComputer(compiler.reporter, actualMap, elementMap, member,
-            closedWorld.closureDataLookup, closedWorld.annotationsData)
+    new AnnotationIrComputer(
+            compiler.reporter,
+            actualMap,
+            elementMap,
+            member,
+            closedWorld.closureDataLookup,
+            closedWorld.annotationsData as AnnotationsDataImpl)
         .run(definition.node);
   }
 
@@ -51,7 +54,7 @@ class AnnotationDataComputer extends DataComputer<String> {
   @override
   String computeErrorData(
       Compiler compiler, Id id, List<CollectedMessage> errors) {
-    return '[${errors.map((error) => error.message.message).join(',')}]';
+    return '[${errors.map((error) => error.message!.message).join(',')}]';
   }
 
   @override
@@ -73,8 +76,8 @@ class AnnotationIrComputer extends IrDataExtractor<String> {
       this._annotationData)
       : super(reporter, actualMap);
 
-  String getMemberValue(MemberEntity member) {
-    EnumSet<PragmaAnnotation> pragmas =
+  String? getMemberValue(MemberEntity member) {
+    EnumSet<PragmaAnnotation>? pragmas =
         _annotationData.pragmaAnnotations[member];
     if (pragmas != null) {
       Features features = new Features();
@@ -88,15 +91,16 @@ class AnnotationIrComputer extends IrDataExtractor<String> {
   }
 
   @override
-  String computeMemberValue(Id id, ir.Member node) {
+  String? computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod);
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      return getMemberValue(info.callMethod as FunctionEntity);
     }
     if (node is ir.LoadLibrary) {
       return _annotationData.getLoadLibraryPriorityAt(node).name;

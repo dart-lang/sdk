@@ -34,6 +34,14 @@ class ForResolver {
 
     if (forLoopParts is ForPartsImpl) {
       _forParts(node, forLoopParts, visitBody);
+    } else if (forLoopParts is ForEachPartsWithPatternImpl) {
+      _analyzePatternForIn(
+        node: node,
+        forLoopParts: forLoopParts,
+        dispatchBody: () {
+          _resolver.dispatchCollectionElement(node.body, context);
+        },
+      );
     } else if (forLoopParts is ForEachPartsImpl) {
       _forEachParts(node, node.awaitKeyword != null, forLoopParts, visitBody);
     }
@@ -47,9 +55,31 @@ class ForResolver {
 
     if (forLoopParts is ForPartsImpl) {
       _forParts(node, forLoopParts, visitBody);
+    } else if (forLoopParts is ForEachPartsWithPatternImpl) {
+      _analyzePatternForIn(
+        node: node,
+        forLoopParts: forLoopParts,
+        dispatchBody: () {
+          _resolver.dispatchStatement(node.body);
+        },
+      );
     } else if (forLoopParts is ForEachPartsImpl) {
       _forEachParts(node, node.awaitKeyword != null, forLoopParts, visitBody);
     }
+  }
+
+  void _analyzePatternForIn({
+    required AstNodeImpl node,
+    required ForEachPartsWithPatternImpl forLoopParts,
+    required void Function() dispatchBody,
+  }) {
+    _resolver.analyzePatternForIn(
+      node: node,
+      pattern: forLoopParts.pattern,
+      expression: forLoopParts.iterable,
+      dispatchBody: dispatchBody,
+    );
+    _resolver.popRewrite();
   }
 
   /// Given an iterable expression from a foreach loop, attempt to infer
@@ -90,7 +120,7 @@ class ForResolver {
       identifier.accept(_resolver);
       AssignmentExpressionShared(
         resolver: _resolver,
-      ).checkFinalAlreadyAssigned(identifier);
+      ).checkFinalAlreadyAssigned(identifier, isForEachIdentifier: true);
     }
 
     DartType? valueType;
@@ -136,7 +166,9 @@ class ForResolver {
     }
 
     if (loopVariable != null) {
-      _resolver.flowAnalysis.flow?.declare(loopVariable.declaredElement!, true);
+      var declaredElement = loopVariable.declaredElement!;
+      _resolver.flowAnalysis.flow
+          ?.declare(declaredElement, declaredElement.type, initialized: true);
     }
 
     _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);
@@ -156,6 +188,10 @@ class ForResolver {
       forParts.variables.accept(_resolver);
     } else if (forParts is ForPartsWithExpression) {
       forParts.initialization?.accept(_resolver);
+    } else if (forParts is ForPartsWithPattern) {
+      forParts.variables.accept(_resolver);
+    } else {
+      throw StateError('Unrecognized for loop parts');
     }
 
     _resolver.flowAnalysis.for_conditionBegin(node);

@@ -79,6 +79,7 @@ import "org-dartlang-testcase:///member_signature_lib.dart";
 abstract class AbstractClass extends mem::Super implements mem::Interface1, mem::Interface2 {
   synthetic constructor •() → self::AbstractClass*
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature method extendedConcreteMethod(core::int* i) → void; -> mem::Super::extendedConcreteMethod
   abstract member-signature method extendedConcreteImplementedMethod(core::int* i) → void; -> mem::Super::extendedConcreteImplementedMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -89,7 +90,6 @@ abstract class AbstractClass extends mem::Super implements mem::Interface1, mem:
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   abstract member-signature method extendedAbstractMethod(core::int* i) → void; -> mem::Super::extendedAbstractMethod
   abstract member-signature method extendedAbstractImplementedMethod(core::int* i) → void; -> mem::Super::extendedAbstractImplementedMethod
@@ -103,6 +103,7 @@ class ConcreteSub extends self::AbstractClass {
 class ConcreteClass extends mem::Super implements mem::Interface1, mem::Interface2 {
   synthetic constructor •() → self::ConcreteClass*
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature method extendedConcreteMethod(core::int* i) → void; -> mem::Super::extendedConcreteMethod
   abstract member-signature method extendedConcreteImplementedMethod(core::int* i) → void; -> mem::Super::extendedConcreteImplementedMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -113,7 +114,6 @@ class ConcreteClass extends mem::Super implements mem::Interface1, mem::Interfac
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   abstract member-signature method extendedAbstractMethod(core::int* i) → void; -> mem::Super::extendedAbstractMethod
   abstract member-signature method extendedAbstractImplementedMethod(core::int* i) → void; -> mem::Super::extendedAbstractImplementedMethod
@@ -123,6 +123,7 @@ class ConcreteClass extends mem::Super implements mem::Interface1, mem::Interfac
 abstract class OptOutInterface extends core::Object {
   synthetic constructor •() → self::OptOutInterface*
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -131,12 +132,12 @@ abstract class OptOutInterface extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class ClassImplementsOptOut extends core::Object implements self::OptOutInterface {
   synthetic constructor •() → self::ClassImplementsOptOut*
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -145,7 +146,6 @@ abstract class ClassImplementsOptOut extends core::Object implements self::OptOu
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic

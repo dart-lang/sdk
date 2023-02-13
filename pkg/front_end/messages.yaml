@@ -75,7 +75,7 @@
 #    version (or add the missing needed one(s)) to avoid triggering an assert.
 #
 # `#nameOKEmpty`: name (as string). Will use an "(unnamed)" default message if
-#    the string is null or empty. Otherwise see the describtion above.
+#    the string is null or empty. Otherwise see the description above.
 #
 # `#names`: A list of names (strings).
 #
@@ -91,7 +91,7 @@
 #
 # `#stringOKEmpty`: string (that isn't a name). Will use an "(empty)" default
 #    message if the string is null or empty.
-#    Otherwise see the describtion above.
+#    Otherwise see the description above.
 #
 # `#type`, #type2`, `#type3`: Kernel types.
 #
@@ -306,7 +306,7 @@ ExperimentDisabled:
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 NullSafetyDisabledInvalidLanguageVersion:
-  problemMessage: "This requires the null safety language feature, which requires language version of #string2 or higher."
+  problemMessage: "This requires null safety, which requires language version of #string2 or higher."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 ExperimentDisabledInvalidLanguageVersion:
@@ -760,7 +760,7 @@ AbstractStaticField:
 AbstractExtensionField:
   problemMessage: "Extension fields can't be declared 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword."
-# Separate class and extension field handling to to support this.
+# Separate class and extension field handling to support this.
 #  configuration: nnbd-strong
 #  script:
 #    - "extension C on int {abstract static var f;}"
@@ -1086,7 +1086,6 @@ ExtraneousModifier:
     - "abstract foo; main(){}"
     - "static foo; main(){}"
     - "external foo; main(){}"
-    - "final class C {}"
     - "abstract enum foo {bar}"
     - "abstract void foo() {}"
     - "static void foo() {}"
@@ -1224,6 +1223,12 @@ AnonymousBreakTargetOutsideFunction:
         break;
       }
     }
+
+ContinueLabelInvalid:
+  problemMessage: "A 'continue' label must be on a loop or a switch member."
+  analyzerCode: CONTINUE_LABEL_INVALID
+  statement:
+    - "L: { for (var i in [ ]) { continue L; } }"
 
 ContinueOutsideOfLoop:
   index: 2
@@ -1591,12 +1596,11 @@ Unspecified:
   problemMessage: "#string"
 
 StrongModeNNBDButOptOut:
-  problemMessage: "A library can't opt out of null safety by default, when using sound null safety."
+  problemMessage: "Library doesn't support null safety."
 
 StrongModeNNBDPackageOptOut:
   problemMessage:  |
-    Cannot run with sound null safety, because the following dependencies
-    don't support null safety:
+    The following dependencies don't support null safety:
 
     #names
 
@@ -1675,6 +1679,10 @@ YieldAsIdentifier:
 YieldNotGenerator:
   problemMessage: "'yield' can only be used in 'sync*' or 'async*' methods."
   analyzerCode: YIELD_IN_NON_GENERATOR
+
+WasmSyncStar:
+  problemMessage: "Compilation to Wasm does not support 'sync*'."
+  severity: WARNING
 
 OnlyTry:
   index: 20
@@ -1777,6 +1785,23 @@ MetadataTypeArgumentsUninstantiated:
   analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED
   script:
     - "@deprecated<int> class C {}"
+
+MetadataSpaceBeforeParenthesis:
+  index: 134
+  problemMessage: "Annotations can't have spaces or comments before the parenthesis."
+  correctionMessage: Remove any spaces or comments before the parenthesis.
+  analyzerCode: ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS
+  script:
+    - >-
+      class Foo<T> {
+        const Foo();
+      }
+      @Foo<int> () var bar;
+    - >-
+      class Foo {
+        const Foo();
+      }
+      @Foo () class Bar {}
 
 ConstructorNotFound:
   problemMessage: "Couldn't find constructor '#name'."
@@ -4203,7 +4228,7 @@ InitializeFromDillUnknownProblemNoDump:
 
 WebLiteralCannotBeRepresentedExactly:
   problemMessage: "The integer literal #string can't be represented exactly in JavaScript."
-  correctionMessage: "Try changing the literal to something that can be represented in Javascript. In Javascript #string2 is the nearest value that can be represented exactly."
+  correctionMessage: "Try changing the literal to something that can be represented in JavaScript. In JavaScript #string2 is the nearest value that can be represented exactly."
 
 BoundIssueViaRawTypeWithNonSimpleBounds:
   problemMessage: "Generic type '#name' can't be used without type arguments in a type variable bound."
@@ -4451,7 +4476,7 @@ ImportChainContext:
 
     #string
     Detailed import paths for (some of) the these imports:
-    
+
     #string2
   severity: CONTEXT
 
@@ -4709,7 +4734,7 @@ FfiTypeInvalid:
 
 FfiFieldNull:
   # Used by dart:ffi
-  problemMessage: "Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`."
+  problemMessage: "Field '#name' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`."
   external: test/ffi_test.dart
 
 FfiFieldAnnotation:
@@ -5173,7 +5198,7 @@ FieldNonNullableNotInitializedByConstructorError:
   problemMessage: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
 
 NullSafetyOptOutExplicit:
-  problemMessage: "Null safety features are disabled for this library."
+  problemMessage: "Null safety is disabled for this library."
   correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string or higher."
 
 ExperimentOptOutExplicit:
@@ -5181,7 +5206,7 @@ ExperimentOptOutExplicit:
   correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string2 or higher."
 
 NullSafetyOptOutImplicit:
-  problemMessage: "Null safety features are disabled for this library."
+  problemMessage: "Null safety is disabled for this library."
   correctionMessage: "Try removing the package language version or setting the language version to #string or higher."
 
 NullSafetyOptOutComment:
@@ -5292,6 +5317,10 @@ JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
+JsInteropStaticInteropAnonymousFactoryTearoff:
+  problemMessage: "Factories of `@anonymous` `@staticInterop` classes can not be torn off."
+  correctionMessage: "Declare a closure that forwards to this factory instead."
+
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
   problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
   correctionMessage: "Try using a Dart extension member if you need type parameters instead."
@@ -5335,10 +5364,6 @@ JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:
 JsInteropStaticInteropTrustTypesUsageNotAllowed:
   problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
   correctionMessage: "Try removing the `@trustTypes` annotation."
-
-DefaultListConstructorError:
-  problemMessage: "Can't use the default List constructor."
-  correctionMessage: "Try using List.filled instead."
 
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
@@ -5903,7 +5928,7 @@ MixinApplicationNoConcreteGetter:
   analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
   script: |
     class Super {
-      int get getter => 42; 
+      int get getter => 42;
     }
     mixin Mixin on Super {
       int get getter {
@@ -5918,7 +5943,7 @@ MixinApplicationNoConcreteSetter:
   analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
   script: |
     class Super {
-      void set setter(int value) {} 
+      void set setter(int value) {}
     }
     mixin Mixin on Super {
       void set setter(int value) {
@@ -5989,7 +6014,7 @@ NamedFieldClashesWithPositionalFieldInRecord:
   analyzerCode: INVALID_FIELD_NAME
   experiments: records
   script: |
-    foo() => (0, $0: 0);
+    foo() => (0, $1: 0);
 
 EnumWithNameValues:
   problemMessage: "The name 'values' is not a valid name for an enum. Try using a different name."
@@ -6003,7 +6028,8 @@ InheritedRestrictedMemberOfEnumImplementer:
     abstract class B extends A implements Enum {}
 
 SealedClassSubtypeOutsideOfLibrary:
-  problemMessage: "Sealed class '#name' can't be extended, implemented, or mixed in outside of its library."
+  problemMessage: "The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
+  analyzerCode: SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
   experiments: sealed-class
   script:
     main.dart:
@@ -6013,7 +6039,8 @@ SealedClassSubtypeOutsideOfLibrary:
       sealed class A {}
 
 SealedMixinSubtypeOutsideOfLibrary:
-  problemMessage: "Sealed mixin '#name' can't be mixed in outside of its library."
+  problemMessage: "The mixin '#name' can't be mixed in outside of its library because it's a sealed mixin."
+  analyzerCode: SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY
   experiments: sealed-class
   script:
     main.dart:
@@ -6021,3 +6048,328 @@ SealedMixinSubtypeOutsideOfLibrary:
       class B with M {}
     lib.dart:
       sealed mixin M {}
+
+CantUseClassAsMixin:
+  problemMessage: "The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin."
+  analyzerCode: CLASS_USED_AS_MIXIN
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B with A {}
+    lib.dart:
+      class A {}
+
+BaseClassImplementedOutsideOfLibrary:
+  problemMessage: "The class '#name' can't be implemented outside of its library because it's a base class."
+  analyzerCode: BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B implements A {}
+    lib.dart:
+      base class A {}
+
+BaseMixinImplementedOutsideOfLibrary:
+  problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a base mixin."
+  analyzerCode: BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B implements A {}
+    lib.dart:
+      base mixin A {}
+
+InterfaceClassExtendedOutsideOfLibrary:
+  problemMessage: "The class '#name' can't be extended outside of its library because it's an interface class."
+  analyzerCode: INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B extends A {}
+    lib.dart:
+      interface class A {}
+
+InterfaceMixinMixedInOutsideOfLibrary:
+  problemMessage: "The mixin '#name' can't be mixed-in outside of its library because it's an interface mixin."
+  analyzerCode: INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B with A {}
+    lib.dart:
+      interface mixin A {}
+
+FinalClassExtendedOutsideOfLibrary:
+  problemMessage: "The class '#name' can't be extended outside of its library because it's a final class."
+  analyzerCode: FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B extends A {}
+    lib.dart:
+      final class A {}
+
+FinalClassImplementedOutsideOfLibrary:
+  problemMessage: "The class '#name' can't be implemented outside of its library because it's a final class."
+  analyzerCode: FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B implements A {}
+    lib.dart:
+      final class A {}
+
+FinalMixinImplementedOutsideOfLibrary:
+  problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a final mixin."
+  analyzerCode: FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B implements A {}
+    lib.dart:
+      final mixin A {}
+
+FinalMixinMixedInOutsideOfLibrary:
+  problemMessage: "The mixin '#name' can't be mixed-in outside of its library because it's a final mixin."
+  analyzerCode: FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B with A {}
+    lib.dart:
+      final mixin A {}
+
+UnspecifiedGetterNameInObjectPattern:
+  problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
+  experiments: patterns
+  analyzerCode: MISSING_OBJECT_PATTERN_GETTER_NAME
+  script: |
+    abstract class A { int get foo;}
+    test(dynamic x) { if (x case A(: 0)) {} }
+
+SwitchExpressionEmpty:
+  problemMessage: "Switch expressions must contain at least one case."
+  experiments: patterns
+  script: |
+    test(dynamic x) => switch (x) {};
+
+VariablePatternTypeMismatchInSwitchHeads:
+  problemMessage: "Variable pattern '#name' doesn't have the same type in all cases."
+  experiments: patterns
+  script: |
+    test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }
+
+NonExhaustiveSwitch:
+  problemMessage: "The type '#type' is not exhaustively matched by the switch cases."
+  correctionMessage: "Try adding a default case or cases that match #string."
+  analyzerCode: NON_EXHAUSTIVE_SWITCH
+  experiments: patterns
+  script: |
+    enum Enum { a, b }
+    method(Enum e) {
+      switch (e) {
+        case Enum.a:
+          break;
+      }
+    }
+
+UnreachableSwitchCase:
+  problemMessage: "This case is covered by the previous cases."
+  analyzerCode: UNREACHABLE_SWITCH_CASE
+  severity: WARNING # TODO(johnniwinther): Should this be an error, warning or not emitted at all?
+  experiments: patterns
+  script: |
+    enum Enum { a, b }
+    method(Enum e) {
+      switch (e) {
+        case Enum.a:
+          break;
+        case Enum.b:
+          break;
+        case Enum.a:
+          break;
+      }
+    }
+
+PatternTypeMismatchInIrrefutableContext:
+  problemMessage: "The matched value of type '#type' isn't assignable to the required type '#type2'."
+  correctionMessage: "Try changing the required type of the pattern, or the matched value type."
+  analyzerCode: PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT
+  experiments: patterns
+  script: |
+    method(List<String> list) {
+      var <int>[a] = list;
+    }
+
+DuplicatePatternAssignmentVariable:
+  problemMessage: The variable '#name' is already assigned in this pattern.
+  correctionMessage: Try renaming the variable.
+  analyzerCode: DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE
+  experiments: patterns
+  script: |
+    method(List<String> list) {
+      String a = '';
+      [a, a] = list;
+    }
+
+DuplicatePatternAssignmentVariableContext:
+  problemMessage: The first assigned variable pattern.
+  severity: CONTEXT
+
+DuplicateRecordPatternField:
+  problemMessage: The field '#name' is already matched in this pattern.
+  correctionMessage: Try removing the duplicate field.
+  analyzerCode: DUPLICATE_RECORD_PATTERN_FIELD
+  experiments: patterns
+  script: |
+    method(o) {
+      switch (o) {
+        case (field: 1, field: 2):
+      }
+    }
+
+DuplicateRecordPatternFieldContext:
+  problemMessage: The first field.
+  severity: CONTEXT
+
+DuplicateRestElementInPattern:
+  problemMessage: At most one rest element is allowed in a list or map pattern.
+  correctionMessage: Try removing the duplicate rest element.
+  analyzerCode: DUPLICATE_REST_ELEMENT_IN_PATTERN
+  experiments: patterns
+  script: |
+    method(o) {
+      switch (o) {
+        case [..., ...]:
+      }
+    }
+
+DuplicateRestElementInPatternContext:
+  problemMessage: The first rest element.
+  severity: CONTEXT
+
+RestPatternNotLastInMapPattern:
+  problemMessage: "The '...' pattern can appear only at the end in map patterns."
+  experiments: patterns
+  script: |
+    test(dynamic x) { if (x case {..., 1: 1}) {} }
+
+UnnecessaryNullAssertPattern:
+  problemMessage: The null-assert pattern will have no effect because the matched type isn't nullable.
+  correctionMessage: Try replacing the null-assert pattern with its nested pattern.
+  analyzerCode: UNNECESSARY_NULL_ASSERT_PATTERN
+  severity: WARNING
+  experiments: patterns
+  script: |
+    method(List<int> list) {
+      if (list case [var a!]) {}
+    }
+
+UnnecessaryNullCheckPattern:
+  problemMessage: The null-check pattern will have no effect because the matched type isn't nullable.
+  correctionMessage: Try replacing the null-check pattern with its nested pattern.
+  analyzerCode: UNNECESSARY_NULL_CHECK_PATTERN
+  comment: No parameters.
+  severity: WARNING
+  experiments: patterns
+  script: |
+    method(List<int> list) {
+      if (list case [var a?]) {}
+    }
+
+NonBoolCondition:
+  problemMessage: "Conditions must have a static type of 'bool'."
+  correctionMessage: Try changing the condition.
+  analyzerCode: NON_BOOL_CONDITION
+  experiments: patterns
+  script: |
+    method(int i) {
+      if (i case 5 when i) {}
+    }
+
+RefutablePatternInIrrefutableContext:
+  problemMessage: Refutable patterns can't be used in an irrefutable context.
+  correctionMessage: Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
+  analyzerCode: REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT
+  experiments: patterns
+  script: |
+    method(int? x) {
+      var (a?) = x;
+    }
+
+RestElementWithSubpatternInMapPattern:
+  problemMessage: A rest element in a map pattern can't have a subpattern.
+  correctionMessage: Try removing the subpattern.
+  analyzerCode: REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case {...var a}) {}
+    }
+
+MissingVariablePattern:
+  problemMessage: "Variable pattern '#name' is missing in this branch of the logical-or pattern."
+  correctionMessage: "Try declaring this variable pattern in the branch."
+  analyzerCode: MISSING_VARIABLE_PATTERN
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case [var a] || _) {}
+    }
+
+MapPatternTypeArgumentMismatch:
+  problemMessage: "A map pattern requires exactly two type arguments."
+  analyzerCode: EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case <int>{}) {}
+    }
+
+ListPatternTooManyTypeArguments:
+  problemMessage: "A list pattern requires exactly one type argument."
+  analyzerCode: EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case <int, int>[]) {}
+    }
+
+UnnamedObjectPatternField:
+  problemMessage: "A pattern field in an object pattern must be named."
+  correctionMessage: "Try adding a pattern name or ':' before the pattern."
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case int(5)) {}
+    }
+
+PatternAssignmentDeclaresVariable:
+  problemMessage: "Variable '#name' can't be declared in a pattern assignment."
+  correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
+  experiments: patterns
+  script: |
+    method(x) {
+      var y;
+      [y, var z] = x;
+    }
+
+PatternAssignmentNotLocalVariable:
+  problemMessage: Only local variables or formal parameters can be used in pattern assignments.
+  correctionMessage: Try assigning to a local variable.
+  analyzerCode: PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE
+  experiments: patterns
+  script: |
+    var global;
+    method(x) {
+      [global] = x;
+    }

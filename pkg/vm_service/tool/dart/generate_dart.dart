@@ -468,11 +468,9 @@ class Api extends Member with ApiParseUtil {
   String? get docs => null;
 
   void _parse(String name, String definition, [String? docs]) {
-    name = name.trim();
-    definition = definition.trim();
-    // clean markdown introduced changes
-    definition = definition.replaceAll('&lt;', '<').replaceAll('&gt;', '>');
-    if (docs != null) docs = docs.trim();
+    name = replaceHTMLEntities(name.trim());
+    definition = replaceHTMLEntities(definition.trim());
+    if (docs != null) docs = replaceHTMLEntities(docs.trim());
 
     if (definition.startsWith('class ')) {
       types.add(Type(this, name, definition, docs));
@@ -1150,6 +1148,16 @@ class MemberType extends Member {
 
   bool get isMultipleReturns => types.length > 1;
 
+  bool get areAllTypesSimple => types.every((type) => type.isSimple);
+
+  List<String> get subsetOfTypesThatAreSimple =>
+      types.fold(<String>[], (List<String> accumulator, TypeRef typeRef) {
+        if (typeRef.isSimple) {
+          accumulator.add(typeRef.ref);
+        }
+        return accumulator;
+      });
+
   bool get isSimple => types.length == 1 && types.first.isSimple;
 
   bool get isEnum => types.length == 1 && api.isEnumName(types.first.name);
@@ -1644,7 +1652,9 @@ void _parseTokenPosTable() {
 
   // Writes the code to retrieve the serialized value of a field.
   void generateSerializedFieldAccess(TypeField field, DartGenerator gen) {
-    if (field.type.isSimple || field.type.isEnum) {
+    if (field.type.isSimple ||
+        field.type.isEnum ||
+        field.type.areAllTypesSimple) {
       gen.write('${field.generatableName}');
       final defaultValue = field.defaultValue;
       if (defaultValue != null) {
@@ -1663,6 +1673,17 @@ void _parseTokenPosTable() {
       }
       gen.write(').toList()');
     } else {
+      final subsetOfTypesThatAreSimple = field.type.subsetOfTypesThatAreSimple;
+      if (subsetOfTypesThatAreSimple.isNotEmpty) {
+        for (int i = 0; i < subsetOfTypesThatAreSimple.length; i++) {
+          if (i >= 1) {
+            gen.write(' || ');
+          }
+          gen.write(
+              '${field.generatableName} is ${subsetOfTypesThatAreSimple[i]}');
+        }
+        gen.write(' ? ${field.generatableName} : ');
+      }
       gen.write('${field.generatableName}?.toJson()');
     }
   }

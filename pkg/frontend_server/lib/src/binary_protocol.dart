@@ -76,7 +76,7 @@ class _Client {
       ..fileSystem = _FileSystem(_channel, _dills)
       ..nnbdMode = fe.NnbdMode.Strong
       ..sdkSummary = Uri.parse(sdkSummaryUriStr)
-      ..target = vm.VmTarget(fe.TargetFlags(enableNullSafety: true));
+      ..target = vm.VmTarget(fe.TargetFlags());
 
     final additionalDills = arguments['additionalDills'].asListOf<String>();
     if (additionalDills != null) {

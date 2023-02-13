@@ -72,7 +72,7 @@ abstract class FutureOr<T> {
 ///    return haystack.contains(needle);
 /// }
 /// ```
-/// Here the `File.readAsString` method from `dart:io` is an asychronous
+/// Here the `File.readAsString` method from `dart:io` is an asynchronous
 /// function returning a `Future<String>`.
 /// The `fileContains` function is marked with `async` right before its body,
 /// which means that you can use `await` inside it,
@@ -905,6 +905,9 @@ abstract class Future<T> {
   /// at a later time.
   /// It just won't be used as the result of the timeout future
   /// unless it completes within the time bound.
+  /// Even if the source future completes with an error,
+  /// if that error happens after [timeLimit] has passed,
+  /// the error is ignored, just like a value result would be.
   ///
   /// Examples:
   /// ```dart
@@ -919,7 +922,7 @@ abstract class Future<T> {
   ///
   ///   result = await waitTask("first").timeout(const Duration(seconds: 2),
   ///       onTimeout: () => waitTask("second"));
-  ///   // Prints "second" after 7 seconds.
+  ///   print(result); // Prints "second" after 7 seconds.
   ///
   ///   try {
   ///     await waitTask("completed").timeout(const Duration(seconds: 2));
@@ -929,23 +932,33 @@ abstract class Future<T> {
   ///
   ///   var printFuture = waitPrint();
   ///   await printFuture.timeout(const Duration(seconds: 2), onTimeout: () {
-  ///     print("timeout");
+  ///     print("timeout"); // Prints "timeout" after 2 seconds.
   ///   });
-  ///   // Prints "timeout" after 2 seconds.
-  ///   await printFuture;
-  ///   // Prints "printed" after additional 3 seconds.
+  ///   await printFuture; // Prints "printed" after additional 3 seconds.
+  ///
+  ///   try {
+  ///     await waitThrow("error").timeout(const Duration(seconds: 2));
+  ///   } on TimeoutException {
+  ///     print("throws"); // Prints "throws" after 2 seconds.
+  ///   }
+  ///   // StateError is ignored
   /// }
   ///
-  /// // Returns [string] after five seconds.
+  /// /// Returns [string] after five seconds.
   /// Future<String> waitTask(String string) async {
   ///   await Future.delayed(const Duration(seconds: 5));
   ///   return string;
   /// }
   ///
-  /// // Prints "printed" after five seconds.
+  /// /// Prints "printed" after five seconds.
   /// Future<void> waitPrint() async {
   ///   await Future.delayed(const Duration(seconds: 5));
   ///   print("printed");
+  /// }
+  /// /// Throws a [StateError] with [message] after five seconds.
+  /// Future<void> waitThrow(String message) async {
+  ///   await Future.delayed(const Duration(seconds: 5));
+  ///   throw Exception(message);
   /// }
   /// ```
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?});
@@ -1017,7 +1030,7 @@ extension FutureExtensions<T> on Future<T> {
   /// error in [test].
   /// Example:
   /// ```dart
-  /// // Unwraps an an exceptions cause, if it has one.
+  /// // Unwraps an exceptions cause, if it has one.
   /// someFuture.onError<SomeException>((e, _) {
   ///   throw e.cause ?? e;
   /// });

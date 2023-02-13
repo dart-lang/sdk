@@ -4,6 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -39,6 +40,7 @@ class DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest
 class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
     with DeprecatedMemberUse_BasicWorkspaceTestCases {
   test_instanceCreation_namedParameter_fromLegacy() async {
+    noSoundNullSafety = false;
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   A({@deprecated int a}) {}
@@ -58,6 +60,7 @@ void f() {
   }
 
   test_methodInvocation_namedParameter_ofFunction_fromLegacy() async {
+    noSoundNullSafety = false;
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 void foo({@deprecated int a}) {}
 ''');
@@ -75,6 +78,7 @@ void f() {
   }
 
   test_methodInvocation_namedParameter_ofMethod_fromLegacy() async {
+    noSoundNullSafety = false;
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   void foo({@deprecated int a}) {}
@@ -94,6 +98,7 @@ void f(A a) {
   }
 
   test_superConstructorInvocation_namedParameter_fromLegacy() async {
+    noSoundNullSafety = false;
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   A({@deprecated int a}) {}

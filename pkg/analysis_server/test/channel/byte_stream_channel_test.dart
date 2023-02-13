@@ -127,7 +127,7 @@ class ByteStreamServerChannelTest {
         .transform(Utf8Codec().decoder)
         .transform(LineSplitter());
     var outputSink = IOSink(outputStream);
-    channel = ByteStreamServerChannel(
+    channel = InputOutputByteStreamServerChannel(
         inputStream.stream, outputSink, InstrumentationService.NULL_SERVICE);
     var requestStreamController = StreamController<Request>();
     requestStream = requestStreamController.stream;
@@ -220,8 +220,10 @@ class ByteStreamServerChannelTest {
     // This IOSink asynchronously throws an exception on any writeln().
     var outputSink = _IOSinkThatAsyncThrowsOnWrite();
 
-    var channel = ByteStreamServerChannel(StreamController<List<int>>().stream,
-        outputSink, InstrumentationService.NULL_SERVICE);
+    var channel = InputOutputByteStreamServerChannel(
+        StreamController<List<int>>().stream,
+        outputSink,
+        InstrumentationService.NULL_SERVICE);
 
     // Attempt to send a notification.
     channel.sendNotification(Notification('foo'));

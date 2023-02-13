@@ -12,7 +12,6 @@ import 'package:kernel/src/norm.dart';
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import '../../../base/common.dart';
-import '../../builder/builder.dart';
 import '../../builder/class_builder.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
@@ -57,8 +56,6 @@ import 'members_builder.dart';
 class ClassMembersNodeBuilder {
   final ClassHierarchyNode _hierarchyNode;
   final ClassMembersBuilder _membersBuilder;
-
-  bool hasNoSuchMethod = false;
 
   final Map<Class, Substitution> substitutions;
 
@@ -492,6 +489,12 @@ class ClassMembersNodeBuilder {
 
   void reportInheritanceConflict(ClassMember a, ClassMember b) {
     String name = a.fullNameForErrors;
+    while (a.hasDeclarations) {
+      a = a.declarations.first;
+    }
+    while (b.hasDeclarations) {
+      b = b.declarations.first;
+    }
     if (a.classBuilder != b.classBuilder) {
       if (a.classBuilder == classBuilder) {
         classBuilder.addProblem(
@@ -606,29 +609,42 @@ class ClassMembersNodeBuilder {
     /// members.
     bool hasInterfaces = false;
 
+    /// Concrete user defined `noSuchMethod` member, declared or inherited. I.e.
+    /// concrete `noSuchMethod` class member that is _not_
+    /// `Object.noSuchMethod`.
+    ClassMember? userNoSuchMethodMember;
+
     Map<Name, Tuple> memberMap = {};
 
-    Iterator<Builder> iterator = classBuilder.fullMemberIterator;
+    Iterator<MemberBuilder> iterator =
+        classBuilder.fullMemberIterator<MemberBuilder>();
     while (iterator.moveNext()) {
-      MemberBuilder memberBuilder = iterator.current as MemberBuilder;
+      MemberBuilder memberBuilder = iterator.current;
       for (ClassMember classMember in memberBuilder.localMembers) {
+        Name name = classMember.name;
         if (classMember.isAbstract) {
           hasInterfaces = true;
         }
-        Tuple? tuple = memberMap[classMember.name];
+        Tuple? tuple = memberMap[name];
         if (tuple == null) {
-          memberMap[classMember.name] = new Tuple.declareMember(classMember);
+          memberMap[name] = new Tuple.declareMember(classMember);
         } else {
           tuple.declaredMember = classMember;
         }
+        if (name == noSuchMethodName &&
+            !classMember.isAbstract &&
+            !classMember.isObjectMember(objectClass)) {
+          userNoSuchMethodMember = classMember;
+        }
       }
       for (ClassMember classMember in memberBuilder.localSetters) {
+        Name name = classMember.name;
         if (classMember.isAbstract) {
           hasInterfaces = true;
         }
-        Tuple? tuple = memberMap[classMember.name];
+        Tuple? tuple = memberMap[name];
         if (tuple == null) {
-          memberMap[classMember.name] = new Tuple.declareSetter(classMember);
+          memberMap[name] = new Tuple.declareSetter(classMember);
         } else {
           tuple.declaredSetter = classMember;
         }
@@ -652,30 +668,38 @@ class ClassMembersNodeBuilder {
             usedAsClassFileUri: namedBuilder.fileUri)!;
       }
       if (mixin is ClassBuilder) {
-        Iterator<Builder> iterator = mixin.fullMemberIterator;
+        Iterator<MemberBuilder> iterator =
+            mixin.fullMemberIterator<MemberBuilder>();
         while (iterator.moveNext()) {
-          MemberBuilder memberBuilder = iterator.current as MemberBuilder;
+          MemberBuilder memberBuilder = iterator.current;
           if (memberBuilder.isStatic) {
             continue;
           }
           for (ClassMember classMember in memberBuilder.localMembers) {
-            if (classMember.isAbstract) {
+            Name name = classMember.name;
+            if (classMember.isAbstract || classMember.isNoSuchMethodForwarder) {
               hasInterfaces = true;
             }
-            Tuple? tuple = memberMap[classMember.name];
+            Tuple? tuple = memberMap[name];
             if (tuple == null) {
-              memberMap[classMember.name] = new Tuple.mixInMember(classMember);
+              memberMap[name] = new Tuple.mixInMember(classMember);
             } else {
               tuple.mixedInMember = classMember;
             }
+            if (name == noSuchMethodName &&
+                !classMember.isAbstract &&
+                !classMember.isObjectMember(objectClass)) {
+              userNoSuchMethodMember ??= classMember;
+            }
           }
           for (ClassMember classMember in memberBuilder.localSetters) {
-            if (classMember.isAbstract) {
+            Name name = classMember.name;
+            if (classMember.isAbstract || classMember.isNoSuchMethodForwarder) {
               hasInterfaces = true;
             }
-            Tuple? tuple = memberMap[classMember.name];
+            Tuple? tuple = memberMap[name];
             if (tuple == null) {
-              memberMap[classMember.name] = new Tuple.mixInSetter(classMember);
+              memberMap[name] = new Tuple.mixInSetter(classMember);
             } else {
               tuple.mixedInSetter = classMember;
             }
@@ -733,6 +757,8 @@ class ClassMembersNodeBuilder {
     if (supernode == null) {
       // This should be Object.
     } else {
+      userNoSuchMethodMember ??= supernode.userNoSuchMethodMember;
+
       extend(supernode.classMemberMap);
       extend(supernode.classSetterMap);
 
@@ -801,6 +827,8 @@ class ClassMembersNodeBuilder {
     /// without a corresponding class member. These are either reported as
     /// missing implementations or trigger insertion of noSuchMethod forwarders.
     List<ClassMember>? abstractMembers = [];
+
+    ClassMember? noSuchMethodMember;
 
     ClassHierarchyNodeDataForTesting? dataForTesting;
     if (retainDataForTesting) {
@@ -917,7 +945,7 @@ class ClassMembersNodeBuilder {
           classMember.classBuilder.libraryBuilder.isNonNullableByDefault;
     }
 
-    memberMap.forEach((Name name, Tuple tuple) {
+    void computeClassInterfaceMember(Name name, Tuple tuple) {
       /// The computation starts by sanitizing the members. Conflicts between
       /// methods and properties (getters/setters) or between static and
       /// instance members are reported. Conflicting members and members
@@ -1419,7 +1447,7 @@ class ClassMembersNodeBuilder {
       /// is for a method, a getter or a setter.
       /// [declaredMember] is the member declared in the current class, if any.
       /// [mixedInMember] is the member declared in a mixin that is mixed into
-      /// the current current class, if any.
+      /// the current class, if any.
       /// [extendedMember] is the member inherited from the super class.
       /// [implementedMembers] are the members inherited from the super
       /// interfaces, if none this is `null`.
@@ -1437,8 +1465,16 @@ class ClassMembersNodeBuilder {
         ClassMember? classMember;
         ClassMember? interfaceMember;
 
+        /// A noSuchMethodForwarder can be inserted in non-abstract class
+        /// if a user defined noSuchMethod implementation is available or
+        /// if the member is not accessible from this library;
+        bool canHaveNoSuchMethodForwarder = !classBuilder.isAbstract &&
+            (userNoSuchMethodMember != null ||
+                !isNameVisibleIn(name, classBuilder.libraryBuilder));
+
         if (mixedInMember != null) {
-          if (mixedInMember.isAbstract) {
+          if (mixedInMember.isAbstract ||
+              mixedInMember.isNoSuchMethodForwarder) {
             ///    class Mixin {
             ///      method();
             ///    }
@@ -1472,6 +1508,24 @@ class ClassMembersNodeBuilder {
               interfaceMembers.addAll(implementedMembers);
             }
 
+            ClassMember? noSuchMethodTarget;
+            if (canHaveNoSuchMethodForwarder &&
+                (extendedMember == null ||
+                    extendedMember.isNoSuchMethodForwarder)) {
+              ///    class Super {
+              ///      noSuchMethod(_) => null;
+              ///      extendedMember();
+              ///    }
+              ///    abstract class Mixin {
+              ///      mixinMethod();
+              ///      extendedMember();
+              ///    }
+              ///    class Class = Super with Mixin /*
+              ///      mixinMethod() => ...; // noSuchMethod forwarder created
+              ///    */;
+              noSuchMethodTarget = noSuchMethodMember;
+            }
+
             /// We always create a synthesized interface member, even in the
             /// case of [interfaceMembers] being a singleton, to insert the
             /// abstract mixin stub.
@@ -1485,6 +1539,7 @@ class ClassMembersNodeBuilder {
                 // is the defining member.
                 canonicalMember: mixedInMember,
                 mixedInMember: mixedInMember,
+                noSuchMethodTarget: noSuchMethodTarget,
                 isProperty: definingMember.isProperty,
                 forSetter: definingMember.forSetter,
                 shouldModifyKernel: shouldModifyKernel);
@@ -1527,7 +1582,11 @@ class ClassMembersNodeBuilder {
                 registerInheritedImplements(extendedMember, {interfaceMember},
                     aliasForTesting: classMember);
               }
+            } else if (noSuchMethodTarget != null) {
+              classMember = interfaceMember;
             } else if (!classBuilder.isAbstract) {
+              assert(!canHaveNoSuchMethodForwarder);
+
               ///    class Mixin {
               ///      method(); // Missing implementation.
               ///    }
@@ -1696,10 +1755,25 @@ class ClassMembersNodeBuilder {
               interfaceMembers.addAll(implementedMembers);
             }
 
+            ClassMember? noSuchMethodTarget;
+            if (canHaveNoSuchMethodForwarder &&
+                (extendedMember == null ||
+                    extendedMember.isNoSuchMethodForwarder)) {
+              ///    class Super {
+              ///      noSuchMethod(_) => null;
+              ///      extendedMember();
+              ///    }
+              ///    class Class extends Super {
+              ///      declaredMethod(); // noSuchMethod forwarder created
+              ///      extendedMember();
+              ///    }
+              noSuchMethodTarget = noSuchMethodMember;
+            }
+
             /// If only one member defines the interface member there is no
             /// need for a synthesized interface member, since its result will
             /// simply be that one member.
-            if (interfaceMembers.length > 1) {
+            if (interfaceMembers.length > 1 || noSuchMethodTarget != null) {
               ///    class Super {
               ///      method() {}
               ///    }
@@ -1718,6 +1792,7 @@ class ClassMembersNodeBuilder {
                   // and it defines the isProperty/forSetter properties
                   // _because_ it is the defining member.
                   canonicalMember: declaredMember,
+                  noSuchMethodTarget: noSuchMethodTarget,
                   isProperty: definingMember.isProperty,
                   forSetter: definingMember.forSetter,
                   shouldModifyKernel: shouldModifyKernel);
@@ -1755,7 +1830,7 @@ class ClassMembersNodeBuilder {
                   isProperty: definingMember.isProperty);
               _membersBuilder.registerMemberComputation(classMember);
 
-              if (!classBuilder.isAbstract) {
+              if (!classBuilder.isAbstract && noSuchMethodTarget == null) {
                 ///    class Super {
                 ///      method() {}
                 ///    }
@@ -1767,7 +1842,11 @@ class ClassMembersNodeBuilder {
                 registerInheritedImplements(extendedMember, {interfaceMember},
                     aliasForTesting: classMember);
               }
+            } else if (noSuchMethodTarget != null) {
+              classMember = interfaceMember;
             } else if (!classBuilder.isAbstract) {
+              assert(!canHaveNoSuchMethodForwarder);
+
               ///    class Class {
               ///      method(); // Missing implementation.
               ///    }
@@ -1838,6 +1917,14 @@ class ClassMembersNodeBuilder {
             // Maybe we should recognize this.
             interfaceMembers.addAll(implementedMembers);
 
+            ClassMember? noSuchMethodTarget;
+            if (extendedMember.isNoSuchMethodForwarder &&
+                !classBuilder.isAbstract &&
+                (userNoSuchMethodMember != null ||
+                    !isNameVisibleIn(name, classBuilder.libraryBuilder))) {
+              noSuchMethodTarget = noSuchMethodMember;
+            }
+
             /// Normally, if only one member defines the interface member there
             /// is no need for a synthesized interface member, since its result
             /// will simply be that one member, but if the extended member is
@@ -1856,7 +1943,8 @@ class ClassMembersNodeBuilder {
             ///    }
             ///
             if (interfaceMembers.length == 1 &&
-                !needsMemberSignatureFor(extendedInterfaceMember)) {
+                !needsMemberSignatureFor(extendedInterfaceMember) &&
+                noSuchMethodTarget == null) {
               ///    class Super {
               ///      method() {}
               ///    }
@@ -1874,6 +1962,7 @@ class ClassMembersNodeBuilder {
               interfaceMember = new SynthesizedInterfaceMember(
                   classBuilder, name, interfaceMembers.toList(),
                   superClassMember: extendedMember,
+                  noSuchMethodTarget: noSuchMethodTarget,
                   isProperty: definingMember.isProperty,
                   forSetter: definingMember.forSetter,
                   shouldModifyKernel: shouldModifyKernel);
@@ -1922,7 +2011,7 @@ class ClassMembersNodeBuilder {
                   isProperty: definingMember.isProperty,
                   forSetter: definingMember.forSetter);
               _membersBuilder.registerMemberComputation(classMember);
-              if (!classBuilder.isAbstract) {
+              if (!classBuilder.isAbstract && noSuchMethodTarget == null) {
                 ///    class Super {
                 ///      method() {}
                 ///    }
@@ -1967,6 +2056,18 @@ class ClassMembersNodeBuilder {
           ///    class Class implements Interface {}
           Set<ClassMember> interfaceMembers = implementedMembers.toSet();
           if (interfaceMembers.isNotEmpty) {
+            ClassMember? noSuchMethodTarget;
+            if (canHaveNoSuchMethodForwarder) {
+              ///    abstract class Interface {
+              ///      implementedMember();
+              ///    }
+              ///    class Class implements Interface {
+              ///      noSuchMethod(_) => null;
+              ///      implementedMember(); // noSuchMethod forwarder created
+              ///    }
+              noSuchMethodTarget = noSuchMethodMember;
+            }
+
             /// Normally, if only one member defines the interface member there
             /// is no need for a synthesized interface member, since its result
             /// will simply be that one member, but if the implemented member is
@@ -1984,7 +2085,8 @@ class ClassMembersNodeBuilder {
             ///    }
             ///
             if (interfaceMembers.length == 1 &&
-                !needsMemberSignatureFor(interfaceMembers.first)) {
+                !needsMemberSignatureFor(interfaceMembers.first) &&
+                noSuchMethodTarget == null) {
               ///    class Interface {
               ///      method() {}
               ///    }
@@ -2000,19 +2102,22 @@ class ClassMembersNodeBuilder {
               ///    class Class implements Interface1, Interface2 {}
               interfaceMember = new SynthesizedInterfaceMember(
                   classBuilder, name, interfaceMembers.toList(),
+                  noSuchMethodTarget: noSuchMethodTarget,
                   isProperty: definingMember.isProperty,
                   forSetter: definingMember.forSetter,
                   shouldModifyKernel: shouldModifyKernel);
               _membersBuilder.registerMemberComputation(interfaceMember);
             }
-            if (!classBuilder.isAbstract) {
+            if (noSuchMethodTarget != null) {
+              classMember = interfaceMember;
+            } else if (!classBuilder.isAbstract) {
+              assert(!canHaveNoSuchMethodForwarder);
+
               ///    class Interface {
               ///      method() {}
               ///    }
               ///    class Class implements Interface {}
-              for (ClassMember abstractMember in interfaceMembers) {
-                registerAbstractMember(abstractMember);
-              }
+              registerAbstractMember(interfaceMember);
             }
           }
         }
@@ -2022,10 +2127,6 @@ class ClassMembersNodeBuilder {
           hasInterfaces = true;
         }
         if (classMember != null) {
-          if (name == noSuchMethodName &&
-              !classMember.isObjectMember(objectClass)) {
-            hasNoSuchMethod = true;
-          }
           classMemberMap[name] = classMember;
           interfaceMember ??= classMember.interfaceMember;
         }
@@ -2213,7 +2314,20 @@ class ClassMembersNodeBuilder {
           }
         }
       }
-    });
+    }
+
+    // Compute the 'noSuchMethod' member first so we know the target for
+    // noSuchMethod forwarders.
+    Tuple? noSuchMethod = memberMap.remove(noSuchMethodName);
+    if (noSuchMethod != null) {
+      // The noSuchMethod is always available - unless Object is not valid.
+      // See for instance pkg/front_end/test/fasta/object_supertype_test.dart
+      computeClassInterfaceMember(noSuchMethodName, noSuchMethod);
+    }
+    noSuchMethodMember = interfaceMemberMap[noSuchMethodName] ??
+        classMemberMap[noSuchMethodName];
+
+    memberMap.forEach(computeClassInterfaceMember);
 
     if (classBuilder is SourceClassBuilder) {
       // TODO(johnniwinther): Avoid duplicate override check computations
@@ -2292,14 +2406,7 @@ class ClassMembersNodeBuilder {
       interfaceSetterMap = null;
     }
 
-    // ignore: unnecessary_null_comparison
-    if (abstractMembers != null && !classBuilder.isAbstract) {
-      if (!hasNoSuchMethod) {
-        reportMissingMembers(abstractMembers);
-      } else {
-        installNsmHandlers();
-      }
-    }
+    reportMissingMembers(abstractMembers);
 
     return new ClassMembersNode(
         classBuilder,
@@ -2308,27 +2415,27 @@ class ClassMembersNodeBuilder {
         classSetterMap,
         interfaceMemberMap,
         interfaceSetterMap,
-        hasNoSuchMethod,
+        userNoSuchMethodMember,
         dataForTesting);
   }
 
   void reportMissingMembers(List<ClassMember> abstractMembers) {
+    if (abstractMembers.isEmpty) return;
+
     Map<String, LocatedMessage> contextMap = <String, LocatedMessage>{};
     for (ClassMember declaration in unfoldDeclarations(abstractMembers)) {
-      if (isNameVisibleIn(declaration.name, classBuilder.libraryBuilder)) {
-        if (classBuilder.isEnum && declaration.classBuilder == classBuilder) {
-          classBuilder.addProblem(messageEnumAbstractMember,
-              declaration.charOffset, declaration.name.text.length);
-        } else {
-          String name = declaration.fullNameForErrors;
-          String className = declaration.classBuilder.fullNameForErrors;
-          String displayName =
-              declaration.isSetter ? "$className.$name=" : "$className.$name";
-          contextMap[displayName] = templateMissingImplementationCause
-              .withArguments(displayName)
-              .withLocation(
-                  declaration.fileUri, declaration.charOffset, name.length);
-        }
+      if (classBuilder.isEnum && declaration.classBuilder == classBuilder) {
+        classBuilder.addProblem(messageEnumAbstractMember,
+            declaration.charOffset, declaration.name.text.length);
+      } else {
+        String name = declaration.fullNameForErrors;
+        String className = declaration.classBuilder.fullNameForErrors;
+        String displayName =
+            declaration.isSetter ? "$className.$name=" : "$className.$name";
+        contextMap[displayName] = templateMissingImplementationCause
+            .withArguments(displayName)
+            .withLocation(
+                declaration.fileUri, declaration.charOffset, name.length);
       }
     }
     if (contextMap.isEmpty) return;
@@ -2343,10 +2450,6 @@ class ClassMembersNodeBuilder {
         classBuilder.charOffset,
         classBuilder.fullNameForErrors.length,
         context: context);
-  }
-
-  void installNsmHandlers() {
-    // TODO(ahe): Implement this.
   }
 }
 
@@ -2376,7 +2479,9 @@ class ClassMembersNode {
   /// This may be null, in which case [classSetters] is the interface setters.
   final Map<Name, ClassMember>? interfaceSetterMap;
 
-  final bool hasNoSuchMethod;
+  /// The user defined noSuchMethod, i.e. not Object.noSuchMethod, if declared
+  /// or inherited.
+  final ClassMember? userNoSuchMethodMember;
 
   final ClassHierarchyNodeDataForTesting? dataForTesting;
 
@@ -2387,7 +2492,7 @@ class ClassMembersNode {
       this.classSetterMap,
       this.interfaceMemberMap,
       this.interfaceSetterMap,
-      this.hasNoSuchMethod,
+      this.userNoSuchMethodMember,
       this.dataForTesting);
 
   @override

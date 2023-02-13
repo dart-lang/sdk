@@ -235,11 +235,17 @@ class Address : public ValueObject {
   };
 
   Address(const Address& other)
-      : ValueObject(), encoding_(other.encoding_), kind_(other.kind_) {}
+      : ValueObject(),
+        encoding_(other.encoding_),
+        kind_(other.kind_),
+        base_(other.base_),
+        offset_(other.offset_) {}
 
   Address& operator=(const Address& other) {
     encoding_ = other.encoding_;
     kind_ = other.kind_;
+    base_ = other.base_;
+    offset_ = other.offset_;
     return *this;
   }
 
@@ -248,8 +254,9 @@ class Address : public ValueObject {
   }
 
   explicit Address(Register rn, int32_t offset = 0, Mode am = Offset) {
-    ASSERT(Utils::MagnitudeIsUint(12, offset));
     kind_ = Immediate;
+    base_ = rn;
+    offset_ = offset;
     if (offset < 0) {
       encoding_ = (am ^ (1 << kUShift)) | -offset;  // Flip U to adjust sign.
     } else {
@@ -328,7 +335,10 @@ class Address : public ValueObject {
     }
   }
 
-  uint32_t encoding() const { return encoding_; }
+  uint32_t encoding() const {
+    ASSERT_IMPLIES(kind_ == Immediate, Utils::MagnitudeIsUint(12, offset_));
+    return encoding_;
+  }
 
   // Encoding for addressing mode 3.
   uint32_t encoding3() const;
@@ -337,10 +347,14 @@ class Address : public ValueObject {
   uint32_t vencoding() const;
 
   OffsetKind kind() const { return kind_; }
+  Register base() const { return base_; }
+  int32_t offset() const { return offset_; }
 
   uint32_t encoding_;
 
   OffsetKind kind_;
+  Register base_;
+  int32_t offset_;
 
   friend class Assembler;
 };
@@ -403,12 +417,14 @@ class Assembler : public AssemblerBase {
   void Jump(const Address& address) { Branch(address); }
 
   void LoadField(Register dst, const FieldAddress& address) override {
-    ldr(dst, address);
+    LoadFromOffset(dst, address);
   }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset);
   }
-  void LoadCompressed(Register dest, const Address& slot) { ldr(dest, slot); }
+  void LoadCompressed(Register dest, const Address& slot) {
+    LoadFromOffset(dest, slot);
+  }
   void LoadCompressedSmi(Register dest, const Address& slot) override;
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     StoreToOffset(src, base, offset);
@@ -416,7 +432,7 @@ class Assembler : public AssemblerBase {
   void LoadAcquire(Register dst,
                    Register address,
                    int32_t offset = 0) override {
-    ldr(dst, Address(address, offset));
+    LoadFromOffset(dst, Address(address, offset));
     dmb();
   }
   void StoreRelease(Register src,
@@ -426,7 +442,7 @@ class Assembler : public AssemblerBase {
   }
   void StoreRelease(Register src, Address dest) {
     dmb();
-    str(src, dest);
+    StoreToOffset(src, dest);
 
     // We don't run TSAN bots on 32 bit.
   }
@@ -439,7 +455,7 @@ class Assembler : public AssemblerBase {
   }
 
   void CompareWithMemoryValue(Register value, Address address) {
-    ldr(TMP, address);
+    LoadFromOffset(TMP, address);
     cmp(value, Operand(TMP));
   }
 
@@ -838,12 +854,17 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     add(dest, dest, Operand(src));
   }
+  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
                  Register src,
                  ScaleFactor scale,
                  int32_t value) {
-    LoadImmediate(dest, value);
-    add(dest, dest, Operand(src, LSL, scale));
+    if (scale == 0) {
+      AddImmediate(dest, src, value);
+    } else {
+      Lsl(dest, src, Operand(scale));
+      AddImmediate(dest, dest, value);
+    }
   }
   void SubImmediate(Register rd,
                     Register rn,
@@ -856,10 +877,25 @@ class Assembler : public AssemblerBase {
   void SubRegisters(Register dest, Register src) {
     sub(dest, dest, Operand(src));
   }
+  void MulImmediate(Register reg,
+                    int32_t imm,
+                    OperandSize width = kFourBytes) override {
+    ASSERT(width == kFourBytes);
+    if (Utils::IsPowerOfTwo(imm)) {
+      LslImmediate(reg, Utils::ShiftForPowerOfTwo(imm));
+    } else {
+      LoadImmediate(TMP, imm);
+      mul(reg, reg, TMP);
+    }
+  }
   void AndImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
   void AndImmediate(Register rd, int32_t imm, Condition cond = AL) {
     AndImmediate(rd, rd, imm, cond);
   }
+  void AndImmediateSetFlags(Register rd,
+                            Register rn,
+                            int32_t value,
+                            Condition cond = AL);
   void AndRegisters(Register dst,
                     Register src1,
                     Register src2 = kNoRegister) override {
@@ -879,6 +915,9 @@ class Assembler : public AssemblerBase {
   }
   void LslImmediate(Register rd, int32_t shift) {
     LslImmediate(rd, rd, shift);
+  }
+  void LslRegister(Register dst, Register shift) override {
+    Lsl(dst, dst, shift);
   }
   void LsrImmediate(Register rd, Register rn, int32_t shift) {
     ASSERT((shift >= 0) && (shift < kBitsPerInt32));
@@ -1044,6 +1083,14 @@ class Assembler : public AssemblerBase {
                                bool can_be_null = false) override;
 
   bool CanLoadFromObjectPool(const Object& object) const;
+
+  Address PrepareLargeLoadOffset(const Address& addr,
+                                 OperandSize sz,
+                                 Condition cond);
+  Address PrepareLargeStoreOffset(const Address& addr,
+                                  OperandSize sz,
+                                  Condition cond);
+
   void LoadFromOffset(Register reg,
                       const Address& address,
                       OperandSize type,
@@ -1057,19 +1104,21 @@ class Assembler : public AssemblerBase {
                       Register base,
                       int32_t offset,
                       OperandSize type = kFourBytes,
-                      Condition cond = AL);
+                      Condition cond = AL) {
+    LoadFromOffset(reg, Address(base, offset), type, cond);
+  }
   void LoadFieldFromOffset(Register reg,
                            Register base,
                            int32_t offset,
                            OperandSize sz = kFourBytes) override {
-    LoadFieldFromOffset(reg, base, offset, sz, AL);
+    LoadFromOffset(reg, FieldAddress(base, offset), sz, AL);
   }
   void LoadFieldFromOffset(Register reg,
                            Register base,
                            int32_t offset,
                            OperandSize type,
                            Condition cond) {
-    LoadFromOffset(reg, base, offset - kHeapObjectTag, type, cond);
+    LoadFromOffset(reg, FieldAddress(base, offset), type, cond);
   }
   void LoadCompressedFieldFromOffset(Register reg,
                                      Register base,
@@ -1119,17 +1168,19 @@ class Assembler : public AssemblerBase {
                      Register base,
                      int32_t offset,
                      OperandSize type = kFourBytes,
-                     Condition cond = AL);
+                     Condition cond = AL) {
+    StoreToOffset(reg, Address(base, offset), type, cond);
+  }
   void StoreFieldToOffset(Register reg,
                           Register base,
                           int32_t offset,
                           OperandSize type = kFourBytes,
                           Condition cond = AL) {
-    StoreToOffset(reg, base, offset - kHeapObjectTag, type, cond);
+    StoreToOffset(reg, FieldAddress(base, offset), type, cond);
   }
   void StoreZero(const Address& address, Register temp) {
     mov(temp, Operand(0));
-    str(temp, address);
+    StoreToOffset(temp, address);
   }
   void LoadSFromOffset(SRegister reg,
                        Register base,
@@ -1327,12 +1378,20 @@ class Assembler : public AssemblerBase {
   // For ARM, the near argument is ignored.
   void BranchIfSmi(Register reg,
                    Label* label,
-                   JumpDistance distance = kFarJump) {
+                   JumpDistance distance = kFarJump) override {
     tst(reg, Operand(kSmiTagMask));
     b(label, EQ);
   }
 
   void CheckCodePointer();
+
+  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void CompareWords(Register reg1,
+                    Register reg2,
+                    intptr_t offset,
+                    Register count,
+                    Register temp,
+                    Label* equals) override;
 
   // Function frame setup and tear down.
   void EnterFrame(RegList regs, intptr_t frame_space);
@@ -1396,6 +1455,11 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
+
+  void CombineHashes(Register dst, Register other) override;
+  void FinalizeHashForSize(intptr_t bit_size,
+                           Register dst,
+                           Register scratch = TMP) override;
 
   // The register into which the allocation tracing state table is loaded with
   // LoadAllocationTracingStateAddress should be passed to MaybeTraceAllocation.
@@ -1540,7 +1604,7 @@ class Assembler : public AssemblerBase {
   // beginning of the branch instruction.
   //
   // Use this function for testing whether [distance] can be encoded using the
-  // 24-bit offets in the branch instructions, which are multiples of 4.
+  // 24-bit offsets in the branch instructions, which are multiples of 4.
   static bool CanEncodeBranchDistance(int32_t distance) {
     ASSERT(Utils::IsAligned(distance, 4));
     // The distance is off by 8 due to the way the ARM CPUs read PC.

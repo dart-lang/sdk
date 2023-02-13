@@ -52,6 +52,14 @@ ClassTable::ClassTable(ClassTableAllocator* allocator)
 }
 
 ClassTable::~ClassTable() {
+#if !defined(PRODUCT)
+  for (intptr_t i = 1; i < classes_.num_cids(); i++) {
+    const char* name = UserVisibleNameFor(i);
+    if (name != nullptr) {
+      free(const_cast<char*>(name));
+    }
+  }
+#endif  // !defined(PRODUCT)
 }
 
 void ClassTable::Register(const Class& cls) {
@@ -68,6 +76,9 @@ void ClassTable::Register(const Class& cls) {
   cls.set_id(cid);
   classes_.At<kClassIndex>(cid) = cls.ptr();
   classes_.At<kSizeIndex>(cid) = static_cast<int32_t>(instance_size);
+#if !defined(PRODUCT)
+  classes_.At<kClassNameIndex>(cid) = nullptr;
+#endif  // !defined(PRODUCT)
 
   if (did_grow) {
     IsolateGroup::Current()->set_cached_class_table_table(
@@ -264,6 +275,17 @@ void ClassTable::PrintObjectLayout(const char* filename) {
 #endif  // defined(DART_PRECOMPILER)
 
 #ifndef PRODUCT
+
+void ClassTable::PopulateUserVisibleNames() {
+  Class& cls = Class::Handle();
+  for (intptr_t i = 0; i < classes_.num_cids(); ++i) {
+    if (HasValidClassAt(i) && UserVisibleNameFor(i) == nullptr) {
+      cls = At(i);
+      cls.SetUserVisibleNameInClassTable();
+    }
+  }
+}
+
 void ClassTable::PrintToJSONObject(JSONObject* object) {
   Class& cls = Class::Handle();
   object->AddProperty("type", "ClassList");

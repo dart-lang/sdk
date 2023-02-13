@@ -22,11 +22,6 @@ library /*isNonNullableByDefault*/;
 // FutureOr<int> returnAsync3() async {} // error
 //               ^
 //
-// pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
-//  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
-// Enum caseReturn2(Enum e) /* error */ {
-//      ^
-//
 // pkg/front_end/testcases/nnbd/return_null.dart:63:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
 //   String returnImplicit() /* error */ {
 //   ^
@@ -45,11 +40,6 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/nnbd/return_null.dart:83:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
 //   FutureOr<int> returnAsync3() async {} // error
-//   ^
-//
-// pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
-//  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
-//   Enum caseReturn2(Enum e) /* error */ {
 //   ^
 //
 import self as self;
@@ -107,34 +97,34 @@ static method returnAsync7() → asy::Future<core::int?> async /* futureValueTyp
 static method yieldSync() → core::Iterable<dynamic> sync* {}
 static method yieldAsync() → asy::Stream<dynamic> async* {}
 static method caseReturn1(self::Enum e) → self::Enum {
-  switch(e) /*isExplicitlyExhaustive*/ {
-    #L1:
-    case #C3:
+  #L1:
+  {
+    final self::Enum #0#0 = e;
+    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return e;
       }
-    #L2:
-    case #C6:
-      {
-        return e;
+    }
+    else
+      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return e;
+        }
       }
   }
 }
 static method caseReturn2(self::Enum e) → self::Enum {
-  switch(e) {
-    #L3:
-    case #C3:
+  #L2:
+  {
+    final self::Enum #0#0 = e;
+    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return e;
       }
-    #L4:
-    default:
-      {}
+    }
+    else {
+    }
   }
-  return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
- - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
-Enum caseReturn2(Enum e) /* error */ {
-     ^" in null;
 }
 static method localFunctions() → dynamic {
   function returnImplicit() → core::String {
@@ -176,34 +166,34 @@ static method localFunctions() → dynamic {
   function yieldSync() → core::Iterable<dynamic> sync* {}
   function yieldAsync() → asy::Stream<dynamic> async* {}
   function caseReturn1(self::Enum e) → self::Enum {
-    switch(e) /*isExplicitlyExhaustive*/ {
-      #L5:
-      case #C3:
+    #L3:
+    {
+      final self::Enum #0#0 = e;
+      if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
         {
           return e;
         }
-      #L6:
-      case #C6:
-        {
-          return e;
+      }
+      else
+        if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+          {
+            return e;
+          }
         }
     }
   }
   function caseReturn2(self::Enum e) → self::Enum {
-    switch(e) {
-      #L7:
-      case #C3:
+    #L4:
+    {
+      final self::Enum #1#0 = e;
+      if(#C3 =={core::Object::==}{(core::Object) → core::bool} #1#0) {
         {
           return e;
         }
-      #L8:
-      default:
-        {}
+      }
+      else {
+      }
     }
-    return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
- - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
-  Enum caseReturn2(Enum e) /* error */ {
-  ^" in null;
   }
   core::bool b = false;
   core::int? local1 = (() → core::int? {

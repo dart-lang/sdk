@@ -281,6 +281,13 @@ void Expect::Null(const T p) {
     }                                                                          \
   } while (false)
 
+#define ASSERT_IMPLIES(antecedent, consequent)                                 \
+  do {                                                                         \
+    if (antecedent) {                                                          \
+      ASSERT(consequent);                                                      \
+    }                                                                          \
+  } while (false)
+
 // DEBUG_ASSERT allows identifiers in condition to be undeclared in release
 // mode.
 #define DEBUG_ASSERT(cond) ASSERT(cond)
@@ -300,7 +307,11 @@ void Expect::Null(const T p) {
 
 #define ASSERT_EQUAL(expected, actual)                                         \
   do {                                                                         \
-  } while (false && (expected) != (actual))
+  } while (false && ((expected) != (actual)))
+
+#define ASSERT_IMPLIES(antecedent, consequent)                                 \
+  do {                                                                         \
+  } while (false && (!(antecedent) || (consequent)))
 
 #define DEBUG_ASSERT(cond)
 

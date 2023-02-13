@@ -28,13 +28,13 @@ class FDUtils {
   static intptr_t AvailableBytes(intptr_t fd);
 
   // Reads the requested number of bytes from a file descriptor. This
-  // function will only return on short reads if an error occours in
+  // function will only return on short reads if an error occurs in
   // which case it returns -1 and errno is still valid. The file
   // descriptor must be in blocking mode.
   static ssize_t ReadFromBlocking(int fd, void* buffer, size_t count);
 
   // Writes the requested number of bytes to a file descriptor. This
-  // function will only return on short writes if an error occours in
+  // function will only return on short writes if an error occurs in
   // which case it returns -1 and errno is still valid. The file
   // descriptor must be in blocking mode.
   static ssize_t WriteToBlocking(int fd, const void* buffer, size_t count);

@@ -31,6 +31,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -59,6 +60,10 @@ import 'package:watcher/watcher.dart';
 class LspAnalysisServer extends AnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? _clientCapabilities;
+
+  /// Information about the connected client. Will be null prior to
+  /// initialization or if the client did not provide it.
+  InitializeParamsClientInfo? _clientInfo;
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
@@ -167,8 +172,10 @@ class LspAnalysisServer extends AnalysisServer {
 
     _channelSubscription =
         channel.listen(handleMessage, onDone: done, onError: socketError);
-    _pluginChangeSubscription =
-        pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
+    if (AnalysisServer.supportsPlugins) {
+      _pluginChangeSubscription =
+          pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
+    }
   }
 
   /// A [Future] that completes when any in-progress analysis context rebuild
@@ -179,13 +186,40 @@ class LspAnalysisServer extends AnalysisServer {
   Future<void> get analysisContextsRebuilt =>
       _analysisContextRebuildCompleter.future;
 
+  /// The hosted location of the client application.
+  ///
+  /// This information is not part of the LSP spec so is only provided for
+  /// clients extensions that add it to initialization options explicitly
+  /// (such as Dart-Code for VS Code where it comes from 'env.appHost').
+  ///
+  /// This value is usually 'desktop' for desktop installs and for web will be
+  /// the name of the web embedder if provided (such as 'github.dev' or
+  /// 'codespaces'), else 'web'.
+  String? get clientAppHost => _initializationOptions?.appHost;
+
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? get clientCapabilities => _clientCapabilities;
+
+  /// The capabilities of the LSP client. Will be null prior to initialization.
+  InitializeParamsClientInfo? get clientInfo => _clientInfo;
+
+  /// The name of the remote when the client is running using a remote workspace.
+  ///
+  /// This information is not part of the LSP spec so is only provided for
+  /// clients extensions that add it to initialization options explicitly
+  /// (such as Dart-Code for VS Code where it comes from 'env.remoteName').
+  ///
+  /// This value is `null` for local workspaces and will contain a string such
+  /// as 'ssh-remote' or 'wsl' for remote workspaces.
+  String? get clientRemoteName => _initializationOptions?.remoteName;
 
   Future<void> get exited => channel.closed;
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
-  /// specific server functionality. Will be null prior to initialization.
+  /// specific server functionality. This getter is for convenience and will
+  /// throw if accessed prior to initialization.
+  /// TODO(dantup): Make this nullable and review all uses of it to ensure
+  ///  there aren't potential errors here.
   LspInitializationOptions get initializationOptions =>
       _initializationOptions as LspInitializationOptions;
 
@@ -195,16 +229,23 @@ class LspAnalysisServer extends AnalysisServer {
 
   @override
   set pluginManager(PluginManager value) {
-    // we exchange the plugin manager in tests
-    super.pluginManager = value;
-    _pluginChangeSubscription?.cancel();
+    if (AnalysisServer.supportsPlugins) {
+      // we exchange the plugin manager in tests
+      super.pluginManager = value;
+      _pluginChangeSubscription?.cancel();
 
-    _pluginChangeSubscription =
-        pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
+      _pluginChangeSubscription =
+          pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
+    }
   }
 
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
       RefactoringWorkspace(driverMap.values, searchEngine);
+
+  /// Whether or not the client has advertised support for
+  /// 'window/showMessageRequest'.
+  bool get supportsShowMessageRequest =>
+      clientCapabilities?.supportsShowMessageRequest ?? false;
 
   Future<void> addPriorityFile(String filePath) async {
     // When pubspecs are opened, trigger pre-loading of pub package names and
@@ -317,8 +358,12 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void handleClientConnection(
-      ClientCapabilities capabilities, dynamic initializationOptions) {
+    ClientCapabilities capabilities,
+    InitializeParamsClientInfo? clientInfo,
+    Object? initializationOptions,
+  ) {
     _clientCapabilities = LspClientCapabilities(capabilities);
+    _clientInfo = clientInfo;
     _initializationOptions = LspInitializationOptions(initializationOptions);
 
     performanceAfterStartup = ServerPerformance();
@@ -358,7 +403,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Handle a [message] that was read from the communication channel.
   void handleMessage(Message message) {
-    var startTime = DateTime.now();
+    final startTime = DateTime.now();
     performance.logRequestTiming(message.clientRequestTime);
     runZonedGuarded(() async {
       try {
@@ -366,14 +411,16 @@ class LspAnalysisServer extends AnalysisServer {
           handleClientResponse(message);
         } else if (message is IncomingMessage) {
           // Record performance information for the request.
-          final performance = OperationPerformanceImpl('<root>');
-          await performance.runAsync('request', (performance) async {
-            final requestPerformance = RequestPerformance(
+          final rootPerformance = OperationPerformanceImpl('<root>');
+          RequestPerformance? requestPerformance;
+          await rootPerformance.runAsync('request', (performance) async {
+            requestPerformance = RequestPerformance(
               operation: message.method.toString(),
               performance: performance,
               requestLatency: message.timeSinceRequest,
+              startTime: startTime,
             );
-            recentPerformance.requests.add(requestPerformance);
+            recentPerformance.requests.add(requestPerformance!);
 
             final messageInfo = MessageInfo(
               performance: performance,
@@ -394,6 +441,11 @@ class LspAnalysisServer extends AnalysisServer {
               showErrorMessageToUser('Unknown incoming message type');
             }
           });
+          if (requestPerformance != null &&
+              requestPerformance!.performance.elapsed >
+                  ServerRecentPerformance.slowRequestsThreshold) {
+            recentPerformance.slowRequests.add(requestPerformance!);
+          }
         } else {
           showErrorMessageToUser('Unknown message type');
         }
@@ -718,7 +770,9 @@ class LspAnalysisServer extends AnalysisServer {
   /// given absolute path.
   bool shouldSendFlutterOutlineFor(String file) {
     // Outlines should only be sent for open (priority) files in the workspace.
-    return initializationOptions.flutterOutline && priorityFiles.contains(file);
+    return initializationOptions.flutterOutline &&
+        priorityFiles.contains(file) &&
+        _isInFlutterProject(file);
   }
 
   /// Returns `true` if outlines should be sent for [file] with the given
@@ -740,15 +794,53 @@ class LspAnalysisServer extends AnalysisServer {
     ));
   }
 
-  /// Shows the user a prompt with some actions to select using ShowMessageRequest.
-  Future<MessageActionItem> showUserPrompt(
-      MessageType type, String message, List<MessageActionItem> actions) async {
+  /// Shows the user a prompt with some actions to select from using
+  /// 'window/showMessageRequest'.
+  ///
+  /// Callers should verify the client supports 'window/showMessageRequest' with
+  /// [supportsShowMessageRequest] before calling this, and handle cases where
+  /// it is not appropriately.
+  ///
+  /// This is just a convenience method over [showUserPromptItems] where only
+  /// title strings are used.
+  Future<String?> showUserPrompt(
+    MessageType type,
+    String message,
+    List<String> actions,
+  ) async {
+    assert(supportsShowMessageRequest);
+    final response = await showUserPromptItems(
+      type,
+      message,
+      actions.map((title) => MessageActionItem(title: title)).toList(),
+    );
+    return response?.title;
+  }
+
+  /// Shows the user a prompt with some actions to select from using
+  /// 'window/showMessageRequest'.
+  ///
+  /// Callers should verify the client supports 'window/showMessageRequest' with
+  /// [supportsShowMessageRequest] before calling this, and handle cases where
+  /// it is not appropriately.
+  ///
+  /// For simple cases, [showUserPrompt] provides a slightly simpler API using
+  /// [String]s instead of [MessageActionItem]s.
+  Future<MessageActionItem?> showUserPromptItems(
+    MessageType type,
+    String message,
+    List<MessageActionItem> actions,
+  ) async {
+    assert(supportsShowMessageRequest);
     final response = await sendRequest(
       Method.window_showMessageRequest,
       ShowMessageRequestParams(type: type, message: message, actions: actions),
     );
 
-    return MessageActionItem.fromJson(response.result as Map<String, Object?>);
+    final result = response.result;
+    return result != null
+        ? MessageActionItem.fromJson(response.result as Map<String, Object?>)
+        : null;
   }
 
   @override
@@ -858,11 +950,23 @@ class LspAnalysisServer extends AnalysisServer {
     }
   }
 
+  /// Checks whether [file] is in a project that can resolve 'package:flutter'
+  /// libraries.
+  bool _isInFlutterProject(String file) =>
+      contextManager
+          .getDriverFor(file)
+          ?.currentSession
+          .uriConverter
+          .uriToPath(Uri.parse(Flutter.instance.widgetsUri)) !=
+      null;
+
   void _notifyPluginsOverlayChanged(
       String path, plugin.HasToJson changeForPlugins) {
-    pluginManager.setAnalysisUpdateContentParams(
-      plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
-    );
+    if (AnalysisServer.supportsPlugins) {
+      pluginManager.setAnalysisUpdateContentParams(
+        plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
+      );
+    }
   }
 
   void _onPluginsChanged() {
@@ -912,18 +1016,20 @@ class LspAnalysisServer extends AnalysisServer {
       driver.priorityFiles = priorityFilesList;
     }
 
-    final pluginPriorities =
-        plugin.AnalysisSetPriorityFilesParams(priorityFilesList);
-    pluginManager.setAnalysisSetPriorityFilesParams(pluginPriorities);
+    if (AnalysisServer.supportsPlugins) {
+      final pluginPriorities =
+          plugin.AnalysisSetPriorityFilesParams(priorityFilesList);
+      pluginManager.setAnalysisSetPriorityFilesParams(pluginPriorities);
 
-    // Plugins send most of their analysis results via notifications, but with
-    // LSP we're supposed to have them available per request. Assume that we'll
-    // only receive requests for files that are currently open.
-    final pluginSubscriptions = plugin.AnalysisSetSubscriptionsParams({
-      for (final service in plugin.AnalysisService.VALUES)
-        service: priorityFilesList,
-    });
-    pluginManager.setAnalysisSetSubscriptionsParams(pluginSubscriptions);
+      // Plugins send most of their analysis results via notifications, but with
+      // LSP we're supposed to have them available per request. Assume that
+      // we'll only receive requests for files that are currently open.
+      final pluginSubscriptions = plugin.AnalysisSetSubscriptionsParams({
+        for (final service in plugin.AnalysisService.VALUES)
+          service: priorityFilesList,
+      });
+      pluginManager.setAnalysisSetSubscriptionsParams(pluginSubscriptions);
+    }
 
     notificationManager.setSubscriptions({
       for (final service in protocol.AnalysisService.VALUES)
@@ -933,6 +1039,9 @@ class LspAnalysisServer extends AnalysisServer {
 }
 
 class LspInitializationOptions {
+  final Map<String, Object?> raw;
+  final String? appHost;
+  final String? remoteName;
   final bool onlyAnalyzeProjectsWithOpenFiles;
   final bool suggestFromUnimportedLibraries;
   final bool closingLabels;
@@ -940,19 +1049,26 @@ class LspInitializationOptions {
   final bool flutterOutline;
   final int? completionBudgetMilliseconds;
 
-  LspInitializationOptions(dynamic options)
-      : onlyAnalyzeProjectsWithOpenFiles = options != null &&
+  factory LspInitializationOptions(Object? options) =>
+      LspInitializationOptions._(
+        options is Map<String, Object?> ? options : const {},
+      );
+
+  LspInitializationOptions._(Map<String, Object?> options)
+      : raw = options,
+        appHost = options['appHost'] as String?,
+        remoteName = options['remoteName'] as String?,
+        onlyAnalyzeProjectsWithOpenFiles =
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
         // suggestFromUnimportedLibraries defaults to true, so must be
         // explicitly passed as false to disable.
-        suggestFromUnimportedLibraries = options == null ||
+        suggestFromUnimportedLibraries =
             options['suggestFromUnimportedLibraries'] != false,
-        closingLabels = options != null && options['closingLabels'] == true,
-        outline = options != null && options['outline'] == true,
-        flutterOutline = options != null && options['flutterOutline'] == true,
-        completionBudgetMilliseconds = options != null
-            ? options['completionBudgetMilliseconds'] as int?
-            : null;
+        closingLabels = options['closingLabels'] == true,
+        outline = options['outline'] == true,
+        flutterOutline = options['flutterOutline'] == true,
+        completionBudgetMilliseconds =
+            options['completionBudgetMilliseconds'] as int?;
 }
 
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
@@ -997,7 +1113,9 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   void broadcastWatchEvent(WatchEvent event) {
     analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    analysisServer.pluginManager.broadcastWatchEvent(event);
+    if (AnalysisServer.supportsPlugins) {
+      analysisServer.pluginManager.broadcastWatchEvent(event);
+    }
   }
 
   @override

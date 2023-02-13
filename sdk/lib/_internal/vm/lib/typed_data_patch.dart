@@ -2156,8 +2156,11 @@ abstract class _TypedList extends _TypedListBase {
   @pragma("vm:external-name", "TypedData_SetInt32x4")
   external void _setInt32x4(int offsetInBytes, Int32x4 value);
 
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "TypedData_GetFloat64x2")
   external Float64x2 _getFloat64x2(int offsetInBytes);
+  @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "TypedData_SetFloat64x2")
   external void _setFloat64x2(int offsetInBytes, Float64x2 value);
 
@@ -5103,6 +5106,23 @@ class _ByteDataView implements ByteData {
     }
     // TODO(johnmccutchan) : Need to resolve this for endianity.
     _typedData._setFloat32x4(offsetInBytes + byteOffset, value);
+  }
+
+  Float64x2 getFloat64x2(int byteOffset, [Endian endian = Endian.big]) {
+    if (byteOffset < 0 || byteOffset + 15 >= length) {
+      throw new RangeError.range(byteOffset, 0, length - 15, "byteOffset");
+    }
+    // TODO(johnmccutchan) : Need to resolve this for endianity.
+    return _typedData._getFloat64x2(offsetInBytes + byteOffset);
+  }
+
+  void setFloat64x2(int byteOffset, Float64x2 value,
+      [Endian endian = Endian.big]) {
+    if (byteOffset < 0 || byteOffset + 15 >= length) {
+      throw new RangeError.range(byteOffset, 0, length - 15, "byteOffset");
+    }
+    // TODO(johnmccutchan) : Need to resolve this for endianity.
+    _typedData._setFloat64x2(offsetInBytes + byteOffset, value);
   }
 
   @pragma("vm:recognized", "other")

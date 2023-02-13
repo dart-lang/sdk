@@ -22,6 +22,9 @@ class ReplaceIfElseWithConditional extends CorrectionProducer {
       return;
     }
     var ifStatement = node as IfStatement;
+    if (ifStatement.caseClause != null) {
+      return;
+    }
     // single then/else statements
     var thenStatement = getSingleStatement(ifStatement.thenStatement);
     var elseStatement = getSingleStatement(ifStatement.elseStatement);

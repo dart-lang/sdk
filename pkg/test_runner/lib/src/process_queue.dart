@@ -170,7 +170,7 @@ class ProcessQueue {
       setupForRunning(testCaseEnqueuer);
     }
 
-    // Start enqueing all TestCases
+    // Start enqueuing all TestCases
     testCaseEnqueuer.enqueueTestSuites(testSuites);
   }
 
@@ -349,7 +349,7 @@ class CommandEnqueuer {
 /// [CommandOutput]s for the finished commands.
 ///
 /// It provides a [done] future, which will complete once there are no more
-/// nodes left in the states Initialized/Waiting/Enqueing/Processing
+/// nodes left in the states Initialized/Waiting/Enqueuing/Processing
 /// and the [executor] has cleaned up its resources.
 class CommandQueue {
   final Graph<Command> graph;
@@ -433,7 +433,7 @@ class CommandQueue {
         assert(command == output.command);
 
         _commandOutputStream.add(output);
-        if (output.canRunDependendCommands) {
+        if (output.canRunDependentCommands) {
           graph.changeState(node, NodeState.successful);
         } else {
           graph.changeState(node, NodeState.failed);

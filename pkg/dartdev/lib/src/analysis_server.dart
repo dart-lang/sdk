@@ -94,7 +94,8 @@ class AnalysisServer {
 
   final Map<String, Completer<Map<String, dynamic>>> _requestCompleters = {};
 
-  Future<void> start({bool setAnalysisRoots = true}) async {
+  /// Starts the process and returns the pid for it.
+  Future<int> start({bool setAnalysisRoots = true}) async {
     preAnalysisServerStart?.call(commandName, analysisRoots, argResults);
     final command = [
       sdk.analysisServerSnapshot,
@@ -186,6 +187,8 @@ class AnalysisServer {
         'excluded': [],
       });
     }
+
+    return process.pid;
   }
 
   Future<String> getVersion() {

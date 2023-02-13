@@ -384,12 +384,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  void writeViewNodeList(List<View> nodes) {
+  void writeInlineClassNodeList(List<InlineClass> nodes) {
     final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final View node = nodes[i];
-      writeViewNode(node);
+      final InlineClass node = nodes[i];
+      writeInlineClassNode(node);
     }
   }
 
@@ -495,7 +495,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     node.accept(this);
   }
 
-  void writeViewNode(View node) {
+  void writeInlineClassNode(InlineClass node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -1126,7 +1126,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeClassNodeList(node.classes);
     classOffsets.add(getBufferOffset());
     writeExtensionNodeList(node.extensions);
-    writeViewNodeList(node.views);
+    writeInlineClassNodeList(node.inlineClasses);
     writeFieldNodeList(node.fields);
     procedureOffsets = <int>[];
     writeProcedureNodeList(node.procedures);
@@ -1273,7 +1273,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
 
-    writeByte(node.flags);
+    writeUInt30(node.flags);
     writeStringReference(node.name);
 
     enterScope(memberScope: true);
@@ -2466,12 +2466,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitViewType(ViewType node) {
-    writeByte(Tag.ViewType);
+  void visitInlineType(InlineType node) {
+    writeByte(Tag.InlineType);
     writeByte(node.nullability.index);
-    writeNonNullReference(node.viewReference);
+    writeNonNullReference(node.inlineClassReference);
     writeNodeList(node.typeArguments);
-    writeNode(node.representationType);
+    writeNode(node.instantiatedRepresentationType);
   }
 
   @override
@@ -2655,12 +2655,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitView(View node) {
+  void visitInlineClass(InlineClass node) {
     CanonicalName? canonicalName = node.reference.canonicalName;
     if (canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
-    writeByte(Tag.View);
+    writeByte(Tag.InlineClass);
     _writeNonNullCanonicalName(canonicalName);
     writeStringReference(node.name);
     writeAnnotationList(node.annotations);
@@ -2670,13 +2670,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
-    writeDartType(node.representationType);
+    writeDartType(node.declaredRepresentationType);
+    writeStringReference(node.name);
     leaveScope(typeParameters: node.typeParameters);
 
     final int len = node.members.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final ViewMemberDescriptor descriptor = node.members[i];
+      final InlineClassMemberDescriptor descriptor = node.members[i];
       writeName(descriptor.name);
       writeByte(descriptor.kind.index);
       writeByte(descriptor.flags);
@@ -2783,8 +2784,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitViewReference(View node) {
-    throw new UnsupportedError('serialization of View references');
+  void visitInlineClassReference(InlineClass node) {
+    throw new UnsupportedError('serialization of InlineClass references');
   }
 
   @override

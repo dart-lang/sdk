@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of view;
 
 typedef SelectHandler = void Function(String menuText);
@@ -14,13 +12,13 @@ class SliderMenu extends View {
   static const int TRIANGLE_WIDTH = 24;
 
   // currently selected menu item
-  Element selectedItem;
+  Element? selectedItem;
 
   // This holds the element where a touchstart occurred.  (This is set
   // in touchstart, and cleared in touchend.)  If this is null, then a
   // touch operation is not in progress.
   // TODO(mattsh) - move this to a touch mixin
-  Element touchItem;
+  Element? touchItem;
 
   /// Callback function that we call when the user chooses something from
   /// the menu.  This is passed the menu item text.
@@ -60,26 +58,26 @@ class SliderMenu extends View {
     // Ideally, enterDocument should do nothing more than redecorate a view
     // and perhaps calculating the correct child sizes for edge cases that
     // cannot be handled by the browser layout engine.
-    selectItem(node.querySelector('.sm-item'), false);
+    selectItem(node.querySelector('.sm-item')!, false);
 
     // TODO(mattsh), abstract this somehow into a touch click mixin
     if (Device.supportsTouch) {
       node.onTouchStart.listen((event) {
         touchItem = itemOfTouchEvent(event);
         if (touchItem != null) {
-          selectItemText(touchItem);
+          selectItemText(touchItem!);
         }
         event.preventDefault();
       });
       node.onTouchEnd.listen((event) {
         if (touchItem != null) {
           if (itemOfTouchEvent(event) == touchItem) {
-            selectItem(touchItem, true);
+            selectItem(touchItem!, true);
           } else {
             // the Touch target is somewhere other where than the touchstart
             // occurred, so revert the selected menu text back to where it was
             // before the touchstart,
-            selectItemText(selectedItem);
+            selectItemText(selectedItem!);
           }
           // touch operation has ended
           touchItem = null;
@@ -87,7 +85,7 @@ class SliderMenu extends View {
         event.preventDefault();
       });
     } else {
-      node.onClick.listen((event) => selectItem(event.target, true));
+      node.onClick.listen((event) => selectItem(event.target as Element, true));
     }
 
     window.onResize.listen((Event event) => updateIndicator(false));
@@ -95,12 +93,12 @@ class SliderMenu extends View {
 
   /// Walks the parent chain of the first Touch target to find the first ancestor
   /// that has sm-item class.
-  Element itemOfTouchEvent(event) {
+  Element? itemOfTouchEvent(event) {
     Node node = event.changedTouches[0].target;
     return itemOfNode(node);
   }
 
-  Element itemOfNode(Node node) {
+  Element? itemOfNode(Node? node) {
     // TODO(jmesserly): workaround for bug 5399957, document.parent == document
     while (node != null && node != document) {
       if (node is Element) {
@@ -132,18 +130,18 @@ class SliderMenu extends View {
     selectedItem = item;
     selectItemText(item);
     updateIndicator(animate);
-    onSelect(item.text);
+    onSelect(item.text!);
   }
 
   void selectNext(bool animate) {
-    final result = node.querySelector('.sm-item.sel').nextElementSibling;
+    final result = node.querySelector('.sm-item.sel')!.nextElementSibling;
     if (result != null) {
       selectItem(result, animate);
     }
   }
 
   void selectPrevious(bool animate) {
-    final result = node.querySelector('.sm-item.sel').previousElementSibling;
+    final result = node.querySelector('.sm-item.sel')!.previousElementSibling;
     if (result != null) {
       selectItem(result, animate);
     }
@@ -154,8 +152,8 @@ class SliderMenu extends View {
     if (selectedItem != null) {
       // calculate where we want to put the triangle
       scheduleMicrotask(() {
-        num x = selectedItem.offset.left +
-            selectedItem.offset.width / 2 -
+        num x = selectedItem!.offset.left +
+            selectedItem!.offset.width / 2 -
             TRIANGLE_WIDTH / 2;
         _moveIndicator(x, animate);
       });
@@ -168,7 +166,7 @@ class SliderMenu extends View {
     // find the slider filler (the div element to the left of the
     // triangle) set its width the push the triangle to where we want it.
     String duration = animate ? '.3s' : '0s';
-    final triangle = node.querySelector('.sm-triangle');
+    final triangle = node.querySelector('.sm-triangle')!;
     triangle.style.transitionDuration = duration;
     FxUtil.setWebkitTransform(triangle, x, 0);
   }

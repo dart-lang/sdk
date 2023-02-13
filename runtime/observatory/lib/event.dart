@@ -9,95 +9,63 @@ import 'package:observatory/service.dart' as S;
 class VMUpdateEvent implements M.VMUpdateEvent {
   final DateTime timestamp;
   final M.VMRef vm;
-  VMUpdateEvent(this.timestamp, this.vm) {
-    assert(timestamp != null);
-    assert(vm != null);
-  }
+  VMUpdateEvent(this.timestamp, this.vm);
 }
 
 class IsolateStartEvent implements M.IsolateStartEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  IsolateStartEvent(this.timestamp, this.isolate) {
-    assert(timestamp != null);
-    assert(isolate != null);
-  }
+  IsolateStartEvent(this.timestamp, this.isolate);
 }
 
 class IsolateRunnableEvent implements M.IsolateRunnableEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  IsolateRunnableEvent(this.timestamp, this.isolate) {
-    assert(timestamp != null);
-    assert(isolate != null);
-  }
+  IsolateRunnableEvent(this.timestamp, this.isolate);
 }
 
 class IsolateExitEvent implements M.IsolateExitEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  IsolateExitEvent(this.timestamp, this.isolate) {
-    assert(timestamp != null);
-    assert(isolate != null);
-  }
+  IsolateExitEvent(this.timestamp, this.isolate);
 }
 
 class IsolateUpdateEvent implements M.IsolateUpdateEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  IsolateUpdateEvent(this.timestamp, this.isolate) {
-    assert(timestamp != null);
-    assert(isolate != null);
-  }
+  IsolateUpdateEvent(this.timestamp, this.isolate);
 }
 
 class IsolateReloadEvent implements M.IsolateReloadEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
   final M.ErrorRef error;
-  IsolateReloadEvent(this.timestamp, this.isolate, this.error) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(error != null);
-  }
+  IsolateReloadEvent(this.timestamp, this.isolate, this.error);
 }
 
 class ServiceExtensionAddedEvent implements M.ServiceExtensionAddedEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
   final String extensionRPC;
-  ServiceExtensionAddedEvent(this.timestamp, this.isolate, this.extensionRPC) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(extensionRPC != null);
-  }
+  ServiceExtensionAddedEvent(this.timestamp, this.isolate, this.extensionRPC);
 }
 
 class DebuggerSettingsUpdateEvent implements M.DebuggerSettingsUpdateEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  DebuggerSettingsUpdateEvent(this.timestamp, this.isolate) {
-    assert(timestamp != null);
-    assert(isolate != null);
-  }
+  DebuggerSettingsUpdateEvent(this.timestamp, this.isolate);
 }
 
 class PauseStartEvent implements M.PauseStartEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  PauseStartEvent(this.timestamp, this.isolate) {
-    assert(timestamp != null);
-    assert(isolate != null);
-  }
+  PauseStartEvent(this.timestamp, this.isolate);
 }
 
 class PauseExitEvent implements M.PauseExitEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  PauseExitEvent(this.timestamp, this.isolate) {
-    assert(timestamp != null);
-    assert(isolate != null);
-  }
+  PauseExitEvent(this.timestamp, this.isolate);
 }
 
 class PauseBreakpointEvent implements M.PauseBreakpointEvent {
@@ -116,13 +84,7 @@ class PauseBreakpointEvent implements M.PauseBreakpointEvent {
       this.topFrame,
       this.atAsyncSuspension,
       [this.breakpoint])
-      : pauseBreakpoints = new List.unmodifiable(pauseBreakpoints) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(pauseBreakpoints != null);
-    assert(topFrame != null);
-    assert(atAsyncSuspension != null);
-  }
+      : pauseBreakpoints = new List.unmodifiable(pauseBreakpoints) {}
 }
 
 class PauseInterruptedEvent implements M.PauseInterruptedEvent {
@@ -131,11 +93,7 @@ class PauseInterruptedEvent implements M.PauseInterruptedEvent {
   final M.Frame? topFrame;
   final bool atAsyncSuspension;
   PauseInterruptedEvent(
-      this.timestamp, this.isolate, this.topFrame, this.atAsyncSuspension) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(atAsyncSuspension != null);
-  }
+      this.timestamp, this.isolate, this.topFrame, this.atAsyncSuspension);
 }
 
 class PausePostRequestEvent implements M.PausePostRequestEvent {
@@ -144,11 +102,7 @@ class PausePostRequestEvent implements M.PausePostRequestEvent {
   final M.Frame? topFrame;
   final bool atAsyncSuspension;
   PausePostRequestEvent(
-      this.timestamp, this.isolate, this.topFrame, this.atAsyncSuspension) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(atAsyncSuspension != null);
-  }
+      this.timestamp, this.isolate, this.topFrame, this.atAsyncSuspension);
 }
 
 class PauseExceptionEvent implements M.PauseExceptionEvent {
@@ -157,95 +111,61 @@ class PauseExceptionEvent implements M.PauseExceptionEvent {
   final M.Frame topFrame;
   final M.InstanceRef exception;
   PauseExceptionEvent(
-      this.timestamp, this.isolate, this.topFrame, this.exception) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(topFrame != null);
-    assert(exception != null);
-  }
+      this.timestamp, this.isolate, this.topFrame, this.exception);
 }
 
 class ResumeEvent implements M.ResumeEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
   final M.Frame? topFrame;
-  ResumeEvent(this.timestamp, this.isolate, this.topFrame) {
-    assert(timestamp != null);
-    assert(isolate != null);
-  }
+  ResumeEvent(this.timestamp, this.isolate, this.topFrame);
 }
 
 class BreakpointAddedEvent implements M.BreakpointAddedEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
   final M.Breakpoint breakpoint;
-  BreakpointAddedEvent(this.timestamp, this.isolate, this.breakpoint) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(breakpoint != null);
-  }
+  BreakpointAddedEvent(this.timestamp, this.isolate, this.breakpoint);
 }
 
 class BreakpointResolvedEvent implements M.BreakpointResolvedEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
   final M.Breakpoint breakpoint;
-  BreakpointResolvedEvent(this.timestamp, this.isolate, this.breakpoint) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(breakpoint != null);
-  }
+  BreakpointResolvedEvent(this.timestamp, this.isolate, this.breakpoint);
 }
 
 class BreakpointRemovedEvent implements M.BreakpointRemovedEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
   final M.Breakpoint breakpoint;
-  BreakpointRemovedEvent(this.timestamp, this.isolate, this.breakpoint) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(breakpoint != null);
-  }
+  BreakpointRemovedEvent(this.timestamp, this.isolate, this.breakpoint);
 }
 
 class InspectEvent implements M.InspectEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
   final M.InstanceRef inspectee;
-  InspectEvent(this.timestamp, this.isolate, this.inspectee) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(inspectee != null);
-  }
+  InspectEvent(this.timestamp, this.isolate, this.inspectee);
 }
 
 class NoneEvent implements M.NoneEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  NoneEvent(this.timestamp, this.isolate) {
-    assert(timestamp != null);
-    assert(isolate != null);
-  }
+  NoneEvent(this.timestamp, this.isolate);
 }
 
 class GCEvent implements M.GCEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  GCEvent(this.timestamp, this.isolate) {
-    assert(timestamp != null);
-    assert(isolate != null);
-  }
+  GCEvent(this.timestamp, this.isolate);
 }
 
 class LoggingEvent implements M.LoggingEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
   final Map logRecord;
-  LoggingEvent(this.timestamp, this.isolate, this.logRecord) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(logRecord != null);
-  }
+  LoggingEvent(this.timestamp, this.isolate, this.logRecord);
 }
 
 class ExtensionEvent implements M.ExtensionEvent {
@@ -254,12 +174,7 @@ class ExtensionEvent implements M.ExtensionEvent {
   final String extensionKind;
   final M.ExtensionData extensionData;
   ExtensionEvent(
-      this.timestamp, this.isolate, this.extensionKind, this.extensionData) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(extensionKind != null);
-    assert(extensionData != null);
-  }
+      this.timestamp, this.isolate, this.extensionKind, this.extensionData);
 }
 
 class TimelineEventsEvent implements M.TimelineEventsEvent {
@@ -268,20 +183,13 @@ class TimelineEventsEvent implements M.TimelineEventsEvent {
   final Iterable<M.TimelineEvent> timelineEvents;
   TimelineEventsEvent(
       this.timestamp, this.isolate, Iterable<M.TimelineEvent> timelineEvents)
-      : timelineEvents = new List.unmodifiable(timelineEvents) {
-    assert(timestamp != null);
-    assert(isolate != null);
-    assert(timelineEvents != null);
-  }
+      : timelineEvents = new List.unmodifiable(timelineEvents) {}
 }
 
 class ConnectionClosedEvent implements M.ConnectionClosedEvent {
   final DateTime timestamp;
   final String reason;
-  ConnectionClosedEvent(this.timestamp, this.reason) {
-    assert(timestamp != null);
-    assert(reason != null);
-  }
+  ConnectionClosedEvent(this.timestamp, this.reason);
 }
 
 class ServiceRegisteredEvent implements M.ServiceRegisteredEvent {
@@ -289,24 +197,14 @@ class ServiceRegisteredEvent implements M.ServiceRegisteredEvent {
   final String service;
   final String method;
   final String alias;
-  ServiceRegisteredEvent(
-      this.timestamp, this.service, this.method, this.alias) {
-    assert(timestamp != null);
-    assert(service != null);
-    assert(method != null);
-    assert(alias != null);
-  }
+  ServiceRegisteredEvent(this.timestamp, this.service, this.method, this.alias);
 }
 
 class ServiceUnregisteredEvent implements M.ServiceUnregisteredEvent {
   final DateTime timestamp;
   final String service;
   final String method;
-  ServiceUnregisteredEvent(this.timestamp, this.service, this.method) {
-    assert(timestamp != null);
-    assert(service != null);
-    assert(method != null);
-  }
+  ServiceUnregisteredEvent(this.timestamp, this.service, this.method);
 }
 
 M.Event? createEventFromServiceEvent(S.ServiceEvent event) {

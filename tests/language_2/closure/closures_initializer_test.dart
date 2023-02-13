@@ -6,7 +6,7 @@
 
 class A<T> {
   var t;
-  A() : t = (() => new List<T>());
+  A() : t = (() => <T>[]);
 }
 
 class B<T> {

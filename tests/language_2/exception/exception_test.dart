@@ -26,11 +26,12 @@ class ExceptionTest {
 
     bool correctCatch = false;
     try {
-      // This throws NullThrownError
+      // This used to throw a NullThrownError but that error was removed in
+      // Dart 3.0. Now it throws a TypeError.
       throw null;
     } on String catch (s) {
       correctCatch = false;
-    } on NullThrownError catch (e) {
+    } on TypeError catch (e) {
       correctCatch = true;
     } catch (x) {
       correctCatch = false;

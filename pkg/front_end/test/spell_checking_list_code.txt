@@ -27,6 +27,7 @@ actively
 adequate
 adi
 adjusts
+adoption
 advantage
 affecting
 affords
@@ -60,6 +61,7 @@ apis
 app
 apparently
 applicable
+architectures
 arg
 args
 arise
@@ -117,9 +119,7 @@ became
 beforehand
 behave
 believe
-bellow
 belonging
-beloning
 benchmark
 benchmarked
 benchmarker
@@ -164,12 +164,14 @@ bs
 bsd
 bslash
 buffered
+buffers
 buggy
 builder`s
 bulk
 bump
 bypassing
 c
+cacheable
 caches
 calculations
 callbacks
@@ -179,12 +181,12 @@ callers
 callsite
 came
 canonicalizer
+canonicalizing
 cant
 cardinality
 caret
 carets
 carriage
-carring
 cascades
 casing
 cast
@@ -248,6 +250,7 @@ complement
 complementary
 completers
 completes
+complicated
 complicating
 component's
 comprehensive
@@ -256,6 +259,7 @@ compression
 comprise
 concat
 concatenate
+concept
 conceptual
 concerned
 conciser
@@ -275,6 +279,7 @@ constraining
 consult
 consulted
 consumers
+consumption
 container
 containers
 continuations
@@ -283,6 +288,7 @@ contribute
 conveniently
 convention
 conversely
+converter
 coordinated
 coordinating
 core
@@ -292,6 +298,7 @@ corrected
 corrections
 cosmetic
 costly
+counted
 counters
 covariances
 coverage
@@ -358,6 +365,7 @@ deps
 dereferencing
 deregister
 descent
+descriptive
 deserializer
 deserializers
 deserializes
@@ -413,6 +421,7 @@ downloaded
 downloading
 dq
 dquote
+drawn
 dsdk
 dst
 dummy
@@ -420,6 +429,7 @@ dupdate
 dyn
 dynamically
 e
+eager
 easy
 eb
 ecma
@@ -459,8 +469,10 @@ enumerates
 env
 eof
 eq
+equally
 equation
 equivalences
+equivalently
 erase
 erased
 es
@@ -468,7 +480,10 @@ escalate
 establish
 established
 establishes
+establishing
 estimate
+estimated
+estimation
 et
 eval
 evar
@@ -564,6 +579,7 @@ fs
 fsource
 fue
 fuller
+func
 function's
 fuse
 futured
@@ -571,6 +587,7 @@ futureor
 fvar
 g
 gardening
+garner
 gb
 gen
 generation
@@ -597,6 +614,7 @@ granted
 graphs
 grouper
 growability
+growth
 gt
 guarantee
 guarded
@@ -623,6 +641,7 @@ height
 hello
 helpful
 helps
+heuristics
 hfs
 highlight
 highlighting
@@ -640,8 +659,10 @@ href
 html
 https
 human
+hvar
 i
 i'll
+i'm
 ic
 id
 ideal
@@ -835,6 +856,7 @@ lx
 ly
 lz
 m
+machinery
 macos
 macro
 macros
@@ -867,6 +889,7 @@ mi
 migrated
 migration
 mime
+mimic
 min
 mini
 misuse
@@ -875,6 +898,7 @@ mk
 mm
 mn
 mockito
+modelled
 modelling
 momentarily
 monomorphic
@@ -930,6 +954,7 @@ nullification
 nullify
 nullness
 nulls
+numeral
 o
 oauth
 obj
@@ -964,6 +989,9 @@ ourselves
 outlined
 outputs
 outputting
+ovar
+overestimate
+overhead
 overlap
 overlapping
 overlaps
@@ -993,6 +1021,7 @@ partof
 patchup
 path
 pattern's
+patterned
 patterns
 paulberry
 pay
@@ -1010,6 +1039,7 @@ pertinent
 physically
 pi
 picking
+pieces
 pipe
 pkg
 play
@@ -1080,6 +1110,7 @@ protobuf
 protocol
 provider
 provisional
+prune
 ps
 pulled
 pure
@@ -1125,7 +1156,9 @@ react
 realign
 realise
 reapplies
+reasonably
 reassigned
+reassigns
 rebased
 rebasing
 rebind
@@ -1251,7 +1284,9 @@ say
 saying
 sb
 sc
+scale
 scc
+scenarios
 scheglov
 scoped
 scoping
@@ -1345,6 +1380,7 @@ speeding
 spend
 spent
 spin
+splitting
 spuriously
 sq
 sra
@@ -1428,6 +1464,7 @@ supers
 suppose
 surprising
 suspended
+svar
 svg
 sw
 swapped
@@ -1503,12 +1540,14 @@ tput
 traced
 tracker
 traditional
+transfer
 transferable
 transformers
 transforming
 translation
 traversal
 traverse
+traversing
 trees
 tricky
 triggering
@@ -1535,10 +1574,12 @@ unbound
 uncategorized
 uncomment
 uncommon
+unconditional
 unconditionally
 unconstrained
 undeclare
 undeferred
+underestimate
 undergo
 undermine
 undo
@@ -1564,9 +1605,11 @@ uninhabited
 uninstantiable
 uninstantiated
 unintentionally
+uniquely
 uniqueness
 unittest
 universally
+unlikely
 unlinked
 unlower
 unmark
@@ -1610,6 +1653,7 @@ util
 utils
 v
 validly
+value's
 variable's
 variances
 variant
@@ -1662,9 +1706,12 @@ widgets
 wiki
 wikipedia
 wind
+winds
 wise
 wiser
+wishes
 wn
+worst
 worthwhile
 worthy
 woven
@@ -1721,6 +1768,7 @@ ys
 yss
 z
 zb
+zeros
 zi
 zip
 zipped

@@ -17,7 +17,7 @@ cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
 
-cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
+cc/Profiler_InliningIntervalBoundary: Skip # Differences in ia32, debug, release
 
 cc/Sleep: Skip # Flaky # Flaky on buildbot. Issue 5133 and 10409.
 
@@ -47,7 +47,7 @@ cc/CorelibIsolateStartup: Skip # OOM crash can bring down the OS.
 dart/data_uri_spawn_test: Skip # TODO(zra): package:unittest is not in the image.
 cc/Read: Fail  # TODO(zra): Investigate, ../../dart/runtime/bin/file_test.cc: 34: error: expected: !file->WriteByte(1)
 
-# On the simluator stack traces produced by the Profiler do not match
+# On the simulator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
 [ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64]
@@ -64,7 +64,7 @@ cc/Profiler_CodeTicks: Skip
 cc/Profiler_ContextAllocation: Skip
 cc/Profiler_FunctionInline: Skip
 cc/Profiler_FunctionTicks: Skip
-cc/Profiler_InliningIntervalBoundry: Skip
+cc/Profiler_InliningIntervalBoundary: Skip
 cc/Profiler_IntrinsicAllocation: Skip
 cc/Profiler_SampleBufferIterateTest: Skip
 cc/Profiler_SampleBufferWrapTest: Skip
@@ -261,7 +261,7 @@ cc/IsolateReload_NotEnumToEnum: Skip
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_PendingSuperCall: Fail
 cc/IsolateReload_PrefixImportedLibModified: Crash
-cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Skip
+cc/IsolateReload_RunNewFieldInitializersSuperClass: Skip
 cc/IsolateReload_RunNewFieldInitializers: Skip
 cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Skip
 cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Skip

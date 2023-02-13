@@ -54,7 +54,7 @@ conditionalThrowReturn() {
 /// Method that rethrows unconditionally.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: unconditionalRethrow:[null]*/
+/*member: unconditionalRethrow:[empty]*/
 unconditionalRethrow() {
   try {
     throw 'foo';

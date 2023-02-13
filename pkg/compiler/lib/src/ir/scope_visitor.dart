@@ -777,6 +777,11 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     return const EvaluationComplexity.lazy();
   }
 
+  @override
+  EvaluationComplexity visitInlineType(ir.InlineType type) {
+    return visitNode(type.instantiatedRepresentationType);
+  }
+
   EvaluationComplexity visitInContext(ir.Node node, VariableUse use) {
     VariableUse? oldCurrentTypeUsage = _currentTypeUsage;
     _currentTypeUsage = use;
@@ -941,7 +946,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     // user-defined `get:hashCode` or `operator==`.
     //
     // TODO(45681): Improve the analysis. (1) Use static type of the [key]
-    // expression. (2) Use information about the class heirarchy and overloading
+    // expression. (2) Use information about the class hierarchy and overloading
     // of `get:hashCode` to detect safe implementations. This will pick up a lot
     // of enum and enum-like classes.
     if (key is ir.ConstantExpression) {
@@ -1228,6 +1233,18 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
   @override
   EvaluationComplexity visitInstanceTearOff(ir.InstanceTearOff node) {
+    node.receiver = _handleExpression(node.receiver);
+    return const EvaluationComplexity.lazy();
+  }
+
+  @override
+  EvaluationComplexity visitRecordIndexGet(ir.RecordIndexGet node) {
+    node.receiver = _handleExpression(node.receiver);
+    return const EvaluationComplexity.lazy();
+  }
+
+  @override
+  EvaluationComplexity visitRecordNameGet(ir.RecordNameGet node) {
     node.receiver = _handleExpression(node.receiver);
     return const EvaluationComplexity.lazy();
   }

@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -20,6 +22,7 @@ main() {
 class MethodInvocationResolutionTest extends PubPackageResolutionTest
     with MethodInvocationResolutionTestCases {
   test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
@@ -998,6 +1001,20 @@ CascadeExpression
       staticType: int
   staticType: A
 ''');
+  }
+
+  test_parameterMember_source() async {
+    // See https://github.com/dart-lang/sdk/issues/50660
+    await assertNoErrorsInCode(r'''
+void foo<T>({int? a}) {}
+
+void f() {
+  foo(a: 0);
+}
+''');
+
+    var element = findNode.simple('a:').staticElement!;
+    expect(element.source, isNull);
   }
 
   test_typeArgumentTypes_generic_inferred_leftTop_dynamic() async {
@@ -2971,7 +2988,7 @@ f(Never a, int b, int c) {
 }
 ''',
         expectedErrorsByNullability(nullable: [
-          error(HintCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
+          error(WarningCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
           error(HintCode.DEAD_CODE, 36, 7),
         ], legacy: [
           error(CompileTimeErrorCode.UNDEFINED_METHOD, 31, 5),

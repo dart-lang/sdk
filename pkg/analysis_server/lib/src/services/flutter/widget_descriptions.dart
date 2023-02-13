@@ -11,7 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:dart_style/dart_style.dart';
 
 /// The result of [WidgetDescriptions.setPropertyValue] invocation.
@@ -144,7 +144,7 @@ class _WidgetDescriptionComputer {
   Flutter get _flutter => Flutter.instance;
 
   Future<_WidgetDescription?> compute() async {
-    var node = NodeLocator2(widgetOffset).searchWithin(resolvedUnit.unit);
+    var node = resolvedUnit.unit.nodeCovering(offset: widgetOffset);
     if (node == null) {
       return null;
     }

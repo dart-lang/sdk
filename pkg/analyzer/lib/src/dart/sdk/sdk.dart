@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
@@ -63,7 +64,7 @@ abstract class AbstractDartSdk implements DartSdk {
       return null;
     }
     try {
-      return file.createSource(Uri.parse(path));
+      return file.createSource(uriCache.parse(path));
     } on FormatException catch (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logInfo(
           "Failed to create URI: $path",
@@ -112,7 +113,7 @@ abstract class AbstractDartSdk implements DartSdk {
     String filePath = srcPath.replaceAll('/', separator);
     try {
       File file = resourceProvider.getFile(filePath);
-      return file.createSource(Uri.parse(dartUri));
+      return file.createSource(uriCache.parse(dartUri));
     } on FormatException {
       return null;
     }
@@ -138,7 +139,7 @@ abstract class AbstractDartSdk implements DartSdk {
     }
 
     try {
-      return Uri.parse(uriStr);
+      return uriCache.parse(uriStr);
     } on FormatException {
       return null;
     }
@@ -250,7 +251,7 @@ class EmbedderSdk extends AbstractDartSdk {
   // TODO(danrubel) Determine SDK version
   String get sdkVersion => '0';
 
-  /// The url mappings for this SDK.
+  /// The URL mappings for this SDK.
   Map<String, String> get urlMappings => _urlMappings;
 
   @override
@@ -290,7 +291,7 @@ class EmbedderSdk extends AbstractDartSdk {
     String filePath = srcPath.replaceAll('/', separator);
     try {
       File file = resourceProvider.getFile(filePath);
-      return file.createSource(Uri.parse(dartUri));
+      return file.createSource(uriCache.parse(dartUri));
     } on FormatException {
       return null;
     }
@@ -320,9 +321,10 @@ class EmbedderSdk extends AbstractDartSdk {
   ///
   /// If a key doesn't begin with `dart:` it is ignored.
   void _processEmbedderYaml(Folder libDir, YamlMap map) {
-    YamlNode embeddedLibs = map[_embeddedLibMapKey];
+    var embeddedLibs = map[_embeddedLibMapKey] as YamlNode;
     if (embeddedLibs is YamlMap) {
-      embeddedLibs.forEach((k, v) => _processEmbeddedLibs(k, v, libDir));
+      embeddedLibs.forEach(
+          (k, v) => _processEmbeddedLibs(k as String, v as String, libDir));
     }
   }
 }
@@ -544,11 +546,11 @@ class FolderBasedDartSdk extends AbstractDartSdk {
         if (relativeFile.path == file.path) {
           // The relative file is the library, so return a Source for the
           // library rather than the part format.
-          return file.createSource(Uri.parse(library.shortName));
+          return file.createSource(uriCache.parse(library.shortName));
         }
         file = relativeFile;
       }
-      return file.createSource(Uri.parse(dartUri));
+      return file.createSource(uriCache.parse(dartUri));
     } on FormatException {
       return null;
     }

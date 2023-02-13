@@ -34,7 +34,7 @@ bool checkNonExistentFileSystemException(e, str) {
   Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf(str) != -1);
-  // File not not found has error code 2 on all supported platforms.
+  // File not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
   return true;
 }
@@ -137,7 +137,7 @@ void testCreateInNonExistentDirectory() {
   Directory temp = tempDir();
   var file = new File("${temp.path}/nonExistentDirectory/newFile");
 
-  // Create in non-existent directory should throw exception.
+  // Create in nonexistent directory should throw exception.
   Expect.throws(() => file.createSync(),
       (e) => checkCreateInNonExistentFileSystemException(e));
 
@@ -153,7 +153,7 @@ bool checkResolveSymbolicLinksOnNonExistentFileSystemException(e) {
   Expect.isTrue(e is FileSystemException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Cannot resolve symbolic links") != -1);
-  // File not not found has error code 2 on all supported platforms.
+  // File not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
 
   return true;
@@ -164,7 +164,7 @@ void testResolveSymbolicLinksOnNonExistentDirectory() {
   Directory temp = tempDir();
   var file = new File("${temp.path}/nonExistentDirectory");
 
-  // Full path non-existent directory should throw exception.
+  // Full path nonexistent directory should throw exception.
   Expect.throws(() => file.resolveSymbolicLinksSync(),
       (e) => checkResolveSymbolicLinksOnNonExistentFileSystemException(e));
 
@@ -438,6 +438,31 @@ testReadSyncClosedFile() {
   });
 }
 
+void testCreateExistingFile() {
+  createTestFile((file, done) {
+    Expect.throws<PathExistsException>(() => file.createSync(exclusive: true));
+    done();
+  });
+}
+
+void testDeleteDirectoryWithoutPermissions() {
+  if (Platform.isMacOS) {
+    createTestFile((file, done) async {
+      Process.runSync('chflags', ['uchg', file.path]);
+      Expect.throws<PathAccessException>(file.deleteSync);
+      Process.runSync('chflags', ['nouchg', file.path]);
+      done();
+    });
+  }
+  if (Platform.isWindows) {
+    final oldCurrent = Directory.current;
+    Directory.current = tempDir();
+    // Cannot delete the current working directory in Windows.
+    Expect.throws<PathAccessException>(Directory.current.deleteSync);
+    Directory.current = oldCurrent;
+  }
+}
+
 main() {
   testOpenBlankFilename();
   testOpenNonExistent();
@@ -455,4 +480,6 @@ main() {
   testRepeatedlyCloseFile();
   testRepeatedlyCloseFileSync();
   testReadSyncClosedFile();
+  testCreateExistingFile();
+  testDeleteDirectoryWithoutPermissions();
 }

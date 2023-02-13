@@ -142,6 +142,29 @@ class StreamManager {
         final streamId = parameters['streamId'].asString;
         final event =
             Event.parse(parameters['event'].asMap.cast<String, dynamic>())!;
+        final destinationStreamId =
+            event.extensionData?.data[destinationStreamKey];
+
+        if (destinationStreamId != null) {
+          // Strip [destinationStreamKey] from the extension data so it is not
+          // passed along.
+          (parameters.value['event']['extensionData'] as Map<String, dynamic>)
+              .remove(destinationStreamKey);
+          if (destinationStreamId != kExtensionStream) {
+            if (!customStreamListenerKeys.contains(destinationStreamId)) {
+              // __destinationStream is only used by developer.postEvent.
+              // developer.postEvent is only supposed to postEvents to the
+              // Extension stream or to custom streams
+              return;
+            }
+            final values = parameters.value;
+
+            values['streamId'] = destinationStreamId;
+
+            streamNotify(destinationStreamId, values);
+            return;
+          }
+        }
 
         // Forward events from the streams IsolateManager subscribes to.
         if (isolateManagerStreams.contains(streamId)) {
@@ -192,31 +215,36 @@ class StreamManager {
               stream != kDebugStream) {
             // This will return an RPC exception if the stream doesn't exist. This
             // will throw and the exception will be forwarded to the client.
-            final result =
-                await dds.vmServiceClient.sendRequest('streamListen', {
-              'streamId': stream,
-              if (includePrivates != null)
-                '_includePrivateMembers': includePrivates,
-            });
-            assert(result['type'] == 'Success');
+            try {
+              final result =
+                  await dds.vmServiceClient.sendRequest('streamListen', {
+                'streamId': stream,
+                if (includePrivates != null)
+                  '_includePrivateMembers': includePrivates,
+              });
+              assert(result['type'] == 'Success');
+            } on json_rpc.RpcException catch (e) {
+              if (e.code == RpcErrorCodes.kInvalidParams) {
+                // catching kInvalid params means that the vmServiceClient
+                // does not know about the stream we passed. So assume that
+                // the stream is a custom stream.
+                customStreamListenerKeys.add(stream);
+              } else {
+                rethrow;
+              }
+            }
           }
         }
         if (streamListeners[stream]!.contains(client)) {
           throw kStreamAlreadySubscribedException;
         } else if (!streamNewlySubscribed && includePrivates != null) {
-          try {
-            await dds.vmServiceClient.sendRequest(
-                '_setStreamIncludePrivateMembers',
-                {'streamId': stream, 'includePrivateMembers': includePrivates});
-          } on json_rpc.RpcException catch (e) {
-            // This private RPC might not be present. If it's not, we're communicating with an older
-            // VM that doesn't support filtering private members, so they will always be included in
-            // responses. Handle the method not found exception so the streamListen call doesn't
-            // fail for older VMs.
-            if (e.code != RpcErrorCodes.kMethodNotFound) {
-              rethrow;
-            }
-          }
+          // This private RPC might not be present. If it's not, we're communicating with an older
+          // VM that doesn't support filtering private members, so they will always be included in
+          // responses. Handle the method not found exception so the streamListen call doesn't
+          // fail for older VMs.
+          await dds.vmServiceClient.sendRequestAndIgnoreMethodNotFound(
+              '_setStreamIncludePrivateMembers',
+              {'streamId': stream, 'includePrivateMembers': includePrivates});
         }
         if (client != null) {
           streamListeners[stream]!.add(client);
@@ -273,6 +301,15 @@ class StreamManager {
             client != null && !listeners.contains(client)) {
           throw kStreamNotSubscribedException;
         }
+
+        if (customStreamListenerKeys.contains(stream)) {
+          streamListeners[stream]!.remove(client);
+          if (streamListeners[stream]!.isEmpty) {
+            streamListeners.remove(stream);
+          }
+          return;
+        }
+
         listeners.remove(client);
         // Don't cancel streams DDS needs to function.
         if (listeners.isEmpty &&
@@ -309,9 +346,12 @@ class StreamManager {
           _profilerUserTagSubscriptions.remove(subscribedTag);
         }
       }
-      await dds.vmServiceClient.sendRequest('streamCpuSamplesWithUserTag', {
-        'userTags': _profilerUserTagSubscriptions.toList(),
-      });
+      await dds.vmServiceClient.sendRequestAndIgnoreMethodNotFound(
+        'streamCpuSamplesWithUserTag',
+        {
+          'userTags': _profilerUserTagSubscriptions.toList(),
+        },
+      );
     });
   }
 
@@ -354,6 +394,8 @@ class StreamManager {
   static const kStderrStream = 'Stderr';
   static const kStdoutStream = 'Stdout';
 
+  static const destinationStreamKey = '__destinationStream';
+
   static Map<String, LoggingRepository> loggingRepositories = {};
 
   // Never cancel the Debug or Isolate stream as `IsolateManager` requires
@@ -386,6 +428,7 @@ class StreamManager {
 
   final DartDevelopmentServiceImpl dds;
   final streamListeners = <String, List<DartDevelopmentServiceClient>>{};
+  final customStreamListenerKeys = <String>{};
   final _profilerUserTagSubscriptions = <String>{};
   final _streamSubscriptionMutex = Mutex();
   final _profilerUserTagSubscriptionsMutex = Mutex();

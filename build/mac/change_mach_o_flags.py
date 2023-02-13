@@ -61,7 +61,7 @@ This script sets or clears the MH_PIE bit in an executable's Mach-O header,
 enabling or disabling position independence on Mac OS X 10.5 and later.
 Processes running position-independent executables have varying levels of
 ASLR protection depending on the OS release. The main executable's load
-address, shared library load addresess, and the heap and stack base
+address, shared library load addresses, and the heap and stack base
 addresses may be randomized. Position-independent executables are produced
 by supplying the -pie flag to the linker (or defeated by supplying -no_pie).
 Executables linked with a deployment target of 10.7 or higher have PIE on

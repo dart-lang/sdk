@@ -292,7 +292,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 }
 
 bool Compiler::IsBackgroundCompilation() {
-  // For now: compilation in non mutator thread is the background compoilation.
+  // For now: compilation in non mutator thread is the background compilation.
   return !Thread::Current()->IsMutatorThread();
 }
 
@@ -313,7 +313,6 @@ class CompileParsedFunctionHelper : public ValueObject {
   bool optimized() const { return optimized_; }
   intptr_t osr_id() const { return osr_id_; }
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread_->isolate(); }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   CodePtr FinalizeCompilation(compiler::Assembler* assembler,
                               FlowGraphCompiler* graph_compiler,
@@ -389,19 +388,19 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     const bool trace_compiler =
         FLAG_trace_compiler || FLAG_trace_optimizing_compiler;
     bool code_is_valid = true;
-    if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
-      const ZoneGrowableArray<const Field*>& guarded_fields =
-          *flow_graph->parsed_function().guarded_fields();
+    if (flow_graph->parsed_function().guarded_fields()->Length() != 0) {
+      const FieldSet* guarded_fields =
+          flow_graph->parsed_function().guarded_fields();
       Field& original = Field::Handle();
-      for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-        const Field& field = *guarded_fields[i];
-        ASSERT(!field.IsOriginal());
-        original = field.Original();
-        if (!field.IsConsistentWith(original)) {
+      FieldSet::Iterator it = guarded_fields->GetIterator();
+      while (const Field** field = it.Next()) {
+        ASSERT(!(*field)->IsOriginal());
+        original = (*field)->Original();
+        if (!(*field)->IsConsistentWith(original)) {
           code_is_valid = false;
           if (trace_compiler) {
             THR_Print("--> FAIL: Field %s guarded state changed.",
-                      field.ToCString());
+                      (*field)->ToCString());
           }
           break;
         }
@@ -444,11 +443,12 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
       // to ensure that the code will be deoptimized if they are violated.
       thread()->compiler_state().cha().RegisterDependencies(code);
 
-      const ZoneGrowableArray<const Field*>& guarded_fields =
-          *flow_graph->parsed_function().guarded_fields();
+      const FieldSet* guarded_fields =
+          flow_graph->parsed_function().guarded_fields();
       Field& field = Field::Handle();
-      for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-        field = guarded_fields[i]->Original();
+      FieldSet::Iterator it = guarded_fields->GetIterator();
+      while (const Field** guarded_field = it.Next()) {
+        field = (*guarded_field)->Original();
         field.RegisterDependentCode(code);
       }
     }
@@ -677,12 +677,14 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        volatile bool optimized,
                                        intptr_t osr_id) {
+  Thread* const thread = Thread::Current();
+  NoActiveIsolateScope no_active_isolate(thread);
+
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
   if (function.ForceOptimize()) optimized = true;
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Thread* const thread = Thread::Current();
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
@@ -878,7 +880,8 @@ ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
 ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
-  VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
+  VMTagScope tag_scope(thread, VMTag::kCompileOptimizedTagId);
+
 #if defined(SUPPORT_TIMELINE)
   const char* event_name;
   if (osr_id != kNoOSRDeoptId) {

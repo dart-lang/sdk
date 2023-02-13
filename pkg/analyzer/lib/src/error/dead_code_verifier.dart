@@ -67,7 +67,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     final importElement = node.element;
     if (importElement != null) {
       // The element is null when the URI is invalid, but not when the URI is
-      // valid but refers to a non-existent file.
+      // valid but refers to a nonexistent file.
       LibraryElement? library = importElement.importedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
@@ -105,10 +105,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     ErrorCode hintCode;
     if (combinator is HideCombinator) {
       names = combinator.hiddenNames;
-      hintCode = HintCode.UNDEFINED_HIDDEN_NAME;
+      hintCode = WarningCode.UNDEFINED_HIDDEN_NAME;
     } else {
       names = (combinator as ShowCombinator).shownNames;
-      hintCode = HintCode.UNDEFINED_SHOWN_NAME;
+      hintCode = WarningCode.UNDEFINED_SHOWN_NAME;
     }
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;
@@ -496,7 +496,7 @@ class NullSafetyDeadCodeVerifier {
       } else {
         var offset = firstDeadNode.offset;
         // We know that [node] is the first dead node, or contains it.
-        // So, technically the code code interval ends at the end of [node].
+        // So, technically the code interval ends at the end of [node].
         // But we trim it to the last statement for presentation purposes.
         if (node != firstDeadNode) {
           if (node is FunctionDeclaration) {
@@ -622,7 +622,7 @@ class NullSafetyDeadCodeVerifier {
     if (flowAnalysis == null) return;
     flowAnalysis.checkUnreachableNode(node);
 
-    // If the first dead node is not `null`, even if this new new node is
+    // If the first dead node is not `null`, even if this new node is
     // unreachable, we can ignore it as it is part of the same dead code
     // range anyway.
     if (_firstDeadNode != null) return;

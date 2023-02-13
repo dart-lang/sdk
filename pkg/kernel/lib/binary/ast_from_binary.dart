@@ -1094,10 +1094,10 @@ class BinaryBuilder {
     return name.reference;
   }
 
-  Reference readNonNullViewReference() {
+  Reference readNonNullInlineClassReference() {
     CanonicalName? name = readNullableCanonicalNameReference();
     if (name == null) {
-      throw 'Expected a view reference to be valid but was `null`.';
+      throw 'Expected an inline class reference to be valid but was `null`.';
     }
     return name.reference;
   }
@@ -1262,7 +1262,7 @@ class BinaryBuilder {
     _readTypedefList(library);
     _readClassList(library, classOffsets);
     _readExtensionList(library);
-    _readViewList(library);
+    _readInlineClassList(library);
     library.fieldsInternal = _readFieldList(library);
     library.proceduresInternal = _readProcedureList(library, procedureOffsets);
 
@@ -1312,15 +1312,15 @@ class BinaryBuilder {
     }
   }
 
-  void _readViewList(Library library) {
+  void _readInlineClassList(Library library) {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
-      library.viewsInternal = emptyListOfView;
+      library.inlineClassesInternal = emptyListOfInlineClass;
     } else {
-      library.viewsInternal = new List<View>.generate(
-          length, (int index) => readView()..parent = library,
+      library.inlineClassesInternal = new List<InlineClass>.generate(
+          length, (int index) => readInlineClass()..parent = library,
           growable: useGrowableLists);
     }
   }
@@ -1478,7 +1478,7 @@ class BinaryBuilder {
     int startFileOffset = readOffset();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
-    int flags = readByte();
+    int flags = readUInt30();
     String name = readStringReference();
     if (node == null) {
       node = new Class(name: name, reference: reference, fileUri: fileUri)
@@ -1605,13 +1605,13 @@ class BinaryBuilder {
       ..flags = flags;
   }
 
-  View readView() {
+  InlineClass readInlineClass() {
     int tag = readByte();
-    assert(tag == Tag.View);
+    assert(tag == Tag.InlineClass);
 
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.reference;
-    View? node = reference.node as View?;
+    InlineClass? node = reference.node as InlineClass?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
@@ -1627,7 +1627,8 @@ class BinaryBuilder {
     Uri fileUri = readUriReference();
 
     if (node == null) {
-      node = new View(name: name, reference: reference, fileUri: fileUri);
+      node =
+          new InlineClass(name: name, reference: reference, fileUri: fileUri);
     }
     node.annotations = annotations;
     setParents(annotations, node);
@@ -1638,37 +1639,39 @@ class BinaryBuilder {
 
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType representationType = readDartType();
+    String representationName = readStringReference();
     typeParameterStack.length = 0;
 
     node.name = name;
     node.fileUri = fileUri;
-    node.representationType = representationType;
+    node.declaredRepresentationType = representationType;
+    node.representationName = representationName;
 
-    node.members = _readViewMemberDescriptorList();
+    node.members = _readInlineClassMemberDescriptorList();
 
     return node;
   }
 
-  List<ViewMemberDescriptor> _readViewMemberDescriptorList() {
+  List<InlineClassMemberDescriptor> _readInlineClassMemberDescriptorList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use a
       // constant one for the empty list.
-      return emptyListOfViewMemberDescriptor;
+      return emptyListOfInlineClassMemberDescriptor;
     }
-    return new List<ViewMemberDescriptor>.generate(
-        length, (_) => _readViewMemberDescriptor(),
+    return new List<InlineClassMemberDescriptor>.generate(
+        length, (_) => _readInlineClassMemberDescriptor(),
         growable: useGrowableLists);
   }
 
-  ViewMemberDescriptor _readViewMemberDescriptor() {
+  InlineClassMemberDescriptor _readInlineClassMemberDescriptor() {
     Name name = readName();
     int kind = readByte();
     int flags = readByte();
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    return new ViewMemberDescriptor(
+    return new InlineClassMemberDescriptor(
         name: name,
-        kind: ViewMemberKind.values[kind],
+        kind: InlineClassMemberKind.values[kind],
         member: canonicalName.reference)
       ..flags = flags;
   }
@@ -3319,8 +3322,8 @@ class BinaryBuilder {
         return _readInvalidType();
       case Tag.NeverType:
         return _readNeverType();
-      case Tag.ViewType:
-        return _readViewType();
+      case Tag.InlineType:
+        return _readInlineType();
       case Tag.FunctionType:
         return _readFunctionType();
       case Tag.IntersectionType:
@@ -3407,12 +3410,12 @@ class BinaryBuilder {
     return result;
   }
 
-  DartType _readViewType() {
+  DartType _readInlineType() {
     int nullabilityIndex = readByte();
-    Reference reference = readNonNullViewReference();
+    Reference reference = readNonNullInlineClassReference();
     List<DartType> typeArguments = readDartTypeList();
     DartType representationType = readDartType();
-    return new ViewType.byReference(
+    return new InlineType.byReference(
         reference,
         Nullability.values[nullabilityIndex],
         typeArguments,
@@ -3734,9 +3737,9 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  View readView() {
+  InlineClass readInlineClass() {
     final int nodeOffset = _byteOffset;
-    final View result = super.readView();
+    final InlineClass result = super.readInlineClass();
     return _associateMetadata(result, nodeOffset);
   }
 

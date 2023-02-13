@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -13,22 +14,24 @@ main() {
 }
 
 @reflectiveTest
-class ListPatternResolutionTest extends PatternsResolutionTest {
+class ListPatternResolutionTest extends PubPackageResolutionTest {
   test_matchDynamic_noTypeArguments_variable_typed() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(x) {
   switch (x) {
     case [int a]:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -44,20 +47,22 @@ ListPattern
   }
 
   test_matchDynamic_noTypeArguments_variable_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(x) {
   switch (x) {
     case [var a]:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@41
@@ -68,14 +73,16 @@ ListPattern
   }
 
   test_matchDynamic_withTypeArguments_variable_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(x) {
   switch (x) {
     case <int>[var a]:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
@@ -91,7 +98,7 @@ ListPattern
     rightBracket: >
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@46
@@ -101,10 +108,10 @@ ListPattern
 ''');
   }
 
-  test_matchList_noTypeArguments_restElement() async {
+  test_matchList_noTypeArguments_restElement_noPattern() async {
     await assertNoErrorsInCode(r'''
 void f(List<int> x) {
-  if (x case [0, ...var rest]) {}
+  if (x case [0, ...]) {}
 }
 ''');
     final node = findNode.singleGuardedPattern.pattern;
@@ -118,7 +125,31 @@ ListPattern
         staticType: int
     RestPatternElement
       operator: ...
-      pattern: VariablePattern
+  rightBracket: ]
+  requiredType: List<int>
+''');
+  }
+
+  test_matchList_noTypeArguments_restElement_withPattern() async {
+    await assertErrorsInCode(r'''
+void f(List<int> x) {
+  if (x case [0, ...var rest]) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 4),
+    ]);
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+    RestPatternElement
+      operator: ...
+      pattern: DeclaredVariablePattern
         keyword: var
         name: rest
         declaredElement: hasImplicitType rest@46
@@ -129,20 +160,22 @@ ListPattern
   }
 
   test_matchList_noTypeArguments_variable_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(List<int> x) {
   switch (x) {
     case [var a]:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@51
@@ -153,14 +186,16 @@ ListPattern
   }
 
   test_matchList_withTypeArguments_variable_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(List<num> x) {
   switch (x) {
     case <int>[var a]:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
@@ -176,7 +211,7 @@ ListPattern
     rightBracket: >
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@56
@@ -228,20 +263,22 @@ ListPattern
   }
 
   test_matchObject_noTypeArguments_variable_typed() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object x) {
   switch (x) {
     case [int a]:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -257,20 +294,22 @@ ListPattern
   }
 
   test_matchObject_noTypeArguments_variable_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object x) {
   switch (x) {
     case [var a]:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@48
@@ -314,14 +353,16 @@ ListPattern
   }
 
   test_matchObject_withTypeArguments_variable_typed() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object x) {
   switch (x) {
     case <num>[int a]:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
@@ -337,7 +378,7 @@ ListPattern
     rightBracket: >
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -353,14 +394,16 @@ ListPattern
   }
 
   test_matchObject_withTypeArguments_variable_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object x) {
   switch (x) {
     case <int>[var a]:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
@@ -376,7 +419,7 @@ ListPattern
     rightBracket: >
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@53
@@ -387,11 +430,13 @@ ListPattern
   }
 
   test_variableDeclaration_inferredType() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(List<int> x) {
   var [a] = x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+    ]);
     final node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -399,7 +444,7 @@ PatternVariableDeclaration
   pattern: ListPattern
     leftBracket: [
     elements
-      VariablePattern
+      DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@29
           type: int
@@ -410,17 +455,20 @@ PatternVariableDeclaration
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: List<int>
+  patternTypeSchema: List<_>
 ''');
   }
 
   test_variableDeclaration_typeSchema_withTypeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() {
   var <int>[a] = g();
 }
 
 T g<T>() => throw 0;
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+    ]);
     final node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -438,7 +486,7 @@ PatternVariableDeclaration
       rightBracket: >
     leftBracket: [
     elements
-      VariablePattern
+      DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@23
           type: int
@@ -457,17 +505,20 @@ PatternVariableDeclaration
     staticType: List<int>
     typeArgumentTypes
       List<int>
+  patternTypeSchema: List<int>
 ''');
   }
 
   test_variableDeclaration_typeSchema_withVariableType() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() {
   var [int a] = g();
 }
 
 T g<T>() => throw 0;
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+    ]);
     final node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -475,7 +526,7 @@ PatternVariableDeclaration
   pattern: ListPattern
     leftBracket: [
     elements
-      VariablePattern
+      DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -500,6 +551,7 @@ PatternVariableDeclaration
     staticType: List<int>
     typeArgumentTypes
       List<int>
+  patternTypeSchema: List<int>
 ''');
   }
 }

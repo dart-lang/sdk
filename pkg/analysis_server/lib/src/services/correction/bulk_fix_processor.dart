@@ -69,6 +69,9 @@ class BulkFixProcessor {
     CompileTimeErrorCode.INVALID_OVERRIDE: [
       DataDriven.new,
     ],
+    CompileTimeErrorCode.INVALID_OVERRIDE_SETTER: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
       DataDriven.new,
     ],
@@ -354,7 +357,7 @@ class BulkFixProcessor {
             directivesOrderingError = error;
             break;
           }
-        } else if (errorCode == HintCode.DUPLICATE_IMPORT ||
+        } else if (errorCode == WarningCode.DUPLICATE_IMPORT ||
             errorCode == HintCode.UNNECESSARY_IMPORT ||
             errorCode == HintCode.UNUSED_IMPORT) {
           unusedImportErrors.add(error);

@@ -15,7 +15,7 @@ main() {
       predicate((x) => x is AnchorElement, 'is an AnchorElement');
 
   List<String> _nodeStrings(Iterable<Node> input) {
-    var out = new List<String>();
+    var out = <String>[];
     for (Node n in input) {
       if (n is Element) {
         Element e = n;

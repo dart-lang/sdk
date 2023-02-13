@@ -8,8 +8,6 @@
  c_steps=[lib=(f1)]
 */
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 
 import 'lib.dart' deferred as lib;

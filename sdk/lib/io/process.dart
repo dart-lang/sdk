@@ -216,6 +216,25 @@ class ProcessStartMode {
 /// A `Process`'s streams are distinct from the top-level streams
 /// for the current program.
 ///
+/// **NOTE:**
+/// `stdin`, `stdout`, and `stderr` are implemented using pipes between
+/// the parent process and the spawned subprocess. These pipes have limited
+/// capacity. If the subprocess writes to stderr or stdout in excess of that
+/// limit without the output being read, the subprocess blocks waiting for
+/// the pipe buffer to accept more data. For example:
+///
+/// ```dart
+/// import 'dart:io';
+///
+/// main() async {
+///   var process = await Process.start('cat', ['largefile.txt']);
+///   // The following await statement will never complete because the
+///   // subprocess never exits since it is blocked waiting for its
+///   // stdout to be read.
+///   await process.stderr.forEach(print);
+/// }
+/// ```
+///
 /// ## Exit codes
 ///
 /// Call the [exitCode] method to get the exit code of the process.
@@ -272,6 +291,12 @@ abstract class Process {
   /// started. That [Process] object can be used to interact with the
   /// process. If the process cannot be started the returned [Future]
   /// completes with an exception.
+  ///
+  /// Using an absolute path for [executable] is recommended since resolving
+  /// the [executable] path is platform-specific. On Windows, both any `PATH`
+  /// set in the [environment] map parameter and the path set in
+  /// [workingDirectory] parameter are ignored for the purposes of resolving
+  /// the [executable] path.
   ///
   /// Use [workingDirectory] to set the working directory for the process. Note
   /// that the change of directory occurs before executing the process on some
@@ -333,6 +358,12 @@ abstract class Process {
 
   /// Starts a process and runs it non-interactively to completion. The
   /// process run is [executable] with the specified [arguments].
+  ///
+  /// Using an absolute path for [executable] is recommended since resolving
+  /// the [executable] path is platform-specific. On Windows, both any `PATH`
+  /// set in the [environment] map parameter and the path set in
+  /// [workingDirectory] parameter are ignored for the purposes of resolving
+  /// the [executable] path.
   ///
   /// Use [workingDirectory] to set the working directory for the process. Note
   /// that the change of directory occurs before executing the process on some
@@ -413,9 +444,47 @@ abstract class Process {
       [ProcessSignal signal = ProcessSignal.sigterm]);
 
   /// The standard output stream of the process as a `Stream`.
+  ///
+  /// **NOTE:**
+  /// `stdin`, `stdout`, and `stderr` are implemented using pipes between
+  /// the parent process and the spawned subprocess. These pipes have limited
+  /// capacity. If the subprocess writes to stderr or stdout in excess of that
+  /// limit without the output being read, the subprocess blocks waiting for
+  /// the pipe buffer to accept more data. For example:
+  ///
+  /// ```dart
+  /// import 'dart:io';
+  ///
+  /// main() async {
+  ///   var process = await Process.start('cat', ['largefile.txt']);
+  ///   // The following await statement will never complete because the
+  ///   // subprocess never exits since it is blocked waiting for its
+  ///   // stdout to be read.
+  ///   await process.stderr.forEach(print);
+  /// }
+  /// ```
   Stream<List<int>> get stdout;
 
   /// The standard error stream of the process as a `Stream`.
+  ///
+  /// **NOTE:**
+  /// `stdin`, `stdout`, and `stderr` are implemented using pipes between
+  /// the parent process and the spawned subprocess. These pipes have limited
+  /// capacity. If the subprocess writes to stderr or stdout in excess of that
+  /// limit without the output being read, the subprocess blocks waiting for
+  /// the pipe buffer to accept more data. For example:
+  ///
+  /// ```dart
+  /// import 'dart:io';
+  ///
+  /// main() async {
+  ///   var process = await Process.start('cat', ['largefile.txt']);
+  ///   // The following await statement will never complete because the
+  ///   // subprocess never exits since it is blocked waiting for its
+  ///   // stdout to be read.
+  ///   await process.stderr.forEach(print);
+  /// }
+  /// ```
   Stream<List<int>> get stderr;
 
   /// The standard input stream of the process as an [IOSink].

@@ -988,7 +988,9 @@ class ProfileBuilder : public ValueObject {
 
   bool FilterSamples() {
     ScopeTimer sw("ProfileBuilder::FilterSamples", FLAG_trace_profiler);
-    ASSERT(sample_buffer_ != nullptr);
+    if (sample_buffer_ == nullptr) {
+      return false;
+    }
     samples_ = sample_buffer_->BuildProcessedSampleBuffer(filter_);
     profile_->samples_ = samples_;
     profile_->sample_count_ = samples_->length();
@@ -1476,7 +1478,8 @@ Profile::Profile()
       dead_code_index_offset_(-1),
       tag_code_index_offset_(-1),
       min_time_(kMaxInt64),
-      max_time_(0) {}
+      max_time_(0),
+      sample_count_(0) {}
 
 void Profile::Build(Thread* thread,
                     SampleFilter* filter,
@@ -1559,9 +1562,6 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
   obj->AddProperty("maxStackDepth",
                    static_cast<intptr_t>(FLAG_max_profile_depth));
   obj->AddProperty("sampleCount", sample_count());
-  // TODO(bkonyi): remove timeSpan after next major revision.
-  ASSERT(SERVICE_PROTOCOL_MAJOR_VERSION == 3);
-  obj->AddProperty64("timeSpan", -1);
   obj->AddPropertyTimeMicros("timeOriginMicros", min_time());
   obj->AddPropertyTimeMicros("timeExtentMicros", GetTimeSpan());
   obj->AddProperty64("pid", pid);

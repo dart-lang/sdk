@@ -12,7 +12,7 @@ class A {
 }
 
 main() {
-  switch (new List(1)[0]) {
+  switch (new List.filled(1, null)[0]) {
     case const A():
       throw 'Test failed';
   }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Loads a human-readable source map and outputs the source map file for it.
 
 library save;
@@ -22,7 +20,7 @@ Usage: save <dir-containing 'out.js.map2'>
   }
 
   File humanReadableSourceMapFile;
-  File sourceMapFile;
+  File? sourceMapFile;
   if (args.length == 1 && new Directory(args[0]).existsSync()) {
     humanReadableSourceMapFile = new File('${args[0]}/out.js.map2');
     sourceMapFile = new File('${args[0]}/out.js.map');
@@ -47,8 +45,8 @@ Usage: save <dir-containing 'out.js.map2'>
 SingleMapping convertFromHumanReadableSourceMap(String json) {
   Map inputMap = lazon.decode(json);
   Map urls = inputMap['sources'];
-  List<String> sources = new List<String>.filled(urls.length, null);
-  urls.forEach((Object index, Object url) {
+  List<String?> sources = List.filled(urls.length, null);
+  urls.forEach((dynamic index, dynamic url) {
     int i = int.parse(index);
     assert(sources[i] == null);
     sources[i] = url;
@@ -58,41 +56,37 @@ SingleMapping convertFromHumanReadableSourceMap(String json) {
   Map<int, TargetLineEntry> lineEntryMap = {};
 
   for (Map line in lines) {
-    String targetString = line['target'];
-    String sourceString = line['source'];
-    String name = line['name'];
-    int nameIndex;
+    String targetString = line['target']!;
+    String? sourceString = line['source'];
+    String? name = line['name'];
+    int? nameIndex;
     if (name != null) {
       nameIndex = names.putIfAbsent(name, () => names.length);
     }
 
-    int lineNo;
-    int columnStart;
-    int columnEnd;
-    if (targetString != null) {
-      int commaPos = targetString.indexOf(',');
-      lineNo = int.parse(targetString.substring(0, commaPos)) - 1;
-      if (lineNo < 0) {
-        throw new ArgumentError('target line must be > 0: $lineNo');
-      }
-      targetString = targetString.substring(commaPos + 1);
-      int dashPos = targetString.indexOf('-');
-      columnStart = int.parse(targetString.substring(0, dashPos)) - 1;
-      if (columnStart < 0) {
-        throw new ArgumentError(
-            'target column start must be > 0: $columnStart');
-      }
-      targetString = targetString.substring(dashPos + 1);
-      if (!targetString.isEmpty) {
-        columnEnd = int.parse(targetString) - 1;
-        if (columnEnd < 0) {
-          throw new ArgumentError('target column end must be > 0: $columnEnd');
-        }
+    int? columnEnd;
+    int commaPos = targetString.indexOf(',');
+    final lineNo = int.parse(targetString.substring(0, commaPos)) - 1;
+    if (lineNo < 0) {
+      throw new ArgumentError('target line must be > 0: $lineNo');
+    }
+    targetString = targetString.substring(commaPos + 1);
+    int dashPos = targetString.indexOf('-');
+    final columnStart = int.parse(targetString.substring(0, dashPos)) - 1;
+    if (columnStart < 0) {
+      throw new ArgumentError('target column start must be > 0: $columnStart');
+    }
+    targetString = targetString.substring(dashPos + 1);
+    if (!targetString.isEmpty) {
+      columnEnd = int.parse(targetString) - 1;
+      if (columnEnd < 0) {
+        throw new ArgumentError('target column end must be > 0: $columnEnd');
       }
     }
-    int sourceUrlId;
-    int sourceLine;
-    int sourceColumn;
+
+    int? sourceUrlId;
+    int? sourceLine;
+    int? sourceColumn;
     if (sourceString != null) {
       int colonPos = sourceString.indexOf(':');
       sourceUrlId = int.parse(sourceString.substring(0, colonPos));
@@ -118,10 +112,10 @@ SingleMapping convertFromHumanReadableSourceMap(String json) {
 
     TargetLineEntry lineEntry =
         lineEntryMap.putIfAbsent(lineNo, () => new TargetLineEntry(lineNo, []));
-    lineEntry.entries.add(new TargetEntry(
+    lineEntry.entries.add(TargetEntry(
         columnStart, sourceUrlId, sourceLine, sourceColumn, nameIndex));
     if (columnEnd != null) {
-      lineEntry.entries.add(new TargetEntry(columnEnd));
+      lineEntry.entries.add(TargetEntry(columnEnd));
     }
   }
 

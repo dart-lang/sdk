@@ -48,7 +48,7 @@ StringPtr Report::PrependSnippet(Kind kind,
       }
       // Allocate formatted strings in old space as they may be created during
       // optimizing compilation. Those strings are created rarely and should not
-      // polute old space.
+      // pollute old space.
       result = String::NewFormatted(
           Heap::kOld, "'%s': %s: line %" Pd " pos %" Pd ": ",
           script_url.ToCString(), message_header, line, column);

@@ -1,0 +1,5 @@
+S+0 int32
+S+4 int64
+S+12 int32
+=>
+eax int32

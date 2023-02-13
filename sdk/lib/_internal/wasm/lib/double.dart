@@ -4,24 +4,6 @@
 
 part of "core_patch.dart";
 
-@pragma("wasm:import", "dart2wasm.doubleToString")
-external String _doubleToString(double v);
-
-@pragma("wasm:import", "dart2wasm.toFixed")
-external String _toFixed(double d, double digits);
-
-@pragma("wasm:import", "dart2wasm.toExponential")
-external String _toExponential1(double d);
-
-@pragma("wasm:import", "dart2wasm.toExponential")
-external String _toExponential2(double d, double fractionDigits);
-
-@pragma("wasm:import", "dart2wasm.toPrecision")
-external String _toPrecision(double d, double precision);
-
-@pragma("wasm:import", "dart2wasm.parseDouble")
-external double _parseDouble(String doubleString);
-
 @patch
 class double {
   @patch
@@ -40,7 +22,19 @@ class double {
 
   @patch
   static double? tryParse(String source) {
-    double result = _parseDouble(source);
+    // Notice that JS parseFloat accepts garbage at the end of the string.
+    // Accept only:
+    // - [+/-]NaN
+    // - [+/-]Infinity
+    // - a Dart double literal
+    // We do allow leading or trailing whitespace.
+    double result = JS<double>(r"""s => {
+      const jsSource = stringFromDartString(s);
+      if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(jsSource)) {
+        return NaN;
+      }
+      return parseFloat(jsSource);
+    }""", source);
     if (result.isNaN) {
       String trimmed = source.trim();
       if (!(trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN')) {
@@ -52,6 +46,9 @@ class double {
 
   /// Wasm i64.trunc_sat_f64_s instruction
   external int _toInt();
+
+  /// Wasm f64.copysign instruction
+  external double _copysign(double other);
 }
 
 @pragma("wasm:entry-point")
@@ -62,6 +59,9 @@ class _BoxedDouble extends double {
 
   /// Dummy factory to silence error about missing superclass constructor.
   external factory _BoxedDouble();
+
+  @override
+  Type get runtimeType => double;
 
   static const int _mantissaBits = 52;
   static const int _exponentBits = 11;
@@ -83,11 +83,16 @@ class _BoxedDouble extends double {
     return (bits ^ (bits >>> 32)) & 0x3FFFFFFF;
   }
 
+  @pragma("wasm:prefer-inline")
   double operator +(num other) => this + other.toDouble(); // Intrinsic +
+  @pragma("wasm:prefer-inline")
   double operator -(num other) => this - other.toDouble(); // Intrinsic -
+  @pragma("wasm:prefer-inline")
   double operator *(num other) => this * other.toDouble(); // Intrinsic *
+  @pragma("wasm:prefer-inline")
   double operator /(num other) => this / other.toDouble(); // Intrinsic /
 
+  @pragma("wasm:prefer-inline")
   int operator ~/(num other) {
     return _truncDiv(this, other.toDouble());
   }
@@ -96,6 +101,7 @@ class _BoxedDouble extends double {
     return (a / b).toInt();
   }
 
+  @pragma("wasm:prefer-inline")
   double operator %(num other) {
     return _modulo(this, other.toDouble());
   }
@@ -113,6 +119,7 @@ class _BoxedDouble extends double {
     return rem;
   }
 
+  @pragma("wasm:prefer-inline")
   double remainder(num other) {
     return _remainder(this, other.toDouble());
   }
@@ -123,6 +130,7 @@ class _BoxedDouble extends double {
 
   external double operator -();
 
+  @pragma("wasm:prefer-inline")
   bool operator ==(Object other) {
     return other is double
         ? this == other // Intrinsic ==
@@ -131,50 +139,65 @@ class _BoxedDouble extends double {
             : false;
   }
 
+  @pragma("wasm:prefer-inline")
   bool operator <(num other) => this < other.toDouble(); // Intrinsic <
+  @pragma("wasm:prefer-inline")
   bool operator >(num other) => this > other.toDouble(); // Intrinsic >
+  @pragma("wasm:prefer-inline")
   bool operator >=(num other) => this >= other.toDouble(); // Intrinsic >=
+  @pragma("wasm:prefer-inline")
   bool operator <=(num other) => this <= other.toDouble(); // Intrinsic <=
 
+  @pragma("wasm:prefer-inline")
   bool get isNegative {
+    // Sign bit set, not NaN
     int bits = doubleToIntBits(this);
-    return (bits & _signMask) != 0;
+    return (bits ^ _signMask)._le_u(_exponentMask);
   }
 
+  @pragma("wasm:prefer-inline")
   bool get isInfinite {
+    // Exponent at max, mantissa zero
     int bits = doubleToIntBits(this);
-    return (bits & _exponentMask) == _exponentMask &&
-        (bits & _mantissaMask) == 0;
+    return (bits & (_exponentMask | _mantissaMask)) == _exponentMask;
   }
 
+  @pragma("wasm:prefer-inline")
   bool get isNaN {
+    // Exponent at max, mantissa nonzero
     int bits = doubleToIntBits(this);
-    return (bits & _exponentMask) == _exponentMask &&
-        (bits & _mantissaMask) != 0;
+    return (bits & (_exponentMask | _mantissaMask)) > _exponentMask;
   }
 
+  @pragma("wasm:prefer-inline")
   bool get isFinite {
+    // Exponent not at max
     int bits = doubleToIntBits(this);
     return (bits & _exponentMask) != _exponentMask;
   }
 
+  @pragma("wasm:prefer-inline")
   double abs() {
-    // Handle negative 0.0.
-    if (this == 0.0) return 0.0;
-    return this < 0.0 ? -this : this;
+    return _copysign(0.0);
   }
 
+  @pragma("wasm:prefer-inline")
   double get sign {
     if (this > 0.0) return 1.0;
     if (this < 0.0) return -1.0;
     return this; // +/-0.0 or NaN.
   }
 
+  @pragma("wasm:prefer-inline")
   int round() => roundToDouble().toInt();
+  @pragma("wasm:prefer-inline")
   int floor() => floorToDouble().toInt();
+  @pragma("wasm:prefer-inline")
   int ceil() => ceilToDouble().toInt();
+  @pragma("wasm:prefer-inline")
   int truncate() => truncateToDouble().toInt();
 
+  @pragma("wasm:prefer-inline")
   double roundToDouble() {
     return _roundToDouble(this);
   }
@@ -217,6 +240,7 @@ class _BoxedDouble extends double {
     return this;
   }
 
+  @pragma("wasm:prefer-inline")
   int toInt() {
     if (!isFinite) {
       throw UnsupportedError("Infinity or NaN toInt");
@@ -224,6 +248,7 @@ class _BoxedDouble extends double {
     return _toInt();
   }
 
+  @pragma("wasm:prefer-inline")
   double toDouble() {
     return this;
   }
@@ -254,7 +279,7 @@ class _BoxedDouble extends double {
         return "0.0";
       }
     }
-    String result = _doubleToString(value);
+    String result = JS<String>("v => stringToDartString(v.toString())", value);
     if (this % 1.0 == 0.0 && result.indexOf('e') == -1) {
       result = '$result.0';
     }
@@ -293,8 +318,10 @@ class _BoxedDouble extends double {
     return result;
   }
 
-  String _toStringAsFixed(int fractionDigits) =>
-      _toFixed(value, fractionDigits.toDouble());
+  String _toStringAsFixed(int fractionDigits) => JS<String>(
+      "(d, digits) => stringToDartString(d.toFixed(digits))",
+      value,
+      fractionDigits.toDouble());
 
   String toStringAsExponential([int? fractionDigits]) {
     // See ECMAScript-262, 15.7.4.6 for details.
@@ -321,9 +348,10 @@ class _BoxedDouble extends double {
 
   String _toStringAsExponential(int? fractionDigits) {
     if (fractionDigits == null) {
-      return _toExponential1(value);
+      return JS<String>("d => stringToDartString(d.toExponential())", value);
     } else {
-      return _toExponential2(value, fractionDigits.toDouble());
+      return JS<String>("(d, f) => stringToDartString(d.toExponential(f))",
+          value, fractionDigits.toDouble());
     }
   }
 
@@ -348,8 +376,10 @@ class _BoxedDouble extends double {
     return result;
   }
 
-  String _toStringAsPrecision(int fractionDigits) =>
-      _toPrecision(value, fractionDigits.toDouble());
+  String _toStringAsPrecision(int fractionDigits) => JS<String>(
+      "(d, precision) => stringToDartString(d.toPrecision(precision))",
+      value,
+      fractionDigits.toDouble());
 
   // Order is: NaN > Infinity > ... > 0.0 > -0.0 > ... > -Infinity.
   int compareTo(num other) {

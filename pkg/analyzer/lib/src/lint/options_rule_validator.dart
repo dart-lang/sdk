@@ -7,9 +7,11 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 // TODO(pq): migrate these codes to `option_codes.dart`?
@@ -58,12 +60,34 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   static const rulesKey = 'rules';
 
   final LintRuleProvider ruleProvider;
+  final VersionConstraint? sdkVersionConstraint;
+  final bool sourceIsOptionsForContextRoot;
 
-  LinterRuleOptionsValidator({LintRuleProvider? provider})
-      : ruleProvider = provider ?? (() => Registry.ruleRegistry.rules);
+  LinterRuleOptionsValidator({
+    LintRuleProvider? provider,
+    this.sdkVersionConstraint,
+    this.sourceIsOptionsForContextRoot = true,
+  }) : ruleProvider = provider ?? (() => Registry.ruleRegistry.rules);
+
+  bool currentSdkAllows(Version? since) {
+    if (since == null) return true;
+    var sdk = sdkVersionConstraint;
+    if (sdk == null) return false;
+    return sdk.allows(since);
+  }
 
   LintRule? getRegisteredLint(Object value) =>
       ruleProvider().firstWhereOrNull((rule) => rule.name == value);
+
+  bool isDeprecatedInCurrentSdk(State state) {
+    if (state is! DeprecatedState) return false;
+    return currentSdkAllows(state.since);
+  }
+
+  bool isRemovedInCurrentSdk(State state) {
+    if (state is! RemovedState) return false;
+    return currentSdkAllows(state.since);
+  }
 
   @override
   List<AnalysisError> validate(ErrorReporter reporter, YamlMap options) {
@@ -92,7 +116,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       var value = node.value;
       if (value == null) return;
 
-      final rule = getRegisteredLint(value);
+      final rule = getRegisteredLint(value as Object);
       if (rule == null) {
         reporter.reportErrorForSpan(UNDEFINED_LINT_WARNING, node.span, [value]);
         return;
@@ -107,8 +131,25 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           reporter.reportErrorForSpan(DUPLICATE_RULE_HINT, node.span, [value]);
         }
       }
-      if (rule.maturity == Maturity.deprecated) {
-        reporter.reportErrorForSpan(DEPRECATED_LINT_HINT, node.span, [value]);
+      // Report removed or deprecated lint warnings defined directly (and not in
+      // includes).
+      if (sourceIsOptionsForContextRoot) {
+        var state = rule.state;
+        if (isDeprecatedInCurrentSdk(state)) {
+          reporter.reportErrorForSpan(DEPRECATED_LINT_HINT, node.span, [value]);
+        } else if (isRemovedInCurrentSdk(state)) {
+          var since = state.since.toString();
+          var replacedBy = (state as RemovedState).replacedBy;
+          if (replacedBy != null) {
+            reporter.reportErrorForSpan(
+                AnalysisOptionsWarningCode.REPLACED_LINT,
+                node.span,
+                [value, since, replacedBy]);
+          } else {
+            reporter.reportErrorForSpan(AnalysisOptionsWarningCode.REMOVED_LINT,
+                node.span, [value, since]);
+          }
+        }
       }
     }
 
@@ -118,7 +159,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       }
     } else if (rules is YamlMap) {
       for (var ruleEntry in rules.nodeMap.entries) {
-        validateRule(ruleEntry.key, ruleEntry.value.value);
+        validateRule(ruleEntry.key, ruleEntry.value.value as bool);
       }
     }
   }

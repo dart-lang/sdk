@@ -163,7 +163,7 @@ constantIndexSetEmpty() {
     return a;
   }
 
-  compare('coinstant index-set on empty list', fault1, fault2, fault3);
+  compare('constant index-set on empty list', fault1, fault2, fault3);
 }
 
 constantIndexSetNonempty() {

@@ -116,7 +116,6 @@ namespace dart {
   V(RegExp_getGroupNameMap, 1)                                                 \
   V(RegExp_ExecuteMatch, 3)                                                    \
   V(RegExp_ExecuteMatchSticky, 3)                                              \
-  V(List_new, 2)                                                               \
   V(List_allocate, 2)                                                          \
   V(List_getIndexed, 2)                                                        \
   V(List_setIndexed, 3)                                                        \
@@ -126,6 +125,7 @@ namespace dart {
   V(StringBase_createFromCodePoints, 3)                                        \
   V(StringBase_substringUnchecked, 3)                                          \
   V(StringBase_joinReplaceAllResult, 4)                                        \
+  V(StringBase_intern, 1)                                                      \
   V(StringBuffer_createStringFromUint16Array, 3)                               \
   V(OneByteString_substringUnchecked, 3)                                       \
   V(OneByteString_allocateFromOneByteList, 3)                                  \
@@ -390,7 +390,6 @@ namespace dart {
   V(Ffi_address, 1)                                                            \
   V(Ffi_fromAddress, 1)                                                        \
   V(Ffi_asFunctionInternal, 2)                                                 \
-  V(Ffi_nativeCallbackFunction, 2)                                             \
   V(Ffi_pointerFromFunction, 1)                                                \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_lookup, 2)                                                          \

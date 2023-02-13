@@ -364,8 +364,7 @@ class LocalsHandler {
     }
   }
 
-  /// Returns the join between this locals handler and [other] which models the
-  /// flow through either this or [other].
+  /// Returns the locals handler modeling the union of this and [other].
   ///
   /// If [inPlace] is `true`, the variable types in this locals handler are
   /// replaced by the variables types in [other]. Otherwise the variable types

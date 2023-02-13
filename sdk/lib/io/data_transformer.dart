@@ -380,7 +380,7 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
 
 /// The [RawZLibFilter] class provides a low-level interface to zlib.
 abstract class RawZLibFilter {
-  /// Returns a a [RawZLibFilter] whose [process] and [processed] methods
+  /// Returns a [RawZLibFilter] whose [process] and [processed] methods
   /// compress data.
   factory RawZLibFilter.deflateFilter({
     bool gzip = false,
@@ -395,7 +395,7 @@ abstract class RawZLibFilter {
         gzip, level, windowBits, memLevel, strategy, dictionary, raw);
   }
 
-  /// Returns a a [RawZLibFilter] whose [process] and [processed] methods
+  /// Returns a [RawZLibFilter] whose [process] and [processed] methods
   /// decompress data.
   factory RawZLibFilter.inflateFilter({
     int windowBits = ZLibOption.defaultWindowBits,

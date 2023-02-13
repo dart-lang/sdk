@@ -12,6 +12,7 @@ import '../elements/types.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
 import 'closure.dart';
+import 'records.dart' show JRecordClass;
 
 const String jsElementPrefix = 'j:';
 
@@ -53,7 +54,7 @@ class JLibrary extends IndexedLibrary {
 }
 
 /// Enum used for identifying [JClass] subclasses in serialization.
-enum JClassKind { node, closure, context }
+enum JClassKind { node, closure, context, record }
 
 class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
   /// Tag used for identifying serialized [JClass] objects in a
@@ -85,6 +86,8 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
         return JClosureClass.readFromDataSource(source);
       case JClassKind.context:
         return JContext.readFromDataSource(source);
+      case JClassKind.record:
+        return JRecordClass.readFromDataSource(source);
     }
   }
 
@@ -123,7 +126,7 @@ enum JMemberKind {
 
 abstract class JMember extends IndexedMember {
   @override
-  final JLibrary /*!*/ library;
+  final JLibrary library;
   @override
   final JClass? enclosingClass;
   final Name _name;
@@ -355,7 +358,7 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
   JConstructorBody(this.constructor, ParameterStructure parameterStructure)
       : super(constructor.library, constructor.enclosingClass,
             constructor.memberName, parameterStructure, AsyncMarker.SYNC,
-            isStatic: false, isExternal: false);
+            isStatic: false, isExternal: constructor.isExternal);
 
   factory JConstructorBody.readFromDataSource(DataSourceReader source) {
     source.begin(tag);

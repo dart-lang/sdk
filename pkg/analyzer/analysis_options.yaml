@@ -31,6 +31,7 @@ analyzer:
     provide_deprecation_message: ignore
 
   language:
+    strict-casts: true
     strict-inference: true
 
 linter:
@@ -38,8 +39,7 @@ linter:
     - always_use_package_imports
     - avoid_dynamic_calls
     - avoid_unused_constructor_parameters
-    # Enable after linter 1.31 is released.
-    #- collection_methods_unrelated_type
+    - collection_methods_unrelated_type
     - enable_null_safety
     - implicit_call_tearoffs
     - library_annotations

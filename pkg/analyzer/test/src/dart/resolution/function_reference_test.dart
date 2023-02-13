@@ -3526,6 +3526,60 @@ FunctionReference
 ''');
   }
 
+  test_staticMethod_explicitReceiver_prefix() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  static void foo<T>(T a) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+bar() {
+  prefix.A.foo<int>;
+}
+''');
+
+    assertImportPrefix(
+        findNode.simple('prefix.'), findElement.prefix('prefix'));
+    var reference = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(reference, r'''
+FunctionReference
+  function: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+        staticElement: self::@prefix::prefix
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: A
+        staticElement: package:test/a.dart::@class::A
+        staticType: null
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: package:test/a.dart::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
   test_staticMethod_explicitReceiver_prefix_typeAlias() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
@@ -3608,60 +3662,6 @@ FunctionReference
       staticElement: self::@class::A::@method::foo
       staticType: null
     staticElement: self::@class::A::@method::foo
-    staticType: void Function<T>(T)
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
-        type: int
-    rightBracket: >
-  staticType: void Function(int)
-  typeArgumentTypes
-    int
-''');
-  }
-
-  test_staticMethod_explicitReciver_prefix() async {
-    newFile('$testPackageLibPath/a.dart', '''
-class A {
-  static void foo<T>(T a) {}
-}
-''');
-    await assertNoErrorsInCode('''
-import 'a.dart' as prefix;
-
-bar() {
-  prefix.A.foo<int>;
-}
-''');
-
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    var reference = findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
-FunctionReference
-  function: PropertyAccess
-    target: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
-        staticElement: self::@prefix::prefix
-        staticType: null
-      period: .
-      identifier: SimpleIdentifier
-        token: A
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
-      staticElement: package:test/a.dart::@class::A
-      staticType: null
-    operator: .
-    propertyName: SimpleIdentifier
-      token: foo
-      staticElement: package:test/a.dart::@class::A::@method::foo
-      staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <

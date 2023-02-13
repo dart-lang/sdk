@@ -43,7 +43,7 @@ class Stateful {
 }
 class State { }
 ''', [
-      error(HintCode.INVALID_FACTORY_METHOD_IMPL, 96, 11),
+      error(WarningCode.INVALID_FACTORY_METHOD_IMPL, 96, 11),
     ]);
   }
 
@@ -136,7 +136,7 @@ class Stateful {
   void createState() {}
 }
 ''', [
-      error(HintCode.INVALID_FACTORY_METHOD_DECL, 69, 11),
+      error(WarningCode.INVALID_FACTORY_METHOD_DECL, 69, 11),
     ]);
   }
 }

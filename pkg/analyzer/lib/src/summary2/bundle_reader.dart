@@ -28,7 +28,9 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
@@ -59,7 +61,7 @@ class BundleReader {
     _reader.offset = librariesOffset;
     var libraryHeaderList = _reader.readTypedList(() {
       return _LibraryHeader(
-        uri: Uri.parse(_reader.readStringReference()),
+        uri: uriCache.parse(_reader.readStringReference()),
         offset: _reader.readUInt30(),
         classMembersLengths: _reader.readUInt30List(),
       );
@@ -326,7 +328,7 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {
         element.constantInitializer = initializer;
-        ConstantContextForExpressionImpl(initializer);
+        ConstantContextForExpressionImpl(element, initializer);
       }
     }
     applyConstantOffsets?.perform();
@@ -630,8 +632,8 @@ class LibraryReader {
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
-    element.fields = fields;
-    element.accessors = accessors;
+    element.fields = fields.toFixedList();
+    element.accessors = accessors.toFixedList();
 
     element.constructors = _readConstructors(unitElement, element, reference);
     element.methods = _readMethods(unitElement, element, reference);
@@ -641,8 +643,7 @@ class LibraryReader {
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
   ) {
-    var length = _reader.readUInt30();
-    unitElement.classes = List.generate(length, (index) {
+    unitElement.classes = _reader.readTypedList(() {
       return _readClassElement(unitElement, unitReference);
     });
   }
@@ -653,8 +654,7 @@ class LibraryReader {
     Reference classReference,
   ) {
     var containerRef = classReference.getChild('@constructor');
-    var length = _reader.readUInt30();
-    return List.generate(length, (_) {
+    return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var name = _reader.readStringReference();
       var referenceName = name.ifNotEmptyOrElse('new');
@@ -685,7 +685,7 @@ class LibraryReader {
 
     DirectiveUriWithRelativeUriImpl readWithRelativeUri() {
       final parent = readWithRelativeUriString();
-      final relativeUri = Uri.parse(_reader.readStringReference());
+      final relativeUri = uriCache.parse(_reader.readStringReference());
       return DirectiveUriWithRelativeUriImpl(
         relativeUriString: parent.relativeUriString,
         relativeUri: relativeUri,
@@ -699,7 +699,7 @@ class LibraryReader {
       final sourceFactory = analysisContext.sourceFactory;
 
       final sourceUriStr = _reader.readStringReference();
-      final sourceUri = Uri.parse(sourceUriStr);
+      final sourceUri = uriCache.parse(sourceUriStr);
       final source = sourceFactory.forUri2(sourceUri);
 
       // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49431
@@ -784,8 +784,8 @@ class LibraryReader {
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
-    element.fields = fields;
-    element.accessors = accessors;
+    element.fields = fields.toFixedList();
+    element.accessors = accessors.toFixedList();
 
     element.constructors = _readConstructors(unitElement, element, reference);
     element.methods = _readMethods(unitElement, element, reference);
@@ -797,8 +797,7 @@ class LibraryReader {
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
   ) {
-    var count = _reader.readUInt30();
-    unitElement.enums = List.generate(count, (_) {
+    unitElement.enums = _reader.readTypedList(() {
       return _readEnumElement(unitElement, unitReference);
     });
   }
@@ -881,8 +880,7 @@ class LibraryReader {
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
   ) {
-    var count = _reader.readUInt30();
-    unitElement.extensions = List.generate(count, (_) {
+    unitElement.extensions = _reader.readTypedList(() {
       return _readExtensionElement(unitElement, unitReference);
     });
   }
@@ -957,8 +955,7 @@ class LibraryReader {
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
   ) {
-    var count = _reader.readUInt30();
-    unitElement.functions = List.generate(count, (_) {
+    unitElement.functions = _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var name = _reader.readStringReference();
       var reference = unitReference.getChild('@function').getChild(name);
@@ -1081,8 +1078,7 @@ class LibraryReader {
     Reference enclosingReference,
   ) {
     var containerRef = enclosingReference.getChild('@method');
-    var length = _reader.readUInt30();
-    return List.generate(length, (_) {
+    return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var name = _reader.readStringReference();
       var reference = containerRef.getChild(name);
@@ -1128,8 +1124,8 @@ class LibraryReader {
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
-    element.fields = fields;
-    element.accessors = accessors;
+    element.fields = fields.toFixedList();
+    element.accessors = accessors.toFixedList();
 
     element.constructors = _readConstructors(unitElement, element, reference);
     element.methods = _readMethods(unitElement, element, reference);
@@ -1142,8 +1138,7 @@ class LibraryReader {
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
   ) {
-    var length = _reader.readUInt30();
-    unitElement.mixins = List.generate(length, (index) {
+    unitElement.mixins = _reader.readTypedList(() {
       return _readMixinElement(unitElement, unitReference);
     });
   }
@@ -1168,8 +1163,7 @@ class LibraryReader {
     Reference enclosingReference,
   ) {
     var containerRef = enclosingReference.getChild('@parameter');
-    var length = _reader.readUInt30();
-    return List.generate(length, (_) {
+    return _reader.readTypedList(() {
       var name = _reader.readStringReference();
       var isInitializingFormal = _reader.readBool();
       var isSuperFormal = _reader.readBool();
@@ -1439,15 +1433,13 @@ class LibraryReader {
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
   ) {
-    var length = _reader.readUInt30();
-    unitElement.typeAliases = List.generate(length, (_) {
+    unitElement.typeAliases = _reader.readTypedList(() {
       return _readTypeAliasElement(unitElement, unitReference);
     });
   }
 
   List<TypeParameterElementImpl> _readTypeParameters() {
-    var length = _reader.readUInt30();
-    return List.generate(length, (_) {
+    return _reader.readTypedList(() {
       var name = _reader.readStringReference();
       var varianceEncoding = _reader.readByte();
       var variance = _decodeVariance(varianceEncoding);
@@ -1496,8 +1488,8 @@ class LibraryReader {
     _readTopLevelVariables(unitElement, unitReference, accessors, variables);
     _readPropertyAccessors(unitElement, unitElement, unitReference, accessors,
         variables, '@variable');
-    unitElement.accessors = accessors;
-    unitElement.topLevelVariables = variables;
+    unitElement.accessors = accessors.toFixedList();
+    unitElement.topLevelVariables = variables.toFixedList();
     return unitElement;
   }
 
@@ -1634,19 +1626,16 @@ class ResolutionReader {
 
     if (memberFlags == Tag.MemberLegacyWithTypeArguments ||
         memberFlags == Tag.MemberWithTypeArguments) {
-      var arguments = _readTypeList();
-      // TODO(scheglov) why to check for empty? If we have this flags.
-      if (arguments.isNotEmpty) {
-        var typeParameters =
-            (element.enclosingElement as TypeParameterizedElement)
-                .typeParameters;
-        var substitution = Substitution.fromPairs(typeParameters, arguments);
-        element =
-            ExecutableMember.from2(element as ExecutableElement, substitution);
-      }
+      element as ExecutableElement;
+      var enclosing = element.enclosingElement as TypeParameterizedElement;
+      var typeParameters = enclosing.typeParameters;
+      var typeArguments = _readTypeList();
+      var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+      element = ExecutableMember.from2(element, substitution);
     }
 
-    if (memberFlags == Tag.MemberLegacyWithTypeArguments) {
+    if (memberFlags == Tag.MemberLegacyWithoutTypeArguments ||
+        memberFlags == Tag.MemberLegacyWithTypeArguments) {
       return Member.legacy(element);
     }
 
@@ -1750,10 +1739,7 @@ class ResolutionReader {
   }
 
   List<T> readTypedList<T>(T Function() read) {
-    var length = readUInt30();
-    return List<T>.generate(length, (_) {
-      return read();
-    });
+    return _reader.readTypedList(read);
   }
 
   int readUInt30() {
@@ -1860,11 +1846,7 @@ class ResolutionReader {
   List<ElementAnnotationImpl> _readAnnotationList({
     required CompilationUnitElementImpl unitElement,
   }) {
-    var length = _reader.readUInt30();
-    if (length == 0) {
-      return const <ElementAnnotationImpl>[];
-    }
-    return List.generate(length, (_) {
+    return readTypedList(() {
       var ast = _readRequiredNode() as Annotation;
       return ElementAnnotationImpl(unitElement)
         ..annotationAst = ast
@@ -1875,8 +1857,7 @@ class ResolutionReader {
   List<ParameterElementImpl> _readFormalParameters(
     CompilationUnitElementImpl? unitElement,
   ) {
-    var formalParameterCount = _reader.readUInt30();
-    return List.generate(formalParameterCount, (_) {
+    return readTypedList(() {
       var kindIndex = _reader.readByte();
       var kind = _formalParameterKind(kindIndex);
       var hasImplicitType = _reader.readBool();
@@ -1951,16 +1932,11 @@ class ResolutionReader {
   }
 
   List<InterfaceType> _readInterfaceTypeList() {
-    var length = _reader.readUInt30();
-    if (length == 0) {
-      return const <InterfaceType>[];
-    }
-    return List.generate(length, (_) => _readInterfaceType());
+    return readTypedList(_readInterfaceType);
   }
 
   List<T> _readNodeList<T>() {
-    var length = _reader.readUInt30();
-    return List<T>.generate(length, (_) {
+    return readTypedList(() {
       return _readRequiredNode() as T;
     });
   }
@@ -2024,20 +2000,15 @@ class ResolutionReader {
   }
 
   List<DartType> _readTypeList() {
-    var types = <DartType>[];
-    var length = _reader.readUInt30();
-    for (var i = 0; i < length; i++) {
-      var argument = readType()!;
-      types.add(argument);
-    }
-    return types;
+    return readTypedList(() {
+      return readRequiredType();
+    });
   }
 
   List<TypeParameterElementImpl> _readTypeParameters(
     CompilationUnitElementImpl? unitElement,
   ) {
-    var typeParameterCount = _reader.readUInt30();
-    var typeParameters = List.generate(typeParameterCount, (_) {
+    var typeParameters = readTypedList(() {
       var name = readStringReference();
       var typeParameter = TypeParameterElementImpl(name, -1);
       _localElements.add(typeParameter);
@@ -2089,7 +2060,7 @@ class TopLevelVariableElementLinkedData
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {
         element.constantInitializer = initializer;
-        ConstantContextForExpressionImpl(initializer);
+        ConstantContextForExpressionImpl(element, initializer);
       }
     }
     applyConstantOffsets?.perform();

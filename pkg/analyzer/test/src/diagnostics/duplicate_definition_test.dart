@@ -1439,37 +1439,41 @@ void f() {
     await assertErrorsInCode(r'''
 void f() {
   var a = 0;
-  var (var a) = 1;
+  var (a) = 1;
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 35, 1,
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 31, 1,
           contextMessages: [message('/home/test/lib/test.dart', 17, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
     ]);
   }
 
   test_block_patternVariable_localVariable() async {
     await assertErrorsInCode(r'''
 void f() {
-  var (var a) = 1;
+  var (a) = 1;
   var a = 0;
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 36, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 22, 1)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 32, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 18, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
     ]);
   }
 
   test_block_patternVariable_patternVariable() async {
     await assertErrorsInCode(r'''
 void f() {
-  var (var a) = 0;
-  var (var a) = 1;
+  var (a) = 0;
+  var (a) = 1;
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 41, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 22, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 33, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 18, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
     ]);
   }
 
@@ -1478,7 +1482,7 @@ void f() {
 main() {
   try {} catch (e, e) {}
 }''', [
-      error(HintCode.UNUSED_CATCH_STACK, 28, 1),
+      error(WarningCode.UNUSED_CATCH_STACK, 28, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 28, 1,
           contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
     ]);

@@ -30,8 +30,6 @@
   lib2=(f3, f2)]
 */
 
-// @dart = 2.7
-
 // The class lib1.C is referenced via lib1
 // The static function lib1.C.foo is referenced via lib2
 // Dart2js will put them in separate hunks.

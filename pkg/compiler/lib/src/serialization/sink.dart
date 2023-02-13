@@ -56,9 +56,9 @@ class DataSinkWriter {
       return UnorderedIndexedSink<T>(this,
           startOffset: indices.previousSourceReader?.endOffset);
     }
-    Map<T, int> cacheCopy = Map.from(sourceInfo.cache);
     return UnorderedIndexedSink<T>(this,
-        cache: cacheCopy, startOffset: indices.previousSourceReader?.endOffset);
+        cache: Map.from(sourceInfo.cache),
+        startOffset: indices.previousSourceReader?.endOffset);
   }
 
   IndexedSink<T> _createSink<T>() {
@@ -66,8 +66,8 @@ class DataSinkWriter {
     if (indices == null || !indices.caches.containsKey(T)) {
       return OrderedIndexedSink<T>(_sinkWriter);
     } else {
-      Map<T, int> cacheCopy = Map.from(indices.caches[T]!.cache);
-      return OrderedIndexedSink<T>(_sinkWriter, cache: cacheCopy);
+      return OrderedIndexedSink<T>(_sinkWriter,
+          cache: Map.from(indices.caches[T]!.cache));
     }
   }
 
@@ -325,6 +325,18 @@ class DataSinkWriter {
   }
 
   void _writeClassNode(ir.Class value) {
+    _writeLibraryNode(value.enclosingLibrary);
+    _writeString(value.name);
+  }
+
+  /// Writes a reference to the kernel inline class node [value] to this data
+  /// sink.
+  void writeInlineClassNode(ir.InlineClass value) {
+    _writeDataKind(DataKind.inlineClassNode);
+    _writeInlineClassNode(value);
+  }
+
+  void _writeInlineClassNode(ir.InlineClass value) {
     _writeLibraryNode(value.enclosingLibrary);
     _writeString(value.name);
   }
@@ -647,7 +659,7 @@ class DataSinkWriter {
   }
 
   /// Writes the kernel type node [value] to this data sink.
-  void writeDartTypeNode(ir.DartType /*!*/ value) {
+  void writeDartTypeNode(ir.DartType value) {
     _writeDataKind(DataKind.dartTypeNode);
     _writeDartTypeNode(value, [], allowNull: false);
   }
@@ -865,7 +877,7 @@ class DataSinkWriter {
     }
   }
 
-  /// Writes the [map] from references to type variable entites to [V] values
+  /// Writes the [map] from references to type variable entities to [V] values
   /// to this data sink, calling [f] to write each value to the data sink. If
   /// [allowNull] is `true`, [map] is allowed to be `null`.
   ///
@@ -987,6 +999,11 @@ class DataSinkWriter {
         writeDartType(constant.type);
         writeMemberMap(constant.fields,
             (MemberEntity member, ConstantValue value) => writeConstant(value));
+        break;
+      case ConstantValueKind.RECORD:
+        final constant = value as RecordConstantValue;
+        constant.shape.writeToDataSink(this);
+        writeConstants(constant.values);
         break;
       case ConstantValueKind.TYPE:
         final constant = value as TypeConstantValue;

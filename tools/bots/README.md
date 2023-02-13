@@ -106,7 +106,7 @@ from the builder name:
 ]
 ```
 
-A step that uses the script `tools/test.py` either explicitely or by default is
+A step that uses the script `tools/test.py` either explicitly or by default is
 called a "test step". Test steps must include the `-n` command line argument to
 select one of the named configurations defined in the `configurations` section.
 

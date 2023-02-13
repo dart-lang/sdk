@@ -4,7 +4,6 @@
 
 // @dart = 2.9
 
-@proxy
 class C {
   noSuchMethod(Invocation invocation) => 42;
 }

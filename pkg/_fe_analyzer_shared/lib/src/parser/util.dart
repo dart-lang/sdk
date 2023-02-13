@@ -124,7 +124,7 @@ Token skipMetadata(Token token) {
       next = token.next!;
     }
 
-    // The extra .identifier after arguments in in [parseMetadata].
+    // The extra .identifier after arguments in [parseMetadata].
     if (optional('.', next)) {
       token = next;
       next = token.next!;

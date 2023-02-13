@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=patterns
+
 import "package:expect/expect.dart";
 
 import "implicit_const_context_prefix_constructor_generic_named_test.dart"
@@ -43,7 +45,7 @@ main() {
 
   // Switch case expression.
   switch (c0) {
-    case prefix.C<int>.named(42): break;
+    case const prefix.C<int>.named(42): break;
     default: Expect.fail("Didn't match constant");
   }
 

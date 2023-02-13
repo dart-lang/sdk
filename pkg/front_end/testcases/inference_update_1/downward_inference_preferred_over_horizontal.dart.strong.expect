@@ -1,0 +1,8 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method testProductOfNums(core::List<core::num> values) → dynamic {
+  core::num a = values.{core::Iterable::fold}<core::num>(1, (core::num p, core::num v) → core::num => p.{core::num::*}(v){(core::num) → core::num}){(core::num, (core::num, core::num) → core::num) → core::num};
+}
+static method main() → dynamic {}

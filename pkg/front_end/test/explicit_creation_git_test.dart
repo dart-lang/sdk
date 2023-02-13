@@ -177,8 +177,8 @@ class DietListenerTest extends DietListener {
         coreTypes: coreTypes,
         declarationBuilder: currentDeclaration,
         isDeclarationInstanceMember: isDeclarationInstanceMember,
-        extensionThis: extensionThis,
-        extensionTypeParameters: extensionTypeParameters,
+        thisVariable: extensionThis,
+        thisTypeParameters: extensionTypeParameters,
         uri: uri,
         typeInferrer: typeInferrer)
       ..constantContext = constantContext;
@@ -196,8 +196,8 @@ class BodyBuilderTest extends BodyBuilder {
       coreTypes,
       declarationBuilder,
       isDeclarationInstanceMember,
-      extensionThis,
-      extensionTypeParameters,
+      thisVariable,
+      thisTypeParameters,
       uri,
       typeInferrer})
       : super(
@@ -209,8 +209,8 @@ class BodyBuilderTest extends BodyBuilder {
             coreTypes: coreTypes,
             declarationBuilder: declarationBuilder,
             isDeclarationInstanceMember: isDeclarationInstanceMember,
-            extensionThis: extensionThis,
-            extensionTypeParameters: extensionTypeParameters,
+            thisVariable: thisVariable,
+            thisTypeParameters: thisTypeParameters,
             uri: uri,
             typeInferrer: typeInferrer);
 

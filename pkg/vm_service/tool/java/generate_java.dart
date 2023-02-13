@@ -308,11 +308,9 @@ class Api extends Member with ApiParseUtil {
   }
 
   void _parse(String name, String definition, [String? docs]) {
-    name = name.trim();
-    definition = definition.trim();
-    // clean markdown introduced changes
-    definition = definition.replaceAll('&lt;', '<').replaceAll('&gt;', '>');
-    if (docs != null) docs = docs.trim();
+    name = replaceHTMLEntities(name.trim());
+    definition = replaceHTMLEntities(definition.trim());
+    if (docs != null) docs = replaceHTMLEntities(docs.trim());
 
     if (definition.startsWith('class ')) {
       types.add(Type(this, scriptLocation, name, definition, docs));

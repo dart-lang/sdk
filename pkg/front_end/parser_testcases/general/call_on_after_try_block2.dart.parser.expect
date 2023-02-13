@@ -1,3 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
 void main() {
 try {
 ;
@@ -7,10 +9,12 @@ try {
 ;
 }
 
+
+
 on(e) {
 ;
 }
-on("");
+on(*synthetic*""){};
 }
 
 
@@ -24,10 +28,12 @@ try[KeywordToken] {[BeginToken]
 ;[SimpleToken]
 }[SimpleToken]
 
+
+
 on[KeywordToken]([BeginToken]e[StringToken])[SimpleToken] {[BeginToken]
 ;[SimpleToken]
 }[SimpleToken]
-on[KeywordToken]([BeginToken]""[StringToken])[SimpleToken];[SimpleToken]
+on[KeywordToken]([BeginToken][SyntheticStringToken]""[StringToken])[SimpleToken]{[SyntheticBeginToken]}[SyntheticToken];[SimpleToken]
 }[SimpleToken]
 
 [SimpleToken]

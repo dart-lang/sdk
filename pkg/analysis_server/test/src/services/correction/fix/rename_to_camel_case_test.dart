@@ -155,4 +155,13 @@ void f([int? myIntegerVariable]) {
 }
 ''');
   }
+
+  Future<void> test_recordField() async {
+    await resolveTestCode('''
+void f(({int some_field}) p) {}
+''');
+    await assertHasFix('''
+void f(({int someField}) p) {}
+''');
+  }
 }

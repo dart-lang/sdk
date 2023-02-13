@@ -2975,13 +2975,13 @@ void Simulator::InterpretOPFP(Instr instr) {
 void Simulator::InterpretEBREAK(Instr instr) {
   PrintRegisters();
   PrintStack();
-  FATAL("Encounted EBREAK");
+  FATAL("Encountered EBREAK");
 }
 
 void Simulator::InterpretEBREAK(CInstr instr) {
   PrintRegisters();
   PrintStack();
-  FATAL("Encounted EBREAK");
+  FATAL("Encountered EBREAK");
 }
 
 void Simulator::IllegalInstruction(Instr instr) {

@@ -226,7 +226,7 @@ class TypeTable {
     // This is only reached when [type] is itself a bound that depends on a
     // free type parameter.
     // TODO(markzipan): Bounds are locally hoisted to their own JS identifiers,
-    // but we don't do this this for other types that depend on free variables,
+    // but we don't do this for other types that depend on free variables,
     // resulting in some duplicated runtime code. We may get some performance
     // wins if we just locally hoist everything.
     if (freeVariables.isNotEmpty) {

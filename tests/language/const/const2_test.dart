@@ -74,7 +74,7 @@ const BOP11 = BOOL_LIT != true;
 // Multiple binary expressions
 const BOP20 = 1 * INT_LIT / 3 + INT_LIT + 9;
 
-// Parenthised expressions
+// Parenthesized expressions
 const BOP30 = (1 > 2);
 const BOP31 = (1 * 2) + 3;
 const BOP32 = 3 + (1 * 2);

@@ -16,7 +16,19 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
+
+/// Returns a [List] of fixed length with given types.
+List<DartType> fixedTypeList(DartType e1, [DartType? e2]) {
+  if (e2 != null) {
+    final result = List<DartType>.filled(2, e1, growable: false);
+    result[1] = e2;
+    return result;
+  } else {
+    return List<DartType>.filled(1, e1, growable: false);
+  }
+}
 
 /// The [Type] representing the type `dynamic`.
 class DynamicTypeImpl extends TypeImpl implements DynamicType {
@@ -237,8 +249,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return FunctionTypeImpl(
       returnType: substitution.substituteType(returnType),
       typeFormals: const [],
-      parameters:
-          parameters.map((p) => ParameterMember.from(p, substitution)).toList(),
+      parameters: parameters
+          .map((p) => ParameterMember.from(p, substitution))
+          .toFixedList(),
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -499,15 +512,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<ConstructorElement> get constructors {
-    if (_constructors == null) {
-      List<ConstructorElement> constructors = element.constructors;
-      var members = <ConstructorElement>[];
-      for (int i = 0; i < constructors.length; i++) {
-        members.add(ConstructorMember.from(constructors[i], this));
-      }
-      _constructors = members;
-    }
-    return _constructors!;
+    return _constructors ??= element.constructors.map((constructor) {
+      return ConstructorMember.from(constructor, this);
+    }).toFixedList();
   }
 
   @Deprecated('Use element instead')
@@ -1007,6 +1014,24 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
     required this.nullabilitySuffix,
     super.alias,
   }) : namedFields = _sortNamedFields(namedFields);
+
+  factory RecordTypeImpl.fromApi({
+    required List<DartType> positional,
+    required Map<String, DartType> named,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return RecordTypeImpl(
+      positionalFields: [
+        for (final type in positional)
+          RecordTypePositionalFieldImpl(type: type),
+      ],
+      namedFields: [
+        for (final entry in named.entries)
+          RecordTypeNamedFieldImpl(name: entry.key, type: entry.value),
+      ],
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
 
   @override
   Null get element => null;

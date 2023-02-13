@@ -48,6 +48,7 @@ import 'package:front_end/src/fasta/hybrid_file_system.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:front_end/src/fasta/incremental_compiler.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/fasta/scope.dart';
 import 'package:front_end/src/fasta/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 // ignore: import_of_legacy_library_into_null_safe
@@ -315,7 +316,7 @@ class DartDocTest {
 
   void setupIncrementalCompiler(Uri uri) {
     options = getOptions();
-    TargetFlags targetFlags = new TargetFlags(enableNullSafety: true);
+    TargetFlags targetFlags = new TargetFlags();
     // TODO: Target could possible be something else...
     Target target = new VmTarget(targetFlags);
     options.target = target;
@@ -339,8 +340,6 @@ final String mainFileContent = """
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// @dart = 2.9
 
 import "${DocTestIncrementalCompiler.dartDocTestUri}" as tester;
 import "dart:isolate";
@@ -831,7 +830,8 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       loader: loader,
       // TODO(jensj): Should probably set up scopes the same was as it's done
       // (now) for expression compilation.
-      scope: libraryBuilder.scope.createNestedScope("dartdoctest"),
+      scope: libraryBuilder.scope
+          .createNestedScope(debugName: "dartdoctest", kind: ScopeKind.library),
       nameOrigin: libraryBuilder,
       isUnsupported: false,
       isAugmentation: false,

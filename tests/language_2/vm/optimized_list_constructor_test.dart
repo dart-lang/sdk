@@ -12,7 +12,7 @@ import "package:expect/expect.dart";
 
 test() {
   try {
-    var r = new List<int>(-1);
+    var r = new List<int>.filled(-1, null);
     Expect.isTrue(false); // Unreachable.
   } on RangeError {
     return true;

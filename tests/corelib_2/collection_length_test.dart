@@ -8,7 +8,7 @@ library map_test;
 
 import 'dart:collection';
 
-// Test that length/isEmpty opertions are constant time on
+// Test that length/isEmpty operations are constant time on
 // maps, strings and collections.
 
 void testString(int n) {
@@ -72,7 +72,7 @@ main() {
   testCollection(new LinkedHashSet(), N);
   testCollection(new ListQueue(), N);
   testCollection(new DoubleLinkedQueue(), N);
-  testList(new List()..length = N, N);
-  testList(new List(N), N);
+  testList([]..length = N, N);
+  testList(new List.filled(N, null), N);
   testString(N);
 }

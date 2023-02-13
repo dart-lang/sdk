@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns
+// SharedOptions=--enable-experiment=patterns,records
 
 import "package:expect/expect.dart";
 
@@ -17,24 +17,24 @@ main() {
   Expect.equals('s: var', differentTypeNotUsedInBody(2, 's'));
 
   Expect.equals('unique: unique', differentVariableNotUsedInBody(0, 'unique'));
-  Expect.equals('inTwo: in', differentVariableNotUsedInBody(1, 'in'));
-  Expect.equals('inTwo: two', differentVariableNotUsedInBody(2, 'two'));
+  Expect.equals('in: inTwo', differentVariableNotUsedInBody(1, 'in'));
+  Expect.equals('two: inTwo', differentVariableNotUsedInBody(2, 'two'));
 
   Expect.equals('one: var', sharedAnnotatedAndUnannotated(0, 'one'));
   Expect.equals('two: Object', sharedAnnotatedAndUnannotated(1, 'two'));
 
   Expect.equals('one: var', sharedAnnotatedAndPromotionInferred(0, 'one'));
-  Expect.equals('two: int', sharedAnnotatedAndPromotionInferred(1, 'two'));
+  Expect.equals('two: String', sharedAnnotatedAndPromotionInferred(1, 'two'));
 
   Expect.equals('0: 0: list', sharedDifferentContext([0, true]));
   Expect.equals('1: 1: map', sharedDifferentContext({'a': 1, 'b': true}));
-  Expect.equals('2: 2: record', sharedDifferentContext((a: 2, b: true));
+  Expect.equals('2: 2: record', sharedDifferentContext((a: 2, b: true)));
   Expect.equals('3: 3: nested', sharedDifferentContext((a: 3, b: [true])));
 }
 
 /// OK if variables in different cases have different finality if not used in
 /// the body.
-Object differentFinalityNotUsedInBody(int caseKey, Object value) {
+Object? differentFinalityNotUsedInBody(int caseKey, Object value) {
   switch ((caseKey, value)) {
     case (0, int x) when _guard(x, 'int'):
     case (1, final int x) when _guard(x, 'final int'):
@@ -48,7 +48,7 @@ Object differentFinalityNotUsedInBody(int caseKey, Object value) {
 
 /// OK if variables in different cases have different types if not used in the
 /// body.
-Object differentTypeNotUsedInBody(int caseKey, Object value) {
+Object? differentTypeNotUsedInBody(int caseKey, Object value) {
   switch ((caseKey, value)) {
     case (0, int x) when _guard(x, 'int'):
     case (1, bool x) when _guard(x, 'bool'):
@@ -61,8 +61,8 @@ Object differentTypeNotUsedInBody(int caseKey, Object value) {
 
 /// OK if some variables only exist in some cases if they aren't used in the
 /// body.
-Object differentVariableNotUsedInBody(int caseKey, Object value) {
-  switch ((value, value)) {
+Object? differentVariableNotUsedInBody(int caseKey, Object value) {
+  switch ((caseKey, value)) {
     case (0, var unique) when _guard(unique, 'unique'):
     case (1, var inTwo) when _guard(inTwo, 'inTwo'):
     case (2, var inTwo) when _guard(inTwo, 'inTwo'):
@@ -74,7 +74,7 @@ Object differentVariableNotUsedInBody(int caseKey, Object value) {
 
 /// Variables can be shared if not all are annotated as long as the inferred
 /// type matches.
-Object sharedAnnotatedAndUnannotated(int caseKey, Object value) {
+Object? sharedAnnotatedAndUnannotated(int caseKey, Object value) {
   switch ((caseKey, value)) {
     case (0, var a) when _guard(a, 'var'):
     case (1, Object a) when _guard(a, 'Object'):
@@ -88,12 +88,12 @@ Object sharedAnnotatedAndUnannotated(int caseKey, Object value) {
 
 /// Variables can be shared if not all are annotated as long as the type
 /// inferred using promotion matches.
-Object sharedAnnotatedAndPromotionInferred(int caseKey, Object value) {
-  // Promote value to int.
-  if (value is int) {
+Object? sharedAnnotatedAndPromotionInferred(int caseKey, Object value) {
+  // Promote value to String.
+  if (value is String) {
     switch ((caseKey, value)) {
       case (0, var a) when _guard(a, 'var'):
-      case (1, int a) when _guard(a, 'int'):
+      case (1, String a) when _guard(a, 'String'):
         // Use pattern variable in body:
         Expect.equals(value, a);
         return _matchedCase();
@@ -105,7 +105,7 @@ Object sharedAnnotatedAndPromotionInferred(int caseKey, Object value) {
 
 /// Variables can be shared even when they occur in different contexts in their
 /// respective patterns.
-Object sharedDifferentContext(Object value) {
+Object? sharedDifferentContext(Object value) {
   // OK, since inferred type is same as annotated.
   switch (value) {
     case [int a, bool b] when _guard(a, 'list'):
@@ -122,8 +122,8 @@ Object sharedDifferentContext(Object value) {
 String _lastMatch = 'none';
 
 bool _guard(Object guardVariable, String label) {
-  if (result) _lastMatch = '$guardVariable: $label';
-  return result;
+  _lastMatch = '$guardVariable: $label';
+  return true;
 }
 
 String _matchedCase() {

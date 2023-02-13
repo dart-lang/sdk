@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -35,6 +36,7 @@ enum E<T> {
   }
 
   test_functionReference() async {
+    noSoundNullSafety = false;
     await assertErrorsInCode('''
 // @dart = 2.7
 import 'dart:math';
@@ -138,15 +140,15 @@ SimpleIdentifier
     await assertNoErrorsInCode(r'''
 extension E<T extends (int, String)> on T {
   void f() {
-    $0;
+    $1;
   }
 }
 ''');
 
-    final node = findNode.simple(r'$0;');
+    final node = findNode.simple(r'$1;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
-  token: $0
+  token: $1
   staticElement: <null>
   staticType: int
 ''');
@@ -214,24 +216,6 @@ SimpleIdentifier
     await assertNoErrorsInCode(r'''
 extension E on (int, String) {
   void f() {
-    $0;
-  }
-}
-''');
-
-    final node = findNode.simple(r'$0;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: $0
-  staticElement: <null>
-  staticType: int
-''');
-  }
-
-  test_inExtension_onRecordType_positional_1() async {
-    await assertNoErrorsInCode(r'''
-extension E on (int, String) {
-  void f() {
     $1;
   }
 }
@@ -242,15 +226,13 @@ extension E on (int, String) {
 SimpleIdentifier
   token: $1
   staticElement: <null>
-  staticType: String
+  staticType: int
 ''');
   }
 
-  test_inExtension_onRecordType_positional_2_fromExtension() async {
+  test_inExtension_onRecordType_positional_1() async {
     await assertNoErrorsInCode(r'''
 extension E on (int, String) {
-  bool get $2 => true;
-
   void f() {
     $2;
   }
@@ -261,7 +243,27 @@ extension E on (int, String) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $2
-  staticElement: self::@extension::E::@getter::$2
+  staticElement: <null>
+  staticType: String
+''');
+  }
+
+  test_inExtension_onRecordType_positional_2_fromExtension() async {
+    await assertNoErrorsInCode(r'''
+extension E on (int, String) {
+  bool get $3 => true;
+
+  void f() {
+    $3;
+  }
+}
+''');
+
+    final node = findNode.simple(r'$3;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: $3
+  staticElement: self::@extension::E::@getter::$3
   staticType: bool
 ''');
   }
@@ -270,17 +272,17 @@ SimpleIdentifier
     await assertErrorsInCode(r'''
 extension E on (int, String) {
   void f() {
-    $2;
+    $3;
   }
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 48, 2),
     ]);
 
-    final node = findNode.simple(r'$2;');
+    final node = findNode.simple(r'$3;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
-  token: $2
+  token: $3
   staticElement: <null>
   staticType: dynamic
 ''');

@@ -1826,6 +1826,26 @@ void Assembler::StoreToOffset(Register reg,
   }
 }
 
+void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
+  sarl(reg, Immediate(shift));
+}
+
+void Assembler::CompareWords(Register reg1,
+                             Register reg2,
+                             intptr_t offset,
+                             Register count,
+                             Register temp,
+                             Label* equals) {
+  Label loop;
+  Bind(&loop);
+  decl(count);
+  j(LESS, equals, Assembler::kNearJump);
+  COMPILE_ASSERT(target::kWordSize == 4);
+  movl(temp, FieldAddress(reg1, count, TIMES_4, offset));
+  cmpl(temp, FieldAddress(reg2, count, TIMES_4, offset));
+  BranchIf(EQUAL, &loop, Assembler::kNearJump);
+}
+
 void Assembler::LoadFromStack(Register dst, intptr_t depth) {
   ASSERT(depth >= 0);
   movl(dst, Address(ESP, depth * target::kWordSize));
@@ -2381,6 +2401,50 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   while (CodeSize() < target::Instructions::kPolymorphicEntryOffsetJIT) {
     int3();
   }
+}
+
+void Assembler::CombineHashes(Register dst, Register other) {
+  // hash += other_hash
+  addl(dst, other);
+  // hash += hash << 10
+  movl(other, dst);
+  shll(other, Immediate(10));
+  addl(dst, other);
+  // hash ^= hash >> 6
+  movl(other, dst);
+  shrl(other, Immediate(6));
+  xorl(dst, other);
+}
+
+void Assembler::FinalizeHashForSize(intptr_t bit_size,
+                                    Register dst,
+                                    Register scratch) {
+  ASSERT(bit_size > 0);  // Can't avoid returning 0 if there are no hash bits!
+  // While any 32-bit hash value fits in X bits, where X > 32, the caller may
+  // reasonably expect that the returned values fill the entire bit space.
+  ASSERT(bit_size <= kBitsPerInt32);
+  ASSERT(scratch != kNoRegister);
+  // hash += hash << 3;
+  movl(scratch, dst);
+  shll(scratch, Immediate(3));
+  addl(dst, scratch);
+  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
+  movl(scratch, dst);
+  shrl(scratch, Immediate(11));
+  xorl(dst, scratch);
+  // hash += hash << 15;
+  movl(scratch, dst);
+  shll(scratch, Immediate(15));
+  addl(dst, scratch);
+  // Size to fit.
+  if (bit_size < kBitsPerInt32) {
+    andl(dst, Immediate(Utils::NBitMask(bit_size)));
+  }
+  // return (hash == 0) ? 1 : hash;
+  Label done;
+  j(NOT_ZERO, &done, kNearJump);
+  incl(dst);
+  Bind(&done);
 }
 
 void Assembler::EnterFullSafepoint(Register scratch) {

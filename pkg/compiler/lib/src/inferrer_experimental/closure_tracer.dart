@@ -119,16 +119,16 @@ class ClosureTracerVisitor extends TracerVisitor {
     if (selector.isCall) {
       if (info.arguments!.contains(user)) {
         if (info.hasClosureCallTargets ||
-            info.concreteTargets.any((element) => !element.isFunction)) {
+            info.callees.any((element) => !element.isFunction)) {
           bailout('Passed to a closure');
         }
-        if (info.concreteTargets.any(_checkIfFunctionApply)) {
+        if (info.callees.any(_checkIfFunctionApply)) {
           _tagAsFunctionApplyTarget("dynamic call");
         }
       } else {
         if (user is MemberTypeInformation) {
           final currentUserMember = user.member;
-          if (info.concreteTargets.contains(currentUserMember)) {
+          if (info.callees.contains(currentUserMember)) {
             _registerCallForLaterAnalysis(info);
           }
         }

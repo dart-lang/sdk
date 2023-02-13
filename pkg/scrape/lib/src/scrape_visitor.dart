@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 
@@ -16,10 +17,11 @@ import '../scrape.dart';
 /// [ScrapeVisitor] constructor so that subclasses of [ScrapeVisitor] don't
 /// need to define a pass-through constructor.
 void bindVisitor(ScrapeVisitor visitor, Scrape scrape, String path,
-    String source, LineInfo info) {
+    String source, Token startToken, LineInfo info) {
   visitor._scrape = scrape;
   visitor._path = path;
   visitor._source = source;
+  visitor._startToken = startToken;
   visitor.lineInfo = info;
 }
 
@@ -29,12 +31,15 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
   late final Scrape _scrape;
   late final String _path;
   late final String _source;
+  late final Token _startToken;
   late final LineInfo lineInfo;
 
   /// How many levels deep the visitor is currently nested inside build methods.
   int _inFlutterBuildMethods = 0;
 
   String get path => _path;
+
+  Token get startToken => _startToken;
 
   // TODO(rnystrom): Remove this in favor of using surveyor for these kinds of
   // analyses.
@@ -72,11 +77,22 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
     log(nodeToString(node));
   }
 
+  /// Print the line containing [token].
+  void printToken(Token token) {
+    log(_rangeToString(token.offset, token.end));
+  }
+
   /// Generate a nice string representation of [node] include file path and
   /// line information.
   String nodeToString(AstNode node) {
-    var startLine = lineInfo.getLocation(node.offset).lineNumber;
-    var endLine = lineInfo.getLocation(node.end).lineNumber;
+    return _rangeToString(node.offset, node.end);
+  }
+
+  /// Generate a nice string representation of [node] include file path and
+  /// line information.
+  String _rangeToString(int start, int end) {
+    var startLine = lineInfo.getLocation(start).lineNumber;
+    var endLine = lineInfo.getLocation(end).lineNumber;
 
     startLine = startLine.clamp(0, lineInfo.lineCount - 1);
     endLine = endLine.clamp(0, lineInfo.lineCount - 1);

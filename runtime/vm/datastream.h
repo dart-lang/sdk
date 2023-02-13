@@ -118,7 +118,7 @@ class ReadStream : public ValueObject {
     current_ = reinterpret_cast<const uint8_t*>(cursor);
     // With big-endian order and the has-more marker being 0, the correction
     // factor to remove the last-byte marker is a constant, which can be folded
-    // in to subsequent load offsets.
+    // into subsequent load offsets.
     return result + 128;
   }
 
@@ -619,7 +619,7 @@ class NonStreamingWriteStream : public BaseWriteStream {
 };
 
 // A non-streaming write stream that uses realloc for reallocation, and frees
-// the buffer when destructed unless ownership is transfered using Steal().
+// the buffer when destructed unless ownership is transferred using Steal().
 class MallocWriteStream : public NonStreamingWriteStream {
  public:
   explicit MallocWriteStream(intptr_t initial_size)

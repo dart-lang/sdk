@@ -64,6 +64,112 @@ main() {
 // TODO(nshahan) Merge with [runAgnosticSharedTests] after we no longer need to
 // test support for evaluation in legacy (pre-null safety) code.
 void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
+  group('Records', () {
+    const recordsSource = '''
+    void main() {
+      var r = (true, 3);
+      var cr = (true, {'a':1, 'b': 2});
+      var nr = (true, (false, 3));
+
+      // Breakpoint: bp
+      print('hello world');
+    }
+    ''';
+
+    setUpAll(() async {
+      await driver
+          .initSource(setup, recordsSource, experiments: {'records': true});
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('simple record', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'r.toString()',
+          expectedResult: '(true, 3)');
+    });
+
+    test('simple record type', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'r.runtimeType.toString()',
+          expectedResult: 'RecordType(bool, int)');
+    });
+
+    test('simple record field one', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'r.\$1.toString()',
+          expectedResult: 'true');
+    });
+
+    test('simple record field two', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'r.\$2.toString()',
+          expectedResult: '3');
+    });
+
+    test('complex record', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'cr.toString()',
+          expectedResult: '(true, {a: 1, b: 2})');
+    });
+
+    test('complex record type', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'cr.runtimeType.toString()',
+          expectedResult: 'RecordType(bool, IdentityMap<String, int>)');
+    });
+
+    test('complex record field one', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'cr.\$1.toString()',
+          expectedResult: 'true');
+    });
+
+    test('complex record field two', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'cr.\$2.toString()',
+          expectedResult: '{a: 1, b: 2}');
+    });
+
+    test('nested record', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'nr.toString()',
+          expectedResult: '(true, (false, 3))');
+    });
+
+    test('nested record type', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'nr.runtimeType.toString()',
+          expectedResult: 'RecordType(bool, RecordType(bool, int))');
+    });
+
+    test('nested record field one', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'nr.\$1.toString()',
+          expectedResult: 'true');
+    });
+
+    test('nested record field two', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'nr.\$2.toString()',
+          expectedResult: '(false, 3)');
+    });
+  });
+
   group('Correct null safety mode used', () {
     var source = '''
         const soundNullSafety = !(<Null>[] is List<int>);

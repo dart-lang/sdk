@@ -106,7 +106,7 @@ abstract class InternetAddress {
   /// address (dotted-decimal notation).
   /// If [type] is [InternetAddressType.IPv6], [address] must be a numeric IPv6
   /// address (hexadecimal notation).
-  /// If [type] is [InternetAddressType.unix], [address] must be a a valid file
+  /// If [type] is [InternetAddressType.unix], [address] must be a valid file
   /// path.
   /// If [type] is omitted, [address] must be either a numeric IPv4 or IPv6
   /// address and the type is inferred from the format.
@@ -178,7 +178,9 @@ abstract class NetworkInterface {
 
   /// Whether the [list] method is supported.
   ///
-  /// The [list] method is currently unsupported on Android.
+  /// The [list] method is supported on all platforms supported by Dart so this
+  /// property is always true.
+  @Deprecated("listSupported is always true.")
   external static bool get listSupported;
 
   /// Query the system for [NetworkInterface]s.
@@ -580,7 +582,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   ///
   /// This function is non-blocking and will only return data
   /// if data is available.
-  /// The number of bytes read can be less then [len] if fewer bytes are
+  /// The number of bytes read can be less than [len] if fewer bytes are
   /// available for immediate reading. If no data is available `null`
   /// is returned.
   Uint8List? read([int? len]);
@@ -592,7 +594,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   ///
   /// This function is non-blocking and will only return data
   /// if data is available.
-  /// The number of bytes read can be less then [count] if fewer bytes are
+  /// The number of bytes read can be less than [count] if fewer bytes are
   /// available for immediate reading.
   /// Length of data buffer in [SocketMessage] indicates number of bytes read.
   ///
@@ -853,7 +855,7 @@ class Datagram {
   Datagram(this.data, this.address, this.port);
 }
 
-/// A wrappper around OS resource handle so it can be passed via Socket
+/// A wrapper around OS resource handle so it can be passed via Socket
 /// as part of [SocketMessage].
 abstract class ResourceHandle {
   /// Creates wrapper around opened file.
@@ -1019,14 +1021,50 @@ class SocketMessage {
 
 /// An unbuffered interface to a UDP socket.
 ///
-/// The raw datagram socket delivers the datagrams in the same chunks as the
-/// underlying operating system. It's a [Stream] of [RawSocketEvent]s.
+/// The raw datagram socket delivers a [Stream] of [RawSocketEvent]s in the
+/// same chunks as the underlying operating system receives them.
 ///
 /// Note that the event [RawSocketEvent.readClosed] will never be
 /// received as an UDP socket cannot be closed by a remote peer.
 ///
 /// It is not the same as a
 /// [POSIX raw socket](http://man7.org/linux/man-pages/man7/raw.7.html).
+///
+/// ```dart
+/// import 'dart:io';
+/// import 'dart:typed_data';
+///
+/// void main() async {
+///   // Read the current time from an NTP server.
+///   final serverAddress = (await InternetAddress.lookup('pool.ntp.org')).first;
+///   final clientSocket = await RawDatagramSocket.bind(
+///       serverAddress.type == InternetAddressType.IPv6
+///           ? InternetAddress.anyIPv6
+///           : InternetAddress.anyIPv4,
+///       0);
+///   final ntpQuery = Uint8List(48);
+///   ntpQuery[0] = 0x23; // See RFC 5905 7.3
+///
+///   clientSocket.listen((event) {
+///     switch (event) {
+///       case RawSocketEvent.read:
+///         final datagram = clientSocket.receive();
+///         // Parse `datagram.data`
+///         clientSocket.close();
+///         break;
+///       case RawSocketEvent.write:
+///         if (clientSocket.send(ntpQuery, serverAddress, 123) > 0) {
+///           clientSocket.writeEventsEnabled = false;
+///         }
+///         break;
+///       case RawSocketEvent.closed:
+///         break;
+///       default:
+///         throw "Unexpected event $event";
+///     }
+///   });
+/// }
+/// ```
 abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   /// Whether the [RawDatagramSocket] should listen for
   /// [RawSocketEvent.read] events.
@@ -1107,10 +1145,25 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   /// Closes the datagram socket.
   void close();
 
-  /// Sends a datagram.
+  /// Asynchronously sends a datagram.
   ///
   /// Returns the number of bytes written. This will always be either
   /// the size of [buffer] or `0`.
+  ///
+  /// A return value of `0` indicates that sending the datagram would block and
+  /// that the [send] call can be tried again.
+  ///
+  /// A return value of the size of [buffer] indicates that a request to
+  /// transmit the datagram was made to the operating system. It does not
+  /// indicate that the operating system successfully sent the datagram. If a
+  /// local failure to send the datagram occurs then a an error event will be
+  /// added to the [Stream]. If a networking or remote failure occurs then it
+  /// will not be reported.
+  ///
+  /// The maximum size of a UDP datagram is 65535 byes (including both data
+  /// and headers) but the practical maximum size is likely to be much lower
+  /// due to operating system limits and the network's maximum transmission
+  /// unit (MTU).
   int send(List<int> buffer, InternetAddress address, int port);
 
   /// Receives a datagram.

@@ -13,6 +13,7 @@ import "package:expect/expect.dart";
 var list;
 
 main() {
-  if (new DateTime.now().millisecondsSinceEpoch == 0) list = new List(4);
+  if (new DateTime.now().millisecondsSinceEpoch == 0)
+    list = new List.filled(4, null);
   Expect.throwsNoSuchMethodError(() => print(list[5]));
 }

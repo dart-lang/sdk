@@ -30,9 +30,11 @@ abstract class InferredData {
   /// Returns the side effects of executing [element].
   SideEffects getSideEffectsOfElement(FunctionEntity element);
 
-  /// Returns the side effects of calling [selector] on the [receiver].
+  /// Returns the side effects of calling [selector] on the [receiver]. A `null`
+  /// [receiver] indicates the type of the receiver is unknown and therefore
+  /// all matches of the selector are returned.
   SideEffects getSideEffectsOfSelector(
-      Selector selector, AbstractValue receiver);
+      Selector selector, AbstractValue? receiver);
 
   /// Returns `true` if [element] is guaranteed not to throw an exception.
   bool getCannotThrow(FunctionEntity element);
@@ -120,7 +122,7 @@ class InferredDataImpl implements InferredData {
 
   @override
   SideEffects getSideEffectsOfSelector(
-      Selector selector, AbstractValue receiver) {
+      Selector selector, AbstractValue? receiver) {
     // We're not tracking side effects of closures.
     if (selector.isClosureCall ||
         _closedWorld.includesClosureCall(selector, receiver)) {
@@ -298,7 +300,7 @@ class TrivialInferredData implements InferredData {
 
   @override
   SideEffects getSideEffectsOfSelector(
-      Selector selector, AbstractValue receiver) {
+      Selector selector, AbstractValue? receiver) {
     return _allSideEffects;
   }
 }

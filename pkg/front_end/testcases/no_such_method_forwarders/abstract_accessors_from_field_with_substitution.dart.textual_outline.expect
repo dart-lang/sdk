@@ -1,8 +1,7 @@
-// @dart = 2.9
 void expectTypeError(callback()) {}
 
 abstract class A<X> {
-  List<X> foo;
+  List<X>? foo;
 }
 
 class B implements A<int> {

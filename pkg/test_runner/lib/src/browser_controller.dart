@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:webdriver/io.dart';
+import 'package:webdriver/async_io.dart';
 
 import 'android.dart';
 import 'configuration.dart';
@@ -1363,8 +1363,8 @@ body div {
 
       function run(url) {
         number_of_tests++;
-        number_div.innerHTML = number_of_tests;
-        executing_div.innerHTML = url;
+        number_div.textContent = number_of_tests;
+        executing_div.textContent = url;
         if (use_iframe) {
           embedded_iframe.onload = null;
           embedded_iframe_div.removeChild(embedded_iframe);
@@ -1395,7 +1395,7 @@ body div {
       function reportError(msg) {
         function handleReady() {
           if (this.readyState == this.DONE && this.status != 200) {
-            var error = 'Sending back error did not succeeed: ' + this.status;
+            var error = 'Sending back error did not succeed: ' + this.status;
             error = error + '. Failed to send msg: ' + msg;
             error_div.innerHTML = error;
           }

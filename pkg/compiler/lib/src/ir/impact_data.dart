@@ -126,6 +126,11 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
+  void handleRecordLiteral(ir.RecordLiteral node) {
+    registerRecordLiteral(node.recordType, isConst: node.isConst);
+  }
+
+  @override
   void handleStaticGet(
       ir.Expression node, ir.Member target, ir.DartType resultType) {
     assert(!(target is ir.Procedure && target.kind == ir.ProcedureKind.Method),

@@ -300,6 +300,10 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!function.IsNull());
   set_suspend_state_await(function);
 
+  function = cls.LookupFunctionAllowPrivate(Symbols::_awaitWithTypeCheck());
+  ASSERT(!function.IsNull());
+  set_suspend_state_await_with_type_check(function);
+
   function = cls.LookupFunctionAllowPrivate(Symbols::_returnAsync());
   ASSERT(!function.IsNull());
   set_suspend_state_return_async(function);
@@ -553,6 +557,10 @@ void ObjectStore::LazyInitFfiMembers() {
         Symbols::_handleNativeFinalizerMessage());
     ASSERT(!function.IsNull());
     handle_native_finalizer_message_function_.store(function.ptr());
+
+    cls = ffi_lib.LookupClass(Symbols::VarArgs());
+    ASSERT(!cls.IsNull());
+    varargs_class_.store(cls.ptr());
   }
 }
 

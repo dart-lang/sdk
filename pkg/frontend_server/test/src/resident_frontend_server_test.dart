@@ -91,7 +91,7 @@ void main() async {
     });
 
     tearDown(() async {
-      d.delete(recursive: true);
+      d.deleteSync(recursive: true);
       ResidentFrontendServer.compilers.clear();
     });
 
@@ -121,7 +121,7 @@ void main() async {
         soundNullSafety: true,
         verbosity: 'all',
         define: <String>['-Dvar=2'],
-        enableExperiement: <String>['experiemental-flag=vm_name'],
+        enableExperiment: <String>['experimental-flag=vm_name'],
       )));
 
       expect(compileResult1['success'], true);

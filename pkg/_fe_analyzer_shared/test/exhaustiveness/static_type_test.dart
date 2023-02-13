@@ -7,11 +7,11 @@ import 'package:test/test.dart';
 
 void main() {
   group('isSubtypeOf()', () {
-    var a = StaticType('A');
-    var b = StaticType('B', inherits: [a]);
-    var b2 = StaticType('B2', inherits: [a]);
-    var c = StaticType('C', inherits: [b]);
-    var d = StaticType('D', inherits: [c]);
+    var a = StaticTypeImpl('A');
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var b2 = StaticTypeImpl('B2', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [b]);
+    var d = StaticTypeImpl('D', inherits: [c]);
 
     test('subtype includes self', () {
       expect(a.isSubtypeOf(a), isTrue);
@@ -59,12 +59,12 @@ void main() {
       //        I12  I23
       //           \/
       //          I123
-      var i1 = StaticType('I1');
-      var i2 = StaticType('I2');
-      var i3 = StaticType('I3');
-      var i12 = StaticType('I12', inherits: [i1, i2]);
-      var i23 = StaticType('I12', inherits: [i2, i3]);
-      var i123 = StaticType('I12', inherits: [i12, i23]);
+      var i1 = StaticTypeImpl('I1');
+      var i2 = StaticTypeImpl('I2');
+      var i3 = StaticTypeImpl('I3');
+      var i12 = StaticTypeImpl('I12', inherits: [i1, i2]);
+      var i23 = StaticTypeImpl('I12', inherits: [i2, i3]);
+      var i123 = StaticTypeImpl('I12', inherits: [i12, i23]);
 
       expect(i1.isSubtypeOf(i2), isFalse);
       expect(i2.isSubtypeOf(i1), isFalse);
@@ -100,8 +100,8 @@ void main() {
     });
 
     test('nullable', () {
-      var a = StaticType('A');
-      var b = StaticType('B', inherits: [a]);
+      var a = StaticTypeImpl('A');
+      var b = StaticTypeImpl('B', inherits: [a]);
 
       expect(StaticType.nullType.isSubtypeOf(a), isFalse);
       expect(StaticType.nullType.isSubtypeOf(b), isFalse);
@@ -128,11 +128,11 @@ void main() {
   });
 
   test('fields', () {
-    var a = StaticType('A');
-    var b = StaticType('B');
-    var c = StaticType('C', fields: {'x': a, 'y': b});
-    var d = StaticType('D', fields: {'w': a});
-    var e = StaticType('E', inherits: [c, d], fields: {'z': b});
+    var a = StaticTypeImpl('A');
+    var b = StaticTypeImpl('B');
+    var c = StaticTypeImpl('C', fields: {'x': a, 'y': b});
+    var d = StaticTypeImpl('D', fields: {'w': a});
+    var e = StaticTypeImpl('E', inherits: [c, d], fields: {'z': b});
 
     expect(a.fields, isEmpty);
     expect(b.fields, isEmpty);
@@ -149,17 +149,17 @@ void main() {
     expect(e.fields['z'], b);
 
     // Overridden field types win.
-    var f = StaticType('F', fields: {'x': a});
-    var g = StaticType('G', inherits: [f], fields: {'x': b});
+    var f = StaticTypeImpl('F', fields: {'x': a});
+    var g = StaticTypeImpl('G', inherits: [f], fields: {'x': b});
     expect(g.fields, hasLength(1));
     expect(g.fields['x'], b);
   });
 
   test('subtypes', () {
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [c]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [c]);
 
     // Gets subtypes for sealed type.
     var aSubtypes = a.subtypes.toList();

@@ -476,7 +476,7 @@ TEST_CASE(ResolveUri_DataUri) {
 }
 
 // dart:core Uri allows for the base url to be relative (no scheme, no
-// authory, relative path) but this behavior is not in RFC 3986.  We
+// authority, relative path) but this behavior is not in RFC 3986.  We
 // do not implement this.
 TEST_CASE(ResolveUri_RelativeBase_NotImplemented) {
   const char* target_uri;
@@ -592,6 +592,32 @@ TEST_CASE(ResolveUri_MoreDotSegmentTests) {
   EXPECT_STREQ(LH "/a/b/e/", TestResolve(base, "./a/b/./c/d/../../e/./."));
   EXPECT_STREQ(LH "/a/b/e/", TestResolve(base, "./a/b/./c/d/../../e/././."));
 #undef LH
+}
+
+TEST_CASE(ResolveUri_WindowsPaths_Forwardslash_NoScheme) {
+  EXPECT_STREQ(
+      "c:/Users/USERNA~1/AppData/Local/Temp/a/b.dll",
+      TestResolve("C:/Users/USERNA~1/AppData/Local/Temp/a/out.dill", "b.dll"));
+}
+
+// > Here are some examples which may be accepted by some applications on
+// > Windows systems
+// https://en.wikipedia.org/wiki/File_URI_scheme
+// "file:///C:/"
+TEST_CASE(ResolveUri_WindowsPaths_Forwardslash_FileScheme) {
+  EXPECT_STREQ(
+      "file:///"
+      "C:/Users/USERNA~1/AppData/Local/Temp/a/b.dll",
+      TestResolve("file:///C:/Users/USERNA~1/AppData/Local/Temp/a/out.dill",
+                  "b.dll"));
+}
+
+TEST_CASE(ResolveUri_WindowsPaths_Backslash) {
+  EXPECT_STREQ(
+      "file:///b.dll",
+      TestResolve(
+          "file:///C:\\Users\\USERNA~1\\AppData\\Local\\Temp\\a\\out.dill",
+          "b.dll"));
 }
 
 }  // namespace dart

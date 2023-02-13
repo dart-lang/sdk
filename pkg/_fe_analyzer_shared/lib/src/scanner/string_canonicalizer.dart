@@ -6,33 +6,117 @@ library _fe_analyzer_shared.scanner.string_canonicalizer;
 
 import 'dart:convert';
 
-abstract class Node {
-  final String payload;
-  Node? next;
+final _StringCanonicalizer _canonicalizer = new _StringCanonicalizer();
 
-  Node(this.payload, this.next);
+/// Returns [string] or a canonicalized version of it if our heuristics indicate
+/// it may be a good idea to canonicalize it.
+String considerCanonicalizeString(String string) {
+  // It is very unlikely that large strings will appear repeatedly (mostly those
+  // are long comments or literal strings).
+  // To avoid putting those into the cache and requiring pruning again, we
+  // simply return them.
+  if (string.length > 250) return string;
+  return _canonicalizer.canonicalizeString(string);
+}
+
+/// Returns a sub-string of [string] or a canonicalized version of it if our
+/// heuristics indicate it may be a good idea to canonicalize it.
+///
+/// The sub-string is starting at [start] (inclusive) and ends at [end]
+/// (exclusive).
+String considerCanonicalizeSubString(String string, int start, int end) {
+  // It is very unlikely that large strings will appear repeatedly (mostly those
+  // are long comments or literal strings).
+  // To avoid putting those into the cache and requiring pruning again, we
+  // simply return them.
+  if ((end - start) > 250) return string.substring(start, end);
+  return _canonicalizer.canonicalizeSubString(string, start, end);
+}
+
+/// Returns a canonicalized version of [string].
+String canonicalizeString(String string) {
+  return _canonicalizer.canonicalizeString(string);
+}
+
+/// Returns a canonicalized version of a sub-string of [string].
+///
+/// The sub-string is starting at [start] (inclusive) and ends at [end]
+/// (exclusive).
+String canonicalizeSubString(String string, int start, int end) {
+  return _canonicalizer.canonicalizeSubString(string, start, end);
+}
+
+/// Returns a canonicalized version of the UTF-8 decoded string from [bytes].
+///
+/// The string is UTF-8 decoded from [bytes], starting at [start] (inclusive)
+/// and ending at [end] (exclusive).
+///
+/// It may avoid the overhead of UTF-8 decoding if the string is already in the
+/// cache.
+String canonicalizeUtf8SubString(
+    List<int> bytes, int start, int end, bool isAscii) {
+  return _canonicalizer.canonicalizeBytes(bytes, start, end, isAscii);
+}
+
+/// Will clear the string canonicalization cache.
+void clearStringCanonicalizationCache() {
+  _canonicalizer.clear();
+}
+
+/// Will prune the string canonicalization if it's current memory consumption
+/// is estimated to be larger than [allowGrowthTo].
+///
+/// An attempt is made to keep most frequently used strings in the cache while
+/// maintaining the memory limit.
+void pruneStringCanonicalizationCache([int allowGrowthTo = 5 * 1024 * 1024]) {
+  _canonicalizer.pruneTo(allowGrowthTo);
+}
+
+/// Decode UTF-8 without canonicalizing it.
+String decodeString(List<int> bytes, int start, int end, bool isAscii) {
+  return isAscii
+      ? new String.fromCharCodes(bytes, start, end)
+      : const Utf8Decoder(allowMalformed: true).convert(bytes, start, end);
+}
+
+abstract class _Node {
+  final String payload;
+  _Node? next;
+
+  _Node(this.payload, this.next);
 
   int get hash;
 }
 
-class StringNode extends Node {
-  StringNode(super.payload, super.next);
+class _StringNode extends _Node {
+  int usageCount = 1;
+
+  _StringNode(super.payload, super.next);
 
   @override
   int get hash =>
-      StringCanonicalizer.hashString(payload, /* start = */ 0, payload.length);
+      _StringCanonicalizer.hashString(payload, /* start = */ 0, payload.length);
+
+  // On a 64-bit Dart VM the size of
+  //  * [_StringNode] itself is 32 bytes
+  //  * [String] is 16 bytes plus the actual string data.
+  //
+  // It's an estimation that may overestimate (e.g. on 32-bit architectures) or
+  // underestimate (if payload is unicode) - but is reasonably precise for our
+  // purpose.
+  int get estimatedMemoryConsumption => 32 + (16 + payload.length);
 }
 
-class Utf8Node extends Node {
+class _Utf8Node extends _Node {
   final List<int> data;
   final int start;
   final int end;
 
-  Utf8Node(this.data, this.start, this.end, String payload, Node? next)
+  _Utf8Node(this.data, this.start, this.end, String payload, _Node? next)
       : super(payload, next);
 
   @override
-  int get hash => StringCanonicalizer.hashBytes(data, start, end);
+  int get hash => _StringCanonicalizer.hashBytes(data, start, end);
 }
 
 /// A hash table for triples:
@@ -41,7 +125,7 @@ class Utf8Node extends Node {
 /// are canonical.
 ///
 /// Gives about 3% speedup on dart2js.
-class StringCanonicalizer {
+class _StringCanonicalizer {
   /// Mask away top bits to keep hash calculation within 32-bit SMI range.
   static const int MASK = 16 * 1024 * 1024 - 1;
 
@@ -53,18 +137,18 @@ class StringCanonicalizer {
   /// Items in a hash table.
   int _count = 0;
 
-  /// The table itself.
-  List<Node?> _nodes = new List<Node?>.filled(INITIAL_SIZE, /* fill = */ null);
+  /// Number of [_StringNode]s in the cache.
+  int _stringCount = 0;
 
-  static String decode(List<int> data, int start, int end, bool asciiOnly) {
-    String s;
-    if (asciiOnly) {
-      s = new String.fromCharCodes(data, start, end);
-    } else {
-      s = const Utf8Decoder(allowMalformed: true).convert(data, start, end);
-    }
-    return s;
-  }
+  /// Number of []s in the cache.
+  int _utf8StringCount = 0;
+
+  /// Memory consumption of [_StringNode]s.
+  int _estimatedStringMemoryConsumption = 0;
+
+  /// The table itself.
+  List<_Node?> _nodes =
+      new List<_Node?>.filled(INITIAL_SIZE, /* fill = */ null);
 
   static int hashBytes(List<int> data, int start, int end) {
     int h = 5381;
@@ -82,15 +166,15 @@ class StringCanonicalizer {
     return h;
   }
 
-  rehash() {
+  void rehash() {
     int newSize = _size * 2;
-    List<Node?> newNodes = new List<Node?>.filled(newSize, /* fill = */ null);
+    List<_Node?> newNodes = new List<_Node?>.filled(newSize, /* fill = */ null);
     for (int i = 0; i < _size; i++) {
-      Node? t = _nodes[i];
+      _Node? t = _nodes[i];
       while (t != null) {
-        Node? n = t.next;
+        _Node? n = t.next;
         int newIndex = t.hash & (newSize - 1);
-        Node? s = newNodes[newIndex];
+        _Node? s = newNodes[newIndex];
         t.next = s;
         newNodes[newIndex] = t;
         t = n;
@@ -100,24 +184,14 @@ class StringCanonicalizer {
     _nodes = newNodes;
   }
 
-  String canonicalize(data, int start, int end, bool asciiOnly) {
-    if (data is String) {
-      if (start == 0 && (end == data.length - 1)) {
-        return canonicalizeString(data);
-      }
-      return canonicalizeSubString(data, start, end);
-    }
-    return canonicalizeBytes(data as List<int>, start, end, asciiOnly);
-  }
-
   String canonicalizeBytes(List<int> data, int start, int end, bool asciiOnly) {
     if (_count > _size) rehash();
     final int index = hashBytes(data, start, end) & (_size - 1);
-    Node? s = _nodes[index];
-    Node? t = s;
+    _Node? s = _nodes[index];
+    _Node? t = s;
     int len = end - start;
     while (t != null) {
-      if (t is Utf8Node) {
+      if (t is _Utf8Node) {
         final List<int> tData = t.data;
         if (t.end - t.start == len) {
           int i = start, j = t.start;
@@ -132,31 +206,25 @@ class StringCanonicalizer {
       }
       t = t.next;
     }
-    String payload = decode(data, start, end, asciiOnly);
-    _nodes[index] = new Utf8Node(data, start, end, payload, s);
-    _count++;
-    return payload;
+    return insertUtf8Node(
+        index, s, data, start, end, decodeString(data, start, end, asciiOnly));
   }
 
   String canonicalizeSubString(String data, int start, int end) {
+    final int len = end - start;
+    if (start == 0 && data.length == len) {
+      return canonicalizeString(data);
+    }
     if (_count > _size) rehash();
     final int index = hashString(data, start, end) & (_size - 1);
-    Node? s = _nodes[index];
-    Node? t = s;
-    int len = end - start;
+    final _Node? s = _nodes[index];
+    _Node? t = s;
     while (t != null) {
-      if (t is StringNode) {
+      if (t is _StringNode) {
         final String tData = t.payload;
-        if (identical(data, tData)) return tData;
-        if (tData.length == len) {
-          int i = start, j = 0;
-          while (i < end && data.codeUnitAt(i) == tData.codeUnitAt(j)) {
-            i++;
-            j++;
-          }
-          if (i == end) {
-            return tData;
-          }
+        if (tData.length == len && data.startsWith(tData, start)) {
+          t.usageCount++;
+          return tData;
         }
       }
       t = t.next;
@@ -168,37 +236,110 @@ class StringCanonicalizer {
     if (_count > _size) rehash();
     final int index =
         hashString(data, /* start = */ 0, data.length) & (_size - 1);
-    Node? s = _nodes[index];
-    Node? t = s;
+    final _Node? s = _nodes[index];
+    _Node? t = s;
     while (t != null) {
-      if (t is StringNode) {
+      if (t is _StringNode) {
         final String tData = t.payload;
-        if (identical(data, tData)) return tData;
-        if (data == tData) return tData;
+        if (identical(data, tData) || data == tData) {
+          t.usageCount++;
+          return tData;
+        }
       }
       t = t.next;
     }
     return insertStringNode(index, s, data);
   }
 
-  String insertStringNode(int index, Node? next, String value) {
-    final StringNode newNode = new StringNode(value, next);
+  String insertStringNode(int index, _Node? next, String value) {
+    final _StringNode newNode = new _StringNode(value, next);
     _nodes[index] = newNode;
     _count++;
+    _stringCount++;
+    _estimatedStringMemoryConsumption += newNode.estimatedMemoryConsumption;
     return value;
   }
 
-  String insertUtf8Node(int index, Node? next, List<int> buffer, int start,
+  String insertUtf8Node(int index, _Node? next, List<int> buffer, int start,
       int end, String value) {
-    final Utf8Node newNode = new Utf8Node(buffer, start, end, value, next);
+    final _Utf8Node newNode = new _Utf8Node(buffer, start, end, value, next);
     _nodes[index] = newNode;
     _count++;
+    _utf8StringCount++;
     return value;
   }
 
-  clear() {
-    _size = INITIAL_SIZE;
-    _nodes = new List<Node?>.filled(_size, /* fill = */ null);
+  void clear() {
+    initializeWithSize(INITIAL_SIZE);
+  }
+
+  void initializeWithSize(int size) {
+    _size = size;
+    _nodes = new List<_Node?>.filled(_size, /* fill = */ null);
     _count = 0;
+    _utf8StringCount = 0;
+    _stringCount = 0;
+    _estimatedStringMemoryConsumption = 0;
+  }
+
+  void pruneTo(int allowGrowthTo) {
+    // If we're already within the limit and there's no [_Utf8Node]s around
+    // (which may hold on to very large Uint8List buffers) we have nothing to
+    // do.
+    if (_estimatedStringMemoryConsumption < allowGrowthTo &&
+        _utf8StringCount == 0) {
+      return;
+    }
+
+    // If there's only [_Utf8Node]s around we'll clear the entire cache.
+    if (_stringCount == 0) {
+      clear();
+      return;
+    }
+
+    // Find all [_StringNode]s, sort them by usage and insert remaining nodes
+    // into a new cache until we've reached half of the [allowGrowthTo] -
+    // leaving some space before we'll have to prune again next time.
+
+    final List<_StringNode> stringNodes = new List<_StringNode>.filled(
+        _stringCount, new _StringNode('dummy', /* next = */ null));
+    int writeIndex = 0;
+    for (int i = 0; i < _nodes.length; ++i) {
+      _Node? node = _nodes[i];
+      while (node != null) {
+        final _Node? nextNode = node.next;
+        if (node is _StringNode) {
+          stringNodes[writeIndex++] = node;
+          node.next = null;
+        }
+        node = nextNode;
+      }
+    }
+    stringNodes.sort((_StringNode a, _StringNode b) {
+      return b.usageCount - a.usageCount;
+    });
+
+    int sum = 0;
+    int lastIndex = 0;
+    for (int i = 0; i < stringNodes.length; ++i) {
+      final _StringNode node = stringNodes[i];
+      sum += node.estimatedMemoryConsumption;
+      if (sum >= (allowGrowthTo ~/ 2) || node.usageCount < 2) {
+        lastIndex = i;
+        break;
+      }
+    }
+
+    final int newSize = (1 << lastIndex.bitLength);
+    initializeWithSize(newSize);
+    for (int i = lastIndex; i >= 0; --i) {
+      final _StringNode newNode = stringNodes[i];
+      final int index = newNode.hash & (_size - 1);
+      newNode.next = _nodes[index];
+      _nodes[index] = newNode;
+      _count++;
+      _stringCount++;
+      _estimatedStringMemoryConsumption += newNode.estimatedMemoryConsumption;
+    }
   }
 }

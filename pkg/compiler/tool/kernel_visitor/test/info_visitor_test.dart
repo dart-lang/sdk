@@ -8,6 +8,7 @@ import "dart:io";
 
 import "package:expect/expect.dart";
 import "package:expect/minitest.dart";
+import 'package:front_end/src/compute_platform_binaries_location.dart';
 import "package:kernel/kernel.dart";
 import "package:path/path.dart" as path;
 
@@ -72,28 +73,30 @@ void runTests(MetricsVisitor visitor) {
 
 void main() async {
   // Compile Dill
-  var sdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
-  if (!sdkPath.contains("ReleaseX64"))
-    sdkPath = path.join(sdkPath, "ReleaseX64", "dart-sdk");
-  var scriptPath = Platform.script.path;
-  var pkgPath = path.dirname(
-      path.dirname(path.dirname(path.dirname(path.dirname(scriptPath)))));
+  var scriptDirectory = path.dirname(Platform.script.path);
+  var pkgDirectory =
+      path.dirname(path.dirname(path.dirname(path.dirname(scriptDirectory))));
   var compilePath = path.canonicalize(
-      path.join(pkgPath, "front_end", "tool", "_fasta", "compile.dart"));
-  var testClassesPath = path
-      .canonicalize(path.join(path.dirname(scriptPath), "test_classes.dart"));
-  var ddcOutlinePath =
-      path.canonicalize(path.join(sdkPath, "lib", "_internal", "ddc_sdk.dill"));
-  var dillPath = path
-      .canonicalize(path.join(path.dirname(scriptPath), "test_classes.dill"));
+      path.join(pkgDirectory, "front_end", "tool", "_fasta", "compile.dart"));
+  var testClassesPath =
+      path.canonicalize(path.join(scriptDirectory, "test_classes.dart"));
+  var ddcOutlinePath = path.canonicalize(path.join(
+      computePlatformBinariesLocation().toFilePath(), "ddc_outline.dill"));
+  var dillPath =
+      path.canonicalize(path.join(scriptDirectory, "test_classes.dill"));
 
-  await Process.run(path.join(sdkPath, "bin", "dart"), [
+  var result = await Process.run(Platform.resolvedExecutable, [
     compilePath,
     "--target=dartdevc",
+    "--nnbd-strong",
     "--platform=${ddcOutlinePath}",
     "-o=${dillPath}",
     testClassesPath
   ]);
+
+  if (result.exitCode != 0) {
+    throw Exception('${result.stderr}\n${result.stdout}');
+  }
 
   // Dill compiled from test_classes.dart using ddc.
   var component = loadComponentFromBinary(dillPath);

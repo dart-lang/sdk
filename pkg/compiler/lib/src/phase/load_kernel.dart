@@ -32,7 +32,7 @@ class Input {
   final DiagnosticReporter reporter;
 
   /// Shared state between compilations. Only used when loading from source.
-  final fe.InitializedCompilerState initializedCompilerState;
+  final fe.InitializedCompilerState? initializedCompilerState;
 
   // TODO(johnniwinther): Remove this when #34942 is fixed.
   /// Force in-memory serialization/deserialization of the loaded component.
@@ -57,7 +57,7 @@ class Output {
   /// reachable from the [rootLibraryUri].
   ///
   /// Note that [component] may contain some libraries that are excluded here.
-  final List<Uri> libraries;
+  final List<Uri>? libraries;
 
   /// When running only dart2js modular analysis, returns the [Uri]s for
   /// libraries loaded in the input module.
@@ -65,9 +65,9 @@ class Output {
   /// This excludes other libraries reachable from them that were loaded as
   /// dependencies. The result of [moduleLibraries] is always a subset of
   /// [libraries].
-  final List<Uri> moduleLibraries;
+  final List<Uri>? moduleLibraries;
 
-  final fe.InitializedCompilerState initializedCompilerState;
+  final fe.InitializedCompilerState? initializedCompilerState;
 
   Output withNewComponent(ir.Component component) => Output(component,
       rootLibraryUri, libraries, moduleLibraries, initializedCompilerState);
@@ -109,17 +109,6 @@ ir.Reference _findMainMethod(Library entryLibrary) {
 String _getPlatformFilename(CompilerOptions options, String targetName) {
   String unsoundMarker = options.useLegacySubtyping ? "_unsound" : "";
   return "${targetName}_platform$unsoundMarker.dill";
-}
-
-void _inferNullSafetyMode(CompilerOptions options, bool isSound) {
-  if (options.nullSafetyMode == NullSafetyMode.unspecified) {
-    options.nullSafetyMode =
-        isSound ? NullSafetyMode.sound : NullSafetyMode.unsound;
-  }
-}
-
-void _validateNullSafetyMode(CompilerOptions options) {
-  assert(options.nullSafetyMode != NullSafetyMode.unspecified);
 }
 
 class _LoadFromKernelResult {
@@ -177,8 +166,6 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
     throw ArgumentError("$resolvedUri was compiled with $dillMode null "
         "safety and is incompatible with the '$option' option");
   }
-  _inferNullSafetyMode(options, isStrongDill);
-  _validateNullSafetyMode(options);
 
   // When compiling modularly, a dill for the SDK will be provided. In those
   // cases we ignore the implicit platform binary.
@@ -230,12 +217,15 @@ Future<_LoadFromSourceResult> _loadFromSource(
     CompilerOptions options,
     api.CompilerInput compilerInput,
     DiagnosticReporter reporter,
-    fe.InitializedCompilerState initializedCompilerState,
+    fe.InitializedCompilerState? initializedCompilerState,
     String targetName) async {
   bool verbose = false;
   bool cfeConstants = options.features.cfeConstants.isEnabled;
   Map<String, String>? environment = cfeConstants ? options.environment : null;
-  Target target = Dart2jsTarget(targetName, TargetFlags(),
+  Target target = Dart2jsTarget(
+      targetName,
+      TargetFlags(
+          soundNullSafety: options.nullSafetyMode == NullSafetyMode.sound),
       options: options,
       canPerformGlobalTransforms: true,
       supportsUnevaluatedConstants: !cfeConstants);
@@ -269,7 +259,17 @@ Future<_LoadFromSourceResult> _loadFromSource(
     Uri resolvedUri = options.compilationTarget!;
     bool isLegacy =
         await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
-    _inferNullSafetyMode(options, !isLegacy);
+    if (isLegacy && options.nullSafetyMode == NullSafetyMode.sound) {
+      reporter.reportError(
+          reporter.createMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+        'text': "Starting with Dart 3.0, `dart compile js` expects programs to be "
+            "null safe by default. Some libraries reached from "
+            "$resolvedUri opted-out of null safety. "
+            "You can temporarily compile this application using the deprecated "
+            "'${Flags.noSoundNullSafety}' option (which will be removed before "
+            "the Dart 3.0 stable release)."
+      }));
+    }
     sources.add(options.compilationTarget!);
   }
 
@@ -298,8 +298,6 @@ Future<_LoadFromSourceResult> _loadFromSource(
       verbosity: verbosity);
   ir.Component? component = await fe.compile(initializedCompilerState, verbose,
       fileSystem, onDiagnostic, sources, isModularCompile);
-  _validateNullSafetyMode(options);
-
   _doTransformsOnKernelLoad(component);
 
   // We have to compute canonical names on the component here to avoid missing
@@ -318,7 +316,7 @@ Output _createOutput(
     Library? entryLibrary,
     ir.Component component,
     List<Uri> moduleLibraries,
-    fe.InitializedCompilerState initializedCompilerState) {
+    fe.InitializedCompilerState? initializedCompilerState) {
   Uri? rootLibraryUri = null;
   Iterable<ir.Library> libraries = component.libraries;
   if (!options.modularMode) {
@@ -390,7 +388,7 @@ Future<Output?> run(Input input) async {
   Library? entryLibrary;
   ir.Component? component;
   List<Uri> moduleLibraries = const [];
-  fe.InitializedCompilerState initializedCompilerState =
+  fe.InitializedCompilerState? initializedCompilerState =
       input.initializedCompilerState;
   if (options.fromDill) {
     _LoadFromKernelResult result =
@@ -416,7 +414,7 @@ Future<Output?> run(Input input) async {
       moduleLibraries, initializedCompilerState);
 }
 
-/// Registers with the dart2js compiler all sources embeded in a kernel
+/// Registers with the dart2js compiler all sources embedded in a kernel
 /// component. This may include sources that were read from disk directly as
 /// files, but also sources that were embedded in binary `.dill` files (like the
 /// platform kernel file and kernel files from modular compilation pipelines).

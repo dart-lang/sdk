@@ -245,6 +245,12 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 0, 4) {
   return result.ptr();
 }
 
+DEFINE_NATIVE_ENTRY(StringBase_intern, 0, 1) {
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
+  return Symbols::New(thread, receiver);
+}
+
 DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 0, 3) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));

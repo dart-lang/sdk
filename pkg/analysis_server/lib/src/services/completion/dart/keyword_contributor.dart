@@ -41,6 +41,17 @@ class KeywordContributor extends DartCompletionContributor {
 
 /// A visitor for generating keyword suggestions.
 class _KeywordVisitor extends GeneralizingAstVisitor<void> {
+  /// The keywords that are valid at the beginning of a pattern (and hence a
+  /// guarded pattern).
+  static const List<Keyword> patternKeywords = [
+    Keyword.CONST,
+    Keyword.FALSE,
+    Keyword.FINAL,
+    Keyword.NULL,
+    Keyword.TRUE,
+    Keyword.VAR,
+  ];
+
   final DartCompletionRequest request;
 
   final SuggestionBuilder builder;
@@ -140,6 +151,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (node.inCatchClause) {
       _addSuggestion(Keyword.RETHROW);
     }
+  }
+
+  @override
+  void visitCaseClause(CaseClause node) {
+    _addSuggestions(patternKeywords);
+    super.visitCaseClause(node);
   }
 
   @override
@@ -528,8 +545,20 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitIfElement(IfElement node) {
-    _addCollectionElementKeywords();
-    _addExpressionKeywords(node);
+    if (entity == node.rightParenthesis) {
+      var caseClause = node.caseClause;
+      if (caseClause == null) {
+        _addSuggestion(Keyword.CASE);
+        _addSuggestion(Keyword.IS);
+      } else if (caseClause.guardedPattern.whenClause == null) {
+        _addSuggestion(Keyword.WHEN);
+      }
+    } else if (entity == node.thenElement || entity == node.elseElement) {
+      _addCollectionElementKeywords();
+      _addExpressionKeywords(node);
+    } else if (entity == node.condition) {
+      _addExpressionKeywords(node);
+    }
     return super.visitIfElement(node);
   }
 
@@ -541,12 +570,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       // Parsed: if (x) i^
       _addSuggestion(Keyword.IS);
     } else if (entity == node.rightParenthesis) {
-      if (node.condition.endToken.next == droppedToken) {
-        // fasta parser
-        // Actual: if (x i^)
-        // Parsed: if (x)
-        //    where "i" is in the token stream but not part of the AST
+      var caseClause = node.caseClause;
+      if (caseClause == null) {
+        _addSuggestion(Keyword.CASE);
         _addSuggestion(Keyword.IS);
+      } else if (caseClause.guardedPattern.whenClause == null) {
+        _addSuggestion(Keyword.WHEN);
       }
     } else if (entity == node.thenStatement || entity == node.elseStatement) {
       _addStatementKeywords(node);
@@ -707,6 +736,34 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitRecordPattern(RecordPattern node) {
+    _addExpressionKeywords(node);
+    _addSuggestions([Keyword.DYNAMIC]);
+    return super.visitRecordPattern(node);
+  }
+
+  @override
+  void visitRecordPatternField(RecordPatternField node) {
+    _addSuggestions(patternKeywords);
+    super.visitRecordPatternField(node);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    var operator = node.operator;
+    if (request.offset >= operator.end) {
+      if (request.opType.completionLocation == 'TypeArgumentList_argument') {
+        // This is most likely a type argument list.
+        _addSuggestion(Keyword.DYNAMIC);
+        _addSuggestion(Keyword.VOID);
+        return;
+      }
+      _addConstantExpressionKeywords(node);
+    }
+    super.visitRelationalPattern(node);
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
@@ -751,6 +808,22 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitSwitchCase(SwitchCase node) {
     _addStatementKeywords(node);
     return super.visitSwitchCase(node);
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    final entity = this.entity;
+    if (entity == node.colon && request.target.offset <= node.colon.offset) {
+      var previous = node.colon.previous?.keyword;
+      if (previous != Keyword.AS && previous != Keyword.WHEN) {
+        _addSuggestions([Keyword.AS, Keyword.WHEN]);
+      }
+    } else if (entity is GuardedPattern) {
+      _addConstantExpressionKeywords(node);
+    } else {
+      _addStatementKeywords(node);
+    }
+    return super.visitSwitchPatternCase(node);
   }
 
   @override
@@ -897,6 +970,19 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
   }
 
+  void _addConstantExpressionKeywords(AstNode node) {
+    // TODO(brianwilkerson) Use this method in place of `_addExpressionKeywords`
+    //  when in a constant context.
+    _addSuggestions([
+      Keyword.FALSE,
+      Keyword.NULL,
+      Keyword.TRUE,
+    ]);
+    if (!request.inConstantContext) {
+      _addSuggestions([Keyword.CONST]);
+    }
+  }
+
   void _addElseElementKeyword(NodeList<CollectionElement> elements) {
     final entity = this.entity;
     var token = entity is AstNode ? entity.beginToken : entity as Token;
@@ -940,6 +1026,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     if (node.inAsyncMethodOrFunction) {
       _addSuggestion(Keyword.AWAIT);
+    }
+    if (request.featureSet.isEnabled(Feature.patterns)) {
+      _addSuggestion(Keyword.SWITCH);
     }
   }
 

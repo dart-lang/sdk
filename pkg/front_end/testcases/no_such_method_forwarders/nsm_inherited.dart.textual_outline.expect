@@ -1,4 +1,3 @@
-// @dart = 2.9
 class M {
   dynamic noSuchMethod(Invocation invocation) => null;
 }

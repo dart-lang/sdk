@@ -41,7 +41,6 @@ void main() {
 
     print('dart process started');
 
-    // ignore: unawaited_futures
     process!.exitCode.then((code) => print('vm exited: ${code}'));
     process!.stdout.transform(utf8.decoder).listen(print);
     process!.stderr.transform(utf8.decoder).listen(print);

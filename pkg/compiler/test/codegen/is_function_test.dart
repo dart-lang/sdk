@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Test that checks that we are not added $isFunction properties on closure
 /// classes.
 
@@ -28,17 +26,17 @@ main() {
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     Program program =
-        compiler.backendStrategy.emitterTask.emitter.programForTesting;
+        compiler.backendStrategy.emitterTask.emitter.programForTesting!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     var name = backendStrategy.namerForTesting.operatorIs(
-        compiler.backendClosedWorldForTesting.commonElements.functionClass);
+        compiler.backendClosedWorldForTesting!.commonElements.functionClass);
     for (Fragment fragment in program.fragments) {
       for (Library library in fragment.libraries) {
         for (Class cls in library.classes) {
           if (!cls.element.isClosure) continue;
           for (StubMethod stub in cls.isChecks) {
-            Expect.notEquals(
-                stub.name.key, name.key, "Unexpected ${name.key} stub on $cls");
+            Expect.notEquals(stub.name!.key, name.key,
+                "Unexpected ${name.key} stub on $cls");
           }
         }
       }

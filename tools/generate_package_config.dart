@@ -34,6 +34,7 @@ void main(List<String> args) {
   ];
 
   var feAnalyzerSharedPackageDirs = [
+    platform('pkg/_fe_analyzer_shared/test/exhaustiveness/data'),
     platform('pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables'),
     platform('pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment'),
     platform(

@@ -141,7 +141,7 @@ class BacktrackStack {
     // bugs which cause application to leak memory and eventually OOM.
     // See https://github.com/dart-lang/sdk/issues/38820 and
     // https://github.com/flutter/flutter/issues/29007 for examples.
-    // So intead we directly ask OS to provide us memory.
+    // So instead we directly ask OS to provide us memory.
     if (memory_ == nullptr) {
       const bool executable = false;
       const bool compressed = false;

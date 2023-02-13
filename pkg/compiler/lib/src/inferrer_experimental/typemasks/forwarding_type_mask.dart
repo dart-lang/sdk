@@ -136,6 +136,13 @@ abstract class ForwardingTypeMask extends TypeMask {
   }
 
   @override
+  Iterable<DynamicCallTarget> findRootsOfTargets(Selector selector,
+      MemberHierarchyBuilder memberHierarchyBuilder, JClosedWorld closedWorld) {
+    return forwardTo.findRootsOfTargets(
+        selector, memberHierarchyBuilder, closedWorld);
+  }
+
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ForwardingTypeMask) return false;

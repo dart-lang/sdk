@@ -29,6 +29,11 @@ class RemoveReturnedValue extends CorrectionProducer {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.endStart(node.returnKeyword, node.semicolon));
       });
+    } else if (node is ExpressionFunctionBody) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+            range.startEnd(node.functionDefinition, node), '{}');
+      });
     }
   }
 }

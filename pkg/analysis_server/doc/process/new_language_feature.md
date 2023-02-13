@@ -41,6 +41,8 @@ The features are listed in alphabetical order.
 - [ ] Search - Top-level Declarations
 - [ ] selectionRange
 - [ ] Semantic Highlights
+- [ ] Semantic Tokens
 - [ ] signatureHelp
+- [ ] Snippets
 - [ ] Sort Members
 - [ ] Type Hierarchy

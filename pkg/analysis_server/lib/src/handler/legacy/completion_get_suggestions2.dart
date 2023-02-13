@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -31,7 +32,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   CompletionGetSuggestions2Handler(
-      super.server, super.request, super.cancellationToken);
+      super.server, super.request, super.cancellationToken, super.performance);
 
   /// Compute completion results for the given request and append them to the
   /// stream. Clients should not call this method directly as it is
@@ -46,6 +47,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     Set<String>? includedElementNames,
     List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags,
     NotImportedSuggestions? notImportedSuggestions,
+    required bool useFilter,
   }) async {
     //
     // Allow plugins to start computing fixes.
@@ -68,7 +70,11 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
       );
 
       suggestions.addAll(
-        await manager.computeSuggestions(request, performance),
+        await manager.computeSuggestions(
+          request,
+          performance,
+          useFilter: useFilter,
+        ),
       );
     });
     // TODO (danrubel) if request is obsolete (processAnalysisRequest returns
@@ -146,7 +152,6 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
       return;
     }
 
-    var performance = OperationPerformanceImpl('<root>');
     await performance.runAsync(
       'request',
       (performance) async {
@@ -206,6 +211,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
             performance: performance,
             request: completionRequest,
             notImportedSuggestions: notImportedSuggestions,
+            useFilter: true,
           );
         } on AbortCompletion {
           return server.sendResponse(
@@ -335,10 +341,12 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     return _RequestToPlugins(
       completionRequest: completionRequest,
       parameters: pluginRequestParameters,
-      futures: server.pluginManager.broadcastRequest(
-        pluginRequestParameters,
-        contextRoot: completionRequest.analysisContext.contextRoot,
-      ),
+      futures: AnalysisServer.supportsPlugins
+          ? server.pluginManager.broadcastRequest(
+              pluginRequestParameters,
+              contextRoot: completionRequest.analysisContext.contextRoot,
+            )
+          : <PluginInfo, Future<plugin.Response>>{},
     );
   }
 }

@@ -552,6 +552,22 @@ class Foo {
 ''');
   }
 
+  Future<void> test_forEachPartsWithPattern() async {
+    await assertContextType('''
+void f() {
+  for ((int x) in ^) {}
+}
+''', 'Iterable<dynamic>');
+  }
+
+  Future<void> test_forPartsWithPattern_condition() async {
+    await assertContextType('''
+void f() {
+  for ((var x); ^;) {}
+}
+''', 'bool');
+  }
+
   Future<void> test_ifElement() async {
     await assertContextType('''
 void f(bool b, int e) {
@@ -624,6 +640,46 @@ void f(int e) {
 ''');
   }
 
+  Future<void> test_listPattern_beforeTypeArgument() async {
+    await assertContextType('''
+void f(List<int> l) {
+  if (l case ^<int>[var e]) {}
+}
+''');
+  }
+
+  Future<void> test_listPattern_element() async {
+    await assertContextType('''
+void f(List<int> l) {
+  if (l case <int>[^var e]) {}
+}
+''', 'int');
+  }
+
+  Future<void> test_listPattern_element_empty_noTypeArgument() async {
+    await assertContextType('''
+void f(List<int> l) {
+  if (l case [^]) {}
+}
+''', 'int');
+  }
+
+  Future<void> test_listPattern_element_empty_typeArgument() async {
+    await assertContextType('''
+void f(List<int> l) {
+  if (l case <int>[^]) {}
+}
+''', 'int');
+  }
+
+  Future<void> test_listPattern_typeArgument() async {
+    await assertContextType('''
+void f(List<int> l) {
+  if (l case <^int>[var e]) {}
+}
+''');
+  }
+
   Future<void> test_mapLiteralEntry_key() async {
     await assertContextType('''
 void f(String k, int v) {
@@ -640,6 +696,38 @@ void f(String k, int v) {
 ''', 'int');
   }
 
+  Future<void> test_mapPattern_empty() async {
+    await assertContextType('''
+void f(Map<String, int> m) {
+  if (m case <String, int>{^}) {}
+}
+''', 'String');
+  }
+
+  Future<void> test_mapPatternEntry_key_after() async {
+    await assertContextType('''
+void f(Map<String, int> m) {
+  if (m case <String, int>{'a'^ : var v}) {}
+}
+''', 'String');
+  }
+
+  Future<void> test_mapPatternEntry_key_before() async {
+    await assertContextType('''
+void f(Map<String, int> m) {
+  if (m case <String, int>{^'a' : var v}) {}
+}
+''', 'String');
+  }
+
+  Future<void> test_mapPatternEntry_value() async {
+    await assertContextType('''
+void f(String k, int v) {
+  if (m case <String, int>{'a' : ^var v}) {}
+}
+''', 'int');
+  }
+
   Future<void> test_namedExpression() async {
     await assertContextType('''
 void f({int i}) {}
@@ -647,6 +735,48 @@ void g(int j) {
   f(i: ^j);
 }
 ''', 'int');
+  }
+
+  Future<void> test_objectPattern() async {
+    await assertContextType('''
+void f(List<int> l) {
+  if (l case List(length: ^)) {}
+}
+''', 'int');
+  }
+
+  Future<void> test_patternAssignment_withoutType() async {
+    await assertContextType('''
+void f(Map<String, int> m) {
+  {'a': a} = ^m;
+}
+''');
+  }
+
+  Future<void> test_patternAssignment_withType() async {
+    await assertContextType('''
+void f(List<int> l) {
+  int i;
+  [i] = ^l;
+}
+''', 'List<int>');
+  }
+
+  Future<void> test_patternVariableDeclaration_withoutType() async {
+    await assertContextType('''
+void f((int, int) r) {
+  var (a, b) = ^r;
+}
+''');
+  }
+
+  @failingTest
+  Future<void> test_patternVariableDeclaration_withType() async {
+    await assertContextType('''
+void f((int, int) r) {
+  (int a, int b) = ^r;
+}
+''', '(int, int)');
   }
 
   Future<void> test_propertyAccess() async {
@@ -816,6 +946,38 @@ void g(C c) {
 ''');
   }
 
+  Future<void> test_recordPattern_empty() async {
+    await assertContextType('''
+void f((int, String) r) {
+  if (r case (^)) {}
+}
+''', 'int');
+  }
+
+  Future<void> test_recordPattern_named() async {
+    await assertContextType('''
+void f((int, {String y}) r) {
+  if (r case (1, y: ^)) {}
+}
+''', 'String');
+  }
+
+  Future<void> test_recordPattern_positional_last() async {
+    await assertContextType('''
+void f((int, String) r) {
+  if (r case (1, ^)) {}
+}
+''', 'String');
+  }
+
+  Future<void> test_recordPattern_positional_middle() async {
+    await assertContextType('''
+void f((int, String, int) r) {
+  if (r case (1, ^, 3)) {}
+}
+''', 'String');
+  }
+
   Future<void> test_setOrMapLiteral_map_beforeTypeParameter() async {
     await assertContextType('''
 void f() {
@@ -911,6 +1073,14 @@ int x^;
     await assertContextType('''
 var x=  ^  ;
 ''');
+  }
+
+  Future<void> test_whenClause() async {
+    await assertContextType('''
+void f(int i) {
+  if (i case > 0 when ^) {}
+}
+''', 'bool');
   }
 }
 

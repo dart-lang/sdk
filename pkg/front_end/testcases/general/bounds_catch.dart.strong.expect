@@ -1,0 +1,292 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bounds_catch.dart:50:13: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   try {} on F<Object> catch (e) {
+//             ^
+// pkg/front_end/testcases/general/bounds_catch.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_catch.dart:56:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   try {} on F<int> catch (e) {
+//             ^
+// pkg/front_end/testcases/general/bounds_catch.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_catch.dart:98:13: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   try {} on G<Object> catch (e) {
+//             ^
+// pkg/front_end/testcases/general/bounds_catch.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_catch.dart:104:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   try {} on G<int> catch (e) {
+//             ^
+// pkg/front_end/testcases/general/bounds_catch.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_catch.dart:146:13: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   try {} on F<Object> catch (e) {
+//             ^
+// pkg/front_end/testcases/general/bounds_catch.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_catch.dart:152:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   try {} on F<int> catch (e) {
+//             ^
+// pkg/front_end/testcases/general/bounds_catch.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_catch.dart:194:13: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   try {} on G<Object> catch (e) {
+//             ^
+// pkg/front_end/testcases/general/bounds_catch.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_catch.dart:200:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   try {} on G<int> catch (e) {
+//             ^
+// pkg/front_end/testcases/general/bounds_catch.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends self::Class<X> = self::Class<dynamic>> = X;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+}
+class ConcreteClass extends core::Object implements self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+}
+class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
+  synthetic constructor •() → self::G<self::G::X>
+    : super core::Object::•()
+    ;
+}
+static method t1a() → dynamic {
+  try {
+  }
+  on self::Class<dynamic> catch(final self::Class<dynamic> e) {
+  }
+}
+static method t2a() → dynamic {
+  try {
+  }
+  on dynamic catch(final dynamic e) {
+  }
+}
+static method t3a() → dynamic {
+  try {
+  }
+  on self::Class<dynamic> catch(final self::Class<dynamic> e) {
+  }
+}
+static method t4a() → dynamic {
+  try {
+  }
+  on self::Class<dynamic> catch(final self::Class<dynamic> e) {
+  }
+}
+static method t5a() → dynamic {
+  try {
+  }
+  on self::ConcreteClass catch(final self::ConcreteClass e) {
+  }
+}
+static method t6a() → dynamic {
+  try {
+  }
+  on self::Class<self::ConcreteClass> catch(final self::Class<self::ConcreteClass> e) {
+  }
+}
+static method t7a() → dynamic {
+  try {
+  }
+  on core::Object catch(final core::Object e) {
+  }
+}
+static method t8a() → dynamic {
+  try {
+  }
+  on core::int catch(final core::int e) {
+  }
+}
+static method s1a() → dynamic {
+  try {
+  }
+  on self::G<self::Class<dynamic>> catch(final self::G<self::Class<dynamic>> e) {
+  }
+}
+static method s2a() → dynamic {
+  try {
+  }
+  on self::G<dynamic> catch(final self::G<dynamic> e) {
+  }
+}
+static method s3a() → dynamic {
+  try {
+  }
+  on self::G<self::Class<dynamic>> catch(final self::G<self::Class<dynamic>> e) {
+  }
+}
+static method s4a() → dynamic {
+  try {
+  }
+  on self::G<self::Class<dynamic>> catch(final self::G<self::Class<dynamic>> e) {
+  }
+}
+static method s5a() → dynamic {
+  try {
+  }
+  on self::G<self::ConcreteClass> catch(final self::G<self::ConcreteClass> e) {
+  }
+}
+static method s6a() → dynamic {
+  try {
+  }
+  on self::G<self::Class<self::ConcreteClass>> catch(final self::G<self::Class<self::ConcreteClass>> e) {
+  }
+}
+static method s7a() → dynamic {
+  try {
+  }
+  on self::G<core::Object> catch(final self::G<core::Object> e) {
+  }
+}
+static method s8a() → dynamic {
+  try {
+  }
+  on self::G<core::int> catch(final self::G<core::int> e) {
+  }
+}
+static method t1b() → dynamic {
+  try {
+  }
+  on self::Class<dynamic> catch(final self::Class<dynamic> e) {
+  }
+}
+static method t2b() → dynamic {
+  try {
+  }
+  on dynamic catch(final dynamic e) {
+  }
+}
+static method t3b() → dynamic {
+  try {
+  }
+  on self::Class<dynamic> catch(final self::Class<dynamic> e) {
+  }
+}
+static method t4b() → dynamic {
+  try {
+  }
+  on self::Class<dynamic> catch(final self::Class<dynamic> e) {
+  }
+}
+static method t5b() → dynamic {
+  try {
+  }
+  on self::ConcreteClass catch(final self::ConcreteClass e) {
+  }
+}
+static method t6b() → dynamic {
+  try {
+  }
+  on self::Class<self::ConcreteClass> catch(final self::Class<self::ConcreteClass> e) {
+  }
+}
+static method t7b() → dynamic {
+  try {
+  }
+  on core::Object catch(final core::Object e) {
+  }
+}
+static method t8b() → dynamic {
+  try {
+  }
+  on core::int catch(final core::int e) {
+  }
+}
+static method s1b() → dynamic {
+  try {
+  }
+  on self::G<self::Class<dynamic>> catch(final self::G<self::Class<dynamic>> e) {
+  }
+}
+static method s2b() → dynamic {
+  try {
+  }
+  on self::G<dynamic> catch(final self::G<dynamic> e) {
+  }
+}
+static method s3b() → dynamic {
+  try {
+  }
+  on self::G<self::Class<dynamic>> catch(final self::G<self::Class<dynamic>> e) {
+  }
+}
+static method s4b() → dynamic {
+  try {
+  }
+  on self::G<self::Class<dynamic>> catch(final self::G<self::Class<dynamic>> e) {
+  }
+}
+static method s5b() → dynamic {
+  try {
+  }
+  on self::G<self::ConcreteClass> catch(final self::G<self::ConcreteClass> e) {
+  }
+}
+static method s6b() → dynamic {
+  try {
+  }
+  on self::G<self::Class<self::ConcreteClass>> catch(final self::G<self::Class<self::ConcreteClass>> e) {
+  }
+}
+static method s7b() → dynamic {
+  try {
+  }
+  on self::G<core::Object> catch(final self::G<core::Object> e) {
+  }
+}
+static method s8b() → dynamic {
+  try {
+  }
+  on self::G<core::int> catch(final self::G<core::int> e) {
+  }
+}
+static method main() → dynamic {}

@@ -462,20 +462,30 @@ abstract class Map<K, V> {
 /// ]);
 /// print(map); // {1: A, 2: B, 3: C, 4: D}
 /// ```
+///
+/// Do not extend or implement the `MapEntry` class.
+/// If the Dart language introduces value types,
+/// the `MapEntry` class will be changed to such a type,
+/// and will likely no longer be able to be implemented or extended
+/// by classes.
+// TODO(lrn): Make this class `final` when class modifiers are introduced.
+// Change to an `inline class` when those are available.
 class MapEntry<K, V> {
   /// The key of the entry.
+  ///
   /// ```dart
-  /// final map = {'theKey': 'theValue'};
-  /// var entry = map.entries.first;
-  /// print(entry.key); // theKey
+  /// final map = {'theKey': 'theValue'}; // Map<String, String>
+  /// var entry = map.entries.first; // MapEntry<String, String>
+  /// print(entry.key); // 'theKey'
   /// ```
   final K key;
 
-  /// The value associated to [key] in the map.
+  /// The value associated to [key] in a map.
+  ///
   /// ```dart
-  /// final map = {'theKey': 'theValue'};
-  /// var entry = map.entries.first;
-  /// print(entry.value); // theValue
+  /// final map = {'theKey': 'theValue'}; // Map<String, String>
+  /// var entry = map.entries.first; // MapEntry<String, String>
+  /// print(entry.value); // 'theValue'
   /// ```
   final V value;
 
@@ -484,5 +494,8 @@ class MapEntry<K, V> {
 
   const MapEntry._(this.key, this.value);
 
+  /// String representation intended for debugging only.
+  ///
+  /// Not guaranteed to be stable over time.
   String toString() => "MapEntry($key: $value)";
 }

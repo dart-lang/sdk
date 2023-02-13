@@ -33,14 +33,11 @@ Future<void> main(List<String> args) async {
   }
 
   bool quicker = false;
-  bool alternativeInvalidation = false;
   String? rootPath;
 
   for (String arg in args) {
     if (arg == "--quicker") {
       quicker = true;
-    } else if (arg == "--alternativeInvalidation") {
-      alternativeInvalidation = true;
     } else if (arg.startsWith("--path=")) {
       rootPath = arg.substring("--path=".length);
     } else {
@@ -177,7 +174,6 @@ Future<void> main(List<String> args) async {
 
   print("About to run with "
       "quicker = $quicker; "
-      "alternativeInvalidation = $alternativeInvalidation; "
       "path = $rootPath; "
       "...");
 
@@ -200,11 +196,6 @@ Future<void> main(List<String> args) async {
     "--initialize-from-dill",
     "$rootPath/cache.dill",
   ];
-  if (alternativeInvalidation) {
-    processArgs.add("--enable-experiment=alternative-invalidation-strategy");
-  } else {
-    processArgs.add("--enable-experiment=no-alternative-invalidation-strategy");
-  }
 
   await heapHelper.start(processArgs,
       stdoutReceiver: (s) {

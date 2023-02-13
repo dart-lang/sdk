@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -23,6 +21,7 @@ main(List<String> args) {
     await internalMain([
           'pkg/compiler/test/codesize/swarm/swarm.dart',
           Flags.writeClosedWorld,
+          '--no-sound-null-safety',
           '--out=${dillUri}',
         ] +
         commonArgs);
@@ -30,6 +29,7 @@ main(List<String> args) {
           '${dillUri}',
           Flags.readClosedWorld,
           Flags.writeData,
+          '--no-sound-null-safety',
           '--out=${outUri}',
         ] +
         commonArgs);

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// If canonicialization hashes with only a field's cid, this will exhibit
+// If canonicalization hashes with only a field's cid, this will exhibit
 // quadratic time.
 
 class Box {

@@ -540,7 +540,7 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       __ SmiUntag(TMP2, RangeErrorABI::kIndexReg);
       __ beq(TMP, TMP2, &length);  // No overflow.
       {
-        // Allocate a mint, reload the two registers and popualte the mint.
+        // Allocate a mint, reload the two registers and populate the mint.
         __ PushRegister(NULL_REG);
         __ CallRuntime(kAllocateMintRuntimeEntry, /*argument_count=*/0);
         __ PopRegister(RangeErrorABI::kIndexReg);
@@ -1950,7 +1950,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ sx(AllocateObjectABI::kTypeArgumentsReg, Address(kTypeOffsetReg, 0));
 
       __ Bind(&not_parameterized_case);
-    }  // kClsIdReg = R4, kTypeOffestReg = R5
+    }  // kClsIdReg = R4, kTypeOffsetReg = R5
 
     __ AddImmediate(AllocateObjectABI::kResultReg,
                     AllocateObjectABI::kResultReg, kHeapObjectTag);
@@ -2023,8 +2023,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   classid_t cls_id = target::Class::GetId(cls);
   ASSERT(cls_id != kIllegalCid);
 
-  RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
-
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = target::Class::NumTypeArguments(cls) > 0;
   ASSERT(!is_cls_parameterized || target::Class::TypeArgumentsFieldOffset(
@@ -2032,7 +2030,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
 
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
-  RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
 
   const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
@@ -2046,6 +2043,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   if (!FLAG_use_slow_path && FLAG_inline_alloc &&
       !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
+    RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
+    RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
     if (is_cls_parameterized) {
       if (!IsSameObject(NullObject(),
                         CastHandle<Object>(allocat_object_parametrized))) {
@@ -3047,7 +3046,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   Label exit_through_non_ffi;
   // Check if we exited generated from FFI. If so do transition - this is needed
   // because normally runtime calls transition back to generated via destructor
-  // of TransititionGeneratedToVM/Native that is part of runtime boilerplate
+  // of TransitionGeneratedToVM/Native that is part of runtime boilerplate
   // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
   // have this boilerplate, don't have this stack resource, have to transition
   // explicitly.

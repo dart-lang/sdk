@@ -8,7 +8,7 @@ import 'static_type.dart';
 /// The main space for matching types and destructuring.
 ///
 /// It has a type which determines the type of values it contains. The type may
-/// be [StaticType.top] to indicate that it doesn't filter by type.
+/// be [StaticType.nullableObject] to indicate that it doesn't filter by type.
 ///
 /// It may also contain zero or more named fields. The space then only contains
 /// values where the field values are contained by the corresponding field
@@ -24,11 +24,12 @@ class ExtractSpace extends Space {
 
   /// An [ExtractSpace] with no type and no fields contains all values.
   @override
-  bool get isTop => type == StaticType.top && fields.isEmpty;
+  bool get isTop => type == StaticType.nullableObject && fields.isEmpty;
 
   @override
   String toString() {
     if (isTop) return '()';
+    if (this == Space.empty) return '∅';
 
     // If there are no fields, just show the type.
     if (fields.isEmpty) return type.name;
@@ -36,7 +37,7 @@ class ExtractSpace extends Space {
     StringBuffer buffer = new StringBuffer();
 
     // We model a bare record pattern by treating it like an extractor on top.
-    if (type != StaticType.top) buffer.write(type.name);
+    if (type != StaticType.nonNullableObject) buffer.write(type.name);
 
     buffer.write('(');
     bool first = true;
@@ -69,20 +70,26 @@ class ExtractSpace extends Space {
 // TODO(paulberry, rnystrom): List spaces.
 
 abstract class Space {
-  static final _EmptySpace empty = new _EmptySpace._();
-  static final Space top = new Space(StaticType.top);
+  /// The uninhabited space.
+  static final Space empty = new Space(StaticType.neverType);
+
+  /// The space containing everything.
+  static final Space top = new Space(StaticType.nullableObject);
+
+  /// The space containing only `null`.
+  static final Space nullSpace = new Space(StaticType.nullType);
 
   factory Space(StaticType type, [Map<String, Space> fields = const {}]) =>
       new ExtractSpace._(type, fields);
 
   factory Space.record([Map<String, Space> fields = const {}]) =>
-      new Space(StaticType.top, fields);
+      new Space(StaticType.nonNullableObject, fields);
 
   factory Space.union(List<Space> arms) {
     // Simplify the arms if possible.
-    List<Space> allArms = <Space>[];
+    List<ExtractSpace> allArms = <ExtractSpace>[];
 
-    void addSpace(Space space) {
+    void addSpace(ExtractSpace space) {
       // Discard duplicate arms. Duplicates can appear when working through a
       // series of cases that destructure multiple fields with different types.
       // Discarding the duplicates isn't necessary for correctness (a union with
@@ -109,16 +116,27 @@ abstract class Space {
       // go through this constructor to create unions. A UnionSpace will never
       // contain UnionSpaces.
       if (space is UnionSpace) {
-        for (Space arm in space.arms) {
+        for (ExtractSpace arm in space.arms) {
           addSpace(arm);
         }
       } else {
-        addSpace(space);
+        addSpace(space as ExtractSpace);
       }
     }
 
     if (allArms.isEmpty) return empty;
     if (allArms.length == 1) return allArms.first;
+    if (allArms.length == 2) {
+      if (allArms[0].type == StaticType.nullType &&
+          allArms[0].fields.isEmpty &&
+          allArms[1].fields.isEmpty) {
+        return new Space(allArms[1].type.nullable);
+      } else if (allArms[1].type == StaticType.nullType &&
+          allArms[1].fields.isEmpty &&
+          allArms[0].fields.isEmpty) {
+        return new Space(allArms[0].type.nullable);
+      }
+    }
     return new UnionSpace._(allArms);
   }
 
@@ -131,7 +149,7 @@ abstract class Space {
 
 /// A union of spaces. The space A|B contains all of the values of A and B.
 class UnionSpace extends Space {
-  final List<Space> arms;
+  final List<ExtractSpace> arms;
 
   UnionSpace._(this.arms) : super._() {
     assert(arms.length > 1);
@@ -139,12 +157,4 @@ class UnionSpace extends Space {
 
   @override
   String toString() => arms.join('|');
-}
-
-/// The uninhabited space.
-class _EmptySpace extends Space {
-  _EmptySpace._() : super._();
-
-  @override
-  String toString() => '∅';
 }

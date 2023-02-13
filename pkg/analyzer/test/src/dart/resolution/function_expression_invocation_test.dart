@@ -173,7 +173,7 @@ void f(Never x) {
   x<int>(1 + 2);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
       error(HintCode.DEAD_CODE, 26, 8),
     ]);
 
@@ -349,6 +349,50 @@ PropertyAccess
 ''');
   }
 
+  test_on_switchExpression() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  (switch (x) {
+    _ => foo,
+  }());
+}
+
+void foo() {}
+''');
+
+    final node = findNode.functionExpressionInvocation('}()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+        arrow: =>
+        expression: SimpleIdentifier
+          token: foo
+          staticElement: self::@function::foo
+          staticType: void Function()
+    rightBracket: }
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
   test_record_field_named() async {
     await assertNoErrorsInCode(r'''
 void f(({void Function(int) foo}) r) {
@@ -387,7 +431,7 @@ FunctionExpressionInvocation
   test_record_field_positional_rewrite() async {
     await assertNoErrorsInCode(r'''
 void f((void Function(int),) r) {
-  r.$0(0);
+  r.$1(0);
 }
 ''');
 
@@ -401,7 +445,7 @@ FunctionExpressionInvocation
       staticType: (void Function(int))
     operator: .
     propertyName: SimpleIdentifier
-      token: $0
+      token: $1
       staticElement: <null>
       staticType: void Function(int)
     staticType: void Function(int)
@@ -422,7 +466,7 @@ FunctionExpressionInvocation
   test_record_field_positional_withParenthesis() async {
     await assertNoErrorsInCode(r'''
 void f((void Function(int),) r) {
-  (r.$0)(0);
+  (r.$1)(0);
 }
 ''');
 
@@ -438,7 +482,7 @@ FunctionExpressionInvocation
         staticType: (void Function(int))
       operator: .
       propertyName: SimpleIdentifier
-        token: $0
+        token: $1
         staticElement: <null>
         staticType: void Function(int)
       staticType: void Function(int)

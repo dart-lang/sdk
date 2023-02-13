@@ -12,13 +12,19 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeprecatedImplementsFunctionTest);
+    defineReflectiveTests(ExtendsDisallowedClassTest);
+    defineReflectiveTests(ExtendsNonClassTest);
+    defineReflectiveTests(ExtendsTypeAliasExpandsToTypeParameterTest);
     defineReflectiveTests(ImplementsDisallowedClassTest);
     defineReflectiveTests(ImplementsRepeatedTest);
     defineReflectiveTests(ImplementsSuperClassTest);
     defineReflectiveTests(ImplementsTypeAliasExpandsToTypeParameterTest);
     defineReflectiveTests(MixinOfDisallowedClassTest);
+    defineReflectiveTests(MixinOfNonInterfaceTest);
+    defineReflectiveTests(SubtypeOfFfiClassInExtendsTest);
     defineReflectiveTests(SubtypeOfFfiClassInImplementsTest);
     defineReflectiveTests(SubtypeOfFfiClassInWithTest);
+    defineReflectiveTests(SubtypeOfStructClassInExtendsTest);
     defineReflectiveTests(SubtypeOfStructClassInImplementsTest);
     defineReflectiveTests(SubtypeOfStructClassInWithTest);
   });
@@ -35,6 +41,53 @@ abstract class C implements Function {}
 ''');
     await assertHasFix('''
 abstract class C {}
+''');
+  }
+}
+
+@reflectiveTest
+class ExtendsDisallowedClassTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_NAME_FROM_DECLARATION_CLAUSE;
+
+  Future<void> test_extends() async {
+    await resolveTestCode('''
+class C extends String {}
+''');
+    await assertHasFix('''
+class C {}
+''');
+  }
+}
+
+@reflectiveTest
+class ExtendsNonClassTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_NAME_FROM_DECLARATION_CLAUSE;
+
+  Future<void> test_extends() async {
+    await resolveTestCode('''
+class C extends dynamic {}
+''');
+    await assertHasFix('''
+class C {}
+''');
+  }
+}
+
+@reflectiveTest
+class ExtendsTypeAliasExpandsToTypeParameterTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_NAME_FROM_DECLARATION_CLAUSE;
+
+  Future<void> test_extends() async {
+    await resolveTestCode('''
+typedef T<int> = int;
+class C extends T {}
+''');
+    await assertHasFix('''
+typedef T<int> = int;
+class C {}
 ''');
   }
 }
@@ -130,6 +183,38 @@ abstract class C {}
 }
 
 @reflectiveTest
+class MixinOfNonInterfaceTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_NAME_FROM_DECLARATION_CLAUSE;
+
+  Future<void> test_oneName() async {
+    await resolveTestCode('''
+mixin M on dynamic {}
+''');
+    await assertHasFix('''
+mixin M {}
+''');
+  }
+}
+
+@reflectiveTest
+class SubtypeOfFfiClassInExtendsTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_NAME_FROM_DECLARATION_CLAUSE;
+
+  Future<void> test_oneName() async {
+    await resolveTestCode('''
+import 'dart:ffi';
+class C extends Double {}
+''');
+    await assertHasFix('''
+import 'dart:ffi';
+class C {}
+''');
+  }
+}
+
+@reflectiveTest
 class SubtypeOfFfiClassInImplementsTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_NAME_FROM_DECLARATION_CLAUSE;
@@ -162,6 +247,29 @@ class C {}
 ''',
         errorFilter: (error) =>
             error.errorCode == FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH);
+  }
+}
+
+@reflectiveTest
+class SubtypeOfStructClassInExtendsTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_NAME_FROM_DECLARATION_CLAUSE;
+
+  Future<void> test_oneName() async {
+    await resolveTestCode('''
+import 'dart:ffi';
+class S extends Struct {
+  external Pointer notEmpty;
+}
+class C extends S {}
+''');
+    await assertHasFix('''
+import 'dart:ffi';
+class S extends Struct {
+  external Pointer notEmpty;
+}
+class C {}
+''');
   }
 }
 

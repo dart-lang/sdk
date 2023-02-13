@@ -250,7 +250,7 @@ struct simd128_value_t {
 #error Automatic compiler detection failed.
 #endif
 
-// LIKELY/UNLIKELY give the compiler branch preditions that may affect block
+// LIKELY/UNLIKELY give the compiler branch predictions that may affect block
 // scheduling.
 #ifdef __GNUC__
 #define LIKELY(cond) __builtin_expect((cond), 1)
@@ -674,7 +674,7 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
   return destination;
 }
 
-// On Windows the reentrent version of strtok is called
+// On Windows the reentrant version of strtok is called
 // strtok_s. Unify on the posix name strtok_r.
 #if defined(DART_HOST_OS_WINDOWS)
 #define snprintf _sprintf_p
@@ -729,6 +729,11 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 #if !defined(FORCE_INCLUDE_DISASSEMBLER)
 #define FORCE_INCLUDE_DISASSEMBLER 1
 #endif
+#endif
+
+// Include HeapSnapshotWriter functionality if not in PRODUCT.
+#if !defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER) && !defined(PRODUCT)
+#define DART_ENABLE_HEAP_SNAPSHOT_WRITER 1
 #endif
 
 #if defined(DART_HOST_OS_ANDROID)

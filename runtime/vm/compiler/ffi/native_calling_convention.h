@@ -36,6 +36,7 @@ class NativeCallingConvention : public ZoneAllocated {
     return argument_locations_;
   }
   const NativeLocation& return_location() const { return return_location_; }
+  bool contains_varargs() const { return contains_varargs_; }
 
   intptr_t StackTopInBytes() const;
 
@@ -48,12 +49,15 @@ class NativeCallingConvention : public ZoneAllocated {
 
  private:
   NativeCallingConvention(const NativeLocations& argument_locations,
-                          const NativeLocation& return_location)
+                          const NativeLocation& return_location,
+                          bool contains_varargs)
       : argument_locations_(argument_locations),
-        return_location_(return_location) {}
+        return_location_(return_location),
+        contains_varargs_(contains_varargs) {}
 
   const NativeLocations& argument_locations_;
   const NativeLocation& return_location_;
+  const bool contains_varargs_;
 };
 
 }  // namespace ffi

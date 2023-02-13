@@ -6,8 +6,6 @@
 /// for simple unit-tests.
 library expect;
 
-import 'package:meta/meta.dart';
-
 /// Whether the program is running without sound null safety.
 bool get hasUnsoundNullSafety => const <Null>[] is List<Object>;
 
@@ -275,7 +273,9 @@ class Expect {
   }
 
   // Unconditional failure.
-  @alwaysThrows
+  // This function always throws, as [_fail] always throws.
+  // TODO(srawlins): It would be more correct to change the return type to
+  // `Never`, which would require refactoring many language and co19 tests.
   static void fail(String msg) {
     _fail("Expect.fail('$msg')");
   }
@@ -693,7 +693,6 @@ class Expect {
   static String _getMessage(String reason) =>
       (reason.isEmpty) ? "" : ", '$reason'";
 
-  @alwaysThrows
   static Never _fail(String message) {
     throw ExpectException(message);
   }

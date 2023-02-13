@@ -23,8 +23,8 @@ main() {
     var weakRef = WeakReference<List<String>>(list);
     expect(weakRef.target, equals(list));
 
-    // Javascript API throws when the representation of target is not 'object'
-    // in the compiled Javascript.
+    // JavaScript API throws when the representation of target is not 'object'
+    // in the compiled JavaScript.
     expect(() => WeakReference<String>("foo"), throws);
     expect(() => WeakReference<int>(1), throws);
   });

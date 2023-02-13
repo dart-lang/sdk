@@ -64,7 +64,7 @@ class AlwaysNullableTypeOrigin extends EdgeOrigin {
 }
 
 /// Edge origin resulting from the presence of an Angular annotation such as
-/// `@Optional()`, `@ViewChild(...)`, or `@ContentChild(...)`.
+/// `@Optional()`, `@Attribute(...)`, `@ViewChild(...)`, or `@ContentChild(...)`.
 class AngularAnnotationOrigin extends EdgeOrigin {
   AngularAnnotationOrigin(super.source, AstNode super.node);
 
@@ -74,6 +74,21 @@ class AngularAnnotationOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.angularAnnotation;
+}
+
+/// Edge origin resulting from `@Component(...)` or `@Injectable()` class
+/// constructor arguments having neither `@Optional()` nor `@Attribute()`
+/// annotation.
+class AngularConstructorArgumentOrigin extends EdgeOrigin {
+  AngularConstructorArgumentOrigin(super.source, AstNode super.node);
+
+  @override
+  String get description =>
+      'Component or @Injectable() class constructor arguments without'
+      ' @Optional/@Attribute annotations must be non-nullable';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.angularConstructorArgument;
 }
 
 /// Edge origin resulting from the presence of a call to
@@ -112,7 +127,8 @@ class ArgumentErrorCheckNotNullOrigin extends EdgeOrigin {
 /// likely intended to yield a non-null value.
 class AssignmentFromAngularInjectorGetOrigin extends EdgeOrigin {
   AssignmentFromAngularInjectorGetOrigin(
-      super.source, SimpleIdentifier super.node);
+      super.source, SimpleIdentifier super.node,
+      {super.isSetupAssignment = false});
 
   @override
   String get description => 'value retrieved from Injector.get in test setUp';
@@ -174,7 +190,8 @@ class DummyOrigin extends EdgeOrigin {
 /// An edge origin used for edges that originated because of an assignment
 /// involving a value with a dynamic type.
 class DynamicAssignmentOrigin extends EdgeOrigin {
-  DynamicAssignmentOrigin(super.source, super.node);
+  DynamicAssignmentOrigin(super.source, super.node,
+      {super.isSetupAssignment = false});
 
   @override
   String get description => 'assignment of dynamic value';
@@ -196,9 +213,15 @@ abstract class EdgeOrigin extends EdgeOriginInfo {
   @override
   final Element? element;
 
-  EdgeOrigin(this.source, this.node) : element = null;
+  /// Whether the origin of the edge is due to the assignment of a variable
+  /// from within function literal argument to the `setUp` function of the test
+  /// package.
+  final bool isSetupAssignment;
 
-  EdgeOrigin.forElement(this.element)
+  EdgeOrigin(this.source, this.node, {this.isSetupAssignment = false})
+      : element = null;
+
+  EdgeOrigin.forElement(this.element, {this.isSetupAssignment = false})
       : source = null,
         node = null;
 

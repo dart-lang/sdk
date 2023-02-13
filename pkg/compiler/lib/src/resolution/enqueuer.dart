@@ -13,7 +13,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/annotations.dart';
 import '../universe/member_usage.dart';
-import '../universe/resolution_world_builder_interfaces.dart';
+import '../universe/resolution_world_builder.dart' show ResolutionWorldBuilder;
 import '../universe/use.dart'
     show
         ConstantUse,
@@ -178,6 +178,9 @@ class ResolutionEnqueuer extends Enqueuer {
         _registerInstantiatedType(type as InterfaceType,
             nativeUsage: true, globalDependency: true);
         break;
+      case TypeUseKind.RECORD_INSTANTIATION:
+        _registerInstantiatedRecordType(type as RecordType);
+        break;
       case TypeUseKind.IS_CHECK:
       case TypeUseKind.CATCH_TYPE:
         _registerIsCheck(type);
@@ -211,6 +214,10 @@ class ResolutionEnqueuer extends Enqueuer {
         _registerNamedTypeVariableNewRti(type as TypeVariableType);
         break;
     }
+  }
+
+  void _registerInstantiatedRecordType(RecordType type) {
+    worldBuilder.registerRecordTypeInstantiation(type);
   }
 
   void _registerIsCheck(DartType type) {

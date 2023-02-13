@@ -2019,7 +2019,7 @@ class D implements B, C {
   int x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 95, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 95, 1,
           contextMessages: [message('/home/test/lib/test.dart', 46, 1)]),
     ]);
   }
@@ -2042,9 +2042,9 @@ class C2 extends Object with M2 {
   String x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 112, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 112, 1,
           contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 197, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 197, 1,
           contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
     ]);
   }
@@ -2087,11 +2087,11 @@ class F extends D with M<int> {
   num x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 124, 1,
           contextMessages: [message('/home/test/lib/test.dart', 28, 1)]),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 184, 1),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 184, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 216, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 216, 1,
           contextMessages: [message('/home/test/lib/test.dart', 28, 1)]),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 228, 1),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 228, 1),
@@ -2104,7 +2104,7 @@ class A {}
 class B {}
 
 class Base {
-    A f;
+  A f;
 }
 
 class T1 extends Base {
@@ -2139,45 +2139,45 @@ class T8 implements Base {
   B f;
 }
 ''', [
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 80, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 80, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 124, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 177, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 177, 1),
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 177, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 259, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 259, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 78, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 122, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 122, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 175, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 175, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 175, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 257, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 257, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          271,
+          269,
           2),
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 300, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 300, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 298, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 298, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          320,
+          318,
           2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 347, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 347, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 345, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 345, 1),
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          372,
+          370,
           2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 403, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 403, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 495, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 495, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 401, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 401, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 493, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 493, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
     ]);
   }
 
@@ -2825,53 +2825,6 @@ class Child extends helper.Base {
     ]);
   }
 
-  test_proxy() {
-    return assertErrorsInCode(r'''
-@proxy class C {}
-@proxy class D {
-  var f;
-  m() => null;
-  operator -() => null;
-  operator +(int other) => null;
-  operator [](int index) => null;
-  call() => null;
-}
-
-@proxy class F implements Function { noSuchMethod(i) => 42; }
-
-m() {
-  D d = new D();
-  d.m();
-  d.m;
-  d.f;
-  -d;
-  d + 7;
-  d[7];
-  d();
-
-  C c = new C();
-  c.m();
-  c.m;
-  -c;
-  c + 7;
-  c[7];
-  c();
-
-  F f = new F();
-  f();
-}
-''', [
-      error(HintCode.DEPRECATED_IMPLEMENTS_FUNCTION, 197, 8),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 332, 1),
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 341, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 346, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 354, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 362, 3),
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 369, 1),
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 394, 1),
-    ]);
-  }
-
   test_redirectingConstructor() async {
     await assertErrorsInCode('''
 class A {
@@ -2993,13 +2946,13 @@ class H implements F {
   void set i(dynamic x) {}
 }
  ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 220, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 220, 1,
           contextMessages: [message('/home/test/lib/test.dart', 85, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 255, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 255, 1,
           contextMessages: [message('/home/test/lib/test.dart', 116, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 362, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 362, 1,
           contextMessages: [message('/home/test/lib/test.dart', 85, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 397, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 397, 1,
           contextMessages: [message('/home/test/lib/test.dart', 116, 1)]),
     ]);
   }
@@ -3051,7 +3004,7 @@ class Child extends Base {
   set f5(B value) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 263, 2,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 263, 2,
           contextMessages: [message('/home/test/lib/test.dart', 111, 2)]),
     ]);
   }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import "package:compiler/src/js_backend/js_backend.dart" show TokenScope;
 
 import "package:expect/expect.dart";
@@ -38,7 +36,7 @@ void main() {
   Expect.equals("aZ", forwardN(scope, 25));
   // Overflow to first position.
   Expect.equals("b_", forwardN(scope, 1));
-  // Make sure we skipe g. We have 1 + 10 + 26 + 26 = 63 digits.
+  // Make sure we skip g. We have 1 + 10 + 26 + 26 = 63 digits.
   Expect.equals("h_", forwardN(scope, 63 * 5));
   // Likewise, ensure we skip s.
   Expect.equals("t_", forwardN(scope, 63 * 11));
@@ -77,7 +75,7 @@ void main() {
   {
     TokenScope scope = new TokenScope(initialChar: $A + 1);
 
-    // We start with 'A'.
+    // We start with 'B'.
     Expect.equals("B", scope.getNextName());
   }
 }

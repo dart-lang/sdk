@@ -225,10 +225,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(_analyzedMember);
-    scopeInfo.forEachBoxedVariable(_localsMap, (variable, field) {
-      _capturedAndBoxed[variable] = field;
-    });
+    if (!_analyzedMember.isAbstract) {
+      ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(_analyzedMember);
+      scopeInfo.forEachBoxedVariable(_localsMap, (variable, field) {
+        _capturedAndBoxed[variable] = field;
+      });
+    }
 
     return visit(_analyzedNode)!;
   }
@@ -1294,9 +1296,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       return finish(firstArgument.value);
     } else if (firstArgument is ir.StaticGet) {
       MemberEntity member = _elementMap.getMember(firstArgument.target);
-      if (member is FieldEntity) {
+      if (member is JField) {
         FieldAnalysisData fieldData =
-            _closedWorld.fieldAnalysis.getFieldData(member as JField);
+            _closedWorld.fieldAnalysis.getFieldData(member);
         final constantValue = fieldData.constantValue;
         if (fieldData.isEffectivelyConstant &&
             constantValue is IntConstantValue) {
@@ -2014,7 +2016,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     _state = LocalState.tryBlock(stateBefore, node);
     _state.markInitializationAsIndefinite();
     visit(node.body);
-    final stateAfterBody = _state;
+    final stateAfterTry = _state;
     // If the try block contains a throw, then `stateAfterBody.aborts` will be
     // true. The catch needs to be aware of the results of inference from the
     // try block since we may get there via the abortive control flow:
@@ -2040,15 +2042,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     // } catch (_) {
     //   print(x + 42); <-- x cannot be 0 here.
     // }
-    _state =
-        stateBefore.mergeFlow(_inferrer, stateAfterBody, ignoreAborts: true);
+    _state = stateBefore.mergeTry(_inferrer, stateAfterTry);
     for (ir.Catch catchBlock in node.catches) {
       final stateBeforeCatch = _state;
       _state = LocalState.childPath(stateBeforeCatch);
       visit(catchBlock);
       final stateAfterCatch = _state;
-      _state = stateBeforeCatch.mergeFlow(_inferrer, stateAfterCatch);
+      _state = stateBeforeCatch.mergeCatch(_inferrer, stateAfterCatch);
     }
+
     return null;
   }
 
@@ -2058,7 +2060,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     _state = LocalState.tryBlock(stateBefore, node);
     _state.markInitializationAsIndefinite();
     visit(node.body);
-    final stateAfterBody = _state;
     // Even if the try block contains abortive control flow, the finally block
     // needs to be aware of the results of inference from the try block since we
     // still reach the finally after abortive control flow:
@@ -2071,9 +2072,20 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     // } finally {
     //   print(x + 42); <-- x may be 0 here.
     // }
-    _state =
-        stateBefore.mergeFlow(_inferrer, stateAfterBody, ignoreAborts: true);
+    _state = stateBefore.mergeTry(_inferrer, _state);
+    final stateBeforeFinalizer = _state;
+    // Use a child path to reset abort state before continuing into the
+    // `finally` block.
+    _state = LocalState.childPath(stateBeforeFinalizer);
     visit(node.finalizer);
+    // Continue with a copy of the state after the finalizer since control flow
+    // should continue linearly. Update abort state to account for try/catch
+    // aborting.
+    _state = LocalState.childPath(_state)
+      ..seenReturnOrThrow =
+          _state.seenReturnOrThrow || stateBeforeFinalizer.seenReturnOrThrow
+      ..seenBreakOrContinue = _state.seenBreakOrContinue ||
+          stateBeforeFinalizer.seenBreakOrContinue;
     return null;
   }
 
@@ -2092,7 +2104,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       Local local = _localsMap.getLocalVariable(exception);
       _state.updateLocal(
           _inferrer, _capturedAndBoxed, local, mask, _dartTypes.dynamicType(),
-          excludeNull: true /* `throw null` produces a NullThrownError */);
+          excludeNull: true /* `throw null` produces a TypeError */);
     }
     final stackTrace = node.stackTrace;
     if (stackTrace != null) {
@@ -2467,18 +2479,25 @@ class LocalState {
     }
   }
 
-  LocalState mergeFlow(InferrerEngine inferrer, LocalState other,
-      {bool ignoreAborts = false}) {
-    seenReturnOrThrow = false;
-    seenBreakOrContinue = false;
-
-    if (!ignoreAborts && other.aborts) {
-      return this;
-    }
-    LocalsHandler locals = _locals.mergeFlow(inferrer, other._locals);
+  LocalState mergeTry(InferrerEngine inferrer, LocalState other) {
+    final locals = _locals.mergeFlow(inferrer, other._locals);
     return LocalState.internal(locals, _fields, _tryBlock,
-        seenReturnOrThrow: seenReturnOrThrow,
-        seenBreakOrContinue: seenBreakOrContinue);
+        seenReturnOrThrow: seenReturnOrThrow || other.seenReturnOrThrow,
+        seenBreakOrContinue: seenBreakOrContinue || other.seenBreakOrContinue);
+  }
+
+  LocalState mergeCatch(InferrerEngine inferrer, LocalState other) {
+    LocalsHandler locals;
+    if (aborts) {
+      locals = other._locals;
+    } else if (other.aborts) {
+      locals = _locals;
+    } else {
+      locals = _locals.mergeFlow(inferrer, other._locals);
+    }
+    return LocalState.internal(locals, _fields, _tryBlock,
+        seenReturnOrThrow: seenReturnOrThrow && other.seenReturnOrThrow,
+        seenBreakOrContinue: seenBreakOrContinue && other.seenReturnOrThrow);
   }
 
   LocalState mergeDiamondFlow(

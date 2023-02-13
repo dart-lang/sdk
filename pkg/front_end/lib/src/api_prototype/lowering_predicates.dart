@@ -4,9 +4,9 @@
 
 import 'package:kernel/ast.dart';
 import '../fasta/kernel/late_lowering.dart';
-import '../fasta/source/source_extension_builder.dart' show extensionThisName;
 export '../fasta/kernel/constructor_tearoff_lowering.dart'
     show
+        extractConstructorNameFromTearOff,
         isConstructorTearOffLowering,
         isTearOffLowering,
         isTypedefTearOffLowering;
@@ -511,7 +511,7 @@ bool isLateLoweredLocal(VariableDeclaration node) {
 /// Returns `true` if [name] is the name of a local variable holding the value
 /// of a lowered late variable.
 bool isLateLoweredLocalName(String name) {
-  return name != extensionThisName &&
+  return name != syntheticThisName &&
       name.startsWith(lateLocalPrefix) &&
       !name.endsWith(lateIsSetSuffix) &&
       !name.endsWith(lateLocalGetterSuffix) &&
@@ -670,10 +670,20 @@ bool isExtensionThis(VariableDeclaration node) {
   return node.isLowered && isExtensionThisName(node.name);
 }
 
+/// Name used for synthetic 'this' variables in extension instance members and
+/// inline class instance members.
+const String syntheticThisName = '#this';
+
 /// Returns `true` if [name] is the name of the synthetic parameter holding the
 /// `this` value in the encoding of extension instance members.
 bool isExtensionThisName(String? name) {
-  return name == extensionThisName;
+  return name == syntheticThisName;
+}
+
+/// Returns `true` if [name] is the name of the synthetic parameter holding the
+/// `this` value in the encoding of inline class instance members.
+bool isInlineClassThisName(String? name) {
+  return name == syntheticThisName;
 }
 
 /// Returns the name of the original variable from the [name] of the synthetic

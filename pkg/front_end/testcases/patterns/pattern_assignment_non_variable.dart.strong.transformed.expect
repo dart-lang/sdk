@@ -1,0 +1,50 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/pattern_assignment_non_variable.dart:19:9: Error: Only local variables or formal parameters can be used in pattern assignments.
+// Try assigning to a local variable.
+//         global, // Error
+//         ^^^^^^
+//
+// pkg/front_end/testcases/patterns/pattern_assignment_non_variable.dart:20:9: Error: Only local variables or formal parameters can be used in pattern assignments.
+// Try assigning to a local variable.
+//         superField, // Error
+//         ^^^^^^^^^^
+//
+// pkg/front_end/testcases/patterns/pattern_assignment_non_variable.dart:21:9: Error: Only local variables or formal parameters can be used in pattern assignments.
+// Try assigning to a local variable.
+//         instanceField, // Error
+//         ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/patterns/pattern_assignment_non_variable.dart:22:9: Error: Only local variables or formal parameters can be used in pattern assignments.
+// Try assigning to a local variable.
+//         staticField // Error
+//         ^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Super extends core::Object {
+  field dynamic superField = null;
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+}
+class Class extends self::Super {
+  field dynamic instanceField = null;
+  static field dynamic staticField = null;
+  synthetic constructor •() → self::Class
+    : super self::Super::•()
+    ;
+  method method(dynamic o, dynamic parameter) → dynamic {
+    dynamic local;
+    block {
+      final dynamic #0#0 = o;
+      if(!(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?) && (let final core::Object? #t1 = local = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$1{core::Object?} in true) && (let final core::Object? #t2 = parameter = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$2{core::Object?} in true) && true && true && true && true))
+        throw new _in::ReachabilityError::•();
+    } =>#0#0;
+  }
+}
+static field dynamic global;

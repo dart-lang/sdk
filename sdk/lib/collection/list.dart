@@ -72,7 +72,8 @@ abstract class ListBase<E> extends Object with ListMixin<E> {
 abstract class ListMixin<E> implements List<E> {
   // Iterable interface.
   // TODO(lrn): When we get composable mixins, reuse IterableMixin instead
-  // of redaclating everything.
+  // of redeclaring everything.
+  @pragma('vm:prefer-inline')
   Iterator<E> get iterator => ListIterator<E>(this);
 
   E elementAt(int index) => this[index];

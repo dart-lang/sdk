@@ -18,14 +18,14 @@ void main() {
   //  D   E   F
   //         / \
   //        G   H
-  var a = StaticType('A', isSealed: true);
-  var b = StaticType('B', isSealed: true, inherits: [a]);
-  var c = StaticType('C', isSealed: true, inherits: [a]);
-  var d = StaticType('D', inherits: [b]);
-  var e = StaticType('E', inherits: [b]);
-  var f = StaticType('F', inherits: [c]);
-  var g = StaticType('G', inherits: [f]);
-  var h = StaticType('H', inherits: [f]);
+  var a = StaticTypeImpl('A', isSealed: true);
+  var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
+  var c = StaticTypeImpl('C', isSealed: true, inherits: [a]);
+  var d = StaticTypeImpl('D', inherits: [b]);
+  var e = StaticTypeImpl('E', inherits: [b]);
+  var f = StaticTypeImpl('F', inherits: [c]);
+  var g = StaticTypeImpl('G', inherits: [f]);
+  var h = StaticTypeImpl('H', inherits: [f]);
 
   test('exhaustiveness', () {
     // Case matching top type covers all subtypes.
@@ -65,7 +65,7 @@ void main() {
   });
 
   test('covered record destructuring', () {
-    var r = StaticType('R', fields: {'x': a, 'y': a, 'z': a});
+    var r = StaticTypeImpl('R', fields: {'x': a, 'y': a, 'z': a});
 
     // Wider field is not covered.
     expectReportErrors(r, [
@@ -89,11 +89,11 @@ void main() {
     //    B  (C)
     //       / \
     //      D   E
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', isSealed: true, inherits: [a]);
-    var d = StaticType('D', inherits: [c]);
-    var e = StaticType('E', inherits: [c]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', isSealed: true, inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [c]);
+    var e = StaticTypeImpl('E', inherits: [c]);
 
     // Must cover null.
     expectReportErrors(
@@ -125,5 +125,5 @@ void main() {
 
 void expectReportErrors(StaticType valueType, List<Object> cases,
     [String errors = '']) {
-  expect(reportErrors(valueType, parseSpaces(cases)), errors);
+  expect(reportErrors(valueType, parseSpaces(cases)).join('\n'), errors);
 }

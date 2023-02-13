@@ -361,7 +361,7 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
                                         intptr_t dst_index) {
   if (src.IsConstant()) {
     // Skip dead locations.
-    if (src.constant().ptr() == Symbols::OptimizedOut().ptr()) {
+    if (src.constant().ptr() == Object::optimized_out().ptr()) {
       return CatchEntryMove();
     }
     const intptr_t pool_index =
@@ -1633,7 +1633,7 @@ bool FlowGraphCompiler::NeedsEdgeCounter(BlockEntryInstr* block) {
          (!block->last_instruction()->IsGoto() || block->IsFunctionEntry());
 }
 
-// Allocate a register that is not explictly blocked.
+// Allocate a register that is not explicitly blocked.
 static Register AllocateFreeRegister(bool* blocked_registers) {
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
     intptr_t regno = (i + kRegisterAllocationBias) % kNumberOfCpuRegisters;
@@ -1646,7 +1646,7 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
   return kNoRegister;
 }
 
-// Allocate a FPU register that is not explictly blocked.
+// Allocate a FPU register that is not explicitly blocked.
 static FpuRegister AllocateFreeFpuRegister(bool* blocked_registers) {
   for (intptr_t regno = 0; regno < kNumberOfFpuRegisters; regno++) {
     if (!blocked_registers[regno]) {
@@ -3248,11 +3248,9 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     __ BranchIf(EQUAL, done);
     // Put the instantiated type parameter into the scratch register, so its
     // TTS can be called by the caller.
-    __ LoadCompressedField(
-        TypeTestABI::kScratchReg,
-        compiler::FieldAddress(kTypeArgumentsReg,
-                               compiler::target::TypeArguments::type_at_offset(
-                                   type_param.index())));
+    __ LoadCompressedFieldFromOffset(
+        TypeTestABI::kScratchReg, kTypeArgumentsReg,
+        compiler::target::TypeArguments::type_at_offset(type_param.index()));
     return output_dst_type();
   }
 
@@ -3540,6 +3538,20 @@ void FlowGraphCompiler::EmitNativeMove(
     const compiler::ffi::NativeLocation& destination,
     const compiler::ffi::NativeLocation& source,
     TemporaryRegisterAllocator* temp) {
+  if (destination.IsBoth()) {
+    // Copy to both.
+    const auto& both = destination.AsBoth();
+    EmitNativeMove(both.location(0), source, temp);
+    EmitNativeMove(both.location(1), source, temp);
+    return;
+  }
+  if (source.IsBoth()) {
+    // Copy from one of both.
+    const auto& both = source.AsBoth();
+    EmitNativeMove(destination, both.location(0), temp);
+    return;
+  }
+
   const auto& src_payload_type = source.payload_type();
   const auto& dst_payload_type = destination.payload_type();
   const auto& src_container_type = source.container_type();
@@ -3556,10 +3568,6 @@ void FlowGraphCompiler::EmitNativeMove(
   // This function does not deal with sign conversions yet.
   ASSERT(src_payload_type.IsSigned() == dst_payload_type.IsSigned());
 
-  // This function does not deal with bit casts yet.
-  ASSERT(src_container_type.IsFloat() == dst_container_type.IsFloat());
-  ASSERT(src_container_type.IsInt() == dst_container_type.IsInt());
-
   // If the location, payload, and container are equal, we're done.
   if (source.Equals(destination) && src_payload_type.Equals(dst_payload_type) &&
       src_container_type.Equals(dst_container_type)) {
@@ -3572,7 +3580,7 @@ void FlowGraphCompiler::EmitNativeMove(
     return;
   }
 
-  // Solve descrepancies between container size and payload size.
+  // Solve discrepancies between container size and payload size.
   if (src_payload_type.IsInt() && dst_payload_type.IsInt() &&
       (src_payload_size != src_container_size ||
        dst_payload_size != dst_container_size)) {

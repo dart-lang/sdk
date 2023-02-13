@@ -570,7 +570,7 @@ class FlowGraphCompiler : public ValueObject {
     return used_static_fields_;
   }
 
-  // Constructor is lighweight, major initialization work should occur here.
+  // Constructor is lightweight, major initialization work should occur here.
   // This makes it easier to measure time spent in the compiler.
   void InitCompiler();
 
@@ -1015,7 +1015,7 @@ class FlowGraphCompiler : public ValueObject {
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreFieldInstr;          // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
-  friend class GraphInstrinsicCodeGenScope;   // For optimizing_.
+  friend class GraphIntrinsicCodeGenScope;   // For optimizing_.
 
   // Architecture specific implementation of simple native moves.
   void EmitNativeMoveArchitecture(const compiler::ffi::NativeLocation& dst,

@@ -10,6 +10,8 @@
 #ifndef RUNTIME_VM_GROWABLE_ARRAY_H_
 #define RUNTIME_VM_GROWABLE_ARRAY_H_
 
+#include <initializer_list>
+
 #include "platform/growable_array.h"
 #include "vm/thread_state.h"
 #include "vm/zone.h"
@@ -29,6 +31,15 @@ class GrowableArray : public BaseGrowableArray<T, ValueObject, Zone> {
   GrowableArray()
       : BaseGrowableArray<T, ValueObject, Zone>(
             ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
+
+  GrowableArray(std::initializer_list<T> values)
+      : BaseGrowableArray<T, ValueObject, Zone>(
+            values.size(),
+            ASSERT_NOTNULL(ThreadState::Current()->zone())) {
+    for (auto& value : values) {
+      this->Add(value);
+    }
+  }
 
   GrowableArray(GrowableArray&& other) = default;
   GrowableArray& operator=(GrowableArray&& other) = default;

@@ -143,9 +143,15 @@ class File : public ReferenceCounted<File> {
                     int64_t length,
                     void* start = nullptr);
 
-  // Read/Write attempt to transfer num_bytes to/from buffer. It returns
-  // the number of bytes read/written.
+  // Read at most 'num_bytes' from the file. It may read less than 'num_bytes'
+  // even when EOF is not encountered. If no data is available then `Read`
+  // will block waiting for input (e.g. if the file represents a pipe that
+  // contains no unread data). A positive return value indicates the number of
+  // bytes read. Zero indicates an attempt to read past the end-of-file. -1
+  // indicates an error.
   int64_t Read(void* buffer, int64_t num_bytes);
+  // Attempt to write 'num_bytes' bytes from 'buffer'. It returns the number
+  // of bytes written.
   int64_t Write(const void* buffer, int64_t num_bytes);
 
   // ReadFully and WriteFully do attempt to transfer num_bytes to/from

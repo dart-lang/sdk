@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math';
-
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/reference_extensions.dart';
@@ -38,10 +36,8 @@ class SelectorInfo {
   /// Least upper bound of [ParameterInfo]s of all targets.
   final ParameterInfo paramInfo;
 
-  /// Number of Wasm return values of the selector's targets.
-  ///
-  /// BUG(50458): This should always be 1.
-  int _returnCount;
+  /// Is this an implicit or explicit setter?
+  final bool isSetter;
 
   /// Maps class IDs to the selector's member in the class. The member can be
   /// abstract.
@@ -75,7 +71,7 @@ class SelectorInfo {
   String get name => paramInfo.member!.name.text;
 
   SelectorInfo._(this.translator, this.id, this.callCount, this.paramInfo,
-      this._returnCount);
+      {required this.isSetter});
 
   /// Compute the signature for the functions implementing members targeted by
   /// this selector.
@@ -86,12 +82,13 @@ class SelectorInfo {
   /// returns are subtypes (resp. supertypes) of the types in the signature.
   w.FunctionType _computeSignature() {
     var nameIndex = paramInfo.nameIndex;
+    final int returnCount = isSetter ? 0 : 1;
     List<Set<ClassInfo>> inputSets =
         List.generate(1 + paramInfo.paramCount, (_) => {});
-    List<Set<ClassInfo>> outputSets = List.generate(_returnCount, (_) => {});
+    List<Set<ClassInfo>> outputSets = List.generate(returnCount, (_) => {});
     List<bool> inputNullable = List.filled(1 + paramInfo.paramCount, false);
     List<bool> ensureBoxed = List.filled(1 + paramInfo.paramCount, false);
-    List<bool> outputNullable = List.filled(_returnCount, false);
+    List<bool> outputNullable = List.filled(returnCount, false);
     targets.forEach((classId, target) {
       ClassInfo receiver = translator.classes[classId];
       List<DartType> positional;
@@ -123,9 +120,20 @@ class SelectorInfo {
             for (VariableDeclaration param in function.namedParameters)
               param.name!: param.type
           };
-          returns = function.returnType is VoidType
-              ? const []
-              : [function.returnType];
+          returns = target.isSetter ? const [] : [function.returnType];
+
+          // Box parameters that need covariance checks
+          if (!translator.options.omitTypeChecks) {
+            for (int i = 0; i < function.positionalParameters.length; i += 1) {
+              final param = function.positionalParameters[i];
+              ensureBoxed[1 + i] |=
+                  param.isCovariantByClass || param.isCovariantByDeclaration;
+            }
+            for (VariableDeclaration param in function.namedParameters) {
+              ensureBoxed[1 + nameIndex[param.name!]!] |=
+                  param.isCovariantByClass || param.isCovariantByDeclaration;
+            }
+          }
         }
       }
       assert(returns.length <= outputSets.length);
@@ -148,7 +156,7 @@ class SelectorInfo {
         ensureBoxed[1 + i] |=
             paramInfo.named[name] == ParameterInfo.defaultValueSentinel;
       }
-      for (int i = 0; i < _returnCount; i++) {
+      for (int i = 0; i < returnCount; i++) {
         if (i < returns.length) {
           outputSets[i]
               .add(translator.classInfo[translator.classForType(returns[i])]!);
@@ -177,51 +185,6 @@ class SelectorInfo {
     return m.addFunctionType(
         [inputs[0], ...typeParameters, ...inputs.sublist(1)], outputs);
   }
-
-  /// Whether the selector can be applied in a [DynamicGet], [DynamicSet], or
-  /// [DynamicInvocation]. This only checks the argument counts and names, not
-  /// their types.
-  bool canApply(Expression dynamicExpression) {
-    if (dynamicExpression is DynamicGet || dynamicExpression is DynamicSet) {
-      // Dynamic get or set can always apply.
-      return true;
-    } else if (dynamicExpression is DynamicInvocation) {
-      Procedure member = paramInfo.member as Procedure;
-      Arguments arguments = dynamicExpression.arguments;
-      FunctionNode function = member.function;
-      if (arguments.types.isNotEmpty &&
-          arguments.types.length != function.typeParameters.length) {
-        return false;
-      }
-
-      if (arguments.positional.length < function.requiredParameterCount ||
-          arguments.positional.length > function.positionalParameters.length) {
-        return false;
-      }
-
-      Set<String> namedParameters = {};
-      Set<String> requiredNamedParameters = {};
-      for (VariableDeclaration v in function.namedParameters) {
-        if (v.isRequired) {
-          requiredNamedParameters.add(v.name!);
-        } else {
-          namedParameters.add(v.name!);
-        }
-      }
-
-      int requiredFound = 0;
-      for (NamedExpression namedArgument in arguments.named) {
-        bool found = requiredNamedParameters.contains(namedArgument.name);
-        if (found) {
-          requiredFound++;
-        } else if (!namedParameters.contains(namedArgument.name)) {
-          return false;
-        }
-      }
-      return requiredFound == requiredNamedParameters.length;
-    }
-    throw '"canApply" should only be used for procedures';
-  }
 }
 
 /// Builds the dispatch table for member calls.
@@ -234,10 +197,10 @@ class DispatchTable {
   final Map<int, SelectorInfo> _selectorInfo = {};
 
   /// Maps member names to getter selectors with the same member name.
-  final Map<String, List<SelectorInfo>> _dynamicGets = {};
+  final Map<String, List<SelectorInfo>> _dynamicGetters = {};
 
   /// Maps member names to setter selectors with the same member name.
-  final Map<String, List<SelectorInfo>> _dynamicSets = {};
+  final Map<String, List<SelectorInfo>> _dynamicSetters = {};
 
   /// Maps member names to method selectors with the same member name.
   final Map<String, List<SelectorInfo>> _dynamicMethods = {};
@@ -282,10 +245,6 @@ class DispatchTable {
         ? metadata.getterSelectorId
         : metadata.methodOrSetterSelectorId;
     ParameterInfo paramInfo = ParameterInfo.fromMember(target);
-    final int returnCount = (isGetter && member.getterType is! VoidType) ||
-            (member is Procedure && member.function.returnType is! VoidType)
-        ? 1
-        : 0;
 
     // _WasmBase and its subclass methods cannot be called dynamically
     final cls = member.enclosingClass;
@@ -293,19 +252,21 @@ class DispatchTable {
 
     final calledDynamically = !isWasmType &&
         (metadata.getterCalledDynamically ||
-            metadata.methodOrSetterCalledDynamically);
+            metadata.methodOrSetterCalledDynamically ||
+            member.name.text == "call");
 
     final selector = _selectorInfo.putIfAbsent(
         selectorId,
         () => SelectorInfo._(translator, selectorId,
-            _selectorMetadata[selectorId].callCount, paramInfo, returnCount));
+            _selectorMetadata[selectorId].callCount, paramInfo,
+            isSetter: isSetter));
+    assert(selector.isSetter == isSetter);
     selector.paramInfo.merge(paramInfo);
-    selector._returnCount = max(selector._returnCount, returnCount);
     if (calledDynamically) {
       if (isGetter) {
-        (_dynamicGets[member.name.text] ??= []).add(selector);
+        (_dynamicGetters[member.name.text] ??= []).add(selector);
       } else if (isSetter) {
-        (_dynamicSets[member.name.text] ??= []).add(selector);
+        (_dynamicSetters[member.name.text] ??= []).add(selector);
       } else {
         (_dynamicMethods[member.name.text] ??= []).add(selector);
       }
@@ -313,19 +274,17 @@ class DispatchTable {
     return selector;
   }
 
-  /// Returns a possibly null list of [SelectorInfo]s for a given dynamic
-  /// call.
-  Iterable<SelectorInfo>? selectorsForDynamicNode(Expression node) {
-    if (node is DynamicGet) {
-      return _dynamicGets[node.name.text];
-    } else if (node is DynamicSet) {
-      return _dynamicSets[node.name.text];
-    } else if (node is DynamicInvocation) {
-      return _dynamicMethods[node.name.text];
-    } else {
-      throw 'Dynamic invocation of $node not supported';
-    }
-  }
+  /// Get selectors for getters and tear-offs with the given name.
+  Iterable<SelectorInfo> dynamicGetterSelectors(String memberName) =>
+      _dynamicGetters[memberName] ?? Iterable.empty();
+
+  /// Get selectors for setters with the given name.
+  Iterable<SelectorInfo> dynamicSetterSelectors(String memberName) =>
+      _dynamicSetters[memberName] ?? Iterable.empty();
+
+  /// Get selectors for methods with the given name.
+  Iterable<SelectorInfo> dynamicMethodSelectors(String memberName) =>
+      _dynamicMethods[memberName] ?? Iterable.empty();
 
   void build() {
     // Collect class/selector combinations
@@ -364,7 +323,7 @@ class DispatchTable {
           // Reference is abstract, do not override inherited concrete member
           selector.targets[info.classId] ??= reference;
         } else {
-          // Reference is concrete, override inerited member
+          // Reference is concrete, override inherited member
           selector.targets[info.classId] = reference;
         }
         selectorIds.add(selector.id);
@@ -384,7 +343,10 @@ class DispatchTable {
           if (member.hasSetter) addMember(member.setterReference!);
         } else if (member is Procedure) {
           addMember(member.reference);
-          if (_procedureAttributeMetadata[member]!.hasTearOffUses) {
+          // `hasTearOffUses` can be true for operators as well, even though
+          // it's not possible to tear-off an operator. (no syntax for it)
+          if (member.kind == ProcedureKind.Method &&
+              _procedureAttributeMetadata[member]!.hasTearOffUses) {
             addMember(member.tearOffReference);
           }
         }

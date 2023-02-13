@@ -290,11 +290,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
 }
 
 /// Shared infrastructure for [StaticTypeAnalyzer2Test].
-class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
-
+class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// Looks up the identifier with [name] and validates that its type type
   /// stringifies to [type] and that its generics match the given stringified
   /// output.

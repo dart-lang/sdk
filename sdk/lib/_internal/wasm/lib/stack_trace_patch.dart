@@ -4,14 +4,22 @@
 
 part of "core_patch.dart";
 
-@pragma("wasm:import", "dart2wasm.getCurrentStackTrace")
-external String _getCurrentStackTrace();
-
 @patch
 class StackTrace {
   @patch
   @pragma("wasm:entry-point")
   static StackTrace get current {
-    return _StringStackTrace(_getCurrentStackTrace());
+    // `Error` should be supported in most browsers.  A possible future
+    // optimization we could do is to just save the `Error` object here, and
+    // stringify the stack trace when it is actually used
+    //
+    // Note:  We remove the last three lines of the stack trace to prevent
+    // including `Error`, `getCurrentStackTrace`, and `StackTrace.current` in
+    // the stack trace.
+    return _StringStackTrace(JS<String>(r"""() => {
+          let stackString = new Error().stack.toString();
+          let userStackString = stackString.split('\n').slice(3).join('\n');
+          return stringToDartString(userStackString);
+        }"""));
   }
 }

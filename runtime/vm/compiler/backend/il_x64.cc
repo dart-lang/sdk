@@ -160,22 +160,72 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kSrcPos, Location::RegisterLocation(RSI));
   locs->set_in(kDestPos, Location::RegisterLocation(RDI));
-  locs->set_in(kSrcStartPos, Location::WritableRegister());
-  locs->set_in(kDestStartPos, Location::WritableRegister());
-  locs->set_in(kLengthPos, Location::RegisterLocation(RCX));
+  locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
+  locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
+  if (length()->BindsToSmiConstant() && length()->BoundSmiConstant() <= 4) {
+    locs->set_in(
+        kLengthPos,
+        Location::Constant(
+            length()->definition()->OriginalDefinition()->AsConstant()));
+  } else {
+    locs->set_in(kLengthPos, Location::RegisterLocation(RCX));
+  }
   return locs;
 }
 
 void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register src_start_reg = locs()->in(kSrcStartPos).reg();
-  const Register dest_start_reg = locs()->in(kDestStartPos).reg();
+  const Register src_reg = locs()->in(kSrcPos).reg();
+  const Register dest_reg = locs()->in(kDestPos).reg();
+  const Location src_start_loc = locs()->in(kSrcStartPos);
+  const Location dest_start_loc = locs()->in(kDestStartPos);
+  const Location length_loc = locs()->in(kLengthPos);
 
-  EmitComputeStartPointer(compiler, src_cid_, src_start(), RSI, src_start_reg);
-  EmitComputeStartPointer(compiler, dest_cid_, dest_start(), RDI,
-                          dest_start_reg);
-  if (element_size_ <= 8) {
-    __ SmiUntag(RCX);
+  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
+  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
+
+  if (length_loc.IsConstant()) {
+    const intptr_t num_bytes =
+        Integer::Cast(length_loc.constant()).AsInt64Value() * element_size_;
+    const intptr_t mov_size =
+        Utils::Minimum(element_size_, static_cast<intptr_t>(8));
+    const intptr_t mov_repeat = num_bytes / mov_size;
+    ASSERT(num_bytes % mov_size == 0);
+
+    for (intptr_t i = 0; i < mov_repeat; i++) {
+      const intptr_t disp = mov_size * i;
+      switch (mov_size) {
+        case 1:
+          __ movzxb(TMP, compiler::Address(src_reg, disp));
+          __ movb(compiler::Address(dest_reg, disp), ByteRegisterOf(TMP));
+          break;
+        case 2:
+          __ movzxw(TMP, compiler::Address(src_reg, disp));
+          __ movw(compiler::Address(dest_reg, disp), TMP);
+          break;
+        case 4:
+          __ movl(TMP, compiler::Address(src_reg, disp));
+          __ movl(compiler::Address(dest_reg, disp), TMP);
+          break;
+        case 8:
+          __ movq(TMP, compiler::Address(src_reg, disp));
+          __ movq(compiler::Address(dest_reg, disp), TMP);
+          break;
+      }
+    }
+    return;
+  }
+
+  if (element_size_ <= compiler::target::kWordSize) {
+    if (!unboxed_length_) {
+      __ SmiUntag(RCX);
+    }
   } else {
+    const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
+                           compiler::target::kWordSizeLog2 -
+                           (unboxed_length_ ? 0 : kSmiTagShift);
+    if (shift != 0) {
+      __ shll(RCX, compiler::Immediate(shift));
+    }
 #if defined(DART_COMPRESSED_POINTERS)
     __ orl(RCX, RCX);
 #endif
@@ -199,9 +249,8 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
-                                              Value* start,
                                               Register array_reg,
-                                              Register start_reg) {
+                                              Location start_loc) {
   intptr_t offset;
   if (IsTypedDataBaseClassId(array_cid)) {
     __ movq(array_reg,
@@ -237,6 +286,17 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
         break;
     }
   }
+  ASSERT(start_loc.IsRegister() || start_loc.IsConstant());
+  if (start_loc.IsConstant()) {
+    const auto& constant = start_loc.constant();
+    ASSERT(constant.IsInteger());
+    const int64_t start_value = Integer::Cast(constant).AsInt64Value();
+    const intptr_t add_value = Utils::AddWithWrapAround(
+        Utils::MulWithWrapAround<intptr_t>(start_value, element_size_), offset);
+    __ AddImmediate(array_reg, add_value);
+    return;
+  }
+  const Register start_reg = start_loc.reg();
   ScaleFactor scale;
   switch (element_size_) {
     case 1:
@@ -458,7 +518,7 @@ static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
 LocationSummary* IfThenElseInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
-  // TODO(dartbug.com/30952) support convertion of Register to corresponding
+  // TODO(dartbug.com/30952) support conversion of Register to corresponding
   // least significant byte register (e.g. RAX -> AL, RSI -> SIL, r15 -> r15b).
   comparison()->locs()->set_out(0, Location::RegisterLocation(RDX));
   return comparison()->locs();
@@ -661,7 +721,7 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   // We invoke a stub that can potentially clobber any CPU register
   // but can only clobber FPU registers on the slow path when
   // entering runtime. Preserve all FPU registers that are
-  // not guarateed to be preserved by the ABI.
+  // not guaranteed to be preserved by the ABI.
   const intptr_t kCpuRegistersToPreserve =
       kDartAvailableCpuRegs & ~kNonChangeableInputRegs;
   const intptr_t kFpuRegistersToPreserve =
@@ -936,7 +996,7 @@ static Condition EmitNullAwareInt64ComparisonOp(FlowGraphCompiler* compiler,
   __ OBJ(cmp)(left, right);
   __ j(EQUAL, equal_result);
   __ OBJ(mov)(TMP, left);
-  __ OBJ(and)(TMP, right);
+  __ OBJ (and)(TMP, right);
   __ BranchIfSmi(TMP, not_equal_result);
   __ CompareClassId(left, kMintCid);
   __ j(NOT_EQUAL, not_equal_result);
@@ -1300,6 +1360,12 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ movq(compiler::Assembler::VMTagAddress(), target_address);
 #endif
 
+    if (marshaller_.contains_varargs() &&
+        CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+      // TODO(http://dartbug.com/38578): Use the number of used FPU registers.
+      __ LoadImmediate(CallingConventions::kVarArgFpuRegisterCount,
+                       CallingConventions::kFpuArgumentRegisters);
+    }
     __ CallCFunction(target_address, /*restore_rsp=*/true);
 
 #if !defined(PRODUCT)
@@ -1329,6 +1395,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ TransitionGeneratedToNative(target_address, FPREG, temp,
                                      /*enter_safepoint=*/true);
 
+      if (marshaller_.contains_varargs() &&
+          CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+        __ LoadImmediate(CallingConventions::kVarArgFpuRegisterCount, 8);
+      }
       __ CallCFunction(target_address, /*restore_rsp=*/true);
 
       // Update information in the thread object and leave the safepoint.
@@ -1345,6 +1415,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       // Calls RBX within a safepoint. RBX and R12 are clobbered.
       __ movq(RBX, target_address);
+      if (marshaller_.contains_varargs() &&
+          CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+        __ LoadImmediate(CallingConventions::kVarArgFpuRegisterCount, 8);
+      }
       __ call(temp);
     }
 
@@ -1429,23 +1503,12 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save ABI callee-saved registers.
   __ PushRegisters(kCalleeSaveRegistersSet);
 
-  // Load the address of DLRT_GetThreadForNativeCallback without using Thread.
-  if (FLAG_precompiled_mode) {
+  // Load the thread object. If we were called by a JIT trampoline, the thread
+  // is already loaded.
+  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
+  if (!NativeCallbackTrampolines::Enabled()) {
     compiler->LoadBSSEntry(BSS::Relocation::DRT_GetThreadForNativeCallback, RAX,
                            RCX);
-  } else if (!NativeCallbackTrampolines::Enabled()) {
-    // In JIT mode, we can just paste the address of the runtime entry into the
-    // generated code directly. This is not a problem since we don't save
-    // callbacks into JIT snapshots.
-    __ movq(RAX, compiler::Immediate(reinterpret_cast<intptr_t>(
-                     DLRT_GetThreadForNativeCallback)));
-  }
-
-  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
-
-  // Create another frame to align the frame before continuing in "native" code.
-  // If we were called by a trampoline, it has already loaded the thread.
-  if (!NativeCallbackTrampolines::Enabled()) {
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
 
@@ -2357,7 +2420,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       __ j(NOT_EQUAL, fail);
     } else if (value_cid == field_cid) {
-      // This would normaly be caught by Canonicalize, but RemoveRedefinitions
+      // This would normally be caught by Canonicalize, but RemoveRedefinitions
       // may sometimes produce the situation after the last Canonicalize pass.
     } else {
       // Both value's and field's class id is known.
@@ -4033,8 +4096,8 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
       object_store->allocate_mint_without_fpu_regs_stub()
           ->untag()
           ->InVMIsolateHeap();
-  const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
-                                     !stubs_in_vm_isolate;
+  const bool shared_slow_path_call =
+      SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi()

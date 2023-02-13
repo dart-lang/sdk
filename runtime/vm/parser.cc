@@ -60,7 +60,7 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
       entry_points_temp_var_(NULL),
       finally_return_temp_var_(NULL),
       dynamic_closure_call_vars_(nullptr),
-      guarded_fields_(new ZoneGrowableArray<const Field*>()),
+      guarded_fields_(),
       default_parameter_values_(NULL),
       raw_type_arguments_var_(NULL),
       first_parameter_index_(),
@@ -93,21 +93,19 @@ void ParsedFunction::AddToGuardedFields(const Field* field) const {
     return;
   }
 
-  for (intptr_t j = 0; j < guarded_fields_->length(); j++) {
-    const Field* other = (*guarded_fields_)[j];
-    if (field->Original() == other->Original()) {
-      // Abort background compilation early if the guarded state of this field
-      // has changed during compilation. We will not be able to commit
-      // the resulting code anyway.
-      if (Compiler::IsBackgroundCompilation()) {
-        if (!other->IsConsistentWith(*field)) {
-          Compiler::AbortBackgroundCompilation(
-              DeoptId::kNone,
-              "Field's guarded state changed during compilation");
-        }
+  const Field** other = guarded_fields_.Lookup(field);
+  if (other != nullptr) {
+    ASSERT(field->Original() == (*other)->Original());
+    // Abort background compilation early if the guarded state of this field
+    // has changed during compilation. We will not be able to commit
+    // the resulting code anyway.
+    if (Compiler::IsBackgroundCompilation()) {
+      if (!(*other)->IsConsistentWith(*field)) {
+        Compiler::AbortBackgroundCompilation(
+            DeoptId::kNone, "Field's guarded state changed during compilation");
       }
-      return;
     }
+    return;
   }
 
   // Note: the list of guarded fields must contain copies during optimizing
@@ -116,7 +114,7 @@ void ParsedFunction::AddToGuardedFields(const Field* field) const {
   // inlining.
   ASSERT(field->IsOriginal() ==
          !CompilerState::Current().should_clone_fields());
-  guarded_fields_->Add(&Field::ZoneHandle(Z, field->ptr()));
+  guarded_fields_.Insert(&Field::ZoneHandle(Z, field->ptr()));
 }
 
 void ParsedFunction::Bailout(const char* origin, const char* reason) const {
@@ -201,11 +199,12 @@ void ParsedFunction::AllocateVariables() {
       String& tmp = String::ZoneHandle(Z);
       tmp = Symbols::FromConcat(T, Symbols::OriginalParam(), variable->name());
 
-      RELEASE_ASSERT(scope->LocalLookupVariable(tmp) == NULL);
+      RELEASE_ASSERT(scope->LocalLookupVariable(
+                         tmp, variable->kernel_offset()) == nullptr);
       raw_parameter = new LocalVariable(
           variable->declaration_token_pos(), variable->token_pos(), tmp,
-          variable->type(), variable->parameter_type(),
-          variable->parameter_value());
+          variable->type(), variable->kernel_offset(),
+          variable->parameter_type(), variable->parameter_value());
       if (variable->is_explicit_covariant_parameter()) {
         raw_parameter->set_is_explicit_covariant_parameter();
       }
@@ -249,11 +248,13 @@ void ParsedFunction::AllocateVariables() {
       tmp = Symbols::FromConcat(T, Symbols::OriginalParam(),
                                 function_type_arguments_->name());
 
-      ASSERT(scope->LocalLookupVariable(tmp) == NULL);
+      ASSERT(scope->LocalLookupVariable(
+                 tmp, function_type_arguments_->kernel_offset()) == nullptr);
       raw_type_args_parameter =
-          new LocalVariable(raw_type_args_parameter->declaration_token_pos(),
-                            raw_type_args_parameter->token_pos(), tmp,
-                            raw_type_args_parameter->type());
+          new LocalVariable(function_type_arguments_->declaration_token_pos(),
+                            function_type_arguments_->token_pos(), tmp,
+                            function_type_arguments_->type(),
+                            function_type_arguments_->kernel_offset());
       bool ok = scope->AddVariable(raw_type_args_parameter);
       ASSERT(ok);
     }

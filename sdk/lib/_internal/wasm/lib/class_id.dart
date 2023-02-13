@@ -32,8 +32,8 @@ class ClassID {
   external static int get cidFuture;
   @pragma("wasm:class-id", "dart.core#Function")
   external static int get cidFunction;
-  @pragma("wasm:class-id", "dart.core#_Function")
-  external static int get cid_Function;
+  @pragma("wasm:class-id", "dart.core#_Closure")
+  external static int get cid_Closure;
   @pragma("wasm:class-id", "dart.core#_List")
   external static int get cidFixedLengthList;
   @pragma("wasm:class-id", "dart.core#_ListBase")

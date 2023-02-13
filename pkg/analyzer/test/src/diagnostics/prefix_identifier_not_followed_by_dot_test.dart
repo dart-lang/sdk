@@ -63,7 +63,6 @@ class C {
 
   test_assignment_in_method_hasSuperField() async {
     await assertErrorsInCode('''
-// ignore:unused_import
 import 'dart:math' as p;
 
 class A {
@@ -76,7 +75,7 @@ class B extends A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 109, 1),
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 85, 1),
     ]);
   }
 

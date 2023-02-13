@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 // TODO(48820): revert to '../common.dart':
 import '../diagnostics/source_span.dart';
 import '../elements/entities.dart' show AsyncMarker, MemberEntity, Variance;
+import '../universe/record_shape.dart';
 
 /// Returns a textual representation of [node] that include the runtime type and
 /// hash code of the node and a one line prefix of the node toString text.
@@ -45,6 +46,24 @@ SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
     return SourceSpan(uri, offset, offset + 1);
   }
   return SourceSpan.unknown();
+}
+
+RecordShape recordShapeOfRecordType(ir.RecordType node) {
+  return RecordShape(
+      node.positional.length,
+      node.named.isEmpty
+          ? const []
+          : node.named.map((n) => n.name).toList(growable: false));
+}
+
+/// Computes `recordShapeOfRecordType(node).indexOfName(name)` without creating
+/// an intermediate shape.
+int indexOfNameInRecordShapeOfRecordType(ir.RecordType node, String name) {
+  final nameIndex = node.named.indexWhere((n) => n.name == name);
+  if (nameIndex < 0) throw ArgumentError.value(name, 'name');
+  final index = node.positional.length + nameIndex;
+  assert(index == recordShapeOfRecordType(node).indexOfName(name));
+  return index;
 }
 
 /// Returns the `AsyncMarker` corresponding to `node.asyncMarker`.
@@ -229,8 +248,8 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitViewType(ir.ViewType node) {
-    return visit(node.representationType);
+  bool visitInlineType(ir.InlineType node) {
+    return visit(node.instantiatedRepresentationType);
   }
 
   @override

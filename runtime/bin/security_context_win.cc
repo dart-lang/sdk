@@ -85,7 +85,7 @@ static bool AddCertificatesFromNamedSystemStore(const wchar_t* name,
         BIO_new_mem_buf(const_cast<unsigned char*>(cert_context->pbCertEncoded),
                         cert_context->cbCertEncoded);
     // `root_cert` has to be initialized to NULL, otherwise, it will be
-    // considerred as an existing X509 and cause segmentation fault.
+    // considered as an existing X509 and cause segmentation fault.
     X509* root_cert = NULL;
     if (d2i_X509_bio(root_cert_bio, &root_cert) == NULL) {
       if (SSL_LOG_STATUS) {

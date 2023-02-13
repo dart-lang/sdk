@@ -98,7 +98,7 @@ class _JsonRpcParser {
   /// [state] callback.
   int index = 0;
 
-  /// Position inside incomming chunk of data.
+  /// Position inside incoming chunk of data.
   int pos = 0;
 
   /// Current parser state.

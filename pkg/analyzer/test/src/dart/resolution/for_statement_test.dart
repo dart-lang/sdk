@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -10,16 +11,18 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        ForStatement_ForEachPartsWithDeclaration_ResolutionTest);
+        ForStatementResolutionTest_ForEachPartsWithDeclaration);
     defineReflectiveTests(
-        ForStatement_ForEachPartsWithIdentifier_ResolutionTest);
-    defineReflectiveTests(ForStatement_ForParts_ResolutionTest);
+        ForStatementResolutionTest_ForEachPartsWithIdentifier);
+    defineReflectiveTests(ForStatementResolutionTest_ForEachPartsWithPattern);
+    defineReflectiveTests(ForStatementResolutionTest_ForPartsWithExpression);
+    defineReflectiveTests(ForStatementResolutionTest_ForPartsWithPattern);
   });
 }
 
 /// TODO(scheglov) Move other for-in tests here.
 @reflectiveTest
-class ForStatement_ForEachPartsWithDeclaration_ResolutionTest
+class ForStatementResolutionTest_ForEachPartsWithDeclaration
     extends PubPackageResolutionTest {
   test_iterable_contextType() async {
     await assertNoErrorsInCode(r'''
@@ -361,7 +364,7 @@ void f() {
 }
 
 @reflectiveTest
-class ForStatement_ForEachPartsWithIdentifier_ResolutionTest
+class ForStatementResolutionTest_ForEachPartsWithIdentifier
     extends PubPackageResolutionTest {
   test_identifier_dynamic() async {
     await resolveTestCode(r'''
@@ -402,29 +405,478 @@ ForStatement
 }
 
 @reflectiveTest
-class ForStatement_ForParts_ResolutionTest extends PubPackageResolutionTest {
+class ForStatementResolutionTest_ForEachPartsWithPattern
+    extends PubPackageResolutionTest {
+  test_iterable_dynamic() async {
+    await assertNoErrorsInCode(r'''
+void f(x) {
+  for (var (a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@24
+          type: dynamic
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@24
+          staticType: dynamic
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_iterable_List() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> x) {
+  for (var (a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@34
+          type: int
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: List<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@34
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_iterable_Object() async {
+    await assertErrorsInCode(r'''
+void f(Object x) {
+  for (var (a) in x) {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 37, 1),
+    ]);
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@31
+          type: dynamic
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@31
+          staticType: dynamic
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_iterableContextType_patternVariable_typed() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var (int a) in g()) {}
+}
+
+T g<T>() => throw 0;
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 27, 1),
+    ]);
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+        name: a
+        declaredElement: a@27
+          type: int
+      rightParenthesis: )
+    inKeyword: in
+    iterable: MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: Iterable<int> Function()
+      staticType: Iterable<int>
+      typeArgumentTypes
+        Iterable<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_iterableContextType_patternVariable_untyped() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var (a) in g()) {}
+}
+
+T g<T>() => throw 0;
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+    ]);
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@23
+          type: Object?
+      rightParenthesis: )
+    inKeyword: in
+    iterable: MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: Iterable<Object?> Function()
+      staticType: Iterable<Object?>
+      typeArgumentTypes
+        Iterable<Object?>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_keyword_final_patternVariable() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> x) {
+  for (final (a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: final
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType isFinal a@36
+          type: int
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: List<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@36
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_pattern_patternVariable_typed() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> x) {
+  for (var (num a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: num
+            staticElement: dart:core::@class::num
+            staticType: null
+          type: num
+        name: a
+        declaredElement: a@38
+          type: num
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: List<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@38
+          staticType: num
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+}
+
+@reflectiveTest
+class ForStatementResolutionTest_ForPartsWithExpression
+    extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
-f(bool Function() b) {
-  for (; b(); ) {
-    print(0);
+void f(bool Function() b) {
+  for (; b(); ) {}
+}
+''');
+
+    final node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithExpression
+    leftSeparator: ;
+    condition: FunctionExpressionInvocation
+      function: SimpleIdentifier
+        token: b
+        staticElement: self::@function::f::@parameter::b
+        staticType: bool Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticElement: <null>
+      staticInvokeType: bool Function()
+      staticType: bool
+    rightSeparator: ;
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_initialization_patternAssignment() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  int a;
+  for ((a) = 0;;) {
+    a;
   }
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('b()');
+    final node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function: SimpleIdentifier
-    token: b
-    staticElement: self::@function::f::@parameter::b
-    staticType: bool Function()
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
-  staticElement: <null>
-  staticInvokeType: bool Function()
-  staticType: bool
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithExpression
+    initialization: PatternAssignment
+      pattern: ParenthesizedPattern
+        leftParenthesis: (
+        pattern: AssignedVariablePattern
+          name: a
+          element: a@17
+        rightParenthesis: )
+      equals: =
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+      patternTypeSchema: int
+      staticType: int
+    leftSeparator: ;
+    rightSeparator: ;
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@17
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+}
+
+@reflectiveTest
+class ForStatementResolutionTest_ForPartsWithPattern
+    extends PubPackageResolutionTest {
+  test_it() async {
+    await assertNoErrorsInCode(r'''
+void f((int, bool) x) {
+  for (var (a, b) = x; b; a--) {
+    a;
+    b;
+  }
+}
+''');
+
+    final node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithPattern
+    variables: PatternVariableDeclaration
+      keyword: var
+      pattern: RecordPattern
+        leftParenthesis: (
+        fields
+          RecordPatternField
+            pattern: DeclaredVariablePattern
+              name: a
+              declaredElement: hasImplicitType a@36
+                type: int
+            fieldElement: <null>
+          RecordPatternField
+            pattern: DeclaredVariablePattern
+              name: b
+              declaredElement: hasImplicitType b@39
+                type: bool
+            fieldElement: <null>
+        rightParenthesis: )
+        matchedValueType: (int, bool)
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+        staticElement: self::@function::f::@parameter::x
+        staticType: (int, bool)
+      patternTypeSchema: (_, _)
+    leftSeparator: ;
+    condition: SimpleIdentifier
+      token: b
+      staticElement: b@39
+      staticType: bool
+    rightSeparator: ;
+    updaters
+      PostfixExpression
+        operand: SimpleIdentifier
+          token: a
+          staticElement: a@36
+          staticType: null
+        operator: --
+        readElement: a@36
+        readType: int
+        writeElement: a@36
+        writeType: int
+        staticElement: dart:core::@class::num::@method::-
+        staticType: int
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@36
+          staticType: int
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: b
+          staticElement: b@39
+          staticType: bool
+        semicolon: ;
+    rightBracket: }
 ''');
   }
 }

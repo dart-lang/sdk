@@ -19,16 +19,66 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart' as idl;
 import 'package:analyzer/src/summary/idl.dart' as idl;
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
+
+const _elementKindClass = "ElementKind.CLASS";
+const _elementKindConstructor = "ElementKind.CONSTRUCTOR";
+const _elementKindConstructorConst = "ElementKind.CONSTRUCTOR+const";
+const _elementKindEnum = "ElementKind.ENUM";
+const _elementKindEnumConstant = "ElementKind.ENUM_CONSTANT";
+const _elementKindEnumConstantConst = "ElementKind.ENUM_CONSTANT+const";
+const _elementKindExtension = "ElementKind.EXTENSION";
+const _elementKindField = "ElementKind.FIELD";
+const _elementKindFieldConst = "ElementKind.FIELD+const";
+const _elementKindFunction = "ElementKind.FUNCTION";
+const _elementKindFunctionTypeAlias = "ElementKind.FUNCTION_TYPE_ALIAS";
+const _elementKindMethod = "ElementKind.METHOD";
+const _elementKindMixin = "ElementKind.MIXIN";
+const _elementKindTopLevelVariable = "ElementKind.TOP_LEVEL_VARIABLE";
+const _elementKindTopLevelVariableConst =
+    "ElementKind.TOP_LEVEL_VARIABLE+const";
+const _elementKindTypeAlias = "ElementKind.TYPE_ALIAS";
+const _hardcodedTags = {
+  _elementKindClass,
+  _elementKindConstructor,
+  _elementKindConstructorConst,
+  _elementKindEnum,
+  _elementKindEnumConstant,
+  _elementKindEnumConstantConst,
+  _elementKindExtension,
+  _elementKindField,
+  _elementKindFieldConst,
+  _elementKindFunction,
+  _elementKindFunctionTypeAlias,
+  _elementKindMethod,
+  _elementKindMixin,
+  _elementKindTopLevelVariable,
+  _elementKindTopLevelVariableConst,
+  _elementKindTypeAlias,
+  _tagBool,
+  _tagDouble,
+  _tagInt,
+  _tagString,
+  _tagList,
+  _tagMap,
+  _tagSet
+};
+const _tagBool = "dart:core::bool";
+const _tagDouble = "dart:core::double";
+const _tagInt = "dart:core::int";
+const _tagList = "dart:core::List";
+const _tagMap = "dart:core::Map";
+const _tagSet = "dart:core::Set";
+const _tagString = "dart:core::String";
 
 /// A top-level public declaration.
 class Declaration {
@@ -83,15 +133,18 @@ class Declaration {
     required this.locationStartColumn,
     required this.locationStartLine,
     required this.name,
-    required this.parameters,
+    required String? parameters,
     required this.parameterNames,
     required this.parameterTypes,
     required this.parent,
     required List<String> relevanceTagsInFile,
     required this.requiredParameterCount,
-    required this.returnType,
+    required String? returnType,
     required this.typeParameters,
-  }) : _relevanceTagsInFile = relevanceTagsInFile;
+  })  : _relevanceTagsInFile = relevanceTagsInFile,
+        // De-duplicate the string "()".
+        parameters = parameters == "()" ? "()" : parameters,
+        returnType = _dedupReturnType(returnType);
 
   Uri? get locationLibraryUri => _locationLibraryUri;
 
@@ -103,6 +156,19 @@ class Declaration {
   @override
   String toString() {
     return '($kind, $name)';
+  }
+
+  static String? _dedupReturnType(String? input) {
+    if (input == null) return input;
+    const knownReturnTypes = {
+      "",
+      "void",
+      "String",
+      "bool",
+      "int",
+      "Future<void>"
+    };
+    return knownReturnTypes.lookup(input) ?? input;
   }
 }
 
@@ -930,20 +996,20 @@ class RelevanceTags {
 
   static List<String>? _forExpression(Expression? expression) {
     if (expression is BooleanLiteral) {
-      return const ['dart:core::bool'];
+      return const [_tagBool];
     } else if (expression is DoubleLiteral) {
-      return const ['dart:core::double'];
+      return const [_tagDouble];
     } else if (expression is IntegerLiteral) {
-      return const ['dart:core::int'];
+      return const [_tagInt];
     } else if (expression is StringLiteral) {
-      return const ['dart:core::String'];
+      return const [_tagString];
     } else if (expression is ListLiteral) {
-      return const ['dart:core::List'];
+      return const [_tagList];
     } else if (expression is SetOrMapLiteral) {
       if (expression.isMap) {
-        return const ['dart:core::Map'];
+        return const [_tagMap];
       } else if (expression.isSet) {
-        return const ['dart:core::Set'];
+        return const [_tagSet];
       }
     }
 
@@ -968,6 +1034,13 @@ class _DeclarationStorage {
     var kind = kindFromIdl(d.kind);
 
     var relevanceTags = d.relevanceTags.toList();
+    for (int i = 0; i < relevanceTags.length; i++) {
+      var tag = relevanceTags[i];
+      var lookedUp = _hardcodedTags.lookup(tag);
+      if (lookedUp != null) {
+        relevanceTags[i] = lookedUp;
+      }
+    }
 
     var children = <Declaration>[];
     var declaration = Declaration(
@@ -1489,8 +1562,8 @@ class _File {
               parameterTypes: _getFormalParameterTypes(parameters),
               parent: parent,
               relevanceTags: [
-                'ElementKind.CONSTRUCTOR',
-                if (isConst) 'ElementKind.CONSTRUCTOR+const'
+                _elementKindConstructor,
+                if (isConst) _elementKindConstructorConst
               ],
               requiredParameterCount:
                   _getFormalParameterRequiredCount(parameters),
@@ -1514,8 +1587,8 @@ class _File {
                 name: field.name,
                 parent: parent,
                 relevanceTags: [
-                  'ElementKind.FIELD',
-                  if (isConst) 'ElementKind.FIELD+const',
+                  _elementKindField,
+                  if (isConst) _elementKindFieldConst,
                   ...?RelevanceTags._forExpression(field.initializer)
                 ],
                 returnType: _getTypeAnnotationString(classMember.fields.type),
@@ -1531,7 +1604,7 @@ class _File {
                 kind: DeclarationKind.GETTER,
                 name: classMember.name,
                 parent: parent,
-                relevanceTags: ['ElementKind.FIELD'],
+                relevanceTags: [_elementKindField],
                 returnType: _getTypeAnnotationString(classMember.returnType),
               );
             } else if (classMember.isSetter && parameters != null) {
@@ -1544,7 +1617,7 @@ class _File {
                 parameterNames: _getFormalParameterNames(parameters),
                 parameterTypes: _getFormalParameterTypes(parameters),
                 parent: parent,
-                relevanceTags: ['ElementKind.FIELD'],
+                relevanceTags: [_elementKindField],
                 requiredParameterCount:
                     _getFormalParameterRequiredCount(parameters),
               );
@@ -1561,7 +1634,7 @@ class _File {
                 parameterNames: _getFormalParameterNames(parameters),
                 parameterTypes: _getFormalParameterTypes(parameters),
                 parent: parent,
-                relevanceTags: ['ElementKind.METHOD'],
+                relevanceTags: [_elementKindMethod],
                 requiredParameterCount:
                     _getFormalParameterRequiredCount(parameters),
                 returnType: _getTypeAnnotationString(classMember.returnType),
@@ -1578,7 +1651,7 @@ class _File {
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS,
           name: node.name,
-          relevanceTags: ['ElementKind.CLASS'],
+          relevanceTags: [_elementKindClass],
         );
         if (classDeclaration == null) continue;
 
@@ -1610,7 +1683,7 @@ class _File {
             parameterNames: [],
             parameterTypes: [],
             parent: classDeclaration,
-            relevanceTagsInFile: ['ElementKind.CONSTRUCTOR'],
+            relevanceTagsInFile: [_elementKindConstructor],
             requiredParameterCount: 0,
             returnType: node.name.lexeme,
             typeParameters: null,
@@ -1621,14 +1694,14 @@ class _File {
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS_TYPE_ALIAS,
           name: node.name,
-          relevanceTags: ['ElementKind.CLASS'],
+          relevanceTags: [_elementKindClass],
         );
       } else if (node is EnumDeclaration) {
         var enumDeclaration = addDeclaration(
           isDeprecated: isDeprecated,
           kind: DeclarationKind.ENUM,
           name: node.name,
-          relevanceTags: ['ElementKind.ENUM'],
+          relevanceTags: [_elementKindEnum],
         );
         if (enumDeclaration == null) continue;
 
@@ -1641,8 +1714,8 @@ class _File {
             name: constant.name,
             parent: enumDeclaration,
             relevanceTags: [
-              'ElementKind.ENUM_CONSTANT',
-              'ElementKind.ENUM_CONSTANT+const'
+              _elementKindEnumConstant,
+              _elementKindEnumConstantConst
             ],
           );
         }
@@ -1653,7 +1726,7 @@ class _File {
             isDeprecated: isDeprecated,
             kind: DeclarationKind.EXTENSION,
             name: name,
-            relevanceTags: ['ElementKind.EXTENSION'],
+            relevanceTags: [_elementKindExtension],
           );
         }
         // TODO(brianwilkerson) Should we be creating declarations for the
@@ -1666,7 +1739,7 @@ class _File {
             isDeprecated: isDeprecated,
             kind: DeclarationKind.GETTER,
             name: node.name,
-            relevanceTags: ['ElementKind.FUNCTION'],
+            relevanceTags: [_elementKindFunction],
             returnType: _getTypeAnnotationString(node.returnType),
           );
         } else if (node.isSetter && parameters != null) {
@@ -1677,7 +1750,7 @@ class _File {
             parameters: parameters.toSource(),
             parameterNames: _getFormalParameterNames(parameters),
             parameterTypes: _getFormalParameterTypes(parameters),
-            relevanceTags: ['ElementKind.FUNCTION'],
+            relevanceTags: [_elementKindFunction],
             requiredParameterCount:
                 _getFormalParameterRequiredCount(parameters),
           );
@@ -1692,7 +1765,7 @@ class _File {
             parameters: parameters.toSource(),
             parameterNames: _getFormalParameterNames(parameters),
             parameterTypes: _getFormalParameterTypes(parameters),
-            relevanceTags: ['ElementKind.FUNCTION'],
+            relevanceTags: [_elementKindFunction],
             requiredParameterCount:
                 _getFormalParameterRequiredCount(parameters),
             returnType: _getTypeAnnotationString(node.returnType),
@@ -1711,7 +1784,7 @@ class _File {
             parameters: parameters.toSource(),
             parameterNames: _getFormalParameterNames(parameters),
             parameterTypes: _getFormalParameterTypes(parameters),
-            relevanceTags: ['ElementKind.FUNCTION_TYPE_ALIAS'],
+            relevanceTags: [_elementKindFunctionTypeAlias],
             requiredParameterCount:
                 _getFormalParameterRequiredCount(parameters),
             returnType: _getTypeAnnotationString(functionType.returnType),
@@ -1722,7 +1795,7 @@ class _File {
             isDeprecated: isDeprecated,
             kind: DeclarationKind.TYPE_ALIAS,
             name: node.name,
-            relevanceTags: ['ElementKind.TYPE_ALIAS'],
+            relevanceTags: [_elementKindTypeAlias],
           );
         }
       } else if (node is FunctionTypeAlias) {
@@ -1734,7 +1807,7 @@ class _File {
           parameters: parameters.toSource(),
           parameterNames: _getFormalParameterNames(parameters),
           parameterTypes: _getFormalParameterTypes(parameters),
-          relevanceTags: ['ElementKind.FUNCTION_TYPE_ALIAS'],
+          relevanceTags: [_elementKindFunctionTypeAlias],
           requiredParameterCount: _getFormalParameterRequiredCount(parameters),
           returnType: _getTypeAnnotationString(node.returnType),
           typeParameters: node.typeParameters?.toSource(),
@@ -1744,7 +1817,7 @@ class _File {
           isDeprecated: isDeprecated,
           kind: DeclarationKind.MIXIN,
           name: node.name,
-          relevanceTags: ['ElementKind.MIXIN'],
+          relevanceTags: [_elementKindMixin],
         );
         if (mixinDeclaration == null) continue;
         addClassMembers(mixinDeclaration, false, node.members);
@@ -1760,8 +1833,8 @@ class _File {
             kind: DeclarationKind.VARIABLE,
             name: variable.name,
             relevanceTags: [
-              'ElementKind.TOP_LEVEL_VARIABLE',
-              if (isConst) 'ElementKind.TOP_LEVEL_VARIABLE+const',
+              _elementKindTopLevelVariable,
+              if (isConst) _elementKindTopLevelVariableConst,
               ...?RelevanceTags._forExpression(variable.initializer)
             ],
             returnType: _getTypeAnnotationString(node.variables.type),
@@ -1818,7 +1891,7 @@ class _File {
     List<String> partOrUriList,
     Uri relative,
   ) {
-    var absoluteUri = resolveRelativeUri(uri, relative);
+    var absoluteUri = uriCache.resolveRelative(uri, relative);
     return tracker._getFileByUri(context, partOrUriList, absoluteUri);
   }
 

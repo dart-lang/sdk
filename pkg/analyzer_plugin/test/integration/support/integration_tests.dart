@@ -195,11 +195,11 @@ abstract class AbstractAnalysisServerIntegrationTest
 
   /// Start [server].
   Future startServer(
-          {bool checked = true, int? diagnosticPort, int? servicesPort}) =>
+          {bool checked = true, int? diagnosticPort, int? servicePort}) =>
       server.start(
           checked: checked,
           diagnosticPort: diagnosticPort,
-          servicesPort: servicesPort);
+          servicePort: servicePort);
 
   /// After every test, the server is stopped and [sourceDirectory] is deleted.
   Future tearDown() {
@@ -528,7 +528,7 @@ class Server {
       int? diagnosticPort,
       bool profileServer = false,
       String? sdkPath,
-      int? servicesPort,
+      int? servicePort,
       bool useAnalysisHighlight2 = false}) {
     if (_process != null) {
       throw Exception('Process already started');
@@ -546,14 +546,14 @@ class Server {
       arguments.add('--debug');
     }
     if (profileServer) {
-      if (servicesPort == null) {
+      if (servicePort == null) {
         arguments.add('--observe');
       } else {
-        arguments.add('--observe=$servicesPort');
+        arguments.add('--observe=$servicePort');
       }
       arguments.add('--pause-isolates-on-exit');
-    } else if (servicesPort != null) {
-      arguments.add('--enable-vm-service=$servicesPort');
+    } else if (servicePort != null) {
+      arguments.add('--enable-vm-service=$servicePort');
     }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');

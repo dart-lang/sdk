@@ -46,7 +46,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
   ///
   /// This maps from the item's hashCode to the canonical key, which is then
   /// used to lookup the item in [_map]. Keeping the data in our primary backing
-  /// map gives us the ordering semantics requred by [LinkedHashMap], while
+  /// map gives us the ordering semantics required by [LinkedHashMap], while
   /// also providing convenient access to keys/values.
   @notNull
   final _keyMap = JS('', 'new Map()');

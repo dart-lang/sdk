@@ -107,7 +107,7 @@ class MethodBindingTest {
     c.f = () => "success";
     Expect.equals("success", c.f());
 
-    // referencing instance method with explicit 'this' qualiier
+    // referencing instance method with explicit 'this' qualifier
     var o6 = new A(6);
     var f6 = o6.getThis();
     Expect.equals(6, f6());
@@ -151,7 +151,7 @@ class MethodBindingTest {
     A.func = A.foo;
     Expect.equals(4, A.func());
 
-    // bind a function that is possibly native in Javascript.
+    // bind a function that is possibly native in JavaScript.
     String o15 = 'hithere';
     var f15 = o15.substring;
     Expect.equals('i', f15(1, 2));

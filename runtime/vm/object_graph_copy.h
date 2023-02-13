@@ -10,6 +10,10 @@ namespace dart {
 class Object;
 class ObjectPtr;
 
+// Whether the object can safely be shared across isolates due to it being
+// deeply immutable.
+bool CanShareObjectAcrossIsolates(ObjectPtr obj);
+
 // Makes a transitive copy of the object graph referenced by [object]. Will not
 // copy objects that can be safely shared - due to being immutable.
 //

@@ -640,6 +640,7 @@ const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
     case ProgramSection::BuildId:
       return kSnapshotBuildIdAsmSymbol;
   }
+  UNREACHABLE();
   return nullptr;
 }
 
@@ -671,9 +672,9 @@ const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
 // canonicalized and compressed: when building __unwind_info from CFI directives
 // LLVM will fold together similar entries, the same does not happen for
 // __eh_frame. This means that emitting CFI directives for each function would
-// baloon the size of __eh_frame.
+// balloon the size of __eh_frame.
 //
-// Hence to work around the problem of incorrect __unwind_info without balooning
+// Hence to work around the problem of incorrect __unwind_info without ballooning
 // snapshot size when __eh_frame is generated we choose to emit CFI directives
 // per function specifically on ARM64 Mac OS X and iOS.
 //

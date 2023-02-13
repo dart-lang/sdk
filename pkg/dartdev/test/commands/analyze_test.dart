@@ -580,7 +580,7 @@ void f() {
         final logger = TestLogger(false);
         final errors = [AnalysisError(sampleInfoJson)];
 
-        AnalyzeCommand.emitJsonFormat(logger, errors);
+        AnalyzeCommand.emitJsonFormat(logger, errors, null);
 
         expect(logger.stderrBuffer, isEmpty);
         final stdout = logger.stdoutBuffer.toString().trim();
@@ -595,7 +595,7 @@ void f() {
         final logger = TestLogger(false);
         final errors = [AnalysisError(fullDiagnosticJson)];
 
-        AnalyzeCommand.emitJsonFormat(logger, errors);
+        AnalyzeCommand.emitJsonFormat(logger, errors, null);
 
         expect(logger.stderrBuffer, isEmpty);
         final stdout = logger.stdoutBuffer.toString().trim();

@@ -14,29 +14,31 @@ main() {
 }
 
 @reflectiveTest
-class DuplicateVariablePatternTest extends PatternsResolutionTest {
+class DuplicateVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case var a & var a) {}
+  if (x case var a && var a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 41, 1,
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 42, 1,
           contextMessages: [message('/home/test/lib/test.dart', 33, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
+LogicalAndPattern
+  leftOperand: DeclaredVariablePattern
     keyword: var
     name: a
     declaredElement: hasImplicitType a@33
       type: int
-  operator: &
-  rightOperand: VariablePattern
+  operator: &&
+  rightOperand: DeclaredVariablePattern
     keyword: var
     name: a
-    declaredElement: hasImplicitType a@41
+    declaredElement: hasImplicitType a@42
       type: int
 ''');
   }
@@ -45,27 +47,29 @@ BinaryPattern
     await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
-    case var a & var a:
+    case var a && var a:
       break;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 52, 1,
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 53, 1,
           contextMessages: [message('/home/test/lib/test.dart', 44, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
+LogicalAndPattern
+  leftOperand: DeclaredVariablePattern
     keyword: var
     name: a
     declaredElement: hasImplicitType a@44
       type: int
-  operator: &
-  rightOperand: VariablePattern
+  operator: &&
+  rightOperand: DeclaredVariablePattern
     keyword: var
     name: a
-    declaredElement: hasImplicitType a@52
+    declaredElement: hasImplicitType a@53
       type: int
 ''');
   }
@@ -73,11 +77,13 @@ BinaryPattern
   test_variableDeclaration() async {
     await assertErrorsInCode(r'''
 void f(x) {
-  var (var a, var a) = x;
+  var (a, a) = x;
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 30, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 23, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 22, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 19, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
     ]);
   }
 }

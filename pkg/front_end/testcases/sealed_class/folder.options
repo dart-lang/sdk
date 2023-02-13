@@ -1,1 +1,1 @@
---enable-experiment=sealed-class
+--enable-experiment=sealed-class,class-modifiers

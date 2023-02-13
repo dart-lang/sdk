@@ -4582,6 +4582,7 @@ library foo;
     // Passes if no exceptions are thrown.
   }
 
+  @FailingTest(reason: 'Default list constructor has been removed.')
   Future<void> test_list_constructor_length() async {
     await analyze('''
 void main() {
@@ -4596,6 +4597,7 @@ void main() {
     assertEdge(always, filledParam.node, hard: false);
   }
 
+  @FailingTest(reason: 'Default list constructor has been removed.')
   Future<void> test_list_constructor_length_implicitParam() async {
     await analyze('''
 void main() {
@@ -5449,6 +5451,22 @@ class C {
   Future<void> test_non_null_hint_is_not_expression_hint() async {
     await analyze('int/*!*/ x;');
     expect(hasNullCheckHint(findNode.simple('int')), isFalse);
+  }
+
+  Future<void> test_override_mixin_method() async {
+    await analyze('''
+  mixin M {
+    int m(int/*1*/ x);
+  }
+
+  class C with M {
+    @override
+    int m(int/*2*/ x) => x;
+  }
+    ''');
+    final int1 = decoratedTypeAnnotation('int/*1*/');
+    final int2 = decoratedTypeAnnotation('int/*2*/');
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_function_typed() async {
@@ -8321,7 +8339,11 @@ class _TestEdgeOrigin implements EdgeOrigin {
   String get description => 'Test edge';
 
   @override
+  bool get isSetupAssignment => false;
+
+  @override
   EdgeOriginKind? get kind => null;
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

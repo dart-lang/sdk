@@ -123,9 +123,9 @@ void main() {
   re_string = re_string + "1";
   // re_string = "(((...((a))...)))1"
 
-  var regexps = new List();
-  var last_match_expectations = new List();
-  var first_capture_expectations = new List();
+  var regexps = [];
+  var last_match_expectations = [];
+  var first_capture_expectations = [];
 
   // Atomic regexp.
   regexps.add(new RegExp(r"a1"));
@@ -158,7 +158,7 @@ void main() {
     var subject = "";
     var test_1_expectation = "";
     var test_2_expectation = "";
-    var test_3_expectation = (m == 0) ? null : new List();
+    var test_3_expectation = (m == 0) ? null : [];
     for (var i = 0; i < m; i++) {
       subject += "a11";
       test_1_expectation += "x1";

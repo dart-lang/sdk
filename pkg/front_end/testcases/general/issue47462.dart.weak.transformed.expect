@@ -22,8 +22,6 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#MyList#new#tearOff<T extends core::num>([core::int? length = #C7]) → core::List<self::_#MyList#new#tearOff::T>
-  return core::_List::•<self::_#MyList#new#tearOff::T>(length);
 static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#MyList#filled#tearOff<T extends core::num>(core::int length, self::_#MyList#filled#tearOff::T fill, {core::bool growable = #C2}) → core::List<self::_#MyList#filled#tearOff::T>
   return core::List::filled<self::_#MyList#filled#tearOff::T>(length, fill, growable: growable);
 static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#MyList#empty#tearOff<T extends core::num>({core::bool growable = #C2}) → core::List<self::_#MyList#empty#tearOff::T>
@@ -44,10 +42,9 @@ constants  {
   #C4 = instantiation #C3 <core::num*>
   #C5 = static-tearoff self::_#MyList#filled#tearOff
   #C6 = instantiation #C5 <core::num*>
-  #C7 = null
 }
 
 Extra constant evaluation status:
 Evaluated: StaticInvocation @ org-dartlang-testcase:///issue47462.dart:18:16 -> BoolConstant(true)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///issue47462.dart:19:17 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 52, effectively constant: 2
+Extra constant evaluation: evaluated: 50, effectively constant: 2

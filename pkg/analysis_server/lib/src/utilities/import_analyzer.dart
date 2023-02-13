@@ -35,10 +35,10 @@ class ImportAnalyzer {
   /// Analyze the given library [result] to find the declarations and references
   /// being moved and that are staying. The declarations being moved are in the
   /// file at the given [path] in the given [range].
-  ImportAnalyzer(this.result, String path, SourceRange range) {
+  ImportAnalyzer(this.result, String path, List<SourceRange> ranges) {
     for (var unit in result.units) {
       var finder = _ReferenceFinder(
-          _ElementRecorder(this, path == unit.path ? range : null));
+          _ElementRecorder(this, path == unit.path ? ranges : []));
       unit.unit.accept(finder);
     }
     // Remove references that will be within the same file.
@@ -84,18 +84,17 @@ class _ElementRecorder {
 
   /// The range of characters being moved, or `null` if the code being moved is
   /// in a different compilation unit that the one currently being visited.
-  final SourceRange? range;
+  final List<SourceRange> ranges;
 
   /// Initialize a newly created recorder to use the [analyzer] to record
   /// declarations of and references to elements, based on whether the reference
   /// is within the [range].
-  _ElementRecorder(this.analyzer, this.range);
+  _ElementRecorder(this.analyzer, this.ranges);
 
   /// Record that the [element] is declared in the library.
   void recordDeclaration(Element? declaredElement) {
     if (declaredElement != null) {
-      final range = this.range;
-      if (range != null && range.contains(declaredElement.nameOffset)) {
+      if (_isBeingMoved(declaredElement.nameOffset)) {
         analyzer.movingDeclarations.add(declaredElement);
       } else {
         analyzer.stayingDeclarations.add(declaredElement);
@@ -112,8 +111,7 @@ class _ElementRecorder {
         referencedElement.isSynthetic) {
       referencedElement = referencedElement.variable;
     }
-    final range = this.range;
-    if (range != null && range.contains(referenceOffset)) {
+    if (_isBeingMoved(referenceOffset)) {
       var prefixes =
           analyzer.movingReferences.putIfAbsent(referencedElement, () => {});
       prefixes.add(prefix);
@@ -122,6 +120,17 @@ class _ElementRecorder {
           analyzer.stayingReferences.putIfAbsent(referencedElement, () => {});
       prefixes.add(prefix);
     }
+  }
+
+  // Return `true` if the code at the [offset] is being moved to a different
+  // file.
+  bool _isBeingMoved(int offset) {
+    for (var range in ranges) {
+      if (range.contains(offset)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

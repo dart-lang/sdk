@@ -9,6 +9,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_model/js_world.dart';
+import '../util/util.dart';
 import 'type_graph_nodes.dart';
 
 /// Strategy for creating type information from members and parameters and type
@@ -61,6 +62,11 @@ class TypeSystem {
 
   /// [MemberTypeInformation]s for members.
   final Map<MemberEntity, MemberTypeInformation> memberTypeInformations =
+      Map<MemberEntity, MemberTypeInformation>();
+
+  final Map<Local, ParameterTypeInformation> virtualParameterTypeInformations =
+      Map<Local, ParameterTypeInformation>();
+  final Map<MemberEntity, MemberTypeInformation> virtualCallTypeInformations =
       Map<MemberEntity, MemberTypeInformation>();
 
   /// [ListTypeInformation] for allocated lists.
@@ -325,15 +331,36 @@ class TypeSystem {
     });
   }
 
+  ParameterTypeInformation getInferredTypeOfVirtualParameter(Local parameter) {
+    return virtualParameterTypeInformations.putIfAbsent(parameter, () {
+      ParameterTypeInformation typeInformation =
+          strategy.createParameterTypeInformation(
+              _abstractValueDomain, parameter, this);
+      _orderedTypeInformations.add(typeInformation);
+      return typeInformation;
+    });
+  }
+
   void forEachParameterType(
       void f(Local parameter, ParameterTypeInformation typeInformation)) {
     parameterTypeInformations.forEach(f);
   }
 
   MemberTypeInformation getInferredTypeOfMember(MemberEntity member) {
-    assert(!member.isAbstract,
-        failedAt(member, "Unexpected abstract member $member."));
     return memberTypeInformations[member] ??= _getInferredTypeOfMember(member);
+  }
+
+  Pair<MemberTypeInformation, bool> getCachedOrInferredTypeOfVirtualMember(
+      MemberEntity member) {
+    final cached = virtualCallTypeInformations[member];
+    if (cached != null) return Pair(cached, false);
+    final newType = virtualCallTypeInformations[member] =
+        strategy.createMemberTypeInformation(_abstractValueDomain, member);
+    return Pair(newType, true);
+  }
+
+  MemberTypeInformation getInferredTypeOfVirtualMember(MemberEntity member) {
+    return getCachedOrInferredTypeOfVirtualMember(member).a;
   }
 
   void forEachMemberType(

@@ -351,12 +351,14 @@ DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
     handle->set_ptr(msg_array);
     isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
   }
-  Isolate::KillIfExists(isolate, Isolate::LibMsgId::kKillMsg);
-  // Drain interrupts before running so any IMMEDIATE operations on the current
-  // isolate happen synchronously.
-  const Error& error = Error::Handle(thread->HandleInterrupts());
-  RELEASE_ASSERT(error.IsUnwindError());
+
+  Thread::Current()->StartUnwindError();
+  const String& msg =
+      String::Handle(String::New("isolate terminated by Isolate.exit"));
+  const UnwindError& error = UnwindError::Handle(UnwindError::New(msg));
+  error.set_is_user_initiated(true);
   Exceptions::PropagateError(error);
+  UNREACHABLE();
   // We will never execute dart code again in this isolate.
   return Object::null();
 }
@@ -1155,7 +1157,7 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, msg, arguments->NativeArgAt(1));
 
-  // Make sure to route this request to the isolate library OOB mesage handler.
+  // Make sure to route this request to the isolate library OOB message handler.
   msg.SetAt(0, Smi::Handle(Smi::New(Message::kIsolateLibOOBMsg)));
 
   // Ensure message writer (and it's resources, e.g. forwarding tables) are
@@ -1265,7 +1267,7 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
   {
     NoSafepointScope no_safepoint;
     peer = thread->heap()->GetPeer(t.ptr());
-    // Assume that object's Peer is only used to track transferrability state.
+    // Assume that object's Peer is only used to track transferability state.
     ASSERT(peer != nullptr);
   }
 

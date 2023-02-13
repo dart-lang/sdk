@@ -111,12 +111,12 @@ final LIBRARIES = const <String, LibraryInfo> {
   }
 
   @override
-  Future startServer({int? diagnosticPort, int? servicesPort}) {
+  Future startServer({int? diagnosticPort, int? servicePort}) {
     var sdkPath = createNonStandardSdk();
     return server.start(
         diagnosticPort: diagnosticPort,
         dartSdkPath: sdkPath,
-        servicesPort: servicesPort);
+        servicePort: servicePort);
   }
 
   Future test_getErrors() async {

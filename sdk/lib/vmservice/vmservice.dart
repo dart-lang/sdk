@@ -92,20 +92,25 @@ final _errorMessages = <int, String>{
       'due to the current configuration',
 };
 
-String encodeRpcError(Message message, int code, {String? details}) {
+String encodeRpcError(
+  Message message,
+  int code, {
+  String? details,
+  Map<String, Object?>? data,
+}) {
+  if (details != null) {
+    data ??= {};
+    data['details'] = details;
+  }
   final response = <String, dynamic>{
     'jsonrpc': '2.0',
     'id': message.serial,
     'error': {
       'code': code,
       'message': _errorMessages[code],
+      if (data != null) 'data': data,
     },
   };
-  if (details != null) {
-    (response['error'] as Map<String, dynamic>)['data'] = <String, String>{
-      'details': details,
-    };
-  }
   return json.encode(response);
 }
 
@@ -181,6 +186,9 @@ typedef Future<Uri?> WebServerControlCallback(bool enable, bool? silenceOutput);
 /// server.
 typedef void WebServerAcceptNewWebSocketConnectionsCallback(bool enable);
 
+/// Called when a client wants the service to serve Observatory.
+typedef void ServeObservatoryCallback();
+
 /// Hooks that are setup by the embedder.
 class VMServiceEmbedderHooks {
   static ServerStartCallback? serverStart;
@@ -198,6 +206,7 @@ class VMServiceEmbedderHooks {
   static WebServerControlCallback? webServerControl;
   static WebServerAcceptNewWebSocketConnectionsCallback?
       acceptNewWebSocketConnections;
+  static ServeObservatoryCallback? serveObservatory;
 }
 
 class _ClientResumePermissions {
@@ -265,9 +274,11 @@ class VMService extends MessageRouter {
               'Embedder does not support yielding to a VM service intermediary.');
     }
 
-    if (_ddsUri != null) {
+    final ddsUri = _ddsUri;
+    if (ddsUri != null) {
       return encodeRpcError(message, kFeatureDisabled,
-          details: 'A DDS instance is already connected at ${_ddsUri!}.');
+          details: 'A DDS instance is already connected at $ddsUri.',
+          data: {'ddsUri': ddsUri.toString()});
     }
 
     final uri = message.params['uri'] as String?;
@@ -773,6 +784,10 @@ class VMService extends MessageRouter {
     try {
       if (message.completed) {
         return await message.response;
+      }
+      if (message.method == '_serveObservatory') {
+        VMServiceEmbedderHooks.serveObservatory?.call();
+        return encodeSuccess(message);
       }
       if (message.method == '_yieldControlToDDS') {
         return await _yieldControlToDDS(message);

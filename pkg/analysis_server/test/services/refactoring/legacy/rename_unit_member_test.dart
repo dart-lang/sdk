@@ -619,6 +619,58 @@ void f(NewName t) {}
 ''');
   }
 
+  Future<void> test_createChange_ExtensionElement_atDeclaration() async {
+    await indexTestUnit('''
+extension Test on int {
+  void foo() {}
+}
+void f() {
+  Test(0).foo();
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('Test on int');
+    expect(refactoring.refactoringName, 'Rename Extension');
+    expect(refactoring.elementKindName, 'extension');
+    expect(refactoring.oldName, 'Test');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension NewName on int {
+  void foo() {}
+}
+void f() {
+  NewName(0).foo();
+}
+''');
+  }
+
+  Future<void> test_createChange_ExtensionElement_atReference() async {
+    await indexTestUnit('''
+extension Test on int {
+  void foo() {}
+}
+void f() {
+  Test(0).foo();
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('Test(0)');
+    expect(refactoring.refactoringName, 'Rename Extension');
+    expect(refactoring.elementKindName, 'extension');
+    expect(refactoring.oldName, 'Test');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension NewName on int {
+  void foo() {}
+}
+void f() {
+  NewName(0).foo();
+}
+''');
+  }
+
   Future<void> test_createChange_FunctionElement() async {
     await indexTestUnit('''
 test() {}

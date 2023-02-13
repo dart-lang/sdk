@@ -134,7 +134,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       return _compoundAnnotatedDependencies(fieldTypes);
     }
 
-    // Non-tranformed classes.
+    // Non-transformed classes.
     final dependencies = <Class>{};
     final membersWithAnnotations =
         _compoundFieldMembers(node, includeSetters: false);

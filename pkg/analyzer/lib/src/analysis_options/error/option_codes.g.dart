@@ -59,15 +59,6 @@ class AnalysisOptionsErrorCode extends ErrorCode {
 }
 
 class AnalysisOptionsHintCode extends ErrorCode {
-  ///  An error code indicating that the enablePreviewDart2 setting is
-  ///  deprecated.
-  static const AnalysisOptionsHintCode PREVIEW_DART_2_SETTING_DEPRECATED =
-      AnalysisOptionsHintCode(
-    'PREVIEW_DART_2_SETTING_DEPRECATED',
-    "The 'enablePreviewDart2' setting is deprecated.",
-    correctionMessage: "It is no longer necessary to explicitly enable Dart 2.",
-  );
-
   ///  An error code indicating that strong-mode: true is deprecated.
   static const AnalysisOptionsHintCode STRONG_MODE_SETTING_DEPRECATED =
       AnalysisOptionsHintCode(
@@ -75,16 +66,6 @@ class AnalysisOptionsHintCode extends ErrorCode {
     "The 'strong-mode: true' setting is deprecated.",
     correctionMessage:
         "It is no longer necessary to explicitly enable strong mode.",
-  );
-
-  ///  An error code indicating that the enablePreviewDart2 setting is
-  ///  deprecated.
-  static const AnalysisOptionsHintCode SUPER_MIXINS_SETTING_DEPRECATED =
-      AnalysisOptionsHintCode(
-    'SUPER_MIXINS_SETTING_DEPRECATED',
-    "The 'enableSuperMixins' setting is deprecated.",
-    correctionMessage:
-        "Support has been added to the language for 'mixin' based mixins.",
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -109,6 +90,30 @@ class AnalysisOptionsHintCode extends ErrorCode {
 }
 
 class AnalysisOptionsWarningCode extends ErrorCode {
+  ///  An error code indicating that the given option is deprecated.
+  ///
+  ///  Parameters:
+  ///  0: the option name
+  ///
+  static const AnalysisOptionsWarningCode ANALYSIS_OPTION_DEPRECATED =
+      AnalysisOptionsWarningCode(
+    'ANALYSIS_OPTION_DEPRECATED',
+    "The option '{0}' is no longer supported.",
+  );
+
+  ///  An error code indicating that the given option is deprecated.
+  ///
+  ///  Parameters:
+  ///  0: the option name
+  ///  1: the replacement option name
+  static const AnalysisOptionsWarningCode
+      ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT = AnalysisOptionsWarningCode(
+    'ANALYSIS_OPTION_DEPRECATED',
+    "The option '{0}' is no longer supported.",
+    correctionMessage: "Try using the new '{1}' option.",
+    uniqueName: 'ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT',
+  );
+
   ///  An error code indicating a specified include file has a warning.
   ///
   ///  Parameters:
@@ -125,7 +130,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  An error code indicating a specified include file could not be found.
   ///
   ///  Parameters:
-  ///  0: the uri of the file to be included
+  ///  0: the URI of the file to be included
   ///  1: the path of the file containing the include directive
   ///  2: the path of the context being analyzed
   static const AnalysisOptionsWarningCode INCLUDE_FILE_NOT_FOUND =
@@ -154,6 +159,55 @@ class AnalysisOptionsWarningCode extends ErrorCode {
       AnalysisOptionsWarningCode(
     'INVALID_SECTION_FORMAT',
     "Invalid format for the '{0}' section.",
+  );
+
+  ///  An error code indicating multiple plugins have been specified as enabled.
+  ///
+  ///  Parameters:
+  ///  0: the name of the first plugin
+  static const AnalysisOptionsWarningCode MULTIPLE_PLUGINS =
+      AnalysisOptionsWarningCode(
+    'MULTIPLE_PLUGINS',
+    "Multiple plugins can't be enabled.",
+    correctionMessage: "Remove all plugins following the first, '{0}'.",
+  );
+
+  ///  An error code indicating a specified include file includes itself recursively.
+  ///
+  ///  Parameters:
+  ///  0: the URI of the file to be included
+  ///  1: the path of the file containing the include directive
+  static const AnalysisOptionsWarningCode RECURSIVE_INCLUDE_FILE =
+      AnalysisOptionsWarningCode(
+    'RECURSIVE_INCLUDE_FILE',
+    "The include file '{0}' in '{1}' includes itself recursively.",
+    correctionMessage:
+        "Try changing the chain of 'include's to not re-include this file.",
+  );
+
+  ///  An error code indicating a removed lint rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  ///  1: the SDK version in which the lint was removed
+  static const AnalysisOptionsWarningCode REMOVED_LINT =
+      AnalysisOptionsWarningCode(
+    'REMOVED_LINT',
+    "'{0}' was removed in Dart '{1}'",
+    correctionMessage: "Remove the reference to '{0}'.",
+  );
+
+  ///  An error code indicating a removed lint rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  ///  1: the SDK version in which the lint was removed
+  ///  2: the name of a replacing lint
+  static const AnalysisOptionsWarningCode REPLACED_LINT =
+      AnalysisOptionsWarningCode(
+    'REPLACED_LINT',
+    "'{0}' was replaced by '{2}' in Dart '{1}'.",
+    correctionMessage: "Replace '{0}' with '{1}'.",
   );
 
   ///  An error code indicating that strong-mode: false is has been removed.

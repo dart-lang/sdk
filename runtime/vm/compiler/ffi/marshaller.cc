@@ -6,11 +6,14 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "vm/class_id.h"
 #include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
+#include "vm/exceptions.h"
 #include "vm/log.h"
+#include "vm/object_store.h"
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
@@ -31,19 +34,39 @@ const NativeFunctionType* NativeFunctionTypeFromFunctionType(
     const char** error) {
   ASSERT(c_signature.NumOptionalParameters() == 0);
   ASSERT(c_signature.NumOptionalPositionalParameters() == 0);
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
 
   const intptr_t num_arguments =
       c_signature.num_fixed_parameters() - kNativeParamsStartAt;
   auto& argument_representations =
       *new ZoneGrowableArray<const NativeType*>(zone, num_arguments);
+  AbstractType& arg_type = AbstractType::Handle(zone);
+  intptr_t variadic_arguments_index = NativeFunctionType::kNoVariadicArguments;
   for (intptr_t i = 0; i < num_arguments; i++) {
-    AbstractType& arg_type = AbstractType::Handle(
-        zone, c_signature.ParameterTypeAt(i + kNativeParamsStartAt));
-    const auto rep = NativeType::FromAbstractType(zone, arg_type, error);
-    if (*error != nullptr) {
-      return nullptr;
+    arg_type = c_signature.ParameterTypeAt(i + kNativeParamsStartAt);
+    const bool varargs = arg_type.type_class() == object_store->varargs_class();
+    if (varargs) {
+      arg_type = TypeArguments::Handle(zone, arg_type.arguments()).TypeAt(0);
+      variadic_arguments_index = i;
+      ASSERT(arg_type.IsRecordType());
+      const auto& record_type = RecordType::Cast(arg_type);
+      const intptr_t num_fields = record_type.NumFields();
+      auto& field_type = AbstractType::Handle(zone);
+      for (intptr_t i = 0; i < num_fields; i++) {
+        field_type ^= record_type.FieldTypeAt(i);
+        const auto rep = NativeType::FromAbstractType(zone, field_type, error);
+        if (*error != nullptr) {
+          return nullptr;
+        }
+        argument_representations.Add(rep);
+      }
+    } else {
+      const auto rep = NativeType::FromAbstractType(zone, arg_type, error);
+      if (*error != nullptr) {
+        return nullptr;
+      }
+      argument_representations.Add(rep);
     }
-    argument_representations.Add(rep);
   }
 
   const auto& result_type =
@@ -55,7 +78,8 @@ const NativeFunctionType* NativeFunctionTypeFromFunctionType(
   }
 
   const auto result = new (zone)
-      NativeFunctionType(argument_representations, *result_representation);
+      NativeFunctionType(argument_representations, *result_representation,
+                         variadic_arguments_index);
   return result;
 }
 
@@ -81,8 +105,38 @@ AbstractTypePtr BaseMarshaller::CType(intptr_t arg_index) const {
     return c_signature_.result_type();
   }
 
+  Zone* zone = Thread::Current()->zone();
+  const auto& parameter_types =
+      Array::Handle(zone, c_signature_.parameter_types());
+  const intptr_t parameter_type_length = parameter_types.Length();
+  const intptr_t last_param_index = parameter_type_length - 1;
+  const auto& last_arg_type = AbstractType::Handle(
+      zone, c_signature_.ParameterTypeAt(last_param_index));
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
+  const bool has_varargs =
+      last_arg_type.type_class() == object_store->varargs_class();
+
   // Skip #0 argument, the function pointer.
-  return c_signature_.ParameterTypeAt(arg_index + kNativeParamsStartAt);
+  const intptr_t real_arg_index = arg_index + kNativeParamsStartAt;
+
+  if (has_varargs && real_arg_index >= last_param_index) {
+    // The C-type is nested in a VarArgs.
+    const auto& var_args_type_arg = AbstractType::Handle(
+        zone, TypeArguments::Handle(zone, last_arg_type.arguments()).TypeAt(0));
+    if (var_args_type_arg.IsRecordType()) {
+      const intptr_t index_in_record = real_arg_index - last_param_index;
+      const auto& record_type = RecordType::Cast(var_args_type_arg);
+      ASSERT(index_in_record < record_type.NumFields());
+      return record_type.FieldTypeAt(index_in_record);
+    } else {
+      ASSERT(!var_args_type_arg.IsNull());
+      return var_args_type_arg.ptr();
+    }
+  }
+
+  ASSERT(!AbstractType::Handle(c_signature_.ParameterTypeAt(real_arg_index))
+              .IsNull());
+  return c_signature_.ParameterTypeAt(real_arg_index);
 }
 
 // Keep consistent with Function::FfiCSignatureReturnsStruct.
@@ -153,7 +207,7 @@ intptr_t BaseMarshaller::NumDefinitions(intptr_t arg_index) const {
   }
 
   ASSERT(loc.IsStack());
-  // For stack, word size definitions in IL. In FFI calls passed in to the
+  // For stack, word size definitions in IL. In FFI calls passed into the
   // native call, in FFI callbacks read in separate NativeParams.
   const intptr_t size_in_bytes = type.SizeInBytes();
   const intptr_t num_defs =
@@ -433,6 +487,11 @@ Location CallMarshaller::LocInFfiCall(intptr_t def_index_global) const {
     return SelectFpuLocationInIL(zone_, loc);
   }
 
+  if (loc.IsBoth()) {
+    const auto& fpu_reg_loc = loc.AsBoth().location(0).AsFpuRegisters();
+    return SelectFpuLocationInIL(zone_, fpu_reg_loc);
+  }
+
   ASSERT(loc.IsRegisters());
   return loc.AsLocation();
 }
@@ -555,12 +614,15 @@ class CallbackArgumentTranslator : public ValueObject {
       if (arg.AsPointerToMemory().pointer_location().IsRegisters()) {
         argument_slots_required_ += 1;
       }
-    } else {
-      ASSERT(arg.IsMultiple());
+    } else if (arg.IsMultiple()) {
       const auto& multiple = arg.AsMultiple();
       for (intptr_t i = 0; i < multiple.locations().length(); i++) {
         AllocateArgument(*multiple.locations().At(i));
       }
+    } else {
+      ASSERT(arg.IsBoth());
+      const auto& both = arg.AsBoth();
+      AllocateArgument(both.location(0));
     }
   }
 
@@ -613,16 +675,22 @@ class CallbackArgumentTranslator : public ValueObject {
           pointer_translated, pointer_ret_loc, arg.payload_type().AsCompound());
     }
 
-    ASSERT(arg.IsMultiple());
-    const auto& multiple = arg.AsMultiple();
-    NativeLocations& multiple_locations =
-        *new (zone) NativeLocations(multiple.locations().length());
-    for (intptr_t i = 0; i < multiple.locations().length(); i++) {
-      multiple_locations.Add(
-          &TranslateArgument(zone, *multiple.locations().At(i)));
+    if (arg.IsMultiple()) {
+      const auto& multiple = arg.AsMultiple();
+      NativeLocations& multiple_locations =
+          *new (zone) NativeLocations(multiple.locations().length());
+      for (intptr_t i = 0; i < multiple.locations().length(); i++) {
+        multiple_locations.Add(
+            &TranslateArgument(zone, *multiple.locations().At(i)));
+      }
+      return *new (zone) MultipleNativeLocations(
+          multiple.payload_type().AsCompound(), multiple_locations);
     }
-    return *new (zone) MultipleNativeLocations(
-        multiple.payload_type().AsCompound(), multiple_locations);
+
+    ASSERT(arg.IsBoth());
+    const auto& both = arg.AsBoth();
+    // We only need one.
+    return TranslateArgument(zone, both.location(0));
   }
 
   intptr_t argument_slots_used_ = 0;

@@ -138,7 +138,7 @@ Future echoServer(var sendPort) async {
       int bytesRead = 0;
       int bytesWritten = 0;
       bool closedEventReceived = false;
-      List<int> data = new List<int>(length);
+      List<int> data = new List<int>.filled(length, null);
       client.writeEventsEnabled = false;
       client.listen((event) {
         switch (event) {
@@ -271,7 +271,7 @@ Future testPartialRead() async {
 
     // Send the full data list to the server.
     socket.writeFromSync(data);
-    List<int> result = new List<int>(data.length);
+    List<int> result = new List<int>.filled(data.length, null);
 
     // Read half at a time and check that there's still more bytes available.
     socket.readIntoSync(result, 0, half_length);
@@ -330,7 +330,7 @@ Future testPartialWrite() async {
     socket.writeFromSync(data, startOffset, endOffset);
 
     // Grab the response and verify it's correct.
-    List<int> result = new List<int>(endOffset - startOffset);
+    List<int> result = new List<int>.filled(endOffset - startOffset, null);
     socket.readIntoSync(result);
 
     Expect.equals(result.length, endOffset - startOffset);
@@ -436,7 +436,7 @@ Future testInvalidReadWriteOperations() {
     Expect.throwsArgumentError(() => socket.writeFromSync(data, null));
 
     // Invalid readIntoSync invocations
-    List<int> buffer = new List<int>(10);
+    List<int> buffer = new List<int>.filled(10, null);
     Expect
         .throwsRangeError(() => socket.readIntoSync(buffer, buffer.length + 1));
     Expect.throwsRangeError(

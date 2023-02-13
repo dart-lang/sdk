@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test of the graph segmentation algorithm used by deferred loading
 // to determine which elements can be deferred and which libraries
 // much be included in the initial download (loaded eagerly).
@@ -28,7 +26,7 @@ deferredTest1() async {
   CompilationResult result = await runCompiler(memorySourceFiles: TEST1);
 
   Compiler compiler = result.compiler;
-  var closedWorld = compiler.backendClosedWorldForTesting;
+  var closedWorld = compiler.backendClosedWorldForTesting!;
   var env = closedWorld.elementEnvironment;
   var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
   var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
@@ -36,7 +34,7 @@ deferredTest1() async {
   dynamic lib1 = lookupLibrary("memory:lib1.dart");
   dynamic lib2 = lookupLibrary("memory:lib2.dart");
   env.lookupLibraryMember(lib1, "foo1");
-  var foo2 = env.lookupLibraryMember(lib2, "foo2");
+  var foo2 = env.lookupLibraryMember(lib2, "foo2")!;
 
   Expect.notEquals(mainOutputUnit, outputUnitForMember(foo2));
 }
@@ -45,14 +43,14 @@ deferredTest2() async {
   CompilationResult result = await runCompiler(memorySourceFiles: TEST2);
 
   Compiler compiler = result.compiler;
-  var closedWorld = compiler.backendClosedWorldForTesting;
+  var closedWorld = compiler.backendClosedWorldForTesting!;
   var env = closedWorld.elementEnvironment;
   var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
   var outputUnitForClassType =
       closedWorld.outputUnitData.outputUnitForClassType;
   lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
   dynamic shared = lookupLibrary("memory:shared.dart");
-  var a = env.lookupClass(shared, "A");
+  var a = env.lookupClass(shared, "A")!;
 
   Expect.equals("OutputUnit(1, {import(def: deferred)})",
       outputUnitForClass(a).toString());
@@ -64,7 +62,7 @@ deferredTest3() async {
   CompilationResult result = await runCompiler(memorySourceFiles: TEST3);
 
   Compiler compiler = result.compiler;
-  var closedWorld = compiler.backendClosedWorldForTesting;
+  var closedWorld = compiler.backendClosedWorldForTesting!;
   var env = closedWorld.elementEnvironment;
   var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
   var outputUnitForClassType =
@@ -72,7 +70,7 @@ deferredTest3() async {
   var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
   lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
   dynamic shared = lookupLibrary("memory:shared.dart");
-  var a = env.lookupClass(shared, "A");
+  var a = env.lookupClass(shared, "A")!;
 
   Expect.equals(mainOutputUnit, outputUnitForClass(a));
   Expect.equals(mainOutputUnit, outputUnitForClassType(a));
@@ -82,7 +80,7 @@ deferredTest4() async {
   CompilationResult result = await runCompiler(memorySourceFiles: TEST4);
 
   Compiler compiler = result.compiler;
-  var closedWorld = compiler.backendClosedWorldForTesting;
+  var closedWorld = compiler.backendClosedWorldForTesting!;
   var env = closedWorld.elementEnvironment;
   var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
   var outputUnitForClassType =
@@ -90,7 +88,7 @@ deferredTest4() async {
   var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
   lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
   dynamic shared = lookupLibrary("memory:shared.dart");
-  var a = env.lookupClass(shared, "A");
+  var a = env.lookupClass(shared, "A")!;
 
   Expect.equals("OutputUnit(1, {import(def: deferred)})",
       outputUnitForClass(a).toString());
@@ -101,14 +99,14 @@ deferredTest5() async {
   CompilationResult result = await runCompiler(memorySourceFiles: TEST5);
 
   Compiler compiler = result.compiler;
-  var closedWorld = compiler.backendClosedWorldForTesting;
+  var closedWorld = compiler.backendClosedWorldForTesting!;
   var env = closedWorld.elementEnvironment;
   var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
   var outputUnitForClassType =
       closedWorld.outputUnitData.outputUnitForClassType;
   lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
   dynamic shared = lookupLibrary("memory:shared.dart");
-  var a = env.lookupClass(shared, "A");
+  var a = env.lookupClass(shared, "A")!;
   Expect.equals(
       "OutputUnit(4, {import(def2: deferred), import(def3: deferred)})",
       outputUnitForClass(a).toString());

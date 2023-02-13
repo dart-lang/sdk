@@ -67,6 +67,12 @@ void testOptions() {
         ['-n', 'valid-dart2js-chrome,valid-dart2js-safari', '--no-batch'],
         configuration.reproducingArguments);
   }
+
+  // Allow vm-aot
+  configurations = parseConfigurations(['-nvm-aot']);
+  Expect.equals(1, configurations.length);
+  Expect.equals("dart_precompiled", configurations.first.runtime.name);
+  Expect.equals("dartkp", configurations.first.compiler.name);
 }
 
 void testValidation() {

@@ -43,18 +43,20 @@ abstract class LegacyUpperBoundTest {
     return new Future<void>.value();
   }
 
-  DartType getLegacyLeastUpperBound(
-      DartType a, DartType b, Library clientLibrary);
+  DartType getLegacyLeastUpperBound(DartType a, DartType b,
+      {required bool isNonNullableByDefault});
 
-  void checkLegacyUpTypes(
-      DartType a, DartType b, DartType expected, Library clientLibrary) {
-    DartType actual = getLegacyLeastUpperBound(a, b, clientLibrary);
+  void checkLegacyUpTypes(DartType a, DartType b, DartType expected,
+      {required bool isNonNullableByDefault}) {
+    DartType actual = getLegacyLeastUpperBound(a, b,
+        isNonNullableByDefault: isNonNullableByDefault);
     Expect.equals(expected, actual);
   }
 
   void checkLegacyUp(String type1, String type2, String expectedType) {
-    checkLegacyUpTypes(env.parseType(type1), env.parseType(type2),
-        env.parseType(expectedType), testLibrary);
+    checkLegacyUpTypes(
+        env.parseType(type1), env.parseType(type2), env.parseType(expectedType),
+        isNonNullableByDefault: testLibrary.isNonNullableByDefault);
   }
 
   Future<void> test() {

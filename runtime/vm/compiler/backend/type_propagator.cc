@@ -913,7 +913,7 @@ static bool CanPotentiallyBeSmi(const AbstractType& type, bool recurse) {
     return !recurse || CanPotentiallyBeSmi(AbstractType::Handle(param.bound()),
                                            /*recurse=*/false);
   } else if (type.HasTypeClass()) {
-    // If this is an unstantiated type then it can only potentially be a super
+    // If this is an uninstantiated type then it can only potentially be a super
     // type of a Smi if it is either FutureOr<...> or Comparable<...>.
     // In which case we need to look at the type argument to determine whether
     // this location can contain a smi.
@@ -1017,7 +1017,7 @@ CompileType* Value::Type() {
 
 void Value::SetReachingType(CompileType* type) {
   // If [type] is owned but not by the definition which flows into this use
-  // then we need to disconect the type from original owner by cloning it.
+  // then we need to disconnect the type from original owner by cloning it.
   // This is done to prevent situations when [type] is updated by its owner
   // but [owner] is no longer connected to this use through def-use chain
   // and as a result type propagator does not recompute type of the current
@@ -1160,7 +1160,8 @@ CompileType ParameterInstr::ComputeType() const {
   // The code below is not safe for OSR because it doesn't necessarily use
   // the correct scope.
   if (graph_entry->IsCompiledForOsr()) {
-    return CompileType::Dynamic();
+    // Parameter at OSR entry may correspond to a late local variable.
+    return CompileType::DynamicOrSentinel();
   }
 
   const ParsedFunction& pf = graph_entry->parsed_function();
@@ -1669,6 +1670,17 @@ CompileType LoadClassIdInstr::ComputeType() const {
 }
 
 CompileType LoadFieldInstr::ComputeType() const {
+  if (slot().IsRecordField()) {
+    const AbstractType* instance_type = instance()->Type()->ToAbstractType();
+    if (instance_type->IsRecordType()) {
+      const intptr_t index = compiler::target::Record::field_index_at_offset(
+          slot().offset_in_bytes());
+      const auto& field_type = AbstractType::ZoneHandle(
+          RecordType::Cast(*instance_type).FieldTypeAt(index));
+      return CompileType::FromAbstractType(field_type, CompileType::kCanBeNull,
+                                           CompileType::kCannotBeSentinel);
+    }
+  }
   CompileType type = slot().ComputeCompileType();
   if (calls_initializer()) {
     type = type.CopyNonSentinel();

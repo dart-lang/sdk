@@ -24,7 +24,7 @@ DEFINE_FLAG(bool,
 // kAllocatablePageSize - 2 * kObjectAlignment bytes belong to the same block).
 // During compaction, all live objects in the same block will slide such that
 // they all end up on the same Page, and all gaps within the block will be
-// closed. During sliding, a bitvector is computed that indictates which
+// closed. During sliding, a bitvector is computed that indicates which
 // allocation units are live, so the new address of any object in the block can
 // be found by adding the number of live allocation units before the object to
 // the block's new start address.

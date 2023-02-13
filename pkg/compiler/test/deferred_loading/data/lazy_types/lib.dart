@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*class: Foo:
  class_unit=4{libB},
  type_unit=2{libA, libB, libC}
 */
 class Foo {
   /*member: Foo.x:member_unit=4{libB}*/
-  int x;
+  int? x;
   /*member: Foo.:member_unit=4{libB}*/
   Foo() {
     x = DateTime.now().millisecond;
   }
   /*member: Foo.method:member_unit=4{libB}*/
   @pragma('dart2js:noInline')
-  int method() => x;
+  int method() => x!;
 }
 
 /*member: isFoo:member_unit=2{libA, libB, libC}*/

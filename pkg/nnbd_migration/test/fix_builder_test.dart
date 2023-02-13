@@ -1452,9 +1452,9 @@ extension E on C/*?*/ {
 }
 f(C/*?*/ c) => c();
 ''');
-    var functoinExpressionInvocation =
+    var functionExpressionInvocation =
         findNode.functionExpressionInvocation('c()');
-    visitSubexpression(functoinExpressionInvocation, 'void');
+    visitSubexpression(functionExpressionInvocation, 'void');
   }
 
   Future<void>
@@ -1466,9 +1466,9 @@ extension E on C/*?*/ {
 }
 f(C/*?*/ c) => E(c)();
 ''');
-    var functoinExpressionInvocation =
+    var functionExpressionInvocation =
         findNode.functionExpressionInvocation('E(c)()');
-    visitSubexpression(functoinExpressionInvocation, 'void');
+    visitSubexpression(functionExpressionInvocation, 'void');
   }
 
   Future<void>
@@ -1688,7 +1688,7 @@ _f(int/*?*/ x) {
     await analyze('int f(num x) => x;');
     var xRef = findNode.simple('x;');
     visitSubexpression(xRef, 'int', changes: {
-      xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo(
+      xRef: isNodeChangeForExpression.havingIntroduceAsWithInfo(
           'int',
           isInfo(NullabilityFixDescription.downcastExpression,
               {FixReasonTarget.root: isEdge}))
@@ -3329,6 +3329,7 @@ _f(_C<int> c) => (c).x;
 
   Future<void> test_removeLanguageVersionComment() async {
     await analyze('''
+// ignore: illegal_language_version_override
 // @dart = 2.6
 void main() {}
 ''');
@@ -3338,6 +3339,7 @@ void main() {}
   Future<void> test_removeLanguageVersionComment_withCopyright() async {
     await analyze('''
 // Some copyright notice here...
+// ignore: illegal_language_version_override
 // @dart = 2.6
 void main() {}
 ''');
@@ -3525,12 +3527,7 @@ int f(Object o) {
 }
 ''');
     var xRef = findNode.simple('o;');
-    visitSubexpression(xRef, 'int', changes: {
-      xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo(
-          'int',
-          isInfo(NullabilityFixDescription.otherCastExpression,
-              {FixReasonTarget.root: isEdge}))
-    });
+    visitSubexpression(xRef, 'int', changes: {xRef: isNoValidMigration});
   }
 
   Future<void> test_symbolLiteral() async {
@@ -3949,7 +3946,7 @@ extension _NodeChangeForExpressionExtension<T extends NodeChangeForExpression>
           .having((c) => c.expressionChangeInfos.single,
               'expressionChangeInfos.single', infoMatcher);
 
-  TypeMatcher<T> havingIndroduceAsWithInfo(
+  TypeMatcher<T> havingIntroduceAsWithInfo(
           dynamic typeStringMatcher, dynamic infoMatcher) =>
       havingExpressionChange(
           TypeMatcher<IntroduceAsChange>().having(

@@ -347,8 +347,12 @@ class VMTestSuite extends TestSuite {
       test.name
     ];
 
-    var command = ProcessCommand(
+    Command command = ProcessCommand(
         'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
+    var isCrashExpected = expectations.contains(Expectation.crash);
+    if (configuration.rr && !isCrashExpected) {
+      command = RRCommand(command as ProcessCommand);
+    }
     _addTestCase(testFile, fullName, [command], expectations, onTest);
   }
 
@@ -1007,7 +1011,6 @@ class StandardTestSuite extends TestSuite {
     args.addAll(additionalOptions(testFile.path));
     if (configuration.compiler == Compiler.dart2analyzer) {
       args.add('--format=json');
-      args.add('--no-hints');
     }
 
     args.add(testFile.path.toNativePath());

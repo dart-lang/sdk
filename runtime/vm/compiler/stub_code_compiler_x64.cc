@@ -633,7 +633,7 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       __ j(BELOW, &length);
 #endif
       {
-        // Allocate a mint, reload the two registers and popualte the mint.
+        // Allocate a mint, reload the two registers and populate the mint.
         __ PushImmediate(Immediate(0));
         __ CallRuntime(kAllocateMintRuntimeEntry, /*argument_count=*/0);
         __ PopRegister(RangeErrorABI::kIndexReg);
@@ -1560,11 +1560,11 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 }
 
 // Helper to generate space allocation of context stub.
-// This does not initialise the fields of the context.
+// This does not initialize the fields of the context.
 // Input:
 //   R10: number of context variables.
 // Output:
-//   RAX: new, uinitialised allocated Context object.
+//   RAX: new, uninitialized allocated Context object.
 // Clobbered:
 //   R13
 static void GenerateAllocateContextSpaceStub(Assembler* assembler,
@@ -1652,7 +1652,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Setup the parent field.
     // RAX: new object.
-    // R9: Parent object, initialised to null.
+    // R9: Parent object, initialized to null.
     // No generational barrier needed, since we are storing null.
     __ StoreCompressedIntoObjectNoBarrier(
         RAX, FieldAddress(RAX, target::Context::parent_offset()), R9);
@@ -2126,8 +2126,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   classid_t cls_id = target::Class::GetId(cls);
   ASSERT(cls_id != kIllegalCid);
 
-  RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
-
   const intptr_t cls_type_arg_field_offset =
       target::Class::TypeArgumentsFieldOffset(cls);
 
@@ -2138,9 +2136,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
 
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
-  // User-defined classes should always be allocatable in new space.
-  RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
-
   const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
@@ -2152,6 +2147,9 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   if (!FLAG_use_slow_path && FLAG_inline_alloc &&
       !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
+    RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
+    RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
+
     if (is_cls_parameterized) {
       if (!IsSameObject(NullObject(),
                         CastHandle<Object>(allocat_object_parametrized))) {
@@ -3182,7 +3180,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   Label exit_through_non_ffi;
   // Check if we exited generated from FFI. If so do transition - this is needed
   // because normally runtime calls transition back to generated via destructor
-  // of TransititionGeneratedToVM/Native that is part of runtime boilerplate
+  // of TransitionGeneratedToVM/Native that is part of runtime boilerplate
   // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
   // have this boilerplate, don't have this stack resource, have to transition
   // explicitly.

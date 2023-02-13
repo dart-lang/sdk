@@ -448,6 +448,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForBadFunctionUse(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
+      _checkForMixinClassErrorCodes(node, members, superclass, withClause);
       _reportMacroApplicationErrors(
         annotations: node.metadata,
         macroErrors: element.macroApplicationErrors,
@@ -476,6 +477,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkClassInheritance(
           node, node.superclass, node.withClause, node.implementsClause);
       _checkForMainFunction1(node.name, node.declaredElement!);
+      _checkForMixinClassErrorCodes(
+          node, List.empty(), node.superclass, node.withClause);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
     } finally {
       _enclosingClass = outerClassElement;
@@ -554,19 +557,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitConstructorReference(ConstructorReference node) {
     _typeArgumentsVerifier.checkConstructorReference(node);
     _checkForInvalidGenerativeConstructorReference(node.constructorName);
-  }
-
-  @override
-  void visitContinueStatement(ContinueStatement node) {
-    var labelNode = node.label;
-    if (labelNode != null) {
-      var labelElement = labelNode.staticElement;
-      if (labelElement is LabelElementImpl &&
-          labelElement.isOnSwitchStatement) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, labelNode);
-      }
-    }
   }
 
   @override
@@ -919,7 +909,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       } else {
         _checkForNewWithUndefinedConstructor(node, constructorName, namedType);
       }
-      _checkForListConstructor(node, type);
     }
     _checkForImplicitDynamicType(namedType);
     super.visitInstanceCreationExpression(node);
@@ -1405,6 +1394,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkMixinsSuperClass(withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       _checkForConflictingGenerics(node);
+      _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
+      _checkForInterfaceClassOrMixinSuperclassOutsideOfLibrary(
+          superclass, withClause);
+      _checkForFinalSupertypeOutsideOfLibrary(
+          superclass, withClause, implementsClause);
+      _checkForClassUsedAsMixin(withClause);
+      _checkForSealedSupertypeOutsideOfLibrary(
+          superclass, withClause, implementsClause);
       if (node is ClassDeclaration) {
         _checkForNoDefaultSuperConstructorImplicit(node);
       }
@@ -1499,8 +1496,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               problemReported = true;
             }
           } else {
-            if (_checkForMixinClassDeclaresConstructor(
-                mixinName, mixinElement)) {
+            bool isMixinClass =
+                mixinElement is ClassElementImpl && mixinElement.isMixinClass;
+            if (!isMixinClass &&
+                _checkForMixinClassDeclaresConstructor(
+                    mixinName, mixinElement)) {
               problemReported = true;
             }
             if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
@@ -1704,7 +1704,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var superElement = extendsClause.superclass.name.staticElement;
       if (superElement != null && superElement.name == "Function") {
         errorReporter.reportErrorForNode(
-            HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
+            WarningCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
       }
     }
 
@@ -1713,7 +1713,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var type = interface.type;
         if (type != null && type.isDartCoreFunction) {
           errorReporter.reportErrorForNode(
-            HintCode.DEPRECATED_IMPLEMENTS_FUNCTION,
+            WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION,
             interface,
           );
           break;
@@ -1726,7 +1726,38 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var mixinElement = type.name.staticElement;
         if (mixinElement != null && mixinElement.name == "Function") {
           errorReporter.reportErrorForNode(
-              HintCode.DEPRECATED_MIXIN_FUNCTION, type);
+              WarningCode.DEPRECATED_MIXIN_FUNCTION, type);
+        }
+      }
+    }
+  }
+
+  /// Verify that if a class is implementing a base class or mixin, it must be
+  /// within the same library as that class or mixin.
+  ///
+  /// See [CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY].
+  void _checkForBaseClassOrMixinImplementedOutsideOfLibrary(
+      ImplementsClause? implementsClause) {
+    if (implementsClause == null) return;
+    for (NamedType interface in implementsClause.interfaces) {
+      final interfaceType = interface.type;
+      if (interfaceType is InterfaceType) {
+        final interfaceElement = interfaceType.element;
+        if (interfaceElement is ClassOrMixinElementImpl &&
+            interfaceElement.isBase &&
+            interfaceElement.library != _currentLibrary) {
+          if (interfaceElement is ClassElement) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                interface,
+                [interfaceElement.name]);
+          } else if (interfaceElement is MixinElement) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                interface,
+                [interfaceElement.name]);
+          }
         }
       }
     }
@@ -1800,6 +1831,34 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       SwitchMember member = members[i];
       if (member is SwitchCase) {
         _checkForCaseBlockNotTerminated(member);
+      }
+    }
+  }
+
+  /// Verify that if a class is being mixed in and class modifiers are enabled
+  /// in that class' library, then the mixin application must be in the same
+  /// library as that class declaration.
+  ///
+  /// No error is emitted if the class being mixed in is a mixin class.
+  ///
+  /// See [CompileTimeErrorCode.CLASS_USED_AS_MIXIN].
+  void _checkForClassUsedAsMixin(WithClause? withClause) {
+    if (withClause != null) {
+      for (NamedType withMixin in withClause.mixinTypes) {
+        final withType = withMixin.type;
+        if (withType is InterfaceType) {
+          final withElement = withType.element;
+          if (withElement is ClassElementImpl &&
+              !withElement.isMixinClass &&
+              withElement.library != _currentLibrary &&
+              withElement.library.featureSet
+                  .isEnabled(Feature.class_modifiers)) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CLASS_USED_AS_MIXIN,
+                withMixin,
+                [withElement.name]);
+          }
+        }
       }
     }
   }
@@ -2788,6 +2847,69 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  /// Check that if a direct supertype of a node is final, then it must be in
+  /// the same library.
+  ///
+  /// See [CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY].
+  void _checkForFinalSupertypeOutsideOfLibrary(NamedType? superclass,
+      WithClause? withClause, ImplementsClause? implementsClause) {
+    if (superclass != null) {
+      final type = superclass.type;
+      if (type is InterfaceType) {
+        final element = type.element;
+        if (element is ClassElementImpl &&
+            element.isFinal &&
+            element.library != _currentLibrary) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+              superclass,
+              [element.name]);
+        }
+      }
+    }
+    if (withClause != null) {
+      for (NamedType namedType in withClause.mixinTypes) {
+        final type = namedType.type;
+        if (type is InterfaceType) {
+          final element = type.element;
+          if (element is MixinElementImpl &&
+              element.isFinal &&
+              element.library != _currentLibrary) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY,
+                namedType,
+                [element.name]);
+          }
+        }
+      }
+    }
+    if (implementsClause != null) {
+      for (NamedType namedType in implementsClause.interfaces) {
+        final type = namedType.type;
+        if (type is InterfaceType) {
+          final element = type.element;
+          if (element is ClassOrMixinElementImpl &&
+              element.isFinal &&
+              element.library != _currentLibrary) {
+            final ErrorCode errorCode;
+            if (element is ClassElement) {
+              errorCode = CompileTimeErrorCode
+                  .FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
+            } else {
+              errorCode = CompileTimeErrorCode
+                  .FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
+            }
+            errorReporter
+                .reportErrorForNode(errorCode, namedType, [element.name]);
+          }
+        }
+      }
+    }
+  }
+
   void _checkForGenericFunctionType(TypeAnnotation? node) {
     if (node == null) {
       return;
@@ -2818,13 +2940,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.reportErrorForToken(
         CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE,
         languageVersionToken,
-        ['$sourceLanguageConstraint'],
-      );
-    } else {
-      errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE,
-        0,
-        0,
         ['$sourceLanguageConstraint'],
       );
     }
@@ -2978,6 +3093,48 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (enclosingElement is! InterfaceElement) {
           // OK, top-level element
           return;
+        }
+      }
+    }
+  }
+
+  /// Verify that if a class is extending an interface class or mixing in an
+  /// interface mixin, it must be within the same library as that class or
+  /// mixin.
+  ///
+  /// See
+  /// [CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY].
+  void _checkForInterfaceClassOrMixinSuperclassOutsideOfLibrary(
+      NamedType? superclass, WithClause? withClause) {
+    if (superclass != null) {
+      final superclassType = superclass.type;
+      if (superclassType is InterfaceType) {
+        final superclassElement = superclassType.element;
+        if (superclassElement is ClassElementImpl &&
+            superclassElement.isInterface &&
+            superclassElement.library != _currentLibrary) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+              superclass,
+              [superclassElement.name]);
+        }
+      }
+    }
+    if (withClause != null) {
+      for (NamedType withMixin in withClause.mixinTypes) {
+        final withType = withMixin.type;
+        if (withType is InterfaceType) {
+          final withElement = withType.element;
+          if (withElement is MixinElementImpl &&
+              withElement.isInterface &&
+              withElement.library != _currentLibrary) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode
+                    .INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY,
+                withMixin,
+                [withElement.name]);
+          }
         }
       }
     }
@@ -3167,18 +3324,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     );
   }
 
-  void _checkForListConstructor(
-      InstanceCreationExpression node, InterfaceType type) {
-    if (!_isNonNullableByDefault) return;
-
-    if (node.constructorName.name == null && type.isDartCoreList) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR,
-        node.constructorName,
-      );
-    }
-  }
-
   /// Verify that the elements of the given list [literal] are subtypes of the
   /// list's static type.
   ///
@@ -3319,6 +3464,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// an enum type either have a default case or include all of the enum
   /// constants.
   void _checkForMissingEnumConstantInSwitch(SwitchStatement statement) {
+    if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
+      // Exhaustiveness checking cover this warning.
+      return;
+    }
+
     // TODO(brianwilkerson) This needs to be checked after constant values have
     // been computed.
     var expressionType = statement.expression.staticType;
@@ -3401,6 +3551,50 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
     return false;
+  }
+
+  /// Verify that mixin classes must have 'Object' as their superclass and that
+  /// they do not have a constructor.
+  ///
+  /// See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
+  /// [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
+  void _checkForMixinClassErrorCodes(
+      NamedCompilationUnitMember node,
+      List<ClassMember> members,
+      NamedType? superclass,
+      WithClause? withClause) {
+    final element = node.declaredElement;
+    if (element is ClassElementImpl && element.isMixinClass) {
+      // Check that the class does not have a constructor.
+      for (ClassMember member in members) {
+        if (member is ConstructorDeclaration) {
+          if (!member.isSynthetic && member.factoryKeyword == null) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
+                member.returnType,
+                [element.name]);
+          }
+        }
+      }
+      // Check that the class has 'Object' as their superclass.
+      final supertype = element.supertype;
+      if (superclass != null &&
+          supertype != null &&
+          !supertype.isDartCoreObject) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
+          superclass,
+          [element.name],
+        );
+      } else if (withClause != null &&
+          !(element.isMixinApplication && withClause.mixinTypes.length < 2)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
+          withClause,
+          [element.name],
+        );
+      }
+    }
   }
 
   /// Verify that the given mixin has the 'Object' superclass.
@@ -3491,11 +3685,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           forMixinIndex: mixinIndex, concrete: true, forSuper: true);
 
       if (superMember == null) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode
-                .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
-            mixinName.name,
-            [name]);
+        var isSetter = name.endsWith('=');
+
+        var errorCode = isSetter
+            ? CompileTimeErrorCode
+                .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER
+            : CompileTimeErrorCode
+                .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER;
+
+        if (isSetter) {
+          name = name.substring(0, name.length - 1);
+        }
+
+        errorReporter.reportErrorForNode(errorCode, mixinName.name, [name]);
         return true;
       }
 
@@ -3544,10 +3746,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     bool isConflictingName(
         String name, LibraryElement library, NamedType namedType) {
       if (Identifier.isPrivateName(name)) {
-        Map<String, String> names =
-            mixedInNames.putIfAbsent(library, () => <String, String>{});
+        Map<String, String> names = mixedInNames.putIfAbsent(library, () => {});
         var conflictingName = names[name];
         if (conflictingName != null) {
+          if (name.endsWith('=')) {
+            name = name.substring(0, name.length - 1);
+          }
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
               namedType,
@@ -3561,6 +3765,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           concrete: true,
         );
         if (inheritedMember != null) {
+          if (name.endsWith('=')) {
+            name = name.substring(0, name.length - 1);
+          }
           // Inherited members are always contained inside named elements, so we
           // can safely assume `inheritedMember.enclosingElement3.name` is
           // non-`null`.
@@ -3976,7 +4183,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// If e is -n and n is an integer literal, then
   ///   - If the context type is double, it is a compile-time error if the
-  ///   numerical value of n is not precisley representable by a double.
+  ///   numerical value of n is not precisely representable by a double.
   ///   Otherwise the static type of e is double and the result of evaluating e
   ///   is the result of calling the unary minus operator on a double instance
   ///   representing the numerical value of n.
@@ -4204,6 +4411,47 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, body);
   }
 
+  /// Check that if a direct supertype of a node is sealed, then it must be in
+  /// the same library.
+  ///
+  /// See [CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY].
+  void _checkForSealedSupertypeOutsideOfLibrary(NamedType? superclass,
+      WithClause? withClause, ImplementsClause? implementsClause) {
+    void reportErrorsForSealedClassesAndMixins(List<NamedType> namedTypes) {
+      for (NamedType namedType in namedTypes) {
+        final type = namedType.type;
+        if (type is InterfaceType) {
+          final element = type.element;
+          if (element is ClassOrMixinElementImpl &&
+              element.isSealed &&
+              element.library != _currentLibrary) {
+            final ErrorCode errorCode;
+            if (element is MixinElementImpl) {
+              errorCode =
+                  CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY;
+            } else {
+              errorCode =
+                  CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY;
+            }
+            errorReporter
+                .reportErrorForNode(errorCode, namedType, [element.name]);
+          }
+        }
+      }
+    }
+
+    if (superclass != null) {
+      reportErrorsForSealedClassesAndMixins([superclass]);
+    }
+    if (withClause != null) {
+      reportErrorsForSealedClassesAndMixins(withClause.mixinTypes);
+    }
+    if (implementsClause != null) {
+      reportErrorsForSealedClassesAndMixins(implementsClause.interfaces);
+    }
+  }
+
   /// Verify that the elements in the given set [literal] are subtypes of the
   /// set's static type.
   ///
@@ -4347,7 +4595,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           }
           if (step == parameters.length) {
             var element = parameter.declaredElement!;
-            // This error can only occur if there is a bound, so we can saefly
+            // This error can only occur if there is a bound, so we can safely
             // assume `element.bound` is non-`null`.
             errorReporter.reportErrorForToken(
               CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
@@ -4980,6 +5228,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
       _checkForConflictingGenerics(node);
+      _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
+      _checkForFinalSupertypeOutsideOfLibrary(null, null, implementsClause);
+      _checkForSealedSupertypeOutsideOfLibrary(null, null, implementsClause);
     }
   }
 

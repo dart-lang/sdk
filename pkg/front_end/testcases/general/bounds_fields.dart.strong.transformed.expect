@@ -1,0 +1,273 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:19:1: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// F<Object>? field7a, field7b; // Error
+// ^
+// pkg/front_end/testcases/general/bounds_fields.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:20:1: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// F<int>? field8a, field8b; // Error
+// ^
+// pkg/front_end/testcases/general/bounds_fields.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:27:1: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// G<Object>? field7c, field8d; // Error
+// ^
+// pkg/front_end/testcases/general/bounds_fields.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:28:1: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// G<int>? field8c, field7d; // Error
+// ^
+// pkg/front_end/testcases/general/bounds_fields.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:37:3: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   F<Object>? field7a, field7b; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_fields.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:38:3: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   F<int>? field8a, field8b; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_fields.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:45:3: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   G<Object>? field7c, field8d; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_fields.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:46:3: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   G<int>? field8c, field7d; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_fields.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:56:10: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   static F<Object>? field7a, field7b; // Error
+//          ^
+// pkg/front_end/testcases/general/bounds_fields.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:57:10: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   static F<int>? field8a, field8b; // Error
+//          ^
+// pkg/front_end/testcases/general/bounds_fields.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:64:10: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   static G<Object>? field7c, field8d; // Error
+//          ^
+// pkg/front_end/testcases/general/bounds_fields.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_fields.dart:65:10: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_fields.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   static G<int>? field8c, field7d; // Error
+//          ^
+// pkg/front_end/testcases/general/bounds_fields.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends self::Class<X> = self::Class<dynamic>> = X;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+}
+class ConcreteClass extends core::Object implements self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+}
+class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
+  synthetic constructor •() → self::G<self::G::X>
+    : super core::Object::•()
+    ;
+}
+class Class1 extends core::Object {
+  field self::Class<dynamic>? field1a = null;
+  field self::Class<dynamic>? field1b = null;
+  field dynamic field2a = null;
+  field dynamic field2b = null;
+  field self::Class<dynamic>? field3a = null;
+  field self::Class<dynamic>? field3b = null;
+  field self::Class<dynamic>? field4a = null;
+  field self::Class<dynamic>? field4b = null;
+  field self::ConcreteClass? field5a = null;
+  field self::ConcreteClass? field5b = null;
+  field self::Class<self::ConcreteClass>? field6a = null;
+  field self::Class<self::ConcreteClass>? field6b = null;
+  field core::Object? field7a = null;
+  field core::Object? field7b = null;
+  field core::int? field8a = null;
+  field core::int? field8b = null;
+  field self::G<self::Class<dynamic>>? field1c = null;
+  field self::G<self::Class<dynamic>>? field1d = null;
+  field self::G<dynamic>? field2c = null;
+  field self::G<dynamic>? field2d = null;
+  field self::G<self::Class<dynamic>>? field3c = null;
+  field self::G<self::Class<dynamic>>? field3d = null;
+  field self::G<self::Class<dynamic>>? field4c = null;
+  field self::G<self::Class<dynamic>>? field4d = null;
+  field self::G<self::ConcreteClass>? field5c = null;
+  field self::G<self::ConcreteClass>? field5d = null;
+  field self::G<self::Class<self::ConcreteClass>>? field6c = null;
+  field self::G<self::Class<self::ConcreteClass>>? field6d = null;
+  field self::G<core::Object>? field7c = null;
+  field self::G<core::Object>? field8d = null;
+  field self::G<core::int>? field8c = null;
+  field self::G<core::int>? field7d = null;
+  synthetic constructor •() → self::Class1
+    : super core::Object::•()
+    ;
+}
+extension Extension1 on core::int {
+  static field field1a = self::Extension1|field1a;
+  static field field1b = self::Extension1|field1b;
+  static field field2a = self::Extension1|field2a;
+  static field field2b = self::Extension1|field2b;
+  static field field3a = self::Extension1|field3a;
+  static field field3b = self::Extension1|field3b;
+  static field field4a = self::Extension1|field4a;
+  static field field4b = self::Extension1|field4b;
+  static field field5a = self::Extension1|field5a;
+  static field field5b = self::Extension1|field5b;
+  static field field6a = self::Extension1|field6a;
+  static field field6b = self::Extension1|field6b;
+  static field field7a = self::Extension1|field7a;
+  static field field7b = self::Extension1|field7b;
+  static field field8a = self::Extension1|field8a;
+  static field field8b = self::Extension1|field8b;
+  static field field1c = self::Extension1|field1c;
+  static field field1d = self::Extension1|field1d;
+  static field field2c = self::Extension1|field2c;
+  static field field2d = self::Extension1|field2d;
+  static field field3c = self::Extension1|field3c;
+  static field field3d = self::Extension1|field3d;
+  static field field4c = self::Extension1|field4c;
+  static field field4d = self::Extension1|field4d;
+  static field field5c = self::Extension1|field5c;
+  static field field5d = self::Extension1|field5d;
+  static field field6c = self::Extension1|field6c;
+  static field field6d = self::Extension1|field6d;
+  static field field7c = self::Extension1|field7c;
+  static field field8d = self::Extension1|field8d;
+  static field field8c = self::Extension1|field8c;
+  static field field7d = self::Extension1|field7d;
+}
+static field self::Class<dynamic>? field1a;
+static field self::Class<dynamic>? field1b;
+static field dynamic field2a;
+static field dynamic field2b;
+static field self::Class<dynamic>? field3a;
+static field self::Class<dynamic>? field3b;
+static field self::Class<dynamic>? field4a;
+static field self::Class<dynamic>? field4b;
+static field self::ConcreteClass? field5a;
+static field self::ConcreteClass? field5b;
+static field self::Class<self::ConcreteClass>? field6a;
+static field self::Class<self::ConcreteClass>? field6b;
+static field core::Object? field7a;
+static field core::Object? field7b;
+static field core::int? field8a;
+static field core::int? field8b;
+static field self::G<self::Class<dynamic>>? field1c;
+static field self::G<self::Class<dynamic>>? field1d;
+static field self::G<dynamic>? field2c;
+static field self::G<dynamic>? field2d;
+static field self::G<self::Class<dynamic>>? field3c;
+static field self::G<self::Class<dynamic>>? field3d;
+static field self::G<self::Class<dynamic>>? field4c;
+static field self::G<self::Class<dynamic>>? field4d;
+static field self::G<self::ConcreteClass>? field5c;
+static field self::G<self::ConcreteClass>? field5d;
+static field self::G<self::Class<self::ConcreteClass>>? field6c;
+static field self::G<self::Class<self::ConcreteClass>>? field6d;
+static field self::G<core::Object>? field7c;
+static field self::G<core::Object>? field8d;
+static field self::G<core::int>? field8c;
+static field self::G<core::int>? field7d;
+static field self::Class<dynamic>? Extension1|field1a;
+static field self::Class<dynamic>? Extension1|field1b;
+static field dynamic Extension1|field2a;
+static field dynamic Extension1|field2b;
+static field self::Class<dynamic>? Extension1|field3a;
+static field self::Class<dynamic>? Extension1|field3b;
+static field self::Class<dynamic>? Extension1|field4a;
+static field self::Class<dynamic>? Extension1|field4b;
+static field self::ConcreteClass? Extension1|field5a;
+static field self::ConcreteClass? Extension1|field5b;
+static field self::Class<self::ConcreteClass>? Extension1|field6a;
+static field self::Class<self::ConcreteClass>? Extension1|field6b;
+static field core::Object? Extension1|field7a;
+static field core::Object? Extension1|field7b;
+static field core::int? Extension1|field8a;
+static field core::int? Extension1|field8b;
+static field self::G<self::Class<dynamic>>? Extension1|field1c;
+static field self::G<self::Class<dynamic>>? Extension1|field1d;
+static field self::G<dynamic>? Extension1|field2c;
+static field self::G<dynamic>? Extension1|field2d;
+static field self::G<self::Class<dynamic>>? Extension1|field3c;
+static field self::G<self::Class<dynamic>>? Extension1|field3d;
+static field self::G<self::Class<dynamic>>? Extension1|field4c;
+static field self::G<self::Class<dynamic>>? Extension1|field4d;
+static field self::G<self::ConcreteClass>? Extension1|field5c;
+static field self::G<self::ConcreteClass>? Extension1|field5d;
+static field self::G<self::Class<self::ConcreteClass>>? Extension1|field6c;
+static field self::G<self::Class<self::ConcreteClass>>? Extension1|field6d;
+static field self::G<core::Object>? Extension1|field7c;
+static field self::G<core::Object>? Extension1|field8d;
+static field self::G<core::int>? Extension1|field8c;
+static field self::G<core::int>? Extension1|field7d;
+static method main() → dynamic {}

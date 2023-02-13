@@ -997,7 +997,7 @@ class TestInfoListener implements Listener {
 
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token inKeyword) {
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
     calls.add('handleForInLoopParts '
         '$awaitToken $forToken $leftParenthesis $inKeyword');
   }

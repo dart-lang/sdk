@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// OtherResources=splay_test.dart
+// OtherResources=splay_test.dart splay_common.dart
 
 // Tests AOT kernel generation split into 2 steps using '--from-dill' option.
 

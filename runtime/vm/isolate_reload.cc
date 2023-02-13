@@ -199,7 +199,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
         mapping->Add({from_field.HostOffset(), from_box_cid});
         mapping->Add({to_field.HostOffset(), to_box_cid});
 
-        // Field did exist in old class deifnition.
+        // Field did exist in old class definition.
         new_field = false;
         break;
       }
@@ -656,6 +656,28 @@ static ObjectPtr AcceptCompilation(Thread* thread) {
   return Object::null();
 }
 
+static ObjectPtr RejectCompilation(Thread* thread) {
+  TransitionVMToNative transition(thread);
+  Dart_KernelCompilationResult result = KernelIsolate::RejectCompilation();
+  if (result.status != Dart_KernelCompilationStatus_Ok) {
+    if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
+      FATAL1(
+          "An error occurred while rejecting the most recent"
+          " compilation results: %s",
+          result.error);
+    }
+    TIR_Print(
+        "An error occurred while rejecting the most recent"
+        " compilation results: %s",
+        result.error);
+    Zone* zone = thread->zone();
+    const auto& error_str = String::Handle(zone, String::New(result.error));
+    free(result.error);
+    return ApiError::New(error_str);
+  }
+  return Object::null();
+}
+
 // If [root_script_url] is null, attempt to load from [kernel_buffer].
 bool IsolateGroupReloadContext::Reload(bool force_reload,
                                        const char* root_script_url,
@@ -711,6 +733,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           AddReasonForCancelling(new Aborted(Z, error));
           ReportReasonsForCancelling();
           CommonFinalizeTail(num_old_libs_);
+
+          RejectCompilation(thread);
           return false;
         }
       }
@@ -1136,7 +1160,7 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
         /*snapshot_compile=*/false,
         /*package_config=*/nullptr,
         /*multiroot_filepaths=*/nullptr,
-        /*multiroot_scheme=*/nullptr, FLAG_sound_null_safety);
+        /*multiroot_scheme=*/nullptr);
   }
   if (retval.status != Dart_KernelCompilationStatus_Ok) {
     if (retval.kernel != nullptr) {
@@ -1361,7 +1385,7 @@ void ProgramReloadContext::CheckpointClasses() {
 
   // Before this operation class table which is used for heap scanning and
   // the class table used for program loading are the same. After this step
-  // they will become different until reload is commited (or rolled back).
+  // they will become different until reload is committed (or rolled back).
   //
   // Note that because GC is always reading from heap_walk_class_table and
   // we are not changing that, there is no reason to wait for sweeping
@@ -2323,15 +2347,14 @@ class FieldInvalidator {
     }
 
     const Record& record = Record::Cast(value);
-    const intptr_t num_fields = record.num_fields();
-    if (num_fields != type.NumFields() ||
-        record.field_names() != type.field_names()) {
+    if (record.shape() != type.shape()) {
       return false;
     }
 
     // This method can be called recursively, so cannot reuse handles.
     auto& field_value = Object::Handle(zone_);
     auto& field_type = AbstractType::Handle(zone_);
+    const intptr_t num_fields = record.num_fields();
     for (intptr_t i = 0; i < num_fields; ++i) {
       field_value = record.FieldAt(i);
       field_type = type.FieldTypeAt(i);

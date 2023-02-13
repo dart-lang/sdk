@@ -622,7 +622,7 @@ const x = (0, f1: 10, f2: 2.3);
     assertDartObjectText(value, r'''
 Record
   positionalFields
-    $0: int 0
+    $1: int 0
   namedFields
     f1: int 10
     f2: double 2.3
@@ -654,9 +654,9 @@ const x = (20, 0, 7);
     assertDartObjectText(value, r'''
 Record
   positionalFields
-    $0: int 20
-    $1: int 0
-    $2: int 7
+    $1: int 20
+    $2: int 0
+    $3: int 7
   variable: self::@variable::x
 ''');
   }

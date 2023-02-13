@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of swarmlib;
 
 /// The base class for UI state that intends to support browser history.
 abstract class UIState {
   /// The event listener we hook to the window's "popstate" event.
   /// This event is triggered by the back button or by the first page load.
-  StreamSubscription _historyTracking;
+  StreamSubscription? _historyTracking;
 
   UIState();
 
@@ -43,7 +41,7 @@ abstract class UIState {
 
   void stopHistoryTracking() {
     if (_historyTracking != null) {
-      _historyTracking.cancel();
+      _historyTracking!.cancel();
     }
   }
 

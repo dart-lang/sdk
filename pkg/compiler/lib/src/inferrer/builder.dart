@@ -729,7 +729,21 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
   @override
   TypeInformation visitRecordLiteral(ir.RecordLiteral node) {
-    return defaultExpression(node);
+    final recordType = _elementMap.getDartType(node.recordType) as RecordType;
+    final fieldValues = [
+      for (final expression in node.positional) visit(expression)!,
+      for (final namedExpression in node.named) visit(namedExpression.value)!
+    ];
+    return createRecordTypeInformation(node, recordType, fieldValues,
+        isConst: node.isConst);
+  }
+
+  TypeInformation createRecordTypeInformation(
+      ir.TreeNode node, RecordType recordType, List<TypeInformation> fieldTypes,
+      {required bool isConst}) {
+    return _inferrer.concreteTypes.putIfAbsent(node, () {
+      return _types.allocateRecord(node, recordType, fieldTypes, isConst);
+    });
   }
 
   @override
@@ -1685,6 +1699,31 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     return _handlePropertyGet(node, node.receiver);
   }
 
+  TypeInformation _handleRecordFieldGet(
+      ir.Expression node, ir.Expression receiver, int indexInShape) {
+    visit(receiver)!;
+    _typeOfReceiver(node, receiver);
+    // TODO(49718): Add a new TypeInformation node for a direct Record field
+    // access.
+    // For now, use the static type.
+    // TODO(50081): Use `_types.getConcreteTypeFor(<something>)`.
+    TypeInformation type = _types.dynamicType;
+    type = _types.narrowType(type, _getStaticType(node));
+    return type;
+  }
+
+  @override
+  TypeInformation visitRecordIndexGet(ir.RecordIndexGet node) {
+    return _handleRecordFieldGet(node, node.receiver, node.index);
+  }
+
+  @override
+  TypeInformation visitRecordNameGet(ir.RecordNameGet node) {
+    int index =
+        indexOfNameInRecordShapeOfRecordType(node.receiverType, node.name);
+    return _handleRecordFieldGet(node, node.receiver, index);
+  }
+
   @override
   TypeInformation visitFunctionTearOff(ir.FunctionTearOff node) {
     return _handlePropertyGet(node, node.receiver);
@@ -2014,7 +2053,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     _state = LocalState.tryBlock(stateBefore, node);
     _state.markInitializationAsIndefinite();
     visit(node.body);
-    final stateAfterBody = _state;
+    final stateAfterTry = _state;
     // If the try block contains a throw, then `stateAfterBody.aborts` will be
     // true. The catch needs to be aware of the results of inference from the
     // try block since we may get there via the abortive control flow:
@@ -2040,15 +2079,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     // } catch (_) {
     //   print(x + 42); <-- x cannot be 0 here.
     // }
-    _state =
-        stateBefore.mergeFlow(_inferrer, stateAfterBody, ignoreAborts: true);
+    _state = stateBefore.mergeTry(_inferrer, stateAfterTry);
     for (ir.Catch catchBlock in node.catches) {
       final stateBeforeCatch = _state;
       _state = LocalState.childPath(stateBeforeCatch);
       visit(catchBlock);
       final stateAfterCatch = _state;
-      _state = stateBeforeCatch.mergeFlow(_inferrer, stateAfterCatch);
+      _state = stateBeforeCatch.mergeCatch(_inferrer, stateAfterCatch);
     }
+
     return null;
   }
 
@@ -2058,7 +2097,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     _state = LocalState.tryBlock(stateBefore, node);
     _state.markInitializationAsIndefinite();
     visit(node.body);
-    final stateAfterBody = _state;
     // Even if the try block contains abortive control flow, the finally block
     // needs to be aware of the results of inference from the try block since we
     // still reach the finally after abortive control flow:
@@ -2071,9 +2109,20 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     // } finally {
     //   print(x + 42); <-- x may be 0 here.
     // }
-    _state =
-        stateBefore.mergeFlow(_inferrer, stateAfterBody, ignoreAborts: true);
+    _state = stateBefore.mergeTry(_inferrer, _state);
+    final stateBeforeFinalizer = _state;
+    // Use a child path to reset abort state before continuing into the
+    // `finally` block.
+    _state = LocalState.childPath(stateBeforeFinalizer);
     visit(node.finalizer);
+    // Continue with a copy of the state after the finalizer since control flow
+    // should continue linearly. Update abort state to account for try/catch
+    // aborting.
+    _state = LocalState.childPath(_state)
+      ..seenReturnOrThrow =
+          _state.seenReturnOrThrow || stateBeforeFinalizer.seenReturnOrThrow
+      ..seenBreakOrContinue = _state.seenBreakOrContinue ||
+          stateBeforeFinalizer.seenBreakOrContinue;
     return null;
   }
 
@@ -2092,7 +2141,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       Local local = _localsMap.getLocalVariable(exception);
       _state.updateLocal(
           _inferrer, _capturedAndBoxed, local, mask, _dartTypes.dynamicType(),
-          excludeNull: true /* `throw null` produces a NullThrownError */);
+          excludeNull: true /* `throw null` produces a TypeError */);
     }
     final stackTrace = node.stackTrace;
     if (stackTrace != null) {
@@ -2328,7 +2377,15 @@ class TypeInformationConstantVisitor
 
   @override
   TypeInformation visitRecordConstant(ir.RecordConstant node) {
-    return defaultConstant(node);
+    final recordType =
+        builder._elementMap.getDartType(node.recordType) as RecordType;
+    final fieldValues = [
+      for (final value in node.positional) visitConstant(value),
+      for (final value in node.named.values) visitConstant(value)
+    ];
+    return builder.createRecordTypeInformation(
+        ConstantReference(expression, node), recordType, fieldValues,
+        isConst: true);
   }
 
   @override
@@ -2467,18 +2524,25 @@ class LocalState {
     }
   }
 
-  LocalState mergeFlow(InferrerEngine inferrer, LocalState other,
-      {bool ignoreAborts = false}) {
-    seenReturnOrThrow = false;
-    seenBreakOrContinue = false;
-
-    if (!ignoreAborts && other.aborts) {
-      return this;
-    }
-    LocalsHandler locals = _locals.mergeFlow(inferrer, other._locals);
+  LocalState mergeTry(InferrerEngine inferrer, LocalState other) {
+    final locals = _locals.mergeFlow(inferrer, other._locals);
     return LocalState.internal(locals, _fields, _tryBlock,
-        seenReturnOrThrow: seenReturnOrThrow,
-        seenBreakOrContinue: seenBreakOrContinue);
+        seenReturnOrThrow: seenReturnOrThrow || other.seenReturnOrThrow,
+        seenBreakOrContinue: seenBreakOrContinue || other.seenBreakOrContinue);
+  }
+
+  LocalState mergeCatch(InferrerEngine inferrer, LocalState other) {
+    LocalsHandler locals;
+    if (aborts) {
+      locals = other._locals;
+    } else if (other.aborts) {
+      locals = _locals;
+    } else {
+      locals = _locals.mergeFlow(inferrer, other._locals);
+    }
+    return LocalState.internal(locals, _fields, _tryBlock,
+        seenReturnOrThrow: seenReturnOrThrow && other.seenReturnOrThrow,
+        seenBreakOrContinue: seenBreakOrContinue && other.seenReturnOrThrow);
   }
 
   LocalState mergeDiamondFlow(

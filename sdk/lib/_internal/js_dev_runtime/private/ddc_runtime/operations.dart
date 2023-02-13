@@ -456,12 +456,36 @@ dsetindex(obj, index, value) =>
 @notNull
 @JSExportName('is')
 bool instanceOf(obj, type) {
-  if (obj == null) {
-    return _equalType(type, Null) ||
-        _isTop(type) ||
-        _jsInstanceOf(type, NullableType);
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    var testRti = JS<rti.Rti>('!', '#', type);
+    // When running without sound null safety is type tests are dispatched here
+    // to issue optional warnings/errors when the result is true but would be
+    // false with sound null safety.
+    var legacyErasedRecipe =
+        rti.Rti.getLegacyErasedRecipe(JS<rti.Rti>('!', '#', testRti));
+    var legacyErasedType = rti.findType(legacyErasedRecipe);
+    legacyTypeChecks = false;
+    var result = JS<bool>('bool', '#.#(#)', legacyErasedType,
+        JS_GET_NAME(JsGetName.RTI_FIELD_IS), obj);
+    legacyTypeChecks = true;
+    if (result) return true;
+    result =
+        JS('bool', '#.#(#)', testRti, JS_GET_NAME(JsGetName.RTI_FIELD_IS), obj);
+    if (result) {
+      // Type test passes put would fail with sound null safety.
+      var t1 = runtimeType(obj);
+      var t2 = rti.createRuntimeType(testRti);
+      _nullWarn('$t1 is not a subtype of $t2.');
+    }
+    return result;
+  } else {
+    if (obj == null) {
+      return _equalType(type, Null) ||
+          _isTop(type) ||
+          _jsInstanceOf(type, NullableType);
+    }
+    return isSubtypeOf(getReifiedType(obj), type);
   }
-  return isSubtypeOf(getReifiedType(obj), type);
 }
 
 /// General implementation of the Dart `as` operator.
@@ -477,12 +501,33 @@ cast(obj, type) {
     // Check the null comparison cache to avoid emitting repeated warnings.
     _nullWarnOnType(type);
     return obj;
+  }
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    // When running without sound null safety casts are dispatched here to issue
+    // optional warnings/errors when casts pass but would fail with sound null
+    // safety.
+    var testRti = JS<rti.Rti>('!', '#', type);
+    var objRti = JS<rti.Rti>('!', '#', getReifiedType(obj));
+    var legacyErasedRecipe = rti.Rti.getLegacyErasedRecipe(testRti);
+    var legacyErasedType = rti.findType(legacyErasedRecipe);
+    legacyTypeChecks = false;
+    // Call `isSubtype()` to avoid throwing an error if it fails.
+    var result = rti.isSubtype(
+        JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), objRti, legacyErasedType);
+    legacyTypeChecks = true;
+    if (result) return obj;
+    // Perform the actual cast and allow the error to be thrown if it fails.
+    JS('bool', '#.#(#)', testRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS), obj);
+    // Subtype check passes put would fail with sound null safety.
+    var t1 = runtimeType(obj);
+    var t2 = rti.createRuntimeType(testRti);
+    _nullWarn('$t1 is not a subtype of $t2.');
+    return obj;
   } else {
     var actual = getReifiedType(obj);
     if (isSubtypeOf(actual, type)) return obj;
+    return castError(obj, type);
   }
-
-  return castError(obj, type);
 }
 
 bool test(bool? obj) {
@@ -768,6 +813,11 @@ defaultNoSuchMethod(obj, Invocation i) {
   throw NoSuchMethodError.withInvocation(obj, i);
 }
 
+// TODO(nshahan) Replace with rti.getRuntimeType() when classes representing
+// native types don't have to "pretend" to be Dart classes. Ex:
+// JSNumber -> int or double
+// JSArray<E> -> List<E>
+// NativeFloat32List -> Float32List
 runtimeType(obj) {
   return obj == null ? Null : JS('', '#[dartx.runtimeType]', obj);
 }

@@ -19,10 +19,9 @@ import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common/ram_usage.dart';
-import 'compiler_interfaces.dart' show CompilerDumpInfoFacade;
+import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
-import 'dump_info_javascript_monitor.dart';
 import 'elements/entities.dart';
 import 'elements/entity_utils.dart' as entity_utils;
 import 'elements/names.dart';
@@ -30,14 +29,14 @@ import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
-import 'js_model/js_strategy_interfaces.dart';
+import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart' show JClosedWorld;
 import 'js_backend/field_analysis.dart';
 import 'universe/world_impact.dart' show WorldImpact;
 import 'util/sink_adapter.dart';
 
 class ElementInfoCollector {
-  final CompilerDumpInfoFacade compiler;
+  final Compiler compiler;
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
@@ -434,7 +433,7 @@ class ElementInfoCollector {
 
 class KernelInfoCollector {
   final ir.Component component;
-  final CompilerDumpInfoFacade compiler;
+  final Compiler compiler;
   final JClosedWorld closedWorld;
   final DumpInfoTask dumpInfoTask;
   final state = DumpInfoStateData();
@@ -743,7 +742,7 @@ class EntityDisambiguator {
 /// analysis.
 class DumpInfoAnnotator {
   final KernelInfoCollector kernelInfo;
-  final CompilerDumpInfoFacade compiler;
+  final Compiler compiler;
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
@@ -1014,7 +1013,7 @@ class DumpInfoAnnotator {
           : "${function.enclosingClass.name}.${function.name}";
     }
 
-    // Multiple kernel members members can sometimes map to a single JElement.
+    // Multiple kernel members can sometimes map to a single JElement.
     // [isSetter] and [isGetter] are required for disambiguating these cases.
     final kFunctionInfos = kernelInfo.state.info.functions
         .where((i) =>
@@ -1139,9 +1138,8 @@ abstract class InfoReporter {
   void reportInlined(FunctionEntity element, MemberEntity inlinedFrom);
 }
 
-class DumpInfoTask extends CompilerTask
-    implements DumpInfoJavaScriptMonitor, InfoReporter {
-  final CompilerDumpInfoFacade compiler;
+class DumpInfoTask extends CompilerTask implements InfoReporter {
+  final Compiler compiler;
   final bool useBinaryFormat;
 
   DumpInfoTask(this.compiler)
@@ -1159,7 +1157,7 @@ class DumpInfoTask extends CompilerTask
   /// [registerEntityAst] is called.
   final Map<jsAst.Node, CodeSpan> _nodeData = <jsAst.Node, CodeSpan>{};
 
-  // A mapping from Dart Entities to Javascript AST Nodes.
+  // A mapping from Dart Entities to JavaScript AST Nodes.
   final Map<Entity, List<jsAst.Node>> _entityToNodes =
       <Entity, List<jsAst.Node>>{};
   final Map<ConstantValue, jsAst.Node> _constantToNode =
@@ -1241,7 +1239,6 @@ class DumpInfoTask extends CompilerTask
   bool get shouldEmitText => !useBinaryFormat;
   // TODO(sigmund): delete the stack once we stop emitting the source text.
   final List<_CodeData> _stack = [];
-  @override // DumpInfoJavaScriptMonitor
   void enterNode(jsAst.Node node, int start) {
     var data = _nodeData[node];
     data?.start = start;
@@ -1251,7 +1248,6 @@ class DumpInfoTask extends CompilerTask
     }
   }
 
-  @override // DumpInfoJavaScriptMonitor
   void emit(String string) {
     if (shouldEmitText) {
       // Note: historically we emitted the full body of classes and methods, so
@@ -1261,7 +1257,6 @@ class DumpInfoTask extends CompilerTask
     }
   }
 
-  @override // DumpInfoJavaScriptMonitor
   void exitNode(jsAst.Node node, int start, int end, int? closing) {
     var data = _nodeData[node];
     data?.end = end;

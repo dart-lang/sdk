@@ -1,0 +1,74 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+mixin class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+abstract mixin class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+mixin class C = core::Object with self::M /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+abstract class _AWith&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AWith&Object&A
+    : super core::Object::•()
+    ;
+}
+class AWith extends self::_AWith&Object&A {
+  synthetic constructor •() → self::AWith
+    ;
+}
+abstract class _BWith&Object&B = core::Object with self::B /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_BWith&Object&B
+    : super core::Object::•()
+    ;
+}
+class BWith extends self::_BWith&Object&B {
+  synthetic constructor •() → self::BWith
+    ;
+}
+abstract class _CWith&Object&C = core::Object with self::C /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_CWith&Object&C
+    : super core::Object::•()
+    ;
+}
+class CWith extends self::_CWith&Object&C {
+  synthetic constructor •() → self::CWith
+    ;
+}
+abstract class _MultipleWithMixin&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MultipleWithMixin&Object&A
+    : super core::Object::•()
+    ;
+}
+abstract class _MultipleWithMixin&Object&A&M = self::_MultipleWithMixin&Object&A with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MultipleWithMixin&Object&A&M
+    : super self::_MultipleWithMixin&Object&A::•()
+    ;
+}
+class MultipleWithMixin extends self::_MultipleWithMixin&Object&A&M {
+  synthetic constructor •() → self::MultipleWithMixin
+    ;
+}
+abstract class _MultipleWithAnotherClass&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MultipleWithAnotherClass&Object&A
+    : super core::Object::•()
+    ;
+}
+abstract class _MultipleWithAnotherClass&Object&A&B = self::_MultipleWithAnotherClass&Object&A with self::B /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MultipleWithAnotherClass&Object&A&B
+    : super self::_MultipleWithAnotherClass&Object&A::•()
+    ;
+}
+class MultipleWithAnotherClass extends self::_MultipleWithAnotherClass&Object&A&B {
+  synthetic constructor •() → self::MultipleWithAnotherClass
+    ;
+}

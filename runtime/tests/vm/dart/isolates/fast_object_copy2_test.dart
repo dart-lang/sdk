@@ -7,14 +7,13 @@
 // VMOptions=--no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation
 // VMOptions=--enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation
 
-// The tests in this file will only succeed when isolate groups are enabled
-// (hence the VMOptions above).
-
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
+import 'package:ffi/ffi.dart';
 
 import 'fast_object_copy_test.dart'
     show UserObject, SendReceiveTestBase, notAllocatableInTLAB;
@@ -76,6 +75,8 @@ final sharableObjects = [
   RegExp('a'),
   Isolate.current.pauseCapability,
   Int32x4(1, 2, 3, 4),
+  Float32x4(1.0, 2.0, 3.0, 4.0),
+  Float64x2(1.0, 2.0),
   StackTrace.current,
 ];
 
@@ -109,6 +110,8 @@ class SendReceiveTest extends SendReceiveTestBase {
     await testSharable();
     await testSharable2();
     await testCopyableClosures();
+    await testSharableTypedData();
+    await testUnmodifiableList();
   }
 
   Future testSharable() async {
@@ -156,8 +159,61 @@ class SendReceiveTest extends SendReceiveTestBase {
       Expect.equals(copyableClosures[i].runtimeType, copy2[i].runtimeType);
     }
   }
+
+  Future testSharableTypedData() async {
+    print('testSharableTypedData');
+    const int Dart_TypedData_kUint8 = 2;
+    const int count = 10;
+    final bytes = malloc.allocate<Uint8>(count);
+    final td = createUnmodifiableTypedData(
+        Dart_TypedData_kUint8, bytes, count, nullptr, 0, nullptr);
+    Expect.equals(count, td.length);
+
+    {
+      final copiedTd = await sendReceive(td);
+      Expect.identical(td, copiedTd);
+    }
+
+    malloc.free(bytes);
+  }
+
+  Future testUnmodifiableList() async {
+    print('testUnmodifiableList');
+
+    // Sharable.
+    for (final sharable in [
+      1,
+      const Object(),
+      'foo',
+      List.unmodifiable([const Object()])
+    ]) {
+      final list = List.unmodifiable([sharable]);
+      final listCopy = await sendReceive(list);
+      Expect.identical(list, listCopy);
+    }
+
+    // Non-Sharable.
+    for (final nonSharable in [
+      Object(),
+      [],
+      {},
+      List.unmodifiable([Object()])
+    ]) {
+      final list = List.unmodifiable([nonSharable]);
+      final listCopy = await sendReceive(list);
+      Expect.notIdentical(list, listCopy);
+      Expect.notIdentical(list[0], listCopy[0]);
+    }
+  }
 }
 
 main() async {
   await SendReceiveTest().run();
 }
+
+@Native<
+        Handle Function(
+            Int, Pointer<Uint8>, IntPtr, Pointer<Void>, IntPtr, Pointer<Void>)>(
+    symbol: "Dart_NewUnmodifiableExternalTypedDataWithFinalizer")
+external Uint8List createUnmodifiableTypedData(int type, Pointer<Uint8> data,
+    int length, Pointer<Void> peer, int externalSize, Pointer<Void> callback);

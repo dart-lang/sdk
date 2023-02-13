@@ -31,6 +31,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListMixi
       throw _in::IterableElementError::noElement();
     this.{core::List::[]=}(this.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::int}, value){(core::int, core::int) → void};
   }
+  @#C3
   get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ iterator() → core::Iterator<core::int>
     return new _in::ListIterator::•<core::int>(this);
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ elementAt(core::int index) → core::int
@@ -533,24 +534,19 @@ class A extends self::_A&Object&ListMixin {
 }
 static method main() → dynamic {
   self::A a = new self::A::•();
-  final self::A #t9 = a;
-  final self::A #t10 = #t9;
-  if(#t10.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
-    final dynamic #t11 = #t10{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    final dynamic #t12 = #t10{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-    final dynamic #t13 = #t11;
-    if(#t13 is core::int) {
-      final dynamic #t14 = #t12;
-      if(#t14 is core::int) {
-        {
-          core::int x = #t13{core::int};
-          core::int y = #t14{core::int};
-          {
-            self::expectEquals(x, 0);
-            self::expectEquals(y, 0);
-          }
-        }
-      }
+  {
+    core::int x;
+    core::int y;
+    final self::A #0#0 = a;
+    function ##0#4#initializer() → core::int
+      return #0#0.{self::A::[]}(0){(core::int) → core::int};
+    late final core::int #0#4 = ##0#4#initializer(){() → core::int};
+    function ##0#5#initializer() → core::int
+      return #0#0.{self::A::[]}(1){(core::int) → core::int};
+    late final core::int #0#5 = ##0#5#initializer(){() → core::int};
+    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && (#0#4 is{ForNonNullableByDefault} core::int && (let final core::int #t9 = x = #0#4 in true)) && (#0#5 is{ForNonNullableByDefault} core::int && (let final core::int #t10 = y = #0#5 in true))) {
+      self::expectEquals(x, 0);
+      self::expectEquals(y, 0);
     }
   }
   self::expectEquals(a.{self::A::count}{core::int}, 2);
@@ -569,11 +565,12 @@ constants  {
   #C5 = true
   #C6 = static-tearoff col::ListMixin::_compareAny
   #C7 = 0
+  #C8 = 2
 }
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:491:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:499:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:511:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:523:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1084, effectively constant: 4
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:492:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:500:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:512:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:524:12 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 1091, effectively constant: 4

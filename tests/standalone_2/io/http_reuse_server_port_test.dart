@@ -51,7 +51,7 @@ void testReusePort() {
   asyncStart();
   runServer(0, 10, true).then((int port) {
     // Stress test the port reusing it 10 times.
-    Future.forEach(new List(10), (_) {
+    Future.forEach(new List.filled(10, null), (_) {
       return runServer(port, 10, true);
     }).then((_) {
       asyncEnd();
@@ -63,7 +63,7 @@ void testUncleanReusePort() {
   asyncStart();
   runServer(0, 10, false).then((int port) {
     // Stress test the port reusing it 10 times.
-    Future.forEach(new List(10), (_) {
+    Future.forEach(new List.filled(10, null), (_) {
       return runServer(port, 10, false);
     }).then((_) {
       asyncEnd();

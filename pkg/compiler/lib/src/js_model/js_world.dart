@@ -40,6 +40,7 @@ import '../world.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'locals.dart';
+import 'records.dart' show RecordData;
 
 class JClosedWorld implements World {
   static const String tag = 'closed-world';
@@ -109,6 +110,7 @@ class JClosedWorld implements World {
   final JFieldAnalysis fieldAnalysis;
   final AnnotationsData annotationsData;
   final ClosureData closureDataLookup;
+  final RecordData recordData;
   final OutputUnitData outputUnitData;
 
   /// The [Sorter] used for sorting elements in the generated code.
@@ -137,6 +139,7 @@ class JClosedWorld implements World {
       AbstractValueStrategy abstractValueStrategy,
       this.annotationsData,
       this.closureDataLookup,
+      this.recordData,
       this.outputUnitData,
       this.memberAccess) {
     _abstractValueDomain = abstractValueStrategy.createDomain(this);
@@ -188,6 +191,7 @@ class JClosedWorld implements World {
 
     ClosureData closureData =
         ClosureData.readFromDataSource(elementMap, source);
+    RecordData recordData = RecordData.readFromDataSource(elementMap, source);
 
     OutputUnitData outputUnitData = OutputUnitData.readFromDataSource(source);
     elementMap.lateOutputUnitDataBuilder =
@@ -219,6 +223,7 @@ class JClosedWorld implements World {
         abstractValueStrategy,
         annotationsData,
         closureData,
+        recordData,
         outputUnitData,
         memberAccess);
   }
@@ -247,6 +252,7 @@ class JClosedWorld implements World {
         (Set<ClassEntity> set) => sink.writeClasses(set));
     annotationsData.writeToDataSink(sink);
     closureDataLookup.writeToDataSink(sink);
+    recordData.writeToDataSink(sink);
     outputUnitData.writeToDataSink(sink);
     sink.writeMemberMap(
         memberAccess,
@@ -643,6 +649,17 @@ class JClosedWorld implements World {
   void registerExtractTypeArguments(ClassEntity interface) {
     extractTypeArgumentsInterfacesNewRti.add(interface);
   }
+
+  late final Set<ClassEntity> _defaultSuperclasses = {
+    commonElements.objectClass,
+    commonElements.jsLegacyJavaScriptObjectClass,
+    commonElements.jsInterceptorClass
+  };
+
+  /// Returns true if [cls] acts as a default superclass to some subset of
+  /// classes.
+  bool isDefaultSuperclass(ClassEntity cls) =>
+      _defaultSuperclasses.contains(cls);
 }
 
 class KernelSorter implements Sorter {

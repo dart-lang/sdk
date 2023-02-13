@@ -1,0 +1,73 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int boz = 0;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method foo(core::int n) → core::num {
+    core::print(n.{core::Object::runtimeType}{core::Type});
+    return 1.1;
+  }
+  method bar({required core::int x = #C1}) → core::num {
+    core::print(x.{core::Object::runtimeType}{core::Type});
+    return 1.1;
+  }
+  set baz(core::int x) → void {
+    core::print(x.{core::Object::runtimeType}{core::Type});
+  }
+}
+abstract class B<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X%>
+    : super core::Object::•()
+    ;
+  abstract method foo(covariant-by-class self::B::X% x) → self::B::X%;
+  abstract method bar({required covariant-by-class self::B::X% x = #C1}) → self::B::X%;
+  abstract set baz(covariant-by-class self::B::X% x) → void;
+  abstract set boz(covariant-by-class self::B::X% x) → void;
+}
+abstract class _C&A&B extends self::A implements self::B<core::num> /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_C&A&B
+    : super self::A::•()
+    ;
+  set boz(covariant-by-class core::num x) → void
+    return super.{self::A::boz} = x as core::int;
+  method foo(covariant-by-class core::num x) → core::num
+    return super.{self::A::foo}(x as core::int);
+  method bar({required covariant-by-class core::num x = #C1}) → core::num
+    return super.{self::A::bar}(x: x as core::int);
+  set baz(covariant-by-class core::num x) → void
+    return super.{self::A::baz} = x as core::int;
+}
+class C extends self::_C&A&B {
+  synthetic constructor •() → self::C
+    : super self::_C&A&B::•()
+    ;
+}
+static method main() → void {
+  self::C a = new self::C::•();
+  a.{self::_C&A&B::foo}(1){(core::num) → core::num};
+  self::throws(() → void => a.{self::_C&A&B::foo}(1.2){(core::num) → core::num});
+  a.{self::_C&A&B::bar}(x: 1){({required x: core::num}) → core::num};
+  self::throws(() → void => a.{self::_C&A&B::bar}(x: 1.2){({required x: core::num}) → core::num});
+  a.{self::_C&A&B::baz} = 1;
+  self::throws(() → void => a.{self::_C&A&B::baz} = 1.2);
+  a.{self::_C&A&B::boz} = 1;
+  self::throws(() → void => a.{self::_C&A&B::boz} = 1.2);
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print(e);
+    return;
+  }
+  throw "Exception expected";
+}
+
+constants  {
+  #C1 = null
+}

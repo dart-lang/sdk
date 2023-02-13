@@ -29,6 +29,41 @@ f() {}
 ''');
   }
 
+  Future<void> test_pattern_declaration() async {
+    await resolveTestCode('''
+f() {
+  var [var x] = [1];
+  print(x);
+}
+''');
+    await assertHasFix('''
+f() {
+  var [x] = [1];
+  print(x);
+}
+''');
+  }
+
+  @FailingTest(
+      issue: "https://github.com/dart-lang/sdk/issues/49960",
+      reason: "Fix once error is reported")
+  Future<void> test_pattern_in_assignment() async {
+    await resolveTestCode('''
+f() {
+  var a = 1;
+  var b = 2;
+  (var a, int b) = (3, 4);
+}
+''');
+    await assertHasFix('''
+f() {
+  var a = 1;
+  var b = 2;
+  (a, int b) = (3, 4);
+}
+''');
+  }
+
   Future<void> test_setter() async {
     await resolveTestCode('''
 class C {

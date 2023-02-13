@@ -966,6 +966,13 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
     library.SetLoadInProgress();
   }
 
+  if (library.url() == Symbols::vm_ffi_native_assets().ptr()) {
+    const auto& native_assets_library =
+        Library::Handle(IG->object_store()->native_assets_library());
+    ASSERT(native_assets_library.IsNull());
+    IG->object_store()->set_native_assets_library(library);
+  }
+
   library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
   const Script& script =
       Script::Handle(Z, ScriptAt(library_helper.source_uri_index_));
@@ -1027,7 +1034,9 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
     FinishTopLevelClassLoading(toplevel_class, library, library_index);
   }
 
-  if (FLAG_enable_mirrors && annotation_count > 0) {
+  // Used for mirrors and allows VM to recognize @pragma annotations on
+  // libraries.
+  if (annotation_count > 0) {
     ASSERT(annotations_kernel_offset > 0);
     library.AddMetadata(library, annotations_kernel_offset);
   }
@@ -1100,8 +1109,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     }
   }
 
-  const intptr_t view_count = helper_.ReadListLength();
-  for (intptr_t i = 0; i < view_count; ++i) {
+  const intptr_t inline_class_count = helper_.ReadListLength();
+  for (intptr_t i = 0; i < inline_class_count; ++i) {
     helper_.ReadTag();                     // read tag.
     helper_.SkipCanonicalNameReference();  // skip canonical name.
     helper_.SkipStringReference();         // skip name.
@@ -1110,10 +1119,11 @@ void KernelLoader::FinishTopLevelClassLoading(
     helper_.ReadPosition();                // read file offset.
     helper_.ReadByte();                    // skip flags.
     helper_.SkipTypeParametersList();      // skip type parameter list.
-    helper_.SkipDartType();                // skip representation-type.
+    helper_.SkipDartType();                // skip declared representation type.
+    helper_.SkipStringReference();         // skip representation name.
 
-    const intptr_t view_member_count = helper_.ReadListLength();
-    for (intptr_t j = 0; j < view_member_count; ++j) {
+    const intptr_t inline_class_member_count = helper_.ReadListLength();
+    for (intptr_t j = 0; j < inline_class_member_count; ++j) {
       helper_.SkipName();                    // skip name.
       helper_.ReadByte();                    // read kind.
       helper_.ReadByte();                    // read flags.
@@ -2385,7 +2395,7 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
 
   // Static field initializers are not added as members of their owning class,
-  // so they must be pre-emptively given a patch class to avoid the meaning of
+  // so they must be preemptively given a patch class to avoid the meaning of
   // their kernel/token position changing during a reload. Compare
   // Class::PatchFieldsAndFunctions().
   // This might also be necessary for lazy computation of local var descriptors.

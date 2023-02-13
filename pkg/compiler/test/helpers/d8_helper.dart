@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Partial test that the closed world computed from [WorldImpact]s derived from
 // kernel is equivalent to the original computed from resolution.
 library dart2js.kernel.compiler_helper;
@@ -34,10 +32,10 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
 }
 
 Future<D8Result> runWithD8(
-    {Uri entryPoint,
+    {Uri? entryPoint,
     Map<String, String> memorySourceFiles = const <String, String>{},
     List<String> options = const <String>[],
-    String expectedOutput,
+    String? expectedOutput,
     bool printJs = false,
     bool printSteps = false}) async {
   retainDataForTesting = true;
@@ -48,7 +46,7 @@ Future<D8Result> runWithD8(
   List<String> dart2jsArgs = [
     mainFile.toString(),
     '-o$output',
-    '--packages=${Platform.packageConfig}',
+    if (Platform.packageConfig != null) '--packages=${Platform.packageConfig}',
   ]..addAll(options);
   if (printSteps) print('Running: dart2js ${dart2jsArgs.join(' ')}');
 

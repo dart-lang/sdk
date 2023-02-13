@@ -56,6 +56,44 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(symbolsResponse2.error, isNull);
   }
 
+  Future<void> test_dependencies_excluded() async {
+    newFile(mainFilePath, 'class LocalClass12345 {}');
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      {
+        'includeDependenciesInWorkspaceSymbols': false,
+      },
+    );
+
+    expect(await getWorkspaceSymbols('Duration'), isEmpty);
+    expect(await getWorkspaceSymbols('LocalClass12345'), isNotEmpty);
+  }
+
+  Future<void> test_dependencies_included() async {
+    newFile(mainFilePath, 'class LocalClass12345 {}');
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      {
+        'includeDependenciesInWorkspaceSymbols': true,
+      },
+    );
+
+    expect(await getWorkspaceSymbols('Duration'), isNotEmpty);
+    expect(await getWorkspaceSymbols('LocalClass12345'), isNotEmpty);
+  }
+
+  Future<void> test_dependencies_includedByDefault() async {
+    newFile(mainFilePath, 'class LocalClass12345 {}');
+    await initialize();
+
+    expect(await getWorkspaceSymbols('Duration'), isNotEmpty);
+    expect(await getWorkspaceSymbols('LocalClass12345'), isNotEmpty);
+  }
+
   Future<void> test_extensions() async {
     const content = '''
     extension StringExtensions on String {}

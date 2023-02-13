@@ -63,14 +63,6 @@ class Dart : public AllStatic {
                                           const uint8_t* kernel_buffer,
                                           intptr_t kernel_buffer_size);
 
-  static bool DetectNullSafety(const char* script_uri,
-                               const uint8_t* snapshot_data,
-                               const uint8_t* snapshot_instructions,
-                               const uint8_t* kernel_buffer,
-                               intptr_t kernel_buffer_size,
-                               const char* package_config,
-                               const char* original_working_directory);
-
   static void RunShutdownCallback();
   static void ShutdownIsolate(Isolate* isolate);
   static void ShutdownIsolate();
@@ -149,6 +141,16 @@ class Dart : public AllStatic {
   }
   static Dart_GCEventCallback gc_event_callback() { return gc_event_callback_; }
 
+  static void set_dwarf_stacktrace_footnote_callback(
+      Dart_DwarfStackTraceFootnoteCallback cb) {
+    dwarf_stacktrace_footnote_callback_ = cb;
+  }
+
+  static Dart_DwarfStackTraceFootnoteCallback
+  dwarf_stacktrace_footnote_callback() {
+    return dwarf_stacktrace_footnote_callback_;
+  }
+
  private:
   static char* DartInit(const Dart_InitializeParams* params);
 
@@ -171,6 +173,8 @@ class Dart : public AllStatic {
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_EntropySource entropy_source_callback_;
   static Dart_GCEventCallback gc_event_callback_;
+  static Dart_DwarfStackTraceFootnoteCallback
+      dwarf_stacktrace_footnote_callback_;
 };
 
 }  // namespace dart

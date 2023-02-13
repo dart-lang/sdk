@@ -1900,7 +1900,7 @@ class TransferableTypedDataMessageSerializationCluster
     objects_.Add(transferable);
 
     void* peer = s->thread()->heap()->GetPeer(transferable->ptr());
-    // Assume that object's Peer is only used to track transferrability state.
+    // Assume that object's Peer is only used to track transferability state.
     ASSERT(peer != nullptr);
     TransferableTypedDataPeer* tpeer =
         reinterpret_cast<TransferableTypedDataPeer*>(peer);
@@ -1918,7 +1918,7 @@ class TransferableTypedDataMessageSerializationCluster
       s->AssignRef(transferable);
 
       void* peer = s->thread()->heap()->GetPeer(transferable->ptr());
-      // Assume that object's Peer is only used to track transferrability state.
+      // Assume that object's Peer is only used to track transferability state.
       ASSERT(peer != nullptr);
       TransferableTypedDataPeer* tpeer =
           reinterpret_cast<TransferableTypedDataPeer*>(peer);
@@ -2847,6 +2847,7 @@ void MessageSerializer::Trace(Object* object) {
     ILLEGAL(UserTag)
     ILLEGAL(WeakProperty)
     ILLEGAL(WeakReference)
+    ILLEGAL(WeakArray)
 
     // From "dart:ffi" we handle only Pointer/DynamicLibrary specially, since
     // those are the only non-abstract classes (so we avoid checking more cids

@@ -76,9 +76,6 @@ class Deprecated {
   /// is expected to be removed.
   const Deprecated(this.message);
 
-  @Deprecated('Use `message` instead. Will be removed in Dart 3.0.0')
-  String get expires => message;
-
   String toString() => "Deprecated feature: $message";
 }
 
@@ -116,27 +113,6 @@ class _Override {
 /// Further [lints](https://dart-lang.github.io/linter/lints/)
 /// can be used to enable more warnings based on `@override` annotations.
 const Object override = _Override();
-
-/// An annotation class that was used during development of Dart 2.
-///
-/// Should not be used any more.
-@deprecated
-class Provisional {
-  String? get message => null;
-  const Provisional({String? message});
-}
-
-/// An annotation that was used during development of Dart 2.
-///
-/// The annotation has no effect, and will be removed.
-@deprecated
-const Null provisional = null;
-
-/// This annotation was used in Dart prior to version 2.
-///
-/// The annotation has no effect, and will be removed.
-@deprecated
-const Null proxy = null;
 
 /// A hint to tools.
 ///

@@ -24,13 +24,12 @@ const int RELATIONAL_PRECEDENCE = 8;
 const int BITWISE_OR_PRECEDENCE = 9;
 const int BITWISE_XOR_PRECEDENCE = 10;
 const int BITWISE_AND_PRECEDENCE = 11;
-const int CAST_PATTERN_PRECEDENCE = 12;
-const int SHIFT_PRECEDENCE = 13;
-const int ADDITIVE_PRECEDENCE = 14;
-const int MULTIPLICATIVE_PRECEDENCE = 15;
-const int PREFIX_PRECEDENCE = 16;
-const int POSTFIX_PRECEDENCE = 17;
-const int SELECTOR_PRECEDENCE = 18;
+const int SHIFT_PRECEDENCE = 12;
+const int ADDITIVE_PRECEDENCE = 13;
+const int MULTIPLICATIVE_PRECEDENCE = 14;
+const int PREFIX_PRECEDENCE = 15;
+const int POSTFIX_PRECEDENCE = 16;
+const int SELECTOR_PRECEDENCE = 17;
 
 /**
  * The opening half of a grouping pair of tokens. This is used for curly

@@ -3,19 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/proto_info_codec.dart';
 import 'package:test/test.dart';
 
+import 'test_shared.dart';
+
 void main() {
+  late String content;
+  setUpAll(() async {
+    content = await helloWorldDumpInfo();
+  });
+
   group('json to proto conversion', () {
     test('hello_world', () {
-      var uri = Platform.script.resolve('hello_world/hello_world.js.info.json');
-      final helloWorld = File.fromUri(uri);
-      final json = jsonDecode(helloWorld.readAsStringSync());
+      final json = jsonDecode(content);
       final decoded = AllInfoJsonCodec().decode(json);
       final proto = AllInfoProtoCodec().encode(decoded);
 
@@ -32,9 +36,7 @@ void main() {
     });
 
     test('has proper id format', () {
-      var uri = Platform.script.resolve('hello_world/hello_world.js.info.json');
-      final helloWorld = File.fromUri(uri);
-      final json = jsonDecode(helloWorld.readAsStringSync());
+      final json = jsonDecode(content);
       final decoded = AllInfoJsonCodec().decode(json);
       final proto = AllInfoProtoCodec().encode(decoded);
 

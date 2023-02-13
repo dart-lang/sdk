@@ -340,7 +340,7 @@ def getCurrentDartSHA():
     return dart_sha
 
 
-# Returns the SHA of the Dartium/Chromiun in the DEPS file.
+# Returns the SHA of the Dartium/Chromium in the DEPS file.
 def GetDEPSWebCoreGitRevision(deps, component):
     """Returns a tuple with the (dartium chromium repo, latest revision)."""
     foundIt = re.search(WEBKIT_SHA_PATTERN, deps)

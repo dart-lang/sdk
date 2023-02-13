@@ -21,6 +21,7 @@ import 'package:js_runtime/synced/embedded_names.dart'
         MANGLED_NAMES,
         METADATA,
         NATIVE_SUPERCLASS_TAG_NAME,
+        RECORD_TYPE_TEST_COMBINATORS_PROPERTY,
         RUNTIME_METRICS,
         STARTUP_METRICS,
         TearOffParametersPropertyNames,
@@ -128,7 +129,7 @@ class ModelEmitter {
   /// For example {"lib1": [[lib1_lib2_lib3], [lib1_lib2, lib1_lib3],
   /// [lib1]]} would mean that in order to load "lib1" first the hunk
   /// lib1_lib2_lib2 should be loaded, then the hunks lib1_lib2 and lib1_lib3
-  /// can be loaded in parallel. And fially lib1 can be loaded.
+  /// can be loaded in parallel. And finally lib1 can be loaded.
   final Map<String, List<FinalizedFragment>> finalizedFragmentsToLoad = {};
 
   /// Similar to the above map, but more granular as each [FinalizedFragment]
@@ -170,6 +171,7 @@ class ModelEmitter {
         _closedWorld.rtiNeed,
         rtiRecipeEncoder,
         _closedWorld.fieldAnalysis,
+        _closedWorld.recordData,
         _emitter,
         this.generateConstantReference,
         constantListGenerator);
@@ -385,7 +387,7 @@ class ModelEmitter {
 var ${startupMetricsGlobal} =
 (function(){
   // The timestamp metrics use `performance.now()`. We feature-detect and
-  // fall back on `Date.now()` for JavaScript run in a non-browser evironment.
+  // fall back on `Date.now()` for JavaScript run in a non-browser environment.
   var _performance =
       (typeof performance == "object" &&
        performance != null &&

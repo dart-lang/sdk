@@ -1,6 +1,6 @@
 test(dynamic x) {
   switch (x) {
-    case 1 & int as:
+    case 1 && int as:
       break;
   }
 }

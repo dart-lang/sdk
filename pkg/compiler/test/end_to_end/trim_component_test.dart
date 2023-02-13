@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
@@ -61,7 +59,7 @@ Future<List<int>> buildDillAndVerify(
       outputProvider: collector);
   Expect.isTrue(result.isSuccess);
   Expect.isTrue(collector.binaryOutputMap.containsKey(dillUri));
-  List<int> bytes = collector.binaryOutputMap[dillUri].list;
+  List<int> bytes = collector.binaryOutputMap[dillUri]!.list;
   Expect.isTrue(bytes.isNotEmpty);
   ir.Component component = ir.Component();
   BinaryBuilder(bytes).readComponent(component);
@@ -69,7 +67,7 @@ Future<List<int>> buildDillAndVerify(
   return bytes;
 }
 
-void verifyComponentTrim() async {
+Future<void> verifyComponentTrim() async {
   List<String> buildDillFromSourceFlags = [
     '--cfe-only',
     '--out=out.dill',

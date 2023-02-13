@@ -142,21 +142,6 @@ class AssertionError extends Error {
 /// Error thrown by the runtime system when a dynamic type error happens.
 class TypeError extends Error {}
 
-/// Error thrown by the runtime system when a cast operation fails.
-@Deprecated("Use TypeError instead")
-class CastError extends Error {}
-
-/// Error thrown when attempting to throw `null`.
-///
-/// In null safe code, you are statically disallowed from throwing `null`,
-/// so this error will go away when non-null safe code stops being supported.
-@Deprecated("Use TypeError instead")
-class NullThrownError extends Error implements TypeError {
-  @pragma("vm:entry-point")
-  NullThrownError();
-  String toString() => "Throw of null.";
-}
-
 /// Error thrown when a function is passed an unacceptable argument.
 ///
 /// The method should document restrictions on the arguments it accepts,
@@ -321,6 +306,7 @@ class RangeError extends ArgumentError {
   /// name and message text of the thrown error.
   ///
   /// Returns [value] if it is in the interval.
+  @pragma("wasm:entry-point")
   static int checkValueInInterval(int value, int minValue, int maxValue,
       [String? name, String? message]) {
     if (value < minValue || value > maxValue) {
@@ -515,43 +501,14 @@ class IndexError extends ArgumentError implements RangeError {
   }
 }
 
-/// Error previously thrown when control reaches the end of a switch case.
+/// Error thrown on an invalid function or method invocation.
 ///
-/// The pre-2.0 Dart specification required this error to be thrown when
-/// control reached the end of a switch case (except the last case
-/// of a switch) without meeting a `break` or other control flow operators.
-/// That kind of fall-through was made a compile-time error Dart 2.0,
-/// so this error is no longer thrown.
-@Deprecated("No longer relevant in Dart 2.0")
-class FallThroughError extends Error {
-  FallThroughError();
-  @pragma("vm:entry-point")
-  external FallThroughError._create(String url, int line);
-
-  external String toString();
-}
-
-/// Error thrown when trying to instantiate an abstract class.
+/// Thrown when a dynamic function or method call provides an invalid
+/// type argument or argument list to the function being called.
+/// For non-dynamic invocations, static type checking prevents
+/// such invalid arguments.
 ///
-/// No longer used in Dart 2 where it has become a compile-time error
-/// to call the constructor of an abstract class.
-@Deprecated("No longer relevant in Dart 2.0")
-class AbstractClassInstantiationError extends Error {
-  final String _className;
-  AbstractClassInstantiationError(String className) : _className = className;
-
-  external String toString();
-}
-
-/// Error thrown when a particular method invocation is not possible.
-///
-/// This error is thrown by the default implementation of `noSuchMethod`
-/// on [Object], which is the default behavior of a failed dynamic
-/// invocation.
-///
-/// The error is also thrown in other cases where an object
-/// does not support a requested operation, but where the failed operation
-/// does not trigger a call to [Object.noSuchMethod].
+/// Also thrown by the default implementation of [Object.noSuchMethod].
 class NoSuchMethodError extends Error {
   /// Creates a [NoSuchMethodError] corresponding to a failed method call.
   ///
@@ -562,31 +519,6 @@ class NoSuchMethodError extends Error {
   /// should not be `null`.
   external factory NoSuchMethodError.withInvocation(
       Object? receiver, Invocation invocation);
-
-  /// Create a [NoSuchMethodError] corresponding to a failed method call.
-  ///
-  /// The [receiver] is the receiver of the method call.
-  /// That is, the object on which the method was attempted called.
-  /// If the receiver is `null`, it is interpreted as a call to a top-level
-  /// function of a library.
-  ///
-  /// The [memberName] is a [Symbol] representing the name of the called method
-  /// or accessor.
-  ///
-  /// The [positionalArguments] is a list of the positional arguments that the
-  /// method was called with. If `null`, it is considered equivalent to the
-  /// empty list.
-  ///
-  /// The [namedArguments] is a map from [Symbol]s to the values of named
-  /// arguments that the method was called with. If `null`, it is considered
-  /// equivalent to the empty map.
-  ///
-  /// This constructor does not handle type arguments.
-  /// To include type variables, create an [Invocation] and use
-  /// [NoSuchMethodError.withInvocation].
-  @Deprecated("Use NoSuchMethod.withInvocation instead")
-  external NoSuchMethodError(Object? receiver, Symbol memberName,
-      List? positionalArguments, Map<Symbol, dynamic>? namedArguments);
 
   external String toString();
 }
@@ -679,24 +611,4 @@ class StackOverflowError implements Error {
   String toString() => "Stack Overflow";
 
   StackTrace? get stackTrace => null;
-}
-
-/// Error thrown when a lazily initialized variable cannot be initialized.
-///
-/// Cyclic dependencies are no longer detected at runtime in null safe code.
-/// Such code will fail in other ways instead,
-/// possibly with a [StackOverflowError].
-///
-/// Will be removed when support for non-null-safe code is discontinued.
-@Deprecated("Use Error instead")
-class CyclicInitializationError extends Error {
-  final String? variableName;
-  @pragma("vm:entry-point")
-  CyclicInitializationError([this.variableName]);
-  String toString() {
-    var variableName = this.variableName;
-    return variableName == null
-        ? "Reading static variable during its initialization"
-        : "Reading static variable '$variableName' during its initialization";
-  }
 }

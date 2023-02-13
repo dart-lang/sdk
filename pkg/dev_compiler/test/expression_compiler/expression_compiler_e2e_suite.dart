@@ -54,10 +54,15 @@ class DevelopmentIncrementalCompiler extends fe.IncrementalCompiler {
 
 class SetupCompilerOptions {
   static final sdkRoot = fe.computePlatformBinariesLocation();
+  static final buildRoot =
+      fe.computePlatformBinariesLocation(forceBuildDir: true);
+  // Unsound .dill files are not longer in the released SDK so this file must be
+  // read from the build output directory.
   static final sdkUnsoundSummaryPath =
-      p.join(sdkRoot.toFilePath(), 'ddc_sdk.dill');
+      buildRoot.resolve('ddc_outline_unsound.dill').toFilePath();
+  // Use the outline copied to the released SDK.
   static final sdkSoundSummaryPath =
-      p.join(sdkRoot.toFilePath(), 'ddc_outline_sound.dill');
+      sdkRoot.resolve('ddc_outline.dill').toFilePath();
   static final librariesSpecificationUri =
       p.join(p.dirname(p.dirname(getSdkPath())), 'libraries.json');
 
@@ -72,7 +77,8 @@ class SetupCompilerOptions {
     var options = fe.CompilerOptions()
       ..verbose = false // set to true for debugging
       ..sdkRoot = sdkRoot
-      ..target = DevCompilerTarget(TargetFlags())
+      ..target =
+          DevCompilerTarget(TargetFlags(soundNullSafety: soundNullSafety))
       ..librariesSpecificationUri = p.toUri('sdk/lib/libraries.json')
       ..omitPlatform = true
       ..sdkSummary =
@@ -227,7 +233,6 @@ class TestDriver {
   late TestCompiler compiler;
   late Uri htmlBootstrapper;
   late Uri input;
-  late String moduleFormatString;
   late Uri output;
   late Uri packagesFile;
   late String preemptiveBp;
@@ -302,7 +307,6 @@ class TestDriver {
     this.setup = setup;
     this.source = source;
     testDir = chromeDir.createTempSync('ddc_eval_test');
-    var buildDir = p.dirname(p.dirname(p.dirname(Platform.resolvedExecutable)));
     var scriptPath = Platform.script.normalizePath().toFilePath();
     var ddcPath = p.dirname(p.dirname(p.dirname(scriptPath)));
     output = testDir.uri.resolve('test.js');
@@ -341,15 +345,15 @@ class TestDriver {
 
     switch (setup.moduleFormat) {
       case ModuleFormat.ddc:
-        moduleFormatString = 'ddc';
-        var dartSdkPath = escaped(p.join(
-            buildDir,
-            'gen',
-            'utils',
-            'dartdevc',
-            setup.soundNullSafety ? 'sound' : 'kernel',
-            'legacy',
-            'dart_sdk.js'));
+        var dartSdkPath = escaped(SetupCompilerOptions.buildRoot
+            .resolve(p.join(
+                'gen',
+                'utils',
+                'dartdevc',
+                setup.soundNullSafety ? 'sound' : 'kernel',
+                'legacy',
+                'dart_sdk.js'))
+            .toFilePath());
         if (!File(dartSdkPath).existsSync()) {
           throw Exception('Unable to find Dart SDK at $dartSdkPath');
         }
@@ -377,14 +381,17 @@ class TestDriver {
 ''');
         break;
       case ModuleFormat.amd:
-        moduleFormatString = 'amd';
-        var dartSdkPath = escaped(p.join(buildDir, 'gen', 'utils', 'dartdevc',
-            setup.soundNullSafety ? 'sound' : 'kernel', 'amd', 'dart_sdk'));
+        var dartSdkPath = escaped(SetupCompilerOptions.buildRoot
+            .resolve(p.join('gen', 'utils', 'dartdevc',
+                setup.soundNullSafety ? 'sound' : 'kernel', 'amd', 'dart_sdk'))
+            .toFilePath());
         if (!File('$dartSdkPath.js').existsSync()) {
           throw Exception('Unable to find Dart SDK at $dartSdkPath.js');
         }
-        var requirePath = escaped(p.join(buildDir, 'dart-sdk', 'lib',
-            'dev_compiler', 'kernel', 'amd', 'require.js'));
+        var requirePath = escaped(SetupCompilerOptions.buildRoot
+            .resolve(
+                p.join('dart-sdk', 'lib', 'dev_compiler', 'amd', 'require.js'))
+            .toFilePath());
         var outputPath = escaped(p.withoutExtension(output.toFilePath()));
         bootstrapFile.writeAsStringSync('''
 <script src='$requirePath'></script>

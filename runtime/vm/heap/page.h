@@ -22,7 +22,7 @@ class Thread;
 
 // Pages are allocated with kPageSize alignment so that the Page of any object
 // can be computed by masking the object with kPageMask. This does not apply to
-// image pages, whose address is choosen by the system loader rather than the
+// image pages, whose address is chosen by the system loader rather than the
 // Dart VM.
 static constexpr intptr_t kPageSize = 512 * KB;
 static constexpr intptr_t kPageSizeInWords = kPageSize / kWordSize;
@@ -257,6 +257,9 @@ class Page {
     thread->set_top(0);
     thread->set_end(0);
     thread->set_true_end(0);
+#if !defined(PRODUCT)
+    thread->heap_sampler().HandleReleasedTLAB(Thread::Current());
+#endif
   }
   void Release() {
     if (owner_ != nullptr) {

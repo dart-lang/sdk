@@ -176,14 +176,6 @@ class Pointer<T extends NativeType> {
   @pragma("vm:external-name", "Ffi_address")
   external int get address;
 
-  // For statically known types, this is rewritten.
-  @patch
-  Pointer<T> elementAt(int index) {
-    // This case should have been rewritten in pre-processing.
-    // Only dynamic invocations are not rewritten in pre-processing.
-    throw UnsupportedError("Pointer.elementAt cannot be called dynamically.");
-  }
-
   @patch
   Pointer<T> _offsetBy(int offsetInBytes) =>
       Pointer.fromAddress(address + offsetInBytes);
@@ -254,44 +246,10 @@ class _FfiAbiSpecificMapping {
 /// Copies data byte-wise from [source] to [target].
 ///
 /// [source] and [target] should either be [Pointer] or [TypedData].
-///
-/// TODO(dartbug.com/37271): Make recognized method and use MemoryCopyInstr.
-void _memCopy(Object target, int targetOffsetInBytes, Object source,
-    int sourceOffsetInBytes, int lengthInBytes) {
-  assert(source is Pointer || source is TypedData);
-  assert(target is Pointer || target is TypedData);
-  if (source is Pointer) {
-    final sourcePointer = source.cast<Uint8>();
-    if (target is Pointer) {
-      final targetPointer = target.cast<Uint8>();
-      for (int i = 0; i < lengthInBytes; i++) {
-        targetPointer[i + targetOffsetInBytes] =
-            sourcePointer[i + sourceOffsetInBytes];
-      }
-    } else if (target is TypedData) {
-      final targetTypedData = target.buffer.asUint8List(target.offsetInBytes);
-      for (int i = 0; i < lengthInBytes; i++) {
-        targetTypedData[i + targetOffsetInBytes] =
-            sourcePointer[i + sourceOffsetInBytes];
-      }
-    }
-  } else if (source is TypedData) {
-    final sourceTypedData = source.buffer.asUint8List(source.offsetInBytes);
-    if (target is Pointer) {
-      final targetPointer = target.cast<Uint8>();
-      for (int i = 0; i < lengthInBytes; i++) {
-        targetPointer[i + targetOffsetInBytes] =
-            sourceTypedData[i + sourceOffsetInBytes];
-      }
-    } else if (target is TypedData) {
-      final targetTypedData = target.buffer.asUint8List(target.offsetInBytes);
-      targetTypedData.setRange(
-          targetOffsetInBytes,
-          targetOffsetInBytes + lengthInBytes,
-          sourceTypedData.sublist(sourceOffsetInBytes));
-    }
-  }
-}
+@pragma("vm:entry-point")
+@pragma("vm:recognized", "other")
+external void _memCopy(Object target, int targetOffsetInBytes, Object source,
+    int sourceOffsetInBytes, int lengthInBytes);
 
 // The following functions are implemented in the method recognizer.
 //
@@ -447,43 +405,6 @@ bool _loadBool(Object typedDataBase, int offsetInBytes) =>
 void _storeBool(Object typedDataBase, int offsetInBytes, bool value) =>
     _storeUint8(typedDataBase, offsetInBytes, value ? 1 : 0);
 
-Pointer<Bool> _elementAtBool(Pointer<Bool> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 1 * index);
-
-Pointer<Int8> _elementAtInt8(Pointer<Int8> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 1 * index);
-
-Pointer<Int16> _elementAtInt16(Pointer<Int16> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 2 * index);
-
-Pointer<Int32> _elementAtInt32(Pointer<Int32> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 4 * index);
-
-Pointer<Int64> _elementAtInt64(Pointer<Int64> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 8 * index);
-
-Pointer<Uint8> _elementAtUint8(Pointer<Uint8> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 1 * index);
-
-Pointer<Uint16> _elementAtUint16(Pointer<Uint16> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 2 * index);
-
-Pointer<Uint32> _elementAtUint32(Pointer<Uint32> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 4 * index);
-
-Pointer<Uint64> _elementAtUint64(Pointer<Uint64> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 8 * index);
-
-Pointer<Float> _elementAtFloat(Pointer<Float> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 4 * index);
-
-Pointer<Double> _elementAtDouble(Pointer<Double> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 8 * index);
-
-Pointer<Pointer<S>> _elementAtPointer<S extends NativeType>(
-        Pointer<Pointer<S>> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + _intPtrSize * index);
-
 @pragma("vm:prefer-inline")
 @pragma("vm:entry-point")
 T _checkAbiSpecificIntegerMapping<T>(T? object) {
@@ -521,6 +442,9 @@ extension Int8Pointer on Pointer<Int8> {
   operator []=(int index, int value) => _storeInt8(this, index, value);
 
   @patch
+  Pointer<Int8> elementAt(int index) => Pointer.fromAddress(address + index);
+
+  @patch
   Int8List asTypedList(int length) {
     ArgumentError.checkNotNull(this, "Pointer<Int8>");
     ArgumentError.checkNotNull(length, "length");
@@ -542,6 +466,10 @@ extension Int16Pointer on Pointer<Int16> {
 
   @patch
   operator []=(int index, int value) => _storeInt16(this, 2 * index, value);
+
+  @patch
+  Pointer<Int16> elementAt(int index) =>
+      Pointer.fromAddress(address + 2 * index);
 
   @patch
   Int16List asTypedList(int length) {
@@ -567,6 +495,10 @@ extension Int32Pointer on Pointer<Int32> {
   operator []=(int index, int value) => _storeInt32(this, 4 * index, value);
 
   @patch
+  Pointer<Int32> elementAt(int index) =>
+      Pointer.fromAddress(address + 4 * index);
+
+  @patch
   Int32List asTypedList(int length) {
     ArgumentError.checkNotNull(this, "Pointer<Int32>");
     ArgumentError.checkNotNull(length, "length");
@@ -588,6 +520,10 @@ extension Int64Pointer on Pointer<Int64> {
 
   @patch
   operator []=(int index, int value) => _storeInt64(this, 8 * index, value);
+
+  @patch
+  Pointer<Int64> elementAt(int index) =>
+      Pointer.fromAddress(address + 8 * index);
 
   @patch
   Int64List asTypedList(int length) {
@@ -613,6 +549,9 @@ extension Uint8Pointer on Pointer<Uint8> {
   operator []=(int index, int value) => _storeUint8(this, index, value);
 
   @patch
+  Pointer<Uint8> elementAt(int index) => Pointer.fromAddress(address + index);
+
+  @patch
   Uint8List asTypedList(int length) {
     ArgumentError.checkNotNull(this, "Pointer<Uint8>");
     ArgumentError.checkNotNull(length, "length");
@@ -634,6 +573,10 @@ extension Uint16Pointer on Pointer<Uint16> {
 
   @patch
   operator []=(int index, int value) => _storeUint16(this, 2 * index, value);
+
+  @patch
+  Pointer<Uint16> elementAt(int index) =>
+      Pointer.fromAddress(address + 2 * index);
 
   @patch
   Uint16List asTypedList(int length) {
@@ -659,6 +602,10 @@ extension Uint32Pointer on Pointer<Uint32> {
   operator []=(int index, int value) => _storeUint32(this, 4 * index, value);
 
   @patch
+  Pointer<Uint32> elementAt(int index) =>
+      Pointer.fromAddress(address + 4 * index);
+
+  @patch
   Uint32List asTypedList(int length) {
     ArgumentError.checkNotNull(this, "Pointer<Uint32>");
     ArgumentError.checkNotNull(length, "length");
@@ -680,6 +627,10 @@ extension Uint64Pointer on Pointer<Uint64> {
 
   @patch
   operator []=(int index, int value) => _storeUint64(this, 8 * index, value);
+
+  @patch
+  Pointer<Uint64> elementAt(int index) =>
+      Pointer.fromAddress(address + 8 * index);
 
   @patch
   Uint64List asTypedList(int length) {
@@ -705,6 +656,10 @@ extension FloatPointer on Pointer<Float> {
   operator []=(int index, double value) => _storeFloat(this, 4 * index, value);
 
   @patch
+  Pointer<Float> elementAt(int index) =>
+      Pointer.fromAddress(address + 4 * index);
+
+  @patch
   Float32List asTypedList(int length) {
     ArgumentError.checkNotNull(this, "Pointer<Float>");
     ArgumentError.checkNotNull(length, "length");
@@ -728,6 +683,10 @@ extension DoublePointer on Pointer<Double> {
   operator []=(int index, double value) => _storeDouble(this, 8 * index, value);
 
   @patch
+  Pointer<Double> elementAt(int index) =>
+      Pointer.fromAddress(address + 8 * index);
+
+  @patch
   Float64List asTypedList(int length) {
     ArgumentError.checkNotNull(this, "Pointer<Double>");
     ArgumentError.checkNotNull(length, "length");
@@ -749,6 +708,9 @@ extension BoolPointer on Pointer<Bool> {
 
   @patch
   operator []=(int index, bool value) => _storeBool(this, index, value);
+
+  @patch
+  Pointer<Bool> elementAt(int index) => Pointer.fromAddress(address + index);
 }
 
 extension Int8Array on Array<Int8> {
@@ -920,6 +882,10 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   Pointer<T> operator [](int index) => _loadPointer(this, _intPtrSize * index);
 
   @patch
+  Pointer<Pointer<T>> elementAt(int index) =>
+      Pointer.fromAddress(address + _intPtrSize * index);
+
+  @patch
   operator []=(int index, Pointer<T> value) =>
       _storePointer(this, _intPtrSize * index, value);
 }
@@ -940,6 +906,10 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   @patch
   void operator []=(int index, T value) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  Pointer<T> elementAt(int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
 extension UnionPointer<T extends Union> on Pointer<T> {
@@ -957,6 +927,10 @@ extension UnionPointer<T extends Union> on Pointer<T> {
 
   @patch
   void operator []=(int index, T value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  Pointer<T> elementAt(int index) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
@@ -976,6 +950,10 @@ extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
 
   @patch
   void operator []=(int index, int value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  Pointer<T> elementAt(int index) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 

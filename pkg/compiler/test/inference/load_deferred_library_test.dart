@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -42,24 +40,24 @@ runTest(List<String> options, {bool trust = true}) async {
       memorySourceFiles: {'main.dart': source}, options: options);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity helperLibrary =
-      elementEnvironment.lookupLibrary(Uris.dart__js_helper);
-  FunctionEntity loadDeferredLibrary = elementEnvironment.lookupLibraryMember(
-      helperLibrary, 'loadDeferredLibrary');
+      elementEnvironment.lookupLibrary(Uris.dart__js_helper)!;
+  final loadDeferredLibrary = elementEnvironment.lookupLibraryMember(
+      helperLibrary, 'loadDeferredLibrary') as FunctionEntity;
   TypeMask typeMask;
 
   KernelToLocalsMap localsMap = compiler
-      .globalInference.resultsForTesting.globalLocalsMap
+      .globalInference.resultsForTesting!.globalLocalsMap
       .getLocalsMap(loadDeferredLibrary);
   MemberDefinition definition =
       closedWorld.elementMap.getMemberDefinition(loadDeferredLibrary);
-  ir.Procedure procedure = definition.node;
-  typeMask = compiler.globalInference.resultsForTesting.resultOfParameter(
-      localsMap
-          .getLocalVariable(procedure.function.positionalParameters.first));
+  final procedure = definition.node as ir.Procedure;
+  typeMask = compiler.globalInference.resultsForTesting!.resultOfParameter(
+      localsMap.getLocalVariable(
+          procedure.function.positionalParameters.first)) as TypeMask;
 
   if (trust) {
     Expect.equals(

@@ -1939,7 +1939,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         break;
 
       // These encodings for inc and dec are IA32 only, but we don't get here
-      // on X64 - the REX prefix recoginizer catches them earlier.
+      // on X64 - the REX prefix recognizer catches them earlier.
       case 0x40:
       case 0x41:
       case 0x42:

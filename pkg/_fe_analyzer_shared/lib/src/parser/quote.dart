@@ -4,6 +4,8 @@
 
 library fasta.quote;
 
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
+
 import 'package:_fe_analyzer_shared/src/parser/listener.dart'
     show UnescapeErrorListener;
 
@@ -148,32 +150,35 @@ String unescapeString(
 
 String unescape(String string, Quote quote, Object location,
     UnescapeErrorListener listener) {
+  String result;
   switch (quote) {
     case Quote.Single:
     case Quote.Double:
-      return !string.contains("\\")
+      result = !string.contains("\\")
           ? string
           : unescapeCodeUnits(
               string.codeUnits, /* isRaw = */ false, location, listener);
-
+      break;
     case Quote.MultiLineSingle:
     case Quote.MultiLineDouble:
-      return !string.contains("\\") && !string.contains("\r")
+      result = !string.contains("\\") && !string.contains("\r")
           ? string
           : unescapeCodeUnits(
               string.codeUnits, /* isRaw = */ false, location, listener);
-
+      break;
     case Quote.RawSingle:
     case Quote.RawDouble:
-      return string;
-
+      result = string;
+      break;
     case Quote.RawMultiLineSingle:
     case Quote.RawMultiLineDouble:
-      return !string.contains("\r")
+      result = !string.contains("\r")
           ? string
           : unescapeCodeUnits(
               string.codeUnits, /* isRaw = */ true, location, listener);
+      break;
   }
+  return considerCanonicalizeString(result);
 }
 
 // Note: based on

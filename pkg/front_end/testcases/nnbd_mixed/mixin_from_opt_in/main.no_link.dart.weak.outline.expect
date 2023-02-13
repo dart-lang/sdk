@@ -37,6 +37,7 @@ abstract class _SubClass&Class&Mixin = opt::Class with opt::Mixin /*isAnonymousM
   abstract member-signature set classField1(core::int* value) → void; -> opt::Class::classField1
   abstract member-signature get classField2() → core::int*; -> opt::Class::classField2
   abstract member-signature set classField2(core::int* value) → void; -> opt::Class::classField2
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   mixin-super-stub method mixinMethod(core::int* i) → core::int*
     return super.{opt::Mixin::mixinMethod}(i);
   abstract member-signature method classMethod(core::int* i) → core::int*; -> opt::Class::classMethod
@@ -48,7 +49,6 @@ abstract class _SubClass&Class&Mixin = opt::Class with opt::Mixin /*isAnonymousM
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class SubClass extends self3::_SubClass&Class&Mixin {

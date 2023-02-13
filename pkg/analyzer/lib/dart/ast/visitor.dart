@@ -150,6 +150,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitAssertStatement(AssertStatement node) => visitStatement(node);
 
   @override
+  R? visitAssignedVariablePattern(AssignedVariablePattern node) =>
+      visitDartPattern(node);
+
+  @override
   R? visitAssignmentExpression(AssignmentExpression node) =>
       visitExpression(node);
 
@@ -162,9 +166,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitBinaryExpression(BinaryExpression node) => visitExpression(node);
-
-  @override
-  R? visitBinaryPattern(BinaryPattern node) => visitDartPattern(node);
 
   @override
   R? visitBlock(Block node) => visitStatement(node);
@@ -258,6 +259,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDeclaredIdentifier(DeclaredIdentifier node) => visitDeclaration(node);
+
+  @override
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node) =>
+      visitDartPattern(node);
 
   @override
   R? visitDefaultFormalParameter(DefaultFormalParameter node) =>
@@ -473,6 +478,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitLiteral(Literal node) => visitExpression(node);
 
   @override
+  R? visitLogicalAndPattern(LogicalAndPattern node) => visitDartPattern(node);
+
+  @override
+  R? visitLogicalOrPattern(LogicalOrPattern node) => visitDartPattern(node);
+
+  @override
   R? visitMapLiteralEntry(MapLiteralEntry node) => visitCollectionElement(node);
 
   @override
@@ -520,6 +531,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitFormalParameter(node);
 
   @override
+  R? visitNullAssertPattern(NullAssertPattern node) => visitDartPattern(node);
+
+  @override
+  R? visitNullCheckPattern(NullCheckPattern node) => visitDartPattern(node);
+
+  @override
   R? visitNullLiteral(NullLiteral node) => visitLiteral(node);
 
   @override
@@ -556,9 +573,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => visitExpression(node);
-
-  @override
-  R? visitPostfixPattern(PostfixPattern node) => visitDartPattern(node);
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => visitIdentifier(node);
@@ -734,13 +748,13 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitStatement(node);
 
   @override
-  R? visitVariablePattern(VariablePattern node) => visitDartPattern(node);
-
-  @override
   R? visitWhenClause(WhenClause node) => visitNode(node);
 
   @override
   R? visitWhileStatement(WhileStatement node) => visitStatement(node);
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) => visitDartPattern(node);
 
   @override
   R? visitWithClause(WithClause node) => visitNode(node);
@@ -800,6 +814,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitAssignedVariablePattern(AssignedVariablePattern node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitAssignmentExpression(AssignmentExpression node) {
     node.visitChildren(this);
     return null;
@@ -819,12 +839,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitBinaryExpression(BinaryExpression node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitBinaryPattern(BinaryPattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -969,6 +983,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDeclaredIdentifier(DeclaredIdentifier node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -1304,6 +1324,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitLogicalAndPattern(LogicalAndPattern node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitLogicalOrPattern(LogicalOrPattern node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitMapLiteralEntry(MapLiteralEntry node) {
     node.visitChildren(this);
     return null;
@@ -1359,6 +1391,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNativeFunctionBody(NativeFunctionBody node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitNullAssertPattern(NullAssertPattern node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitNullCheckPattern(NullCheckPattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -1426,12 +1470,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPostfixExpression(PostfixExpression node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitPostfixPattern(PostfixPattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -1710,12 +1748,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R? visitVariablePattern(VariablePattern node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
   R? visitWhenClause(WhenClause node) {
     node.visitChildren(this);
     return null;
@@ -1723,6 +1755,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitWhileStatement(WhileStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -1769,6 +1807,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitAssertStatement(AssertStatement node) => null;
 
   @override
+  R? visitAssignedVariablePattern(AssignedVariablePattern node) => null;
+
+  @override
   R? visitAssignmentExpression(AssignmentExpression node) => null;
 
   @override
@@ -1779,9 +1820,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitBinaryExpression(BinaryExpression node) => null;
-
-  @override
-  R? visitBinaryPattern(BinaryPattern node) => null;
 
   @override
   R? visitBlock(Block node) => null;
@@ -1854,6 +1892,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDeclaredIdentifier(DeclaredIdentifier node) => null;
+
+  @override
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node) => null;
 
   @override
   R? visitDefaultFormalParameter(DefaultFormalParameter node) => null;
@@ -2026,6 +2067,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitListPattern(ListPattern node) => null;
 
   @override
+  R? visitLogicalAndPattern(LogicalAndPattern node) => null;
+
+  @override
+  R? visitLogicalOrPattern(LogicalOrPattern node) => null;
+
+  @override
   R? visitMapLiteralEntry(MapLiteralEntry node) => null;
 
   @override
@@ -2054,6 +2101,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNativeFunctionBody(NativeFunctionBody node) => null;
+
+  @override
+  R? visitNullAssertPattern(NullAssertPattern node) => null;
+
+  @override
+  R? visitNullCheckPattern(NullCheckPattern node) => null;
 
   @override
   R? visitNullLiteral(NullLiteral node) => null;
@@ -2089,9 +2142,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => null;
-
-  @override
-  R? visitPostfixPattern(PostfixPattern node) => null;
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => null;
@@ -2237,13 +2287,13 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
       null;
 
   @override
-  R? visitVariablePattern(VariablePattern node) => null;
-
-  @override
   R? visitWhenClause(WhenClause node) => null;
 
   @override
   R? visitWhileStatement(WhileStatement node) => null;
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) => null;
 
   @override
   R? visitWithClause(WithClause node) => null;
@@ -2282,6 +2332,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitAssertStatement(AssertStatement node) => _throw(node);
 
   @override
+  R? visitAssignedVariablePattern(AssignedVariablePattern node) => _throw(node);
+
+  @override
   R? visitAssignmentExpression(AssignmentExpression node) => _throw(node);
 
   @override
@@ -2293,9 +2346,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitBinaryExpression(BinaryExpression node) => _throw(node);
-
-  @override
-  R? visitBinaryPattern(BinaryPattern node) => _throw(node);
 
   @override
   R? visitBlock(Block node) => _throw(node);
@@ -2369,6 +2419,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDeclaredIdentifier(DeclaredIdentifier node) => _throw(node);
+
+  @override
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node) => _throw(node);
 
   @override
   R? visitDefaultFormalParameter(DefaultFormalParameter node) => _throw(node);
@@ -2545,6 +2598,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitListPattern(ListPattern node) => _throw(node);
 
   @override
+  R? visitLogicalAndPattern(LogicalAndPattern node) => _throw(node);
+
+  @override
+  R? visitLogicalOrPattern(LogicalOrPattern node) => _throw(node);
+
+  @override
   R? visitMapLiteralEntry(MapLiteralEntry node) => _throw(node);
 
   @override
@@ -2573,6 +2632,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNativeFunctionBody(NativeFunctionBody node) => _throw(node);
+
+  @override
+  R? visitNullAssertPattern(NullAssertPattern node) => _throw(node);
+
+  @override
+  R? visitNullCheckPattern(NullCheckPattern node) => _throw(node);
 
   @override
   R? visitNullLiteral(NullLiteral node) => _throw(node);
@@ -2609,9 +2674,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => _throw(node);
-
-  @override
-  R? visitPostfixPattern(PostfixPattern node) => _throw(node);
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => _throw(node);
@@ -2759,13 +2821,13 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
       _throw(node);
 
   @override
-  R? visitVariablePattern(VariablePattern node) => _throw(node);
-
-  @override
   R? visitWhenClause(WhenClause node) => _throw(node);
 
   @override
   R? visitWhileStatement(WhileStatement node) => _throw(node);
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) => _throw(node);
 
   @override
   R? visitWithClause(WithClause node) => _throw(node);
@@ -2774,7 +2836,11 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitYieldStatement(YieldStatement node) => _throw(node);
 
   Never _throw(AstNode node) {
-    throw Exception('Missing implementation of visit${node.runtimeType}');
+    var typeName = node.runtimeType.toString();
+    if (typeName.endsWith('Impl')) {
+      typeName = typeName.substring(0, typeName.length - 4);
+    }
+    throw Exception('Missing implementation of visit$typeName');
   }
 }
 
@@ -2842,6 +2908,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitAssignedVariablePattern(AssignedVariablePattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitAssignedVariablePattern(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitAssignmentExpression(AssignmentExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitAssignmentExpression(node);
@@ -2869,14 +2943,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitBinaryExpression(BinaryExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitBinaryExpression(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitBinaryPattern(BinaryPattern node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitBinaryPattern(node);
     stopwatch.stop();
     return result;
   }
@@ -3069,6 +3135,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitDeclaredIdentifier(DeclaredIdentifier node) {
     stopwatch.start();
     T? result = _baseVisitor.visitDeclaredIdentifier(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitDeclaredVariablePattern(node);
     stopwatch.stop();
     return result;
   }
@@ -3514,6 +3588,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitLogicalAndPattern(LogicalAndPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLogicalAndPattern(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitLogicalOrPattern(LogicalOrPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLogicalOrPattern(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitMapLiteralEntry(MapLiteralEntry node) {
     stopwatch.start();
     T? result = _baseVisitor.visitMapLiteralEntry(node);
@@ -3589,6 +3679,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitNativeFunctionBody(NativeFunctionBody node) {
     stopwatch.start();
     T? result = _baseVisitor.visitNativeFunctionBody(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitNullAssertPattern(NullAssertPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitNullAssertPattern(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitNullCheckPattern(NullCheckPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitNullCheckPattern(node);
     stopwatch.stop();
     return result;
   }
@@ -3678,14 +3784,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitPostfixExpression(PostfixExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitPostfixExpression(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitPostfixPattern(PostfixPattern node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitPostfixPattern(node);
     stopwatch.stop();
     return result;
   }
@@ -4054,14 +4152,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T? visitVariablePattern(VariablePattern node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitVariablePattern(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitWhenClause(WhenClause node) {
     stopwatch.start();
     T? result = _baseVisitor.visitWhenClause(node);
@@ -4073,6 +4163,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitWhileStatement(WhileStatement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitWhileStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitWildcardPattern(WildcardPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitWildcardPattern(node);
     stopwatch.stop();
     return result;
   }
@@ -4128,6 +4226,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitAssertStatement(AssertStatement node) => visitNode(node);
 
   @override
+  R? visitAssignedVariablePattern(AssignedVariablePattern node) =>
+      visitNode(node);
+
+  @override
   R? visitAssignmentExpression(AssignmentExpression node) => visitNode(node);
 
   @override
@@ -4139,9 +4241,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitBinaryExpression(BinaryExpression node) => visitNode(node);
-
-  @override
-  R? visitBinaryPattern(BinaryPattern node) => visitNode(node);
 
   @override
   R? visitBlock(Block node) => visitNode(node);
@@ -4216,6 +4315,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDeclaredIdentifier(DeclaredIdentifier node) => visitNode(node);
+
+  @override
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node) =>
+      visitNode(node);
 
   @override
   R? visitDefaultFormalParameter(DefaultFormalParameter node) =>
@@ -4398,6 +4501,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitListPattern(ListPattern node) => visitNode(node);
 
   @override
+  R? visitLogicalAndPattern(LogicalAndPattern node) => visitNode(node);
+
+  @override
+  R? visitLogicalOrPattern(LogicalOrPattern node) => visitNode(node);
+
+  @override
   R? visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);
 
   @override
@@ -4431,6 +4540,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
     node.visitChildren(this);
     return null;
   }
+
+  @override
+  R? visitNullAssertPattern(NullAssertPattern node) => visitNode(node);
+
+  @override
+  R? visitNullCheckPattern(NullCheckPattern node) => visitNode(node);
 
   @override
   R? visitNullLiteral(NullLiteral node) => visitNode(node);
@@ -4468,9 +4583,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => visitNode(node);
-
-  @override
-  R? visitPostfixPattern(PostfixPattern node) => visitNode(node);
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => visitNode(node);
@@ -4620,13 +4732,13 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
       visitNode(node);
 
   @override
-  R? visitVariablePattern(VariablePattern node) => visitNode(node);
-
-  @override
   R? visitWhenClause(WhenClause node) => visitNode(node);
 
   @override
   R? visitWhileStatement(WhileStatement node) => visitNode(node);
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) => visitNode(node);
 
   @override
   R? visitWithClause(WithClause node) => visitNode(node);

@@ -12,7 +12,7 @@ import 'package:analyzer/src/services/lint.dart';
 /// Returns `true` if the exception was fully handled, or `false` if
 /// the exception should be rethrown.
 typedef LintRuleExceptionHandler = bool Function(
-    AstNode node, LintRule linter, dynamic exception, StackTrace stackTrace);
+    AstNode node, LintRule linter, Object exception, StackTrace stackTrace);
 
 /// The AST visitor that runs handlers for nodes from the [registry].
 class LinterVisitor implements AstVisitor<void> {
@@ -60,6 +60,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    _runSubscriptions(node, registry._forAssignedVariablePattern);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _runSubscriptions(node, registry._forAssignmentExpression);
     node.visitChildren(this);
@@ -80,12 +86,6 @@ class LinterVisitor implements AstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     _runSubscriptions(node, registry._forBinaryExpression);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitBinaryPattern(BinaryPattern node) {
-    _runSubscriptions(node, registry._forBinaryPattern);
     node.visitChildren(this);
   }
 
@@ -230,6 +230,12 @@ class LinterVisitor implements AstVisitor<void> {
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _runSubscriptions(node, registry._forDeclaredIdentifier);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    _runSubscriptions(node, registry._forDeclaredVariablePattern);
     node.visitChildren(this);
   }
 
@@ -564,6 +570,18 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    _runSubscriptions(node, registry._forLogicalAndPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    _runSubscriptions(node, registry._forLogicalOrPattern);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _runSubscriptions(node, registry._forMapLiteralEntry);
     node.visitChildren(this);
@@ -620,6 +638,18 @@ class LinterVisitor implements AstVisitor<void> {
   @override
   void visitNativeFunctionBody(NativeFunctionBody node) {
     _runSubscriptions(node, registry._forNativeFunctionBody);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    _runSubscriptions(node, registry._forNullAssertPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    _runSubscriptions(node, registry._forNullCheckPattern);
     node.visitChildren(this);
   }
 
@@ -687,12 +717,6 @@ class LinterVisitor implements AstVisitor<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _runSubscriptions(node, registry._forPostfixExpression);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitPostfixPattern(PostfixPattern node) {
-    _runSubscriptions(node, registry._forPostfixPattern);
     node.visitChildren(this);
   }
 
@@ -971,12 +995,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitVariablePattern(VariablePattern node) {
-    _runSubscriptions(node, registry._forVariablePattern);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitWhenClause(WhenClause node) {
     _runSubscriptions(node, registry._forWhenClause);
     node.visitChildren(this);
@@ -985,6 +1003,12 @@ class LinterVisitor implements AstVisitor<void> {
   @override
   void visitWhileStatement(WhileStatement node) {
     _runSubscriptions(node, registry._forWhileStatement);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitWildcardPattern(WildcardPattern node) {
+    _runSubscriptions(node, registry._forWildcardPattern);
     node.visitChildren(this);
   }
 
@@ -1028,12 +1052,13 @@ class NodeLintRegistry {
   final List<_Subscription<AsExpression>> _forAsExpression = [];
   final List<_Subscription<AssertInitializer>> _forAssertInitializer = [];
   final List<_Subscription<AssertStatement>> _forAssertStatement = [];
+  final List<_Subscription<AssignedVariablePattern>>
+      _forAssignedVariablePattern = [];
   final List<_Subscription<AssignmentExpression>> _forAssignmentExpression = [];
   final List<_Subscription<AugmentationImportDirective>>
       _forAugmentationImportDirective = [];
   final List<_Subscription<AwaitExpression>> _forAwaitExpression = [];
   final List<_Subscription<BinaryExpression>> _forBinaryExpression = [];
-  final List<_Subscription<BinaryPattern>> _forBinaryPattern = [];
   final List<_Subscription<Block>> _forBlock = [];
   final List<_Subscription<BlockFunctionBody>> _forBlockFunctionBody = [];
   final List<_Subscription<BooleanLiteral>> _forBooleanLiteral = [];
@@ -1061,6 +1086,8 @@ class NodeLintRegistry {
   final List<_Subscription<ConstructorSelector>> _forConstructorSelector = [];
   final List<_Subscription<ContinueStatement>> _forContinueStatement = [];
   final List<_Subscription<DeclaredIdentifier>> _forDeclaredIdentifier = [];
+  final List<_Subscription<DeclaredVariablePattern>>
+      _forDeclaredVariablePattern = [];
   final List<_Subscription<DefaultFormalParameter>> _forDefaultFormalParameter =
       [];
   final List<_Subscription<DoStatement>> _forDoStatement = [];
@@ -1133,6 +1160,8 @@ class NodeLintRegistry {
   final List<_Subscription<LibraryIdentifier>> _forLibraryIdentifier = [];
   final List<_Subscription<ListLiteral>> _forListLiteral = [];
   final List<_Subscription<ListPattern>> _forListPattern = [];
+  final List<_Subscription<LogicalAndPattern>> _forLogicalAndPattern = [];
+  final List<_Subscription<LogicalOrPattern>> _forLogicalOrPattern = [];
   final List<_Subscription<MapLiteralEntry>> _forMapLiteralEntry = [];
   final List<_Subscription<MapPatternEntry>> _forMapPatternEntry = [];
   final List<_Subscription<MapPattern>> _forMapPattern = [];
@@ -1143,6 +1172,8 @@ class NodeLintRegistry {
   final List<_Subscription<NamedType>> _forNamedType = [];
   final List<_Subscription<NativeClause>> _forNativeClause = [];
   final List<_Subscription<NativeFunctionBody>> _forNativeFunctionBody = [];
+  final List<_Subscription<NullAssertPattern>> _forNullAssertPattern = [];
+  final List<_Subscription<NullCheckPattern>> _forNullCheckPattern = [];
   final List<_Subscription<NullLiteral>> _forNullLiteral = [];
   final List<_Subscription<OnClause>> _forOnClause = [];
   final List<_Subscription<ParenthesizedExpression>>
@@ -1156,7 +1187,6 @@ class NodeLintRegistry {
   final List<_Subscription<PatternVariableDeclarationStatement>>
       _forPatternVariableDeclarationStatement = [];
   final List<_Subscription<PostfixExpression>> _forPostfixExpression = [];
-  final List<_Subscription<PostfixPattern>> _forPostfixPattern = [];
   final List<_Subscription<PrefixedIdentifier>> _forPrefixedIdentifier = [];
   final List<_Subscription<PrefixExpression>> _forPrefixExpression = [];
   final List<_Subscription<PropertyAccess>> _forPropertyAccess = [];
@@ -1212,9 +1242,9 @@ class NodeLintRegistry {
       _forVariableDeclarationList = [];
   final List<_Subscription<VariableDeclarationStatement>>
       _forVariableDeclarationStatement = [];
-  final List<_Subscription<VariablePattern>> _forVariablePattern = [];
   final List<_Subscription<WhenClause>> _forWhenClause = [];
   final List<_Subscription<WhileStatement>> _forWhileStatement = [];
+  final List<_Subscription<WildcardPattern>> _forWildcardPattern = [];
   final List<_Subscription<WithClause>> _forWithClause = [];
   final List<_Subscription<YieldStatement>> _forYieldStatement = [];
 
@@ -1245,6 +1275,11 @@ class NodeLintRegistry {
     _forAssertStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addAssignedVariablePattern(LintRule linter, AstVisitor visitor) {
+    _forAssignedVariablePattern
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addAssignmentExpression(LintRule linter, AstVisitor visitor) {
     _forAssignmentExpression
         .add(_Subscription(linter, visitor, _getTimer(linter)));
@@ -1261,10 +1296,6 @@ class NodeLintRegistry {
 
   void addBinaryExpression(LintRule linter, AstVisitor visitor) {
     _forBinaryExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addBinaryPattern(LintRule linter, AstVisitor visitor) {
-    _forBinaryPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addBlock(LintRule linter, AstVisitor visitor) {
@@ -1370,6 +1401,11 @@ class NodeLintRegistry {
 
   void addDeclaredIdentifier(LintRule linter, AstVisitor visitor) {
     _forDeclaredIdentifier
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addDeclaredVariablePattern(LintRule linter, AstVisitor visitor) {
+    _forDeclaredVariablePattern
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
@@ -1623,6 +1659,15 @@ class NodeLintRegistry {
     _forListPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addLogicalAndPattern(LintRule linter, AstVisitor visitor) {
+    _forLogicalAndPattern
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addLogicalOrPattern(LintRule linter, AstVisitor visitor) {
+    _forLogicalOrPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addMapLiteralEntry(LintRule linter, AstVisitor visitor) {
     _forMapLiteralEntry.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1663,6 +1708,15 @@ class NodeLintRegistry {
   void addNativeFunctionBody(LintRule linter, AstVisitor visitor) {
     _forNativeFunctionBody
         .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addNullAssertPattern(LintRule linter, AstVisitor visitor) {
+    _forNullAssertPattern
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addNullCheckPattern(LintRule linter, AstVisitor visitor) {
+    _forNullCheckPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addNullLiteral(LintRule linter, AstVisitor visitor) {
@@ -1714,10 +1768,6 @@ class NodeLintRegistry {
   void addPostfixExpression(LintRule linter, AstVisitor visitor) {
     _forPostfixExpression
         .add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addPostfixPattern(LintRule linter, AstVisitor visitor) {
-    _forPostfixPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addPrefixedIdentifier(LintRule linter, AstVisitor visitor) {
@@ -1912,10 +1962,6 @@ class NodeLintRegistry {
   void addVariableDeclarationStatement(LintRule linter, AstVisitor visitor) {
     _forVariableDeclarationStatement
         .add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addVariablePattern(LintRule linter, AstVisitor visitor) {
-    _forVariablePattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addWhenClause(LintRule linter, AstVisitor visitor) {

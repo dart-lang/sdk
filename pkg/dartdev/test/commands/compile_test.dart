@@ -522,7 +522,6 @@ void main() {
 
   test('Compile exe with unsound null safety', () async {
     final p = project(mainSrc: '''
-// @dart=2.9
 void main() {}
 ''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -532,6 +531,7 @@ void main() {}
       [
         'compile',
         'exe',
+        '--no-sound-null-safety',
         '-o',
         outFile,
         inFile,
@@ -698,6 +698,7 @@ void main() {}
       [
         'compile',
         'js',
+        '--no-sound-null-safety',
         '-o',
         outFile,
         inFile,
@@ -786,7 +787,6 @@ void main() {
 
   test('Compile AOT snapshot with unsound null safety', () async {
     final p = project(mainSrc: '''
-// @dart=2.9
 void main() {}
 ''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -796,6 +796,7 @@ void main() {}
       [
         'compile',
         'aot-snapshot',
+        '--no-sound-null-safety',
         '-o',
         outFile,
         inFile,
@@ -917,7 +918,7 @@ void main() {
     expect(File(outFile).existsSync(), false, reason: 'File found: $outFile');
   });
 
-  test('Compile kernel with sound null safety', () async {
+  test('Compile kernel with default (sound null safety)', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
@@ -940,7 +941,6 @@ void main() {
 
   test('Compile kernel with unsound null safety', () async {
     final p = project(mainSrc: '''
-// @dart=2.9
 void main() {}
 ''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -950,6 +950,7 @@ void main() {}
       [
         'compile',
         'kernel',
+        '--no-sound-null-safety',
         '-o',
         outFile,
         inFile,
@@ -1086,7 +1087,7 @@ void main() {
     expect(result.exitCode, 0);
   });
 
-  test('Compile JIT snapshot with sound null safety', () async {
+  test('Compile JIT snapshot with default (sound null safety)', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
@@ -1109,7 +1110,6 @@ void main() {
 
   test('Compile JIT snapshot with unsound null safety', () async {
     final p = project(mainSrc: '''
-// @dart=2.9
 void main() {}
 ''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -1119,6 +1119,7 @@ void main() {}
       [
         'compile',
         'jit-snapshot',
+        '--no-sound-null-safety',
         '-o',
         outFile,
         inFile,

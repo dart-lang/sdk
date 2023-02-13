@@ -49,6 +49,7 @@ main(List<String> args) async {
 
     // Compile script to Kernel IR.
     await run(genKernel, <String>[
+      '--no-sound-null-safety',
       '--aot',
       '--platform=$platformDill',
       '-o',
@@ -61,6 +62,7 @@ main(List<String> args) async {
     // information.
     final scriptWholeSnapshot = path.join(tempDir, 'whole.so');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--dwarf-stack-traces',
       '--snapshot-kind=app-aot-elf',
       '--elf=$scriptWholeSnapshot',
@@ -70,6 +72,7 @@ main(List<String> args) async {
 
     final scriptStrippedOnlySnapshot = path.join(tempDir, 'stripped_only.so');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--dwarf-stack-traces',
       '--snapshot-kind=app-aot-elf',
       '--elf=$scriptStrippedOnlySnapshot',
@@ -81,6 +84,7 @@ main(List<String> args) async {
     final scriptStrippedSnapshot = path.join(tempDir, 'stripped.so');
     final scriptDebuggingInfo = path.join(tempDir, 'debug.so');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--dwarf-stack-traces',
       '--snapshot-kind=app-aot-elf',
       '--elf=$scriptStrippedSnapshot',

@@ -343,7 +343,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     return node.name;
   }
 
-  String getViewName(View node) {
+  String getInlineClassName(InlineClass node) {
     return node.name;
   }
 
@@ -363,10 +363,10 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     return '$library::$name';
   }
 
-  String getViewReference(View node) {
+  String getInlineClassReference(InlineClass node) {
     // ignore: unnecessary_null_comparison
-    if (node == null) return '<No View>';
-    String name = getViewName(node);
+    if (node == null) return '<No InlineClass>';
+    String name = getInlineClassName(node);
     String library = getLibraryReference(node.enclosingLibrary);
     return '$library::$name';
   }
@@ -516,7 +516,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     library.typedefs.forEach(writeNode);
     library.classes.forEach(writeNode);
     library.extensions.forEach(writeNode);
-    library.views.forEach(writeNode);
+    library.inlineClasses.forEach(writeNode);
     library.fields.forEach(writeNode);
     library.procedures.forEach(writeNode);
   }
@@ -997,15 +997,15 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     throw "Neither node nor canonical name found";
   }
 
-  void writeViewReferenceFromReference(Reference reference) {
-    writeWord(getViewReferenceFromReference(reference));
+  void writeInlineClassReferenceFromReference(Reference reference) {
+    writeWord(getInlineClassReferenceFromReference(reference));
   }
 
-  String getViewReferenceFromReference(Reference reference) {
+  String getInlineClassReferenceFromReference(Reference reference) {
     // ignore: unnecessary_null_comparison
     if (reference == null) return '<No Extension>';
     if (reference.node != null) {
-      return getViewReference(reference.asView);
+      return getInlineClassReference(reference.asInlineClass);
     }
     if (reference.canonicalName != null) {
       return getCanonicalNameString(reference.canonicalName!);
@@ -1307,6 +1307,10 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeModifier(node.isAbstract, 'abstract');
     writeModifier(node.isMacro, 'macro');
     writeModifier(node.isSealed, 'sealed');
+    writeModifier(node.isBase, 'base');
+    writeModifier(node.isInterface, 'interface');
+    writeModifier(node.isFinal, 'final');
+    writeModifier(node.isMixinClass, 'mixin');
     writeWord('class');
     writeWord(getClassName(node));
     writeTypeParameterList(node.typeParameters);
@@ -1477,14 +1481,14 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  void visitView(View node) {
+  void visitInlineClass(InlineClass node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
-    writeWord('view');
-    writeWord(getViewName(node));
+    writeWord('inline class');
+    writeWord(getInlineClassName(node));
     writeTypeParameterList(node.typeParameters);
-    writeWord('/* representationType =');
-    writeType(node.representationType);
+    writeWord('/* declaredRepresentationType =');
+    writeType(node.declaredRepresentationType);
     writeWord('*/');
 
     String endLineString = ' {';
@@ -1494,32 +1498,32 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
     endLine(endLineString);
     ++indentation;
-    node.members.forEach((ViewMemberDescriptor descriptor) {
+    node.members.forEach((InlineClassMemberDescriptor descriptor) {
       writeIndentation();
       writeModifier(descriptor.isStatic, 'static');
       switch (descriptor.kind) {
-        case ViewMemberKind.Constructor:
+        case InlineClassMemberKind.Constructor:
           writeWord('constructor');
           break;
-        case ViewMemberKind.Factory:
+        case InlineClassMemberKind.Factory:
           writeWord('factory');
           break;
-        case ViewMemberKind.Method:
+        case InlineClassMemberKind.Method:
           writeWord('method');
           break;
-        case ViewMemberKind.Getter:
+        case InlineClassMemberKind.Getter:
           writeWord('get');
           break;
-        case ViewMemberKind.Setter:
+        case InlineClassMemberKind.Setter:
           writeWord('set');
           break;
-        case ViewMemberKind.Operator:
+        case InlineClassMemberKind.Operator:
           writeWord('operator');
           break;
-        case ViewMemberKind.Field:
+        case InlineClassMemberKind.Field:
           writeWord('field');
           break;
-        case ViewMemberKind.TearOff:
+        case InlineClassMemberKind.TearOff:
           writeWord('tearoff');
           break;
       }
@@ -2283,7 +2287,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   @override
   void visitRecordIndexGet(RecordIndexGet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.\$${node.index}');
+    writeSymbol('.\$${node.index + 1}');
     writeSymbol('{');
     writeType(node.receiverType.positional[node.index]);
     writeSymbol('}');
@@ -2778,8 +2782,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  void visitViewType(ViewType node) {
-    writeViewReferenceFromReference(node.viewReference);
+  void visitInlineType(InlineType node) {
+    writeInlineClassReferenceFromReference(node.inlineClassReference);
     if (node.typeArguments.isNotEmpty) {
       writeSymbol('<');
       writeList(node.typeArguments, writeType);
@@ -2866,7 +2870,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);
-    // ignore: unnecessary_null_comparison
     if (node.defaultType != node.bound) {
       writeSpaced('=');
       writeType(node.defaultType);

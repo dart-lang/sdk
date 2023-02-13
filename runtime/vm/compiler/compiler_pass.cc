@@ -382,9 +382,9 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(AllocationSinking_Sink);
   INVOKE_PASS(EliminateDeadPhis);
   INVOKE_PASS(DCE);
+  INVOKE_PASS(Canonicalize);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(SelectRepresentations_Final);
-  INVOKE_PASS(Canonicalize);
   INVOKE_PASS(UseTableDispatch);
   INVOKE_PASS(EliminateStackOverflowChecks);
   INVOKE_PASS(Canonicalize);
@@ -407,8 +407,8 @@ FlowGraph* CompilerPass::RunPipelineWithPasses(
 }
 
 COMPILER_PASS(ComputeSSA, {
-  // Transform to SSA (virtual register 0 and no inlining arguments).
-  flow_graph->ComputeSSA(0, NULL);
+  // Transform to SSA (no inlining arguments).
+  flow_graph->ComputeSSA(nullptr);
 });
 
 COMPILER_PASS(ApplyICData, { state->call_specializer->ApplyICData(); });
@@ -461,7 +461,7 @@ COMPILER_PASS(OptimisticallySpecializeSmiPhis, {
 
 COMPILER_PASS(WidenSmiToInt32, {
   // Where beneficial convert Smi operations into Int32 operations.
-  // Only meanigful for 32bit platforms right now.
+  // Only meaningful for 32bit platforms right now.
   flow_graph->WidenSmiToInt32();
 });
 

@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue47013d.dart:15:20: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+//   throws(() => b.m(1.5, 0));
+//                    ^
+//
+// pkg/front_end/testcases/general/issue47013d.dart:17:23: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+//   throws(() => a.m(1, 1.5));
+//                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method m(core::num n, core::int i) → void {}
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::int, core::num) → void */ m(covariant-by-declaration core::num i, covariant-by-declaration core::int n) → void
+    return super.{self::A::m}(i, n);
+}
+static method main() → dynamic {
+  self::B b = new self::B::•();
+  self::throws(() → void => b.{self::B::m}(invalid-expression "pkg/front_end/testcases/general/issue47013d.dart:15:20: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+  throws(() => b.m(1.5, 0));
+                   ^" in 1.5 as{TypeError,ForNonNullableByDefault} core::int, 0){(core::int, core::num) → void});
+  self::A a = b;
+  self::throws(() → void => a.{self::A::m}(1, invalid-expression "pkg/front_end/testcases/general/issue47013d.dart:17:23: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+  throws(() => a.m(1, 1.5));
+                      ^" in 1.5 as{TypeError,ForNonNullableByDefault} core::int){(core::num, core::int) → void});
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print(e);
+    return;
+  }
+  throw "Exception expected";
+}

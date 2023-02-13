@@ -19,7 +19,7 @@ import '../options.dart';
 import '../source_file_provider.dart';
 import '../util/sink_adapter.dart';
 import 'serialization.dart';
-import 'task_migrated.dart';
+import 'task.dart';
 
 abstract class SerializationStrategy<T> {
   const SerializationStrategy();
@@ -30,7 +30,7 @@ abstract class SerializationStrategy<T> {
     return serializeComponent(component);
   }
 
-  List<T> serializeGlobalTypeInferenceResults(DataSourceIndices indices,
+  List<T> serializeGlobalTypeInferenceResults(DataSourceIndices? indices,
       GlobalTypeInferenceResults results, CompilerOptions options);
 
   List<int> serializeComponent(ir.Component component) {
@@ -51,7 +51,7 @@ abstract class SerializationStrategy<T> {
           AbstractValueStrategy abstractValueStrategy,
           ir.Component component,
           JClosedWorld closedWorld,
-          DataSourceIndices indices,
+          DataSourceIndices? indices,
           List<T> globalTypeInferenceResultsData);
 
   List<T> serializeClosedWorld(
@@ -72,7 +72,7 @@ class BytesInMemorySerializationStrategy extends SerializationStrategy<int> {
   const BytesInMemorySerializationStrategy({this.useDataKinds = false});
 
   @override
-  List<int> serializeGlobalTypeInferenceResults(DataSourceIndices indices,
+  List<int> serializeGlobalTypeInferenceResults(DataSourceIndices? indices,
       GlobalTypeInferenceResults results, CompilerOptions options) {
     ByteSink byteSink = ByteSink();
     DataSinkWriter sink = DataSinkWriter(BinaryDataSink(byteSink), options,
@@ -90,7 +90,7 @@ class BytesInMemorySerializationStrategy extends SerializationStrategy<int> {
           AbstractValueStrategy abstractValueStrategy,
           ir.Component component,
           JClosedWorld closedWorld,
-          DataSourceIndices indices,
+          DataSourceIndices? indices,
           List<int> globalTypeInferenceResultsData) {
     DataSourceReader globalTypeInferenceResultsSource = DataSourceReader(
         BinaryDataSource(globalTypeInferenceResultsData), options,
@@ -142,7 +142,7 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
   const BytesOnDiskSerializationStrategy({this.useDataKinds = false});
 
   @override
-  List<int> serializeGlobalTypeInferenceResults(DataSourceIndices indices,
+  List<int> serializeGlobalTypeInferenceResults(DataSourceIndices? indices,
       GlobalTypeInferenceResults results, CompilerOptions options) {
     Uri uri = Uri.base.resolve('world.data');
     DataSinkWriter sink = DataSinkWriter(
@@ -164,7 +164,7 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
           AbstractValueStrategy abstractValueStrategy,
           ir.Component component,
           JClosedWorld closedWorld,
-          DataSourceIndices indices,
+          DataSourceIndices? indices,
           List<int> globalTypeInferenceResultsData) {
     DataSourceReader globalTypeInferenceResultsSource = DataSourceReader(
         BinaryDataSource(globalTypeInferenceResultsData), options,
@@ -219,7 +219,7 @@ class ObjectsInMemorySerializationStrategy
   const ObjectsInMemorySerializationStrategy({this.useDataKinds = true});
 
   @override
-  List<Object> serializeGlobalTypeInferenceResults(DataSourceIndices indices,
+  List<Object> serializeGlobalTypeInferenceResults(DataSourceIndices? indices,
       GlobalTypeInferenceResults results, CompilerOptions options) {
     List<Object> data = [];
     DataSinkWriter sink = DataSinkWriter(ObjectDataSink(data), options,
@@ -237,10 +237,11 @@ class ObjectsInMemorySerializationStrategy
           AbstractValueStrategy abstractValueStrategy,
           ir.Component component,
           JClosedWorld closedWorld,
-          DataSourceIndices indices,
+          DataSourceIndices? indices,
           List<Object> globalTypeInferenceResultsData) {
     DataSourceReader globalTypeInferenceResultsSource = DataSourceReader(
-        ObjectDataSource(globalTypeInferenceResultsData), options);
+        ObjectDataSource(globalTypeInferenceResultsData), options,
+        useDataKinds: useDataKinds);
     return DataAndIndices(
         deserializeGlobalTypeInferenceResultsFromSource(
             options,

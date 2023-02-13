@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Elements have references to AST nodes, for example initializers of constant
 /// variables. These nodes are attached to the whole compilation unit, and
@@ -30,7 +31,7 @@ class _Visitor extends GeneralizingElementVisitor<void> {
   void visitConstructorElement(ConstructorElement element) {
     if (element is ConstructorElementImpl) {
       // Make a copy, so that it is not a NodeList.
-      var initializers = element.constantInitializers.toList();
+      var initializers = element.constantInitializers.toFixedList();
       initializers.forEach(_detachNode);
       element.constantInitializers = initializers;
     }
@@ -77,7 +78,7 @@ class _Visitor extends GeneralizingElementVisitor<void> {
         initializer = replaceNotSerializableNodes(initializer);
         element.constantInitializer = initializer;
 
-        ConstantContextForExpressionImpl(initializer);
+        ConstantContextForExpressionImpl(element, initializer);
       }
     }
   }

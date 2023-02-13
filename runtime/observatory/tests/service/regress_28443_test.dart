@@ -23,7 +23,7 @@ collect() async {
     try {
       vmService = new VMServiceClient(uri);
       await new Future.microtask(() => throw new TimeoutException("here"));
-    } on dynamic {
+    } on Object {
       vmService.close();
       rethrow; // LINE_A
     }

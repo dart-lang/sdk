@@ -201,11 +201,15 @@ abstract class AbstractClass extends Super implements Interface1, Interface2 {
 
 /*class: ConcreteSub:
  abstractMembers=[
-  AbstractClass.extendedAbstractCovariantImplementedSetter=,
-  AbstractClass.extendedAbstractImplementedCovariantSetter=,
-  AbstractClass.implementsMultipleCovariantSetter1=,
-  AbstractClass.implementsMultipleCovariantSetter2=,
-  Super.extendedAbstractCovariantSetter=],
+  Interface1.extendedAbstractCovariantImplementedSetter=,
+  Interface1.extendedAbstractImplementedCovariantSetter=,
+  Interface1.implementsMultipleCovariantSetter1=,
+  Interface1.implementsMultipleCovariantSetter2=,
+  Interface2.implementsMultipleCovariantSetter1=,
+  Interface2.implementsMultipleCovariantSetter2=,
+  Super.extendedAbstractCovariantImplementedSetter=,
+  Super.extendedAbstractCovariantSetter=,
+  Super.extendedAbstractImplementedCovariantSetter=],
  interfaces=[
   Interface1,
   Interface2],

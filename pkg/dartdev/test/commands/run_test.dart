@@ -167,7 +167,7 @@ void run() {
     p.file('pubspec.yaml', '''
 name: foo
 environment:
-  sdk: '>=2.9.0<3.0.0'
+  sdk: '>=2.12.0<3.0.0'
 
 dependencies: { 'bar': {'path': '${bar.dir.path}'}}
 ''');
@@ -615,13 +615,20 @@ void main(List<String> args) => print("$b $args");
               completer.complete();
             }
           });
+
           // Wait for process to start.
           await completer.future;
           final client = HttpClient();
-          final request = await client.getUrl(Uri.parse(uri));
-          final response = await request.close();
-          final content = await response.transform(utf8.decoder).join();
-          expect(content.contains('Dart VM Observatory'), serve);
+
+          Future<String> makeServiceHttpRequest({String method = ''}) async {
+            var request = await client.getUrl(Uri.parse('$uri$method'));
+            var response = await request.close();
+            return await response.transform(utf8.decoder).join();
+          }
+
+          var content = await makeServiceHttpRequest();
+          const observatoryText = 'Dart VM Observatory';
+          expect(content.contains(observatoryText), serve);
           if (!serve) {
             if (withDds) {
               expect(content.contains('DevTools'), true);
@@ -634,6 +641,21 @@ void main(List<String> args) => print("$b $args");
               );
             }
           }
+
+          // Ensure we can always make VM service requests via HTTP.
+          content = await makeServiceHttpRequest(method: 'getVM');
+          expect(content.contains('"jsonrpc":"2.0"'), true);
+
+          // If Observatory isn't being served, ensure we can enable it.
+          if (!serve) {
+            content = await makeServiceHttpRequest(method: '_serveObservatory');
+            expect(content.contains('"type":"Success"'), true);
+
+            // Ensure Observatory is now being served.
+            content = await makeServiceHttpRequest();
+            expect(content.contains(observatoryText), true);
+          }
+
           process.kill();
         },
       );

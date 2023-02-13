@@ -284,6 +284,7 @@ doesn't conform to the language specification or
 that might work in unexpected ways.
 
 [ffi]: https://dart.dev/guides/libraries/c-interop
+[IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 [meta-doNotStore]: https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html
 [meta-factory]: https://pub.dev/documentation/meta/latest/meta/factory-constant.html
 [meta-immutable]: https://pub.dev/documentation/meta/latest/meta/immutable-constant.html
@@ -2303,7 +2304,7 @@ literal contains `a.zero`, which is imported using a `deferred` import:
 {% prettify dart tag=pre+code %}
 import 'a.dart' deferred as a;
 
-var l = const [[!a.zero!]];
+var l = const [a.[!zero!]];
 {% endprettify %}
 
 #### Common fixes
@@ -2937,7 +2938,7 @@ being initialized using the constant `math.pi` from the library
 {% prettify dart tag=pre+code %}
 import 'dart:math' deferred as math;
 
-const pi = [!math.pi!];
+const pi = math.[!pi!];
 {% endprettify %}
 
 #### Common fixes
@@ -3320,10 +3321,12 @@ class C<T> {
 C<T> newC<T>() => C<T>();
 {% endprettify %}
 
-### continue_label_on_switch
+### continue_label_invalid
 
-_A `continue` label resolves to a `switch` statement, but the label must be on a
-loop or a switch member._
+<a id="continue_label_on_switch" aria-hidden="true"></a>_(Previously known as `continue_label_on_switch`)_
+
+_The label used in a 'continue' statement must be defined on either a loop or a
+switch member._
 
 #### Description
 
@@ -3339,7 +3342,7 @@ label a `switch` statement, is used in the `continue` statement:
 void f(int i) {
   l: switch (i) {
     case 0:
-      continue [!l!];
+      [!continue l;!]
   }
 }
 {% endprettify %}
@@ -6715,7 +6718,7 @@ void f() {
 
 ### for_in_of_invalid_type
 
-_The type '{0}' used in the 'for' loop must implement {1}._
+_The type '{0}' used in the 'for' loop must implement '{1}'._
 
 #### Description
 
@@ -7465,10 +7468,6 @@ void f() {
 }
 {% endprettify %}
 
-If type arguments shouldn't be required for the class, then mark the class
-with the `[optionalTypeArgs][meta-optionalTypeArgs]` annotation (from
-`package:meta`):
-
 ### import_internal_library
 
 _The library '{0}' is internal and can't be imported._
@@ -7623,7 +7622,7 @@ the one being used for the library to which the part belongs.
 Given a [part file][] named `part.dart` that contains the following:
 
 {% prettify dart tag=pre+code %}
-// @dart = 2.6
+// @dart = 2.14
 part of 'test.dart';
 {% endprettify %}
 
@@ -7631,7 +7630,7 @@ The following code produces this diagnostic because the parts of a library
 must have the same language version as the defining compilation unit:
 
 {% prettify dart tag=pre+code %}
-// @dart = 2.5
+// @dart = 2.15
 part [!'part.dart'!];
 {% endprettify %}
 
@@ -8226,7 +8225,7 @@ class C {
   const C(double d);
 }
 
-@C([!math.pi!])
+@C(math.[!pi!])
 void f () {}
 {% endprettify %}
 
@@ -8798,6 +8797,9 @@ class C extends Struct {
 
 _'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' ('{4}')._
 
+_The setter '{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}'
+('{4}')._
+
 #### Description
 
 The analyzer produces this diagnostic when all of the following are true:
@@ -9005,7 +9007,7 @@ be lowercase in such a comment and because there's no equal sign between
 the word `dart` and the version number:
 
 {% prettify dart tag=pre+code %}
-[!// @Dart 2.9!]
+[!// @Dart 2.13!]
 {% endprettify %}
 
 #### Common fixes
@@ -9014,7 +9016,7 @@ If the comment is intended to be a language version override, then change
 the comment to follow the correct format:
 
 {% prettify dart tag=pre+code %}
-// @dart = 2.9
+// @dart = 2.13
 {% endprettify %}
 
 ### invalid_literal_annotation
@@ -9313,6 +9315,8 @@ not be appropriate in some cases.)
 ### invalid_override
 
 _'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}')._
+
+_The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}')._
 
 #### Description
 
@@ -11112,11 +11116,11 @@ dependencies:
 
 ### missing_override_of_must_be_overridden
 
-_Missing concrete override implementation of '{0}' and '{1}'._
+_Missing concrete implementation of '{0}'._
 
-_Missing concrete override implementation of '{0}', '{1}', and {2} more._
+_Missing concrete implementations of '{0}' and '{1}'._
 
-_Missing concrete override implementation of '{0}'._
+_Missing concrete implementations of '{0}', '{1}', and {2} more._
 
 #### Description
 
@@ -11451,6 +11455,9 @@ class X = A with M;
 ### mixin_application_no_concrete_super_invoked_member
 
 _The class doesn't have a concrete implementation of the super-invoked member
+'{0}'._
+
+_The class doesn't have a concrete implementation of the super-invoked setter
 '{0}'._
 
 #### Description
@@ -12505,7 +12512,7 @@ import 'a.dart' deferred as a;
 
 void f(int x) {
   switch (x) {
-    case [!a.zero!]:
+    case a.[!zero!]:
       // ...
       break;
   }
@@ -12626,7 +12633,7 @@ library imported using a deferred import:
 {% prettify dart tag=pre+code %}
 import 'a.dart' deferred as a;
 
-void f({int x = [!a.zero!]}) {}
+void f({int x = a.[!zero!]}) {}
 {% endprettify %}
 
 #### Common fixes
@@ -14870,16 +14877,16 @@ the one that defines the mixins.
 Given a file named `a.dart` containing the following code:
 
 {% prettify dart tag=pre+code %}
-class A {
+mixin A {
   void _foo() {}
 }
 
-class B {
+mixin B {
   void _foo() {}
 }
 {% endprettify %}
 
-The following code produces this diagnostic because the classes `A` and `B`
+The following code produces this diagnostic because the mixins `A` and `B`
 both define the method `_foo`:
 
 {% prettify dart tag=pre+code %}
@@ -19354,6 +19361,43 @@ If some of the names imported by this import are intended to be used but
 aren't yet, and if those names aren't imported by other imports, then add
 the missing references to those names.
 
+### unnecessary_nan_comparison
+
+_A double can't equal 'double.nan', so the condition is always 'false'._
+
+_A double can't equal 'double.nan', so the condition is always 'true'._
+
+#### Description
+
+The analyzer produces this diagnostic when a value is compared to
+`double.nan` using either `==` or `!=`.
+
+Dart follows the [IEEE 754] floating-point standard for the semantics of
+floating point operations, which states that, for any floating point value
+`x` (including NaN, positive infinity, and negative infinity),
+- `NaN == x` is always false
+- `NaN != x` is always true
+
+As a result, comparing any value to NaN is pointless because the result is
+already known (based on the comparison operator being used).
+
+#### Example
+
+The following code produces this diagnostic because `d` is being compared
+to `double.nan`:
+
+{% prettify dart tag=pre+code %}
+bool isNaN(double d) => d [!== double.nan!];
+{% endprettify %}
+
+#### Common fixes
+
+Use the getter `double.isNaN` instead:
+
+{% prettify dart tag=pre+code %}
+bool isNaN(double d) => d.isNaN;
+{% endprettify %}
+
 ### unnecessary_non_null_assertion
 
 _The '!' will have no effect because the receiver can't be null._
@@ -19433,9 +19477,9 @@ class B extends A {}
 
 ### unnecessary_null_comparison
 
-_The operand can't be null, so the condition is always false._
+_The operand can't be null, so the condition is always 'false'._
 
-_The operand can't be null, so the condition is always true._
+_The operand can't be null, so the condition is always 'true'._
 
 #### Description
 

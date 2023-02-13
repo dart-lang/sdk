@@ -32,6 +32,7 @@ class NativeFpuRegistersLocation;
 class NativeStackLocation;
 class MultipleNativeLocations;
 class PointerToMemoryLocation;
+class BothNativeLocations;
 
 // NativeLocation objects are used in the FFI to describe argument and return
 // value locations in all native ABIs that the FFI supports.
@@ -99,6 +100,7 @@ class NativeLocation : public ZoneAllocated {
   virtual bool IsStack() const { return false; }
   virtual bool IsMultiple() const { return false; }
   virtual bool IsPointerToMemory() const { return false; }
+  virtual bool IsBoth() const { return false; }
 
   virtual bool IsExpressibleAsLocation() const { return false; }
 #if !defined(FFI_UNIT_TESTS)
@@ -119,6 +121,7 @@ class NativeLocation : public ZoneAllocated {
   const NativeStackLocation& AsStack() const;
   const MultipleNativeLocations& AsMultiple() const;
   const PointerToMemoryLocation& AsPointerToMemory() const;
+  const BothNativeLocations& AsBoth() const;
 
   // Retrieve one part from this location when it is split into multiple parts.
   virtual NativeLocation& Split(Zone* zone,
@@ -452,6 +455,48 @@ class MultipleNativeLocations : public NativeLocation {
  private:
   const NativeLocations& locations_;
   DISALLOW_COPY_AND_ASSIGN(MultipleNativeLocations);
+};
+
+// The location of a value that is in two locations.
+//
+// Should only happen on win_x64 with variadic arguments.
+class BothNativeLocations : public NativeLocation {
+ public:
+  BothNativeLocations(const NativeLocation& location0,
+                      const NativeLocation& location1)
+      : NativeLocation(location0.payload_type(), location0.container_type()),
+        location0_(location0),
+        location1_(location1) {}
+  virtual ~BothNativeLocations() {}
+
+  virtual bool IsBoth() const { return true; }
+
+  virtual void PrintTo(BaseTextBuffer* f) const;
+
+  virtual NativeLocation& WithOtherNativeType(
+      Zone* zone,
+      const NativeType& new_payload_type,
+      const NativeType& new_container_type) const {
+    UNREACHABLE();
+  }
+
+  virtual intptr_t StackTopInBytes() const {
+    // Only used with registers.
+    return 0;
+  }
+
+  const NativeLocation& location(intptr_t index) const {
+    ASSERT(index == 0 || index == 1);
+    if (index == 0) {
+      return location0_;
+    }
+    return location1_;
+  }
+
+ private:
+  const NativeLocation& location0_;
+  const NativeLocation& location1_;
+  DISALLOW_COPY_AND_ASSIGN(BothNativeLocations);
 };
 
 #if !defined(FFI_UNIT_TESTS)

@@ -93,7 +93,7 @@ abstract class _StringBase implements String {
   static const int _maxJoinReplaceOneByteStringLength = 500;
 
   factory _StringBase._uninstantiable() {
-    throw new UnsupportedError("_StringBase can't be instaniated");
+    throw new UnsupportedError("_StringBase can't be instantiated");
   }
 
   @pragma("vm:recognized", "asm-intrinsic")

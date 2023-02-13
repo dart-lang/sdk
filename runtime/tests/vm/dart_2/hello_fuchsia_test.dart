@@ -75,7 +75,7 @@ testSimpleReadWriteClose() async {
     int bytesRead = 0;
     int bytesWritten = 0;
     bool closedEventReceived = false;
-    List<int> data = new List<int>(messageSize);
+    List<int> data = new List<int>.filled(messageSize, 0);
     bool doneReading = false;
 
     client.writeEventsEnabled = false;
@@ -163,7 +163,7 @@ testSimpleReadWriteClose() async {
             socket.writeEventsEnabled = true;
           } else {
             print("server WRITE event: done writing");
-            data = new List<int>(messageSize);
+            data = new List<int>.filled(messageSize, 0);
           }
           break;
         case RawSocketEvent.readClosed:
@@ -217,7 +217,7 @@ testSimpleReadWriteShutdown({bool dropReads}) async {
     int bytesRead = 0;
     int bytesWritten = 0;
     bool closedEventReceived = false;
-    List<int> data = new List<int>(messageSize);
+    List<int> data = new List<int>.filled(messageSize, 0);
     bool doneReading = false;
 
     client.writeEventsEnabled = false;
@@ -315,7 +315,7 @@ testSimpleReadWriteShutdown({bool dropReads}) async {
             socket.writeEventsEnabled = true;
           } else {
             print("server WRITE event: done writing");
-            data = new List<int>(messageSize);
+            data = new List<int>.filled(messageSize, 0);
           }
           break;
         case RawSocketEvent.readClosed:

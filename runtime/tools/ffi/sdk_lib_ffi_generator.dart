@@ -192,6 +192,9 @@ $platform$truncate$alignment  external $dartType operator [](int index);
   /// The $property at `address + ${sizeTimes}index`.
 $platform$truncate$alignment  external void operator []=(int index, $dartType value);
 
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<$nativeType> elementAt(int index);
+
 $asTypedList
 }
 
@@ -237,7 +240,7 @@ void generatePatchExtension(
   if (container == "Pointer") {
     buffer.write("""
 extension ${nativeType}Pointer on Pointer<$nativeType> {
- @patch
+  @patch
   $dartType get value => _load$nativeType(this, 0);
 
   @patch
@@ -248,6 +251,9 @@ extension ${nativeType}Pointer on Pointer<$nativeType> {
 
   @patch
   operator []=(int index, $dartType value) => _store$nativeType(this, ${sizeTimes}index, value);
+
+  @patch
+  Pointer<$nativeType> elementAt(int index) => Pointer.fromAddress(address + ${sizeTimes}index);
 
 $asTypedList
 }
@@ -329,9 +335,12 @@ class Config {
   final int elementSize;
   final Version? since;
   const Config(
-      this.nativeType, this.dartType, this.typedListType, this.elementSize,
-      {Version? since})
-      : since = since;
+    this.nativeType,
+    this.dartType,
+    this.typedListType,
+    this.elementSize, {
+    Version? since,
+  }) : since = since;
 }
 
 const String kDoNotEmit = "donotemit";

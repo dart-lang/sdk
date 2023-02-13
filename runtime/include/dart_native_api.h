@@ -65,7 +65,7 @@ typedef struct _Dart_CObject {
     int32_t as_int32;
     int64_t as_int64;
     double as_double;
-    char* as_string;
+    const char* as_string;
     struct {
       Dart_Port id;
       Dart_Port origin_id;

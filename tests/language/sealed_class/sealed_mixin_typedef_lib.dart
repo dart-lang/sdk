@@ -4,6 +4,8 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
+// Other-library declarations used by sealed_mixin_typedef_test.dart.
+
 sealed mixin SealedMixin {
   int foo = 0;
 }

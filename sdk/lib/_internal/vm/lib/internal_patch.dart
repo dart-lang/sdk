@@ -146,15 +146,6 @@ external _prependTypeArguments(
 @pragma("vm:external-name", "Internal_boundsCheckForPartialInstantiation")
 external _boundsCheckForPartialInstantiation(closure, typeArgs);
 
-// Called by IRRegExpMacroAssembler::GrowStack.
-Int32List _growRegExpStack(Int32List stack) {
-  final newStack = new Int32List(stack.length * 2);
-  for (int i = 0; i < stack.length; i++) {
-    newStack[i] = stack[i];
-  }
-  return newStack;
-}
-
 @patch
 @pragma("vm:external-name", "Internal_unsafeCast")
 external T unsafeCast<T>(dynamic v);
@@ -381,10 +372,10 @@ extension FinalizerBaseMembers on FinalizerBase {
   setIsolate() => _setIsolate();
 }
 
-/// Contains the informatation of an active [Finalizer.attach].
+/// Contains the information of an active [Finalizer.attach].
 ///
 /// It holds on to the [value], optional [detach], and [token]. In addition, it
-/// also keeps a reference the [finalizer] it belings to and a [next] field for
+/// also keeps a reference the [finalizer] it belongs to and a [next] field for
 /// when being used in a linked list.
 ///
 /// This is being kept alive by [FinalizerBase._allEntries] until either (1)
@@ -440,3 +431,6 @@ class FinalizerEntry {
   @FfiNative<Void Function(Handle, IntPtr)>('FinalizerEntry_SetExternalSize')
   external void setExternalSize(int externalSize);
 }
+
+@pragma("vm:external-name", "StringBase_intern")
+external String intern(String str);

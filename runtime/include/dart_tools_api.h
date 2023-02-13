@@ -143,7 +143,7 @@ typedef struct {
  * \return Returns a pointer to a Dart_EmbedderInformation structure.
  * The embedder keeps the ownership of the structure and any field in it.
  * The embedder must ensure that the structure will remain valid until the
- * next invokation of the callback.
+ * next invocation of the callback.
  */
 typedef void (*Dart_EmbedderInformationCallback)(
     Dart_EmbedderInformation* info);
@@ -364,12 +364,12 @@ DART_EXPORT bool Dart_IsReloading();
  *   "Embedder" - Execution of Dart embedder code
  *   "GC" - Execution of Dart Garbage Collector
  *   "Isolate" - Dart Isolate lifecycle execution
- *   "VM" - Excution in Dart VM runtime code
+ *   "VM" - Execution in Dart VM runtime code
  *   "" - None
  *
  *  When "all" is specified all the categories are enabled.
  *  When a comma separated list of categories is specified, the categories
- *   that are specified will be enabled and the rest will be disabled. 
+ *   that are specified will be enabled and the rest will be disabled.
  *  When "" is specified all the categories are disabled.
  *  The category names are case sensitive.
  *  eg:  Dart_EnableTimelineCategory("all");
@@ -518,7 +518,7 @@ typedef void (*Dart_TimelineRecorderCallback)(
  * will be remembered. Providing a NULL callback will clear the registration
  * (i.e., a NULL callback produced a no-op instead of a crash).
  *
- * Setting a callback is insuffient to receive events through the callback. The
+ * Setting a callback is insufficient to receive events through the callback. The
  * VM flag `timeline_recorder` must also be set to `callback`.
  */
 DART_EXPORT void Dart_SetTimelineRecorderCallback(
@@ -616,5 +616,53 @@ DART_EXPORT Dart_Handle Dart_SetCurrentUserTag(Dart_Handle user_tag);
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_GetUserTagLabel(
     Dart_Handle user_tag);
+
+/*
+ * =======
+ * Heap Snapshot
+ * =======
+ */
+
+/**
+ * Callback provided by the caller of `Dart_WriteHeapSnapshot` which is
+ * used to write out chunks of the requested heap snapshot.
+ *
+ * \param context An opaque context which was passed to `Dart_WriteHeapSnapshot`
+ *   together with this callback.
+ *
+ * \param buffer Pointer to the buffer containing a chunk of the snapshot.
+ *   The callback owns the buffer and needs to `free` it.
+ *
+ * \param size Number of bytes in the `buffer` to be written.
+ *
+ * \param is_last Set to `true` for the last chunk. The callback will not
+ *   be invoked again after it was invoked once with `is_last` set to `true`.
+ */
+typedef void (*Dart_HeapSnapshotWriteChunkCallback)(void* context,
+                                                    uint8_t* buffer,
+                                                    intptr_t size,
+                                                    bool is_last);
+
+/**
+ * Generate heap snapshot of the current isolate group and stream it into the
+ * given `callback`. VM would produce snapshot in chunks and send these chunks
+ * one by one back to the embedder by invoking the provided `callback`.
+ *
+ * This API enables embedder to stream snapshot into a file or socket without
+ * allocating a buffer to hold the whole snapshot in memory.
+ *
+ * The isolate group will be paused for the duration of this operation.
+ *
+ * \param write Callback used to write chunks of the heap snapshot.
+ *
+ * \param context Opaque context which would be passed on each invocation of
+ *   `write` callback.
+ *
+ * \returns `nullptr` if the operation is successful otherwise error message.
+ *   Caller owns error message string and needs to `free` it.
+ */
+DART_EXPORT char* Dart_WriteHeapSnapshot(
+    Dart_HeapSnapshotWriteChunkCallback write,
+    void* context);
 
 #endif  // RUNTIME_INCLUDE_DART_TOOLS_API_H_

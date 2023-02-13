@@ -7,6 +7,7 @@ library dart.js_util;
 import "dart:_js_annotations" as js;
 import "dart:_internal";
 import "dart:_js_helper";
+import "dart:_js_types";
 import "dart:async" show Completer, FutureOr;
 import "dart:collection";
 import "dart:typed_data";
@@ -93,7 +94,7 @@ T callMethod<T>(Object o, String method, List<Object?> args) =>
 
 @patch
 bool instanceof(Object? o, Object type) =>
-    instanceofRaw(jsifyRaw(o), jsifyRaw(type));
+    JS<bool>("(o, t) => o instanceof t", jsifyRaw(o), jsifyRaw(type));
 
 @patch
 T callConstructor<T>(Object o, List<Object?> args) => dartifyRaw(
@@ -149,10 +150,10 @@ typedef _PromiseFailureFunc = void Function(Object? error);
 Future<T> promiseToFuture<T>(Object jsPromise) {
   Completer<T> completer = Completer<T>();
 
-  final success = js.allowInterop<_PromiseSuccessFunc>((r) {
+  final success = allowInterop<_PromiseSuccessFunc>((r) {
     return completer.complete(r as FutureOr<T>?);
   });
-  final error = js.allowInterop<_PromiseFailureFunc>((e) {
+  final error = allowInterop<_PromiseFailureFunc>((e) {
     // Note that `completeError` expects a non-nullable error regardless of
     // whether null-safety is enabled, so a `NullRejectionException` is always
     // provided if the error is `null` or `undefined`.
@@ -176,8 +177,9 @@ Object? objectGetPrototypeOf(Object? object) => throw 'unimplemented';
 Object? get objectPrototype => throw 'unimplemented';
 
 @patch
-List<Object?> objectKeys(Object? object) =>
-    dartifyRaw(objectKeysRaw(jsifyRaw(object))) as List<Object?>;
+List<Object?> objectKeys(Object? o) =>
+    dartifyRaw(JS<WasmExternRef?>('o => Object.keys(o)', jsifyRaw(o)))
+        as List<Object?>;
 
 @patch
 Object? dartify(Object? object) {
@@ -245,7 +247,7 @@ Object? dartify(Object? object) {
       convertedObjects[o] = dartList;
       int length = getProperty<double>(o, 'length').toInt();
       for (int i = 0; i < length; i++) {
-        dartList.add(convert(JSValue.box(objectReadIndex(ref, i))));
+        dartList.add(convert(JSValue.box(objectReadIndex(ref, i.toDouble()))));
       }
       return dartList;
     } else {
@@ -255,3 +257,10 @@ Object? dartify(Object? object) {
 
   return convert(object);
 }
+
+/// This will be lowered to a a call to `_wrapDartCallback`.
+@patch
+F allowInterop<F extends Function>(F f) => throw UnimplementedError();
+
+@patch
+Function allowInteropCaptureThis(Function f) => throw UnimplementedError();

@@ -33,8 +33,8 @@ abstract class ClassHierarchyBase {
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass] at all.
-  InterfaceType? getTypeAsInstanceOf(
-      InterfaceType type, Class superclass, Library clientLibrary);
+  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      {required bool isNonNullableByDefault});
 
   /// Returns the type arguments of the instantiation of [superclass] that is
   /// implemented by [type], or `null` if [type] does not implement [superclass]
@@ -62,7 +62,8 @@ abstract class ClassHierarchyBase {
   /// one type is a subtype of the other, or where both types are based on the
   /// same class.
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2, Library clientLibrary);
+      InterfaceType type1, InterfaceType type2,
+      {required bool isNonNullableByDefault});
 }
 
 abstract class ClassHierarchyMembers {
@@ -306,9 +307,7 @@ abstract class ClassHierarchy
     Library? firstLibrary = firstName.library;
     Library? secondLibrary = secondName.library;
     if (firstLibrary != secondLibrary) {
-      // ignore: unnecessary_null_comparison
       if (firstLibrary == null) return -1;
-      // ignore: unnecessary_null_comparison
       if (secondLibrary == null) return 1;
       return firstLibrary.compareTo(secondLibrary);
     }
@@ -630,7 +629,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2, Library clientLibrary) {
+      InterfaceType type1, InterfaceType type2,
+      {required bool isNonNullableByDefault}) {
     // The algorithm is: first we compute a list of superclasses for both types,
     // ordered from greatest to least depth, and ordered by topological sort
     // index within each depth.  Due to the sort order, we can find the
@@ -655,7 +655,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     // libraries.  In opt-out libraries the legacy behavior is preserved, so
     // LLUB(Null, List<dynamic>*) = List<dynamic>*.  In opt-in libraries the
     // rules imply that LLUB(Null, List<dynamic>*) = List<dynamic>?.
-    if (!clientLibrary.isNonNullableByDefault) {
+    if (!isNonNullableByDefault) {
       if (type1 is NullType) return type2;
       if (type2 is NullType) return type1;
     }
@@ -735,7 +735,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
             : Substitution.fromInterfaceType(type2).substituteType(
                     info2.genericSuperType![next.classNode]!.asInterfaceType)
                 as InterfaceType;
-        if (!clientLibrary.isNonNullableByDefault) {
+        if (!isNonNullableByDefault) {
           superType1 = legacyErasure(superType1) as InterfaceType;
           superType2 = legacyErasure(superType2) as InterfaceType;
         }
@@ -761,17 +761,16 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  InterfaceType? getTypeAsInstanceOf(
-      InterfaceType type, Class superclass, Library clientLibrary) {
+  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      {required bool isNonNullableByDefault}) {
     List<DartType>? typeArguments =
         getTypeArgumentsAsInstanceOf(type, superclass);
     if (typeArguments == null) return null;
     // The return value should be a legacy type if it's computed for an
     // opted-out library, unless the return value is Null? which is always
     // nullable.
-    Nullability nullability = clientLibrary.isNonNullableByDefault
-        ? type.nullability
-        : Nullability.legacy;
+    Nullability nullability =
+        isNonNullableByDefault ? type.nullability : Nullability.legacy;
     return new InterfaceType(superclass, nullability, typeArguments);
   }
 

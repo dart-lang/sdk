@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,6 +18,7 @@ main() {
 class FieldInitializerInStructTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_fieldInitializer() async {
+    noSoundNullSafety = false;
     await assertErrorsInCode('''
 import 'dart:ffi';
 class C extends Struct {
@@ -29,6 +31,7 @@ class C extends Struct {
   }
 
   test_fieldInitializer2() async {
+    noSoundNullSafety = false;
     await assertErrorsInCode('''
 import 'dart:ffi';
 class C extends Union {

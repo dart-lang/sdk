@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test the exit code of dart2js in case of exceptions, errors, warnings, etc.
 
 import 'dart:async';
@@ -35,7 +33,7 @@ class TestCompiler extends Compiler {
   final String testType;
   final Function onTest;
   @override
-  TestDiagnosticReporter reporter;
+  late final TestDiagnosticReporter reporter;
 
   TestCompiler(
       api.CompilerInput inputProvider,
@@ -71,7 +69,6 @@ class TestCompiler extends Compiler {
         case 'failedAt':
           onTest(testMarker, testType);
           failedAt(NO_LOCATION_SPANNABLE, marker);
-          break;
         case 'warning':
           onTest(testMarker, testType);
           reporter.reportWarningMessage(
@@ -161,7 +158,7 @@ Future testExitCode(
       });
     }
 
-    int foundExitCode;
+    int? foundExitCode;
 
     checkResult() {
       Expect.isTrue(testOccurred, 'testExitCode($marker, $type) did not occur');
@@ -176,13 +173,13 @@ Future testExitCode(
       checkedResults++;
     }
 
-    void exit(exitCode) {
+    // TODO(48220): Make return type `Never` when this test is migrated.
+    /* Never */ exit(exitCode) {
       if (foundExitCode == null) {
         foundExitCode = exitCode;
       }
+      throw 'Exit';
     }
-
-    ;
 
     entry.exitFunc = exit;
     entry.compileFunc = compile;
@@ -201,7 +198,7 @@ Future testExitCode(
 Future testExitCodes(
     String marker, Map<String, int> expectedExitCodes, List<String> options) {
   return Future.forEach(expectedExitCodes.keys, (String type) {
-    return testExitCode(marker, type, expectedExitCodes[type], options);
+    return testExitCode(marker, type, expectedExitCodes[type]!, options);
   });
 }
 
@@ -246,12 +243,12 @@ void main() {
 
   asyncTest(() async {
     for (String marker in tests.keys) {
-      var expected = _expectedExitCode(beforeRun: tests[marker]);
+      var expected = _expectedExitCode(beforeRun: tests[marker]!);
       totalExpectedErrors += expected.length;
       await testExitCodes(marker, expected, []);
 
       expected =
-          _expectedExitCode(beforeRun: tests[marker], fatalWarnings: true);
+          _expectedExitCode(beforeRun: tests[marker]!, fatalWarnings: true);
       totalExpectedErrors += expected.length;
       await testExitCodes(marker, expected, [Flags.fatalWarnings]);
     }

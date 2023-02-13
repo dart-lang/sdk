@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library jsinterop.abstract_test;
 
 import 'package:expect/expect.dart';
@@ -13,7 +11,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 const List<Test> TESTS = const <Test>[
-  const Test('Empty js-interop class.', '''
+  const SingleTest('Empty js-interop class.', '''
 @JS()
 library test;
 
@@ -24,7 +22,7 @@ class A {}
 
 main() => new A();
 ''', warnings: const []),
-  const Test('Js-interop class with external method.', '''
+  const SingleTest('Js-interop class with external method.', '''
 @JS()
 library test;
 
@@ -37,7 +35,7 @@ class A {
 
 main() => new A();
 '''),
-  const Test(
+  const SingleTest(
       'Js-interop class with external method with required parameters.', '''
 @JS()
 library test;
@@ -51,7 +49,7 @@ class A {
 
 main() => new A();
 '''),
-  const Test(
+  const SingleTest(
       'Js-interop class with external method with optional parameters.', '''
 @JS()
 library test;
@@ -65,7 +63,7 @@ class A {
 
 main() => new A();
 '''),
-  const Test(
+  const SingleTest(
       'Js-interop class with external method with optional parameters '
           'with default values.',
       '''
@@ -81,7 +79,7 @@ class A {
 
 main() => new A();
 '''),
-  const Test('Js-interop class with static method.', '''
+  const SingleTest('Js-interop class with static method.', '''
 @JS()
 library test;
 
@@ -94,7 +92,7 @@ class A {
 
 main() => new A();
 '''),
-  const Test('Js-interop class that extends a js-interop class.', '''
+  const SingleTest('Js-interop class that extends a js-interop class.', '''
 @JS()
 library test;
 
@@ -112,7 +110,7 @@ class B extends A {
 
 main() => new B();
 '''),
-  const Test(
+  const SingleTest(
       'Js-interop class that extends a js-interop class, '
           'reversed declaration order.',
       '''
@@ -133,7 +131,7 @@ abstract class A {
 
 main() => new B();
 '''),
-  const Test.multi(
+  const MultiTest(
       'Js-interop class that extends a js-interop class from a different '
       'library.',
       const {
@@ -163,7 +161,7 @@ abstract class A {
 }
 '''
       }),
-  const Test('Js-interop class that implements a regular class.', '''
+  const SingleTest('Js-interop class that implements a regular class.', '''
 @JS()
 library test;
 
@@ -180,7 +178,7 @@ class B implements A {
 
 main() => new B();
 '''),
-  const Test('Js-interop class that implements a js-interop class.', '''
+  const SingleTest('Js-interop class that implements a js-interop class.', '''
 @JS()
 library test;
 
@@ -198,7 +196,7 @@ class B implements A {
 
 main() => new B();
 '''),
-  const Test('Js-interop class with generative constructor.', '''
+  const SingleTest('Js-interop class with generative constructor.', '''
 @JS()
 library test;
 
@@ -211,7 +209,7 @@ class A {
 
 main() => new A();
 '''),
-  const Test('Js-interop class with factory constructor.', '''
+  const SingleTest('Js-interop class with factory constructor.', '''
 @JS()
 library test;
 
@@ -224,7 +222,7 @@ class A {
 
 main() => new A();
 '''),
-  const Test('Empty anonymous js-interop class.', '''
+  const SingleTest('Empty anonymous js-interop class.', '''
 @JS()
 library test;
 
@@ -236,7 +234,8 @@ class A {}
 
 main() => new A();
 '''),
-  const Test('Anonymous js-interop class with generative constructor.', '''
+  const SingleTest(
+      'Anonymous js-interop class with generative constructor.', '''
 @JS()
 library test;
 
@@ -250,7 +249,7 @@ class A {
 
 main() => new A();
 '''),
-  const Test('Anonymous js-interop class with factory constructor.', '''
+  const SingleTest('Anonymous js-interop class with factory constructor.', '''
 @JS()
 library test;
 
@@ -264,7 +263,7 @@ class A {
 
 main() => new A();
 '''),
-  const Test(
+  const SingleTest(
       'Anonymous js-interop class with external factory constructor.', '''
 @JS()
 library test;
@@ -279,7 +278,7 @@ class A {
 
 main() => new A();
 '''),
-  const Test('External factory constructor with named parameters.', '''
+  const SingleTest('External factory constructor with named parameters.', '''
 @JS()
 library test;
 
@@ -293,7 +292,7 @@ class A {
 
 main() => new A(a: 1);
 '''),
-  const Test(
+  const SingleTest(
       'External factory constructor with named parameters '
           'with default parameters.',
       '''
@@ -310,7 +309,7 @@ class A {
 
 main() => new A(a: 1);
 '''),
-  const Test('Function-typed return type', '''
+  const SingleTest('Function-typed return type', '''
 @JS()
 library lib;
 
@@ -323,7 +322,7 @@ main() {
   func();
 }
 '''),
-  const Test(
+  const SingleTest(
     'Non-external field.',
     '''
 @JS()
@@ -369,27 +368,38 @@ void main(List<String> args) {
   });
 }
 
-class Test {
+abstract class Test {
   final String name;
-  final String _source;
-  final Map<String, String> _sources;
   final List<MessageKind> errors;
   final List<MessageKind> warnings;
 
-  const Test(this.name, this._source,
-      {this.errors = const <MessageKind>[],
-      this.warnings = const <MessageKind>[]})
-      : _sources = null;
+  const Test(this.name, {required this.errors, required this.warnings});
+  String get source;
+  Map<String, String> get sources;
+}
 
-  const Test.multi(this.name, this._sources,
-      {this.errors = const <MessageKind>[],
-      this.warnings = const <MessageKind>[]})
-      : _source = null;
+class SingleTest extends Test {
+  @override
+  final String source;
 
-  String get source => _source ?? _sources['main.dart'];
+  const SingleTest(super.name, this.source,
+      {super.errors = const <MessageKind>[],
+      super.warnings = const <MessageKind>[]});
 
-  Map<String, String> get sources =>
-      _source != null ? {'main.dart': _source} : _sources;
+  @override
+  Map<String, String> get sources => {'main.dart': source};
+}
+
+class MultiTest extends Test {
+  @override
+  final Map<String, String> sources;
+
+  const MultiTest(super.name, this.sources,
+      {super.errors = const <MessageKind>[],
+      super.warnings = const <MessageKind>[]});
+
+  @override
+  String get source => sources['main.dart']!;
 }
 
 runTest(Test test) async {

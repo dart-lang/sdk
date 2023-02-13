@@ -9,10 +9,10 @@
 // container pass to work.
 
 main() {
-  var a = new List();
+  var a = [];
   a.add;
-  var b = new List();
-  var c = new List(1);
+  var b = [];
+  var c = new List<dynamic>.filled(1, null);
   b.add(c);
   b[0][0] = 42;
   if (c[0] is! int) {

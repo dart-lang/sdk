@@ -1168,11 +1168,6 @@ class Foo {
     listener.assertErrors([expectedError(ParserErrorCode.FINAL_AND_VAR, 6, 3)]);
   }
 
-  void test_finalClass() {
-    parseCompilationUnit("final class C {}",
-        errors: [expectedError(ParserErrorCode.FINAL_CLASS, 0, 5)]);
-  }
-
   void test_finalClassMember_modifierOnly() {
     createParser('final');
     ClassMember member = parser.parseClassMember('C');

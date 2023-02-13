@@ -929,8 +929,8 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   virtual ~TimelineEventCallbackRecorder();
 
 #ifndef PRODUCT
-  void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
-  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
 #endif
 
   // Called when |event| is completed. It is unsafe to keep a reference to
@@ -1013,8 +1013,8 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
   virtual ~TimelineEventPlatformRecorder();
 
 #ifndef PRODUCT
-  void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
-  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
 #endif
 
   // Called when |event| is completed. It is unsafe to keep a reference to
@@ -1085,29 +1085,43 @@ class TimelineEventMacosRecorder : public TimelineEventPlatformRecorder {
 };
 #endif  // defined(DART_HOST_OS_MACOS)
 
-class TimelineEventFileRecorder : public TimelineEventPlatformRecorder {
+class TimelineEventFileRecorderBase : public TimelineEventPlatformRecorder {
  public:
-  explicit TimelineEventFileRecorder(const char* path);
-  virtual ~TimelineEventFileRecorder();
+  explicit TimelineEventFileRecorderBase(const char* path);
+  virtual ~TimelineEventFileRecorderBase();
 
-  const char* name() const { return FILE_RECORDER_NAME; }
-  intptr_t Size() { return 0; }
-
+  intptr_t Size() final { return 0; }
+  void OnEvent(TimelineEvent* event) final { UNREACHABLE(); }
   void Drain();
 
+ protected:
+  void Write(const char* buffer, intptr_t len) const;
+  void Write(const char* buffer) const { Write(buffer, strlen(buffer)); }
+  void CompleteEvent(TimelineEvent* event) final;
+  void ShutDown();
+
  private:
-  void CompleteEvent(TimelineEvent* event);
-  void OnEvent(TimelineEvent* event) { UNREACHABLE(); }
-  void Write(const char* buffer) { Write(buffer, strlen(buffer)); }
-  void Write(const char* buffer, intptr_t len);
+  virtual void DrainImpl(const TimelineEvent& event) = 0;
 
   Monitor monitor_;
   TimelineEvent* head_;
   TimelineEvent* tail_;
   void* file_;
-  bool first_;
   bool shutting_down_;
   ThreadJoinId thread_id_;
+};
+
+class TimelineEventFileRecorder : public TimelineEventFileRecorderBase {
+ public:
+  explicit TimelineEventFileRecorder(const char* path);
+  virtual ~TimelineEventFileRecorder();
+
+  const char* name() const final { return FILE_RECORDER_NAME; }
+
+ private:
+  void DrainImpl(const TimelineEvent& event) final;
+
+  bool first_;
 };
 
 class DartTimelineEventHelpers : public AllStatic {

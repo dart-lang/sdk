@@ -138,7 +138,7 @@ constants  {
   #C17 = "x64"
   #C18 = ffi::_Architecture {index:#C1, _name:#C17}
   #C19 = ffi::Abi {_os:#C3, _architecture:#C18}
-  #C20 = <ffi::Abi*, ffi::NativeType*>{#C7:#C8, #C12:#C8, #C16:#C8, #C19:#C8)
+  #C20 = <ffi::Abi, ffi::NativeType>{#C7:#C8, #C12:#C8, #C16:#C8, #C19:#C8)
   #C21 = ffi::AbiSpecificIntegerMapping {mapping:#C20}
   #C22 = "vm:ffi:abi-specific-mapping"
   #C23 = null
@@ -164,7 +164,7 @@ constants  {
   #C43 = <core::Type>[#C42]
   #C44 = ffi::_FfiStructLayout {fieldTypes:#C43, packing:#C23}
   #C45 = core::pragma {name:#C32, options:#C44}
-  #C46 = ffi::_ArraySize<ffi::NativeType*> {dimension1:#C41, dimension2:#C23, dimension3:#C23, dimension4:#C23, dimension5:#C23, dimensions:#C23}
+  #C46 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C41, dimension2:#C23, dimension3:#C23, dimension4:#C23, dimension5:#C23, dimensions:#C23}
   #C47 = 400
   #C48 = <core::int*>[#C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C47, #C47, #C47, #C47, #C23, #C23, #C23, #C23, #C23, #C23, #C23]
   #C49 = <core::int*>[]

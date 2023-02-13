@@ -12,11 +12,11 @@ class TestConsumer implements StreamConsumer<List<int>> {
   final List received = [];
 
   int addStreamCount = 0;
-  int expcetedAddStreamCount;
+  int expectedAddStreamCount;
   bool expectClose;
 
   TestConsumer(this.expected,
-      {this.expectClose = true, this.expcetedAddStreamCount = -1}) {
+      {this.expectClose = true, this.expectedAddStreamCount = -1}) {
     if (expectClose) asyncStart();
   }
 
@@ -38,15 +38,15 @@ class TestConsumer implements StreamConsumer<List<int>> {
     return new Future.value().then((_) {
       if (expectClose) asyncEnd();
       Expect.listEquals(expected, received);
-      if (expcetedAddStreamCount >= 0) {
-        Expect.equals(expcetedAddStreamCount, addStreamCount);
+      if (expectedAddStreamCount >= 0) {
+        Expect.equals(expectedAddStreamCount, addStreamCount);
       }
     });
   }
 }
 
 void testClose() {
-  var sink = new IOSink(new TestConsumer([], expcetedAddStreamCount: 0));
+  var sink = new IOSink(new TestConsumer([], expectedAddStreamCount: 0));
   sink.close();
 }
 

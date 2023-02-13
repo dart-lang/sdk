@@ -29,6 +29,7 @@ import '../problems.dart' show internalProblem, unhandled;
 import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
+import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builder.dart';
 import 'library_builder.dart';
@@ -41,7 +42,33 @@ import 'type_variable_builder.dart';
 
 const Uri? noUri = null;
 
-abstract class ClassBuilder implements DeclarationBuilder {
+abstract class ClassMemberAccess {
+  /// [Iterator] for all members declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting constructor are _not_ included.
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>();
+
+  /// [NameIterator] for all constructors declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting constructors are _not_ included.
+  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>();
+
+  /// [Iterator] for all members declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting members are _not_ included.
+  Iterator<T> fullMemberIterator<T extends Builder>();
+
+  /// [NameIterator] for all members declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting members are _not_ included.
+  NameIterator<T> fullMemberNameIterator<T extends Builder>();
+}
+
+abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   /// The type variables declared on a class, extension or mixin declaration.
   List<TypeVariableBuilder>? get typeVariables;
 
@@ -57,8 +84,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// The types in the `on` clause of an extension or mixin declaration.
   List<TypeBuilder>? get onTypes;
 
-  ConstructorScope get constructorScope;
-
   @override
   Uri get fileUri;
 
@@ -68,11 +93,20 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   bool get isSealed;
 
+  bool get isBase;
+
+  bool get isInterface;
+
+  @override
+  bool get isFinal;
+
   bool get isAugmentation;
 
   bool get declaresConstConstructor;
 
   bool get isMixin;
+
+  bool get isMixinClass;
 
   bool get isMixinDeclaration;
 
@@ -81,9 +115,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
   bool get isAnonymousMixinApplication;
 
   abstract TypeBuilder? mixedInTypeBuilder;
-
-  MemberBuilder? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 
   /// The [Class] built by this builder.
   ///
@@ -127,33 +158,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// class.
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false, bool isSuper = false});
-
-  // TODO(johnniwinther): Support filtering on the returns builder types in
-  // these:
-
-  /// [Iterator] for all members declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting constructor are _not_ included.
-  Iterator<MemberBuilder> get fullConstructorIterator;
-
-  /// [NameIterator] for all constructors declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting constructors are _not_ included.
-  NameIterator<MemberBuilder> get fullConstructorNameIterator;
-
-  /// [Iterator] for all members declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting members are _not_ included.
-  Iterator<Builder> get fullMemberIterator;
-
-  /// [NameIterator] for all members declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting members are _not_ included.
-  NameIterator<Builder> get fullMemberNameIterator;
 }
 
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl
@@ -169,9 +173,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   List<TypeBuilder>? onTypes;
-
-  @override
-  final ConstructorScope constructorScope;
 
   @override
   bool isNullClass = false;
@@ -190,10 +191,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       this.interfaceBuilders,
       this.onTypes,
       Scope scope,
-      this.constructorScope,
+      ConstructorScope constructorScope,
       LibraryBuilder parent,
       int charOffset)
-      : super(metadata, modifiers, name, parent, charOffset, scope);
+      : super(metadata, modifiers, name, parent, charOffset, scope,
+            constructorScope);
 
   @override
   String get debugName => "ClassBuilder";
@@ -237,23 +239,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       return origin.findStaticBuilder(
           name, charOffset, fileUri, accessingLibrary,
           isSetter: isSetter);
-    }
-    return declaration;
-  }
-
-  @override
-  MemberBuilder? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
-    if (accessingLibrary.nameOriginBuilder.origin !=
-            libraryBuilder.nameOriginBuilder.origin &&
-        name.startsWith("_")) {
-      return null;
-    }
-    MemberBuilder? declaration =
-        constructorScope.lookup(name == 'new' ? '' : name, charOffset, uri);
-    if (declaration == null && isPatch) {
-      return origin.findConstructorOrFactory(
-          name, charOffset, uri, accessingLibrary);
     }
     return declaration;
   }
@@ -378,7 +363,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         libraryBuilder.importUri.scheme == "dart" &&
         libraryBuilder.importUri.path == "core" &&
         library is SourceLibraryBuilder &&
-        !library.libraryFeatures.records.isEnabled) {
+        !isRecordAccessAllowed(library)) {
       library.reportFeatureNotEnabled(
           library.libraryFeatures.records, fileUri, charOffset, name.length);
       return const InvalidType();

@@ -190,7 +190,7 @@ class Heap {
   static const char* GCTypeToString(GCType type);
   static const char* GCReasonToString(GCReason reason);
 
-  // Associate a peer with an object.  A non-existent peer is equal to NULL.
+  // Associate a peer with an object.  A nonexistent peer is equal to NULL.
   void SetPeer(ObjectPtr raw_obj, void* peer) {
     SetWeakEntry(raw_obj, kPeers, reinterpret_cast<intptr_t>(peer));
   }
@@ -200,7 +200,7 @@ class Heap {
   int64_t PeerCount() const;
 
 #if !defined(HASH_IN_OBJECT_HEADER)
-  // Associate an identity hashCode with an object. An non-existent hashCode
+  // Associate an identity hashCode with an object. An nonexistent hashCode
   // is equal to 0.
   intptr_t SetHashIfNotSet(ObjectPtr raw_obj, intptr_t hash) {
     return SetWeakEntryIfNonExistent(raw_obj, kIdentityHashes, hash);

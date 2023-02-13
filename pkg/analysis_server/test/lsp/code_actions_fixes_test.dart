@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:linter/src/rules.dart';
@@ -16,6 +19,18 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FixesCodeActionsTest);
   });
+}
+
+/// A version of `camel_case_types` that is deprecated.
+class DeprecatedCamelCaseTypes extends LintRule {
+  DeprecatedCamelCaseTypes()
+      : super(
+          name: 'camel_case_types',
+          group: Group.style,
+          state: State.deprecated(),
+          description: '',
+          details: '',
+        );
 }
 
 @reflectiveTest
@@ -83,40 +98,57 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
   Future<void> test_analysisOptions() async {
     registerLintRules();
-    const content = r'''
+
+    // To ensure there's an associated code action, we manually deprecate an
+    // existing lint (`camel_case_types`) for the duration of this test.
+
+    // Fetch the "actual" lint so we can restore it after the test.
+    var camelCaseTypes = Registry.ruleRegistry.getRule('camel_case_types')!;
+
+    // Overwrite it.
+    Registry.ruleRegistry.register(DeprecatedCamelCaseTypes());
+
+    // Now we can assume it will have an action associated...
+
+    try {
+      const content = r'''
 linter:
   rules:
     - prefer_is_empty
-    - [[invariant_booleans]]
+    - [[camel_case_types]]
     - lines_longer_than_80_chars
 ''';
 
-    const expectedContent = r'''
+      const expectedContent = r'''
 linter:
   rules:
     - prefer_is_empty
     - lines_longer_than_80_chars
 ''';
 
-    newFile(analysisOptionsPath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
-    );
+      newFile(analysisOptionsPath, withoutMarkers(content));
+      await initialize(
+        textDocumentCapabilities: withCodeActionKinds(
+            emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+      );
 
-    // Expect a fix.
-    final codeActions = await getCodeActions(analysisOptionsUri,
-        range: rangeFromMarkers(content));
-    final fix = findEditAction(codeActions,
-        CodeActionKind('quickfix.removeLint'), "Remove 'invariant_booleans'")!;
+      // Expect a fix.
+      final codeActions = await getCodeActions(analysisOptionsUri,
+          range: rangeFromMarkers(content));
+      final fix = findEditAction(codeActions,
+          CodeActionKind('quickfix.removeLint'), "Remove 'camel_case_types'")!;
 
-    // Ensure it makes the correct edits.
-    final edit = fix.edit!;
-    final contents = {
-      analysisOptionsPath: withoutMarkers(content),
-    };
-    applyChanges(contents, edit.changes!);
-    expect(contents[analysisOptionsPath], equals(expectedContent));
+      // Ensure it makes the correct edits.
+      final edit = fix.edit!;
+      final contents = {
+        analysisOptionsPath: withoutMarkers(content),
+      };
+      applyChanges(contents, edit.changes!);
+      expect(contents[analysisOptionsPath], equals(expectedContent));
+    } finally {
+      // Restore the "real" `camel_case_types`.
+      Registry.ruleRegistry.register(camelCaseTypes);
+    }
   }
 
   Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
@@ -600,12 +632,18 @@ ProcessInfo b;
     expect(codeActions, isEmpty);
   }
 
-  Future<void> test_plugin_dart() => checkPluginResults(mainFilePath);
+  Future<void> test_plugin_dart() async {
+    if (!AnalysisServer.supportsPlugins) return;
+    return await checkPluginResults(mainFilePath);
+  }
 
-  Future<void> test_plugin_nonDart() =>
-      checkPluginResults(join(projectFolderPath, 'lib', 'foo.foo'));
+  Future<void> test_plugin_nonDart() async {
+    if (!AnalysisServer.supportsPlugins) return;
+    return await checkPluginResults(join(projectFolderPath, 'lib', 'foo.foo'));
+  }
 
   Future<void> test_plugin_sortsWithServer() async {
+    if (!AnalysisServer.supportsPlugins) return;
     // Produces a server fix for removing unused import with a default
     // priority of 50.
     const content = '''

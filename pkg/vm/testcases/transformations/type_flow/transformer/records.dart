@@ -6,7 +6,7 @@ const recordConstant = (42, 'Hey', foo: 'foo');
 
 recordLiteral(x, y, z) => (x, y, bar: z);
 
-recordFieldAccess1((int, String) rec) => rec.$0;
+recordFieldAccess1((int, String) rec) => rec.$1;
 
 recordFieldAccess2(({int a, String b}) rec) => rec.a;
 

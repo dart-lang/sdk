@@ -15,7 +15,7 @@ class B<T> {
   var _copy;
   B() {
     // We used to not register the dependency between List and B.
-    _copy = new List<A<T>>();
+    _copy = <A<T>>[];
   }
 }
 

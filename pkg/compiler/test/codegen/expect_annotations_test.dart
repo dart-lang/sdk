@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -44,14 +42,14 @@ runTest() async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES, options: [Flags.testMode]);
   Compiler compiler = result.compiler;
-  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
 
   void testTypeMatch(
       FunctionEntity function,
       AbstractValue expectedParameterType,
-      AbstractValue expectedReturnType,
+      AbstractValue? expectedReturnType,
       GlobalTypeInferenceResults results) {
     closedWorld.elementEnvironment.forEachParameterAsLocal(
         results.globalLocalsMap, function, (Local parameter) {
@@ -68,12 +66,12 @@ runTest() async {
 
   void test(String name,
       {bool expectNoInline = false,
-      AbstractValue expectedParameterType = null,
-      AbstractValue expectedReturnType = null,
+      AbstractValue? expectedParameterType,
+      AbstractValue? expectedReturnType,
       bool expectAssumeDynamic = false}) {
-    LibraryEntity mainApp = closedWorld.elementEnvironment.mainLibrary;
-    FunctionEntity method =
-        closedWorld.elementEnvironment.lookupLibraryMember(mainApp, name);
+    LibraryEntity mainApp = closedWorld.elementEnvironment.mainLibrary!;
+    final method = closedWorld.elementEnvironment
+        .lookupLibraryMember(mainApp, name) as FunctionEntity;
     Expect.isNotNull(method);
     Expect.equals(
         expectNoInline,
@@ -85,7 +83,7 @@ runTest() async {
         "Unexpected annotation of @pragma('dart2js:assumeDynamic') on "
         "'$method'.");
     GlobalTypeInferenceResults results =
-        compiler.globalInference.resultsForTesting;
+        compiler.globalInference.resultsForTesting!;
     if (expectAssumeDynamic) {
       testTypeMatch(
           method, closedWorld.abstractValueDomain.dynamicType, null, results);

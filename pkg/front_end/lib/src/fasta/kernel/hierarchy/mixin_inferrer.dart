@@ -54,17 +54,17 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   CoreTypes get coreTypes => hierarchy.coreTypes;
 
   @override
-  void addLowerBound(
-      TypeConstraint constraint, DartType lower, Library clientLibrary) {
-    constraint.lower =
-        getStandardUpperBound(constraint.lower, lower, clientLibrary);
+  void addLowerBound(TypeConstraint constraint, DartType lower,
+      {required bool isNonNullableByDefault}) {
+    constraint.lower = getStandardUpperBound(constraint.lower, lower,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override
-  void addUpperBound(
-      TypeConstraint constraint, DartType upper, Library clientLibrary) {
-    constraint.upper =
-        getStandardLowerBound(constraint.upper, upper, clientLibrary);
+  void addUpperBound(TypeConstraint constraint, DartType upper,
+      {required bool isNonNullableByDefault}) {
+    constraint.upper = getStandardLowerBound(constraint.upper, upper,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override
@@ -75,7 +75,8 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   @override
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
       Library clientLibrary, CoreTypes coreTypes) {
-    return hierarchy.getTypeAsInstanceOf(type, superclass, clientLibrary);
+    return hierarchy.getTypeAsInstanceOf(type, superclass,
+        isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
   }
 
   @override

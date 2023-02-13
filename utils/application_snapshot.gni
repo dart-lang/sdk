@@ -79,6 +79,11 @@ template("_application_snapshot") {
     output = invoker.output
   }
 
+  gen_kernel_args = []
+  if (defined(invoker.gen_kernel_args)) {
+    gen_kernel_args += invoker.gen_kernel_args
+  }
+
   # Build the kernel file using the prebuilt VM to speed up the debug and
   # simulator builds.
   prebuilt_dart_action(target_name + "_dill") {
@@ -123,7 +128,7 @@ template("_application_snapshot") {
       "--output=" + rebase_path(output, root_build_dir),
       "--depfile=" + rebase_path(depfile),
 
-      # Ensure the compiled appliation (e.g. kernel-service, frontend-server,
+      # Ensure the compiled application (e.g. kernel-service, frontend-server,
       # ...) will use this SDK hash when consuming/producing kernel.
       #
       # (Instead of ensuring every user of the "application_snapshot" /
@@ -131,6 +136,7 @@ template("_application_snapshot") {
       "-Dsdk_hash=$sdk_hash",
       "-Ddart.vm.product=$is_product_flag",
     ]
+    args += gen_kernel_args
     args += [ rebase_path(main_dart) ]
   }
 

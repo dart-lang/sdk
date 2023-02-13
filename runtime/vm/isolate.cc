@@ -65,6 +65,7 @@ DECLARE_FLAG(bool, print_metrics);
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_shutdown);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
+DECLARE_FLAG(int, old_gen_growth_time_ratio);
 
 // Reload flags.
 DECLARE_FLAG(int, reload_every);
@@ -80,6 +81,7 @@ static void DeterministicModeHandler(bool value) {
     FLAG_concurrent_mark = false;         // Timing dependent.
     FLAG_concurrent_sweep = false;        // Timing dependent.
     FLAG_scavenger_tasks = 0;             // Timing dependent.
+    FLAG_old_gen_growth_time_ratio = 0;   // Timing dependent.
     FLAG_random_seed = 0x44617274;        // "Dart"
   }
 }
@@ -87,16 +89,6 @@ static void DeterministicModeHandler(bool value) {
 DEFINE_FLAG_HANDLER(DeterministicModeHandler,
                     deterministic,
                     "Enable deterministic mode.");
-
-int FLAG_sound_null_safety = kNullSafetyOptionUnspecified;
-static void SoundNullSafetyHandler(bool value) {
-  FLAG_sound_null_safety =
-      value ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
-}
-
-DEFINE_FLAG_HANDLER(SoundNullSafetyHandler,
-                    sound_null_safety,
-                    "Respect the nullability of types at runtime.");
 
 DEFINE_FLAG(bool,
             disable_thread_pool_limit,
@@ -245,7 +237,7 @@ void IdleTimeHandler::NotifyIdle(int64_t deadline) {
 
 void IdleTimeHandler::NotifyIdleUsingDefaultDeadline() {
   const int64_t now = OS::GetCurrentMonotonicMicros();
-  NotifyIdle(now + FLAG_idle_timeout_micros);
+  NotifyIdle(now + FLAG_idle_duration_micros);
 }
 
 DisableIdleTimerScope::DisableIdleTimerScope(IdleTimeHandler* handler)
@@ -295,6 +287,9 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
     NotifyIdle();
     return;
   }
+
+  // Avoid shutdown having to wait for the timeout to expire.
+  if (ShuttingDownLocked()) return;
 
   // Wait for the recommended idle timeout.
   // We can be woken up because of a), b) or c)
@@ -526,7 +521,7 @@ void IsolateGroup::Shutdown() {
     while (old_space->tasks() > 0) {
       ml.Wait();
     }
-    // Needs to happen before ~PageSpace so TLS and the thread registery are
+    // Needs to happen before ~PageSpace so TLS and the thread registry are
     // still valid.
     old_space->AbandonMarkingForShutdown();
   }
@@ -638,6 +633,9 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     thread->set_safepoint_state(
         Thread::SetBypassSafepoints(bypass_safepoint, 0));
     thread->set_vm_tag(VMTag::kVMTagId);
+#if !defined(PRODUCT)
+    thread->heap_sampler().Initialize();
+#endif
     ASSERT(thread->no_safepoint_scope_depth() == 0);
     os_thread->set_thread(thread);
     Thread::SetCurrent(thread);
@@ -694,6 +692,10 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   thread->set_execution_state(Thread::kThreadInNative);
   thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
                               Thread::AtDeoptSafepointField::encode(true));
+#if !defined(PRODUCT)
+  thread->heap_sampler().Cleanup();
+#endif
+
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   if (is_mutator) {
     // The mutator thread structure stays alive and attached to the isolate as
@@ -755,7 +757,7 @@ void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
   {
     // NOTE: This is performance critical code, we should avoid monitors and use
     // std::atomics in the fast case (where active_mutators <
-    // max_active_mutators) and only use montiors in the uncommon case.
+    // max_active_mutators) and only use monitors in the uncommon case.
     MonitorLocker ml(active_mutators_monitor_.get());
     ASSERT(active_mutators_ <= max_active_mutators_);
     while (active_mutators_ == max_active_mutators_) {
@@ -781,7 +783,7 @@ void IsolateGroup::DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit) {
   {
     // NOTE: This is performance critical code, we should avoid monitors and use
     // std::atomics in the fast case (where active_mutators <
-    // max_active_mutators) and only use montiors in the uncommon case.
+    // max_active_mutators) and only use monitors in the uncommon case.
     MonitorLocker ml(active_mutators_monitor_.get());
     ASSERT(active_mutators_ <= max_active_mutators_);
     active_mutators_--;

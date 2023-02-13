@@ -22,7 +22,7 @@ m(x) {
   x?.a && x.b;
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 9, 4),
+      error(WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 9, 4),
     ]);
   }
 
@@ -32,7 +32,7 @@ m(x) {
   x.a && x?.b;
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 16, 4),
+      error(WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 16, 4),
     ]);
   }
 
@@ -42,7 +42,7 @@ m(x) {
   x.a && x.b && x?.c;
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 23, 4),
+      error(WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 23, 4),
     ]);
   }
 
@@ -52,7 +52,7 @@ m(x) {
   x?.a || x.b;
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 9, 4),
+      error(WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 9, 4),
     ]);
   }
 
@@ -62,7 +62,7 @@ m(x) {
   x.a || x?.b;
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 16, 4),
+      error(WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 16, 4),
     ]);
   }
 
@@ -72,7 +72,7 @@ m(x) {
   x.a || x.b || x?.c;
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 23, 4),
+      error(WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 23, 4),
     ]);
   }
 
@@ -98,7 +98,7 @@ m(x) {
   !x?.a;
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 10, 4),
+      error(WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 10, 4),
     ]);
   }
 }

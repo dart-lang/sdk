@@ -87,6 +87,7 @@
   V(UnlinkedCall)                                                              \
   V(UnwindError)                                                               \
   V(UserTag)                                                                   \
+  V(WeakArray)                                                                 \
   V(WeakSerializationReference)
 
 namespace dart {
@@ -155,19 +156,13 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
   if (cid == kExternalOneByteStringCid) return true;
   if (cid == kExternalTwoByteStringCid) return true;
   if (cid == kMintCid) return true;
-  if (cid == kImmutableArrayCid) return true;
   if (cid == kNeverCid) return true;
   if (cid == kSentinelCid) return true;
   if (cid == kStackTraceCid) return true;
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // In JIT mode we have field guards enabled which means
-  // double/float32x4/float64x2 boxes can be mutable and we therefore cannot
-  // share them.
-  if (cid == kDoubleCid || cid == kFloat32x4Cid || cid == kFloat64x2Cid) {
+  if (cid == kDoubleCid || cid == kFloat32x4Cid || cid == kFloat64x2Cid ||
+      cid == kInt32x4Cid) {
     return true;
   }
-#endif
-  if (cid == kInt32x4Cid) return true;  // No field guards here.
   if (cid == kSendPortCid) return true;
   if (cid == kCapabilityCid) return true;
   if (cid == kRegExpCid) return true;
@@ -184,9 +179,19 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
         ->typed_data()
         ->untag()
         ->IsImmutable();
+  } else {
+    if ((tags & UntaggedObject::ImmutableBit::mask_in_place()) != 0) {
+      return true;
+    }
   }
 
   return false;
+}
+
+bool CanShareObjectAcrossIsolates(ObjectPtr obj) {
+  if (!obj->IsHeapObject()) return true;
+  const uword tags = TagsFromUntaggedObject(obj.untag());
+  return CanShareObject(obj, tags);
 }
 
 // Whether executing `get:hashCode` (possibly in a different isolate) on an
@@ -213,16 +218,8 @@ static bool MightNeedReHashing(ObjectPtr object) {
   // These are shared and use identity hash codes. If they are used as a key in
   // a map or a value in a set, they will already have the identity hash code
   // set.
-  if (cid == kImmutableArrayCid) return false;
   if (cid == kRegExpCid) return false;
   if (cid == kInt32x4Cid) return false;
-
-  // We copy those (instead of sharing them) - see [CanShareObjct]. They rely
-  // on the default hashCode implementation which uses identity hash codes
-  // (instead of structural hash code).
-  if (cid == kFloat32x4Cid || cid == kFloat64x2Cid) {
-    return !kDartPrecompiledRuntime;
-  }
 
   // If the [tags] indicates this is a canonical object we'll share it instead
   // of copying it. That would suggest we don't have to re-hash maps/sets
@@ -281,11 +278,10 @@ DART_FORCE_INLINE
 void UpdateLengthField(intptr_t cid, ObjectPtr from, ObjectPtr to) {
   // We share these objects - never copy them.
   ASSERT(!IsStringClassId(cid));
-  ASSERT(cid != kImmutableArrayCid);
 
   // We update any in-heap variable sized object with the length to keep the
   // length and the size in the object header in-sync for the GC.
-  if (cid == kArrayCid) {
+  if (cid == kArrayCid || cid == kImmutableArrayCid) {
     static_cast<UntaggedArray*>(to.untag())->length_ =
         static_cast<UntaggedArray*>(from.untag())->length_;
   } else if (cid == kContextCid) {
@@ -295,8 +291,8 @@ void UpdateLengthField(intptr_t cid, ObjectPtr from, ObjectPtr to) {
     static_cast<UntaggedTypedDataBase*>(to.untag())->length_ =
         static_cast<UntaggedTypedDataBase*>(from.untag())->length_;
   } else if (cid == kRecordCid) {
-    static_cast<UntaggedRecord*>(to.untag())->num_fields_ =
-        static_cast<UntaggedRecord*>(from.untag())->num_fields_;
+    static_cast<UntaggedRecord*>(to.untag())->shape_ =
+        static_cast<UntaggedRecord*>(from.untag())->shape_;
   }
 }
 
@@ -1214,7 +1210,8 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     UpdateLengthField(cid, from.ptr(), to_.ptr());
     slow_forward_map_.Insert(from, to_, size);
     ObjectPtr to = to_.ptr();
-    if (cid == kArrayCid && !Heap::IsAllocatableInNewSpace(size)) {
+    if ((cid == kArrayCid || cid == kImmutableArrayCid) &&
+        !Heap::IsAllocatableInNewSpace(size)) {
       to.untag()->SetCardRememberedBitUnsynchronized();
     }
     if (IsExternalTypedDataClassId(cid)) {
@@ -1329,6 +1326,13 @@ class ObjectCopy : public Base {
       COPY_TO(Set)
 #undef COPY_TO
 
+      case ImmutableArray::kClassId: {
+        typename Types::Array casted_from = Types::CastArray(from);
+        typename Types::Array casted_to = Types::CastArray(to);
+        CopyArray(casted_from, casted_to);
+        return;
+      }
+
 #define COPY_TO(clazz) case kTypedData##clazz##Cid:
 
       CLASS_LIST_TYPED_DATA(COPY_TO) {
@@ -1437,11 +1441,9 @@ class ObjectCopy : public Base {
 
   void CopyRecord(typename Types::Record from, typename Types::Record to) {
     const intptr_t num_fields = Record::NumFields(Types::GetRecordPtr(from));
-    Base::StoreCompressedPointersNoBarrier(
-        from, to, OFFSET_OF(UntaggedRecord, num_fields_),
-        OFFSET_OF(UntaggedRecord, num_fields_));
-    Base::ForwardCompressedPointer(from, to,
-                                   OFFSET_OF(UntaggedRecord, field_names_));
+    Base::StoreCompressedPointersNoBarrier(from, to,
+                                           OFFSET_OF(UntaggedRecord, shape_),
+                                           OFFSET_OF(UntaggedRecord, shape_));
     Base::ForwardCompressedPointers(
         from, to, Record::field_offset(0),
         Record::field_offset(0) + Record::kBytesPerElement * num_fields);
@@ -1489,7 +1491,6 @@ class ObjectCopy : public Base {
       to_untagged->hash_mask_ = Smi::New(0);
       to_untagged->index_ = TypedData::RawCast(Object::null());
       to_untagged->deleted_keys_ = Smi::New(0);
-      Base::EnqueueObjectToRehash(to);
     }
 
     // From this point on we shouldn't use the raw pointers, since GC might
@@ -1512,6 +1513,10 @@ class ObjectCopy : public Base {
     Base::StoreCompressedPointersNoBarrier(
         from, to, OFFSET_OF(UntaggedLinkedHashBase, used_data_),
         OFFSET_OF(UntaggedLinkedHashBase, used_data_));
+
+    if (Base::exception_msg_ == nullptr && needs_rehashing) {
+      Base::EnqueueObjectToRehash(to);
+    }
   }
 
   void CopyMap(typename Types::Map from, typename Types::Map to) {
@@ -2121,7 +2126,7 @@ class ObjectGraphCopier : public StackResource {
 
           // There are left-over uninitialized objects we'll have to make GC
           // visible.
-          SwitchToSlowFowardingList();
+          SwitchToSlowForwardingList();
         }
       }
 
@@ -2163,7 +2168,7 @@ class ObjectGraphCopier : public StackResource {
     return result_array.ptr();
   }
 
-  void SwitchToSlowFowardingList() {
+  void SwitchToSlowForwardingList() {
     auto& fast_forward_map = fast_object_copy_.fast_forward_map_;
     auto& slow_forward_map = slow_object_copy_.slow_forward_map_;
 

@@ -52,6 +52,16 @@ Dart_Handle Loader::Init(const char* packages_file,
 static void MallocFinalizer(void* isolate_callback_data, void* peer) {
   free(peer);
 }
+static Dart_Handle WrapMallocedKernelBuffer(uint8_t* kernel_buffer,
+                                            intptr_t kernel_buffer_size) {
+  Dart_Handle result = Dart_NewExternalTypedDataWithFinalizer(
+      Dart_TypedData_kUint8, kernel_buffer, kernel_buffer_size, kernel_buffer,
+      kernel_buffer_size, MallocFinalizer);
+  if (Dart_IsError(result)) {
+    free(kernel_buffer);
+  }
+  return result;
+}
 #endif
 
 Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
@@ -87,11 +97,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                &kernel_buffer_size)) {
       return DartUtils::NewError("'%s' is not a kernel file", url_string);
     }
-    result = Dart_NewExternalTypedData(Dart_TypedData_kUint8, kernel_buffer,
-                                       kernel_buffer_size);
-    Dart_NewFinalizableHandle(result, kernel_buffer, kernel_buffer_size,
-                              MallocFinalizer);
-    return result;
+    return WrapMallocedKernelBuffer(kernel_buffer, kernel_buffer_size);
   }
   if (dfe.CanUseDartFrontend() && dfe.UseDartFrontend() &&
       (tag == Dart_kImportTag)) {
@@ -103,7 +109,8 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     dfe.CompileAndReadScript(url_string, &kernel_buffer, &kernel_buffer_size,
                              &error, &exit_code, NULL, false);
     if (exit_code == 0) {
-      return Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
+      return Dart_LoadLibrary(
+          WrapMallocedKernelBuffer(kernel_buffer, kernel_buffer_size));
     } else if (exit_code == kCompilationErrorExitCode) {
       Dart_Handle result = Dart_NewCompilationError(error);
       free(error);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:io';
 
@@ -89,6 +87,7 @@ Future runTest(Test test, String config,
       '--libraries-spec=$sdkLibrariesSpecificationPath',
       '--packages=${Platform.packageConfig}',
       Flags.testMode,
+      Flags.noSoundNullSafety,
       input,
     ]..addAll(options);
     print("Compiling dart2js ${arguments.join(' ')}");

@@ -4,13 +4,13 @@
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/extensions.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/services/top_level_declarations.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -39,6 +39,16 @@ class AnalysisOptionsFixKind {
     'analysisOptions.fix.removeSetting',
     50,
     "Remove '{0}'",
+  );
+  static const REPLACE_WITH_STRICT_CASTS = FixKind(
+    'analysisOptions.fix.replaceWithStrictCasts',
+    50,
+    'Replace with the strict-casts analysis mode',
+  );
+  static const REPLACE_WITH_STRICT_RAW_TYPES = FixKind(
+    'analysisOptions.fix.replaceWithStrictRawTypes',
+    50,
+    'Replace with the strict-raw-types analysis mode',
   );
 }
 
@@ -152,6 +162,11 @@ class DartFixKind {
     'dart.fix.add.explicitCast',
     DartFixKindPriority.DEFAULT,
     'Add cast',
+  );
+  static const ADD_EXPLICIT_CAST_MULTI = FixKind(
+    'dart.fix.add.explicitCast.multi',
+    DartFixKindPriority.IN_FILE,
+    'Add cast everywhere in file',
   );
   static const ADD_FIELD_FORMAL_PARAMETERS = FixKind(
     'dart.fix.add.fieldFormalParameters',
@@ -508,16 +523,6 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Convert to line documentation comments everywhere in file',
   );
-  static const CONVERT_TO_LIST_LITERAL = FixKind(
-    'dart.fix.convert.toListLiteral',
-    DartFixKindPriority.DEFAULT,
-    'Convert to list literal',
-  );
-  static const CONVERT_TO_LIST_LITERAL_MULTI = FixKind(
-    'dart.fix.convert.toListLiteral.multi',
-    DartFixKindPriority.IN_FILE,
-    'Convert to list literals everywhere in file',
-  );
   static const CONVERT_TO_MAP_LITERAL = FixKind(
     'dart.fix.convert.toMapLiteral',
     DartFixKindPriority.DEFAULT,
@@ -832,15 +837,25 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Make the return type nullable',
   );
-  static const MOVE_TYPE_ARGUMENTS_TO_CLASS = FixKind(
-    'dart.fix.moveTypeArgumentsToClass',
-    DartFixKindPriority.DEFAULT,
-    'Move type arguments to after class name',
-  );
   static const MAKE_CONDITIONAL_ON_DEBUG_MODE = FixKind(
     'dart.fix.flutter.makeConditionalOnDebugMode',
     DartFixKindPriority.DEFAULT,
     "Make conditional on 'kDebugMode'",
+  );
+  static const MAKE_REQUIRED_NAMED_PARAMETERS_FIRST = FixKind(
+    'dart.fix.makeRequiredNamedParametersFirst',
+    DartFixKindPriority.DEFAULT,
+    "Put required named parameter first",
+  );
+  static const MAKE_REQUIRED_NAMED_PARAMETERS_FIRST_MULTI = FixKind(
+    'dart.fix.makeRequiredNamedParametersFirst.multi',
+    DartFixKindPriority.IN_FILE,
+    "Put required named parameters first everywhere in file",
+  );
+  static const MAKE_SUPER_INVOCATION_LAST = FixKind(
+    'dart.fix.makeSuperInvocationLast',
+    DartFixKindPriority.DEFAULT,
+    "Move the invocation to the end of the initializer list",
   );
   static const MAKE_VARIABLE_NOT_FINAL = FixKind(
     'dart.fix.makeVariableNotFinal',
@@ -861,6 +876,11 @@ class DartFixKind {
     'dart.fix.moveDocCommentToLibraryDirective',
     DartFixKindPriority.DEFAULT,
     "Move this doc comment to a library directive",
+  );
+  static const MOVE_TYPE_ARGUMENTS_TO_CLASS = FixKind(
+    'dart.fix.moveTypeArgumentsToClass',
+    DartFixKindPriority.DEFAULT,
+    'Move type arguments to after class name',
   );
   static const ORGANIZE_IMPORTS = FixKind(
     'dart.fix.organize.imports',
@@ -923,6 +943,21 @@ class DartFixKind {
     'dart.fix.remove.await.multi',
     DartFixKindPriority.IN_FILE,
     'Remove awaits in file',
+  );
+  static const REMOVE_BREAK = FixKind(
+    'dart.fix.remove.break',
+    DartFixKindPriority.DEFAULT,
+    'Remove break',
+  );
+  static const REMOVE_BREAK_MULTI = FixKind(
+    'dart.fix.remove.break.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove unnecessary breaks in file',
+  );
+  static const REMOVE_CHARACTER = FixKind(
+    'dart.fix.remove.character',
+    DartFixKindPriority.DEFAULT,
+    "Remove the 'U+{0}' code point",
   );
   static const REMOVE_COMPARISON = FixKind(
     'dart.fix.remove.comparison',
@@ -1083,6 +1118,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     '{0}',
   );
+  static const REMOVE_NEW = FixKind(
+    'dart.fix.remove.new',
+    DartFixKindPriority.DEFAULT,
+    "Remove 'new' keyword",
+  );
   static const REMOVE_NON_NULL_ASSERTION = FixKind(
     'dart.fix.remove.nonNullAssertion',
     DartFixKindPriority.DEFAULT,
@@ -1173,6 +1213,16 @@ class DartFixKind {
     49,
     'Remove type arguments',
   );
+  static const REMOVE_TYPE_CHECK = FixKind(
+    'dart.fix.remove.typeCheck',
+    DartFixKindPriority.DEFAULT,
+    'Remove type check',
+  );
+  static const REMOVE_TYPE_CHECK_MULTI = FixKind(
+    'dart.fix.remove.comparison.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove type check everywhere in file',
+  );
   static const REMOVE_UNNECESSARY_CAST = FixKind(
     'dart.fix.remove.unnecessaryCast',
     DartFixKindPriority.DEFAULT,
@@ -1201,27 +1251,27 @@ class DartFixKind {
   static const REMOVE_UNNECESSARY_CONST_MULTI = FixKind(
     'dart.fix.remove.unnecessaryConst.multi',
     DartFixKindPriority.IN_FILE,
-    'Remove unnecessary const keywords everywhere in file',
+    "Remove unnecessary 'const' keywords everywhere in file",
   );
   static const REMOVE_UNNECESSARY_LATE = FixKind(
     'dart.fix.remove.unnecessaryLate',
     DartFixKindPriority.DEFAULT,
-    'Remove unnecessary late keyword',
+    "Remove unnecessary 'late' keyword",
   );
   static const REMOVE_UNNECESSARY_LATE_MULTI = FixKind(
     'dart.fix.remove.unnecessaryLate.multi',
     DartFixKindPriority.IN_FILE,
-    'Remove unnecessary late keywords everywhere in file',
+    "Remove unnecessary 'late' keywords everywhere in file",
   );
   static const REMOVE_UNNECESSARY_NEW = FixKind(
     'dart.fix.remove.unnecessaryNew',
     DartFixKindPriority.DEFAULT,
-    'Remove unnecessary new keyword',
+    "Remove unnecessary 'new' keyword",
   );
   static const REMOVE_UNNECESSARY_NEW_MULTI = FixKind(
     'dart.fix.remove.unnecessaryNew.multi',
     DartFixKindPriority.IN_FILE,
-    'Remove unnecessary new keywords everywhere in file',
+    "Remove unnecessary 'new' keywords everywhere in file",
   );
   static const REMOVE_UNNECESSARY_CONTAINER = FixKind(
     'dart.fix.remove.unnecessaryContainer',
@@ -1387,11 +1437,6 @@ class DartFixKind {
     'dart.fix.replace.colonWithEquals.multi',
     DartFixKindPriority.IN_FILE,
     "Replace ':'s with '='s everywhere in file",
-  );
-  static const REPLACE_WITH_FILLED = FixKind(
-    'dart.fix.replace.finalWithListFilled',
-    DartFixKindPriority.DEFAULT,
-    "Replace with 'List.filled'",
   );
   static const REPLACE_FINAL_WITH_CONST = FixKind(
     'dart.fix.replace.finalWithConst',
@@ -1560,6 +1605,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Replace with 'isEmpty' everywhere in file",
   );
+  static const REPLACE_WITH_IS_NAN = FixKind(
+    'dart.fix.replace.withIsNaN',
+    DartFixKindPriority.DEFAULT,
+    "Replace the condition with '.isNaN'",
+  );
   static const REPLACE_WITH_IS_NOT_EMPTY = FixKind(
     'dart.fix.replace.withIsNotEmpty',
     DartFixKindPriority.DEFAULT,
@@ -1595,6 +1645,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Replace function literals with tear-offs everywhere in file',
   );
+  static const REPLACE_WITH_UNICODE_ESCAPE = FixKind(
+    'dart.fix.replace.withUnicodeEscape',
+    DartFixKindPriority.DEFAULT,
+    "Replace with Unicode escape",
+  );
   static const REPLACE_WITH_VAR = FixKind(
     'dart.fix.replace.withVar',
     DartFixKindPriority.DEFAULT,
@@ -1603,7 +1658,7 @@ class DartFixKind {
   static const REPLACE_WITH_VAR_MULTI = FixKind(
     'dart.fix.replace.withVar.multi',
     DartFixKindPriority.IN_FILE,
-    "Replace type annotations with 'var' in file",
+    "Replace type annotations with 'var' everywhere in file",
   );
   static const SORT_CHILD_PROPERTY_LAST = FixKind(
     'dart.fix.sort.childPropertyLast',
@@ -1649,11 +1704,6 @@ class DartFixKind {
     'dart.fix.updateSdkConstraints',
     DartFixKindPriority.DEFAULT,
     'Update the SDK constraints',
-  );
-  static const USE_CONST = FixKind(
-    'dart.fix.use.const',
-    DartFixKindPriority.DEFAULT,
-    'Change to constant',
   );
   static const USE_EFFECTIVE_INTEGER_DIVISION = FixKind(
     'dart.fix.use.effectiveIntegerDivision',

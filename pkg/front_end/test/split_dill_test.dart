@@ -25,7 +25,7 @@ Future<void> main() async {
   Stopwatch stopwatch = new Stopwatch()..start();
   Component component = await normalCompileToComponent(dart2jsUrl,
       options: getOptions()
-        ..target = new VmTarget(new TargetFlags())
+        ..target = new VmTarget(new TargetFlags(soundNullSafety: false))
         ..omitPlatform = false);
   print("Compiled dart2js in ${stopwatch.elapsedMilliseconds} ms");
 

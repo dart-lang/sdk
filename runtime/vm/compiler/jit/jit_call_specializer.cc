@@ -26,8 +26,7 @@
 
 namespace dart {
 
-// Quick access to the current isolate and zone.
-#define I (isolate())
+// Quick access to the current zone.
 #define Z (zone())
 
 JitCallSpecializer::JitCallSpecializer(

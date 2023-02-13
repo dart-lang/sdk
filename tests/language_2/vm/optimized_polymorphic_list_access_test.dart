@@ -18,7 +18,7 @@ test(arr) {
 }
 
 main() {
-  var a = new List<int>(1);
+  var a = new List<int>.filled(1, null);
   a[0] = 0;
   var b = <int>[0];
   Expect.equals(0, test(a));

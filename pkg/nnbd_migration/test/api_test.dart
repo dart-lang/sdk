@@ -356,6 +356,66 @@ g() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_component_attribute() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Component(
+  selector: 'my-component'
+)
+class MyComponent {
+  int foo;
+  MyComponent(@Attribute('foo') this.foo);
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Component(
+  selector: 'my-component'
+)
+class MyComponent {
+  int? foo;
+  MyComponent(@Attribute('foo') this.foo);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_component_constructor() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Component(
+  selector: 'my-component'
+)
+class MyComponent {
+  int foo;
+  MyComponent(this.foo);
+  void nullifyFoo() { foo = null; }
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Component(
+  selector: 'my-component'
+)
+class MyComponent {
+  int? foo;
+  MyComponent(int this.foo);
+  void nullifyFoo() { foo = null; }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_angular_contentChild_field() async {
     addAngularPackage();
     var content = '''
@@ -464,6 +524,33 @@ class myComponent {
   }
   g() => bar!.id;
   h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_injectable_constructor() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Injectable()
+class MyClass {
+  int foo;
+  MyClass(this.foo);
+  void nullifyFoo() { foo = null; }
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Injectable()
+class MyClass {
+  int? foo;
+  MyClass(int this.foo);
+  void nullifyFoo() { foo = null; }
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1298,6 +1385,26 @@ class C {
   void call() {}
 }
 Function f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_cascade_on_nullable() async {
+    var content = '''
+class C {
+  int /*?*/ x;
+  void f() {
+    x..isEven;
+  }
+}
+''';
+    var expected = '''
+class C {
+  int? x;
+  void f() {
+    x!..isEven;
+  }
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -2723,7 +2830,8 @@ void f(dynamic a) {
 
   Future<void> test_downcast_to_null() async {
     // This probably doesn't arise too often for real-world code, since it is
-    // most likely a mistake.  Still, we want to make sure we don't crash.
+    // most likely a mistake.  Still, we want to make sure we don't crash and
+    // fail at compile-time instead.
     var content = '''
 test() {
   var x = List.filled(3, null);
@@ -2733,11 +2841,11 @@ test() {
     var expected = '''
 test() {
   var x = List.filled(3, null);
-  x[0] = 1 as Null;
+  x[0] = 1;
 }
 ''';
-    // Note: using allowErrors=true because casting a literal int to a Null is
-    // an error
+    // Note: using allowErrors=true because passing `1` where `Null` is
+    // expected is an error.
     await _checkSingleFileChanges(content, expected, allowErrors: true);
   }
 
@@ -4583,6 +4691,28 @@ int? test(C c) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_function_expression_never() async {
+    var content = '''
+typedef CB = int Function(Object o);
+abstract class C {
+  void m(CB cb);
+}
+void f(C c) {
+  c.m((_) => throw Exception());
+}
+''';
+    var expected = '''
+typedef CB = int Function(Object o);
+abstract class C {
+  void m(CB cb);
+}
+void f(C c) {
+  c.m((_) => throw Exception());
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_function_expression_return() async {
     var content = '''
 void test({String foo}) async {
@@ -4741,6 +4871,8 @@ Future<String> getFoo() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  // TODO(yanok): the cast of `foi2` looks wrong, I think it should be `int?`
+  // instead, but `DOWN(int?, FutureOr<int?>)` is `int` according to the spec.
   Future<void> test_future_or_t_downcast_to_t() async {
     var content = '''
 import 'dart:async';
@@ -4765,7 +4897,7 @@ void f(
     FutureOr<int?> foi4
 ) {
   int i1 = foi1 as int;
-  int? i2 = foi2 as int?;
+  int? i2 = foi2 as int;
   int? i3 = foi3 as int?;
   int? i4 = foi4 as int?;
 }
@@ -4792,6 +4924,28 @@ Future<List<int?>> getNullableInts() async {
 
 Future<List<int>> getInts() {
   return getNullableInts().then((value) => value as List<int>);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_generic_bound() async {
+    var content = '''
+abstract class C<T> {
+  void f<U extends T>();
+}
+void f(C<String> s, C<List<int>> i) {
+  s.f<String>();
+  i.f<List<int>>();
+}
+''';
+    var expected = '''
+abstract class C<T> {
+  void f<U extends T>();
+}
+void f(C<String> s, C<List<int>> i) {
+  s.f<String>();
+  i.f<List<int>>();
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -4834,7 +4988,7 @@ void g(C<int?> y) {
   Future<void> test_generic_exact_propagation_premigratedListClass() async {
     var content = '''
 void f() {
-  List<int> x = new List<int>();
+  List<int> x = new List<int>.empty();
   g(x);
 }
 void g(List<int> y) {
@@ -4843,7 +4997,7 @@ void g(List<int> y) {
 ''';
     var expected = '''
 void f() {
-  List<int?> x = new List<int?>();
+  List<int?> x = new List<int?>.empty();
   g(x);
 }
 void g(List<int?> y) {
@@ -5415,7 +5569,6 @@ class C<T> {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49689')
   Future<void> test_infer_late_with_cascaded_usage() async {
     var content = '''
 class A {
@@ -9213,6 +9366,42 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_testVariable_assignedInjectorGet_nullableUse() async {
+    addAngularPackage();
+    addTestCorePackage();
+    var content = '''
+import 'package:angular/angular.dart';
+import 'package:test/test.dart';
+void f(int /*?*/ i) {}
+void main() {
+  int i;
+  setUp(() {
+    var injector = Injector();
+    i = injector.get(int);
+  });
+  test('a', () {
+    f(i);
+  });
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+import 'package:test/test.dart';
+void f(int? i) {}
+void main() {
+  late int i;
+  setUp(() {
+    var injector = Injector();
+    i = injector.get(int);
+  });
+  test('a', () {
+    f(i);
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_testVariable_assignedInjectorGet_outsideSetup() async {
     addAngularPackage();
     addTestCorePackage();
@@ -9654,7 +9843,9 @@ F _f = () => null;
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40388')
+//  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40388')
+// TODO(yanok): the test stopped failing since we don't emit casts for
+// unrelated types anymore, but the issue mentioned still exists.
   Future<void> test_typedef_assign_null_return_type_formal() async {
     var content = '''
 typedef F = T Function<T>();

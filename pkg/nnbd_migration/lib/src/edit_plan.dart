@@ -144,7 +144,7 @@ class AtomicEditInfo {
 /// suffixing it with additional text, or deleting some of the text it contains.
 /// When the text being produced represents an expression, [EditPlan] also keeps
 /// track of the precedence of the expression and whether it ends in a
-/// casade--this allows automatic insertion of parentheses when necessary, as
+/// cascade--this allows automatic insertion of parentheses when necessary, as
 /// well as removal of parentheses when they become unnecessary.
 ///
 /// Typical usage will be to produce one or more [EditPlan] objects representing
@@ -887,7 +887,7 @@ abstract class NodeProducingEditPlan extends EditPlan {
   /// Modifies [changes] to insert parentheses enclosing the [sourceNode].  This
   /// works even if [changes] already includes modifications at the beginning or
   /// end of [sourceNode]--the parentheses are inserted outside of any
-  /// pre-existing changes.
+  /// preexisting changes.
   Map<int?, List<AtomicEdit>>? _createAddParenChanges(
       Map<int?, List<AtomicEdit>>? changes) {
     changes ??= {};
@@ -1753,7 +1753,7 @@ extension AtomicEditMap on Map<int?, List<AtomicEdit>>? {
   }
 }
 
-/// Extension allowing an AstNode to be queried to see if it ends in a casade
+/// Extension allowing an AstNode to be queried to see if it ends in a cascade
 /// expression.
 extension EndsInCascadeExtension on AstNode {
   @visibleForTesting

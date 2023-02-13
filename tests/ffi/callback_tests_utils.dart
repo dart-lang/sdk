@@ -19,10 +19,10 @@ class CallbackTest {
   final void Function() afterCallbackChecks;
   final bool isLeaf;
 
-  CallbackTest(this.name, this.callback, {this.isLeaf: false})
+  CallbackTest(this.name, this.callback, {this.isLeaf = false})
       : afterCallbackChecks = noChecks {}
   CallbackTest.withCheck(this.name, this.callback, this.afterCallbackChecks,
-      {this.isLeaf: false}) {}
+      {this.isLeaf = false}) {}
 
   void run() {
     final NativeCallbackTestFn tester = isLeaf

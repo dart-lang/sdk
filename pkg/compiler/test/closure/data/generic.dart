@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 class Class1<T> {
   /*member: Class1.field:hasThis*/
   var field = /*fields=[T],free=[T],hasThis*/ () => T;
 
   /*member: Class1.funcField:hasThis*/
-  Function funcField;
+  Function? funcField;
 
   /*member: Class1.:hasThis*/
   Class1() {
@@ -132,7 +130,7 @@ topLevelMethod4<S>() {
 main() {
   new Class1<int>().method1();
   new Class1<int>.fact().method2();
-  new Class1<int>.fact2().funcField() is Set;
+  new Class1<int>.fact2().funcField!() is Set;
   new Class1<int>().method3<double>();
   new Class1<int>().method4<double>();
   new Class1<int>().method5();

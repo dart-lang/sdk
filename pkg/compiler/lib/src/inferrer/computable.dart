@@ -9,6 +9,7 @@ import '../elements/types.dart' show DartType;
 import '../ir/class_relation.dart';
 import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
+import '../universe/member_hierarchy.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';
@@ -75,6 +76,10 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
   @override
   AbstractValue get functionType =>
       ComputableAbstractValue(_wrappedDomain.functionType);
+
+  @override
+  AbstractValue get recordType =>
+      ComputableAbstractValue(_wrappedDomain.recordType);
 
   @override
   AbstractValue get boolType =>
@@ -587,6 +592,13 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
   AbstractBool isFixedLengthJsIndexable(
           covariant ComputableAbstractValue value) =>
       _wrappedDomain.isFixedLengthJsIndexable(_unwrap(value));
+
+  @override
+  Iterable<DynamicCallTarget> findRootsOfTargets(AbstractValue receiver,
+      Selector selector, MemberHierarchyBuilder memberHierarchyBuilder) {
+    return _wrappedDomain.findRootsOfTargets(
+        receiver, selector, memberHierarchyBuilder);
+  }
 
   @override
   String getCompactText(covariant ComputableAbstractValue value) =>

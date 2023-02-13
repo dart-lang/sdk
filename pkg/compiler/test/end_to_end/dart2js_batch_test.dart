@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -67,10 +65,11 @@ Future runTests(Process process) {
   String outFile = path.join(tmpDir.path, 'out.js');
   String outFile2 = path.join(tmpDir.path, 'out2.js');
 
-  process.stdin.writeln('--out="$outFile" "$inFile"');
-  process.stdin.writeln('--out="$outFile2" "$inFile"');
+  // TODO(48820): remove null safety flag.
+  process.stdin.writeln('--no-sound-null-safety --out="$outFile" "$inFile"');
+  process.stdin.writeln('--no-sound-null-safety --out="$outFile2" "$inFile"');
   process.stdin.writeln('too many arguments');
-  process.stdin.writeln(r'"non existing file.dart"');
+  process.stdin.writeln(r'"nonexistent file.dart"');
   process.stdin.close();
   Future<String> output = process.stdout.transform(utf8.decoder).join();
   Future<String> errorOut = process.stderr.transform(utf8.decoder).join();

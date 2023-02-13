@@ -374,7 +374,7 @@ class _GrowableList<T> extends ListBase<T> {
 
   void _grow(int new_capacity) {
     var newData = _allocateData(new_capacity);
-    // This is a work-around for dartbug.com/30090: array-bound-check
+    // This is a workaround for dartbug.com/30090: array-bound-check
     // generalization causes excessive deoptimizations because it
     // hoists CheckArrayBound(i, ...) out of the loop below and turns it
     // into CheckArrayBound(length - 1, ...). Which deoptimizes
@@ -398,7 +398,7 @@ class _GrowableList<T> extends ListBase<T> {
 
   void _shrink(int new_capacity, int new_length) {
     var newData = _allocateData(new_capacity);
-    // This is a work-around for dartbug.com/30090. See the comment in _grow.
+    // This is a workaround for dartbug.com/30090. See the comment in _grow.
     if (new_length > 0) {
       for (int i = 0; i < new_length; i++) {
         newData[i] = this[i];

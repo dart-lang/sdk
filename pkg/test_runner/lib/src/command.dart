@@ -657,8 +657,8 @@ class VMCommand extends ProcessCommand {
 // out and would be killed by the harness, so the copying and cleanup logic
 // must be in the harness.
 class RRCommand extends Command {
-  VMCommand originalCommand;
-  late VMCommand wrappedCommand;
+  ProcessCommand originalCommand;
+  late ProcessCommand wrappedCommand;
   late io.Directory recordingDir;
   late io.Directory savedDir;
 
@@ -860,6 +860,29 @@ class JSCommandLineCommand extends ProcessCommand {
           bool compilationSkipped,
           [int? pid = 0]) =>
       JSCommandLineOutput(this, exitCode, timedOut, stdout, stderr, time);
+}
+
+class Dart2WasmCommandLineCommand extends ProcessCommand {
+  Dart2WasmCommandLineCommand(
+      String displayName, String executable, List<String> arguments,
+      [Map<String, String> environmentOverrides = const {}, int index = 0])
+      : super(displayName, executable, arguments, environmentOverrides, null,
+            index);
+
+  Dart2WasmCommandLineCommand indexedCopy(int index) =>
+      Dart2WasmCommandLineCommand(
+          displayName, executable, arguments, environmentOverrides, index);
+
+  Dart2WasmCommandLineOutput createOutput(
+          int exitCode,
+          bool timedOut,
+          List<int> stdout,
+          List<int> stderr,
+          Duration time,
+          bool compilationSkipped,
+          [int? pid = 0]) =>
+      Dart2WasmCommandLineOutput(
+          this, exitCode, timedOut, stdout, stderr, time);
 }
 
 /// [ScriptCommand]s are executed by dart code.

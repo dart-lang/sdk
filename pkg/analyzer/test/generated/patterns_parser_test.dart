@@ -578,7 +578,7 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: CastPattern
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
       asToken: as
@@ -618,16 +618,16 @@ ListPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ as double? & Object? _:
+    case int? _ as double? && Object? _:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: CastPattern
-    pattern: VariablePattern
+    pattern: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -638,8 +638,8 @@ BinaryPattern
       name: SimpleIdentifier
         token: double
       question: ?
-  operator: &
-  rightOperand: VariablePattern
+  operator: &&
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
@@ -652,23 +652,23 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ & double? _ as Object?:
+    case int? _ && double? _ as Object?:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
+LogicalAndPattern
+  leftOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
       question: ?
     name: _
-  operator: &
+  operator: &&
   rightOperand: CastPattern
-    pattern: VariablePattern
+    pattern: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
@@ -686,16 +686,16 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ as double? | Object? _:
+    case int? _ as double? || Object? _:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: CastPattern
-    pattern: VariablePattern
+    pattern: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -706,8 +706,8 @@ BinaryPattern
       name: SimpleIdentifier
         token: double
       question: ?
-  operator: |
-  rightOperand: VariablePattern
+  operator: ||
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
@@ -720,23 +720,23 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ | double? _ as Object?:
+    case int? _ || double? _ as Object?:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
       question: ?
     name: _
-  operator: |
+  operator: ||
   rightOperand: CastPattern
-    pattern: VariablePattern
+    pattern: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
@@ -840,7 +840,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         colon: :
       pattern: CastPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: f
         asToken: as
@@ -928,7 +928,7 @@ RecordPattern
       fieldName: RecordPatternFieldName
         colon: :
       pattern: CastPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: n
         asToken: as
@@ -1091,8 +1091,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: PropertyAccess
       target: PrefixedIdentifier
         prefix: SimpleIdentifier
@@ -1118,8 +1118,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: PropertyAccess
       target: PrefixedIdentifier
         prefix: SimpleIdentifier
@@ -1261,8 +1261,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
@@ -1284,8 +1284,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
@@ -1452,8 +1452,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: SimpleIdentifier
       token: y
   operator: !
@@ -1472,8 +1472,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: SimpleIdentifier
       token: y
   operator: ?
@@ -1606,8 +1606,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
@@ -1634,8 +1634,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
@@ -1754,8 +1754,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
@@ -1785,8 +1785,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
@@ -1878,8 +1878,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       leftBracket: [
@@ -1899,8 +1899,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       leftBracket: [
@@ -1991,8 +1991,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       leftBracket: [
@@ -2015,8 +2015,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       leftBracket: [
@@ -2155,8 +2155,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
@@ -2194,8 +2194,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
@@ -2319,8 +2319,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       leftBracket: {
@@ -2348,8 +2348,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       leftBracket: {
@@ -2457,8 +2457,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: MethodInvocation
       methodName: SimpleIdentifier
@@ -2484,8 +2484,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: MethodInvocation
       methodName: SimpleIdentifier
@@ -2579,8 +2579,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: ParenthesizedExpression
       leftParenthesis: (
@@ -2602,8 +2602,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: ParenthesizedExpression
       leftParenthesis: (
@@ -2720,8 +2720,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
@@ -2752,8 +2752,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
@@ -2858,8 +2858,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       leftBracket: {
@@ -2883,8 +2883,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       leftBracket: {
@@ -2913,6 +2913,595 @@ f() {
     ]);
   }
 
+  test_functionExpression_allowed_afterSwitchExpression() {
+    _parse('''
+f(x) => switch(x) {} + () => 0;
+''');
+    var node = findNode.functionDeclaration('f');
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  name: f
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        name: x
+      rightParenthesis: )
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: BinaryExpression
+        leftOperand: SwitchExpression
+          switchKeyword: switch
+          leftParenthesis: (
+          expression: SimpleIdentifier
+            token: x
+          rightParenthesis: )
+          leftBracket: {
+          rightBracket: }
+        operator: +
+        rightOperand: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: IntegerLiteral
+              literal: 0
+      semicolon: ;
+''');
+  }
+
+  test_functionExpression_allowed_insideIfCaseWhenClause_element() {
+    _parse('''
+f(x, y) => [if (x case _ when y + () => 0) 0];
+''');
+    var node = findNode.ifElement('if');
+    assertParsedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: WildcardPattern
+        name: _
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: y
+          operator: +
+          rightOperand: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+  rightParenthesis: )
+  thenElement: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_functionExpression_allowed_insideIfCaseWhenClause_statement() {
+    _parse('''
+f(x, y) {
+  if (x case _ when y + () => 0) {}
+}
+''');
+    var node = findNode.ifStatement('if');
+    assertParsedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: WildcardPattern
+        name: _
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: y
+          operator: +
+          rightOperand: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideListPattern() {
+    _parse('''
+f(x) => switch(x) { [== () => 0] => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0').guardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    RelationalPattern
+      operator: ==
+      operand: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+  rightBracket: ]
+''');
+  }
+
+  test_functionExpression_allowed_insideMapPattern() {
+    _parse('''
+f(x) => switch(x) { {'x': == () => 0} => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0').guardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'x'
+      separator: :
+      value: RelationalPattern
+        operator: ==
+        operand: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: IntegerLiteral
+              literal: 0
+  rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideObjectPattern() {
+    _parse('''
+f(x) => switch(x) { Foo(bar: == () => 0) => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0').guardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: Foo
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: bar
+        colon: :
+      pattern: RelationalPattern
+        operator: ==
+        operand: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: IntegerLiteral
+              literal: 0
+  rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideParenthesizedConstPattern() {
+    _parse('''
+f(x) => switch(x) { const (() => 0) => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0').guardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  const: const
+  expression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression: IntegerLiteral
+          literal: 0
+    rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideParenthesizedPattern() {
+    _parse('''
+f(x) => switch(x) { (== () => 0) => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0').guardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: RelationalPattern
+    operator: ==
+    operand: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression: IntegerLiteral
+          literal: 0
+  rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideSwitchExpressionCase_guarded() {
+    _parse('''
+f(x) => switch(x) { _ when switch(x) { _ when true => () => 0 } => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: WildcardPattern
+      name: _
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: BooleanLiteral
+        literal: true
+  arrow: =>
+  expression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: IntegerLiteral
+        literal: 0
+''');
+  }
+
+  test_functionExpression_allowed_insideSwitchExpressionCase_unguarded() {
+    _parse('''
+f(x) => switch(x) { _ when switch(x) { _ => () => 0 } => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: WildcardPattern
+      name: _
+  arrow: =>
+  expression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: IntegerLiteral
+        literal: 0
+''');
+  }
+
+  test_functionExpression_allowed_insideSwitchExpressionScrutinee() {
+    _parse('''
+f() => switch(() => 0) {};
+''');
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: IntegerLiteral
+        literal: 0
+  rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideSwitchStatementInWhenClause() {
+    _parse('''
+f(x, y) {
+  switch(x) {
+    case _ when y + () => 0:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('when');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  guardedPattern: GuardedPattern
+    pattern: WildcardPattern
+      name: _
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: y
+        operator: +
+        rightOperand: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: IntegerLiteral
+              literal: 0
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
+  test_functionExpression_disallowed_afterListPattern() {
+    _parse('''
+f(x) => switch(x) { [_] when () => 0 };
+''');
+    var node = findNode.switchExpressionCase('when');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: ListPattern
+      leftBracket: [
+      elements
+        WildcardPattern
+          name: _
+      rightBracket: ]
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: RecordLiteral
+        leftParenthesis: (
+        rightParenthesis: )
+  arrow: =>
+  expression: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_functionExpression_disallowed_afterMapPattern() {
+    _parse('''
+f(x) => switch(x) { {'x': _} when () => 0 };
+''');
+    var node = findNode.switchExpressionCase('when');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: MapPattern
+      leftBracket: {
+      elements
+        MapPatternEntry
+          key: SimpleStringLiteral
+            literal: 'x'
+          separator: :
+          value: WildcardPattern
+            name: _
+      rightBracket: }
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: RecordLiteral
+        leftParenthesis: (
+        rightParenthesis: )
+  arrow: =>
+  expression: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_functionExpression_disallowed_afterObjectPattern() {
+    _parse('''
+f(x) => switch(x) { Foo(bar: _) when () => 0 };
+''');
+    var node = findNode.switchExpressionCase('when');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: ObjectPattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: Foo
+      leftParenthesis: (
+      fields
+        RecordPatternField
+          fieldName: RecordPatternFieldName
+            name: bar
+            colon: :
+          pattern: WildcardPattern
+            name: _
+      rightParenthesis: )
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: RecordLiteral
+        leftParenthesis: (
+        rightParenthesis: )
+  arrow: =>
+  expression: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_functionExpression_disallowed_afterParenthesizedPattern() {
+    _parse('''
+f(x) => switch(x) { (_) when () => 0 };
+''');
+    var node = findNode.switchExpressionCase('when');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: WildcardPattern
+        name: _
+      rightParenthesis: )
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: RecordLiteral
+        leftParenthesis: (
+        rightParenthesis: )
+  arrow: =>
+  expression: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_functionExpression_disallowed_afterSwitchExpressionInWhenClause() {
+    _parse('''
+f(x) => switch(x) { _ when switch(x) {} + () => 0 };
+''');
+    var node = findNode.switchExpressionCase('when');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: WildcardPattern
+      name: _
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: BinaryExpression
+        leftOperand: SwitchExpression
+          switchKeyword: switch
+          leftParenthesis: (
+          expression: SimpleIdentifier
+            token: x
+          rightParenthesis: )
+          leftBracket: {
+          rightBracket: }
+        operator: +
+        rightOperand: RecordLiteral
+          leftParenthesis: (
+          rightParenthesis: )
+  arrow: =>
+  expression: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_functionExpression_disallowed_insideSwitchExpressionInWhenClause() {
+    _parse('''
+f(x, y) => switch(x) { _ when y + () => 0 };
+''');
+    var node = findNode.switchExpressionCase('when');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: WildcardPattern
+      name: _
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: y
+        operator: +
+        rightOperand: RecordLiteral
+          leftParenthesis: (
+          rightParenthesis: )
+  arrow: =>
+  expression: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_issue50591_example1() {
+    _parse('''
+f(x, bool Function() a) => switch(x) {
+  _ when a() => 0
+};
+''');
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: MethodInvocation
+            methodName: SimpleIdentifier
+              token: a
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+  rightBracket: }
+''');
+  }
+
+  test_issue50591_example2() {
+    _parse('''
+void f(Object? x) {
+  (switch (x) {
+    const A() => 0,
+    _ => 1,
+  });
+}''');
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          const: const
+          expression: MethodInvocation
+            methodName: SimpleIdentifier
+              token: A
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 1
+  rightBracket: }
+''');
+  }
+
   test_list_insideAssignment_typed_nonEmpty() {
     _parse('''
 void f(x) {
@@ -2931,9 +3520,9 @@ ListPattern
     rightBracket: >
   leftBracket: [
   elements
-    VariablePattern
+    AssignedVariablePattern
       name: a
-    VariablePattern
+    AssignedVariablePattern
       name: b
   rightBracket: ]
 ''');
@@ -2978,9 +3567,9 @@ void f(x) {
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    AssignedVariablePattern
       name: a
-    VariablePattern
+    AssignedVariablePattern
       name: b
   rightBracket: ]
 ''');
@@ -3119,9 +3708,9 @@ ListPattern
     rightBracket: >
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       name: a
-    VariablePattern
+    DeclaredVariablePattern
       name: b
   rightBracket: ]
 ''');
@@ -3166,9 +3755,9 @@ void f(x) {
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       name: a
-    VariablePattern
+    DeclaredVariablePattern
       name: b
   rightBracket: ]
 ''');
@@ -3185,8 +3774,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ListPattern
+NullAssertPattern
+  pattern: ListPattern
     leftBracket: [
     elements
       ConstantPattern
@@ -3208,8 +3797,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ListPattern
+NullCheckPattern
+  pattern: ListPattern
     leftBracket: [
     elements
       ConstantPattern
@@ -3287,8 +3876,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: BooleanLiteral
       literal: true
   operator: !
@@ -3306,8 +3895,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: BooleanLiteral
       literal: true
   operator: ?
@@ -3381,8 +3970,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: DoubleLiteral
       literal: 1.0
   operator: !
@@ -3400,8 +3989,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: DoubleLiteral
       literal: 1.0
   operator: ?
@@ -3475,8 +4064,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: IntegerLiteral
       literal: 1
   operator: !
@@ -3494,8 +4083,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: IntegerLiteral
       literal: 1
   operator: ?
@@ -3569,8 +4158,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: NullLiteral
       literal: null
   operator: !
@@ -3588,8 +4177,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: NullLiteral
       literal: null
   operator: ?
@@ -3663,8 +4252,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: SimpleStringLiteral
       literal: "x"
   operator: !
@@ -3682,8 +4271,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: SimpleStringLiteral
       literal: "x"
   operator: ?
@@ -3693,7 +4282,7 @@ PostfixPattern
   test_logicalAnd_insideIfCase() {
     _parse('''
 void f(x) {
-  if (x case int? _ & double? _) {}
+  if (x case int? _ && double? _) {}
 }
 ''');
     var node = findNode.caseClause('case');
@@ -3701,15 +4290,15 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: BinaryPattern
-      leftOperand: VariablePattern
+    pattern: LogicalAndPattern
+      leftOperand: WildcardPattern
         type: NamedType
           name: SimpleIdentifier
             token: int
           question: ?
         name: _
-      operator: &
-      rightOperand: VariablePattern
+      operator: &&
+      rightOperand: WildcardPattern
         type: NamedType
           name: SimpleIdentifier
             token: double
@@ -3722,30 +4311,30 @@ CaseClause
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ & double? _ & Object? _:
+    case int? _ && double? _ && Object? _:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
-    leftOperand: VariablePattern
+LogicalAndPattern
+  leftOperand: LogicalAndPattern
+    leftOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
         question: ?
       name: _
-    operator: &
-    rightOperand: VariablePattern
+    operator: &&
+    rightOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
         question: ?
       name: _
-  operator: &
-  rightOperand: VariablePattern
+  operator: &&
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
@@ -3758,30 +4347,30 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ & double? _ | Object? _:
+    case int? _ && double? _ || Object? _:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
-    leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: LogicalAndPattern
+    leftOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
         question: ?
       name: _
-    operator: &
-    rightOperand: VariablePattern
+    operator: &&
+    rightOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
         question: ?
       name: _
-  operator: |
-  rightOperand: VariablePattern
+  operator: ||
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
@@ -3794,30 +4383,30 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ | double? _ & Object? _:
+    case int? _ || double? _ && Object? _:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
       question: ?
     name: _
-  operator: |
-  rightOperand: BinaryPattern
-    leftOperand: VariablePattern
+  operator: ||
+  rightOperand: LogicalAndPattern
+    leftOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
         question: ?
       name: _
-    operator: &
-    rightOperand: VariablePattern
+    operator: &&
+    rightOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: Object
@@ -3829,7 +4418,7 @@ BinaryPattern
   test_logicalOr_insideIfCase() {
     _parse('''
 void f(x) {
-  if (x case int? _ | double? _) {}
+  if (x case int? _ || double? _) {}
 }
 ''');
     var node = findNode.caseClause('case');
@@ -3837,15 +4426,15 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: BinaryPattern
-      leftOperand: VariablePattern
+    pattern: LogicalOrPattern
+      leftOperand: WildcardPattern
         type: NamedType
           name: SimpleIdentifier
             token: int
           question: ?
         name: _
-      operator: |
-      rightOperand: VariablePattern
+      operator: ||
+      rightOperand: WildcardPattern
         type: NamedType
           name: SimpleIdentifier
             token: double
@@ -3858,30 +4447,30 @@ CaseClause
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ | double? _ | Object? _:
+    case int? _ || double? _ || Object? _:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
-    leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
+    leftOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
         question: ?
       name: _
-    operator: |
-    rightOperand: VariablePattern
+    operator: ||
+    rightOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
         question: ?
       name: _
-  operator: |
-  rightOperand: VariablePattern
+  operator: ||
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
@@ -3915,13 +4504,13 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: VariablePattern
+      value: AssignedVariablePattern
         name: a
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'b'
       separator: :
-      value: VariablePattern
+      value: AssignedVariablePattern
         name: b
   rightBracket: }
 ''');
@@ -3934,6 +4523,20 @@ MapPattern
     _parse('''
 void f(x) {
   ({} = x);
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_map_insideAssignment_untyped_empty_beginningOfStatement() {
+    _parse('''
+void f(x) {
+  {} = x;
 }
 ''');
     var node = findNode.patternAssignment('= x').pattern;
@@ -3962,13 +4565,40 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: VariablePattern
+      value: AssignedVariablePattern
         name: a
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'b'
       separator: :
-      value: VariablePattern
+      value: AssignedVariablePattern
+        name: b
+  rightBracket: }
+''');
+  }
+
+  test_map_insideAssignment_untyped_nonEmpty_beginningOfStatement() {
+    _parse('''
+void f(x) {
+  {'a': a, 'b': b} = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'a'
+      separator: :
+      value: AssignedVariablePattern
+        name: a
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'b'
+      separator: :
+      value: AssignedVariablePattern
         name: b
   rightBracket: }
 ''');
@@ -4120,13 +4750,13 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         name: a
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'b'
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         name: b
   rightBracket: }
 ''');
@@ -4161,13 +4791,13 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         name: a
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'b'
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         name: b
   rightBracket: }
 ''');
@@ -4184,8 +4814,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: MapPattern
+NullAssertPattern
+  pattern: MapPattern
     leftBracket: {
     elements
       MapPatternEntry
@@ -4211,8 +4841,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: MapPattern
+NullCheckPattern
+  pattern: MapPattern
     leftBracket: {
     elements
       MapPatternEntry
@@ -4239,8 +4869,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: SimpleIdentifier
       token: y
   operator: !
@@ -4258,8 +4888,8 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: PostfixPattern
-      operand: VariablePattern
+    pattern: NullAssertPattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
       operator: !
@@ -4280,8 +4910,8 @@ void f(x) {
 ListPattern
   leftBracket: [
   elements
-    PostfixPattern
-      operand: ConstantPattern
+    NullAssertPattern
+      pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 1
       operator: !
@@ -4293,20 +4923,20 @@ ListPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1! & 2:
+    case 1! && 2:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: PostfixPattern
-    operand: ConstantPattern
+LogicalAndPattern
+  leftOperand: NullAssertPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: !
-  operator: &
+  operator: &&
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -4317,20 +4947,20 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 & 2!:
+    case 1 && 2!:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: &
-  rightOperand: PostfixPattern
-    operand: ConstantPattern
+  operator: &&
+  rightOperand: NullAssertPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 2
     operator: !
@@ -4341,20 +4971,20 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1! | 2:
+    case 1! || 2:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: PostfixPattern
-    operand: ConstantPattern
+LogicalOrPattern
+  leftOperand: NullAssertPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: !
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -4365,20 +4995,20 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 | 2!:
+    case 1 || 2!:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: |
-  rightOperand: PostfixPattern
-    operand: ConstantPattern
+  operator: ||
+  rightOperand: NullAssertPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 2
     operator: !
@@ -4403,8 +5033,8 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: PostfixPattern
-        operand: ConstantPattern
+      value: NullAssertPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: !
@@ -4436,8 +5066,8 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: f
         colon: :
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullAssertPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: !
@@ -4468,8 +5098,8 @@ ObjectPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: VariablePattern
+      pattern: NullAssertPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: f
         operator: !
@@ -4490,8 +5120,8 @@ void f(x) {
     assertParsedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
-  pattern: PostfixPattern
-    operand: ConstantPattern
+  pattern: NullAssertPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: !
@@ -4517,8 +5147,8 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: n
         colon: :
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullAssertPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: !
@@ -4547,8 +5177,8 @@ RecordPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: VariablePattern
+      pattern: NullAssertPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: n
         operator: !
@@ -4575,8 +5205,8 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullAssertPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: !
@@ -4600,8 +5230,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: SimpleIdentifier
       token: y
   operator: ?
@@ -4619,8 +5249,8 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: PostfixPattern
-      operand: VariablePattern
+    pattern: NullCheckPattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
       operator: ?
@@ -4641,8 +5271,8 @@ void f(x) {
 ListPattern
   leftBracket: [
   elements
-    PostfixPattern
-      operand: ConstantPattern
+    NullCheckPattern
+      pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 1
       operator: ?
@@ -4654,20 +5284,20 @@ ListPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1? & 2:
+    case 1? && 2:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: PostfixPattern
-    operand: ConstantPattern
+LogicalAndPattern
+  leftOperand: NullCheckPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: ?
-  operator: &
+  operator: &&
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -4678,20 +5308,20 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 & 2?:
+    case 1 && 2?:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: &
-  rightOperand: PostfixPattern
-    operand: ConstantPattern
+  operator: &&
+  rightOperand: NullCheckPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 2
     operator: ?
@@ -4702,20 +5332,20 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1? | 2:
+    case 1? || 2:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: PostfixPattern
-    operand: ConstantPattern
+LogicalOrPattern
+  leftOperand: NullCheckPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: ?
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -4726,20 +5356,20 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 | 2?:
+    case 1 || 2?:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: |
-  rightOperand: PostfixPattern
-    operand: ConstantPattern
+  operator: ||
+  rightOperand: NullCheckPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 2
     operator: ?
@@ -4764,8 +5394,8 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: PostfixPattern
-        operand: ConstantPattern
+      value: NullCheckPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: ?
@@ -4797,8 +5427,8 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: f
         colon: :
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullCheckPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: ?
@@ -4829,8 +5459,8 @@ ObjectPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: VariablePattern
+      pattern: NullCheckPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: f
         operator: ?
@@ -4851,8 +5481,8 @@ void f(x) {
     assertParsedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
-  pattern: PostfixPattern
-    operand: ConstantPattern
+  pattern: NullCheckPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: ?
@@ -4878,8 +5508,8 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: n
         colon: :
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullCheckPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: ?
@@ -4908,8 +5538,8 @@ RecordPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: VariablePattern
+      pattern: NullCheckPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: n
         operator: ?
@@ -4936,8 +5566,8 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullCheckPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: ?
@@ -5097,8 +5727,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ObjectPattern
+NullAssertPattern
+  pattern: ObjectPattern
     type: NamedType
       name: PrefixedIdentifier
         prefix: SimpleIdentifier
@@ -5132,8 +5762,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ObjectPattern
+NullCheckPattern
+  pattern: ObjectPattern
     type: NamedType
       name: PrefixedIdentifier
         prefix: SimpleIdentifier
@@ -5283,8 +5913,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ObjectPattern
+NullAssertPattern
+  pattern: ObjectPattern
     type: NamedType
       name: SimpleIdentifier
         token: C
@@ -5316,8 +5946,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ObjectPattern
+NullCheckPattern
+  pattern: ObjectPattern
     type: NamedType
       name: SimpleIdentifier
         token: C
@@ -5402,8 +6032,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ObjectPattern
+NullAssertPattern
+  pattern: ObjectPattern
     type: NamedType
       name: SimpleIdentifier
         token: C
@@ -5530,7 +6160,7 @@ f(x) {
     assertParsedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
-  pattern: VariablePattern
+  pattern: AssignedVariablePattern
     name: a
   rightParenthesis: )
 ''');
@@ -5591,7 +6221,7 @@ f(x) {
     assertParsedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     name: a
   rightParenthesis: )
 ''');
@@ -5608,8 +6238,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ParenthesizedPattern
+NullAssertPattern
+  pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: ConstantPattern
       expression: IntegerLiteral
@@ -5630,14 +6260,286 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ParenthesizedPattern
+NullCheckPattern
+  pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     rightParenthesis: )
   operator: ?
+''');
+  }
+
+  test_pattern_inForIn_element_noMetadata() {
+    _parse('''
+void f(x) => [for (var (a, b) in x) 0];
+''');
+    var node = findNode.forElement('for');
+    assertParsedNodeText(node, r'''
+ForElement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        RecordPatternField
+          pattern: DeclaredVariablePattern
+            name: a
+        RecordPatternField
+          pattern: DeclaredVariablePattern
+            name: b
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+  rightParenthesis: )
+  body: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_pattern_inForIn_element_withMetadata() {
+    _parse('''
+void f(x) => [for (@annotation var (a, b) in x) 0];
+''');
+    var node = findNode.forElement('for');
+    assertParsedNodeText(node, r'''
+ForElement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
+    keyword: var
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        RecordPatternField
+          pattern: DeclaredVariablePattern
+            name: a
+        RecordPatternField
+          pattern: DeclaredVariablePattern
+            name: b
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+  rightParenthesis: )
+  body: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_pattern_inForIn_statement_noMetadata() {
+    _parse('''
+void f(x) {
+  for (var (a, b) in x) {}
+}
+''');
+    var node = findNode.forStatement('for');
+    assertParsedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        RecordPatternField
+          pattern: DeclaredVariablePattern
+            name: a
+        RecordPatternField
+          pattern: DeclaredVariablePattern
+            name: b
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_pattern_inForIn_statement_withMetadata() {
+    _parse('''
+void f(x) {
+  for (@annotation var (a, b) in x) {}
+}
+''');
+    var node = findNode.forStatement('for');
+    assertParsedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
+    keyword: var
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        RecordPatternField
+          pattern: DeclaredVariablePattern
+            name: a
+        RecordPatternField
+          pattern: DeclaredVariablePattern
+            name: b
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_pattern_inForInitializer_element() {
+    _parse('''
+void f(x) => [for (var (a, b) = x; ;) 0];
+''');
+    var node = findNode.forElement('for');
+    assertParsedNodeText(node, r'''
+ForElement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithPattern
+    variables: PatternVariableDeclaration
+      keyword: var
+      pattern: RecordPattern
+        leftParenthesis: (
+        fields
+          RecordPatternField
+            pattern: DeclaredVariablePattern
+              name: a
+          RecordPatternField
+            pattern: DeclaredVariablePattern
+              name: b
+        rightParenthesis: )
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+    leftSeparator: ;
+    rightSeparator: ;
+  rightParenthesis: )
+  body: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_pattern_inForInitializer_statement() {
+    _parse('''
+void f(x) {
+  for (var (a, b) = x; ;) {}
+}
+''');
+    var node = findNode.forStatement('for');
+    assertParsedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithPattern
+    variables: PatternVariableDeclaration
+      keyword: var
+      pattern: RecordPattern
+        leftParenthesis: (
+        fields
+          RecordPatternField
+            pattern: DeclaredVariablePattern
+              name: a
+          RecordPatternField
+            pattern: DeclaredVariablePattern
+              name: b
+        rightParenthesis: )
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+    leftSeparator: ;
+    rightSeparator: ;
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_pattern_inForPartsWithExpression_element() {
+    _parse('''
+void f(x) => [for ((a, b) = x; ;) 0];
+''');
+    var node = findNode.forElement('for');
+    assertParsedNodeText(node, r'''
+ForElement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithExpression
+    initialization: PatternAssignment
+      pattern: RecordPattern
+        leftParenthesis: (
+        fields
+          RecordPatternField
+            pattern: AssignedVariablePattern
+              name: a
+          RecordPatternField
+            pattern: AssignedVariablePattern
+              name: b
+        rightParenthesis: )
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+    leftSeparator: ;
+    rightSeparator: ;
+  rightParenthesis: )
+  body: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_pattern_inForPartsWithExpression_statement() {
+    _parse('''
+void f(x) {
+  for ((a, b) = x; ;) {}
+}
+''');
+    var node = findNode.forStatement('for');
+    assertParsedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithExpression
+    initialization: PatternAssignment
+      pattern: RecordPattern
+        leftParenthesis: (
+        fields
+          RecordPatternField
+            pattern: AssignedVariablePattern
+              name: a
+          RecordPatternField
+            pattern: AssignedVariablePattern
+              name: b
+        rightParenthesis: )
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+    leftSeparator: ;
+    rightSeparator: ;
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -5678,7 +6580,7 @@ PatternVariableDeclarationStatement
           fieldName: RecordPatternFieldName
             name: f
             colon: :
-          pattern: VariablePattern
+          pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
     equals: =
@@ -5702,7 +6604,7 @@ PatternVariableDeclarationStatement
     pattern: ListPattern
       leftBracket: [
       elements
-        VariablePattern
+        DeclaredVariablePattern
           name: a
       rightBracket: ]
     equals: =
@@ -5730,7 +6632,7 @@ PatternVariableDeclarationStatement
           key: SimpleStringLiteral
             literal: 'a'
           separator: :
-          value: VariablePattern
+          value: DeclaredVariablePattern
             name: a
       rightBracket: }
     equals: =
@@ -5753,7 +6655,7 @@ PatternVariableDeclarationStatement
     keyword: final
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         name: a
       rightParenthesis: )
     equals: =
@@ -5778,7 +6680,7 @@ PatternVariableDeclarationStatement
       leftParenthesis: (
       fields
         RecordPatternField
-          pattern: VariablePattern
+          pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
     equals: =
@@ -5809,7 +6711,7 @@ PatternVariableDeclarationStatement
           fieldName: RecordPatternFieldName
             name: f
             colon: :
-          pattern: VariablePattern
+          pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
     equals: =
@@ -5833,7 +6735,7 @@ PatternVariableDeclarationStatement
     pattern: ListPattern
       leftBracket: [
       elements
-        VariablePattern
+        DeclaredVariablePattern
           name: a
       rightBracket: ]
     equals: =
@@ -5861,7 +6763,7 @@ PatternVariableDeclarationStatement
           key: SimpleStringLiteral
             literal: 'a'
           separator: :
-          value: VariablePattern
+          value: DeclaredVariablePattern
             name: a
       rightBracket: }
     equals: =
@@ -5884,7 +6786,7 @@ PatternVariableDeclarationStatement
     keyword: var
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         name: a
       rightParenthesis: )
     equals: =
@@ -5909,7 +6811,7 @@ PatternVariableDeclarationStatement
       leftParenthesis: (
       fields
         RecordPatternField
-          pattern: VariablePattern
+          pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
     equals: =
@@ -5946,7 +6848,7 @@ PatternVariableDeclarationStatement
           fieldName: RecordPatternFieldName
             name: f
             colon: :
-          pattern: VariablePattern
+          pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
     equals: =
@@ -5976,7 +6878,7 @@ PatternVariableDeclarationStatement
     pattern: ListPattern
       leftBracket: [
       elements
-        VariablePattern
+        DeclaredVariablePattern
           name: a
       rightBracket: ]
     equals: =
@@ -6010,7 +6912,7 @@ PatternVariableDeclarationStatement
           key: SimpleStringLiteral
             literal: 'a'
           separator: :
-          value: VariablePattern
+          value: DeclaredVariablePattern
             name: a
       rightBracket: }
     equals: =
@@ -6039,7 +6941,7 @@ PatternVariableDeclarationStatement
     keyword: final
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         name: a
       rightParenthesis: )
     equals: =
@@ -6070,7 +6972,7 @@ PatternVariableDeclarationStatement
       leftParenthesis: (
       fields
         RecordPatternField
-          pattern: VariablePattern
+          pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
     equals: =
@@ -6107,7 +7009,7 @@ PatternVariableDeclarationStatement
           fieldName: RecordPatternFieldName
             name: f
             colon: :
-          pattern: VariablePattern
+          pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
     equals: =
@@ -6137,7 +7039,7 @@ PatternVariableDeclarationStatement
     pattern: ListPattern
       leftBracket: [
       elements
-        VariablePattern
+        DeclaredVariablePattern
           name: a
       rightBracket: ]
     equals: =
@@ -6171,7 +7073,7 @@ PatternVariableDeclarationStatement
           key: SimpleStringLiteral
             literal: 'a'
           separator: :
-          value: VariablePattern
+          value: DeclaredVariablePattern
             name: a
       rightBracket: }
     equals: =
@@ -6200,7 +7102,7 @@ PatternVariableDeclarationStatement
     keyword: var
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         name: a
       rightParenthesis: )
     equals: =
@@ -6231,7 +7133,7 @@ PatternVariableDeclarationStatement
       leftParenthesis: (
       fields
         RecordPatternField
-          pattern: VariablePattern
+          pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
     equals: =
@@ -6267,7 +7169,7 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: VariablePattern
+      pattern: AssignedVariablePattern
         name: a
   rightParenthesis: )
 ''');
@@ -6285,10 +7187,10 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: VariablePattern
+      pattern: AssignedVariablePattern
         name: a
     RecordPatternField
-      pattern: VariablePattern
+      pattern: AssignedVariablePattern
         name: b
   rightParenthesis: )
 ''');
@@ -6416,7 +7318,7 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         name: a
   rightParenthesis: )
 ''');
@@ -6434,10 +7336,10 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         name: a
     RecordPatternField
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         name: b
   rightParenthesis: )
 ''');
@@ -6454,8 +7356,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: RecordPattern
+NullAssertPattern
+  pattern: RecordPattern
     leftParenthesis: (
     fields
       RecordPatternField
@@ -6482,8 +7384,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: RecordPattern
+NullCheckPattern
+  pattern: RecordPattern
     leftParenthesis: (
     fields
       RecordPatternField
@@ -6675,19 +7577,19 @@ ListPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case == 1 & 2:
+    case == 1 && 2:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: RelationalPattern
     operator: ==
     operand: IntegerLiteral
       literal: 1
-  operator: &
+  operator: &&
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -6698,18 +7600,18 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 & == 2:
+    case 1 && == 2:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: &
+  operator: &&
   rightOperand: RelationalPattern
     operator: ==
     operand: IntegerLiteral
@@ -6721,19 +7623,19 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case == 1 | 2:
+    case == 1 || 2:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: RelationalPattern
     operator: ==
     operand: IntegerLiteral
       literal: 1
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -6744,18 +7646,18 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 | == 2:
+    case 1 || == 2:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: |
+  operator: ||
   rightOperand: RelationalPattern
     operator: ==
     operand: IntegerLiteral
@@ -7001,10 +7903,36 @@ ListPattern
   elements
     RestPatternElement
       operator: ...
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
   rightBracket: ]
+''');
+  }
+
+  test_rest_withSubpattern_insideMap() {
+    // The parser accepts this syntax even though it's not legal dart, because
+    // we suspect it's a mistake a user is likely to make, and we want to ensure
+    // that we give a helpful error message.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case {...var y}:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    RestPatternElement
+      operator: ...
+      pattern: DeclaredVariablePattern
+        keyword: var
+        name: y
+  rightBracket: }
 ''');
   }
 
@@ -7028,7 +7956,7 @@ main() {
 f(x) => switch(x) {};
 ''');
     var node = findNode.switchExpression('switch');
-    assertParsedNodeText(node, '''
+    assertParsedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
@@ -7047,7 +7975,7 @@ f(x) => switch(x) {
 };
 ''');
     var node = findNode.switchExpression('switch');
-    assertParsedNodeText(node, '''
+    assertParsedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
@@ -7058,7 +7986,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: WildcardPattern
           name: _
         whenClause: WhenClause
           whenKeyword: when
@@ -7078,7 +8006,7 @@ f(x) => switch(x) {
 };
 ''');
     var node = findNode.switchExpression('switch');
-    assertParsedNodeText(node, '''
+    assertParsedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
@@ -7089,7 +8017,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -7105,7 +8033,7 @@ f(x) => switch(x) {
 };
 ''');
     var node = findNode.switchExpression('switch');
-    assertParsedNodeText(node, '''
+    assertParsedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
@@ -7116,7 +8044,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -7133,7 +8061,7 @@ f(x) => switch(x) {
 };
 ''');
     var node = findNode.switchExpression('switch');
-    assertParsedNodeText(node, '''
+    assertParsedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
@@ -7144,7 +8072,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: WildcardPattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -7154,7 +8082,7 @@ SwitchExpression
         literal: 0
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -7174,179 +8102,13 @@ void f(x) {
 ParenthesizedPattern
   leftParenthesis: (
   pattern: CastPattern
-    pattern: VariablePattern
+    pattern: DeclaredVariablePattern
       name: y
     asToken: as
     type: NamedType
       name: SimpleIdentifier
         token: Object
   rightParenthesis: )
-''');
-  }
-
-  test_variable_bare_insideNullAssert() {
-    _parse('''
-void f(x) {
-  var (y!) = x;
-}
-''');
-    var node = findNode.patternVariableDeclaration('= x').pattern;
-    assertParsedNodeText(node, r'''
-ParenthesizedPattern
-  leftParenthesis: (
-  pattern: PostfixPattern
-    operand: VariablePattern
-      name: y
-    operator: !
-  rightParenthesis: )
-''');
-  }
-
-  test_variable_final_typed_insideCase() {
-    _parse('''
-void f(x) {
-  switch (x) {
-    case final int y:
-      break;
-  }
-}
-''');
-    var node = findNode.singleGuardedPattern.pattern;
-    assertParsedNodeText(node, r'''
-VariablePattern
-  keyword: final
-  type: NamedType
-    name: SimpleIdentifier
-      token: int
-  name: y
-''');
-  }
-
-  test_variable_final_typed_insideCast() {
-    _parse('''
-void f(x) {
-  switch (x) {
-    case final int y as Object:
-      break;
-  }
-}
-''');
-    var node = findNode.singleGuardedPattern.pattern;
-    assertParsedNodeText(node, r'''
-CastPattern
-  pattern: VariablePattern
-    keyword: final
-    type: NamedType
-      name: SimpleIdentifier
-        token: int
-    name: y
-  asToken: as
-  type: NamedType
-    name: SimpleIdentifier
-      token: Object
-''');
-  }
-
-  test_variable_final_typed_insideIfCase() {
-    _parse('''
-void f(x) {
-  if (x case final int y) {}
-}
-''');
-    var node = findNode.caseClause('case');
-    assertParsedNodeText(node, r'''
-CaseClause
-  caseKeyword: case
-  guardedPattern: GuardedPattern
-    pattern: VariablePattern
-      keyword: final
-      type: NamedType
-        name: SimpleIdentifier
-          token: int
-      name: y
-''');
-  }
-
-  test_variable_final_typed_insideNullAssert() {
-    _parse('''
-void f(x) {
-  switch (x) {
-    case final int y!:
-      break;
-  }
-}
-''');
-    var node = findNode.singleGuardedPattern.pattern;
-    assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
-    keyword: final
-    type: NamedType
-      name: SimpleIdentifier
-        token: int
-    name: y
-  operator: !
-''');
-  }
-
-  test_variable_final_typed_insideNullCheck() {
-    _parse('''
-void f(x) {
-  switch (x) {
-    case final int y?:
-      break;
-  }
-}
-''');
-    var node = findNode.singleGuardedPattern.pattern;
-    assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
-    keyword: final
-    type: NamedType
-      name: SimpleIdentifier
-        token: int
-    name: y
-  operator: ?
-''');
-  }
-
-  test_variable_final_untyped_insideCase() {
-    _parse('''
-void f(x) {
-  switch (x) {
-    case final y:
-      break;
-  }
-}
-''');
-    var node = findNode.singleGuardedPattern.pattern;
-    assertParsedNodeText(node, r'''
-VariablePattern
-  keyword: final
-  name: y
-''');
-  }
-
-  test_variable_final_untyped_insideCast() {
-    _parse('''
-void f(x) {
-  switch (x) {
-    case final y as Object:
-      break;
-  }
-}
-''');
-    var node = findNode.singleGuardedPattern.pattern;
-    assertParsedNodeText(node, r'''
-CastPattern
-  pattern: VariablePattern
-    keyword: final
-    name: y
-  asToken: as
-  type: NamedType
-    name: SimpleIdentifier
-      token: Object
 ''');
   }
 
@@ -7361,7 +8123,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: VariablePattern
+    pattern: DeclaredVariablePattern
       keyword: final
       name: y
 ''');
@@ -7378,8 +8140,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullAssertPattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: y
   operator: !
@@ -7397,8 +8159,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullCheckPattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: y
   operator: ?
@@ -7416,7 +8178,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   type: NamedType
     name: SimpleIdentifier
       token: int
@@ -7436,7 +8198,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -7459,7 +8221,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: VariablePattern
+    pattern: DeclaredVariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -7478,8 +8240,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullAssertPattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -7499,8 +8261,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullCheckPattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -7522,7 +8284,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 GuardedPattern
   pattern: CastPattern
-    pattern: VariablePattern
+    pattern: DeclaredVariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: when
@@ -7564,7 +8326,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern;
     assertParsedNodeText(node, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -7587,7 +8349,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   type: NamedType
     name: SimpleIdentifier
       token: int
@@ -7607,7 +8369,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -7630,7 +8392,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: VariablePattern
+    pattern: DeclaredVariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -7652,7 +8414,7 @@ void f(x) {
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -7665,20 +8427,20 @@ ListPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int as & 2:
+    case int as && 2:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
+LogicalAndPattern
+  leftOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
     name: as
-  operator: &
+  operator: &&
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -7689,19 +8451,19 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 & int as:
+    case 1 && int as:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: &
-  rightOperand: VariablePattern
+  operator: &&
+  rightOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -7713,20 +8475,20 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int as | 2:
+    case int as || 2:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
     name: as
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -7737,19 +8499,19 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 | int as:
+    case 1 || int as:
       break;
   }
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: |
-  rightOperand: VariablePattern
+  operator: ||
+  rightOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -7775,7 +8537,7 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -7795,8 +8557,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullAssertPattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -7816,8 +8578,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullCheckPattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -7850,7 +8612,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: f
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -7882,7 +8644,7 @@ ObjectPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -7904,7 +8666,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -7931,7 +8693,7 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: n
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -7961,7 +8723,7 @@ RecordPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -7989,7 +8751,7 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -8014,7 +8776,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   type: NamedType
     name: SimpleIdentifier
       token: _
@@ -8034,7 +8796,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern;
     assertParsedNodeText(node, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -8062,7 +8824,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern;
     assertParsedNodeText(node, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -8085,7 +8847,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   type: NamedType
     name: SimpleIdentifier
       token: int
@@ -8105,7 +8867,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -8128,7 +8890,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   keyword: var
   name: y
 ''');
@@ -8146,7 +8908,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: var
     name: y
   asToken: as
@@ -8167,7 +8929,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: VariablePattern
+    pattern: DeclaredVariablePattern
       keyword: var
       name: y
 ''');
@@ -8184,8 +8946,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullAssertPattern
+  pattern: DeclaredVariablePattern
     keyword: var
     name: y
   operator: !
@@ -8203,8 +8965,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullCheckPattern
+  pattern: DeclaredVariablePattern
     keyword: var
     name: y
   operator: ?
@@ -8223,7 +8985,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern;
     assertParsedNodeText(node, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: WildcardPattern
     name: _
   whenClause: WhenClause
     whenKeyword: when
@@ -8243,7 +9005,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-VariablePattern
+WildcardPattern
   name: _
 ''');
   }
@@ -8260,7 +9022,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: VariablePattern
+  pattern: WildcardPattern
     name: _
   asToken: as
   type: NamedType
@@ -8280,7 +9042,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: VariablePattern
+    pattern: WildcardPattern
       name: _
 ''');
   }
@@ -8296,8 +9058,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullAssertPattern
+  pattern: WildcardPattern
     name: _
   operator: !
 ''');
@@ -8314,8 +9076,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullCheckPattern
+  pattern: WildcardPattern
     name: _
   operator: ?
 ''');
@@ -8332,7 +9094,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-VariablePattern
+WildcardPattern
   keyword: final
   type: NamedType
     name: SimpleIdentifier
@@ -8353,7 +9115,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: VariablePattern
+  pattern: WildcardPattern
     keyword: final
     type: NamedType
       name: SimpleIdentifier
@@ -8377,7 +9139,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: VariablePattern
+    pattern: WildcardPattern
       keyword: final
       type: NamedType
         name: SimpleIdentifier
@@ -8397,8 +9159,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullAssertPattern
+  pattern: WildcardPattern
     keyword: final
     type: NamedType
       name: SimpleIdentifier
@@ -8419,8 +9181,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullCheckPattern
+  pattern: WildcardPattern
     keyword: final
     type: NamedType
       name: SimpleIdentifier
@@ -8441,7 +9203,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-VariablePattern
+WildcardPattern
   keyword: final
   name: _
 ''');
@@ -8459,7 +9221,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: VariablePattern
+  pattern: WildcardPattern
     keyword: final
     name: _
   asToken: as
@@ -8480,7 +9242,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: VariablePattern
+    pattern: WildcardPattern
       keyword: final
       name: _
 ''');
@@ -8497,8 +9259,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullAssertPattern
+  pattern: WildcardPattern
     keyword: final
     name: _
   operator: !
@@ -8516,8 +9278,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullCheckPattern
+  pattern: WildcardPattern
     keyword: final
     name: _
   operator: ?
@@ -8535,7 +9297,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-VariablePattern
+WildcardPattern
   type: NamedType
     name: SimpleIdentifier
       token: int
@@ -8555,7 +9317,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: VariablePattern
+  pattern: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -8578,7 +9340,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: VariablePattern
+    pattern: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -8597,8 +9359,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullAssertPattern
+  pattern: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -8618,8 +9380,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullCheckPattern
+  pattern: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -8639,7 +9401,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-VariablePattern
+WildcardPattern
   keyword: var
   name: _
 ''');
@@ -8657,7 +9419,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: VariablePattern
+  pattern: WildcardPattern
     keyword: var
     name: _
   asToken: as
@@ -8678,7 +9440,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: VariablePattern
+    pattern: WildcardPattern
       keyword: var
       name: _
 ''');
@@ -8695,8 +9457,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullAssertPattern
+  pattern: WildcardPattern
     keyword: var
     name: _
   operator: !
@@ -8714,8 +9476,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: VariablePattern
+NullCheckPattern
+  pattern: WildcardPattern
     keyword: var
     name: _
   operator: ?

@@ -10,6 +10,11 @@ import 'package:kernel/util/graph.dart' as kernel_graph;
 bool hasJSInteropAnnotation(Annotatable a) =>
     a.annotations.any(_isPublicJSAnnotation);
 
+/// Returns true iff the node has an `@JS(...)` annotation from the internal
+/// `dart:_js_annotations`.
+bool hasInternalJSInteropAnnotation(Annotatable a) =>
+    a.annotations.any(_isInternalJSAnnotation);
+
 /// Returns true iff the node has an `@anonymous` annotation from `package:js`
 /// or from the internal `dart:_js_annotations`.
 bool hasAnonymousAnnotation(Annotatable a) =>
@@ -30,6 +35,11 @@ bool hasTrustTypesAnnotation(Annotatable a) =>
 bool hasJSExportAnnotation(Annotatable a) =>
     a.annotations.any(_isJSExportAnnotation);
 
+/// Returns true iff the node has an `@Native(...)` annotation from the internal
+/// `dart:_js_helper`.
+bool hasNativeAnnotation(Annotatable a) =>
+    a.annotations.any(_isNativeAnnotation);
+
 /// If [a] has a `@JS('...')` annotation, returns the value inside the
 /// parentheses.
 ///
@@ -39,7 +49,7 @@ String getJSName(Annotatable a) {
   String jsClass = '';
   for (var annotation in a.annotations) {
     if (_isPublicJSAnnotation(annotation)) {
-      var jsClasses = _stringAnnotationValues(annotation);
+      var jsClasses = stringAnnotationValues(annotation);
       if (jsClasses.isNotEmpty) {
         jsClass = jsClasses[0];
       }
@@ -58,7 +68,7 @@ List<String> getNativeNames(Annotatable a) {
   List<String> nativeClasses = [];
   for (var annotation in a.annotations) {
     if (_isNativeAnnotation(annotation)) {
-      nativeClasses.addAll(_stringAnnotationValues(annotation));
+      nativeClasses.addAll(stringAnnotationValues(annotation));
     }
   }
   return nativeClasses;
@@ -73,7 +83,7 @@ String getJSExportName(Annotatable a) {
   String jsExportValue = '';
   for (var annotation in a.annotations) {
     if (_isJSExportAnnotation(annotation)) {
-      var jsExportValues = _stringAnnotationValues(annotation);
+      var jsExportValues = stringAnnotationValues(annotation);
       // TODO(srujzs): Theoretically, this should never be empty as there is a
       // default empty value. However, in the modular tests, dart2js modular
       // analysis does not see the default value, and reports this as empty in
@@ -91,16 +101,22 @@ final _packageJs = Uri.parse('package:js/js.dart');
 final _internalJs = Uri.parse('dart:_js_annotations');
 final _jsHelper = Uri.parse('dart:_js_helper');
 
-bool _isAnyInteropUri(Uri uri) => uri == _packageJs || uri == _internalJs;
-
 /// Returns true if [value] is the interop annotation whose class is
 /// [annotationClassName] from `package:js` or from `dart:_js_annotations`.
-bool _isInteropAnnotation(Expression value, String annotationClassName) {
-  var c = _annotationClass(value);
-  return c != null &&
-      c.name == annotationClassName &&
-      _isAnyInteropUri(c.enclosingLibrary.importUri);
+///
+/// If [internalJsOnly] is true, we only check if it's the annotation from
+/// `dart:_js_annotations`.
+bool _isInteropAnnotation(Expression value, String annotationClassName,
+    {bool internalJsOnly = false}) {
+  var c = annotationClass(value);
+  if (c == null || c.name != annotationClassName) return false;
+  var importUri = c.enclosingLibrary.importUri;
+  if (internalJsOnly) return importUri == _internalJs;
+  return importUri == _packageJs || importUri == _internalJs;
 }
+
+bool _isInternalJSAnnotation(Expression value) =>
+    _isInteropAnnotation(value, 'JS', internalJsOnly: true);
 
 bool _isPublicJSAnnotation(Expression value) =>
     _isInteropAnnotation(value, 'JS');
@@ -119,7 +135,7 @@ bool _isJSExportAnnotation(Expression value) =>
 
 /// Returns true if [value] is the `Native` annotation from `dart:_js_helper`.
 bool _isNativeAnnotation(Expression value) {
-  var c = _annotationClass(value);
+  var c = annotationClass(value);
   return c != null &&
       c.name == 'Native' &&
       c.enclosingLibrary.importUri == _jsHelper;
@@ -136,7 +152,7 @@ bool _isNativeAnnotation(Expression value) {
 ///
 /// This function works regardless of whether the CFE is evaluating constants,
 /// or whether the constant is a field reference (such as "anonymous" above).
-Class? _annotationClass(Expression node) {
+Class? annotationClass(Expression node) {
   if (node is ConstantExpression) {
     var constant = node.constant;
     if (constant is InstanceConstant) return constant.classNode;
@@ -159,7 +175,7 @@ Class? _annotationClass(Expression node) {
 /// StringLiterals that can be made up of multiple values. If there are none,
 /// this method returns an empty list. This method throws an assertion if there
 /// are multiple arguments or a named arg in the annotation.
-List<String> _stringAnnotationValues(Expression node) {
+List<String> stringAnnotationValues(Expression node) {
   List<String> values = [];
   if (node is ConstantExpression) {
     var constant = node.constant;

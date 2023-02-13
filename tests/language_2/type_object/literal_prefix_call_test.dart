@@ -8,5 +8,5 @@ import "package:expect/expect.dart";
 import 'dart:core' as core;
 
 main() {
-  core.List();
+  core.Object();
 }

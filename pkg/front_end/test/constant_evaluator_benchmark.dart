@@ -86,6 +86,7 @@ void benchmark(Component component, List<Library> libraries) {
             environment,
             new SilentErrorReporter(),
             evaluationMode,
+            null,
             evaluateAnnotations: true,
             enableTripleShift: target.globalFeatures.tripleShift.isEnabled,
             enableConstFunctions:
@@ -185,7 +186,7 @@ CompilerContext setupCompilerContext(bool nnbd, String targetString,
   }
 
   TargetFlags targetFlags = new TargetFlags(
-      enableNullSafety: nnbd, trackWidgetCreation: widgetTransformation);
+      soundNullSafety: nnbd, trackWidgetCreation: widgetTransformation);
   Target target;
   switch (targetString) {
     case "VM":

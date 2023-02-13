@@ -1100,6 +1100,70 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
                                        /*should_specialize=*/false}));
 }
 
+const char* kRecordSubtypeRangeCheckScript =
+    R"(
+      class A {}
+      class B extends A {}
+      class C implements A {}
+      class D<T> {}
+
+      getType<T>() => T;
+      getRecordType1() => getType<(int, A)>();
+      getRecordType2() => getType<(A, int, String)>();
+      getRecordType3() => getType<(int, D)>();
+
+      createObj1() => (1, B());
+      createObj2() => (1, 'bye');
+      createObj3() => (1, foo: B());
+      createObj4() => (1, B(), 2);
+      createObj5() => (C(), 2, 'hi');
+      createObj6() => (D(), 2, 'hi');
+      createObj7() => (3, D<int>());
+      createObj8() => (D<int>(), 3);
+)";
+
+ISOLATE_UNIT_TEST_CASE(TTS_RecordSubtypeRangeCheck) {
+  const auto& root_library =
+      Library::Handle(LoadTestScript(kRecordSubtypeRangeCheckScript));
+
+  const auto& type1 = AbstractType::Cast(
+      Object::Handle(Invoke(root_library, "getRecordType1")));
+  const auto& type2 = AbstractType::Cast(
+      Object::Handle(Invoke(root_library, "getRecordType2")));
+  const auto& type3 = AbstractType::Cast(
+      Object::Handle(Invoke(root_library, "getRecordType3")));
+
+  const auto& obj1 = Object::Handle(Invoke(root_library, "createObj1"));
+  const auto& obj2 = Object::Handle(Invoke(root_library, "createObj2"));
+  const auto& obj3 = Object::Handle(Invoke(root_library, "createObj3"));
+  const auto& obj4 = Object::Handle(Invoke(root_library, "createObj4"));
+  const auto& obj5 = Object::Handle(Invoke(root_library, "createObj5"));
+  const auto& obj6 = Object::Handle(Invoke(root_library, "createObj6"));
+  const auto& obj7 = Object::Handle(Invoke(root_library, "createObj7"));
+  const auto& obj8 = Object::Handle(Invoke(root_library, "createObj8"));
+
+  const auto& tav_null = TypeArguments::Handle(TypeArguments::null());
+
+  // (1, B())      as (int, A)
+  // (1, 'bye')    as (int, A)
+  // (1, foo: B()) as (int, A)
+  // (1, B(), 2)   as (int, A)
+  RunTTSTest(type1, {obj1, tav_null, tav_null});
+  RunTTSTest(type1, Failure({obj2, tav_null, tav_null}));
+  RunTTSTest(type1, Failure({obj3, tav_null, tav_null}));
+  RunTTSTest(type1, Failure({obj4, tav_null, tav_null}));
+
+  // (C(), 2, 'hi') as (A, int, String)
+  // (D(), 2, 'hi') as (A, int, String)
+  RunTTSTest(type2, {obj5, tav_null, tav_null});
+  RunTTSTest(type2, Failure({obj6, tav_null, tav_null}));
+
+  // (3, D<int>()) as (int, D)
+  // (D<int>(), 3) as (int, D)
+  RunTTSTest(type3, {obj7, tav_null, tav_null});
+  RunTTSTest(type3, Failure({obj8, tav_null, tav_null}));
+}
+
 ISOLATE_UNIT_TEST_CASE(TTS_Generic_Implements_Instantiated_Interface) {
   const char* kScript =
       R"(
@@ -2198,7 +2262,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Reload) {
   // default stub for that type.
   EXPECT(type_a_int.type_test_stub() ==
          TypeTestingStubGenerator::DefaultCodeForType(type_a_int));
-  // Reloading either removes or resets the type teseting cache.
+  // Reloading either removes or resets the type testing cache.
   EXPECT(state.current_stc() == SubtypeTestCache::null() ||
          (state.current_stc() == state.last_stc().ptr() &&
           state.last_stc().NumberOfChecks() == 0));

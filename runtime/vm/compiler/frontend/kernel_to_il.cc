@@ -687,7 +687,7 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
 
   Fragment instructions;
 
-  // Create instance of _FallThroughError
+  // Create instance of _TypeError
   instructions += AllocateObject(TokenPosition::kNoSource, klass, 0);
   LocalVariable* instance = MakeTemporary();
 
@@ -771,6 +771,7 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target,
 LocalVariable* FlowGraphBuilder::LookupVariable(intptr_t kernel_offset) {
   LocalVariable* local = scopes_->locals.Lookup(kernel_offset);
   ASSERT(local != NULL);
+  ASSERT(local->kernel_offset() == kernel_offset);
   return local;
 }
 
@@ -877,8 +878,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(LinkedHashBase_getIndex, LinkedHashBase_index)                             \
   V(LinkedHashBase_getUsedData, LinkedHashBase_used_data)                      \
   V(ObjectArrayLength, Array_length)                                           \
-  V(Record_fieldNames, Record_field_names)                                     \
-  V(Record_numFields, Record_num_fields)                                       \
+  V(Record_shape, Record_shape)                                                \
   V(SuspendState_getFunctionData, SuspendState_function_data)                  \
   V(SuspendState_getThenCallback, SuspendState_then_callback)                  \
   V(SuspendState_getErrorCallback, SuspendState_error_callback)                \
@@ -915,6 +915,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
 
   switch (kind) {
     case MethodRecognizer::kRecord_fieldAt:
+    case MethodRecognizer::kRecord_fieldNames:
+    case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kSuspendState_clone:
     case MethodRecognizer::kSuspendState_resume:
     case MethodRecognizer::kTypedData_ByteDataView_factory:
@@ -961,6 +963,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kTypedData_Float32x4Array_factory:
     case MethodRecognizer::kTypedData_Int32x4Array_factory:
     case MethodRecognizer::kTypedData_Float64x2Array_factory:
+    case MethodRecognizer::kMemCopy:
     case MethodRecognizer::kFfiLoadInt8:
     case MethodRecognizer::kFfiLoadInt16:
     case MethodRecognizer::kFfiLoadInt32:
@@ -974,6 +977,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadDouble:
     case MethodRecognizer::kFfiLoadDoubleUnaligned:
     case MethodRecognizer::kFfiLoadPointer:
+    case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
     case MethodRecognizer::kFfiStoreInt32:
@@ -1012,7 +1016,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kClassIDgetID:
     case MethodRecognizer::kGrowableArrayAllocateWithData:
     case MethodRecognizer::kGrowableArrayCapacity:
-    case MethodRecognizer::kListFactory:
     case MethodRecognizer::kObjectArrayAllocate:
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
@@ -1088,6 +1091,25 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += LoadIndexed(
           kRecordCid, /*index_scale*/ compiler::target::kCompressedWordSize);
+      break;
+    case MethodRecognizer::kRecord_fieldNames:
+      body += LoadObjectStore();
+      body += RawLoadField(
+          compiler::target::ObjectStore::record_field_names_offset());
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::Record_shape());
+      body += IntConstant(compiler::target::RecordShape::kFieldNamesIndexShift);
+      body += SmiBinaryOp(Token::kSHR);
+      body += IntConstant(compiler::target::RecordShape::kFieldNamesIndexMask);
+      body += SmiBinaryOp(Token::kBIT_AND);
+      body += LoadIndexed(
+          kArrayCid, /*index_scale=*/compiler::target::kCompressedWordSize);
+      break;
+    case MethodRecognizer::kRecord_numFields:
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::Record_shape());
+      body += IntConstant(compiler::target::RecordShape::kNumFieldsMask);
+      body += SmiBinaryOp(Token::kBIT_AND);
       break;
     case MethodRecognizer::kSuspendState_clone: {
       ASSERT_EQUAL(function.NumParameters(), 1);
@@ -1171,69 +1193,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadNativeField(Slot::GrowableObjectArray_data());
       body += LoadNativeField(Slot::Array_length());
       break;
-    case MethodRecognizer::kListFactory: {
-      ASSERT(function.IsFactory() && (function.NumParameters() == 2) &&
-             function.HasOptionalParameters());
-      // factory List<E>([int length]) {
-      //   return (:arg_desc.positional_count == 2) ? new _List<E>(length)
-      //                                            : new _GrowableList<E>(0);
-      // }
-      const Library& core_lib = Library::Handle(Z, Library::CoreLibrary());
-
-      TargetEntryInstr* allocate_non_growable;
-      TargetEntryInstr* allocate_growable;
-
-      body += LoadArgDescriptor();
-      body += LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
-      body += IntConstant(2);
-      body += BranchIfStrictEqual(&allocate_non_growable, &allocate_growable);
-
-      JoinEntryInstr* join = BuildJoinEntry();
-
-      {
-        const Class& cls = Class::Handle(
-            Z, core_lib.LookupClass(
-                   Library::PrivateCoreLibName(Symbols::_List())));
-        ASSERT(!cls.IsNull());
-        const Function& func = Function::ZoneHandle(
-            Z, cls.LookupFactoryAllowPrivate(Symbols::_ListFactory()));
-        ASSERT(!func.IsNull());
-
-        Fragment allocate(allocate_non_growable);
-        allocate += LoadLocal(parsed_function_->RawParameterVariable(0));
-        allocate += LoadLocal(parsed_function_->RawParameterVariable(1));
-        allocate +=
-            StaticCall(TokenPosition::kNoSource, func, 2, ICData::kStatic);
-        allocate += StoreLocal(TokenPosition::kNoSource,
-                               parsed_function_->expression_temp_var());
-        allocate += Drop();
-        allocate += Goto(join);
-      }
-
-      {
-        const Class& cls = Class::Handle(
-            Z, core_lib.LookupClass(
-                   Library::PrivateCoreLibName(Symbols::_GrowableList())));
-        ASSERT(!cls.IsNull());
-        const Function& func = Function::ZoneHandle(
-            Z, cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory()));
-        ASSERT(!func.IsNull());
-
-        Fragment allocate(allocate_growable);
-        allocate += LoadLocal(parsed_function_->RawParameterVariable(0));
-        allocate += IntConstant(0);
-        allocate +=
-            StaticCall(TokenPosition::kNoSource, func, 2, ICData::kStatic);
-        allocate += StoreLocal(TokenPosition::kNoSource,
-                               parsed_function_->expression_temp_var());
-        allocate += Drop();
-        allocate += Goto(join);
-      }
-
-      body = Fragment(body.entry, join);
-      body += LoadLocal(parsed_function_->expression_temp_var());
-      break;
-    }
     case MethodRecognizer::kObjectArrayAllocate:
       ASSERT(function.IsFactory() && (function.NumParameters() == 2));
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1247,7 +1206,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(2));
       body += LoadLocal(parsed_function_->RawParameterVariable(3));
       body += LoadLocal(parsed_function_->RawParameterVariable(4));
-      body += MemoryCopy(kTypedDataUint8ArrayCid, kOneByteStringCid);
+      body += MemoryCopy(kTypedDataUint8ArrayCid, kOneByteStringCid,
+                         /*unboxed_length=*/false);
       body += NullConstant();
       break;
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
@@ -1275,10 +1235,39 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Utf8Scan();
       body += Box(kUnboxedIntPtr);
       break;
+    case MethodRecognizer::kMemCopy: {
+      // Keep consistent with inliner.cc (except boxed param).
+      ASSERT_EQUAL(function.NumParameters(), 5);
+      LocalVariable* arg_target = parsed_function_->RawParameterVariable(0);
+      LocalVariable* arg_target_offset_in_bytes =
+          parsed_function_->RawParameterVariable(1);
+      LocalVariable* arg_source = parsed_function_->RawParameterVariable(2);
+      LocalVariable* arg_source_offset_in_bytes =
+          parsed_function_->RawParameterVariable(3);
+      LocalVariable* arg_length_in_bytes =
+          parsed_function_->RawParameterVariable(4);
+      body += LoadLocal(arg_source);
+      body += LoadLocal(arg_target);
+      body += LoadLocal(arg_source_offset_in_bytes);
+      body += LoadLocal(arg_target_offset_in_bytes);
+      body += LoadLocal(arg_length_in_bytes);
+      // Pointers and TypedData have the same layout.
+      body += MemoryCopy(kTypedDataUint8ArrayCid, kTypedDataUint8ArrayCid,
+                         /*unboxed_length=*/false);
+      body += NullConstant();
+    } break;
     case MethodRecognizer::kFfiAbi:
       ASSERT_EQUAL(function.NumParameters(), 0);
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
+    case MethodRecognizer::kFfiNativeCallbackFunction: {
+      const auto& error = String::ZoneHandle(
+          Z, Symbols::New(thread_,
+                          "This function should be handled on call site."));
+      body += Constant(error);
+      body += ThrowException(TokenPosition::kNoSource);
+      break;
+    }
     case MethodRecognizer::kFfiLoadInt8:
     case MethodRecognizer::kFfiLoadInt16:
     case MethodRecognizer::kFfiLoadInt32:
@@ -1755,9 +1744,9 @@ static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
   // and not the signature type.
   Type& klass_type = Type::ZoneHandle(Z, klass.DeclarationType());
 
-  LocalVariable* receiver_variable = new (Z)
-      LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                    Symbols::This(), klass_type, /*param_type=*/nullptr);
+  LocalVariable* receiver_variable = new (Z) LocalVariable(
+      TokenPosition::kNoSource, TokenPosition::kNoSource, Symbols::This(),
+      klass_type, LocalVariable::kNoKernelOffset, /*param_type=*/nullptr);
 
   receiver_variable->set_is_captured();
   //  receiver_variable->set_is_final();
@@ -2259,6 +2248,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
   graph_entry_->set_normal_entry(normal_entry);
 
   JoinEntryInstr* nsm = BuildJoinEntry();
+  JoinEntryInstr* done = BuildJoinEntry();
 
   Fragment body(normal_entry);
   body += CheckStackOverflowInPrologue(function.token_pos());
@@ -2267,20 +2257,37 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
   ASSERT(Field::IsGetterName(name));
   name = Field::NameFromGetter(name);
 
+  // Get an array of field names.
+  const Class& cls = Class::Handle(Z, IG->class_table()->At(kRecordCid));
+  const auto& error = cls.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
+  const Function& get_field_names_function = Function::ZoneHandle(
+      Z, cls.LookupFunctionAllowPrivate(Symbols::Get_fieldNames()));
+  ASSERT(!get_field_names_function.IsNull());
+  body += LoadLocal(parsed_function_->receiver_var());
+  body += StaticCall(TokenPosition::kNoSource, get_field_names_function, 1,
+                     ICData::kNoRebind);
+  LocalVariable* field_names = MakeTemporary("field_names");
+
+  body += LoadLocal(field_names);
+  body += LoadNativeField(Slot::Array_length());
+  LocalVariable* num_named = MakeTemporary("num_named");
+
+  // num_positional = num_fields - field_names.length
+  body += LoadLocal(parsed_function_->receiver_var());
+  body += LoadNativeField(Slot::Record_shape());
+  body += IntConstant(compiler::target::RecordShape::kNumFieldsMask);
+  body += SmiBinaryOp(Token::kBIT_AND);
+  body += LoadLocal(num_named);
+  body += SmiBinaryOp(Token::kSUB);
+  LocalVariable* num_positional = MakeTemporary("num_positional");
+
   const intptr_t field_index =
       Record::GetPositionalFieldIndexFromFieldName(name);
   if (field_index >= 0) {
     // Get positional record field by index.
     body += IntConstant(field_index);
-
-    // num_positional = num_fields - field_names.length
-    body += LoadLocal(parsed_function_->receiver_var());
-    body += LoadNativeField(Slot::Record_num_fields());
-    body += LoadLocal(parsed_function_->receiver_var());
-    body += LoadNativeField(Slot::Record_field_names());
-    body += LoadNativeField(Slot::Array_length());
-    body += SmiBinaryOp(Token::kSUB);
-
+    body += LoadLocal(num_positional);
     body += SmiRelationalOp(Token::kLT);
     TargetEntryInstr* valid_index;
     TargetEntryInstr* invalid_index;
@@ -2290,20 +2297,16 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
     body += LoadLocal(parsed_function_->receiver_var());
     body += LoadNativeField(Slot::GetRecordFieldSlot(
         thread_, compiler::target::Record::field_offset(field_index)));
-    body += Return(TokenPosition::kNoSource);
+
+    body += StoreLocal(TokenPosition::kNoSource,
+                       parsed_function_->expression_temp_var());
+    body += Drop();
+    body += Goto(done);
 
     body.current = invalid_index;
   }
 
   // Search field among named fields.
-  body += LoadLocal(parsed_function_->receiver_var());
-  body += LoadNativeField(Slot::Record_field_names());
-  LocalVariable* field_names = MakeTemporary("field_names");
-
-  body += LoadLocal(field_names);
-  body += LoadNativeField(Slot::Array_length());
-  LocalVariable* num_named = MakeTemporary("num_named");
-
   body += IntConstant(0);
   body += LoadLocal(num_named);
   body += SmiRelationalOp(Token::kLT);
@@ -2353,16 +2356,22 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
 
   body += LoadLocal(parsed_function_->receiver_var());
 
-  body += LoadLocal(parsed_function_->receiver_var());
-  body += LoadNativeField(Slot::Record_num_fields());
-  body += LoadLocal(num_named);
-  body += SmiBinaryOp(Token::kSUB);
+  body += LoadLocal(num_positional);
   body += LoadLocal(index);
   body += SmiBinaryOp(Token::kADD);
 
   body += LoadIndexed(kRecordCid,
                       /*index_scale*/ compiler::target::kCompressedWordSize);
-  body += DropTempsPreserveTop(2);
+
+  body += StoreLocal(TokenPosition::kNoSource,
+                     parsed_function_->expression_temp_var());
+  body += Drop();
+  body += Goto(done);
+
+  body.current = done;
+
+  body += LoadLocal(parsed_function_->expression_temp_var());
+  body += DropTempsPreserveTop(3);  // field_names, num_named, num_positional
   body += Return(TokenPosition::kNoSource);
 
   Fragment throw_nsm(nsm);
@@ -3719,7 +3728,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       // Instantiate a flattened type arguments vector which
       // includes type arguments corresponding to superclasses.
       // TranslateInstantiatedTypeArguments is smart enough to
-      // avoid instantiation and resuse passed function type arguments
+      // avoid instantiation and reuse passed function type arguments
       // if there are no extra type arguments in the flattened vector.
       const auto& instantiated_type_arguments =
           TypeArguments::ZoneHandle(Z, result_type.arguments());
@@ -4207,6 +4216,20 @@ Fragment FlowGraphBuilder::LoadIsolate() {
   return body;
 }
 
+Fragment FlowGraphBuilder::LoadIsolateGroup() {
+  Fragment body;
+  body += LoadThread();
+  body += LoadUntagged(compiler::target::Thread::isolate_group_offset());
+  return body;
+}
+
+Fragment FlowGraphBuilder::LoadObjectStore() {
+  Fragment body;
+  body += LoadIsolateGroup();
+  body += LoadUntagged(compiler::target::IsolateGroup::object_store_offset());
+  return body;
+}
+
 Fragment FlowGraphBuilder::LoadServiceExtensionStream() {
   Fragment body;
   body += LoadThread();
@@ -4314,9 +4337,12 @@ Fragment FlowGraphBuilder::Call1ArgStub(TokenPosition position,
 
 Fragment FlowGraphBuilder::Suspend(TokenPosition position,
                                    SuspendInstr::StubId stub_id) {
+  Value* type_args =
+      (stub_id == SuspendInstr::StubId::kAwaitWithTypeCheck) ? Pop() : nullptr;
+  Value* operand = Pop();
   SuspendInstr* instr =
-      new (Z) SuspendInstr(InstructionSource(position), stub_id, Pop(),
-                           GetNextDeoptId(), GetNextDeoptId());
+      new (Z) SuspendInstr(InstructionSource(position), stub_id, operand,
+                           type_args, GetNextDeoptId(), GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }
@@ -4397,7 +4423,7 @@ Fragment FlowGraphBuilder::PopFromStackToTypedDataBase(
                                          /*index_unboxed=*/false);
     offset_in_bytes += RepresentationUtils::ValueSize(representation);
   }
-  body += DropTempsPreserveTop(num_defs);  // Drop chunck defs keep TypedData.
+  body += DropTempsPreserveTop(num_defs);  // Drop chunk defs keep TypedData.
   return body;
 }
 

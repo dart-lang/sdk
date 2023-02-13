@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: experiment_not_enabled
-// @dart = 2.19
+// @dart = 3.0
 
 // See inspector.txt for expected behavior.
 

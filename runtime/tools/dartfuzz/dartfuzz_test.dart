@@ -476,7 +476,7 @@ class DartFuzzTest {
       if (numOutputLines > 0) {
         // Only report the actual output divergence details up to
         // numOutputLines, since this output may be lengthy and should be
-        // reproducable anyway.
+        // reproducible anyway.
         print('\nout1:\n');
         printDivergenceOutput(result1.output, numOutputLines);
         print('\nout2:\n');

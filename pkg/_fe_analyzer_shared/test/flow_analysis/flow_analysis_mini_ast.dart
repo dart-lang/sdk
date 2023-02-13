@@ -29,7 +29,7 @@ class FlowAnalysisTestHarness extends Harness implements FlowModelHelper<Type> {
   final PromotionKeyStore<Var> promotionKeyStore = PromotionKeyStore();
 
   @override
-  Operations<Var, Type> get typeOperations => typeAnalyzer.typeOperations;
+  Operations<Var, Type> get typeOperations => typeAnalyzer.operations;
 }
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.

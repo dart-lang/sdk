@@ -25,7 +25,7 @@ extension E on int {}
     await verifyVersion('2.2.0', '''
 extension E on int {}
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_EXTENSION_METHODS, 0, 9),
+      error(WarningCode.SDK_VERSION_EXTENSION_METHODS, 0, 9),
     ]);
   }
 
@@ -49,8 +49,8 @@ void f() {
   E(0).a;
 }
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_EXTENSION_METHODS, 0, 9),
-      error(HintCode.SDK_VERSION_EXTENSION_METHODS, 54, 1),
+      error(WarningCode.SDK_VERSION_EXTENSION_METHODS, 0, 9),
+      error(WarningCode.SDK_VERSION_EXTENSION_METHODS, 54, 1),
     ]);
   }
 }

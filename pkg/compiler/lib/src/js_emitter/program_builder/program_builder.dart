@@ -23,6 +23,7 @@ import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/namer.dart' show Namer;
 import '../../js_backend/namer.dart' show StringBackedName, compareNames;
 import '../../js_backend/native_data.dart';
+import '../../js_backend/records_codegen.dart' show RecordsCodegen;
 import '../../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../../js_backend/runtime_types_codegen.dart' show TypeCheck;
 import '../../js_backend/runtime_types_new.dart'
@@ -32,6 +33,7 @@ import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart'
     show JField, JGeneratorBody, JSignatureMethod;
 import '../../js_model/js_world.dart';
+import '../../js_model/records.dart' show RecordData, RecordRepresentation;
 import '../../js_model/type_recipe.dart'
     show FullTypeEnvironmentStructure, TypeExpressionRecipe;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
@@ -72,11 +74,13 @@ class ProgramBuilder {
   final RecipeEncoder _rtiRecipeEncoder;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
+  final RecordsCodegen _recordsCodegen;
   final Map<MemberEntity, js.Expression> _generatedCode;
   final Namer _namer;
   final CodeEmitterTask _task;
   final JClosedWorld _closedWorld;
   final JFieldAnalysis _fieldAnalysis;
+  final RecordData _recordData;
   final InferredData _inferredData;
   final SourceInformationStrategy _sourceInformationStrategy;
 
@@ -118,11 +122,13 @@ class ProgramBuilder {
       this._rtiRecipeEncoder,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
+      this._recordsCodegen,
       this._generatedCode,
       this._namer,
       this._task,
       this._closedWorld,
       this._fieldAnalysis,
+      this._recordData,
       this._inferredData,
       this._sourceInformationStrategy,
       this._sorter,
@@ -245,7 +251,9 @@ class ProgramBuilder {
         _nativeCodegenEnqueuer.hasInstantiatedNativeClasses ||
             _nativeData.isAllowInteropUsed;
 
-    assert(!needsNativeSupport || nativeClasses.isNotEmpty);
+    assert(!needsNativeSupport ||
+        nativeClasses.isNotEmpty ||
+        _nativeData.isAllowInteropUsed);
 
     List<js.TokenFinalizer> finalizers = [_task.metadataCollector];
     if (_namer is js.TokenFinalizer) {
@@ -282,6 +290,7 @@ class ProgramBuilder {
         outputUnit,
         "", // The empty string is the name for the main output file.
         _buildInvokeMain(),
+        _buildMainUnitRecordTypeStubs(outputUnit),
         _buildLibraries(librariesMap),
         _buildStaticNonFinalFields(librariesMap),
         _buildStaticLazilyInitializedFields(librariesMap),
@@ -297,6 +306,11 @@ class ProgramBuilder {
         _mainFunction,
         _backendUsage.requiresStartupMetrics,
         _options);
+  }
+
+  js.Expression? _buildMainUnitRecordTypeStubs(OutputUnit mainOutputUnit) {
+    return _recordsCodegen.generateTestTableForOutputUnit(
+        mainOutputUnit, _outputUnitData, _namer);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
@@ -571,6 +585,15 @@ class ProgramBuilder {
       sharedClosureApplyMetadata = 2;
     }
 
+    int? recordShapeTag;
+    js.Expression? recordShapeRecipe;
+    RecordRepresentation? record = _recordData.representationForClass(cls);
+    if (record != null && record.definesShape) {
+      recordShapeTag = record.shapeTag;
+      recordShapeRecipe =
+          _rtiRecipeEncoder.encodeRecordFromBindingRecipe(record.shape);
+    }
+
     List<Method> methods = [];
     List<StubMethod> callStubs = [];
 
@@ -719,6 +742,8 @@ class ProgramBuilder {
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
       assert(sharedClosureApplyMetadata == null);
+      assert(recordShapeTag == null);
+      assert(recordShapeRecipe == null);
 
       result = MixinApplication(cls, typeData, name, instanceFields, callStubs,
           checkedSetters, gettersSetters, isChecks, typeTests.functionTypeIndex,
@@ -746,7 +771,9 @@ class ProgramBuilder {
           isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
           sharedClosureApplyMetadata: sharedClosureApplyMetadata,
-          isMixinApplicationWithMembers: isMixinApplicationWithMembers);
+          isMixinApplicationWithMembers: isMixinApplicationWithMembers,
+          recordShapeTag: recordShapeTag,
+          recordShapeRecipe: recordShapeRecipe);
     }
     _classes[cls] = result;
     return result;

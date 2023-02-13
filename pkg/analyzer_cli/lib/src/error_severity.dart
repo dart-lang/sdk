@@ -36,12 +36,5 @@ ErrorSeverity? determineProcessedSeverity(AnalysisError error,
     return null;
   }
 
-  // TODO(devoncarew): We should not filter hints here.
-  // If not overridden, some "natural" severities get globally filtered.
-  // Check for global hint filtering.
-  if (severity == ErrorSeverity.INFO && commandLineOptions.disableHints) {
-    return null;
-  }
-
   return severity;
 }

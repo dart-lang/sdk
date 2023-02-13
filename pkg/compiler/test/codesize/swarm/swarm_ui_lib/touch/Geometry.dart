@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 /// Represents a point in 2 dimensional space.
@@ -56,9 +54,9 @@ class Coordinate {
 }
 
 /// Represents the interval { x | start <= x < end }.
-class Interval {
-  final num start;
-  final num end;
+class Interval<T extends num> {
+  final T start;
+  final T end;
 
   Interval(this.start, this.end);
 
@@ -74,8 +72,8 @@ class Interval {
   @override
   int get hashCode => throw UnimplementedError();
 
-  Interval union(Interval other) {
-    return Interval(Math.min(start, other.start), Math.max(end, other.end));
+  Interval<T> union(Interval<T> other) {
+    return Interval<T>(Math.min(start, other.start), Math.max(end, other.end));
   }
 
   bool contains(num value) {

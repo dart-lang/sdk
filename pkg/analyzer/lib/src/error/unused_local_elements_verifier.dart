@@ -207,6 +207,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordPatternField(RecordPatternField node) {
+    usedElements.addMember(node.fieldElement);
+    usedElements.addReadMember(node.fieldElement);
+    super.visitRecordPatternField(node);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    usedElements.addMember(node.element);
+    usedElements.addReadMember(node.element);
+    super.visitRelationalPattern(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
@@ -482,6 +496,14 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _visitLocalVariableElement(node.declaredElement!);
     super.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    final declaredElement = node.declaredElement!;
+    _visitLocalVariableElement(declaredElement);
+
+    super.visitDeclaredVariablePattern(node);
   }
 
   @override
@@ -888,11 +910,11 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitLocalVariableElement(LocalVariableElement element) {
     if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
-      HintCode errorCode;
+      ErrorCode errorCode;
       if (_usedElements.isCatchException(element)) {
-        errorCode = HintCode.UNUSED_CATCH_CLAUSE;
+        errorCode = WarningCode.UNUSED_CATCH_CLAUSE;
       } else if (_usedElements.isCatchStackTrace(element)) {
-        errorCode = HintCode.UNUSED_CATCH_STACK;
+        errorCode = WarningCode.UNUSED_CATCH_STACK;
       } else {
         errorCode = HintCode.UNUSED_LOCAL_VARIABLE;
       }
@@ -987,7 +1009,9 @@ class UsedLocalElements {
   }
 
   void addElement(Element? element) {
-    if (element != null) {
+    if (element is JoinPatternVariableElementImpl) {
+      elements.addAll(element.transitiveVariables);
+    } else if (element != null) {
       elements.add(element);
     }
   }
@@ -1004,6 +1028,11 @@ class UsedLocalElements {
   }
 
   void addReadMember(Element? element) {
+    // Store un-parameterized members.
+    if (element is ExecutableMember) {
+      element = element.declaration;
+    }
+
     if (element != null) {
       readMembers.add(element);
     }

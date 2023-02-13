@@ -43,8 +43,21 @@ class RenameToCamelCase extends CorrectionProducer {
     } else if (node is VariableDeclaration) {
       nameToken = node.name;
       element = node.declaredElement;
+    } else if (node is RecordTypeAnnotationField) {
+      // RecordTypeAnnotationFields do not have Elements.
+      nameToken = node.name;
+      var newName = nameToken?.lexeme.toLowerCamelCase;
+      if (newName == null) {
+        return;
+      }
+      _newName = newName;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(range.token(nameToken!), _newName);
+      });
+      return;
     }
-    if (nameToken == null || element == null) {
+
+    if (nameToken == null) {
       return;
     }
 
@@ -54,6 +67,9 @@ class RenameToCamelCase extends CorrectionProducer {
       return;
     }
     _newName = newName;
+    if (element == null) {
+      return;
+    }
 
     // Find references to the identifier.
     List<SimpleIdentifier>? references;

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -66,6 +67,7 @@ void f() {
   }
 
   Future<void> test_fromPlugins() async {
+    if (!AnalysisServer.supportsPlugins) return;
     PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c',
         TestNotificationManager(), InstrumentationService.NULL_SERVICE);
     var fixes = plugin.AnalysisErrorFixes(AnalysisError(
@@ -174,7 +176,7 @@ dependencies:
 
     // Configure the test file.
     final file =
-        newFile('$workspaceRootPath/aaa/main.dart', 'void f() { new Foo(); }');
+        newFile('$workspaceRootPath/aaa/main.dart', 'void f() { Foo(); }');
 
     await waitForTasksFinished();
 

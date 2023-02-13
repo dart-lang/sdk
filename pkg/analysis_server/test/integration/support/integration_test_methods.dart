@@ -6,8 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-// ignore_for_file: constant_identifier_names
-
 /// Convenience methods for running integration tests.
 import 'dart:async';
 
@@ -1256,7 +1254,7 @@ abstract class IntegrationTestMixin {
   ///
   ///   The client is expected to check this list against the ElementKind sent
   ///   in IncludedSuggestionSet to decide whether or not these symbols should
-  ///   should be presented to the user.
+  ///   be presented to the user.
   ///
   /// includedSuggestionRelevanceTags: List<IncludedSuggestionRelevanceTag>
   /// (optional)

@@ -36,7 +36,7 @@ class AddNotNullAssert extends CorrectionProducer {
     }
 
     if (body is BlockFunctionBody) {
-      // Check for an obvious pre-existing assertion.
+      // Check for an obvious preexisting assertion.
       for (var statement in body.block.statements) {
         if (statement is AssertStatement) {
           final condition = statement.condition;

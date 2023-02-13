@@ -56,6 +56,7 @@ export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 
+export '../fasta/ticker.dart' show Ticker;
 export '../base/processed_options.dart' show ProcessedOptions;
 
 export '../base/nnbd_mode.dart' show NnbdMode;

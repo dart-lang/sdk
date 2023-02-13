@@ -24,7 +24,7 @@ bar(a, b) {
 main() {
   var closure = null;
   for (var i = 0; i < 100; i++) {
-    closure = bar(closure, new List(1024 * 1024));
+    closure = bar(closure, new List.filled(1024 * 1024, null));
   }
   Expect.isTrue(closure is Function);
 }

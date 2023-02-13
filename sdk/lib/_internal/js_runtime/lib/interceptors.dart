@@ -8,6 +8,7 @@ import 'dart:_js_embedded_names'
     show DISPATCH_PROPERTY_NAME, TYPE_TO_INTERCEPTOR_MAP;
 
 import 'dart:collection' hide LinkedList, LinkedListEntry;
+import 'dart:_foreign_helper' show JS_GET_FLAG;
 import 'dart:_internal' hide Symbol;
 import "dart:_internal" as _symbol_dev show Symbol;
 import 'dart:_js_helper'
@@ -313,7 +314,7 @@ findInterceptorForType(Type? type) {
 abstract class Interceptor {
   const Interceptor();
 
-  bool operator ==(other) => identical(this, other);
+  bool operator ==(Object other) => identical(this, other);
 
   int get hashCode => Primitives.objectHashCode(this);
 
@@ -334,8 +335,7 @@ abstract class Interceptor {
   // calls to use interceptor calling convention).  If we did allow it, the
   // interceptor context would select the correct `this`.
   dynamic noSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError(this, invocation.memberName,
-        invocation.positionalArguments, invocation.namedArguments);
+    throw new NoSuchMethodError.withInvocation(this, invocation);
   }
 
   Type get runtimeType => getRuntimeType(this);
@@ -369,7 +369,7 @@ class JSBool extends Interceptor implements bool {
 class JSNull extends Interceptor implements Null {
   const JSNull();
 
-  bool operator ==(other) => identical(null, other);
+  external bool operator ==(Object other);
 
   // Note: if you change this, also change the function [S].
   String toString() => 'null';
@@ -409,9 +409,8 @@ abstract class JSObject {}
 /// Superclass of all interop objects and native types defined in the web
 /// libraries.
 ///
-/// This is the class static interop classes erase to and the class interop
-/// extension types should use as the on-type.
-class JavaScriptObject extends Interceptor {
+/// This is the class @staticInterop classes erase to.
+class JavaScriptObject extends Interceptor implements JSObject {
   const JavaScriptObject();
 }
 
@@ -419,7 +418,7 @@ class JavaScriptObject extends Interceptor {
 /// specific native type.
 ///
 /// Note that this used to be `JavaScriptObject`.
-class LegacyJavaScriptObject extends JavaScriptObject implements JSObject {
+class LegacyJavaScriptObject extends JavaScriptObject {
   const LegacyJavaScriptObject();
 
   // It would be impolite to stash a property on the object.

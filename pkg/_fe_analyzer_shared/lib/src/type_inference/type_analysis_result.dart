@@ -63,6 +63,19 @@ class MatchContext<Node extends Object, Expression extends Node,
   /// statement or switch expression.
   final Expression? _switchScrutinee;
 
+  /// If the match is being done in a pattern assignment, the set of variables
+  /// assigned so far.
+  final Map<Variable, Pattern>? assignedVariables;
+
+  /// For each variable name in the pattern, a list of the variables which might
+  /// capture that variable's value, depending upon which alternative is taken
+  /// in a logical-or pattern.
+  final Map<String, List<Variable>> componentVariables;
+
+  /// For each variable name in the pattern, the promotion key holding the value
+  /// captured by that variable.
+  final Map<String, int> patternVariablePromotionKeys;
+
   MatchContext({
     Expression? initializer,
     this.irrefutableContext,
@@ -70,6 +83,9 @@ class MatchContext<Node extends Object, Expression extends Node,
     this.isLate = false,
     Expression? switchScrutinee,
     required this.topPattern,
+    this.assignedVariables,
+    required this.componentVariables,
+    required this.patternVariablePromotionKeys,
   })  : _initializer = initializer,
         _switchScrutinee = switchScrutinee;
 
@@ -95,7 +111,36 @@ class MatchContext<Node extends Object, Expression extends Node,
               isLate: isLate,
               switchScrutinee: _switchScrutinee,
               topPattern: topPattern,
+              componentVariables: componentVariables,
+              patternVariablePromotionKeys: patternVariablePromotionKeys,
             );
+
+  /// Returns a modified version of `this`, with a new value of
+  /// [patternVariablePromotionKeys].
+  MatchContext<Node, Expression, Pattern, Type, Variable> withPromotionKeys(
+          Map<String, int> patternVariablePromotionKeys) =>
+      new MatchContext(
+        initializer: _initializer,
+        irrefutableContext: irrefutableContext,
+        isFinal: isFinal,
+        isLate: isLate,
+        switchScrutinee: _switchScrutinee,
+        topPattern: topPattern,
+        componentVariables: componentVariables,
+        patternVariablePromotionKeys: patternVariablePromotionKeys,
+      );
+}
+
+/// Container for the result of running type analysis on a pattern assignment.
+class PatternAssignmentAnalysisResult<Type extends Object>
+    extends SimpleTypeAnalysisResult<Type> {
+  /// The type schema of the pattern on the left hand size of the assignment.
+  final Type patternSchema;
+
+  PatternAssignmentAnalysisResult({
+    required this.patternSchema,
+    required super.type,
+  });
 }
 
 /// Container for the result of running type analysis on an expression that does
@@ -125,6 +170,14 @@ class SwitchStatementTypeAnalysisResult<Type> {
   /// Whether the last case body in the switch statement terminated.
   final bool lastCaseTerminates;
 
+  /// If `true`, patterns support is enabled, there is no default clause, and
+  /// the static type of the scrutinee expression is an "always exhaustive"
+  /// type.  Therefore, flow analysis has assumed (without checking) that the
+  /// switch statement is exhaustive.  So at a later stage of compilation, the
+  /// exhaustiveness checking algorithm should check whether this switch
+  /// statement was exhaustive, and report a compile-time error if it wasn't.
+  final bool requiresExhaustivenessValidation;
+
   /// The static type of the scrutinee expression.
   final Type scrutineeType;
 
@@ -132,6 +185,7 @@ class SwitchStatementTypeAnalysisResult<Type> {
     required this.hasDefault,
     required this.isExhaustive,
     required this.lastCaseTerminates,
+    required this.requiresExhaustivenessValidation,
     required this.scrutineeType,
   });
 }

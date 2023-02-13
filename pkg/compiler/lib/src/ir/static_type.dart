@@ -362,6 +362,18 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   }
 
   @override
+  ir.DartType visitRecordIndexGet(ir.RecordIndexGet node) {
+    visitNode(node.receiver);
+    return super.visitRecordIndexGet(node);
+  }
+
+  @override
+  ir.DartType visitRecordNameGet(ir.RecordNameGet node) {
+    visitNode(node.receiver);
+    return super.visitRecordNameGet(node);
+  }
+
+  @override
   ir.DartType visitFunctionTearOff(ir.FunctionTearOff node) {
     ir.DartType receiverType = visitNode(node.receiver);
     handleDynamicGet(node, receiverType, ir.Name.callName, receiverType);
@@ -1396,6 +1408,18 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     visitNode(entry.key);
     visitNode(entry.value);
     return const ir.VoidType();
+  }
+
+  void handleRecordLiteral(ir.RecordLiteral node) {}
+
+  @override
+  ir.DartType visitRecordLiteral(ir.RecordLiteral node) {
+    visitNodes(node.positional);
+    for (final namedExpression in node.named) {
+      visitNode(namedExpression.value);
+    }
+    handleRecordLiteral(node);
+    return super.visitRecordLiteral(node);
   }
 
   void handleFunctionExpression(ir.FunctionExpression node) {}

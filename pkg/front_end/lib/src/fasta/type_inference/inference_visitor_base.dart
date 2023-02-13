@@ -42,9 +42,11 @@ import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../util/helpers.dart';
 import 'closure_context.dart';
+import 'external_ast_helper.dart';
 import 'inference_helper.dart' show InferenceHelper;
 import 'inference_results.dart';
 import 'inference_visitor.dart';
+import 'matching_cache.dart';
 import 'object_access_target.dart';
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 import 'type_demotion.dart';
@@ -182,7 +184,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
   /// [isAssignable].
-  OperationsCfe get operations => _inferrer.operations;
+  Operations<VariableDeclaration, DartType> get operations =>
+      _inferrer.operations;
 
   TypeSchemaEnvironment get typeSchemaEnvironment =>
       _inferrer.typeSchemaEnvironment;
@@ -206,6 +209,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   DartType get bottomType =>
       isNonNullableByDefault ? const NeverType.nonNullable() : const NullType();
+
+  StaticTypeContext get staticTypeContext => _inferrer.staticTypeContext;
+
+  int _matchCacheIndex = 0;
+
+  MatchingCache createMatchingCache() {
+    return new MatchingCache(_matchCacheIndex++, this);
+  }
 
   DartType computeGreatestClosure(DartType type) {
     return greatestClosure(type, const DynamicType(), bottomType);
@@ -338,20 +349,20 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// Ensures that all parameter types of [constructor] have been inferred.
-  void _inferConstructorParameterTypes(Constructor target) {
-    SourceConstructorBuilder? constructor = engine.beingInferred[target];
-    if (constructor != null) {
+  void _inferConstructorParameterTypes(Member target) {
+    SourceConstructorBuilder? constructorBuilder = engine.beingInferred[target];
+    if (constructorBuilder != null) {
       // There is a cyclic dependency where inferring the types of the
       // initializing formals of a constructor required us to infer the
       // corresponding field type which required us to know the type of the
       // constructor.
-      String name = target.enclosingClass.name;
+      String name = constructorBuilder.declarationBuilder.name;
       if (target.name.text.isNotEmpty) {
         // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
         // instead. However, `inferrer.helper` may be null.
         name += ".${target.name.text}";
       }
-      constructor.libraryBuilder.addProblem(
+      constructorBuilder.libraryBuilder.addProblem(
           templateCantInferTypeDueToCircularity.withArguments(name),
           target.fileOffset,
           name.length,
@@ -365,10 +376,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       for (VariableDeclaration declaration in target.function.namedParameters) {
         declaration.type ??= const InvalidType();
       }*/
-    } else if ((constructor = engine.toBeInferred[target]) != null) {
+    } else if ((constructorBuilder = engine.toBeInferred[target]) != null) {
       engine.toBeInferred.remove(target);
-      engine.beingInferred[target] = constructor!;
-      constructor.inferFormalTypes(hierarchyBuilder);
+      engine.beingInferred[target] = constructorBuilder!;
+      constructorBuilder.inferFormalTypes(hierarchyBuilder);
       engine.beingInferred.remove(target);
     }
   }
@@ -863,6 +874,82 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
   }
 
+  /// Returns inline class member declared immediately for [inlineType].
+  ///
+  /// If none is found, [defaultTarget] is returned.
+  ObjectAccessTarget _findDirectInlineTypeMember(
+      DartType receiverType, InlineType inlineType, Name name, int fileOffset,
+      {required ObjectAccessTarget defaultTarget,
+      required bool isSetter,
+      required bool isReceiverTypePotentiallyNullable}) {
+    if (name.text == inlineType.inlineClass.representationName) {
+      if (isSetter ||
+          name.isPrivate &&
+              name.library != inlineType.inlineClass.enclosingLibrary) {
+        return defaultTarget;
+      }
+      return new ObjectAccessTarget.inlineClassRepresentation(
+          receiverType, inlineType,
+          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+    }
+
+    // TODO(johnniwinther): Cache this to speed up the lookup.
+    Member? targetMember;
+    Member? targetTearoff;
+    ProcedureKind? targetKind;
+    for (InlineClassMemberDescriptor descriptor
+        in inlineType.inlineClass.members) {
+      if (descriptor.name == name) {
+        switch (descriptor.kind) {
+          case InlineClassMemberKind.Method:
+            if (!isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff ??= targetMember;
+              targetKind = ProcedureKind.Method;
+            }
+            break;
+          case InlineClassMemberKind.TearOff:
+            if (!isSetter) {
+              targetTearoff = descriptor.member.asMember;
+            }
+            break;
+          case InlineClassMemberKind.Getter:
+            if (!isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff = null;
+              targetKind = ProcedureKind.Getter;
+            }
+            break;
+          case InlineClassMemberKind.Setter:
+            if (isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff = null;
+              targetKind = ProcedureKind.Setter;
+            }
+            break;
+          case InlineClassMemberKind.Operator:
+            if (!isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff = null;
+              targetKind = ProcedureKind.Operator;
+            }
+            break;
+          default:
+            unhandled("${descriptor.kind}", "_findDirectInlineClassMember",
+                fileOffset, libraryBuilder.fileUri);
+        }
+      }
+    }
+    if (targetMember != null) {
+      assert(targetKind != null);
+      return new ObjectAccessTarget.inlineClassMember(receiverType,
+          targetMember, targetTearoff, targetKind!, inlineType.typeArguments,
+          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+    } else {
+      return defaultTarget;
+    }
+  }
+
   /// Returns extension member declared immediately for [receiverType].
   ///
   /// If none is found, [defaultTarget] is returned.
@@ -1105,7 +1192,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Class classNode = receiverBound is InterfaceType
         ? receiverBound.classNode
         : coreTypes.objectClass;
-
     _ObjectAccessDescriptor objectAccessDescriptor =
         new _ObjectAccessDescriptor(
             receiverType: receiverType,
@@ -1466,9 +1552,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         typeParameters: calleeType.typeParameters
             .take(extensionTypeParameterCount)
             .toList());
-    ArgumentsImpl extensionArguments = engine.forest.createArguments(
-        arguments.fileOffset, [arguments.positional.first],
-        types: getExplicitExtensionTypeArguments(arguments));
+    ArgumentsImpl extensionArguments = new ArgumentsImpl(
+        [arguments.positional.first],
+        types: getExplicitExtensionTypeArguments(arguments))
+      ..fileOffset = arguments.fileOffset;
     _inferInvocation(visitor, const UnknownType(), offset,
         extensionFunctionType, extensionArguments, hoistedExpressions,
         skipTypeArgumentInference: skipTypeArgumentInference,
@@ -1494,9 +1581,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         typeParameters: targetTypeParameters);
     targetFunctionType = extensionSubstitution
         .substituteType(targetFunctionType) as FunctionType;
-    ArgumentsImpl targetArguments = engine.forest.createArguments(
-        arguments.fileOffset, arguments.positional.skip(1).toList(),
-        named: arguments.named, types: getExplicitTypeArguments(arguments));
+    ArgumentsImpl targetArguments = new ArgumentsImpl(
+        arguments.positional.skip(1).toList(),
+        named: arguments.named,
+        types: getExplicitTypeArguments(arguments))
+      ..fileOffset = arguments.fileOffset;
     InvocationInferenceResult result = _inferInvocation(visitor, typeContext,
         offset, targetFunctionType, targetArguments, hoistedExpressions,
         isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
@@ -1614,15 +1703,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<Object?> argumentsEvaluationOrder;
     if (libraryFeatures.namedArgumentsAnywhere.isEnabled &&
         arguments.argumentsOriginalOrder != null) {
-      if (staticTarget?.isExtensionMember ?? false) {
-        // Add the receiver.
-        argumentsEvaluationOrder = <Object?>[
-          arguments.positional[0],
-          ...arguments.argumentsOriginalOrder!
-        ];
-      } else {
-        argumentsEvaluationOrder = arguments.argumentsOriginalOrder!;
-      }
+      argumentsEvaluationOrder = arguments.argumentsOriginalOrder!;
     } else {
       argumentsEvaluationOrder = <Object?>[
         ...arguments.positional,
@@ -2003,7 +2084,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; i++) {
       VariableDeclaration parameter = positionalParameters[i];
-      flowAnalysis.declare(parameter, true);
+      flowAnalysis.declare(parameter, parameter.type, initialized: true);
       inferMetadata(visitor, parameter, parameter.annotations);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult =
@@ -2013,7 +2094,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     for (VariableDeclaration parameter in function.namedParameters) {
-      flowAnalysis.declare(parameter, true);
+      flowAnalysis.declare(parameter, parameter.type, initialized: true);
       inferMetadata(visitor, parameter, parameter.annotations);
       ExpressionInferenceResult initializerResult =
           visitor.inferExpression(parameter.initializer!, parameter.type);
@@ -2200,21 +2281,24 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   StaticInvocation transformExtensionMethodInvocation(int fileOffset,
       ObjectAccessTarget target, Expression receiver, Arguments arguments) {
-    assert(target.isExtensionMember || target.isNullableExtensionMember);
+    assert(target.isExtensionMember ||
+        target.isNullableExtensionMember ||
+        target.isInlineClassMember ||
+        target.isNullableInlineClassMember);
     Procedure procedure = target.member as Procedure;
-    return engine.forest.createStaticInvocation(
-        fileOffset,
+    return createStaticInvocation(
         procedure,
-        engine.forest.createArgumentsForExtensionMethod(
-            arguments.fileOffset,
-            target.inferredExtensionTypeArguments.length,
+        new ArgumentsImpl.forExtensionMethod(
+            target.receiverTypeArguments.length,
             procedure.function.typeParameters.length -
-                target.inferredExtensionTypeArguments.length,
+                target.receiverTypeArguments.length,
             receiver,
-            extensionTypeArguments: target.inferredExtensionTypeArguments,
+            extensionTypeArguments: target.receiverTypeArguments,
             positionalArguments: arguments.positional,
             namedArguments: arguments.named,
-            typeArguments: arguments.types));
+            typeArguments: arguments.types)
+          ..fileOffset = arguments.fileOffset,
+        fileOffset: fileOffset);
   }
 
   ExpressionInferenceResult _inferDynamicInvocation(
@@ -2321,11 +2405,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {required bool isImplicitCall}) {
     // ignore: unnecessary_null_comparison
     assert(isImplicitCall != null);
-    assert(target.isExtensionMember || target.isNullableExtensionMember);
+    assert(target.isExtensionMember ||
+        target.isNullableExtensionMember ||
+        target.isInlineClassMember ||
+        target.isNullableInlineClassMember);
     DartType calleeType = target.getGetterType(this);
     FunctionType functionType = target.getFunctionType(this);
 
-    if (target.extensionMethodKind == ProcedureKind.Getter) {
+    if (target.declarationMethodKind == ProcedureKind.Getter) {
       StaticInvocation staticInvocation = transformExtensionMethodInvocation(
           fileOffset, target, receiver, new Arguments.empty());
       ExpressionInferenceResult result = inferMethodInvocation(
@@ -2547,7 +2634,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         target.isObjectMember ||
         target.isNullableInstanceMember);
     Procedure? method = target.member as Procedure;
-    assert(method.kind == ProcedureKind.Method,
+    assert(
+        method.kind == ProcedureKind.Method ||
+            method.kind == ProcedureKind.Operator,
         "Unexpected instance method $method");
     Name methodName = method.name;
 
@@ -3151,6 +3240,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             isImplicitCall: isImplicitCall);
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
+      case ObjectAccessTargetKind.inlineClassMember:
+      case ObjectAccessTargetKind.nullableInlineClassMember:
         return _inferExtensionInvocation(
             visitor,
             fileOffset,
@@ -3207,7 +3298,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (target.isNullable) {
           // Handles cases like:
           //   (void Function())? r;
-          //   r.$0();
+          //   r.$1();
           List<LocatedMessage>? context = getWhyNotPromotedContext(
               flowAnalysis.whyNotPromoted(receiver)(),
               receiver,
@@ -3244,6 +3335,48 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           // Handles cases like:
           //   ({void Function() foo})? r;
           //   r.foo();
+          List<LocatedMessage>? context = getWhyNotPromotedContext(
+              flowAnalysis.whyNotPromoted(receiver)(),
+              receiver,
+              (type) => !type.isPotentiallyNullable);
+          readResult = wrapExpressionInferenceResultInProblem(
+              readResult,
+              templateNullableExpressionCallError.withArguments(
+                  receiverType, isNonNullableByDefault),
+              fileOffset,
+              noLength,
+              context: context);
+        }
+        return inferMethodInvocation(
+            visitor,
+            arguments.fileOffset,
+            nullAwareGuards,
+            readResult.expression,
+            readResult.inferredType,
+            callName,
+            arguments,
+            typeContext,
+            isExpressionInvocation: false,
+            isImplicitCall: true,
+            hoistedExpressions: hoistedExpressions);
+      case ObjectAccessTargetKind.inlineClassRepresentation:
+      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+        DartType type = target.getGetterType(this);
+        Expression read = new AsExpression(receiver, type)
+          ..isForNonNullableByDefault = true
+          ..isUnchecked = true
+          ..fileOffset = fileOffset;
+        ExpressionInferenceResult readResult =
+            new ExpressionInferenceResult(type, read);
+        if (target.isNullable) {
+          // Handles cases like:
+          //
+          //  inline class Foo {
+          //    void Function() bar;
+          //    Foo(this.bar);
+          //  }
+          //   Foo? r;
+          //   r.bar();
           List<LocatedMessage>? context = getWhyNotPromotedContext(
               flowAnalysis.whyNotPromoted(receiver)(),
               receiver,
@@ -3830,6 +3963,189 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
   }
 
+  PropertyGetInferenceResult createPropertyGet(
+      {required int fileOffset,
+      required Expression receiver,
+      required DartType receiverType,
+      required Name propertyName,
+      required DartType typeContext,
+      ObjectAccessTarget? readTarget,
+      DartType? readType,
+      required bool isThisReceiver,
+      Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+    Expression read;
+    ExpressionInferenceResult? readResult;
+
+    readTarget ??= findInterfaceMember(receiverType, propertyName, fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+    readType ??= readTarget.getGetterType(this);
+
+    switch (readTarget.kind) {
+      case ObjectAccessTargetKind.missing:
+        read = createMissingPropertyGet(
+            fileOffset, receiver, receiverType, propertyName);
+        break;
+      case ObjectAccessTargetKind.ambiguous:
+        read = createMissingPropertyGet(
+            fileOffset, receiver, receiverType, propertyName,
+            extensionAccessCandidates: readTarget.candidates);
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
+      case ObjectAccessTargetKind.inlineClassMember:
+      case ObjectAccessTargetKind.nullableInlineClassMember:
+        switch (readTarget.declarationMethodKind) {
+          case ProcedureKind.Getter:
+            read = new StaticInvocation(
+                readTarget.member as Procedure,
+                new Arguments(<Expression>[
+                  receiver,
+                ], types: readTarget.receiverTypeArguments)
+                  ..fileOffset = fileOffset)
+              ..fileOffset = fileOffset;
+            break;
+          case ProcedureKind.Method:
+            read = new StaticInvocation(
+                readTarget.tearoffTarget as Procedure,
+                new Arguments(<Expression>[
+                  receiver,
+                ], types: readTarget.receiverTypeArguments)
+                  ..fileOffset = fileOffset)
+              ..fileOffset = fileOffset;
+            readResult = instantiateTearOff(readType, typeContext, read);
+            break;
+          case ProcedureKind.Setter:
+          case ProcedureKind.Factory:
+          case ProcedureKind.Operator:
+            unhandled('$readTarget', "inferPropertyGet", -1, null);
+        }
+        break;
+      case ObjectAccessTargetKind.never:
+        read = new DynamicGet(DynamicAccessKind.Never, receiver, propertyName)
+          ..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.dynamic:
+        read = new DynamicGet(DynamicAccessKind.Dynamic, receiver, propertyName)
+          ..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.invalid:
+        read = new DynamicGet(DynamicAccessKind.Invalid, receiver, propertyName)
+          ..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
+        read = new FunctionTearOff(receiver)..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.objectMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
+      case ObjectAccessTargetKind.superMember:
+        Member member = readTarget.member!;
+        if ((readTarget.isInstanceMember || readTarget.isObjectMember) &&
+            instrumentation != null &&
+            receiverType == const DynamicType()) {
+          instrumentation!.record(uriForInstrumentation, fileOffset, 'target',
+              new InstrumentationValueForMember(member));
+        }
+
+        InstanceAccessKind kind;
+        switch (readTarget.kind) {
+          case ObjectAccessTargetKind.instanceMember:
+            kind = InstanceAccessKind.Instance;
+            break;
+          case ObjectAccessTargetKind.nullableInstanceMember:
+            kind = InstanceAccessKind.Nullable;
+            break;
+          case ObjectAccessTargetKind.objectMember:
+            kind = InstanceAccessKind.Object;
+            break;
+          default:
+            throw new UnsupportedError('Unexpected target kind $readTarget');
+        }
+        if (member is Procedure && member.kind == ProcedureKind.Method) {
+          read = new InstanceTearOff(kind, receiver, propertyName,
+              interfaceTarget: member, resultType: readType)
+            ..fileOffset = fileOffset;
+        } else {
+          read = new InstanceGet(kind, receiver, propertyName,
+              interfaceTarget: member, resultType: readType)
+            ..fileOffset = fileOffset;
+        }
+        bool checkReturn = false;
+        if ((readTarget.isInstanceMember || readTarget.isObjectMember) &&
+            !isThisReceiver) {
+          Member interfaceMember = readTarget.member!;
+          if (interfaceMember is Procedure) {
+            DartType typeToCheck = isNonNullableByDefault
+                ? interfaceMember.function
+                    .computeFunctionType(libraryBuilder.nonNullable)
+                : interfaceMember.function.returnType;
+            checkReturn =
+                InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
+                    interfaceMember.enclosingClass!, typeToCheck);
+          } else if (interfaceMember is Field) {
+            checkReturn =
+                InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
+                    interfaceMember.enclosingClass!, interfaceMember.type);
+          }
+        }
+        if (checkReturn) {
+          if (instrumentation != null) {
+            instrumentation!.record(uriForInstrumentation, fileOffset,
+                'checkReturn', new InstrumentationValueForType(readType));
+          }
+          read = new AsExpression(read, readType)
+            ..isTypeError = true
+            ..isCovarianceCheck = true
+            ..isForNonNullableByDefault = isNonNullableByDefault
+            ..fileOffset = fileOffset;
+        }
+        if (member is Procedure && member.kind == ProcedureKind.Method) {
+          readResult = instantiateTearOff(readType, typeContext, read);
+        }
+        break;
+      case ObjectAccessTargetKind.recordIndexed:
+      case ObjectAccessTargetKind.nullableRecordIndexed:
+        read = new RecordIndexGet(receiver,
+            readTarget.receiverType as RecordType, readTarget.recordFieldIndex!)
+          ..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.nullableRecordNamed:
+        read = new RecordNameGet(receiver,
+            readTarget.receiverType as RecordType, readTarget.recordFieldName!)
+          ..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.inlineClassRepresentation:
+      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+        read = new AsExpression(receiver, readType)
+          ..isForNonNullableByDefault = isNonNullableByDefault
+          ..isUnchecked = true
+          ..fileOffset = fileOffset;
+        break;
+    }
+
+    if (!isNonNullableByDefault) {
+      readType = legacyErasure(readType);
+    }
+
+    readResult ??= new ExpressionInferenceResult(readType, read);
+    if (readTarget.isNullable) {
+      readResult = wrapExpressionInferenceResultInProblem(
+          readResult,
+          templateNullablePropertyAccessError.withArguments(
+              propertyName.text, receiverType, isNonNullableByDefault),
+          read.fileOffset,
+          propertyName.text.length,
+          context: whyNotPromoted != null
+              ? getWhyNotPromotedContext(
+                  whyNotPromoted(), read, (type) => !type.isPotentiallyNullable)
+              : null);
+    }
+    return new PropertyGetInferenceResult(readResult, readTarget.member);
+  }
+
   Expression createMissingPropertyGet(int fileOffset, Expression receiver,
       DartType receiverType, Name propertyName,
       {List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
@@ -4277,9 +4593,7 @@ class _ObjectAccessDescriptor {
               fileOffset,
               visitor.libraryBuilder.fileUri);
       }
-    }
-
-    if (receiverBound is RecordType && !isSetter) {
+    } else if (receiverBound is RecordType && !isSetter) {
       String text = name.text;
       int? index = tryParseRecordPositionalGetterName(
           text, receiverBound.positional.length);
@@ -4299,6 +4613,12 @@ class _ObjectAccessDescriptor {
                   receiverBound, field.type, field.name);
         }
       }
+    } else if (receiverBound is InlineType) {
+      return visitor._findDirectInlineTypeMember(
+          receiverType, receiverBound, name, fileOffset,
+          defaultTarget: const ObjectAccessTarget.missing(),
+          isSetter: isSetter,
+          isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
     }
 
     ObjectAccessTarget? target;
@@ -4409,6 +4729,8 @@ class _ObjectAccessDescriptor {
       case ObjectAccessTargetKind.ambiguous:
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.inlineClassMember:
+      case ObjectAccessTargetKind.inlineClassRepresentation:
         return true;
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.nullableCallFunction:
@@ -4417,6 +4739,8 @@ class _ObjectAccessDescriptor {
       case ObjectAccessTargetKind.missing:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
+      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
         return false;
     }
   }

@@ -69,6 +69,8 @@ Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
 Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
 Dart_EntropySource Dart::entropy_source_callback_ = NULL;
 Dart_GCEventCallback Dart::gc_event_callback_ = nullptr;
+Dart_DwarfStackTraceFootnoteCallback Dart::dwarf_stacktrace_footnote_callback_ =
+    nullptr;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -537,10 +539,10 @@ char* Dart::Init(const Dart_InitializeParams* params) {
 }
 
 static void DumpAliveIsolates(intptr_t num_attempts,
-                              bool only_aplication_isolates) {
+                              bool only_application_isolates) {
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     group->ForEachIsolate([&](Isolate* isolate) {
-      if (!only_aplication_isolates || !Isolate::IsSystemIsolate(isolate)) {
+      if (!only_application_isolates || !Isolate::IsSystemIsolate(isolate)) {
         OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
                      num_attempts, isolate->name());
       }
@@ -905,59 +907,11 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return ApiError::New(message);
     }
   }
+#if !defined(PRODUCT)
+  I->group()->class_table()->PopulateUserVisibleNames();
+#endif
 
   return Error::null();
-}
-
-bool Dart::DetectNullSafety(const char* script_uri,
-                            const uint8_t* snapshot_data,
-                            const uint8_t* snapshot_instructions,
-                            const uint8_t* kernel_buffer,
-                            intptr_t kernel_buffer_size,
-                            const char* package_config,
-                            const char* original_working_directory) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // Before creating the isolate we first determine the null safety mode
-  // in which the isolate needs to run based on one of these factors :
-  // - if loading from source, based on opt-in status of the source
-  // - if loading from a kernel file, based on the mode used when
-  //   generating the kernel file
-  // - if loading from an appJIT, based on the mode used
-  //   when generating the snapshot.
-  ASSERT(FLAG_sound_null_safety == kNullSafetyOptionUnspecified);
-
-  // If snapshot is not a core snapshot we will figure out the mode by
-  // sniffing the feature string in the snapshot.
-  if (snapshot_data != nullptr) {
-    // Read the snapshot and check for null safety option.
-    const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
-    if (!Snapshot::IsAgnosticToNullSafety(snapshot->kind())) {
-      return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
-    }
-  }
-
-  // If kernel_buffer is specified, it could be a self contained
-  // kernel file or the kernel file of the application,
-  // figure out the null safety mode by sniffing the kernel file.
-  if (kernel_buffer != nullptr) {
-    const char* error = nullptr;
-    std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
-        kernel_buffer, kernel_buffer_size, &error);
-    if (program != nullptr) {
-      return program->compilation_mode() == NNBDCompiledMode::kStrong;
-    }
-    return false;
-  }
-
-  // If we are loading from source, figure out the mode from the source.
-  if (KernelIsolate::GetExperimentalFlag(ExperimentalFeature::non_nullable)) {
-    return KernelIsolate::DetectNullSafety(script_uri, package_config,
-                                           original_working_directory);
-  }
-  return false;
-#else
-  UNREACHABLE();
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // The runtime assumes it can create certain kinds of objects at-will without
@@ -1226,7 +1180,7 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
         buffer.AddString(" no-null-safety");
       }
     } else {
-      if (FLAG_sound_null_safety == kNullSafetyOptionStrong) {
+      if (FLAG_sound_null_safety) {
         buffer.AddString(" null-safety");
       } else {
         buffer.AddString(" no-null-safety");

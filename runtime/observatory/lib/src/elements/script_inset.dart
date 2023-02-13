@@ -85,7 +85,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
         .listen((M.Breakpoint b) async {
       final M.Location loc = b.location!;
       int? line;
-      if (loc.script.id == script.id) {
+      if (loc.script!.id == script.id) {
         if (loc.tokenPos != null) {
           line = _loadedScript!.tokenToLine(loc.tokenPos!);
         } else {
@@ -96,7 +96,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
           line = (loc as dynamic).line;
         } on NoSuchMethodError {
           if (loc.tokenPos != null) {
-            M.Script scriptUsed = await _scripts.get(_isolate, loc.script.id!);
+            M.Script scriptUsed = await _scripts.get(_isolate, loc.script!.id!);
             line = scriptUsed.tokenToLine(loc.tokenPos!);
           }
         }
@@ -903,7 +903,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       var position = 0;
       consumeUntil(var stop) {
         if (stop <= position) {
-          return null; // Empty gap between annotations/boundries.
+          return null; // Empty gap between annotations/boundaries.
         }
         if (stop > line.text.length) {
           // Approximated token length can run past the end of the line.

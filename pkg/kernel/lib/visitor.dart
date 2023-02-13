@@ -408,7 +408,7 @@ abstract class TreeVisitor<R>
   // Classes
   R visitClass(Class node) => defaultTreeNode(node);
   R visitExtension(Extension node) => defaultTreeNode(node);
-  R visitView(View node) => defaultTreeNode(node);
+  R visitInlineClass(InlineClass node) => defaultTreeNode(node);
 
   // Initializers
   @override
@@ -709,7 +709,7 @@ abstract class TreeVisitor1<R, A>
   // Classes
   R visitClass(Class node, A arg) => defaultTreeNode(node, arg);
   R visitExtension(Extension node, A arg) => defaultTreeNode(node, arg);
-  R visitView(View node, A arg) => defaultTreeNode(node, arg);
+  R visitInlineClass(InlineClass node, A arg) => defaultTreeNode(node, arg);
 
   // Initializers
   @override
@@ -768,7 +768,7 @@ abstract class DartTypeVisitor<R> {
   R visitNeverType(NeverType node) => defaultDartType(node);
   R visitNullType(NullType node) => defaultDartType(node);
   R visitExtensionType(ExtensionType node) => defaultDartType(node);
-  R visitViewType(ViewType node) => defaultDartType(node);
+  R visitInlineType(InlineType node) => defaultDartType(node);
   R visitIntersectionType(IntersectionType node) => defaultDartType(node);
   R visitRecordType(RecordType node) => defaultDartType(node);
 }
@@ -790,7 +790,7 @@ abstract class DartTypeVisitor1<R, T> {
   R visitNeverType(NeverType node, T arg) => defaultDartType(node, arg);
   R visitNullType(NullType node, T arg) => defaultDartType(node, arg);
   R visitExtensionType(ExtensionType node, T arg) => defaultDartType(node, arg);
-  R visitViewType(ViewType node, T arg) => defaultDartType(node, arg);
+  R visitInlineType(InlineType node, T arg) => defaultDartType(node, arg);
   R visitIntersectionType(IntersectionType node, T arg) =>
       defaultDartType(node, arg);
   R visitRecordType(RecordType node, T arg) => defaultDartType(node, arg);
@@ -1024,6 +1024,8 @@ abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
   @override
   R visitSetConstant(SetConstant node) => defaultConstant(node);
   @override
+  R visitRecordConstant(RecordConstant node) => defaultConstant(node);
+  @override
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   @override
   R visitInstantiationConstant(InstantiationConstant node) =>
@@ -1091,9 +1093,14 @@ abstract class VisitOnceConstantVisitor implements _ConstantCallback<void> {
   @override
   void visitSetConstant(SetConstant node) => defaultConstant(node);
   @override
+  void visitRecordConstant(RecordConstant node) => defaultConstant(node);
+  @override
   void visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   @override
   void visitInstantiationConstant(InstantiationConstant node) =>
+      defaultConstant(node);
+  @override
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
       defaultConstant(node);
   @override
   void visitStaticTearOffConstant(StaticTearOffConstant node) =>
@@ -1179,7 +1186,7 @@ abstract class Visitor<R> extends TreeVisitor<R>
   @override
   R visitExtensionType(ExtensionType node) => defaultDartType(node);
   @override
-  R visitViewType(ViewType node) => defaultDartType(node);
+  R visitInlineType(InlineType node) => defaultDartType(node);
   @override
   R visitIntersectionType(IntersectionType node) => defaultDartType(node);
   @override
@@ -1238,7 +1245,7 @@ abstract class Visitor<R> extends TreeVisitor<R>
 
   R visitExtensionReference(Extension node);
 
-  R visitViewReference(View node);
+  R visitInlineClassReference(InlineClass node);
 
   // Constant references
   R defaultConstantReference(Constant node);
@@ -1340,7 +1347,7 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
   @override
   R visitExtensionType(ExtensionType node, A arg) => defaultDartType(node, arg);
   @override
-  R visitViewType(ViewType node, A arg) => defaultDartType(node, arg);
+  R visitInlineType(InlineType node, A arg) => defaultDartType(node, arg);
 
   // Constants
   @override
@@ -1367,6 +1374,9 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
   @override
   R visitSetConstant(SetConstant node, A arg) => defaultConstant(node, arg);
   @override
+  R visitRecordConstant(RecordConstant node, A arg) =>
+      defaultConstant(node, arg);
+  @override
   R visitInstanceConstant(InstanceConstant node, A arg) =>
       defaultConstant(node, arg);
   @override
@@ -1386,7 +1396,7 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
 
   R visitExtensionReference(Extension node, A arg);
 
-  R visitViewReference(View node, A arg);
+  R visitInlineClassReference(InlineClass node, A arg);
 
   // Constant references
   R defaultConstantReference(Constant node, A arg);
@@ -1481,9 +1491,9 @@ mixin VisitorThrowingMixin<R> implements Visitor<R> {
   }
 
   @override
-  R visitViewReference(View node) {
+  R visitInlineClassReference(InlineClass node) {
     throw new UnimplementedError(
-        'Unimplemented ${runtimeType}.visitViewReference for '
+        'Unimplemented ${runtimeType}.visitInlineClassReference for '
         '${node} (${node.runtimeType})');
   }
 
@@ -1518,7 +1528,7 @@ mixin VisitorNullMixin<R> implements Visitor<R?> {
   R? visitExtensionReference(Extension node) => null;
 
   @override
-  R? visitViewReference(View node) => null;
+  R? visitInlineClassReference(InlineClass node) => null;
 
   @override
   R? defaultConstantReference(Constant node) => null;
@@ -1542,7 +1552,7 @@ mixin VisitorVoidMixin implements Visitor<void> {
   void visitExtensionReference(Extension node) {}
 
   @override
-  void visitViewReference(View node) {}
+  void visitInlineClassReference(InlineClass node) {}
 
   @override
   void defaultConstantReference(Constant node) {}
@@ -1568,7 +1578,7 @@ mixin VisitorDefaultValueMixin<R> implements Visitor<R> {
   R visitExtensionReference(Extension node) => defaultValue;
 
   @override
-  R visitViewReference(View node) => defaultValue;
+  R visitInlineClassReference(InlineClass node) => defaultValue;
 
   @override
   R defaultConstantReference(Constant node) => defaultValue;
@@ -1671,7 +1681,6 @@ class Transformer extends TreeVisitor<TreeNode> {
           result != null,
           'Attempting to remove ${nodes[i]} (${nodes[i].runtimeType}) '
           'in transformer.');
-      // ignore: invalid_null_aware_operator
       result.parent = parent;
       nodes[i] = result;
     }
@@ -1891,13 +1900,13 @@ class RemovingTransformer extends TreeVisitor1<TreeNode, TreeNode?> {
     transformList(nodes, parent, dummyExtension);
   }
 
-  /// Transforms or removes [View] nodes in [nodes] as children of
+  /// Transforms or removes [InlineClass] nodes in [nodes] as children of
   /// [parent].
   ///
   /// This is convenience method for calling [transformList] with removal
-  /// sentinel for [View] nodes.
-  void transformViewList(List<View> nodes, TreeNode parent) {
-    transformList(nodes, parent, dummyView);
+  /// sentinel for [InlineClass] nodes.
+  void transformInlineClassList(List<InlineClass> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyInlineClass);
   }
 
   /// Transforms or removes [Constructor] nodes in [nodes] as children of

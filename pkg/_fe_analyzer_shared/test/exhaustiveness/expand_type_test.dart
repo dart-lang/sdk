@@ -13,12 +13,12 @@ void main() {
     //  B C(D)
     //     / \
     //    E   F
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', isSealed: true, inherits: [a]);
-    var e = StaticType('E', inherits: [d]);
-    var f = StaticType('F', inherits: [d]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', isSealed: true, inherits: [a]);
+    var e = StaticTypeImpl('E', inherits: [d]);
+    var f = StaticTypeImpl('F', inherits: [d]);
 
     expectExpand(a, a, 'A');
     expectExpand(a, b, 'B|C|D');
@@ -41,12 +41,12 @@ void main() {
     //  B C D
     //     / \
     //    E   F
-    var a = StaticType('A');
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [a]);
-    var e = StaticType('E', inherits: [d]);
-    var f = StaticType('F', inherits: [d]);
+    var a = StaticTypeImpl('A');
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [a]);
+    var e = StaticTypeImpl('E', inherits: [d]);
+    var f = StaticTypeImpl('F', inherits: [d]);
 
     expectExpand(a, a, 'A');
     expectExpand(a, b, 'A');
@@ -71,13 +71,13 @@ void main() {
     //     D  (E)
     //        / \
     //       F   G
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [c]);
-    var e = StaticType('E', isSealed: true, inherits: [c]);
-    var f = StaticType('F', inherits: [e]);
-    var g = StaticType('G', inherits: [e]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [c]);
+    var e = StaticTypeImpl('E', isSealed: true, inherits: [c]);
+    var f = StaticTypeImpl('F', inherits: [e]);
+    var g = StaticTypeImpl('G', inherits: [e]);
 
     expectExpand(a, a, 'A');
     expectExpand(a, b, 'B|C');
@@ -109,14 +109,14 @@ void main() {
     //  D  E F  G
     //     \ /
     //      H
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', isSealed: true, inherits: [a]);
-    var d = StaticType('D', inherits: [b]);
-    var e = StaticType('E', inherits: [b]);
-    var f = StaticType('F', inherits: [c]);
-    var g = StaticType('G', inherits: [c]);
-    var h = StaticType('H', inherits: [e, f]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
+    var c = StaticTypeImpl('C', isSealed: true, inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [b]);
+    var e = StaticTypeImpl('E', inherits: [b]);
+    var f = StaticTypeImpl('F', inherits: [c]);
+    var g = StaticTypeImpl('G', inherits: [c]);
+    var h = StaticTypeImpl('H', inherits: [e, f]);
 
     expectExpand(a, a, 'A');
     expectExpand(a, b, 'B|C');
@@ -163,11 +163,11 @@ void main() {
     //   (B)  C
     //   / \ /
     //  D   E
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [b]);
-    var e = StaticType('E', inherits: [b, c]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [b]);
+    var e = StaticTypeImpl('E', inherits: [b, c]);
 
     expectExpand(a, a, 'A');
     expectExpand(a, b, 'B|C');
@@ -206,10 +206,10 @@ void main() {
     //  B   C
     //     / \
     //    D   E
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [c]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [c]);
 
     expectExpand(a.nullable, a, 'A|Null');
     expectExpand(a, a.nullable, 'A');

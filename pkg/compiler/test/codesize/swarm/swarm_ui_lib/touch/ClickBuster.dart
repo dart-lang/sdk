@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 /// Click buster implementation, which is a behavior that prevents native clicks
@@ -34,10 +32,10 @@ class ClickBuster {
   /// The list of coordinates that we use to measure the distance of clicks from.
   /// If a click is within the distance threshold of any of these coordinates
   /// then we allow the click.
-  static DoubleLinkedQueue<num> _coordinates;
+  static late DoubleLinkedQueue<num> _coordinates;
 
   /// The last time preventGhostClick was called. */
-  static int _lastPreventedTime;
+  static late int _lastPreventedTime;
 
   /// This handler will prevent the default behavior for any clicks unless the
   /// click is within the distance threshold of one of the temporary allowed
@@ -59,15 +57,15 @@ class ClickBuster {
       return;
     }
     */
-    DoubleLinkedQueueEntry<num> entry = _coordinates.firstEntry();
+    DoubleLinkedQueueEntry<num>? entry = _coordinates.firstEntry();
     while (entry != null) {
       if (_hitTest(
-          entry.element, entry.nextEntry().element, coord.x, coord.y)) {
-        entry.nextEntry().remove();
+          entry.element, entry.nextEntry()!.element, coord.x, coord.y)) {
+        entry.nextEntry()!.remove();
         entry.remove();
         return;
       } else {
-        entry = entry.nextEntry().nextEntry();
+        entry = entry.nextEntry()!.nextEntry();
       }
     }
 
@@ -80,8 +78,8 @@ class ClickBuster {
   /// This handler will temporarily allow a click to occur near the touch event's
   /// coordinates.
   static void _onTouchStart(Event e) {
-    TouchEvent te = e;
-    final coord = Coordinate.fromClient(te.touches[0]);
+    final te = e as TouchEvent;
+    final coord = Coordinate.fromClient(te.touches![0]);
     _coordinates.add(coord.x);
     _coordinates.add(coord.y);
     Timer(const Duration(milliseconds: _TIME_THRESHOLD), () {
@@ -99,14 +97,14 @@ class ClickBuster {
 
   /// Remove one specified coordinate from the coordinates list.
   static void _removeCoordinate(num x, num y) {
-    DoubleLinkedQueueEntry<num> entry = _coordinates.firstEntry();
+    DoubleLinkedQueueEntry<num>? entry = _coordinates.firstEntry();
     while (entry != null) {
-      if (entry.element == x && entry.nextEntry().element == y) {
-        entry.nextEntry().remove();
+      if (entry.element == x && entry.nextEntry()!.element == y) {
+        entry.nextEntry()!.remove();
         entry.remove();
         return;
       } else {
-        entry = entry.nextEntry().nextEntry();
+        entry = entry.nextEntry()!.nextEntry();
       }
     }
   }
@@ -116,7 +114,7 @@ class ClickBuster {
   /// does fire. This is due to a bug: links get highlighted even if the click
   /// event has preventDefault called on it.
   static void _toggleTapHighlights(bool enable) {
-    document.body.style.setProperty(
+    document.body!.style.setProperty(
         "-webkit-tap-highlight-color", enable ? "" : "rgba(0,0,0,0)", "");
   }
 
@@ -170,7 +168,7 @@ class ClickBuster {
       // Listen to touchstart on capture phase since it must be called prior to
       // every click or else we will accidentally prevent the click even if we
       // don't call preventGhostClick.
-      Function startFn = (e) {
+      EventListener startFn = (e) {
         _onTouchStart(e);
       };
       if (!Device.supportsTouch) {
@@ -192,14 +190,14 @@ class ClickBuster {
     // Above all other rules, we won't bust any clicks if there wasn't some call
     // to preventGhostClick in the last time threshold.
     _lastPreventedTime = TimeUtil.now();
-    DoubleLinkedQueueEntry<num> entry = _coordinates.firstEntry();
+    DoubleLinkedQueueEntry<num>? entry = _coordinates.firstEntry();
     while (entry != null) {
-      if (_hitTest(entry.element, entry.nextEntry().element, x, y)) {
-        entry.nextEntry().remove();
+      if (_hitTest(entry.element, entry.nextEntry()!.element, x, y)) {
+        entry.nextEntry()!.remove();
         entry.remove();
         return;
       } else {
-        entry = entry.nextEntry().nextEntry();
+        entry = entry.nextEntry()!.nextEntry();
       }
     }
   }

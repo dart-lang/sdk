@@ -2,6 +2,11 @@
   "configurations": {
     "invalid-vm-android-simarm": {},
     "valid-dart2js-chrome": {},
-    "valid-dart2js-safari": {}
+    "valid-dart2js-safari": {},
+    "vm-aot": {
+      "options": {
+        "compiler": "dartkp"
+      }
+    }
   }
 }

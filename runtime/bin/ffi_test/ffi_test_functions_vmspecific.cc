@@ -631,7 +631,7 @@ class PendingCall {
 
   void PostAndWait(Dart_Port port, Dart_CObject* object) {
     std::unique_lock<std::mutex> lock(mutex);
-    const bool success = Dart_PostCObject_DL(send_port_, object);
+    const bool success = Dart_PostCObject_DL(port, object);
     if (!success) FATAL("Failed to send message, invalid port or isolate died");
 
     printf("C   :  Waiting for result.\n");

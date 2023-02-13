@@ -23,7 +23,7 @@ class Y {
   static var count = 0;
   Y() {
     // Consume large amounts of memory per iteration to fail/succeed quicker.
-    heavyMemory = new List(10 * 1024 * 1024);
+    heavyMemory = new List.filled(10 * 1024 * 1024, null);
     // Terminate the test if we allocated enough memory without running out.
     if (count++ > 100) return;
     Timer.run(() => onY());

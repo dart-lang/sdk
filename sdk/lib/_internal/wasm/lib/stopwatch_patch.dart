@@ -4,8 +4,7 @@
 
 part of "core_patch.dart";
 
-@pragma("wasm:import", "dart2wasm.performanceNow")
-external double _performanceNow();
+double _performanceNow() => JS<double>("performance.now");
 
 @patch
 class Stopwatch {

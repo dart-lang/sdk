@@ -72,7 +72,7 @@ void expectSource(List<int> data, bool expect1, bool expect2) {
     throw "Unexpected data for $uri1";
   }
   if (expect2 && tmp.uriToSource[uri2]!.source.isEmpty) {
-    throw "No data data for $uri2";
+    throw "No data for $uri2";
   }
   if (!expect2 && tmp.uriToSource[uri2]!.source.isNotEmpty) {
     throw "Unexpected data for $uri2";

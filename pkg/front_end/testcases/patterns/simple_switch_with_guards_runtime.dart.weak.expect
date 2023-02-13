@@ -1,0 +1,65 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1(dynamic x) → dynamic {
+  #L1:
+  {
+    core::int a;
+    final dynamic #0#0 = x;
+    late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = a = #0#6{core::int} in true)) && a.{core::num::>}(0){(core::num) → core::bool}) {
+      {
+        return a;
+      }
+    }
+    else {
+      {
+        return null;
+      }
+    }
+  }
+}
+static method test2(dynamic x) → dynamic {
+  #L2:
+  {
+    core::num a;
+    core::num a';
+    final dynamic #0#0 = x;
+    late final core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
+    late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    dynamic #t2;
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::num && (let final dynamic #t3 = a = #0#6{core::num} in true)) && (let final dynamic #t4 = #0#7 in true) && (a is{ForNonNullableByDefault} core::int && a{core::int}.{core::int::isEven}{core::bool}) && (let final dynamic #t5 = #t2 = a in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t6 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::num && (let final dynamic #t7 = a' = #0#7{core::num} in true)) && (a' is{ForNonNullableByDefault} core::double && a'{core::double}.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool}) && (let final dynamic #t8 = #t2 = a' in true)) {
+      core::num a = #t2{core::num};
+      {
+        return a;
+      }
+    }
+    else {
+      {
+        return null;
+      }
+    }
+  }
+}
+static method main() → dynamic {
+  self::expectEquals(1, self::test1(<core::int>[1]));
+  self::expectEquals(null, self::test1(<core::int>[0]));
+  self::expectEquals(null, self::test1(<core::int>[1.{core::int::unary-}(){() → core::int}]));
+  self::expectEquals(null, self::test2(<core::Object>[1, "two"]));
+  self::expectEquals(2, self::test2(<core::Object>[2, "three"]));
+  self::expectEquals(null, self::test2(<core::Object>["one", 1.5]));
+  self::expectEquals(2.5, self::test2(<core::Object>["two", 2.5]));
+  self::expectEquals(null, self::test2(null));
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected ${x} to be equal to ${y}.";
+  }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}

@@ -6,6 +6,9 @@
 //
 // This complements corelib/double_hash_code_test.dart and verifies hash code
 // values of doubles that are not representable as integers.
+//
+// VMOptions=--use_sse41
+// VMOptions=--no_use_sse41
 
 import 'package:expect/expect.dart';
 

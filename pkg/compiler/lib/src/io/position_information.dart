@@ -146,7 +146,7 @@ abstract class AbstractPositionSourceInformationStrategy
 /// Marker used to tag the root nodes of source-mapped code.
 ///
 /// This is needed to be able to distinguish JavaScript nodes that shouldn't
-/// have source locations (like the premable) from the nodes that should
+/// have source locations (like the preamble) from the nodes that should
 /// (like functions compiled from Dart code).
 class SourceMappedMarker extends SourceInformation {
   const SourceMappedMarker();
@@ -169,7 +169,6 @@ class CodePosition {
 
   CodePosition(this.startPosition, this.endPosition, this.closingPosition);
 
-  // ignore: MISSING_RETURN
   int? getPosition(CodePositionKind kind) {
     switch (kind) {
       case CodePositionKind.START:
@@ -246,7 +245,6 @@ enum SourcePositionKind {
   INNER,
 }
 
-// ignore: MISSING_RETURN
 SourceLocation? getSourceLocation(SourceInformation sourceInformation,
     [SourcePositionKind sourcePositionKind = SourcePositionKind.START]) {
   assert((sourceInformation as dynamic) != null);

@@ -3,5 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 test(dynamic x) {
-  if (x case int? _ & double? _) {}
+  if (x case int? _ && double? _) {}
 }

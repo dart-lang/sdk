@@ -19,7 +19,7 @@ const int LINE_C = 28;
 class NotGeneric {}
 
 testeeMain() {
-  var x = new List(1);
+  var x = new List<dynamic>.filled(1, null);
   var y = 7;
   debugger();
   print("Statement");

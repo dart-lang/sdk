@@ -23,6 +23,7 @@ abstract class TestMixin<R extends core::Object* = dynamic, T extends core::Obje
         }
     return result;
   }
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -31,7 +32,6 @@ abstract class TestMixin<R extends core::Object* = dynamic, T extends core::Obje
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class PagingResponse<T extends core::Object* = dynamic> extends core::Object {
@@ -39,6 +39,7 @@ class PagingResponse<T extends core::Object* = dynamic> extends core::Object {
   constructor •(self::PagingResponseData<self::PagingResponse::T*>* data) → self::PagingResponse<self::PagingResponse::T*>*
     : self::PagingResponse::data = data, super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -47,7 +48,6 @@ class PagingResponse<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class PagingResponseData<T extends core::Object* = dynamic> extends core::Object {
@@ -55,6 +55,7 @@ class PagingResponseData<T extends core::Object* = dynamic> extends core::Object
   constructor •(core::List<self::PagingResponseData::T*>* data) → self::PagingResponseData<self::PagingResponseData::T*>*
     : self::PagingResponseData::data = data, super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -63,7 +64,6 @@ class PagingResponseData<T extends core::Object* = dynamic> extends core::Object
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Response<T extends core::Object* = dynamic> extends core::Object {
@@ -71,6 +71,7 @@ class Response<T extends core::Object* = dynamic> extends core::Object {
   constructor •(self::Response::T* data) → self::Response<self::Response::T*>*
     : self::Response::data = data, super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -79,13 +80,13 @@ class Response<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class _Class1&Object&TestMixin extends core::Object implements self::TestMixin<self::Response<core::String*>*, core::String*> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class1&Object&TestMixin*
     : super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   method test(covariant-by-class asy::Future<self::Response<core::String*>*>* fetch) → asy::Future<core::String*>* async /* futureValueType= core::String* */ {
     final self::Response<core::String*>* response = await fetch;
     core::String* result;
@@ -113,7 +114,6 @@ abstract class _Class1&Object&TestMixin extends core::Object implements self::Te
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Class1 extends self::_Class1&Object&TestMixin {
@@ -129,6 +129,7 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
   const synthetic constructor •() → self::_Class2&Object&TestMixin*
     : super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   method test(covariant-by-class asy::Future<self::PagingResponse<core::String*>*>* fetch) → asy::Future<core::String*>* async /* futureValueType= core::String* */ {
     final self::PagingResponse<core::String*>* response = await fetch;
     core::String* result;
@@ -156,7 +157,6 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Class2 extends self::_Class2&Object&TestMixin {

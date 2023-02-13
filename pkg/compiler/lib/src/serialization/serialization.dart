@@ -21,6 +21,7 @@ import '../js/js.dart' as js;
 import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
+import '../universe/record_shape.dart' show RecordShape;
 
 import '../options.dart';
 import 'data_sink.dart';
@@ -61,10 +62,10 @@ class ValueInterner {
 /// Data class representing cache information for a given [T] which can be
 /// passed from a [DataSourceReader] to other [DataSourceReader]s and [DataSinkWriter]s.
 class DataSourceTypeIndices<E, T> {
-  Map<E, int> get cache => _cache ??= source.reshapeCacheAsMap(_getValue);
+  Map<E?, int> get cache => _cache ??= source.reshapeCacheAsMap(_getValue);
 
   final E Function(T? value)? _getValue;
-  Map<E, int>? _cache;
+  Map<E?, int>? _cache;
   final IndexedSource<T> source;
 
   /// Uses the cache from the provided [source] and reshapes it if necessary

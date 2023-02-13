@@ -190,6 +190,21 @@ abstract class I {
 class D extends C implements I {}
 ''');
   }
+
+  test_class_setter_abstractOverridesConcrete() async {
+    await assertErrorsInCode('''
+class A {
+  set c(int i) {}
+}
+
+class B extends A {
+  set c(num i);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER, 37, 1,
+          messageContains: ["'A.c'", "'B.c'"]),
+    ]);
+  }
 }
 
 @reflectiveTest

@@ -10,9 +10,11 @@ import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
+import '../../dap.dart';
 import 'adapters/dart.dart';
 import 'isolate_manager.dart';
 import 'protocol_generated.dart' as dap;
+import 'variables.dart';
 
 /// A helper that handlers converting to/from DAP and VM Service types and to
 /// user-friendly display strings.
@@ -57,43 +59,42 @@ class ProtocolConverter {
     vm.InstanceRef ref, {
     required bool allowCallingToString,
     bool allowTruncatedValue = true,
-    bool includeQuotesAroundString = true,
+    VariableFormat? format,
   }) async {
     final isTruncated = ref.valueAsStringIsTruncated ?? false;
+    final valueAsString = ref.valueAsString;
+    final formatter = format ?? const VariableFormat();
     if (ref.kind == vm.InstanceKind.kString && isTruncated) {
       // Call toString() if allowed (and we don't already have a value),
       // otherwise (or if it returns null) fall back to the truncated value
       // with "…" suffix.
       var stringValue = allowCallingToString &&
-              (ref.valueAsString == null || !allowTruncatedValue)
-          ? await _callToString(
-              thread,
-              ref,
+              (valueAsString == null || !allowTruncatedValue)
+          ? await _callToString(thread, ref,
               // Quotes are handled below, so they can be wrapped around the
               // ellipsis.
-              includeQuotesAroundString: false,
-            )
+              format: VariableFormat.noQuotes())
           : null;
-      stringValue ??= '${ref.valueAsString}…';
+      stringValue ??= '$valueAsString…';
 
-      return includeQuotesAroundString ? '"$stringValue"' : stringValue;
+      return formatter.formatString(stringValue);
     } else if (ref.kind == vm.InstanceKind.kString) {
       // Untruncated strings.
-      return includeQuotesAroundString
-          ? '"${ref.valueAsString}"'
-          : ref.valueAsString.toString();
-    } else if (ref.valueAsString != null) {
-      return isTruncated
-          ? '${ref.valueAsString}…'
-          : ref.valueAsString.toString();
+      return formatter.formatString(valueAsString ?? "");
+    } else if (valueAsString != null) {
+      if (isTruncated) {
+        return '$valueAsString…';
+      } else if (ref.kind == vm.InstanceKind.kInt) {
+        return formatter.formatInt(int.tryParse(valueAsString));
+      } else {
+        return valueAsString.toString();
+      }
     } else if (ref.kind == 'PlainInstance') {
       var stringValue = ref.classRef?.name ?? '<unknown instance>';
       if (allowCallingToString) {
-        final toStringValue = await _callToString(
-          thread,
-          ref,
-          includeQuotesAroundString: false,
-        );
+        final toStringValue = await _callToString(thread, ref,
+            // Suppress quotes because this is going inside a longer string.
+            format: VariableFormat.noQuotes());
         // Include the toString() result only if it's not the default (which
         // duplicates the type name we're already showing).
         if (toStringValue != "Instance of '${ref.classRef?.name}'") {
@@ -125,6 +126,7 @@ class ProtocolConverter {
     required bool allowCallingToString,
     int? startItem = 0,
     int? numItems,
+    VariableFormat? format,
   }) async {
     final elements = instance.elements;
     final associations = instance.associations;
@@ -139,6 +141,7 @@ class ProtocolConverter {
           name: null,
           evaluateName: evaluateName,
           allowCallingToString: allowCallingToString,
+          format: format,
         )
       ];
     } else if (elements != null) {
@@ -153,6 +156,7 @@ class ProtocolConverter {
                   evaluateName, '[${start + index}]'),
               allowCallingToString:
                   allowCallingToString && index <= maxToStringsPerEvaluation,
+              format: format,
             ),
           ));
     } else if (associations != null) {
@@ -168,11 +172,18 @@ class ProtocolConverter {
         final callToString =
             allowCallingToString && index <= maxToStringsPerEvaluation;
 
-        final keyDisplay = await convertVmResponseToDisplayString(thread, key,
-            allowCallingToString: callToString);
+        final keyDisplay = await convertVmResponseToDisplayString(
+          thread,
+          key,
+          allowCallingToString: callToString,
+          format: format,
+        );
         final valueDisplay = await convertVmResponseToDisplayString(
-            thread, value,
-            allowCallingToString: callToString);
+          thread,
+          value,
+          allowCallingToString: callToString,
+          format: format,
+        );
 
         // We only provide an evaluateName for the value, and only if the
         // key is a simple value.
@@ -186,7 +197,7 @@ class ProtocolConverter {
         return dap.Variable(
           name: '${start + index}',
           value: '$keyDisplay -> $valueDisplay',
-          variablesReference: thread.storeData(mapEntry),
+          variablesReference: thread.storeData(VariableData(mapEntry, format)),
         );
       }));
     } else if (_isList(instance) &&
@@ -208,14 +219,25 @@ class ProtocolConverter {
       // Otherwise, show the fields from the instance.
       final variables = await Future.wait(fields.mapIndexed(
         (index, field) async {
-          final name = field.decl?.name;
-          return convertVmResponseToVariable(thread, field.value,
-              name: name ?? '<unnamed field>',
-              evaluateName: name != null
-                  ? _adapter.combineEvaluateName(evaluateName, '.$name')
-                  : null,
-              allowCallingToString:
-                  allowCallingToString && index <= maxToStringsPerEvaluation);
+          var name = field.decl?.name;
+          if (name == null && field.name is int) {
+            // Indexed record fields are given only their index as the name, but
+            // users will expect to see them as they are accessed like `$1`.
+            name = '\$${field.name}';
+          } else {
+            name ??= field.name;
+          }
+          return convertVmResponseToVariable(
+            thread,
+            field.value,
+            name: name ?? '<unnamed field>',
+            evaluateName: name != null
+                ? _adapter.combineEvaluateName(evaluateName, '.$name')
+                : null,
+            allowCallingToString:
+                allowCallingToString && index <= maxToStringsPerEvaluation,
+            format: format,
+          );
         },
       ));
 
@@ -245,6 +267,7 @@ class ProtocolConverter {
                   _adapter.combineEvaluateName(evaluateName, '.$getterName'),
               allowCallingToString:
                   allowCallingToString && index <= maxToStringsPerEvaluation,
+              format: format,
             );
           } catch (e) {
             return dap.Variable(
@@ -318,14 +341,14 @@ class ProtocolConverter {
     ThreadInfo thread,
     vm.Response response, {
     required bool allowCallingToString,
-    bool includeQuotesAroundString = true,
+    VariableFormat? format,
   }) async {
     if (response is vm.InstanceRef) {
       return convertVmInstanceRefToDisplayString(
         thread,
         response,
         allowCallingToString: allowCallingToString,
-        includeQuotesAroundString: includeQuotesAroundString,
+        format: format,
       );
     } else if (response is vm.Sentinel) {
       return '<sentinel>';
@@ -347,12 +370,14 @@ class ProtocolConverter {
     required String? name,
     required String? evaluateName,
     required bool allowCallingToString,
+    VariableFormat? format,
   }) async {
     if (response is vm.InstanceRef) {
       // For non-simple variables, store them and produce a new reference that
       // can be used to access their fields/items/associations.
-      final variablesReference =
-          isSimpleKind(response.kind) ? 0 : thread.storeData(response);
+      final variablesReference = isSimpleKind(response.kind)
+          ? 0
+          : thread.storeData(VariableData(response, format));
 
       return dap.Variable(
         name: name ?? response.kind.toString(),
@@ -361,6 +386,7 @@ class ProtocolConverter {
           thread,
           response,
           allowCallingToString: allowCallingToString,
+          format: format,
         ),
         indexedVariables: _isList(response) ? response.length : null,
         variablesReference: variablesReference,
@@ -538,7 +564,7 @@ class ProtocolConverter {
   Future<String?> _callToString(
     ThreadInfo thread,
     vm.InstanceRef ref, {
-    bool includeQuotesAroundString = true,
+    VariableFormat? format,
   }) async {
     final service = _adapter.vmService;
     if (service == null) {
@@ -564,7 +590,7 @@ class ProtocolConverter {
       thread,
       result,
       allowCallingToString: false, // Don't allow recursing.
-      includeQuotesAroundString: includeQuotesAroundString,
+      format: format,
     );
   }
 
@@ -592,7 +618,9 @@ class ProtocolConverter {
             f.json?['_kind'] == 'GetterFunction' &&
             !(f.isStatic ?? false) &&
             !(f.isConst ?? false));
-        getterNames.addAll(instanceFields.map((f) => f.name!));
+        getterNames.addAll(instanceFields
+            .map((f) => f.name!)
+            .where((name) => !name.startsWith('_')));
       }
 
       classRef = classResponse.superClass;

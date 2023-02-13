@@ -56,8 +56,8 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitView(View node, Node other) {
-    return strategy.checkView(this, node, other);
+  bool visitInlineClass(InlineClass node, Node other) {
+    return strategy.checkInlineClass(this, node, other);
   }
 
   @override
@@ -686,8 +686,8 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitViewType(ViewType node, Node other) {
-    return strategy.checkViewType(this, node, other);
+  bool visitInlineType(InlineType node, Node other) {
+    return strategy.checkInlineType(this, node, other);
   }
 
   @override
@@ -828,7 +828,7 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitViewReference(View node, Node other) {
+  bool visitInlineClassReference(InlineClass node, Node other) {
     return false;
   }
 
@@ -1478,7 +1478,7 @@ class EquivalenceStrategy {
     if (!checkLibrary_extensions(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkLibrary_views(visitor, node, other)) {
+    if (!checkLibrary_inlineClasses(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLibrary_procedures(visitor, node, other)) {
@@ -1700,61 +1700,65 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkViewMemberDescriptor(
-      EquivalenceVisitor visitor, ViewMemberDescriptor? node, Object? other) {
+  bool checkInlineClassMemberDescriptor(EquivalenceVisitor visitor,
+      InlineClassMemberDescriptor? node, Object? other) {
     if (identical(node, other)) return true;
-    if (node is! ViewMemberDescriptor) return false;
-    if (other is! ViewMemberDescriptor) return false;
+    if (node is! InlineClassMemberDescriptor) return false;
+    if (other is! InlineClassMemberDescriptor) return false;
     bool result = true;
-    if (!checkViewMemberDescriptor_name(visitor, node, other)) {
+    if (!checkInlineClassMemberDescriptor_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkViewMemberDescriptor_kind(visitor, node, other)) {
+    if (!checkInlineClassMemberDescriptor_kind(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkViewMemberDescriptor_flags(visitor, node, other)) {
+    if (!checkInlineClassMemberDescriptor_flags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkViewMemberDescriptor_member(visitor, node, other)) {
+    if (!checkInlineClassMemberDescriptor_member(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     return result;
   }
 
-  bool checkView(EquivalenceVisitor visitor, View? node, Object? other) {
+  bool checkInlineClass(
+      EquivalenceVisitor visitor, InlineClass? node, Object? other) {
     if (identical(node, other)) return true;
-    if (node is! View) return false;
-    if (other is! View) return false;
+    if (node is! InlineClass) return false;
+    if (other is! InlineClass) return false;
     if (!visitor.matchNamedNodes(node, other)) {
       return false;
     }
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkView_name(visitor, node, other)) {
+    if (!checkInlineClass_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkView_fileUri(visitor, node, other)) {
+    if (!checkInlineClass_fileUri(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkView_typeParameters(visitor, node, other)) {
+    if (!checkInlineClass_typeParameters(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkView_representationType(visitor, node, other)) {
+    if (!checkInlineClass_declaredRepresentationType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkView_members(visitor, node, other)) {
+    if (!checkInlineClass_representationName(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkView_annotations(visitor, node, other)) {
+    if (!checkInlineClass_members(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkView_flags(visitor, node, other)) {
+    if (!checkInlineClass_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkView_reference(visitor, node, other)) {
+    if (!checkInlineClass_flags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkView_fileOffset(visitor, node, other)) {
+    if (!checkInlineClass_reference(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkInlineClass_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -4434,23 +4438,23 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkViewType(
-      EquivalenceVisitor visitor, ViewType? node, Object? other) {
+  bool checkInlineType(
+      EquivalenceVisitor visitor, InlineType? node, Object? other) {
     if (identical(node, other)) return true;
-    if (node is! ViewType) return false;
-    if (other is! ViewType) return false;
+    if (node is! InlineType) return false;
+    if (other is! InlineType) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkViewType_viewReference(visitor, node, other)) {
+    if (!checkInlineType_inlineClassReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkViewType_declaredNullability(visitor, node, other)) {
+    if (!checkInlineType_declaredNullability(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkViewType_typeArguments(visitor, node, other)) {
+    if (!checkInlineType_typeArguments(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkViewType_representationType(visitor, node, other)) {
+    if (!checkInlineType_instantiatedRepresentationType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -4927,10 +4931,10 @@ class EquivalenceStrategy {
         node.extensions, other.extensions, visitor.checkNodes, 'extensions');
   }
 
-  bool checkLibrary_views(
+  bool checkLibrary_inlineClasses(
       EquivalenceVisitor visitor, Library node, Library other) {
-    return visitor.checkLists(
-        node.views, other.views, visitor.checkNodes, 'views');
+    return visitor.checkLists(node.inlineClasses, other.inlineClasses,
+        visitor.checkNodes, 'inlineClasses');
   }
 
   bool checkLibrary_procedures(
@@ -5247,70 +5251,82 @@ class EquivalenceStrategy {
     return checkNamedNode_fileOffset(visitor, node, other);
   }
 
-  bool checkView_name(EquivalenceVisitor visitor, View node, View other) {
+  bool checkInlineClass_name(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
     return visitor.checkValues(node.name, other.name, 'name');
   }
 
-  bool checkView_fileUri(EquivalenceVisitor visitor, View node, View other) {
+  bool checkInlineClass_fileUri(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
     return visitor.checkValues(node.fileUri, other.fileUri, 'fileUri');
   }
 
-  bool checkView_typeParameters(
-      EquivalenceVisitor visitor, View node, View other) {
+  bool checkInlineClass_typeParameters(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
     return visitor.checkLists(node.typeParameters, other.typeParameters,
         visitor.checkNodes, 'typeParameters');
   }
 
-  bool checkView_representationType(
-      EquivalenceVisitor visitor, View node, View other) {
-    return visitor.checkNodes(node.representationType, other.representationType,
-        'representationType');
+  bool checkInlineClass_declaredRepresentationType(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
+    return visitor.checkNodes(node.declaredRepresentationType,
+        other.declaredRepresentationType, 'declaredRepresentationType');
   }
 
-  bool checkViewMemberDescriptor_name(EquivalenceVisitor visitor,
-      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+  bool checkInlineClass_representationName(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
+    return visitor.checkValues(node.representationName,
+        other.representationName, 'representationName');
+  }
+
+  bool checkInlineClassMemberDescriptor_name(EquivalenceVisitor visitor,
+      InlineClassMemberDescriptor node, InlineClassMemberDescriptor other) {
     return visitor.checkNodes(node.name, other.name, 'name');
   }
 
-  bool checkViewMemberDescriptor_kind(EquivalenceVisitor visitor,
-      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+  bool checkInlineClassMemberDescriptor_kind(EquivalenceVisitor visitor,
+      InlineClassMemberDescriptor node, InlineClassMemberDescriptor other) {
     return visitor.checkValues(node.kind, other.kind, 'kind');
   }
 
-  bool checkViewMemberDescriptor_flags(EquivalenceVisitor visitor,
-      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+  bool checkInlineClassMemberDescriptor_flags(EquivalenceVisitor visitor,
+      InlineClassMemberDescriptor node, InlineClassMemberDescriptor other) {
     return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
-  bool checkViewMemberDescriptor_member(EquivalenceVisitor visitor,
-      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+  bool checkInlineClassMemberDescriptor_member(EquivalenceVisitor visitor,
+      InlineClassMemberDescriptor node, InlineClassMemberDescriptor other) {
     return visitor.checkReferences(node.member, other.member, 'member');
   }
 
-  bool checkView_members(EquivalenceVisitor visitor, View node, View other) {
+  bool checkInlineClass_members(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
     return visitor.checkLists(node.members, other.members, (a, b, _) {
       if (identical(a, b)) return true;
-      if (a is! ViewMemberDescriptor) return false;
-      if (b is! ViewMemberDescriptor) return false;
-      return checkViewMemberDescriptor(visitor, a, b);
+      if (a is! InlineClassMemberDescriptor) return false;
+      if (b is! InlineClassMemberDescriptor) return false;
+      return checkInlineClassMemberDescriptor(visitor, a, b);
     }, 'members');
   }
 
-  bool checkView_annotations(
-      EquivalenceVisitor visitor, View node, View other) {
+  bool checkInlineClass_annotations(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
     return visitor.checkLists(
         node.annotations, other.annotations, visitor.checkNodes, 'annotations');
   }
 
-  bool checkView_flags(EquivalenceVisitor visitor, View node, View other) {
+  bool checkInlineClass_flags(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
     return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
-  bool checkView_reference(EquivalenceVisitor visitor, View node, View other) {
+  bool checkInlineClass_reference(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
     return checkNamedNode_reference(visitor, node, other);
   }
 
-  bool checkView_fileOffset(EquivalenceVisitor visitor, View node, View other) {
+  bool checkInlineClass_fileOffset(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
     return checkNamedNode_fileOffset(visitor, node, other);
   }
 
@@ -7765,28 +7781,28 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.onType, other.onType, 'onType');
   }
 
-  bool checkViewType_viewReference(
-      EquivalenceVisitor visitor, ViewType node, ViewType other) {
-    return visitor.checkReferences(
-        node.viewReference, other.viewReference, 'viewReference');
+  bool checkInlineType_inlineClassReference(
+      EquivalenceVisitor visitor, InlineType node, InlineType other) {
+    return visitor.checkReferences(node.inlineClassReference,
+        other.inlineClassReference, 'inlineClassReference');
   }
 
-  bool checkViewType_declaredNullability(
-      EquivalenceVisitor visitor, ViewType node, ViewType other) {
+  bool checkInlineType_declaredNullability(
+      EquivalenceVisitor visitor, InlineType node, InlineType other) {
     return visitor.checkValues(node.declaredNullability,
         other.declaredNullability, 'declaredNullability');
   }
 
-  bool checkViewType_typeArguments(
-      EquivalenceVisitor visitor, ViewType node, ViewType other) {
+  bool checkInlineType_typeArguments(
+      EquivalenceVisitor visitor, InlineType node, InlineType other) {
     return visitor.checkLists(node.typeArguments, other.typeArguments,
         visitor.checkNodes, 'typeArguments');
   }
 
-  bool checkViewType_representationType(
-      EquivalenceVisitor visitor, ViewType node, ViewType other) {
-    return visitor.checkNodes(node.representationType, other.representationType,
-        'representationType');
+  bool checkInlineType_instantiatedRepresentationType(
+      EquivalenceVisitor visitor, InlineType node, InlineType other) {
+    return visitor.checkNodes(node.instantiatedRepresentationType,
+        other.instantiatedRepresentationType, 'instantiatedRepresentationType');
   }
 
   bool checkIntersectionType_left(EquivalenceVisitor visitor,

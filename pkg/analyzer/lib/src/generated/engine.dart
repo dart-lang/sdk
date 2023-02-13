@@ -4,7 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/dart/analysis/analysis_options.dart';
@@ -107,8 +108,8 @@ class AnalysisEngine {
   /// Clear any caches holding on to analysis results so that a full re-analysis
   /// will be performed the next time an analysis context is created.
   void clearCaches() {
-    // See https://github.com/dart-lang/sdk/issues/30314.
-    StringTokenImpl.canonicalizer.clear();
+    // Ensure the string canonicalization cache size is reasonable.
+    pruneStringCanonicalizationCache();
   }
 }
 
@@ -157,7 +158,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// The constraint on the language version for every Dart file.
   /// Violations will be reported as analysis errors.
-  VersionConstraint? sourceLanguageConstraint;
+  VersionConstraint? sourceLanguageConstraint =
+      noSoundNullSafety ? VersionConstraint.parse('>= 2.12.0') : null;
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 

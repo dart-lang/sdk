@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Error: Library doesn't support null safety.
 // // @dart=2.9
 // ^^^^^^^^^^^^
 //
@@ -144,6 +144,7 @@ class Class extends core::Object {
   method method() → dynamic {
     invalid-expression "This requires the experimental 'records' language feature to be enabled.";
   }
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -152,7 +153,6 @@ class Class extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method method() → dynamic {

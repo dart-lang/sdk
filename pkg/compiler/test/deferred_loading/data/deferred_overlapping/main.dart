@@ -30,8 +30,6 @@
   lib2=(f3, f2)]
 */
 
-// @dart = 2.7
-
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' deferred as lib2;
 

@@ -78,70 +78,6 @@ class Z {
 ''');
   }
 
-  test_proxy_annotation_prefixed() async {
-    await assertErrorsInCode(r'''
-library L;
-@proxy
-class A {}
-f(var a) {
-  a = new A();
-  a.m();
-  var x = a.g;
-  a.s = 1;
-  var y = a + a;
-  a++;
-  ++a;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 70, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 96, 1),
-    ]);
-  }
-
-  test_proxy_annotation_prefixed2() async {
-    await assertErrorsInCode(r'''
-library L;
-@proxy
-class A {}
-class B {
-  f(var a) {
-    a = new A();
-    a.m();
-    var x = a.g;
-    a.s = 1;
-    var y = a + a;
-    a++;
-    ++a;
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 88, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 118, 1),
-    ]);
-  }
-
-  test_proxy_annotation_prefixed3() async {
-    await assertErrorsInCode(r'''
-library L;
-class B {
-  f(var a) {
-    a = new A();
-    a.m();
-    var x = a.g;
-    a.s = 1;
-    var y = a + a;
-    a++;
-    ++a;
-  }
-}
-@proxy
-class A {}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 70, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 100, 1),
-    ]);
-  }
-
   test_undefinedMethod_assignmentExpression_inSubtype() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -204,8 +140,6 @@ f(A a, B b) {
   }
 }
 
-// TODO(srawlins): Re-enable?
-// ignore: unreachable_from_main
 class PubSuggestionCodeTest extends PubPackageResolutionTest {
   // TODO(brianwilkerson) The tests in this class are not being run, and all but
   //  the first would fail. We should implement these checks and enable the

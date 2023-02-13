@@ -154,7 +154,7 @@ Re-using the result of a dominating call to `getInterceptor` is always beneficia
 
 ### LICM
 
-Hoisting `getInterceptor` calls out of a loop is benefical.
+Hoisting `getInterceptor` calls out of a loop is beneficial.
 
 Improvement: `getInterceptor` is expensive, so we generally don't want to hoist
 calls out of zero trip loops unless the interceptor is always eventually used,

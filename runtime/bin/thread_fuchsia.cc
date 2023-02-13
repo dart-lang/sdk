@@ -90,8 +90,11 @@ static void* ThreadStart(void* data_ptr) {
   delete data;
 
   // Set the thread name.
+  char truncated_name[ZX_MAX_NAME_LEN];
+  snprintf(truncated_name, ZX_MAX_NAME_LEN, "%s", name);
   zx_handle_t thread_handle = thrd_get_zx_handle(thrd_current());
-  zx_object_set_property(thread_handle, ZX_PROP_NAME, name, strlen(name) + 1);
+  zx_object_set_property(thread_handle, ZX_PROP_NAME, truncated_name,
+                         ZX_MAX_NAME_LEN);
 
   // Call the supplied thread start function handing it its parameters.
   function(parameter);

@@ -81,7 +81,7 @@ part of dart.io;
 /// void main() async {
 ///   final myDir = Directory('dir');
 ///   var isThere = await myDir.exists();
-///   print(isThere ? 'exists' : 'non-existent');
+///   print(isThere ? 'exists' : 'nonexistent');
 /// }
 /// ```
 ///

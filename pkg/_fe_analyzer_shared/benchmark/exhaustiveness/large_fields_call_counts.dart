@@ -15,11 +15,11 @@ void main() {
   //   (A)
   //   /|\
   //  B C D
-  var a = StaticType('A', isSealed: true);
-  var b = StaticType('B', inherits: [a]);
-  var c = StaticType('C', inherits: [a]);
-  var d = StaticType('D', inherits: [a]);
-  var t = StaticType('T', fields: {'w': a, 'x': a, 'y': a, 'z': a});
+  var a = StaticTypeImpl('A', isSealed: true);
+  var b = StaticTypeImpl('B', inherits: [a]);
+  var c = StaticTypeImpl('C', inherits: [a]);
+  var d = StaticTypeImpl('D', inherits: [a]);
+  var t = StaticTypeImpl('T', fields: {'w': a, 'x': a, 'y': a, 'z': a});
 
   expectExhaustiveOnlyAll(t, [
     {'w': b, 'x': b, 'y': b, 'z': b},

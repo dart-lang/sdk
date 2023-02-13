@@ -6,8 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-// ignore_for_file: constant_identifier_names
-
 /// Matchers for data types defined in the analysis server API.
 import 'package:test/test.dart';
 
@@ -99,7 +97,6 @@ final Matcher isAnalysisErrorType = MatchesEnum('AnalysisErrorType', [
 ///   "enableDeferredLoading": optional bool
 ///   "enableEnums": optional bool
 ///   "enableNullAwareOperators": optional bool
-///   "enableSuperMixins": optional bool
 ///   "generateDart2jsHints": optional bool
 ///   "generateHints": optional bool
 ///   "generateLints": optional bool
@@ -110,7 +107,6 @@ final Matcher isAnalysisOptions = LazyMatcher(
           'enableDeferredLoading': isBool,
           'enableEnums': isBool,
           'enableNullAwareOperators': isBool,
-          'enableSuperMixins': isBool,
           'generateDart2jsHints': isBool,
           'generateHints': isBool,
           'generateLints': isBool

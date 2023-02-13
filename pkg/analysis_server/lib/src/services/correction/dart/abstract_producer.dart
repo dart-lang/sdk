@@ -22,7 +22,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -71,6 +74,19 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
       return node;
     }
     return null;
+  }
+
+  LinterContext getLinterContext() {
+    return LinterContextImpl(
+      [], // unused
+      LinterContextUnit(resolvedResult.content, resolvedResult.unit),
+      resolvedResult.session.declaredVariables,
+      typeProvider,
+      typeSystem as TypeSystemImpl,
+      InheritanceManager3(), // unused
+      sessionHelper.session.analysisContext.analysisOptions,
+      null,
+    );
   }
 
   /// Return the mixin declaration for the given [element].

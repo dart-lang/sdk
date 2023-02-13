@@ -137,7 +137,7 @@ import 'dart:collection';
 
 void f() {
   print(pi);
-  new HashMap();
+  HashMap();
 }
 ''');
     return _assertOrganized(r'''
@@ -148,7 +148,7 @@ import 'dart:math';
 
 void f() {
   print(pi);
-  new HashMap();
+  HashMap();
 }
 ''');
   }

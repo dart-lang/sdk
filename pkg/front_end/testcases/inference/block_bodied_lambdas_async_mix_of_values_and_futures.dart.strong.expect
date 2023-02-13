@@ -1,0 +1,29 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/block_bodied_lambdas_async_mix_of_values_and_futures.dart:5:1: Error: Library doesn't support null safety.
+// // @dart=2.9
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+import "dart:math" as math;
+
+import "dart:async";
+import "dart:math" show Random;
+
+static method test() → dynamic {
+  () →* asy::Future<core::num*>* f = () → asy::Future<core::num*>* async /* futureValueType= core::num* */ {
+    if(math::Random::•().{math::Random::nextBool}(){() →* core::bool*}) {
+      return asy::Future::value<core::int*>(1);
+    }
+    else {
+      return 2.0;
+    }
+  };
+  asy::Future<core::num*>* g = f(){() →* asy::Future<core::num*>*};
+  asy::Future<core::int*>* h = f(){() →* asy::Future<core::num*>*} as{TypeError} asy::Future<core::int*>*;
+}
+static method main() → dynamic {}

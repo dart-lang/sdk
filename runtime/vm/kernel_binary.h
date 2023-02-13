@@ -18,7 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kSupportedKernelFormatVersion = 89;
+static const uint32_t kSupportedKernelFormatVersion = 93;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -26,7 +26,7 @@ static const uint32_t kSupportedKernelFormatVersion = 89;
   V(Something, 1)                                                              \
   V(Class, 2)                                                                  \
   V(Extension, 115)                                                            \
-  V(View, 85)                                                                  \
+  V(InlineClass, 85)                                                           \
   V(FunctionNode, 3)                                                           \
   V(Field, 4)                                                                  \
   V(Constructor, 5)                                                            \
@@ -134,7 +134,7 @@ static const uint32_t kSupportedKernelFormatVersion = 89;
   V(NeverType, 98)                                                             \
   V(IntersectionType, 99)                                                      \
   V(RecordType, 100)                                                           \
-  V(ViewType, 103)                                                             \
+  V(InlineType, 103)                                                           \
   V(ConstantExpression, 106)                                                   \
   V(InstanceGet, 118)                                                          \
   V(InstanceSet, 119)                                                          \
@@ -208,6 +208,7 @@ enum AsExpressionFlags {
   kAsExpressionFlagCovarianceCheck = 1 << 1,
   kAsExpressionFlagForDynamic = 1 << 2,
   kAsExpressionFlagForNonNullableByDefault = 1 << 3,
+  kAsExpressionFlagUnchecked = 1 << 4,
 };
 
 // Keep in sync with package:kernel/lib/ast.dart

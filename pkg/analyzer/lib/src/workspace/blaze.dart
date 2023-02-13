@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/uri.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/blaze_watcher.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
@@ -77,7 +78,7 @@ class BlazePackageUriResolver extends UriResolver {
     ]) {
       var uriParts = _restoreUriParts(root, path);
       if (uriParts != null) {
-        return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
+        return uriCache.parse('package:${uriParts[0]}/${uriParts[1]}');
       }
     }
 

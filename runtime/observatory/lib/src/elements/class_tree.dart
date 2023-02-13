@@ -112,13 +112,13 @@ class ClassTreeElement extends CustomElement implements Renderable {
 
   Future<M.Class> _register(M.Class cls) async {
     _subclasses[cls.id!] = await Future.wait(
-        (await Future.wait(cls.subclasses!.map(_getActualChildrens)))
+        (await Future.wait(cls.subclasses!.map(_getActualChildren)))
             .expand((f) => f)
             .map(_register));
     return cls;
   }
 
-  Future<Iterable<M.Class>> _getActualChildrens(M.ClassRef ref) async {
+  Future<Iterable<M.Class>> _getActualChildren(M.ClassRef ref) async {
     var cls = await _classes.get(_isolate, ref.id!);
     if (cls.isPatch!) {
       return const [];
@@ -126,7 +126,7 @@ class ClassTreeElement extends CustomElement implements Renderable {
     if (cls.mixin == null) {
       return [cls];
     }
-    return (await Future.wait(cls.subclasses!.map(_getActualChildrens)))
+    return (await Future.wait(cls.subclasses!.map(_getActualChildren)))
         .expand((f) => f)
           ..forEach((subcls) {
             _mixins[subcls.id!] = (_mixins[subcls.id!] ?? [])

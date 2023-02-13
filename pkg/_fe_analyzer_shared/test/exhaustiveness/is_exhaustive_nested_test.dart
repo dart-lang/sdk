@@ -12,11 +12,11 @@ void main() {
     //   (A)
     //   / \
     //  B   C
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var t = StaticType('T', fields: {'x': a, 'y': b});
-    var u = StaticType('U', fields: {'w': t, 'z': t});
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var t = StaticTypeImpl('T', fields: {'x': a, 'y': b});
+    var u = StaticTypeImpl('U', fields: {'w': t, 'z': t});
 
     expectExhaustiveOnlyAll(u, [
       rec(w: rec(x: a), z: t),
@@ -45,10 +45,10 @@ void main() {
 
   group('nested with different fields of same name', () {
     // A B C D
-    var a = StaticType('A');
-    var b = StaticType('B', fields: {'x': a});
-    var c = StaticType('C', fields: {'x': b});
-    var d = StaticType('D', fields: {'x': c});
+    var a = StaticTypeImpl('A');
+    var b = StaticTypeImpl('B', fields: {'x': a});
+    var c = StaticTypeImpl('C', fields: {'x': b});
+    var d = StaticTypeImpl('D', fields: {'x': c});
 
     expectExhaustiveOnlyAll(d, [
       rec(x: rec(x: rec(x: a))),

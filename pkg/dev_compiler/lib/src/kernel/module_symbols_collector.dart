@@ -67,32 +67,36 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
 
   @override
   void visitClass(Class node) {
-    var classSymbol = ClassSymbol(
-        name: node.name,
-        isAbstract: node.isAbstract,
-        isConst: node.constructors.any((constructor) => constructor.isConst),
-        superClassId: _classJsNames[node.superclass],
-        interfaceIds: [
-          for (var type in node.implementedTypes) _classJsNames[type.classNode]!
-        ],
-        typeParameters: {
-          for (var param in node.typeParameters)
-            // TODO(nshahan) Value should be the JS name.
-            param.name!: param.name!
-        },
-        localId: _classJsNames[node]!,
-        scopeId: _scopes.last.id,
-        location: SourceLocation(
-            scriptId: _scriptId(node.location!.file),
-            tokenPos: node.startFileOffset,
-            endTokenPos: node.fileEndOffset));
+    // Some class names are not emitted, i.e. mixin applications.
+    if (_classJsNames[node] != null) {
+      var classSymbol = ClassSymbol(
+          name: node.name,
+          isAbstract: node.isAbstract,
+          isConst: node.constructors.any((constructor) => constructor.isConst),
+          superClassId: _classJsNames[node.superclass],
+          interfaceIds: [
+            for (var type in node.implementedTypes)
+              _classJsNames[type.classNode]!
+          ],
+          typeParameters: {
+            for (var param in node.typeParameters)
+              // TODO(nshahan) Value should be the JS name.
+              param.name!: param.name!
+          },
+          localId: _classJsNames[node]!,
+          scopeId: _scopes.last.id,
+          location: SourceLocation(
+              scriptId: _scriptId(node.location!.file),
+              tokenPos: node.startFileOffset,
+              endTokenPos: node.fileEndOffset));
 
-    _scopes.add(classSymbol);
-    node.visitChildren(this);
-    _scopes
-      ..removeLast()
-      ..last.scopeIds.add(classSymbol.id);
-    _moduleSymbols.classes.add(classSymbol);
+      _scopes.add(classSymbol);
+      node.visitChildren(this);
+      _scopes
+        ..removeLast()
+        ..last.scopeIds.add(classSymbol.id);
+      _moduleSymbols.classes.add(classSymbol);
+    }
   }
 
   @override

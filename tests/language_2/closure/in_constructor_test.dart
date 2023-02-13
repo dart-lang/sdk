@@ -9,11 +9,11 @@ import "package:expect/expect.dart";
 class A<T> {
   var closure;
 
-  factory A.factory() => new A(() => new List<T>());
+  factory A.factory() => new A(() => <T>[]);
 
   A([this.closure]) {
     if (closure == null) {
-      closure = () => new List<T>();
+      closure = () => <T>[];
     }
   }
 }

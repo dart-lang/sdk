@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 // TODO(johnniwinther): Add a test that ensure that this library doesn't depend
 // on the dart2js internals.
 library compiler.src.kernel.dart2js_target;
@@ -41,6 +39,10 @@ const Iterable<String> _allowedDartSchemePaths = [
 ];
 
 List<Pattern> _allowedNativeTestPatterns = [
+  // TODO(srujzs): This enables using `dart:_js_interop` in these tests. Remove
+  // once we make it public.
+  RegExp(r'(?<!generated_)tests/lib/js/static_interop_test'),
+  RegExp(r'(?<!generated_)tests/lib_2/js/static_interop_test'),
   RegExp(r'(?<!generated_)tests/web/native'),
   RegExp(r'(?<!generated_)tests/web/internal'),
   'generated_tests/web/native/native_test',
@@ -49,6 +51,7 @@ List<Pattern> _allowedNativeTestPatterns = [
   RegExp(r'(?<!generated_)tests/web_2/internal'),
   'generated_tests/web_2/native/native_test',
   'generated_tests/web_2/internal/deferred_url_test',
+  'pkg/front_end/testcases/dart2js/native',
 ];
 
 bool allowedNativeTest(Uri uri) {
@@ -121,7 +124,8 @@ class Dart2jsTarget extends Target {
       (uri.path == 'core' ||
           uri.path == 'typed_data' ||
           uri.path == '_interceptors' ||
-          uri.path == '_native_typed_data');
+          uri.path == '_native_typed_data' ||
+          uri.path == '_js_helper');
 
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
@@ -265,9 +269,11 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_annotations',
     'dart:_js_embedded_names',
     'dart:_js_helper',
+    'dart:_js_interop',
     'dart:_js_names',
     'dart:_js_primitives',
     'dart:_js_shared_embedded_names',
+    'dart:_js_types',
     'dart:_late_helper',
     'dart:_load_library_priority',
     'dart:_metadata',
@@ -300,11 +306,13 @@ const requiredLibraries = <String, List<String>>{
     'dart:_internal',
     'dart:_js',
     'dart:_js_annotations',
+    'dart:_js_interop',
     'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_names',
     'dart:_js_primitives',
     'dart:_js_shared_embedded_names',
+    'dart:_js_types',
     'dart:_late_helper',
     'dart:_load_library_priority',
     'dart:_native_typed_data',

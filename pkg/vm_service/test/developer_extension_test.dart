@@ -12,7 +12,7 @@ import 'package:vm_service/vm_service.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-Future<ServiceExtensionResponse> Handler(String method, Map paremeters) {
+Future<ServiceExtensionResponse> Handler(String method, Map parameters) {
   print('Invoked extension: $method');
   switch (method) {
     case 'ext..delay':
@@ -21,7 +21,7 @@ Future<ServiceExtensionResponse> Handler(String method, Map paremeters) {
         c.complete(ServiceExtensionResponse.result(jsonEncode({
           'type': '_delayedType',
           'method': method,
-          'parameters': paremeters,
+          'parameters': parameters,
         })));
       });
       return c.future;
@@ -36,7 +36,7 @@ Future<ServiceExtensionResponse> Handler(String method, Map paremeters) {
           ServiceExtensionResponse.result(jsonEncode({
         'type': '_extensionType',
         'method': method,
-        'parameters': paremeters,
+        'parameters': parameters,
       })));
   }
   throw "Unknown extension: $method";

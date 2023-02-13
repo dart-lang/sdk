@@ -38,6 +38,7 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
     await assertHasFix(expected, errorFilter: _filter);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_empty() async {
     await resolveTestCode('''
 enum E {a, b, c}
@@ -64,6 +65,35 @@ void f(E e) {
 ''');
   }
 
+  Future<void> test_empty_language219() async {
+    await resolveTestCode('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_empty_singleLine() async {
     await resolveTestCode('''
 enum E {a, b, c}
@@ -89,6 +119,34 @@ void f(E e) {
 ''');
   }
 
+  Future<void> test_empty_singleLine_language219() async {
+    await resolveTestCode('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {}
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_final() async {
     await resolveTestCode('''
 enum E {
@@ -126,6 +184,46 @@ void f(E e) {
 ''');
   }
 
+  Future<void> test_final_language219() async {
+    await resolveTestCode('''
+// @dart=2.19
+enum E {
+  a(0),
+  b(1);
+
+  final int f;
+  const E(this.f);
+}
+
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+enum E {
+  a(0),
+  b(1);
+
+  final int f;
+  const E(this.f);
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_import_prefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 enum E {a, b}
@@ -154,6 +252,7 @@ void f(my.E e) {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_import_prefix_hideDefault() async {
     newFile('$testPackageLibPath/a.dart', r'''
 enum E {a, b}
@@ -184,6 +283,69 @@ void f(my.E e) {
 ''');
   }
 
+  Future<void> test_import_prefix_hideDefault_language219() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+// @dart=2.19
+import 'a.dart' hide E;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+import 'a.dart' hide E;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case my.E.a:
+      // TODO: Handle this case.
+      break;
+    case my.E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_import_prefix_language219() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+// @dart=2.19
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case my.E.a:
+      // TODO: Handle this case.
+      break;
+    case my.E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_import_prefix_multiple() async {
     newFile('$testPackageLibPath/a.dart', r'''
 enum E {a, b}
@@ -216,6 +378,41 @@ void f(my.E e) {
 ''');
   }
 
+  Future<void> test_import_prefix_multiple_language219() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+// @dart=2.19
+import 'a.dart' as dream;
+import 'a.dart' as big;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+import 'a.dart' as dream;
+import 'a.dart' as big;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case my.E.a:
+      // TODO: Handle this case.
+      break;
+    case my.E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_import_prefix_twice() async {
     newFile('$testPackageLibPath/a.dart', r'''
 enum E {a, b}
@@ -246,6 +443,39 @@ void f(my.E e) {
 ''');
   }
 
+  Future<void> test_import_prefix_twice_language219() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+// @dart=2.19
+import 'a.dart';
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+import 'a.dart';
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_incomplete_switchStatement() async {
     await resolveTestCode(r'''
 enum E {a, b, c}
@@ -256,6 +486,71 @@ void f(E e) {
     await assertNoFix(errorFilter: _filter);
   }
 
+  Future<void> test_incomplete_switchStatement_language219() async {
+    await resolveTestCode(r'''
+// @dart=2.19
+enum E {a, b, c}
+void f(E e) {
+  switch(e
+}
+''');
+    await assertNoFix(errorFilter: _filter);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
+  Future<void> test_notBrackets() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e)
+}
+''');
+    await assertHasFixWithFilter('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_notBrackets_language219() async {
+    await resolveTestCode('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E e) {
+  switch (e)
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_notEmpty() async {
     await resolveTestCode('''
 enum E {a, b, c}
@@ -283,6 +578,36 @@ void f(E e) {
 ''');
   }
 
+  Future<void> test_notEmpty_language219() async {
+    await resolveTestCode('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      break;
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_static() async {
     await resolveTestCode('''
 enum E {
@@ -318,6 +643,7 @@ void f(E e) {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_static_const() async {
     await resolveTestCode('''
 enum E {
@@ -338,6 +664,80 @@ enum E {
   b;
 
   static const int s = 1;
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_static_const_language219() async {
+    await resolveTestCode('''
+// @dart=2.19
+enum E {
+  a,
+  b;
+
+  static const int s = 1;
+}
+
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+enum E {
+  a,
+  b;
+
+  static const int s = 1;
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_static_language219() async {
+    await resolveTestCode('''
+// @dart=2.19
+enum E {
+  a,
+  b;
+
+  static int s = 1;
+}
+
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+enum E {
+  a,
+  b;
+
+  static int s = 1;
 }
 
 void f(E e) {

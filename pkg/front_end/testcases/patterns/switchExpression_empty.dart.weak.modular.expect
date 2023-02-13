@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/switchExpression_empty.dart:5:9: Error: Switch expressions must contain at least one case.
+// f(x) => switch(x) {};
+//         ^
+//
+import self as self;
+
+static method f(dynamic x) → dynamic
+  return invalid-expression "pkg/front_end/testcases/patterns/switchExpression_empty.dart:5:9: Error: Switch expressions must contain at least one case.
+f(x) => switch(x) {};
+        ^";

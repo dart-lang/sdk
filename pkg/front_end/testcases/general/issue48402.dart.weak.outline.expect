@@ -76,6 +76,21 @@ class A extends core::Object implements self::I {
     ;
   method noSuchMethod(core::Invocation i) → dynamic
     ;
+  no-such-method-forwarder set setterVsGetter(core::num value) → void
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#setterVsGetter=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
+  no-such-method-forwarder get getterVsSetter() → core::double
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#getterVsSetter, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::double;
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///issue48402.dart:14:7 -> SymbolConstant(#setterVsGetter=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48402.dart:14:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///issue48402.dart:14:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///issue48402.dart:14:7 -> SymbolConstant(#getterVsSetter)
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48402.dart:14:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48402.dart:14:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///issue48402.dart:14:7 -> MapConstant(const <Symbol*, dynamic>{})
+Extra constant evaluation: evaluated: 19, effectively constant: 7

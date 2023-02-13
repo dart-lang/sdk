@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 
 // This test ensures that the VM will support string literals that have non
-// ascii characters. An unhandeld exception will be thrown if the VM fails
+// ascii characters. An unhandled exception will be thrown if the VM fails
 // to support non ascii characters.
 
 main() {

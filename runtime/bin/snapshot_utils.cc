@@ -729,20 +729,8 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
     WriteSnapshotFile(snapshot_filename, kernel_buffer, kernel_buffer_size);
     free(kernel_buffer);
   } else {
-    PathSanitizer script_uri_sanitizer(script_name);
-    PathSanitizer packages_config_sanitizer(package_config);
-
-    bool null_safety =
-        Dart_DetectNullSafety(script_uri_sanitizer.sanitized_uri(),
-                              packages_config_sanitizer.sanitized_uri(),
-                              DartUtils::original_working_directory,
-                              /*isolate_snapshot_data=*/nullptr,
-                              /*isolate_snapshot_instructions=*/nullptr,
-                              /*kernel_buffer=*/nullptr,
-                              /*kernel_buffer_size=*/0);
-
-    Dart_KernelCompilationResult result = dfe.CompileScriptWithGivenNullsafety(
-        script_name, package_config, /*snapshot=*/true, null_safety);
+    Dart_KernelCompilationResult result = dfe.CompileScript(
+        script_name, /*incremental*/ false, package_config, /*snapshot=*/true);
     if (result.status != Dart_KernelCompilationStatus_Ok) {
       Syslog::PrintErr("%s\n", result.error);
       Platform::Exit(kCompilationErrorExitCode);

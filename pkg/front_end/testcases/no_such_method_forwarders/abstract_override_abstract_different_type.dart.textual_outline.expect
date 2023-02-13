@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Base {
   set push(int x);
   set float(covariant int x);

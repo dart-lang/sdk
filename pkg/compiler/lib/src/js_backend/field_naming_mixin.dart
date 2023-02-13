@@ -103,7 +103,7 @@ class _FieldNamingScope {
   int get inheritanceBasedFieldNameCounter => _fieldNameCounter;
 
   /// The number of locally used fields. Depending on the naming source
-  /// (e.g. inheritance based or globally unique for mixixns) this
+  /// (e.g. inheritance based or globally unique for mixins) this
   /// might be different from [inheritanceBasedFieldNameCounter].
   int get _localFieldNameCounter => _fieldNameCounter;
   void set _localFieldNameCounter(int val) {

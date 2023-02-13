@@ -11,8 +11,6 @@
 import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
-import 'dart:typed_data';
-
 class Vector2 {
   final Float64List _v2storage;
 

@@ -17,7 +17,17 @@ main() {
 
 @reflectiveTest
 class DeadCodeTest extends PubPackageResolutionTest
-    with DeadCodeTestCases, DeadCodeTestCases_Language212 {}
+    with DeadCodeTestCases, DeadCodeTestCases_Language212 {
+  test_ifElement_patternAssignment() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  [if (false) (a) = 0];
+}
+''', [
+      error(HintCode.DEAD_CODE, 30, 7),
+    ]);
+  }
+}
 
 @reflectiveTest
 class DeadCodeTest_Language218 extends PubPackageResolutionTest
@@ -89,6 +99,33 @@ void f() {
 ''', [
       error(HintCode.DEAD_CODE, 23, 14),
     ]);
+  }
+
+  test_class_field_initializer_listLiteral() async {
+    // Based on https://github.com/dart-lang/sdk/issues/49701
+    await assertErrorsInCode(
+      '''
+Never f() { throw ''; }
+
+class C {
+  static final x = [1, 2, f(), 4];
+}
+''',
+      isNullSafetyEnabled ? [error(HintCode.DEAD_CODE, 66, 2)] : [],
+    );
+  }
+
+  test_continueInSwitch() async {
+    await assertNoErrorsInCode(r'''
+void f(int i) {
+  for (;; 1) {
+    switch (i) {
+      default:
+        continue;
+    }
+  }
+}
+''');
   }
 
   test_deadBlock_conditionalElse() async {
@@ -309,7 +346,7 @@ f() {
 f() {
   try {} on Object catch (e) {} catch (e) {}
 }''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 32, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 32, 1),
       error(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, 38, 12),
     ]);
   }
@@ -320,7 +357,7 @@ f() {
 f() {
   try {} on Object catch (e) {} catch (e) {if(false) {}}
 }''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 32, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 32, 1),
       error(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, 38, 24),
     ]);
   }
@@ -332,9 +369,9 @@ class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {}
 }''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 59, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 59, 1),
       error(HintCode.DEAD_CODE_ON_CATCH_SUBTYPE, 65, 17),
-      error(HintCode.UNUSED_CATCH_CLAUSE, 77, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 77, 1),
     ]);
   }
 
@@ -346,9 +383,9 @@ class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {if(false) {}}
 }''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 59, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 59, 1),
       error(HintCode.DEAD_CODE_ON_CATCH_SUBTYPE, 65, 29),
-      error(HintCode.UNUSED_CATCH_CLAUSE, 77, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 77, 1),
     ]);
   }
 
@@ -360,8 +397,8 @@ f() {
   try {} on B catch (e) {} on A catch (e) {} catch (e) {}
 }
 ''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 59, 1),
-      error(HintCode.UNUSED_CATCH_CLAUSE, 77, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 59, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 77, 1),
     ]);
   }
 
@@ -929,6 +966,18 @@ void f(int a) {
 ''', expectedErrors);
   }
 
+  test_topLevelVariable_initializer_listLiteral() async {
+    // Based on https://github.com/dart-lang/sdk/issues/49701
+    await assertErrorsInCode(
+      '''
+Never f() { throw ''; }
+
+var x = [1, 2, f(), 4];
+''',
+      isNullSafetyEnabled ? [error(HintCode.DEAD_CODE, 45, 2)] : [],
+    );
+  }
+
   test_yield() async {
     await assertErrorsInCode(r'''
 Iterable<int> f() sync* {
@@ -1304,7 +1353,7 @@ void g(A a) {
   print(1);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 54, 3),
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 54, 3),
       error(HintCode.DEAD_CODE, 57, 16),
     ]);
   }
@@ -1316,7 +1365,7 @@ void g(Never f) {
   print(1);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 3),
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 3),
       error(HintCode.DEAD_CODE, 23, 16),
     ]);
   }
@@ -1328,7 +1377,7 @@ void g(Never f) {
   print(1);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
       error(HintCode.DEAD_CODE, 21, 16),
     ]);
   }

@@ -9,9 +9,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 
 /// Return `true` if the given [source] refers to a file that is assumed to be
@@ -67,7 +67,7 @@ class SourceFactoryImpl implements SourceFactory {
     try {
       Uri uri;
       try {
-        uri = Uri.parse(absoluteUri);
+        uri = uriCache.parse(absoluteUri);
       } catch (exception, stackTrace) {
         AnalysisEngine.instance.instrumentationService
             .logInfo('Could not resolve URI: $absoluteUri $stackTrace');
@@ -121,7 +121,8 @@ class SourceFactoryImpl implements SourceFactory {
     }
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
-      return _internalResolveUri(containingSource, Uri.parse(containedUri));
+      return _internalResolveUri(
+          containingSource, uriCache.parse(containedUri));
     } on FormatException {
       return null;
     } catch (exception, stackTrace) {
@@ -157,7 +158,7 @@ class SourceFactoryImpl implements SourceFactory {
             "$containedUri");
       }
       containedUri =
-          utils.resolveRelativeUri(containingSource.uri, containedUri);
+          uriCache.resolveRelative(containingSource.uri, containedUri);
     }
 
     var result = _absoluteUriToSourceCache[containedUri];

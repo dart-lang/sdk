@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/extension_type_when_experiment_not_enabled.dart:11:6: Error: This requires the experimental 'extension-types' language feature to be enabled.
+// Try passing the '--enable-experiment=extension-types' command line option.
+// test(E e) {} // Error.
+//      ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+extension E on self::A {
+}
+static method test(invalid-type e) → dynamic {}
+static method main() → dynamic {}

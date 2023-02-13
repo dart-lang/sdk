@@ -226,7 +226,7 @@ testNumbers() {
   testError(signs: "+");
   // Requires digits after decimal point.
   testError(fractions: ".");
-  // Requires exponent digts, and only digits.
+  // Requires exponent digits, and only digits.
   testError(exponents: ["e", "e+", "e-", "e.0"]);
 
   // No whitespace inside numbers.

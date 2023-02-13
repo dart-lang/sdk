@@ -10,7 +10,7 @@ import '../js_backend/interceptor_data.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/selector.dart' show Selector;
 import 'nodes.dart';
-import 'optimize_interfaces.dart' show OptimizationPhase;
+import 'optimize.dart' show OptimizationPhase;
 
 /// This phase computes the set of classes dispatched by an interceptor, and
 /// simplifies interceptors in multiple ways:
@@ -82,10 +82,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor<bool>
     // possible that all uses can be rewritten to use different constants.
 
     HInstruction? constant = tryComputeConstantInterceptor(
-        // ignore: avoid_dynamic_calls
-        invoke.inputs[1],
-        // ignore: avoid_dynamic_calls
-        interceptor.interceptedClasses);
+        invoke.inputs[1], interceptor.interceptedClasses);
     if (constant != null) {
       invoke.changeUse(interceptor, constant);
     }

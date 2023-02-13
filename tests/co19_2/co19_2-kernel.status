@@ -12,6 +12,17 @@ LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported
 LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass # Does many calls
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow, Pass # Does many calls
 LibTest/core/List/List_class_A01_t02: Slow, Pass # Does many calls
+LibTest/io/Stdout/add_A02_t03: SkipByDesign # Issue dart-lang/co19/issues/1509
+LibTest/io/Stdout/add_A02_t04: SkipByDesign
+LibTest/io/Stdout/add_A02_t05: SkipByDesign
+LibTest/io/Stdout/add_A02_t06: SkipByDesign
+LibTest/io/Stdout/add_A02_t07: SkipByDesign
+LibTest/io/Stdout/add_A02_t08: SkipByDesign
+LibTest/io/Stdout/add_A02_t09: SkipByDesign
+LibTest/io/Stdout/writeCharCode_A01_t03: SkipByDesign
+LibTest/io/Stdout/write_A01_t04: SkipByDesign
+LibTest/io/Stdout/write_A01_t05: SkipByDesign
+LibTest/io/exit/exit_A04_t01: SkipByDesign
 
 [ $compiler == dartk && $runtime == vm && $system == macos ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass

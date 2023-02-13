@@ -939,12 +939,12 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Text('AAA');
+    return Text('AAA');
   }
 }
 ''');
     await waitForTasksFinished();
-    await getRefactoringsForString('new Text');
+    await getRefactoringsForString('Text');
     expect(kinds, contains(RefactoringKind.EXTRACT_WIDGET));
   }
 
@@ -986,7 +986,7 @@ class A {
   A.test() {}
 }
 void f() {
-  new A.test();
+  A.test();
 }
 ''', 'test();');
   }
@@ -1441,8 +1441,8 @@ class Test {
 }
 void f() {
   Test v;
-  new Test();
-  new Test.named();
+  Test();
+  Test.named();
 }
 ''');
     return assertSuccessfulRefactoring(() {
@@ -1454,8 +1454,8 @@ class NewName {
 }
 void f() {
   NewName v;
-  new NewName();
-  new NewName.named();
+  NewName();
+  NewName.named();
 }
 ''');
   }
@@ -1495,7 +1495,7 @@ class Test {
   Test() {}
 }
 void f() {
-  new Test();
+  Test();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -1507,12 +1507,12 @@ class NewName {
   NewName() {}
 }
 void f() {
-  new NewName();
+  NewName();
 }
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 44);
+        expect(renameFeedback.offset, 40);
         expect(renameFeedback.length, 4);
       },
     );
@@ -1524,7 +1524,7 @@ class Test {
   Test.named() {}
 }
 void f() {
-  new Test.named();
+  Test.named();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -1536,12 +1536,12 @@ class NewName {
   NewName.named() {}
 }
 void f() {
-  new NewName.named();
+  NewName.named();
 }
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 50);
+        expect(renameFeedback.offset, 46);
         expect(renameFeedback.length, 4);
       },
     );
@@ -1729,7 +1729,7 @@ class A {
   A({this.test: 0});
 }
 void f() {
-  new A(test: 42);
+  A(test: 42);
 }
 ''');
     return assertSuccessfulRefactoring(() {
@@ -1740,7 +1740,7 @@ class A {
   A({this.newName: 0});
 }
 void f() {
-  new A(newName: 42);
+  A(newName: 42);
 }
 ''');
   }
@@ -1896,7 +1896,7 @@ class A {
   A.test() {}
 }
 void f() {
-  new A.test();
+  A.test();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -1908,12 +1908,12 @@ class A {
   A.newName() {}
 }
 void f() {
-  new A.newName();
+  A.newName();
 }
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 45);
+        expect(renameFeedback.offset, 41);
         expect(renameFeedback.length, 4);
       },
     );
@@ -1967,6 +1967,64 @@ enum E {
         var renameFeedback = feedback as RenameFeedback;
         expect(renameFeedback.offset, 24);
         expect(renameFeedback.length, 5);
+      },
+    );
+  }
+
+  Future<void> test_extension_atDeclaration() {
+    addTestFile('''
+extension Test on int {
+  void foo() {}
+}
+void f() {
+  Test(0).foo();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test on int', 'NewName');
+      },
+      '''
+extension NewName on int {
+  void foo() {}
+}
+void f() {
+  NewName(0).foo();
+}
+''',
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, 10);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  Future<void> test_extension_atReference() {
+    addTestFile('''
+extension Test on int {
+  void foo() {}
+}
+void f() {
+  Test(0).foo();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test(0)', 'NewName');
+      },
+      '''
+extension NewName on int {
+  void foo() {}
+}
+void f() {
+  NewName(0).foo();
+}
+''',
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, 55);
+        expect(renameFeedback.length, 4);
       },
     );
   }

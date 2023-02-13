@@ -99,9 +99,7 @@ class InternetAddress {
 @patch
 class NetworkInterface {
   @patch
-  static bool get listSupported {
-    return _listSupported();
-  }
+  static bool get listSupported => true;
 
   @patch
   static Future<List<NetworkInterface>> list(
@@ -113,9 +111,6 @@ class NetworkInterface {
         includeLinkLocal: includeLinkLocal,
         type: type);
   }
-
-  @pragma("vm:external-name", "NetworkInterface_ListSupported")
-  external static bool _listSupported();
 }
 
 void _throwOnBadPort(int port) {
@@ -761,8 +756,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                 "Address family not supported by protocol family, "
                 // ...and then add some details.
                 "sourceAddress.type must be ${InternetAddressType.unix} but was "
-                "${source.type}",
-                address: address);
+                "${source.type}", address: address);
           }
           connectionResult = socket.nativeCreateUnixDomainBindConnect(
               address.address, source.address, _Namespace._namespace);
@@ -2232,6 +2226,10 @@ class _Socket extends Stream<Uint8List> implements Socket {
 
   void add(List<int> bytes) => _sink.add(bytes);
 
+  /// Unsupported operation on sockets.
+  ///
+  /// Throws an [UnsupportedError] because errors cannot be transmitted over a
+  /// [Socket].
   void addError(Object error, [StackTrace? stackTrace]) {
     throw new UnsupportedError("Cannot send errors on sockets");
   }
@@ -2410,9 +2408,8 @@ class _Socket extends Stream<Uint8List> implements Socket {
   }
 
   void set _owner(owner) {
-    // Note: _raw can be _RawSocket and _RawSecureSocket which are two
-    // incompatible types.
-    (_raw as dynamic)._owner = owner;
+    // Note: _raw can be _RawSocket and _RawSecureSocket.
+    (_raw as _RawSocketBase)._owner = owner;
   }
 }
 

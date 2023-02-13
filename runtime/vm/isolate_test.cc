@@ -17,7 +17,7 @@ VM_UNIT_TEST_CASE(IsolateCurrent) {
   Dart_Isolate isolate = TestCase::CreateTestIsolate();
   EXPECT_EQ(isolate, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
-  EXPECT_EQ(reinterpret_cast<Dart_Isolate>(NULL), Dart_CurrentIsolate());
+  EXPECT_EQ(static_cast<Dart_Isolate>(NULL), Dart_CurrentIsolate());
 }
 
 // Test to ensure that an exception is thrown if no isolate creation

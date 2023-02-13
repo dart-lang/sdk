@@ -14,22 +14,24 @@ class LinkedHashMap<K, V> {
       int hashCode(K key)?,
       bool isValidKey(potentialKey)?}) {
     if (isValidKey == null) {
+      if (hashCode == null && equals == null) {
+        return _WasmDefaultMap<K, V>();
+      }
       if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
-        return new _CompactLinkedIdentityHashMap<K, V>();
+        return _CompactLinkedIdentityHashMap<K, V>();
       }
     }
     hashCode ??= _defaultHashCode;
     equals ??= _defaultEquals;
-    return new _CompactLinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
+    return _CompactLinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
 
   @pragma("wasm:entry-point")
-  factory LinkedHashMap._default() =>
-      _CompactLinkedCustomHashMap<K, V>(_defaultEquals, _defaultHashCode, null);
+  factory LinkedHashMap._default() => _WasmDefaultMap<K, V>();
 
   @patch
-  factory LinkedHashMap.identity() => new _CompactLinkedIdentityHashMap<K, V>();
+  factory LinkedHashMap.identity() => _CompactLinkedIdentityHashMap<K, V>();
 }
 
 @patch
@@ -40,22 +42,54 @@ class LinkedHashSet<E> {
       int hashCode(E e)?,
       bool isValidKey(potentialKey)?}) {
     if (isValidKey == null) {
+      if (hashCode == null && equals == null) {
+        return _WasmDefaultSet<E>();
+      }
       if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
-        return new _CompactLinkedIdentityHashSet<E>();
+        return _CompactLinkedIdentityHashSet<E>();
       }
     }
     hashCode ??= _defaultHashCode;
     equals ??= _defaultEquals;
-    return new _CompactLinkedCustomHashSet<E>(equals, hashCode, isValidKey);
+    return _CompactLinkedCustomHashSet<E>(equals, hashCode, isValidKey);
   }
 
   @pragma("wasm:entry-point")
-  factory LinkedHashSet._default() =>
-      _CompactLinkedCustomHashSet<E>(_defaultEquals, _defaultHashCode, null);
+  factory LinkedHashSet._default() => _WasmDefaultSet<E>();
 
   @patch
-  factory LinkedHashSet.identity() => new _CompactLinkedIdentityHashSet<E>();
+  factory LinkedHashSet.identity() => _CompactLinkedIdentityHashSet<E>();
+}
+
+@pragma("wasm:entry-point")
+class _WasmDefaultMap<K, V> extends _HashFieldBase
+    with
+        MapMixin<K, V>,
+        _HashBase,
+        _OperatorEqualsAndHashCode,
+        _LinkedHashMapMixin<K, V>
+    implements LinkedHashMap<K, V> {
+  @pragma("wasm:entry-point")
+  void operator []=(K key, V value);
+}
+
+@pragma('wasm:entry-point')
+class _WasmDefaultSet<E> extends _HashFieldBase
+    with
+        SetMixin<E>,
+        _HashBase,
+        _OperatorEqualsAndHashCode,
+        _LinkedHashSetMixin<E>
+    implements LinkedHashSet<E> {
+  @pragma("wasm:entry-point")
+  bool add(E key);
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
+
+  static Set<R> _newEmpty<R>() => _WasmDefaultSet<R>();
+
+  Set<E> toSet() => _WasmDefaultSet<E>()..addAll(this);
 }
 
 abstract class _HashWasmImmutableBase extends _HashFieldBase
@@ -64,7 +98,7 @@ abstract class _HashWasmImmutableBase extends _HashFieldBase
 }
 
 @pragma("wasm:entry-point")
-class _WasmImmutableLinkedHashMap<K, V> extends _HashWasmImmutableBase
+class _WasmImmutableMap<K, V> extends _HashWasmImmutableBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -73,14 +107,14 @@ class _WasmImmutableLinkedHashMap<K, V> extends _HashWasmImmutableBase
         _UnmodifiableMapMixin<K, V>,
         _ImmutableLinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
-  factory _WasmImmutableLinkedHashMap._uninstantiable() {
-    throw new UnsupportedError(
+  factory _WasmImmutableMap._uninstantiable() {
+    throw UnsupportedError(
         "Immutable maps can only be instantiated via constants");
   }
 }
 
 @pragma("wasm:entry-point")
-class _WasmImmutableLinkedHashSet<E> extends _HashWasmImmutableBase
+class _WasmImmutableSet<E> extends _HashWasmImmutableBase
     with
         SetMixin<E>,
         _HashBase,
@@ -89,8 +123,8 @@ class _WasmImmutableLinkedHashSet<E> extends _HashWasmImmutableBase
         _UnmodifiableSetMixin<E>,
         _ImmutableLinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
-  factory _WasmImmutableLinkedHashSet._uninstantiable() {
-    throw new UnsupportedError(
+  factory _WasmImmutableSet._uninstantiable() {
+    throw UnsupportedError(
         "Immutable sets can only be instantiated via constants");
   }
 

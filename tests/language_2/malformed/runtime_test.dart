@@ -43,8 +43,8 @@ checkAsListUnresolved(var v) {
 void main() {
   checkIsUnresolved('');
   checkAsUnresolved('');
-  checkIsListUnresolved(new List());
-  checkAsListUnresolved(new List());
+  checkIsListUnresolved([]);
+  checkAsListUnresolved([]);
 
 
 

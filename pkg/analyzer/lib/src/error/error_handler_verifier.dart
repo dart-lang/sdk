@@ -174,7 +174,7 @@ class ErrorHandlerVerifier {
       {bool checkFirstParameterType = true}) {
     void report() {
       _errorReporter.reportErrorForNode(
-        HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+        WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
         expression,
         [expressionType, expectedFunctionReturnType],
       );
@@ -243,7 +243,7 @@ class ErrorHandlerVerifier {
       DartType expectedType, DartType functionReturnType, Expression callback) {
     if (!_typeSystem.isAssignableTo(functionReturnType, expectedType)) {
       _errorReporter.reportErrorForNode(
-        HintCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+        WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
         callback,
         [functionReturnType, expectedType],
       );

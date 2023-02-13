@@ -109,7 +109,6 @@ String white(String string) => wrap(string, WHITE_COLOR);
 /// determined.
 bool? _supportsAnsiEscapes(sink) {
   try {
-    // ignore: undefined_getter
     return sink.supportsAnsiEscapes;
   } on NoSuchMethodError {
     // Ignored: We're running on an older version of the Dart VM which doesn't

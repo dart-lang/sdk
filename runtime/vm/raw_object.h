@@ -1009,7 +1009,7 @@ class UntaggedClass : public UntaggedObject {
   // Stub code for allocation of instances.
   COMPRESSED_POINTER_FIELD(CodePtr, allocation_stub)
   // CHA optimized codes.
-  COMPRESSED_POINTER_FIELD(ArrayPtr, dependent_code)
+  COMPRESSED_POINTER_FIELD(WeakArrayPtr, dependent_code)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1447,7 +1447,7 @@ class UntaggedField : public UntaggedObject {
   // - for static fields: index into field_table.
   COMPRESSED_POINTER_FIELD(SmiPtr, host_offset_or_field_id)
   COMPRESSED_POINTER_FIELD(SmiPtr, guarded_list_length)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, dependent_code)
+  COMPRESSED_POINTER_FIELD(WeakArrayPtr, dependent_code)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
@@ -1713,6 +1713,28 @@ class UntaggedWeakSerializationReference : public UntaggedObject {
   VISIT_TO(replacement)
 };
 
+class UntaggedWeakArray : public UntaggedObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(WeakArray);
+
+  COMPRESSED_POINTER_FIELD(WeakArrayPtr, next_seen_by_gc)
+
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
+  VISIT_FROM(length)
+  // Variable length data follows here.
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+
+  template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
+  friend class CanonicalSetDeserializationCluster;
+  template <typename Type, typename PtrType>
+  friend class GCLinkedList;
+  friend class GCMarker;
+  template <bool>
+  friend class MarkingVisitorBase;
+  friend class Scavenger;
+  template <bool>
+  friend class ScavengerVisitorBase;
+};
+
 class UntaggedCode : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
@@ -1845,7 +1867,7 @@ class UntaggedObjectPool : public UntaggedObject {
   DEFINE_CONTAINS_COMPRESSED(decltype(Entry::raw_obj_));
 
   // The entry bits are located after the last entry. They are encoded versions
-  // of `ObjectPool::TypeBits() | ObjectPool::PatchabililtyBit()`.
+  // of `ObjectPool::TypeBits() | ObjectPool::PatchabilityBit()`.
   uint8_t* entry_bits() { return reinterpret_cast<uint8_t*>(&data()[length_]); }
   uint8_t const* entry_bits() const {
     return reinterpret_cast<uint8_t const*>(&data()[length_]);
@@ -1946,7 +1968,7 @@ class UntaggedPcDescriptors : public UntaggedObject {
   static const char* KindToCString(Kind k);
   static bool ParseKind(const char* cstr, Kind* out);
 
-  // Used to represent the absense of a yield index in PcDescriptors.
+  // Used to represent the absence of a yield index in PcDescriptors.
   static constexpr intptr_t kInvalidYieldIndex = -1;
 
   class KindAndMetadata {
@@ -2324,6 +2346,7 @@ class UntaggedContextScope : public UntaggedObject {
     };
     CompressedSmiPtr context_index;
     CompressedSmiPtr context_level;
+    CompressedSmiPtr kernel_offset;
   };
 
   int32_t num_variables_;
@@ -2363,6 +2386,7 @@ class UntaggedContextScope : public UntaggedObject {
   DEFINE_ACCESSOR(InstancePtr, value)
   DEFINE_ACCESSOR(SmiPtr, context_index)
   DEFINE_ACCESSOR(SmiPtr, context_level)
+  DEFINE_ACCESSOR(SmiPtr, kernel_offset)
 #undef DEFINE_ACCESSOR
 
   CompressedObjectPtr* to(intptr_t num_vars) {
@@ -2728,9 +2752,9 @@ class UntaggedRecordType : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(RecordType);
 
+  COMPRESSED_SMI_FIELD(SmiPtr, shape)
   COMPRESSED_POINTER_FIELD(ArrayPtr, field_types)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, field_names);
-  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
+  COMPRESSED_SMI_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
@@ -2754,8 +2778,8 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, bound)
   VISIT_TO(bound)
   ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
-  uint8_t base_;   // Number of enclosing function type parameters.
-  uint8_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
+  uint16_t base_;   // Number of enclosing function type parameters.
+  uint16_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
 
  private:
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
@@ -3224,14 +3248,20 @@ COMPILE_ASSERT(sizeof(UntaggedFloat64x2) == 24);
 class UntaggedRecord : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Record);
 
-  COMPRESSED_SMI_FIELD(SmiPtr, num_fields)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, field_names)
-  VISIT_FROM(num_fields)
+#if defined(DART_COMPRESSED_POINTERS)
+  // This explicit padding avoids implicit padding between [shape] and [data].
+  // Record allocation doesn't initialize the implicit padding but GC scans
+  // everything between 'from' (shape) and 'to' (end of data),
+  // so it would see garbage if implicit padding is inserted.
+  uint32_t padding_;
+#endif
+  COMPRESSED_SMI_FIELD(SmiPtr, shape)
+  VISIT_FROM(shape)
   // Variable length data follows here.
   COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, field, data)
 
   friend void UpdateLengthField(intptr_t, ObjectPtr,
-                                ObjectPtr);  // num_fields_
+                                ObjectPtr);  // shape_
 };
 
 // Define an aliases for intptr_t.
@@ -3394,7 +3424,13 @@ class UntaggedRegExp : public UntaggedInstance {
   VISIT_TO(external_two_byte_sticky)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  intptr_t num_bracket_expressions_;
+  std::atomic<intptr_t> num_bracket_expressions_;
+  intptr_t num_bracket_expressions() {
+    return num_bracket_expressions_.load(std::memory_order_relaxed);
+  }
+  void set_num_bracket_expressions(intptr_t value) {
+    num_bracket_expressions_.store(value, std::memory_order_relaxed);
+  }
 
   // The same pattern may use different amount of registers if compiled
   // for a one-byte target than a two-byte target. For example, we do not
@@ -3407,7 +3443,9 @@ class UntaggedRegExp : public UntaggedInstance {
   // type: Uninitialized, simple or complex.
   // flags: Represents global/local, case insensitive, multiline, unicode,
   //        dotAll.
-  int8_t type_flags_;
+  // It is possible multiple compilers race to update the flags concurrently.
+  // That should be safe since all updates update to the same values..
+  AtomicBitFieldContainer<int8_t> type_flags_;
 };
 
 class UntaggedWeakProperty : public UntaggedInstance {

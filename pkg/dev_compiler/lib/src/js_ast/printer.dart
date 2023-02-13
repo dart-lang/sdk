@@ -319,7 +319,7 @@ class Printer implements NodeVisitor {
     var elsePart = node.otherwise;
     bool hasElse = node.hasElse;
 
-    // Handle dangling elses and a work-around for Android 4.0 stock browser.
+    // Handle dangling elses and a workaround for Android 4.0 stock browser.
     // Android 4.0 requires braces for a single do-while in the `then` branch.
     // See issue 10923.
     if (hasElse) {

@@ -27,7 +27,6 @@ class CoreTypes {
       'Type',
       'Function',
       'Invocation',
-      'FallThroughError',
       'Record',
     ],
     'dart:_internal': [
@@ -155,6 +154,9 @@ class CoreTypes {
   late final Procedure identicalProcedure =
       index.getTopLevelProcedure('dart:core', 'identical');
 
+  late final Procedure printProcedure =
+      index.getTopLevelProcedure('dart:core', 'print');
+
   late final Class intClass = index.getClass('dart:core', 'int');
 
   late final Class internalSymbolClass =
@@ -182,9 +184,6 @@ class CoreTypes {
       index.getProcedure('dart:core', 'Iterator', 'get:current');
 
   late final Class listClass = index.getClass('dart:core', 'List');
-
-  late final Procedure listDefaultConstructor =
-      index.getProcedure('dart:core', 'List', '');
 
   late final Procedure listFromConstructor =
       index.getProcedure('dart:core', 'List', 'from');
@@ -1139,10 +1138,11 @@ class CoreTypes {
       return isTop(type.typeArgument);
     }
 
-    // If the representation type, R, is a top type then the view type, V0, is a
-    // top type, otherwise V0 is a proper subtype of Object?.
-    if (type is ViewType) {
-      return isTop(type.representationType);
+    // If the instantiated representation type, R, is a top type then the inline
+    // type, V0, is a top type, otherwise V0 is a proper subtype of Object?.
+    // TODO(johnniwinther): Is this correct?
+    if (type is InlineType) {
+      return isTop(type.instantiatedRepresentationType);
     }
 
     return false;

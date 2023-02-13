@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,7 +35,7 @@ f() {
   }
 }
 ''', [
-      error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 32, 7),
+      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 32, 7),
     ]);
   }
 
@@ -56,7 +57,7 @@ f() {
   }
 }
 ''', [
-      error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 16),
+      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 16),
     ]);
   }
 
@@ -78,7 +79,7 @@ f() {
   }
 }
 ''', [
-      error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 4),
+      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 4),
     ]);
   }
 
@@ -104,11 +105,12 @@ class A<B> {
   }
 }
 ''', [
-      error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 40, 1),
+      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 40, 1),
     ]);
   }
 
   test_optOut() async {
+    noSoundNullSafety = false;
     await assertNoErrorsInCode('''
 // @dart = 2.7
 

@@ -63,6 +63,10 @@ class LibraryData {
   /// Cache of [ir.Typedef] nodes for typedefs in this library.
   late final Map<String, ir.Typedef> _typedefs = _initializeTypedefs();
 
+  /// Cache of [ir.InlineClass] nodes for inline classes in this library.
+  late final Map<String, ir.InlineClass> _inlineClasses =
+      _initializeInlineClasses();
+
   /// Cache of [MemberData] for members in this library.
   Map<String, MemberData>? _membersByName;
   Map<ir.Member, MemberData>? _membersByNode;
@@ -79,6 +83,18 @@ class LibraryData {
       typedefs[typedef.name] = typedef;
     }
     return typedefs;
+  }
+
+  Map<String, ir.InlineClass> _initializeInlineClasses() {
+    final inlineClasses = <String, ir.InlineClass>{};
+    for (ir.InlineClass inlineClass in node.inlineClasses) {
+      assert(
+          !inlineClasses.containsKey(inlineClass.name),
+          "Duplicate inline class '${inlineClass.name}' in $inlineClasses "
+          "trying to add $inlineClass.");
+      inlineClasses[inlineClass.name] = inlineClass;
+    }
+    return inlineClasses;
   }
 
   void _ensureClasses() {
@@ -109,6 +125,11 @@ class LibraryData {
   ClassData? lookupClassByNode(ir.Class node) {
     _ensureClasses();
     return _classesByNode![node];
+  }
+
+  /// Returns the [InlineClass] for the given [name] in this library.
+  ir.InlineClass? lookupInlineClass(String name) {
+    return _inlineClasses[name];
   }
 
   ir.Typedef? lookupTypedef(String name) {

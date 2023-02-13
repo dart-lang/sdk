@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class IfElementResolutionTest extends PatternsResolutionTest {
+class IfElementResolutionTest extends PubPackageResolutionTest {
   test_caseClause() async {
     await assertNoErrorsInCode(r'''
 void f(Object x) {
@@ -67,6 +67,8 @@ void f(Object x) {
   ];
 }
 ''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 62,
+          1),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
           contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
@@ -86,7 +88,7 @@ IfElement
       pattern: ListPattern
         leftBracket: [
         elements
-          VariablePattern
+          DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -159,7 +161,7 @@ IfElement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -199,8 +201,12 @@ IfElement
 
   test_rewrite_caseClause_pattern() async {
     await assertNoErrorsInCode(r'''
-void f(Object x, int Function() a) {
-  [if (x case const a()) 0];
+void f(Object x) {
+  [if (x case const A()) 0];
+}
+
+class A {
+  const A();
 }
 ''');
 
@@ -218,17 +224,19 @@ IfElement
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
         const: const
-        expression: FunctionExpressionInvocation
-          function: SimpleIdentifier
-            token: a
-            staticElement: self::@function::f::@parameter::a
-            staticType: int Function()
+        expression: InstanceCreationExpression
+          constructorName: ConstructorName
+            type: NamedType
+              name: SimpleIdentifier
+                token: A
+                staticElement: self::@class::A
+                staticType: null
+              type: A
+            staticElement: self::@class::A::@constructor::new
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticElement: <null>
-          staticInvokeType: int Function()
-          staticType: int
+          staticType: A
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 0

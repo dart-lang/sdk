@@ -44,6 +44,7 @@ main(List<String> args) async {
     // Compile script to Kernel IR.
     await run('pkg/vm/tool/gen_kernel', <String>[
       '--aot',
+      '--no-sound-null-safety',
       '--packages=$sdkDir/.dart_tool/package_config.json',
       '--platform=$platformDill',
       '-o',
@@ -65,6 +66,7 @@ main(List<String> args) async {
       // Compile script to Kernel IR.
       await run('pkg/vm/tool/gen_kernel', <String>[
         '--aot',
+        '--no-sound-null-safety',
         '--packages=$sdkDir/.packages',
         '--platform=$platformDill',
         '-o',
@@ -75,6 +77,7 @@ main(List<String> args) async {
       final elfFile = path.join(tempDir.path, 'aot.snapshot');
       await run(genSnapshot, <String>[
         '--snapshot-kind=app-aot-elf',
+        '--no-sound-null-safety',
         '--elf=$elfFile',
         scriptDill,
       ]);

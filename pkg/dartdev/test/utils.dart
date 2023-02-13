@@ -18,7 +18,10 @@ const Timeout longTimeout = Timeout(Duration(minutes: 5));
 
 /// This version of dart is the last guaranteed pre-null safety language
 /// version:
-const String dartVersionFilePrefix2_9 = '// @dart = 2.9\n';
+const String dartVersionFilePrefix2_9 = '''
+// ignore: illegal_language_version_override
+// @dart = 2.9
+''';
 
 void initGlobalState() {
   log = Logger.standard();
@@ -78,7 +81,7 @@ class TestProject {
             ? '''
 name: $name
 environment:
-  sdk: '${sdkConstraint ?? '>=2.10.0 <3.0.0'}'
+  sdk: '${sdkConstraint ?? '>=2.12.0 <3.0.0'}'
 
 dev_dependencies:
   test: any

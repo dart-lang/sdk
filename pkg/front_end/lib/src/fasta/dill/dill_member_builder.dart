@@ -5,7 +5,14 @@
 library fasta.dill_member_builder;
 
 import 'package:kernel/ast.dart'
-    show Constructor, Field, FunctionNode, Member, Procedure, ProcedureKind;
+    show
+        Constructor,
+        Field,
+        FunctionNode,
+        Member,
+        Procedure,
+        ProcedureKind,
+        ProcedureStubKind;
 
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -223,7 +230,6 @@ class DillFactoryBuilder extends DillProcedureBuilder {
 
 class DillConstructorBuilder extends DillMemberBuilder
     implements ConstructorBuilder {
-  @override
   final Constructor constructor;
   final Procedure? _constructorTearOff;
 
@@ -238,7 +244,7 @@ class DillConstructorBuilder extends DillMemberBuilder
   Constructor get member => constructor;
 
   @override
-  Member? get readTarget => _constructorTearOff ?? constructor;
+  Member get readTarget => _constructorTearOff ?? constructor;
 
   @override
   Member? get writeTarget => null;
@@ -267,6 +273,13 @@ class DillClassMember extends BuilderClassMember {
   bool get isInternalImplementation {
     Member member = memberBuilder.member;
     return member.isInternalImplementation;
+  }
+
+  @override
+  bool get isNoSuchMethodForwarder {
+    Member member = memberBuilder.member;
+    return member is Procedure &&
+        member.stubKind == ProcedureStubKind.NoSuchMethodForwarder;
   }
 
   @override

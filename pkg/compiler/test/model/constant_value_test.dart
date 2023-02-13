@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library dart2js.constants.values.test;
 
 import 'package:async_helper/async_helper.dart';
@@ -31,10 +29,10 @@ void main() {
     """);
     ClassEntity C = env.getClass('C');
     InterfaceType C_raw = env.elementEnvironment.getRawType(C);
-    FieldEntity field1 =
-        env.elementEnvironment.lookupClassMember(C, PublicName('field1'));
-    FieldEntity field2 =
-        env.elementEnvironment.lookupClassMember(C, PublicName('field2'));
+    final field1 = env.elementEnvironment
+        .lookupClassMember(C, PublicName('field1')) as FieldEntity;
+    final field2 = env.elementEnvironment
+        .lookupClassMember(C, PublicName('field2')) as FieldEntity;
     ConstructedConstantValue value1 = new ConstructedConstantValue(C_raw, {
       field1: new IntConstantValue(BigInt.zero),
       field2: new IntConstantValue(BigInt.one),

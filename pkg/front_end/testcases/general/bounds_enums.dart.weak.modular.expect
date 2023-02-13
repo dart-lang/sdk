@@ -56,13 +56,13 @@ constants  {
   #C1 = 0
   #C2 = "e1"
   #C3 = self::E1<Never*> {index:#C1, _name:#C2}
-  #C4 = <self::E1<dynamic>*>[#C3]
+  #C4 = <self::E1<(Never*) →* dynamic>*>[#C3]
   #C5 = "e2"
   #C6 = self::E2<Never*> {index:#C1, _name:#C5}
-  #C7 = <self::E2<dynamic>*>[#C6]
+  #C7 = <self::E2<self::B<dynamic>*>*>[#C6]
   #C8 = "e3"
   #C9 = self::E3<Never*> {index:#C1, _name:#C8}
-  #C10 = <self::E3<dynamic>*>[#C9]
+  #C10 = <self::E3<self::E3<dynamic>*>*>[#C9]
 }
 
 

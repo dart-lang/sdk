@@ -302,7 +302,8 @@ class AssignmentExpressionShared {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  void checkFinalAlreadyAssigned(Expression left) {
+  void checkFinalAlreadyAssigned(Expression left,
+      {bool isForEachIdentifier = false}) {
     var flowAnalysis = _resolver.flowAnalysis;
 
     var flow = flowAnalysis.flow;
@@ -316,14 +317,14 @@ class AssignmentExpressionShared {
 
         if (element.isFinal) {
           if (element.isLate) {
-            if (assigned) {
+            if (isForEachIdentifier || assigned) {
               _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
                 left,
               );
             }
           } else {
-            if (!unassigned) {
+            if (isForEachIdentifier || !unassigned) {
               _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
                 left,

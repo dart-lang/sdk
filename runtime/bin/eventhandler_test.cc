@@ -64,7 +64,7 @@ VM_UNIT_TEST_CASE(CircularLinkedList) {
   list.Rotate();
   EXPECT(list.head() == 1);
 
-  // Test: Remove non-existent element leaves list un-changed.
+  // Test: Remove nonexistent element leaves list un-changed.
   list.Remove(4242);
   EXPECT(list.head() == 1);
 
@@ -75,7 +75,7 @@ VM_UNIT_TEST_CASE(CircularLinkedList) {
   list.Remove(10);
   EXPECT(!list.HasHead());
 
-  // Test: Remove non-existent element from empty list works.
+  // Test: Remove nonexistent element from empty list works.
   list.Remove(4242);
 }
 

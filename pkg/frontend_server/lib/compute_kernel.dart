@@ -94,7 +94,7 @@ final summaryArgsParser = new ArgParser()
       help: 'Enable a language experiment when invoking the CFE.')
   ..addMultiOption('define', abbr: 'D')
   ..addFlag('verbose', defaultsTo: false)
-  ..addFlag('sound-null-safety', defaultsTo: false)
+  ..addFlag('sound-null-safety', defaultsTo: true)
   ..addFlag('null-environment', defaultsTo: false, negatable: false)
   ..addOption('verbosity',
       defaultsTo: fe.Verbosity.defaultValue,
@@ -179,7 +179,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       (parsedArgs['target'] as String?) ?? (summaryOnly ? 'ddc' : 'vm');
   var targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
-      enableNullSafety: nnbdMode == fe.NnbdMode.Strong);
+      soundNullSafety: nnbdMode == fe.NnbdMode.Strong);
   Target target;
   switch (targetName) {
     case 'vm':

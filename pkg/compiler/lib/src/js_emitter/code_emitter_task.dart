@@ -4,12 +4,9 @@
 
 library dart2js.js_emitter.code_emitter_task;
 
-import 'package:compiler/src/dump_info.dart';
-import 'package:compiler/src/native/enqueue.dart';
-
 import '../common/metrics.dart' show Metric, Metrics, CountMetric;
 import '../common/tasks.dart' show CompilerTask;
-import '../compiler_interfaces.dart' show CompilerEmitterFacade;
+import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
@@ -18,7 +15,7 @@ import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
-import '../js_model/js_strategy_interfaces.dart';
+import '../js_model/js_strategy.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
@@ -38,7 +35,7 @@ class CodeEmitterTask extends CompilerTask {
   late final NativeEmitter nativeEmitter;
   late final MetadataCollector metadataCollector;
   late final Emitter emitter;
-  final CompilerEmitterFacade _compiler;
+  final Compiler _compiler;
   final bool _generateSourceMap;
 
   JsBackendStrategy get _backendStrategy => _compiler.backendStrategy;
@@ -73,13 +70,13 @@ class CodeEmitterTask extends CompilerTask {
   void createEmitter(
       Namer namer, CodegenInputs codegen, JClosedWorld closedWorld) {
     measure(() {
-      nativeEmitter = NativeEmitter(this, closedWorld,
-          _backendStrategy.nativeCodegenEnqueuer as NativeCodegenEnqueuer);
+      nativeEmitter = NativeEmitter(
+          this, closedWorld, _backendStrategy.nativeCodegenEnqueuer);
       emitter = startup_js_emitter.EmitterImpl(
           _compiler.options,
           _compiler.reporter,
           _compiler.outputProvider,
-          _compiler.dumpInfoTask as DumpInfoTask,
+          _compiler.dumpInfoTask,
           namer,
           closedWorld,
           codegen.rtiRecipeEncoder,
@@ -108,7 +105,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.commonElements,
           closedWorld.outputUnitData,
           codegenWorld,
-          _backendStrategy.nativeCodegenEnqueuer as NativeCodegenEnqueuer,
+          _backendStrategy.nativeCodegenEnqueuer,
           closedWorld.backendUsage,
           closedWorld.nativeData,
           closedWorld.rtiNeed,
@@ -117,11 +114,13 @@ class CodeEmitterTask extends CompilerTask {
           codegenInputs.rtiRecipeEncoder,
           codegenWorld.oneShotInterceptorData,
           _backendStrategy.customElementsCodegenAnalysis,
+          _backendStrategy.recordsCodegen,
           _backendStrategy.generatedCode,
           namer,
           this,
           closedWorld,
           closedWorld.fieldAnalysis,
+          closedWorld.recordData,
           inferredData,
           _backendStrategy.sourceInformationStrategy,
           closedWorld.sorter,

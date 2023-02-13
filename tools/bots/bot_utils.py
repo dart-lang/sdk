@@ -109,7 +109,7 @@ class GCSNamer(object):
         else:
             self.bucket = 'gs://dart-archive'
 
-    # Functions for quering complete gs:// filepaths
+    # Functions for querying complete gs:// filepaths
 
     def version_filepath(self, revision):
         return '%s/channels/%s/%s/%s/VERSION' % (self.bucket, self.channel,
@@ -156,7 +156,7 @@ class GCSNamer(object):
     def _variant_directory(self, name, revision):
         return '%s/%s' % (self.base_directory(revision), name)
 
-    # Functions for quering filenames
+    # Functions for querying filenames
 
     def dartdocs_zipfilename(self):
         return 'dartdocs-gen-api.zip'

@@ -123,7 +123,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         node.isExtensionMember &&
         (node == allocationTearoff ||
             node == asFunctionTearoff ||
-            node == lookupFunctionTearoff));
+            node == lookupFunctionTearoff ||
+            node == abiSpecificIntegerPointerElementAtTearoff ||
+            node == structPointerElementAtTearoff ||
+            node == unionPointerElementAtTearoff));
     final result = super.visitProcedure(node);
     _inFfiTearoff = false;
     return result;
@@ -201,6 +204,28 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         return _replaceSetRef(node);
+      } else if (target == abiSpecificIntegerPointerElementAt ||
+          target == structPointerElementAt ||
+          target == unionPointerElementAt) {
+        final pointer = node.arguments.positional[0];
+        final index = node.arguments.positional[1];
+        final pointerType =
+            pointer.getStaticType(staticTypeContext!) as InterfaceType;
+        ensureNativeTypeValid(pointerType, pointer,
+            allowCompounds: true, allowInlineArray: true);
+        final DartType nativeType = node.arguments.types[0];
+
+        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+
+        Expression? inlineSizeOf = _inlineSizeOf(nativeType as InterfaceType);
+        if (inlineSizeOf != null) {
+          // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
+          return InstanceInvocation(InstanceAccessKind.Instance, pointer,
+              offsetByMethod.name, Arguments([multiply(index, inlineSizeOf)]),
+              interfaceTarget: offsetByMethod,
+              functionType: Substitution.fromInterfaceType(pointerType)
+                  .substituteType(offsetByMethod.getterType) as FunctionType);
+        }
       } else if (target == structArrayElemAt || target == unionArrayElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
@@ -524,8 +549,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return ConstructorInvocation(constructor, Arguments([pointer]));
   }
 
-  /// Replaces a `.ref=` or `[]=` on a compound pointer extension with a memcopy
-  /// call.
+  /// Replaces a `.ref=` or `[]=` on a compound pointer extension with a mem
+  /// copy call.
   Expression _replaceSetRef(StaticInvocation node) {
     final target = node.arguments.positional[0]; // Receiver of extension
 
@@ -704,60 +729,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           ..fileOffset = node.fileOffset);
   }
 
-  @override
-  visitInstanceInvocation(InstanceInvocation node) {
-    final modifiedExpression = _visitInstanceInvocation(node);
-    if (node == modifiedExpression) {
-      return super.visitInstanceInvocation(node);
-    }
-    // We've just created this node. We're likely not going to need to transform
-    // this node itself. Visit its sub expressions.
-    return super.defaultExpression(modifiedExpression);
-  }
-
-  /// Replaces nodes if they match. Does not invoke any super visit.
-  Expression _visitInstanceInvocation(InstanceInvocation node) {
-    if (_inFfiTearoff) {
-      return node;
-    }
-    final Member target = node.interfaceTarget;
-    try {
-      if (target == elementAtMethod) {
-        final DartType pointerType =
-            node.receiver.getStaticType(staticTypeContext!);
-        final DartType nativeType = _pointerTypeGetTypeArg(pointerType)!;
-
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
-
-        Expression? inlineSizeOf = _inlineSizeOf(nativeType as InterfaceType);
-        if (inlineSizeOf != null) {
-          // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
-          return InstanceInvocation(
-              InstanceAccessKind.Instance,
-              node.receiver,
-              offsetByMethod.name,
-              Arguments(
-                  [multiply(node.arguments.positional.single, inlineSizeOf)]),
-              interfaceTarget: offsetByMethod,
-              functionType:
-                  Substitution.fromInterfaceType(pointerType as InterfaceType)
-                          .substituteType(offsetByMethod.getterType)
-                      as FunctionType);
-        }
-      }
-    } on FfiStaticTypeError {
-      // It's OK to swallow the exception because the diagnostics issued will
-      // cause compilation to fail. By continuing, we can report more
-      // diagnostics before compilation ends.
-    }
-
-    return node;
-  }
-
-  DartType? _pointerTypeGetTypeArg(DartType pointerType) {
-    return pointerType is InterfaceType ? pointerType.typeArguments[0] : null;
-  }
-
   void _ensureIsStaticFunction(Expression node) {
     if ((node is StaticGet && node.target is Procedure) ||
         (node is ConstantExpression &&
@@ -784,6 +755,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         klass == structClass ||
         klass == unionClass ||
         klass == abiSpecificIntegerClass ||
+        klass == varArgsClass ||
         classNativeTypes[klass] != null) {
       return null;
     }

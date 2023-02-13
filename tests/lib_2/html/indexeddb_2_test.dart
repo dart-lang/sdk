@@ -48,7 +48,7 @@ testReadWrite(key, value, check,
 }
 
 List<String> get nonNativeListData {
-  var list = new List<String>();
+  var list = <String>[];
   list.add("data");
   list.add("clone");
   list.add("error");

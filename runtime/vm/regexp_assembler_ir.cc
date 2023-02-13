@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dart_entry.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -31,9 +32,8 @@
   }
 #define TAG_()                                                                 \
   Print(Bind(new (Z) ConstantInstr(String::ZoneHandle(                         \
-      Z, String::Concat(String::Handle(String::New("TAG: ")),                  \
-                        String::Handle(String::New(__FUNCTION__)),             \
-                        Heap::kOld)))));
+      Z, Symbols::FromConcat(thread_, String::Handle(String::New("TAG: ")),    \
+                             String::Handle(String::New(__FUNCTION__)))))));
 
 #define PRINT(arg)                                                             \
   if (FLAG_trace_irregexp) {                                                   \
@@ -41,8 +41,6 @@
   }
 
 namespace dart {
-
-static const intptr_t kMinStackSize = 512;
 
 /*
  * This assembler uses the following main local variables:
@@ -87,9 +85,6 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
       start_index_param_(NULL),
       registers_count_(0),
       saved_registers_count_((capture_count + 1) * 2),
-      stack_array_cell_(Array::ZoneHandle(zone, Array::New(1, Heap::kOld))),
-      // The registers array is allocated at a fixed size after assembly.
-      registers_array_(TypedData::ZoneHandle(zone, TypedData::null())),
       // B0 is taken by GraphEntry thus block ids must start at 1.
       block_id_(1) {
   switch (specialization_cid) {
@@ -106,14 +101,6 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
   }
 
   InitializeLocals();
-
-  // Allocate an initial stack backing of the minimum stack size. The stack
-  // backing is indirectly referred to so we can reuse it on subsequent matches
-  // even in the case where the backing has been enlarged and thus reallocated.
-  stack_array_cell_.SetAt(
-      0,
-      TypedData::Handle(zone, TypedData::New(kTypedDataInt32ArrayCid,
-                                             kMinStackSize / 4, Heap::kOld)));
 
   // Create and generate all preset blocks.
   entry_block_ = new (zone) GraphEntryInstr(*parsed_function_, osr_id);
@@ -195,16 +182,29 @@ void IRRegExpMacroAssembler::GenerateEntryBlock() {
 
   StoreLocal(current_position_, Bind(Sub(start_index_push, length_push)));
 
-  // Generate a local list variable to represent "registers" and
-  // initialize capture registers (others remain garbage).
-  StoreLocal(registers_, Bind(new (Z) ConstantInstr(registers_array_)));
+  {
+    const Library& lib = Library::Handle(Library::CoreLibrary());
+    const Class& regexp_class =
+        Class::Handle(lib.LookupClassAllowPrivate(Symbols::_RegExp()));
+    const Function& get_registers_function = Function::ZoneHandle(
+        Z, regexp_class.LookupFunctionAllowPrivate(Symbols::_getRegisters()));
+
+    // The "0" placeholder constant will be replaced with correct value
+    // determined at the end of regexp graph construction in Finalization.
+    num_registers_constant_instr =
+        new (Z) ConstantInstr(Integer::ZoneHandle(Z, Integer::NewCanonical(0)));
+    StoreLocal(registers_, Bind(StaticCall(get_registers_function,
+                                           Bind(num_registers_constant_instr),
+                                           ICData::kStatic)));
+
+    const Field& backtracking_stack_field =
+        Field::ZoneHandle(Z, regexp_class.LookupStaticFieldAllowPrivate(
+                                 Symbols::_backtrackingStack()));
+    StoreLocal(stack_, Bind(LoadStaticField(backtracking_stack_field,
+                                            /*calls_initializer=*/true)));
+  }
   ClearRegisters(0, saved_registers_count_ - 1);
 
-  // Generate a local list variable to represent the backtracking stack.
-  Value* stack_cell_push = Bind(new (Z) ConstantInstr(stack_array_cell_));
-  StoreLocal(stack_,
-             Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
-                               stack_cell_push, Bind(Uint64Constant(0)))));
   StoreLocal(stack_pointer_, Bind(Int64Constant(-1)));
 
   // Jump to the start block.
@@ -274,8 +274,10 @@ void IRRegExpMacroAssembler::GenerateExitBlock() {
 
 void IRRegExpMacroAssembler::FinalizeRegistersArray() {
   ASSERT(registers_count_ >= saved_registers_count_);
-  registers_array_ =
-      TypedData::New(kTypedDataInt32ArrayCid, registers_count_, Heap::kOld);
+
+  ConstantInstr* new_constant = Int64Constant(registers_count_);
+  new_constant->set_temp_index(num_registers_constant_instr->temp_index());
+  num_registers_constant_instr->ReplaceWith(new_constant, /*iterator=*/nullptr);
 }
 
 bool IRRegExpMacroAssembler::CanReadUnaligned() {
@@ -513,6 +515,13 @@ LoadLocalInstr* IRRegExpMacroAssembler::LoadLocal(LocalVariable* local) const {
 
 void IRRegExpMacroAssembler::StoreLocal(LocalVariable* local, Value* value) {
   Do(new (Z) StoreLocalInstr(*local, value, InstructionSource()));
+}
+
+LoadStaticFieldInstr* IRRegExpMacroAssembler::LoadStaticField(
+    const Field& field,
+    bool calls_initializer) const {
+  return new (Z) LoadStaticFieldInstr(field, InstructionSource(),
+                                      calls_initializer, GetNextDeoptId());
 }
 
 void IRRegExpMacroAssembler::set_current_instruction(Instruction* instruction) {
@@ -1480,22 +1489,15 @@ void IRRegExpMacroAssembler::CheckStackLimit() {
 
 void IRRegExpMacroAssembler::GrowStack() {
   TAG();
-  const Library& lib = Library::Handle(Library::InternalLibrary());
-  const Function& grow_function = Function::ZoneHandle(
-      Z, lib.LookupFunctionAllowPrivate(Symbols::GrowRegExpStack()));
-  StoreLocal(stack_, Bind(StaticCall(grow_function, PushLocal(stack_),
-                                     ICData::kStatic)));
+  const Library& lib = Library::Handle(Library::CoreLibrary());
+  const Class& regexp_class =
+      Class::Handle(lib.LookupClassAllowPrivate(Symbols::_RegExp()));
 
-  // Note: :stack and stack_array_cell content might diverge because each
-  // instance of :matcher code has its own stack_array_cell embedded into it
-  // as a constant but :stack is a local variable and its value might be
-  // comming from OSR or deoptimization. This means we should never use
-  // stack_array_cell in the body of the :matcher to reload the :stack.
-  Value* stack_cell_push = Bind(new (Z) ConstantInstr(stack_array_cell_));
-  Value* index_push = Bind(Uint64Constant(0));
-  Value* stack_push = PushLocal(stack_);
-  Do(InstanceCall(InstanceCallDescriptor::FromToken(Token::kASSIGN_INDEX),
-                  stack_cell_push, index_push, stack_push));
+  const Function& grow_backtracking_stack_function =
+      Function::ZoneHandle(Z, regexp_class.LookupFunctionAllowPrivate(
+                                  Symbols::_growBacktrackingStack()));
+  StoreLocal(stack_, Bind(StaticCall(grow_backtracking_stack_function,
+                                     ICData::kStatic)));
 }
 
 void IRRegExpMacroAssembler::ReadCurrentPositionFromRegister(intptr_t reg) {

@@ -144,7 +144,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNewSource, 0, 4) {
   return Object::null();
 }
 
-// Allocate and throw a new TypeError or CastError.
+// Allocate and throw a new TypeError.
 // Arg0: index of the token of the failed type check.
 // Arg1: src value.
 // Arg2: dst type.

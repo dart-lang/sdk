@@ -299,13 +299,15 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     required ResolvedUnitResult unit,
     required int offset,
     required LineInfo lineInfo,
+    required bool Function(String input) filter,
   }) async {
     final request = DartSnippetRequest(
       unit: unit,
       offset: offset,
     );
     final snippetManager = DartSnippetManager();
-    final snippets = await snippetManager.computeSnippets(request);
+    final snippets =
+        await snippetManager.computeSnippets(request, filter: filter);
 
     return snippets.map((snippet) => snippetToCompletionItem(
           server,
@@ -388,6 +390,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         final suggestions = await contributor.computeSuggestions(
           completionRequest,
           performance,
+          useFilter: true,
         );
 
         // Keep track of whether the set of results was truncated (because
@@ -457,14 +460,14 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         // lazily to reduce the payload.
         CompletionItemResolutionInfo? resolutionInfo;
         if (item is DartCompletionSuggestion) {
-          final dartElement = item.dartElement;
+          final elementLocation = item.elementLocation;
           final importUris = item.requiredImports;
 
           if (importUris.isNotEmpty) {
             resolutionInfo = DartCompletionResolutionInfo(
               file: unit.path,
               importUris: importUris.map((uri) => uri.toString()).toList(),
-              ref: dartElement?.location?.encoding,
+              ref: elementLocation?.encoding,
             );
           }
         }
@@ -519,11 +522,15 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         try {
           unrankedResults =
               await performance.runAsync('getSnippets', (performance) async {
+            // TODO(dantup): Pass `fuzzy` into here so we can filter snippets
+            //  before computing them to avoid looking up Element->Public Library
+            //  if they won't be included.
             final snippets = await _getDartSnippetItems(
               clientCapabilities: capabilities,
               unit: unit,
               offset: offset,
               lineInfo: unit.lineInfo,
+              filter: fuzzy.stringMatches,
             );
             return snippets.where(fuzzy.completionItemMatches).toList();
           });
@@ -832,8 +839,10 @@ class _FuzzyFilterHelper {
       : _matcher = FuzzyMatcher(prefix, matchStyle: MatchStyle.TEXT);
 
   bool completionItemMatches(CompletionItem item) =>
-      _matcher.score(item.filterText ?? item.label) > 0;
+      stringMatches(item.filterText ?? item.label);
 
   bool completionSuggestionMatches(CompletionSuggestion item) =>
-      _matcher.score(item.displayText ?? item.completion) > 0;
+      stringMatches(item.displayText ?? item.completion);
+
+  bool stringMatches(String input) => _matcher.score(input) > 0;
 }

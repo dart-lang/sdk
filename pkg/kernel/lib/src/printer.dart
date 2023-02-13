@@ -118,8 +118,8 @@ class AstPrinter {
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 
-  void writeViewName(Reference? reference) {
-    _sb.write(qualifiedViewNameToStringByReference(reference,
+  void writeInlineClassName(Reference? reference) {
+    _sb.write(qualifiedInlineClassNameToStringByReference(reference,
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 
@@ -458,7 +458,6 @@ class AstPrinter {
     }
     _sb.write(')');
     Statement? body = node.body;
-    // ignore: unnecessary_null_comparison
     if (body != null) {
       if (body is ReturnStatement) {
         _sb.write(' => ');

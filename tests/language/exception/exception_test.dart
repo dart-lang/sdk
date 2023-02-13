@@ -24,11 +24,11 @@ class ExceptionTest {
 
     bool correctCatch = false;
     try {
-      // This throws NullThrownError
+      // This throws TypeError
       throw (null as dynamic);
     } on String catch (s) {
       correctCatch = false;
-    } on NullThrownError catch (e) {
+    } on TypeError catch (e) {
       correctCatch = true;
     } catch (x) {
       correctCatch = false;

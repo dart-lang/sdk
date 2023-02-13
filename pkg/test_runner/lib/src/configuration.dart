@@ -152,6 +152,9 @@ class TestConfiguration {
   /// Extra dart2js options passed to the testing script.
   List<String> get dart2jsOptions => configuration.dart2jsOptions;
 
+  /// Extra ddc options passed to the testing script.
+  List<String> get ddcOptions => configuration.ddcOptions;
+
   /// Extra gen_kernel options passed to the testing script.
   List<String> get genKernelOptions => configuration.genKernelOptions;
 
@@ -230,14 +233,14 @@ class TestConfiguration {
       } else {
         var isReload = hotReload || hotReloadRollback;
 
-        var compilerMulitiplier = compilerConfiguration.timeoutMultiplier;
+        var compilerMultiplier = compilerConfiguration.timeoutMultiplier;
         var runtimeMultiplier = runtimeConfiguration.timeoutMultiplier(
             mode: mode,
             isChecked: isChecked,
             isReload: isReload,
             arch: architecture);
 
-        _timeout = 60 * compilerMulitiplier * runtimeMultiplier;
+        _timeout = 60 * compilerMultiplier * runtimeMultiplier;
       }
     }
 

@@ -136,6 +136,10 @@ declare_args() {
 
   # Compile for execution in user-mode QEMU.
   is_qemu = false
+
+  # protobuf-gn fails to build if this argument isn't defined. This should never
+  # be set to true, becuase we never build within the Fuchsia tree.
+  is_fuchsia_tree = false
 }
 
 # =============================================================================

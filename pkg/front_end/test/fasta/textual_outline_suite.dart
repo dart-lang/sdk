@@ -8,9 +8,7 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
-
 import 'package:dart_style/dart_style.dart' show DartFormatter;
-
 import 'package:front_end/src/fasta/util/textual_outline.dart';
 import 'package:testing/testing.dart'
     show
@@ -47,7 +45,7 @@ const List<Map<String, String>> EXPECTATIONS = [
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
   return new Future.value(
-      new Context(environment["updateExpectations"] == "true"));
+      new Context(environment[UPDATE_EXPECTATIONS] == "true"));
 }
 
 void main([List<String> arguments = const []]) =>

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
@@ -85,6 +84,7 @@ import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
+import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
@@ -105,6 +105,7 @@ import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -117,7 +118,7 @@ import 'package:watcher/watcher.dart';
 
 /// A function that can be executed to create a handler for a request.
 typedef HandlerGenerator = LegacyHandler Function(
-    LegacyAnalysisServer, Request, CancellationToken);
+    LegacyAnalysisServer, Request, CancellationToken, OperationPerformanceImpl);
 
 typedef OptionUpdater = void Function(AnalysisOptionsImpl options);
 
@@ -261,7 +262,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   bool statusAnalyzing = false;
 
   /// A set of the [ServerService]s to send notifications for.
-  Set<ServerService> serverServices = HashSet<ServerService>();
+  Set<ServerService> serverServices = {};
 
   /// A table mapping request ids to cancellation tokens that allow cancelling
   /// the request.
@@ -271,13 +272,11 @@ class LegacyAnalysisServer extends AnalysisServer {
   Map<String, CancelableToken> cancellationTokens = {};
 
   /// A set of the [GeneralAnalysisService]s to send notifications for.
-  Set<GeneralAnalysisService> generalAnalysisServices =
-      HashSet<GeneralAnalysisService>();
+  Set<GeneralAnalysisService> generalAnalysisServices = {};
 
   /// A table mapping [AnalysisService]s to the file paths for which these
   /// notifications should be sent.
-  Map<AnalysisService, Set<String>> analysisServices =
-      HashMap<AnalysisService, Set<String>>();
+  Map<AnalysisService, Set<String>> analysisServices = {};
 
   /// A table mapping [FlutterService]s to the file paths for which these
   /// notifications should be sent.
@@ -452,20 +451,40 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
-    analyticsManager.startedRequest(
-        request: request, startTime: DateTime.now());
+    final startTime = DateTime.now();
+    analyticsManager.startedRequest(request: request, startTime: startTime);
     performance.logRequestTiming(request.clientRequestTime);
+
     // Because we don't `await` the execution of the handlers, we wrap the
     // execution in order to have one central place to handle exceptions.
-    runZonedGuarded(() {
-      var cancellationToken = CancelableToken();
-      cancellationTokens[request.id] = cancellationToken;
-      var generator = handlerGenerators[request.method];
-      if (generator != null) {
-        var handler = generator(this, request, cancellationToken);
-        handler.handle();
-      } else {
-        sendResponse(Response.unknownRequest(request));
+    runZonedGuarded(() async {
+      // Record performance information for the request.
+      final rootPerformance = OperationPerformanceImpl('<root>');
+      RequestPerformance? requestPerformance;
+      await rootPerformance.runAsync('request', (performance) async {
+        requestPerformance = RequestPerformance(
+          operation: request.method,
+          performance: performance,
+          requestLatency: request.timeSinceRequest,
+          startTime: startTime,
+        );
+        recentPerformance.requests.add(requestPerformance!);
+
+        var cancellationToken = CancelableToken();
+        cancellationTokens[request.id] = cancellationToken;
+        var generator = handlerGenerators[request.method];
+        if (generator != null) {
+          var handler =
+              generator(this, request, cancellationToken, performance);
+          await handler.handle();
+        } else {
+          sendResponse(Response.unknownRequest(request));
+        }
+      });
+      if (requestPerformance != null &&
+          requestPerformance!.performance.elapsed >
+              ServerRecentPerformance.slowRequestsThreshold) {
+        recentPerformance.slowRequests.add(requestPerformance!);
       }
     }, (exception, stackTrace) {
       if (exception is InconsistentAnalysisException) {
@@ -883,7 +902,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void broadcastWatchEvent(WatchEvent event) {
     analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    analysisServer.pluginManager.broadcastWatchEvent(event);
+    if (AnalysisServer.supportsPlugins) {
+      analysisServer.pluginManager.broadcastWatchEvent(event);
+    }
   }
 
   @override

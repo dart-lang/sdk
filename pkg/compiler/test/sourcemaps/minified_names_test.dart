@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
@@ -73,10 +71,10 @@ RegExp _nameMatcher = new RegExp("// Expected deobfuscated name: (.*)\n");
 Future runTest(String code) async {
   var patternMatch = _patternMatcher.firstMatch(code);
   Expect.isNotNull(patternMatch, "Could not find the error pattern.");
-  var pattern = new RegExp(patternMatch.group(1));
+  var pattern = new RegExp(patternMatch!.group(1)!);
   var kindMatch = _kindMatcher.firstMatch(code);
   Expect.isNotNull(kindMatch, "Could not find the expected minified kind.");
-  var kind = kindMatch.group(1);
+  var kind = kindMatch!.group(1)!;
 
   // TODO(sigmund): add support for "other" when we encode symbol information
   // directly for each field and local variable.
@@ -86,7 +84,7 @@ Future runTest(String code) async {
 
   var nameMatch = _nameMatcher.firstMatch(code);
   Expect.isNotNull(nameMatch, "Could not find the expected deobfuscated name.");
-  var expectedName = nameMatch.group(1);
+  var expectedName = nameMatch!.group(1)!;
   var test = new MinifiedNameTest(pattern, kind, expectedName, code);
   print('expectations: ${pattern.pattern} $kind $expectedName');
   await checkExpectation(test, false);
@@ -97,22 +95,23 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
   print('-- ${minified ? 'minified' : 'not-minified'}:');
   var options = [
     Flags.testMode,
+    Flags.noSoundNullSafety,
     '--libraries-spec=$sdkLibrariesSpecificationUri',
     if (minified) Flags.minify,
   ];
   D8Result result = await runWithD8(
       memorySourceFiles: {'main.dart': test.code}, options: options);
   String stdout = result.runResult.stdout;
-  String error = _extractError(stdout);
+  String? error = _extractError(stdout);
   print('   error: $error');
   Expect.isNotNull(error, 'Couldn\'t find the error message in $stdout');
 
-  var match = test.pattern.firstMatch(error);
+  var match = test.pattern.firstMatch(error!);
   Expect.isNotNull(
       match,
       'Error didn\'t match the test pattern'
       '\nerror: $error\npattern:${test.pattern}');
-  var name = match.group(1);
+  var name = match!.group(1)!;
   print('   obfuscated-name: $name');
   Expect.isNotNull(name, 'Error didn\'t contain a name\nerror: $error');
 
@@ -151,7 +150,7 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
 /// Returns the portion of the output that corresponds to the error message.
 ///
 /// Note: some errors can span multiple lines.
-String _extractError(String stdout) {
+String? _extractError(String stdout) {
   var firstStackFrame = stdout.indexOf('\n    at');
   if (firstStackFrame == -1) return null;
   var errorMarker = stdout.indexOf('^') + 1;

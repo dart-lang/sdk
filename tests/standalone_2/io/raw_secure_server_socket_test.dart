@@ -201,7 +201,7 @@ void testSimpleReadWrite(
   const handshakeMessageSize = 100;
 
   List<int> createTestData() {
-    List<int> data = new List<int>(messageSize);
+    List<int> data = new List<int>.filled(messageSize, null);
     for (int i = 0; i < messageSize; i++) {
       data[i] = i & 0xff;
     }
@@ -209,7 +209,7 @@ void testSimpleReadWrite(
   }
 
   List<int> createHandshakeTestData() {
-    List<int> data = new List<int>(handshakeMessageSize);
+    List<int> data = new List<int>.filled(handshakeMessageSize, null);
     for (int i = 0; i < handshakeMessageSize; i++) {
       data[i] = i & 0xff;
     }
@@ -236,7 +236,7 @@ void testSimpleReadWrite(
     var completer = new Completer();
     int bytesRead = 0;
     int bytesWritten = 0;
-    List<int> data = new List<int>(messageSize);
+    List<int> data = new List<int>.filled(messageSize, null);
     client.writeEventsEnabled = false;
     var subscription;
     subscription = client.listen((event) {
@@ -297,7 +297,7 @@ void testSimpleReadWrite(
     int bytesRead = 0;
     int bytesWritten = 0;
     List<int> dataSent = createTestData();
-    List<int> dataReceived = new List<int>(dataSent.length);
+    List<int> dataReceived = new List<int>.filled(dataSent.length, null);
     socket.listen((event) {
       switch (event) {
         case RawSocketEvent.read:
@@ -340,7 +340,7 @@ void testSimpleReadWrite(
     var completer = new Completer();
     int bytesRead = 0;
     int bytesWritten = 0;
-    List<int> data = new List<int>(handshakeMessageSize);
+    List<int> data = new List<int>.filled(handshakeMessageSize, null);
     client.writeEventsEnabled = false;
     var subscription;
     subscription = client.listen((event) {
@@ -413,7 +413,7 @@ void testSimpleReadWrite(
     int bytesRead = 0;
     int bytesWritten = 0;
     List<int> dataSent = createHandshakeTestData();
-    List<int> dataReceived = new List<int>(dataSent.length);
+    List<int> dataReceived = new List<int>.filled(dataSent.length, 0);
     var subscription;
     subscription = socket.listen((event) {
       switch (event) {

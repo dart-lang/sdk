@@ -1,0 +1,42 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inline_class/representation.dart:23:13: Error: 'instanceField' is already declared in this scope.
+//   final int instanceField;
+//             ^^^^^^^^^^^^^
+// pkg/front_end/testcases/inline_class/representation.dart:22:14: Context: Previous declaration of 'instanceField'.
+//   final bool instanceField;
+//              ^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+inline class Missing /* declaredRepresentationType = invalid-type */ {
+}
+inline class Static /* declaredRepresentationType = core::bool */ {
+  static field staticField = self::Static|staticField;
+  constructor • = self::Static|;
+  tearoff • = self::Static|get#;
+}
+inline class Multiple /* declaredRepresentationType = core::bool */ {
+  constructor • = self::Multiple|;
+  tearoff • = self::Multiple|get#;
+}
+inline class Duplicate /* declaredRepresentationType = core::bool */ {
+  constructor • = self::Duplicate|;
+  tearoff • = self::Duplicate|get#;
+}
+static field core::int Static|staticField;
+static method Static|(core::bool instanceField) → self::Static
+  ;
+static method Static|get#(core::bool instanceField) → self::Static
+  return self::Static|(instanceField);
+static method Multiple|(core::bool instanceField1) → self::Multiple
+  ;
+static method Multiple|get#(core::bool instanceField1) → self::Multiple
+  return self::Multiple|(instanceField1);
+static method Duplicate|(core::int instanceField) → self::Duplicate
+  ;
+static method Duplicate|get#(core::int instanceField) → self::Duplicate
+  return self::Duplicate|(instanceField);

@@ -1,15 +1,11 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/rasta/malformed_function.dart:6:8: Error: Can't assign to a parenthesized expression.
-//   (null) = null;
-//        ^
-//
 import self as self;
+import "dart:_internal" as _in;
 
 static method main() → dynamic {
-  invalid-expression "pkg/front_end/testcases/rasta/malformed_function.dart:6:8: Error: Can't assign to a parenthesized expression.
-  (null) = null;
-       ^";
+  block {
+    final has-declared-initializer dynamic #0#0 = null;
+    if(!(#0#0 == null))
+      throw new _in::ReachabilityError::•();
+  } =>#0#0;
 }

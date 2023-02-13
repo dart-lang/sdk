@@ -35,7 +35,7 @@ class Check2<T> {
 }
 
 void main() {
-  var things = new List(3);
+  var things = new List<dynamic>.filled(3, null);
   things.setRange(0, 3, [new INSTANTIATED(), 1, new Object()]);
 
   var checkX = new Check<INSTANTIATED>();

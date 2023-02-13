@@ -117,8 +117,7 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (representation()) {
     case kTagged: {
       const auto out = locs()->out(0).reg();
-      __ slli(TMP, index, kWordSizeLog2 - kSmiTagSize);
-      __ add(TMP, TMP, base_reg());
+      __ AddShifted(TMP, base_reg(), index, kWordSizeLog2 - kSmiTagSize);
       __ LoadFromOffset(out, TMP, offset());
       break;
     }
@@ -126,22 +125,19 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if XLEN == 32
       const auto out_lo = locs()->out(0).AsPairLocation()->At(0).reg();
       const auto out_hi = locs()->out(0).AsPairLocation()->At(1).reg();
-      __ slli(TMP, index, kWordSizeLog2 - kSmiTagSize);
-      __ add(TMP, TMP, base_reg());
+      __ AddShifted(TMP, base_reg(), index, kWordSizeLog2 - kSmiTagSize);
       __ LoadFromOffset(out_lo, TMP, offset());
       __ LoadFromOffset(out_hi, TMP, offset() + compiler::target::kWordSize);
 #else
       const auto out = locs()->out(0).reg();
-      __ slli(TMP, index, kWordSizeLog2 - kSmiTagSize);
-      __ add(TMP, TMP, base_reg());
+      __ AddShifted(TMP, base_reg(), index, kWordSizeLog2 - kSmiTagSize);
       __ LoadFromOffset(out, TMP, offset());
 #endif
       break;
     }
     case kUnboxedDouble: {
       const auto out = locs()->out(0).fpu_reg();
-      __ slli(TMP, index, kWordSizeLog2 - kSmiTagSize);
-      __ add(TMP, TMP, base_reg());
+      __ AddShifted(TMP, base_reg(), index, kWordSizeLog2 - kSmiTagSize);
       __ LoadDFromOffset(out, TMP, offset());
       break;
     }
@@ -183,28 +179,70 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kSrcPos, Location::WritableRegister());
   locs->set_in(kDestPos, Location::WritableRegister());
-  locs->set_in(kSrcStartPos, Location::RequiresRegister());
-  locs->set_in(kDestStartPos, Location::RequiresRegister());
-  locs->set_in(kLengthPos, Location::WritableRegister());
+  locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
+  locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
+  locs->set_in(kLengthPos,
+               LocationWritableRegisterOrSmiConstant(length(), 0, 4));
   return locs;
 }
 
 void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register src_reg = locs()->in(kSrcPos).reg();
   const Register dest_reg = locs()->in(kDestPos).reg();
-  const Register src_start_reg = locs()->in(kSrcStartPos).reg();
-  const Register dest_start_reg = locs()->in(kDestStartPos).reg();
-  const Register length_reg = locs()->in(kLengthPos).reg();
+  const Location src_start_loc = locs()->in(kSrcStartPos);
+  const Location dest_start_loc = locs()->in(kDestStartPos);
+  const Location length_loc = locs()->in(kLengthPos);
+  const bool constant_length = length_loc.IsConstant();
+  const Register length_reg = constant_length ? kNoRegister : length_loc.reg();
 
-  EmitComputeStartPointer(compiler, src_cid_, src_start(), src_reg,
-                          src_start_reg);
-  EmitComputeStartPointer(compiler, dest_cid_, dest_start(), dest_reg,
-                          dest_start_reg);
+  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
+  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
+
+  if (constant_length) {
+    const intptr_t num_bytes =
+        Integer::Cast(length_loc.constant()).AsInt64Value() * element_size_;
+    const intptr_t mov_size =
+        Utils::Minimum(element_size_, static_cast<intptr_t>(XLEN / 8));
+    const intptr_t mov_repeat = num_bytes / mov_size;
+    ASSERT(num_bytes % mov_size == 0);
+    for (intptr_t i = 0; i < mov_repeat; i++) {
+      switch (mov_size) {
+        case 1:
+          __ lb(TMP, compiler::Address(src_reg, mov_size * i));
+          __ sb(TMP, compiler::Address(dest_reg, mov_size * i));
+          break;
+        case 2:
+          __ lh(TMP, compiler::Address(src_reg, mov_size * i));
+          __ sh(TMP, compiler::Address(dest_reg, mov_size * i));
+          break;
+        case 4:
+          __ lw(TMP, compiler::Address(src_reg, mov_size * i));
+          __ sw(TMP, compiler::Address(dest_reg, mov_size * i));
+          break;
+        case 8:
+#if XLEN == 64
+          __ ld(TMP, compiler::Address(src_reg, mov_size * i));
+          __ sd(TMP, compiler::Address(dest_reg, mov_size * i));
+#else
+          UNREACHABLE();
+#endif
+          break;
+        case 16:
+#if XLEN == 128
+          __ lq(TMP, compiler::Address(src_reg, mov_size * i));
+          __ sq(TMP, compiler::Address(dest_reg, mov_size * i));
+#else
+          UNREACHABLE();
+#endif
+          break;
+      }
+    }
+    return;
+  }
 
   compiler::Label loop, done;
 
-  // Untag length and skip copy if length is zero.
-  __ SmiUntag(length_reg);
+  const intptr_t loop_subtract = unboxed_length_ ? 1 : Smi::RawValue(1);
   __ beqz(length_reg, &done);
 
   __ Bind(&loop);
@@ -269,49 +307,63 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
       break;
   }
-  __ subi(length_reg, length_reg, 1);
+
+  __ subi(length_reg, length_reg, loop_subtract);
   __ bnez(length_reg, &loop);
   __ Bind(&done);
 }
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
-                                              Value* start,
                                               Register array_reg,
-                                              Register start_reg) {
+                                              Location start_loc) {
+  intptr_t offset;
   if (IsTypedDataBaseClassId(array_cid)) {
     __ lx(array_reg,
           compiler::FieldAddress(array_reg,
                                  compiler::target::PointerBase::data_offset()));
+    offset = 0;
   } else {
     switch (array_cid) {
       case kOneByteStringCid:
-        __ addi(
-            array_reg, array_reg,
-            compiler::target::OneByteString::data_offset() - kHeapObjectTag);
+        offset =
+            compiler::target::OneByteString::data_offset() - kHeapObjectTag;
         break;
       case kTwoByteStringCid:
-        __ addi(
-            array_reg, array_reg,
-            compiler::target::OneByteString::data_offset() - kHeapObjectTag);
+        offset =
+            compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
         break;
       case kExternalOneByteStringCid:
         __ lx(array_reg,
               compiler::FieldAddress(array_reg,
                                      compiler::target::ExternalOneByteString::
                                          external_data_offset()));
+        offset = 0;
         break;
       case kExternalTwoByteStringCid:
         __ lx(array_reg,
               compiler::FieldAddress(array_reg,
                                      compiler::target::ExternalTwoByteString::
                                          external_data_offset()));
+        offset = 0;
         break;
       default:
         UNREACHABLE();
         break;
     }
   }
+  ASSERT(start_loc.IsRegister() || start_loc.IsConstant());
+  if (start_loc.IsConstant()) {
+    const auto& constant = start_loc.constant();
+    ASSERT(constant.IsInteger());
+    const int64_t start_value = Integer::Cast(constant).AsInt64Value();
+    const intptr_t add_value = Utils::AddWithWrapAround(
+        Utils::MulWithWrapAround<intptr_t>(start_value, element_size_), offset);
+    __ AddImmediate(array_reg, add_value);
+    return;
+  }
+  __ AddImmediate(array_reg, offset);
+  const Register start_reg = start_loc.reg();
   intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) - 1;
   if (shift < 0) {
     __ srai(TMP, start_reg, -shift);
@@ -2759,7 +2811,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       __ BranchIf(NE, fail);
     } else if (value_cid == field_cid) {
-      // This would normaly be caught by Canonicalize, but RemoveRedefinitions
+      // This would normally be caught by Canonicalize, but RemoveRedefinitions
       // may sometimes produce the situation after the last Canonicalize pass.
     } else {
       // Both value's and field's class id is known.
@@ -7372,10 +7424,12 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // offsets to true or false.
     ASSERT(kTrueOffsetFromNull + (1 << kBoolValueBitPosition) ==
            kFalseOffsetFromNull);
+    ASSERT(((kTrueOffsetFromNull >> kBoolValueBitPosition)
+            << kBoolValueBitPosition) == kTrueOffsetFromNull);
     __ SetIf(InvertCondition(true_condition), result);
+    __ addi(result, result, kTrueOffsetFromNull >> kBoolValueBitPosition);
     __ slli(result, result, kBoolValueBitPosition);
     __ add(result, result, NULL_REG);
-    __ addi(result, result, kTrueOffsetFromNull);
   }
 }
 

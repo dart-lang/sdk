@@ -463,22 +463,6 @@ void f(A a) {
 ''');
   }
 
-  test_proxy_annotation_fakeProxy() async {
-    await assertErrorsInCode(r'''
-library L;
-class Fake {
-  const Fake();
-}
-const proxy = const Fake();
-@proxy class PrefixProxy {}
-main() {
-  new PrefixProxy().foo;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 127, 3),
-    ]);
-  }
-
   test_static_conditionalAccess_defined() async {
     await assertErrorsInCode(
       '''

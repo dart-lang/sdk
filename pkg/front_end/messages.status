@@ -39,6 +39,8 @@ AwaitAsIdentifier/example: Fail
 AwaitInLateLocalInitializer/analyzerCode: Fail
 AwaitInLateLocalInitializer/example: Fail
 AwaitNotAsync/example: Fail
+BaseClassImplementedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
+BaseMixinImplementedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 BytecodeLimitExceededTooManyArguments/analyzerCode: Fail
@@ -64,6 +66,7 @@ CantInferPackagesFromPackageUri/analyzerCode: Fail
 CantInferPackagesFromPackageUri/example: Fail
 CantInferTypeDueToCircularity/example: Fail
 CantReadFile/part_wrapped_script: Fail # Importing file in the (now) part.
+CantUseClassAsMixin/part_wrapped_script: Fail # Uses imports
 CantUseControlFlowOrSpreadAsConstant/example: Fail
 CantUseDeferredPrefixAsConstant/part_wrapped_script: Fail # Importing file in the (now) part.
 CantUsePrefixAsExpression/part_wrapped_script: Fail # Importing file in the (now) part.
@@ -180,10 +183,6 @@ CyclicClassHierarchy/script2: Fail # We report an error for each class involved 
 CyclicRedirectingFactoryConstructors/part_wrapped_script: Fail # Error is reported for each factory involved in the cycle.
 CyclicRedirectingFactoryConstructors/script: Fail # Error is reported for each factory involved in the cycle.
 CyclicTypedef/example: Fail
-DefaultListConstructorError/analyzerCode: Fail
-DefaultListConstructorError/example: Fail
-DefaultListConstructorWarning/analyzerCode: Fail
-DefaultListConstructorWarning/example: Fail
 DeferredAfterPrefix/example: Fail
 DeferredExtensionImport/analyzerCode: Fail
 DeferredExtensionImport/part_wrapped_script: Fail
@@ -419,7 +418,11 @@ FieldNotPromoted/analyzerCode: Fail
 FieldNotPromoted/example: Fail
 FinalAndCovariant/part_wrapped_script2: Fail
 FinalAndCovariant/script2: Fail
+FinalClassExtendedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
+FinalClassImplementedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
 FinalFieldWithoutInitializer/example: Fail
+FinalMixinImplementedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
+FinalMixinMixedInOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
 ForInLoopExactlyOneVariable/analyzerCode: Fail # The analyzer doesn't recover well.
 ForInLoopExactlyOneVariable/part_wrapped_statement: Fail
 ForInLoopExactlyOneVariable/statement: Fail # Fasta reports too many errors.
@@ -492,6 +495,8 @@ InstantiationTooManyArguments/analyzerCode: Fail
 IntegerLiteralIsOutOfRange/example: Fail
 InterfaceCheck/analyzerCode: Fail
 InterfaceCheck/example: Fail
+InterfaceClassExtendedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
+InterfaceMixinMixedInOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
 InterpolationInUri/example: Fail
 InvalidAssignmentWarning/analyzerCode: Fail
 InvalidAssignmentWarning/example: Fail
@@ -592,10 +597,12 @@ JsInteropNonExternalConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalConstructor/example: Fail # Web compiler specific
 JsInteropNonExternalMember/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalMember/example: Fail # Web compiler specific
-JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
-JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
 JsInteropNonStaticWithStaticInteropSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropNonStaticWithStaticInteropSupertype/example: Fail # Web compiler specific
+JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
+JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
+JsInteropStaticInteropAnonymousFactoryTearoff/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropAnonymousFactoryTearoff/example: Fail # Web compiler specific
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
@@ -713,13 +720,13 @@ NonAgnosticConstant/example: Fail
 NonAsciiIdentifier/expression: Fail
 NonAsciiIdentifier/part_wrapped_expression: Fail
 NonAugmentationClassConflict/analyzerCode: Fail
-NonAugmentationClassConflict/part_wrapped_script: Crash # TODO(johnniwinther): Investigate this.
+NonAugmentationClassConflict/part_wrapped_script: Fail
 NonAugmentationClassMemberConflict/analyzerCode: Fail
 NonAugmentationClassMemberConflict/part_wrapped_script: Fail # Uses imports
 NonAugmentationConstructorConflict/analyzerCode: Fail
 NonAugmentationConstructorConflict/part_wrapped_script: Fail # Uses imports
 NonAugmentationLibraryConflict/analyzerCode: Fail
-NonAugmentationLibraryConflict/part_wrapped_script: Crash # TODO(johnniwinther): Investigate this.
+NonAugmentationLibraryConflict/part_wrapped_script: Fail
 NonAugmentationLibraryMemberConflict/analyzerCode: Fail
 NonAugmentationLibraryMemberConflict/part_wrapped_script: Fail # Uses imports
 NonConstConstructor/example: Fail
@@ -833,6 +840,7 @@ PatchInjectionFailed/analyzerCode: Fail
 PatchInjectionFailed/example: Fail
 PatchNonExternal/analyzerCode: Fail
 PatchNonExternal/example: Fail
+PatternAssignmentDeclaresVariable/analyzerCode: Fail
 PlatformPrivateLibraryAccess/example: Fail
 PositionalAfterNamedArgument/example: Fail
 PositionalSuperParametersAndArguments/analyzerCode: Fail
@@ -851,6 +859,8 @@ RequiredNamedParameterHasDefaultValueError/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueError/example: Fail
 RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueWarning/example: Fail
+RestPatternMoreThanOne/analyzerCode: Fail
+RestPatternNotLastInMapPattern/analyzerCode: Fail
 RethrowNotCatch/example: Fail
 ReturnTypeFunctionExpression/analyzerCode: Fail
 ReturnTypeFunctionExpression/example: Fail
@@ -863,9 +873,7 @@ SdkSpecificationNotFound/analyzerCode: Fail
 SdkSpecificationNotFound/example: Fail
 SdkSummaryNotFound/analyzerCode: Fail
 SdkSummaryNotFound/example: Fail
-SealedClassSubtypeOutsideOfLibrary/analyzerCode: Fail
 SealedClassSubtypeOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
-SealedMixinSubtypeOutsideOfLibrary/analyzerCode: Fail
 SealedMixinSubtypeOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
 SetLiteralTooManyTypeArguments/analyzerCode: Fail
 SetLiteralTooManyTypeArguments/example: Fail
@@ -904,6 +912,7 @@ SuperclassMethodArgumentMismatch/example: Fail
 SupertypeIsFunction/analyzerCode: Fail
 SupertypeIsFunction/example: Fail
 SwitchCaseFallThrough/example: Fail
+SwitchExpressionEmpty/analyzerCode: Fail
 SwitchExpressionNotSubtype/analyzerCode: Fail
 SwitchExpressionUserDefinedEquals/analyzerCode: Fail
 SwitchExpressionUserDefinedEquals/example: Fail
@@ -944,7 +953,7 @@ UndefinedExtensionSetter/example: Fail
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedAugmentationClass/analyzerCode: Fail
-UnmatchedAugmentationClass/part_wrapped_script: Crash # TODO(johnniwinther): Investigate this.
+UnmatchedAugmentationClass/part_wrapped_script: Fail
 UnmatchedAugmentationClassMember/analyzerCode: Fail
 UnmatchedAugmentationClassMember/part_wrapped_script: Fail # Uses imports
 UnmatchedAugmentationConstructor/analyzerCode: Fail
@@ -957,6 +966,7 @@ UnmatchedToken/part_wrapped_script1: Fail
 UnmatchedToken/part_wrapped_script3: Fail
 UnmatchedToken/script1: Fail
 UnmatchedToken/script3: Fail
+UnnamedObjectPatternField/analyzerCode: Fail
 Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
 UnsupportedDartExt/analyzerCode: Fail
@@ -983,6 +993,9 @@ VarAsTypeName/part_wrapped_script1: Fail
 VarAsTypeName/script1: Fail # Too many problems
 VariableCouldBeNullDueToWrite/analyzerCode: Fail
 VariableCouldBeNullDueToWrite/example: Fail
+VariablePatternTypeMismatchInSwitchHeads/analyzerCode: Fail
+WasmSyncStar/analyzerCode: Fail
+WasmSyncStar/example: Fail
 WeakWithStrongDillLibrary/analyzerCode: Fail
 WeakWithStrongDillLibrary/example: Fail
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail

@@ -54,16 +54,6 @@ void f(void Function<T>()? m, void Function<T>() n) {
     ]);
   }
 
-  test_genericFunctionExpression_noInference_topLevel() async {
-    await assertErrorsInCode('''
-int Function<T>()? m = <T>() => 1;
-int Function<T>() n = <T>() => 2;
-var x = (m ?? n)();
-''', [
-      error(HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 77, 8),
-    ]);
-  }
-
   test_genericFunctionExpression_upwardsInference() async {
     await assertNoErrorsInCode('''
 void f(void Function<T>(T a)? m, void Function<T>(T a) n) {

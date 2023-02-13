@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dart2js_tools/src/dart2js_mapping.dart';
 import 'package:dart2js_tools/src/util.dart';
@@ -11,12 +11,13 @@ main(List<String> args) {
   }
   var name = args[1];
 
-  var sourcemapFile = new File.fromUri(Uri.base.resolve(args[0]));
+  var sourcemapFile = File.fromUri(Uri.base.resolve(args[0]));
   if (!sourcemapFile.existsSync()) {
     print('Error: no such file: $sourcemapFile');
     exit(1);
   }
-  var json = jsonDecode(sourcemapFile.readAsStringSync());
+  var json =
+      jsonDecode(sourcemapFile.readAsStringSync()) as Map<String, dynamic>;
   Dart2jsMapping mapping = Dart2jsMapping(parseSingleMapping(json), json);
   var global = mapping.globalNames[name];
   if (global != null) print('$name => $global (a global name)');

@@ -34,7 +34,7 @@ double atan2_ieee(double x, double y) {
   if (((cls_x & (_FPCLASS_PINF | _FPCLASS_NINF)) != 0) &&
       ((cls_y & (_FPCLASS_PINF | _FPCLASS_NINF)) != 0)) {
     // atan2 values at infinities listed above are the same as values
-    // at (+/-1, +/-1). index_x is 0, when x is +infinty, 1 when x is -infinty.
+    // at (+/-1, +/-1). index_x is 0, when x is +infinity, 1 when x is -infinity.
     // Same is with index_y.
     int index_x = (cls_x & _FPCLASS_PINF) != 0 ? 0 : 1;
     int index_y = (cls_y & _FPCLASS_PINF) != 0 ? 0 : 1;

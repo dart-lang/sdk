@@ -25,7 +25,7 @@ static method foo2((core::int, core::String?) r, <X extends core::Object? = dyna
 }
 static method foo3() → dynamic {
   (core::num, core::num) r = let final(core::int, core::double) #t1 = (3, 3.5) in block {
-    #t1.$0{core::int}.{core::int::isEven}{core::bool};
+    #t1.$1{core::int}.{core::int::isEven}{core::bool};
   } =>#t1;
 }
 static method foo4() → dynamic {

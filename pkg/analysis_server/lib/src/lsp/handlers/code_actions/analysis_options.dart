@@ -61,6 +61,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
       content,
       sourceFactory,
       session.analysisContext.contextRoot.root.path,
+      session.analysisContext.analysisOptions.sdkVersionConstraint,
     );
 
     final codeActions = <CodeActionWithPriority>[];

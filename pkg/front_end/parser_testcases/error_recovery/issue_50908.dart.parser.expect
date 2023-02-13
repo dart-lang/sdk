@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+void Function({required int Function()*synthetic*}) f;
+void Function({required int*synthetic*}) g;
+void Function({required int*synthetic*, required int*synthetic*})? h;
+
+
+void[KeywordToken] Function[KeywordToken]([BeginToken]{[BeginToken]required[KeywordToken] int[StringToken] Function[KeywordToken]([BeginToken])[SimpleToken][SyntheticStringToken]}[SimpleToken])[SimpleToken] f[StringToken];[SimpleToken]
+void[KeywordToken] Function[KeywordToken]([BeginToken]{[BeginToken]required[KeywordToken] int[StringToken][SyntheticStringToken]}[SimpleToken])[SimpleToken] g[StringToken];[SimpleToken]
+void[KeywordToken] Function[KeywordToken]([BeginToken]{[BeginToken]required[KeywordToken] int[StringToken][SyntheticStringToken],[SimpleToken] required[KeywordToken] int[StringToken][SyntheticStringToken]}[SimpleToken])[SimpleToken]?[SimpleToken] h[StringToken];[SimpleToken]
+[SimpleToken]

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -185,25 +183,26 @@ main(List<String> args) {
     ], expectedOutput: OUTPUT, printJs: args.contains('-v'));
     Compiler compiler = result.compilationResult.compiler;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
     void checkMethod(String methodName,
-        {String className, int expectedParameterCount}) {
-      FunctionEntity method;
+        {String? className, required int expectedParameterCount}) {
+      FunctionEntity? method;
       if (className != null) {
-        ClassEntity cls = elementEnvironment.lookupClass(
-            elementEnvironment.mainLibrary, className);
+        ClassEntity? cls = elementEnvironment.lookupClass(
+            elementEnvironment.mainLibrary!, className);
         Expect.isNotNull(cls, "Class '$className' not found.");
         method = elementEnvironment.lookupClassMember(
-            cls, Name(methodName, cls.library.canonicalUri));
+                cls!, Name(methodName, cls.library.canonicalUri))
+            as FunctionEntity?;
         Expect.isNotNull(method, "Method '$methodName' not found in $cls.");
       } else {
         method = elementEnvironment.lookupLibraryMember(
-            elementEnvironment.mainLibrary, methodName);
+            elementEnvironment.mainLibrary!, methodName) as FunctionEntity?;
         Expect.isNotNull(method, "Method '$methodName' not found.");
       }
-      js.Fun fun = backendStrategy.generatedCode[method];
+      js.Fun fun = backendStrategy.generatedCode[method] as js.Fun;
       Expect.equals(expectedParameterCount, fun.params.length,
           "Unexpected parameter count for $method:\n${js.nodeToString(fun)}");
     }

@@ -12,6 +12,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         computePlatformBinariesLocation,
         kernelForModule,
         kernelForProgram,
+        NnbdMode,
         parseExperimentalArguments,
         parseExperimentalFlags;
 import 'package:kernel/ast.dart';
@@ -54,6 +55,7 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
       ..additionalDills = <Uri>[platformKernel]
       ..environmentDefines = environmentDefines
       ..packagesFileUri = packagesFileUri
+      ..nnbdMode = NnbdMode.Strong
       ..explicitExperimentalFlags =
           parseExperimentalFlags(parseExperimentalArguments(experimentalFlags),
               onError: (String message) {
@@ -101,8 +103,11 @@ String kernelLibraryToString(Library library,
   final printer = new Printer(buffer, showMetadata: true);
   printer.writeLibraryFile(library);
   printer.writeConstantTable(library.enclosingComponent!);
-  String result =
-      buffer.toString().replaceAll(library.importUri.toString(), library.name!);
+  String result = buffer.toString();
+  final libraryName = library.name;
+  if (libraryName != null) {
+    result = result.replaceAll(library.importUri.toString(), library.name!);
+  }
   if (removeSelectorIds) {
     result = result
         .replaceAll(RegExp(r',methodOrSetterSelectorId:\d{3,}'), '')

@@ -65,7 +65,7 @@ class Database(object):
         self._all_interfaces = {}
 
     def _ScanForInterfaces(self):
-        """Iteratores over the database files and lists all interface names.
+        """Iterates over the database files and lists all interface names.
 
     Return:
       A list of interface names.

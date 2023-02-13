@@ -57,7 +57,6 @@ void main() {
         expect(options, isNotNull);
         expect(options.dartSdkPath, isNotNull);
         expect(options.disableCacheFlushing, isFalse);
-        expect(options.disableHints, isFalse);
         expect(options.enabledExperiments, isEmpty);
         expect(options.displayVersion, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);
@@ -183,11 +182,6 @@ void main() {
           expect(options.jsonFormat, isFalse);
           expect(options.machineFormat, isTrue);
         });
-      });
-
-      test('no-hints', () {
-        var options = parse(['--dart-sdk', '.', '--no-hints', 'foo.dart'])!;
-        expect(options.disableHints, isTrue);
       });
 
       test('options', () {

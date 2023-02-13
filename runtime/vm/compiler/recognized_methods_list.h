@@ -15,13 +15,13 @@ namespace dart {
   V(::, identical, ObjectIdentical, 0x04168315)                                \
   V(ClassID, getID, ClassIDgetID, 0xdc8b888a)                                  \
   V(Object, Object., ObjectConstructor, 0xab6d6cfa)                            \
-  V(List, ., ListFactory, 0x1892cc51)                                          \
   V(_List, ., ObjectArrayAllocate, 0x4c9d39e2)                                 \
   V(_List, []=, ObjectArraySetIndexed, 0x050cd2ba)                             \
   V(_GrowableList, ._withData, GrowableArrayAllocateWithData, 0x1947d8a1)      \
   V(_GrowableList, []=, GrowableArraySetIndexed, 0x050cd2ba)                   \
   V(_Record, get:_fieldNames, Record_fieldNames, 0x68e5459d)                   \
   V(_Record, get:_numFields, Record_numFields, 0x7bc20792)                     \
+  V(_Record, get:_shape, Record_shape, 0x70e120f3)                             \
   V(_Record, _fieldAt, Record_fieldAt, 0xb49cb873)                             \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 0x1623dc34)                    \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 0x177ffe2a)                  \
@@ -34,6 +34,7 @@ namespace dart {
   V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 0xe8f6a107)              \
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 0xf82a3634)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 0xaf2d0ce5)          \
+  V(_TypedList, _getFloat64x2, ByteArrayBaseGetFloat64x2, 0x545d2cc0)          \
   V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 0x5573740b)              \
   V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 0xe18943a2)                    \
   V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 0xaf59b748)                  \
@@ -46,6 +47,7 @@ namespace dart {
   V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 0x2f362de0)              \
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x2359f8d2)              \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x38c6295a)          \
+  V(_TypedList, _setFloat64x2, ByteArrayBaseSetFloat64x2, 0xbaead73f)          \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0x5ce9025b)              \
   V(ByteData, ., ByteDataFactory, 0x91f05063)                                  \
   V(_ByteDataView, get:offsetInBytes, ByteDataViewOffsetInBytes, 0x60cef22c)   \
@@ -323,6 +325,7 @@ namespace dart {
   V(_Smi, get:hashCode, Smi_hashCode, 0x75e0ccd2)                              \
   V(_Mint, get:hashCode, Mint_hashCode, 0x75e0ccd2)                            \
   V(_Double, get:hashCode, Double_hashCode, 0x75e0ccd2)                        \
+  V(::, _memCopy, MemCopy, 0x274f4816)                                         \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

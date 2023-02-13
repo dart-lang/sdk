@@ -24,7 +24,7 @@ import 'dart:_js_helper'
 /// - `firstMs`: First `performance.now()` reading taken from the main.dart.js
 ///   file. This is the earliest time that the script is executing. The script
 ///   has already been loaded and parsed (otherwise the script load would fail)
-///   and these earier events may be available from the `performance` API.
+///   and these earlier events may be available from the `performance` API.
 ///
 /// - `dartProgramMs`: `performance.now()` immediately inside the large function
 ///   with the name 'dartProgram' that wraps all the Dart code, before doing any

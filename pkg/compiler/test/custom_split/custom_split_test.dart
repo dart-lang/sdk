@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io' hide Link;
 import 'dart:isolate';
 
@@ -60,30 +58,30 @@ List<String> getDeferredImports(ir.Component component) {
 /// 2) Spawns the supplied [constraintsUri] in its own isolate
 /// 3) Passes deferred imports via a port to the spawned isolate
 /// 4) Listens for a json string from the spawned isolated and returns the
-///    results as a a [Future<String>].
+///    results as a [Future<String>].
 Future<String> constraintsToJson(
     ir.Component component, Uri constraintsUri) async {
   var imports = getDeferredImports(component);
-  SendPort sendPort;
+  SendPort? sendPort;
   var receivePort = ReceivePort();
   var isolate = await Isolate.spawnUri(constraintsUri, [], receivePort.sendPort,
       paused: true);
   isolate.addOnExitListener(receivePort.sendPort);
-  isolate.resume(isolate.pauseCapability);
-  String json;
+  isolate.resume(isolate.pauseCapability!);
+  String? json;
   await for (var msg in receivePort) {
     if (msg == null) {
       receivePort.close();
     } else if (sendPort == null) {
       sendPort = msg;
-      sendPort.send(imports);
+      sendPort!.send(imports);
     } else if (json == null) {
       json = msg;
     } else {
       throw 'Unexpected message $msg';
     }
   }
-  return json;
+  return json!;
 }
 
 Uri getFileInTestFolder(String test, String file) =>

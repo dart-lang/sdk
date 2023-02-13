@@ -19,17 +19,19 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StrongModeLocalInferenceTest);
+    defineReflectiveTests(StrongModeLocalInferenceWithoutNullSafetyTest);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
+    defineReflectiveTests(StrongModeStaticTypeAnalyzer2WithoutNullSafetyTest);
     defineReflectiveTests(StrongModeTypePropagationTest);
   });
 }
 
-/// Strong mode static analyzer local type inference tests
+/// Strong mode static analyzer local type inference tests.
 @reflectiveTest
 class StrongModeLocalInferenceTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+    with StrongModeLocalInferenceTestCases {}
+
+mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
   TypeAssertions? _assertions;
 
   late final Asserter<DartType> _isDynamic;
@@ -38,6 +40,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
   late final Asserter<InterfaceType> _isFutureOfNull;
   late final Asserter<InterfaceType> _isFutureOrOfInt;
   late final Asserter<DartType> _isInt;
+  late final Asserter<DartType> _isNever;
   late final Asserter<DartType> _isNull;
   late final Asserter<DartType> _isNum;
   late final Asserter<DartType> _isObject;
@@ -71,6 +74,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       _hasElement = assertions.hasElement;
       _isInstantiationOf = assertions.isInstantiationOf;
       _isInt = assertions.isInt;
+      _isNever = assertions.isNever;
       _isNull = assertions.isNull;
       _isNum = assertions.isNum;
       _isObject = assertions.isObject;
@@ -243,6 +247,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     void test() { var x = f(3); }
    ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 32, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
     ]);
 
@@ -263,6 +269,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     void test() { var x = f(3); }
    ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 32, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
     ]);
 
@@ -280,6 +288,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       void test() { var x = f(3); }
    ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 46, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
     ]);
 
@@ -302,6 +312,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     void test() { var x = f(3)(4); }
    ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 82, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
     ]);
 
@@ -325,8 +337,12 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     void test() { var x = f(3)(null); }
    ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 82, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 114, 1),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 119, 4),
     ]);
 
     List<Statement> statements =
@@ -334,7 +350,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     var stmt = statements[0] as VariableDeclarationStatement;
     VariableDeclaration decl = stmt.variables.variables[0];
     Expression call = decl.initializer!;
-    _isDynamic(call.typeOrThrow);
+    if (isNullSafetyEnabled) {
+      _isType(call.typeOrThrow);
+    } else {
+      _isDynamic(call.typeOrThrow);
+    }
   }
 
   test_constructorInitializer_propagation() async {
@@ -374,8 +394,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     final type = exp.constructorName.type.typeOrThrow as InterfaceType;
     expect(type.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
-      _isType(elementA.typeParameters[0]
-          .instantiate(nullabilitySuffix: NullabilitySuffix.star))
+      _isType(elementA.typeParameters[0].instantiate(
+          nullabilitySuffix: isNullSafetyEnabled
+              ? NullabilitySuffix.none
+              : NullabilitySuffix.star))
     ])(exp.typeOrThrow);
   }
 
@@ -448,6 +470,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
    ''';
     await assertErrorsInCode(code, [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 91, 2),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 107, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 144, 2),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 200, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 205, 21),
@@ -466,7 +490,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       return exp.declaredElement!.type;
     }
 
-    _isFunction2Of(_isInt, _isNull)(literal(0));
+    _isFunction2Of(_isInt, isNullSafetyEnabled ? _isString : _isNull)(
+        literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
     _isFunction2Of(_isInt, _isString)(literal(3));
@@ -487,6 +512,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
    ''';
     await assertErrorsInCode(code, [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 91, 2),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 103, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 140, 2),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 192, 2),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 244, 2),
@@ -504,7 +531,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       return exp.declaredElement!.type;
     }
 
-    _isFunction2Of(_isInt, _isNull)(literal(0));
+    _isFunction2Of(_isInt, isNullSafetyEnabled ? _isString : _isNull)(
+        literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
     _isFunction2Of(_isInt, _isString)(literal(3));
@@ -569,6 +597,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
      }
    ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 66, 4),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 154, 4),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 262, 21),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 337, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 397, 1),
@@ -583,7 +615,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       return exp.declaredElement!.type;
     }
 
-    _isFunction2Of(_isInt, _isNull)(literal(0));
+    _isFunction2Of(_isInt, isNullSafetyEnabled ? _isString : _isNull)(
+        literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
     _isFunction2Of(_isInt, _isString)(literal(3));
@@ -605,6 +638,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
      }
    ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 66, 4),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 150, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 318, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 374, 1),
     ]);
@@ -618,7 +655,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       return exp.declaredElement!.type;
     }
 
-    _isFunction2Of(_isInt, _isNull)(literal(0));
+    _isFunction2Of(_isInt, isNullSafetyEnabled ? _isString : _isNull)(
+        literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
     _isFunction2Of(_isInt, _isString)(literal(3));
@@ -638,6 +676,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
      }
    ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 4),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 101, 4),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 153, 21),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 200, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 232, 1),
@@ -652,7 +694,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       return exp.declaredElement!.type;
     }
 
-    _isFunction2Of(_isInt, _isNull)(literal(0));
+    _isFunction2Of(_isInt, isNullSafetyEnabled ? _isString : _isNull)(
+        literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
     _isFunction2Of(_isInt, _isString)(literal(3));
@@ -672,6 +715,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
      }
    ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 4),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 97, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 181, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 209, 1),
     ]);
@@ -685,7 +732,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       return exp.declaredElement!.type;
     }
 
-    _isFunction2Of(_isInt, _isNull)(literal(0));
+    _isFunction2Of(_isInt, isNullSafetyEnabled ? _isString : _isNull)(
+        literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
     _isFunction2Of(_isInt, _isString)(literal(3));
@@ -707,6 +755,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
      }
    ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 66, 4),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 152, 4),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 256, 21),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 329, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 387, 1),
@@ -721,7 +773,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       return exp.declaredElement!.type;
     }
 
-    _isFunction2Of(_isInt, _isNull)(literal(0));
+    _isFunction2Of(_isInt, isNullSafetyEnabled ? _isString : _isNull)(
+        literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
     _isFunction2Of(_isInt, _isString)(literal(3));
@@ -743,6 +796,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
      }
    ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 66, 4),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 148, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 310, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 364, 1),
     ]);
@@ -756,7 +813,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       return exp.declaredElement!.type;
     }
 
-    _isFunction2Of(_isInt, _isNull)(literal(0));
+    _isFunction2Of(_isInt, isNullSafetyEnabled ? _isString : _isNull)(
+        literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
     _isFunction2Of(_isInt, _isString)(literal(3));
@@ -858,7 +916,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
     Future<int> test() => mk(new Future<int>.value(42));
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 60, 4),
+    ]);
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
 
@@ -868,7 +929,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
     FutureOr<int> test() => mk(new Future<int>.value(42));
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 60, 4),
+    ]);
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
 
@@ -878,7 +942,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
     Future<int> test() => mk(new Future.value(42));
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 60, 4),
+    ]);
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
         invoke.argumentList.arguments[0].staticType as InterfaceType);
@@ -890,7 +957,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
     FutureOr<int> test() => mk(new Future.value(42));
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 60, 4),
+    ]);
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
         invoke.argumentList.arguments[0].staticType as InterfaceType);
@@ -902,7 +972,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
     FutureOr<num> test() => mk(new Future.value(42));
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 60, 4),
+    ]);
     _isFutureOf([_isNum])(invoke.staticType as InterfaceType);
     _isFutureOf([_isNum])(
         invoke.argumentList.arguments[0].staticType as InterfaceType);
@@ -914,7 +987,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     MethodInvocation invoke = await _testFutureOr(r'''
     T mk<T>(T x) => null;
     FutureOr<int> test() => mk(new Future.value(42));
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 42, 4),
+    ]);
     _isFutureOrOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
         invoke.argumentList.arguments[0].staticType as InterfaceType);
@@ -926,7 +1002,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     MethodInvocation invoke = await _testFutureOr(r'''
       T mk<T extends Future<int>>(T x) => null;
       FutureOr<int> test() => mk(new Future.value(42));
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 64, 4),
+    ]);
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
         invoke.argumentList.arguments[0].staticType as InterfaceType);
@@ -940,7 +1019,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     MethodInvocation invoke = await _testFutureOr(r'''
     T mk<T extends Future<Object>>(T x) => null;
     FutureOr<int> test() => mk(new Future.value(42));
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 65, 4),
+    ]);
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
         invoke.argumentList.arguments[0].staticType as InterfaceType);
@@ -952,7 +1034,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     MethodInvocation invoke = await _testFutureOr(r'''
     List<T> mk<T>(T x) => null;
     FutureOr<List<int>> test() => mk(3);
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 48, 4),
+    ]);
     _isListOf(_isInt)(invoke.staticType as InterfaceType);
     _isInt(invoke.argumentList.arguments[0].typeOrThrow);
   }
@@ -990,7 +1075,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<dynamic> x) => x.abs();
     ''', expectedErrors: [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 65, 3),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode
+                  .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE
+              : CompileTimeErrorCode.UNDEFINED_METHOD,
+          65,
+          3),
     ]);
     _isDynamic(invoke.typeOrThrow);
   }
@@ -1000,7 +1091,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
     test() => f.then((int x) {});
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 79, 1),
+    ]);
     _isFunction2Of(_isInt, _isNull)(
         invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
@@ -1011,7 +1106,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
     test() => f.then((int x) {return;});
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 79, 1),
+    ]);
     _isFunction2Of(_isInt, _isNull)(
         invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
@@ -1022,7 +1121,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
     test() => f.then((int x) {return null;});
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 79, 1),
+    ]);
     _isFunction2Of(_isInt, _isNull)(
         invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
@@ -1034,7 +1137,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
     dynamic test() => mk(new Future<int>.value(42));
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 60, 4),
+    ]);
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
 
@@ -1045,6 +1151,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     Future<T> mk<T extends Future<Object>>(FutureOr<T> x) => null;
     dynamic test() => mk(new Future<int>.value(42));
     ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 83, 4),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 111, 2),
     ]);
     _isFutureOfInt(invoke.staticType as InterfaceType);
@@ -1055,7 +1163,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
     test() => f.then<Null>((int x) {});
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 79, 1),
+    ]);
     _isFunction2Of(_isInt, _isNull)(
         invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
@@ -1066,7 +1178,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
     test() => f.then<Null>((int x) {return;});
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 79, 1),
+    ]);
     _isFunction2Of(_isInt, _isNull)(
         invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
@@ -1077,7 +1193,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
     test() => f.then<Null>((int x) { return null;});
-    ''');
+    ''', expectedErrors: [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 79, 1),
+    ]);
     _isFunction2Of(_isInt, _isNull)(
         invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
@@ -1151,7 +1271,8 @@ void test() {
     DartType cType = findElement.localVar('c').type;
     Element elementC = AstFinder.getClass(unit, "C").declaredElement!;
 
-    _isInstantiationOf(_hasElement(elementC))([_isDynamic])(cType);
+    _isInstantiationOf(_hasElement(elementC))(
+        [isNullSafetyEnabled ? _isType : _isDynamic])(cType);
   }
 
   test_inference_error_arguments() async {
@@ -1222,8 +1343,18 @@ test() {
  ''';
     await assertErrorsInCode(code, [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 5),
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 68, 1),
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 71, 1),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+              : CompileTimeErrorCode.INVALID_CAST_LITERAL,
+          68,
+          1),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+              : CompileTimeErrorCode.INVALID_CAST_LITERAL,
+          71,
+          1),
     ]);
 
     var h = (AstFinder.getStatementsInTopLevelFunction(unit, "test")[0]
@@ -1231,7 +1362,11 @@ test() {
         .variables
         .variables[0];
     var call = h.initializer as MethodInvocation;
-    assertInvokeType(call, 'Null Function(Null, Null)');
+    assertInvokeType(
+        call,
+        isNullSafetyEnabled
+            ? 'Never Function(Never, Never)'
+            : 'Null Function(Null, Null)');
   }
 
   test_inference_error_extendsFromReturn2() async {
@@ -1303,6 +1438,8 @@ test() {
     await assertErrorsInCode(code, [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 80, 1),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 84, 1),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 84, 5),
     ]);
     _expectInferenceError(r'''
 Couldn't infer type parameter 'T'.
@@ -1419,6 +1556,8 @@ test() {
 }
     ''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 22, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
     ]);
 
@@ -1591,14 +1730,40 @@ num test(Iterable values) => values.fold(values.first as num, max);
         A<int, String> a5 = new F.named(3, "hello", "hello");
       }''';
     await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 547, 4),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 633, 1),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 644, 1),
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+            692,
+            1),
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+            697,
+            1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 769, 2),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 816, 2),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 869, 2),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 929, 2),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 995, 2),
-      error(CompileTimeErrorCode.INVALID_CAST_NEW_EXPR, 1000, 31),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.INVALID_ASSIGNMENT
+              : CompileTimeErrorCode.INVALID_CAST_NEW_EXPR,
+          1000,
+          31),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 1056, 2),
-      error(CompileTimeErrorCode.INVALID_CAST_NEW_EXPR, 1061, 41),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.INVALID_ASSIGNMENT
+              : CompileTimeErrorCode.INVALID_CAST_NEW_EXPR,
+          1061,
+          41),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 1157, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1168, 7),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1177, 1),
@@ -1916,13 +2081,28 @@ num test(Iterable values) => values.fold(values.first as num, max);
    ''';
     await assertErrorsInCode(code, [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 2),
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 44, 7),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.INVALID_ASSIGNMENT
+              : CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST,
+          44,
+          7),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 2),
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 76, 8),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.INVALID_ASSIGNMENT
+              : CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST,
+          76,
+          8),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 104, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 17),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 146, 2),
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 151, 21),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.INVALID_ASSIGNMENT
+              : CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST,
+          151,
+          21),
     ]);
 
     List<Statement> statements =
@@ -2081,14 +2261,34 @@ num test(Iterable values) => values.fold(values.first as num, max);
    ''';
     await assertErrorsInCode(code, [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 2),
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 51, 16),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.INVALID_ASSIGNMENT
+              : CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP,
+          51,
+          16),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 2),
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 99, 26),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.INVALID_ASSIGNMENT
+              : CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP,
+          99,
+          26),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 152, 2),
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 157, 32),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.INVALID_ASSIGNMENT
+              : CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP,
+          157,
+          32),
       error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 172, 7),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 216, 2),
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 221, 20),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.INVALID_ASSIGNMENT
+              : CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP,
+          221,
+          20),
     ]);
 
     List<Statement> statements =
@@ -2146,7 +2346,10 @@ num test(Iterable values) => values.fold(values.first as num, max);
     S f<S, T>(Func1<S, T> g) => null;
     String test() => f((l) => l.length);
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 72, 4),
+    ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2170,9 +2373,26 @@ num test(Iterable values) => values.fold(values.first as num, max);
     class B<S> extends A<S, S> { B(S s); }
     A<int, String> test() => new B(3);
    ''';
-    await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 126, 1),
-    ]);
+    await assertErrorsInCode(
+        code,
+        isNullSafetyEnabled
+            ? [
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    28,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    39,
+                    1),
+                error(
+                    CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 126, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 126, 1),
+              ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2180,7 +2400,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
 
-    _isInstantiationOf(_hasElement(elementB))([_isNull])(type);
+    _isInstantiationOf(_hasElement(elementB))(
+        [isNullSafetyEnabled ? _isNever : _isNull])(type);
   }
 
   test_pinning_multipleConstraints2() async {
@@ -2194,7 +2415,22 @@ num test(Iterable values) => values.fold(values.first as num, max);
     class B<S> extends A<S, S> { B(S s); }
     A<num, num> test() => new B(3);
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(
+        code,
+        isNullSafetyEnabled
+            ? [
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    28,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    39,
+                    1),
+              ]
+            : []);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2217,9 +2453,26 @@ num test(Iterable values) => values.fold(values.first as num, max);
     class B<S> extends A<S, S> { B(S s); }
     A<int, double> test() => new B(3);
    ''';
-    await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 126, 1),
-    ]);
+    await assertErrorsInCode(
+        code,
+        isNullSafetyEnabled
+            ? [
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    28,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    39,
+                    1),
+                error(
+                    CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 126, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 126, 1),
+              ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2227,7 +2480,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
 
-    _isInstantiationOf(_hasElement(elementB))([_isNull])(type);
+    _isInstantiationOf(_hasElement(elementB))(
+        [isNullSafetyEnabled ? _isNever : _isNull])(type);
   }
 
   test_pinning_multipleConstraints4() async {
@@ -2242,7 +2496,22 @@ num test(Iterable values) => values.fold(values.first as num, max);
     class B<S> extends A<S, S> {}
     A<int, num> test() => new B();
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(
+        code,
+        isNullSafetyEnabled
+            ? [
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    28,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    39,
+                    1),
+              ]
+            : []);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2267,7 +2536,22 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<int, String>> test() => mkA();
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(
+        code,
+        isNullSafetyEnabled
+            ? [
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    28,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    39,
+                    1),
+              ]
+            : []);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2292,7 +2576,22 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<num, num>> test() => mkA();
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(
+        code,
+        isNullSafetyEnabled
+            ? [
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    28,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    39,
+                    1),
+              ]
+            : []);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2318,7 +2617,22 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<int, double>> test() => mkA();
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(
+        code,
+        isNullSafetyEnabled
+            ? [
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    28,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    39,
+                    1),
+              ]
+            : []);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2344,7 +2658,22 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<int, num>> test() => mkA();
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(
+        code,
+        isNullSafetyEnabled
+            ? [
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    28,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    39,
+                    1),
+              ]
+            : []);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2444,7 +2773,10 @@ class B<T2, U2> {
     Func1<T, String> f<T>(T x) => null;
     Func1<num, String> test() => f(42);
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 74, 4),
+    ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2461,7 +2793,10 @@ class B<T2, U2> {
     Func1<String, T> f<T>(T x) => null;
     Func1<String, num> test() => f(42);
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 74, 4),
+    ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2479,7 +2814,10 @@ class B<T2, U2> {
     Func1<T, String> f<T>(T x, g(T x)) => null;
     dynamic test() => f(42, (num x) => x);
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 82, 4),
+    ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2497,7 +2835,10 @@ class B<T2, U2> {
     Func1<String, T> f<T>(T x, g(T x)) => null;
     dynamic test() => f(42, (num x) => x);
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 82, 4),
+    ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2515,7 +2856,16 @@ class B<T2, U2> {
     T g<T, S>(Func1<T, S> f) => null;
     num test() => g(f(3));
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(
+        code,
+        isNullSafetyEnabled
+            ? [
+                error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                    74, 4),
+                error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                    112, 4),
+              ]
+            : []);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2534,7 +2884,16 @@ class B<T2, U2> {
     T g<T, S>(Func1<S, T> f) => null;
     num test() => g(f(3));
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(
+        code,
+        isNullSafetyEnabled
+            ? [
+                error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                    74, 4),
+                error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                    112, 4),
+              ]
+            : []);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -2596,8 +2955,17 @@ $code
   }
 }
 
+/// Strong mode static analyzer local type inference tests.
 @reflectiveTest
-class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
+class StrongModeLocalInferenceWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with StrongModeLocalInferenceTestCases, WithoutNullSafetyMixin {}
+
+@reflectiveTest
+class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
+    with StrongModeStaticTypeAnalyzer2TestCases {}
+
+mixin StrongModeStaticTypeAnalyzer2TestCases on StaticTypeAnalyzer2TestShared {
   void expectStaticInvokeType(String search, String expected) {
     var invocation = findNode.simple(search).parent as MethodInvocation;
     assertInvokeType(invocation, expected);
@@ -2632,7 +3000,10 @@ main() {
     dynamic test(FutureOr<int> x) => (x is Future<int>) &&
                                      (x.then((x) => x) == null);
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 139, 7),
+    ]);
   }
 
   test_futureOr_promotion3() async {
@@ -2654,7 +3025,10 @@ main() {
     dynamic test<T extends num>(FutureOr<T> x) => (x is Future<T>) &&
                                                   (x.then((x) => x) == null);
    ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(code, [
+      if (isNullSafetyEnabled)
+        error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 163, 7),
+    ]);
   }
 
   test_generalizedVoid_assignToVoidOk() async {
@@ -2669,10 +3043,57 @@ void main() {
   }
 
   test_genericFunction() async {
-    await assertNoErrorsInCode(r'T f<T>(T x) => null;');
+    await assertErrorsInCode(r'T f<T>(T x) => null;', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 15, 4),
+    ]);
 
     final node = findNode.functionDeclaration('f<T>');
-    assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(
+        node,
+        isNullSafetyEnabled
+            ? r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: T@4
+      staticType: null
+    type: T
+  name: f
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredElement: T@4
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: SimpleIdentifier
+            token: T
+            staticElement: T@4
+            staticType: null
+          type: T
+        name: x
+        declaredElement: self::@function::f::@parameter::x
+        declaredElementType: T
+      rightParenthesis: )
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: NullLiteral
+        literal: null
+        staticType: Null
+      semicolon: ;
+    declaredElement: self::@function::f
+    staticType: T Function<T>(T)
+  declaredElement: self::@function::f
+  declaredElementType: T Function<T>(T)
+'''
+            : r'''
 FunctionDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -2716,10 +3137,64 @@ FunctionDeclaration
   }
 
   test_genericFunction_bounds() async {
-    await assertNoErrorsInCode(r'T f<T extends num>(T x) => null;');
+    await assertErrorsInCode(r'T f<T extends num>(T x) => null;', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 27, 4),
+    ]);
 
     final node = findNode.functionDeclaration('f<T');
-    assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(
+        node,
+        isNullSafetyEnabled
+            ? r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: T@4
+      staticType: null
+    type: T
+  name: f
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: SimpleIdentifier
+              token: num
+              staticElement: dart:core::@class::num
+              staticType: null
+            type: num
+          declaredElement: T@4
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: SimpleIdentifier
+            token: T
+            staticElement: T@4
+            staticType: null
+          type: T
+        name: x
+        declaredElement: self::@function::f::@parameter::x
+        declaredElementType: T
+      rightParenthesis: )
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: NullLiteral
+        literal: null
+        staticType: Null
+      semicolon: ;
+    declaredElement: self::@function::f
+    staticType: T Function<T extends num>(T)
+  declaredElement: self::@function::f
+  declaredElementType: T Function<T extends num>(T)
+'''
+            : r'''
 FunctionDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -2780,14 +3255,52 @@ void g(T f<T>(T x)) {}
   }
 
   test_genericFunction_static() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   static T f<T>(T x) => null;
 }
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 37, 4),
+    ]);
 
     final node = findNode.methodDeclaration('f<T>');
-    assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(
+        node,
+        isNullSafetyEnabled
+            ? r'''
+MethodDeclaration
+  modifierKeyword: static
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: T@26
+      staticType: null
+    type: T
+  name: f
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: SimpleIdentifier
+          token: T
+          staticElement: T@26
+          staticType: null
+        type: T
+      name: x
+      declaredElement: self::@class::C::@method::f::@parameter::x
+      declaredElementType: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredElement: self::@class::C::@method::f
+  declaredElementType: T Function<T>(T)
+'''
+            : r'''
 MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
@@ -2852,7 +3365,44 @@ class D<S> {
   }
 }
 ''';
-    await assertNoErrorsInCode(code);
+    await assertErrorsInCode(
+        code,
+        isNullSafetyEnabled
+            ? [
+                error(
+                    CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+                    23,
+                    2),
+                error(
+                    CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+                    49,
+                    2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    57,
+                    2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    141,
+                    2),
+                error(
+                    CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+                    179,
+                    2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+                    187,
+                    2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    271,
+                    2),
+              ]
+            : []);
 
     checkBody(String className) {
       var statements = findNode.block('{ // $className').statements;
@@ -2875,13 +3425,16 @@ class D<S> {
 
   test_genericFunction_upwardsAndDownwards_Object() async {
     // Regression tests for https://github.com/dart-lang/sdk/issues/27625.
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 List<Object> aaa = [];
 List<Object> bbb = [1, 2, 3];
 List<Object> ccc = [null];
 List<Object> ddd = [1 as dynamic];
 List<Object> eee = [new Object()];
-    ''');
+''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 73, 4),
+    ]);
     expectInitializerType('aaa', 'List<Object>');
     expectInitializerType('bbb', 'List<Object>');
     expectInitializerType('ccc', 'List<Object>');
@@ -2898,6 +3451,8 @@ main() {
   C<String> cOfString;
 }
 ''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 36, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 9),
     ]);
     assertType(findElement.method('f').type, 'List<T> Function<T>(E)');
@@ -2919,7 +3474,15 @@ main() {
   var x = cOfString.f<int>('hi');
 }
 ''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 36, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 1),
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode
+                .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+            86,
+            9),
     ]);
     var f = findNode.simple('f<int>').parent as MethodInvocation;
     var ft = f.staticInvokeType as FunctionType;
@@ -2953,6 +3516,19 @@ void test<S>(T Function<T>(T) pf) {
   var paramCall = (pf)<int>(3);
 }
 ''', [
+      ...isNullSafetyEnabled
+          ? [
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 30,
+                  4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 60,
+                  4),
+              error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                  123, 4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                  224, 4),
+            ]
+          : [],
       error(HintCode.UNUSED_LOCAL_VARIABLE, 237, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 281, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 315, 10),
@@ -3018,6 +3594,19 @@ void test<S>(T Function<T>(T) pf) {
   var paramCall = (pf)(3);
 }
 ''', [
+      ...isNullSafetyEnabled
+          ? [
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 30,
+                  4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 60,
+                  4),
+              error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                  123, 4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                  224, 4),
+            ]
+          : [],
       error(HintCode.UNUSED_LOCAL_VARIABLE, 237, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 276, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 305, 10),
@@ -3059,6 +3648,19 @@ void test<S>(T Function<T>(T) pf) {
   var paramCall = pf<int>(3);
 }
 ''', [
+      ...isNullSafetyEnabled
+          ? [
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 30,
+                  4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 60,
+                  4),
+              error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                  123, 4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                  224, 4),
+            ]
+          : [],
       error(HintCode.UNUSED_LOCAL_VARIABLE, 236, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 268, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 300, 15),
@@ -3120,6 +3722,19 @@ void test<S>(T Function<T>(T) pf) {
   var paramCall = pf(3);
 }
 ''', [
+      ...isNullSafetyEnabled
+          ? [
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 30,
+                  4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 60,
+                  4),
+              error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                  123, 4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                  224, 4),
+            ]
+          : [],
       error(HintCode.UNUSED_LOCAL_VARIABLE, 236, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 263, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 290, 15),
@@ -3146,6 +3761,8 @@ main() {
   C<String> cOfString;
 }
 ''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 41, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 70, 9),
     ]);
     assertType(
@@ -3173,7 +3790,8 @@ void test<S>(T pf<T>(T e)) {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/25100#issuecomment-162047588
     // These should not cause any hints or warnings.
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+        r'''
 class List<E> {
   T map<T>(T f(E e)) => null;
 }
@@ -3181,7 +3799,14 @@ void foo() {
   List list = null;
   list.map((e) => e);
   list.map((e) => 3);
-}''');
+}''',
+        isNullSafetyEnabled
+            ? [
+                error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+                    40, 4),
+                error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 75, 4),
+              ]
+            : []);
     expectIdentifierType(
         'map((e) => e);', 'T Function<T>(T Function(dynamic))');
     expectIdentifierType(
@@ -3265,7 +3890,7 @@ class Foo<T extends num> {
   }
 
   test_genericMethod_nestedCapture() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T> {
   T f<S>(S x) {
     new C<S>().f<int>(3);
@@ -3273,7 +3898,10 @@ class C<T> {
     return null;
   }
 }
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 96, 4),
+    ]);
     MethodInvocation f = findNode.methodInvocation('f<int>(3);');
     assertInvokeType(f, 'S Function(int)');
 
@@ -3305,6 +3933,8 @@ S f<S>(S x) {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 16, 1),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
     ]);
     assertType(findElement.topFunction('f').type, 'S Function<S>(S)');
     assertType(findElement.localFunction('g').type,
@@ -3312,17 +3942,60 @@ S f<S>(S x) {
   }
 
   test_genericMethod_override() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+        r'''
 class C {
   T f<T>(T x) => null;
 }
 class D extends C {
   T f<T>(T y) => null;
 }
-''');
+''',
+        isNullSafetyEnabled
+            ? [
+                error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+                    27, 4),
+                error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+                    72, 4),
+              ]
+            : []);
 
     final node = findNode.methodDeclaration('f<T>(T y)');
-    assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(
+        node,
+        isNullSafetyEnabled
+            ? r'''
+MethodDeclaration
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: T@61
+      staticType: null
+    type: T
+  name: f
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: SimpleIdentifier
+          token: T
+          staticElement: T@61
+          staticType: null
+        type: T
+      name: y
+      declaredElement: self::@class::D::@method::f::@parameter::y
+      declaredElementType: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredElement: self::@class::D::@method::f
+  declaredElementType: T Function<T>(T)
+'''
+            : r'''
 MethodDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -3356,7 +4029,8 @@ MethodDeclaration
   }
 
   test_genericMethod_override_bounds() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+        r'''
 class A {}
 class B {
   T f<T extends A>(T x) => null;
@@ -3369,11 +4043,21 @@ class C extends B {
 class D extends B {
   Q f<Q extends A>(Q x) => null;
 }
-''');
+''',
+        isNullSafetyEnabled
+            ? [
+                error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+                    48, 4),
+                error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+                    141, 4),
+                error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+                    247, 4),
+              ]
+            : []);
   }
 
   test_genericMethod_override_covariant_field() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   num get x;
   set x(covariant num _);
@@ -3382,7 +4066,11 @@ abstract class A {
 class B extends A {
   int x;
 }
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+            87, 1),
+    ]);
   }
 
   test_genericMethod_override_differentContextsSameBounds() async {
@@ -3412,8 +4100,12 @@ class C {
 class D extends C {
   T f<T extends B>(T x) => null;
 }''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 69, 4),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1,
           contextMessages: [message('/home/test/lib/test.dart', 46, 1)]),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 124, 4),
     ]);
   }
 
@@ -3427,8 +4119,12 @@ class C {
 class D extends C {
   T f<T extends A>(T x) => null;
 }''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 69, 4),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1,
           contextMessages: [message('/home/test/lib/test.dart', 46, 1)]),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 124, 4),
     ]);
   }
 
@@ -3440,8 +4136,12 @@ class C {
 class D extends C {
   String f<S>(S x) => null;
 }''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 37, 4),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 74, 1,
           contextMessages: [message('/home/test/lib/test.dart', 24, 1)]),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 87, 4),
     ]);
   }
 
@@ -3453,8 +4153,12 @@ class C {
 class D extends C {
   S f<T, S>(T x) => null;
 }''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 27, 4),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 59, 1,
           contextMessages: [message('/home/test/lib/test.dart', 14, 1)]),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 75, 4),
     ]);
   }
 
@@ -3479,6 +4183,9 @@ C toSpan(dynamic element) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 1),
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 160, 4),
     ]);
     _assertLocalVarType('y', 'List<C>');
   }
@@ -3505,6 +4212,19 @@ void test<S>(T Function<T>(T) pf) {
   var paramTearOff = pf;
 }
 ''', [
+      ...isNullSafetyEnabled
+          ? [
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 30,
+                  4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 60,
+                  4),
+              error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                  123, 4),
+              error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+                  224, 4),
+            ]
+          : [],
       error(HintCode.UNUSED_LOCAL_VARIABLE, 236, 13),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 263, 13),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 290, 18),
@@ -3562,6 +4282,8 @@ main() {
   var foo = bar.then(toString);
 }
 ''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 69, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 3),
     ]);
 
@@ -3577,6 +4299,8 @@ main() {
   var foo = bar.then(toString);
 }
 ''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 105, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 117, 3),
     ]);
     expectInitializerType('foo', 'Future<String>');
@@ -3584,15 +4308,27 @@ main() {
 
   test_genericMethod_then_propagatedType() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25482.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+        r'''
 void main() {
   Future<String> p;
   var foo = p.then((r) => new Future<String>.value(3));
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 3),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 85, 1),
-    ]);
+''',
+        isNullSafetyEnabled
+            ? [
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 3),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    46,
+                    1),
+                error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 85, 1),
+              ]
+            : [
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 3),
+                error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 85, 1),
+              ]);
     // Note: this correctly reports the error
     // CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
     // when run without the driver, it reports no errors.  So we don't bother
@@ -3601,7 +4337,8 @@ void main() {
   }
 
   test_genericMethod_toplevel_field_staticTearoff() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+        r'''
 class C<E> {
   static T g<T>(T e) => null;
   static T Function<T>(T) h = null;
@@ -3610,9 +4347,17 @@ class C<E> {
 void test() {
   var fieldRead = C.h;
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 9),
-    ]);
+''',
+        isNullSafetyEnabled
+            ? [
+                error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+                    37, 4),
+                error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 73, 4),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 9),
+              ]
+            : [
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 9),
+              ]);
     _assertLocalVarType('fieldRead', "T Function<T>(T)");
   }
 
@@ -3676,31 +4421,47 @@ void test() {
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 81, 1,
           contextMessages: [message('/home/test/lib/test.dart', 81, 1)]),
     ]);
-    _assertLocalVarType('c', 'C<List<dynamic>, List<List<dynamic>>>');
+    _assertLocalVarType(
+        'c',
+        isNullSafetyEnabled
+            ? 'C<List<Object?>, List<List<Object?>>>'
+            : 'C<List<dynamic>, List<List<dynamic>>>');
   }
 
   test_instantiateToBounds_class_error_recursion() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 C c;
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 55, 1),
+    ]);
     _assertTopVarType('c', 'C<List<dynamic>, List<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T extends C<T>> {}
 C c;
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 29, 1),
+    ]);
     _assertTopVarType('c', 'C<C<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self2() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A<E> {}
 class C<T extends A<T>> {}
 C c;
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 43, 1),
+    ]);
     _assertTopVarType('c', 'C<A<dynamic>>');
   }
 
@@ -3715,47 +4476,70 @@ C c;
             message('/home/test/lib/test.dart', 48, 1),
             message('/home/test/lib/test.dart', 48, 1)
           ]),
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 50, 1),
     ]);
     _assertTopVarType('c', 'C<dynamic Function(dynamic)>');
   }
 
   test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T0 extends Map<T1, T2>, T1 extends List, T2 extends int> {}
 C c;
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 70, 1),
+    ]);
     _assertTopVarType('c', 'C<Map<List<dynamic>, int>, List<dynamic>, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_after() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T0 extends T1, T1 extends int> {}
 C c;
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 44, 1),
+    ]);
     _assertTopVarType('c', 'C<int, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_after2() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T0 extends Map<T1, T1>, T1 extends int> {}
 C c;
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 53, 1),
+    ]);
     _assertTopVarType('c', 'C<Map<int, int>, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_before() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T0 extends int, T1 extends T0> {}
 C c;
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 44, 1),
+    ]);
     _assertTopVarType('c', 'C<int, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_multi() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T0 extends Map<T1, T2>, T1 extends List<T2>, T2 extends int> {}
 C c;
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(
+            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 74, 1),
+    ]);
     _assertTopVarType('c', 'C<Map<List<int>, int>, List<int>, int>');
   }
 
@@ -3793,15 +4577,22 @@ void g() {
   return;
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 3, 1),
+      error(
+          isNullSafetyEnabled
+              ? CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY
+              : HintCode.MISSING_RETURN,
+          3,
+          1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 1),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 73, 1),
     ]);
-    _assertLocalVarType('c', 'List<dynamic>');
+    _assertLocalVarType(
+        'c', isNullSafetyEnabled ? 'List<Object?>' : 'List<dynamic>');
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+        r'''
 class C<T> {
   void m<S0 extends T, S1 extends List<S0>>(S0 p0, S1 p1) {}
 
@@ -3809,13 +4600,19 @@ class C<T> {
     m(null, null);
   }
 }
-''');
+''',
+        isNullSafetyEnabled
+            ? [
+                error(CompileTimeErrorCode.COULD_NOT_INFER, 95, 1),
+                error(CompileTimeErrorCode.COULD_NOT_INFER, 95, 1),
+              ]
+            : []);
 
     expectStaticInvokeType('m(null', 'void Function(Null, Null)');
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before2() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T> {
   Map<S0, S1> m<S0 extends T, S1 extends List<S0>>() => null;
 
@@ -3823,13 +4620,16 @@ class C<T> {
     m();
   }
 }
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 69, 4),
+    ]);
 
     expectStaticInvokeType('m();', 'Map<T, List<T>> Function()');
   }
 
   test_instantiateToBounds_method_ok_simpleBounds() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T> {
   void m<S extends T>(S p0) {}
 
@@ -3837,13 +4637,16 @@ class C<T> {
     m(null);
   }
 }
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.COULD_NOT_INFER, 65, 1),
+    ]);
 
     expectStaticInvokeType('m(null)', 'void Function(Null)');
   }
 
   test_instantiateToBounds_method_ok_simpleBounds2() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T> {
   S m<S extends T>() => null;
 
@@ -3851,18 +4654,24 @@ class C<T> {
     m();
   }
 }
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 37, 4),
+    ]);
 
     expectStaticInvokeType('m();', 'T Function()');
   }
 
   test_issue32396() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   static T g<T>(T e) => null;
   static final h = g;
 }
-''');
+''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 37, 4),
+    ]);
   }
 
   test_objectMethodOnFunctions_Anonymous() async {
@@ -3900,7 +4709,8 @@ void main() {
   }
 
   test_objectMethodOnFunctions_Function() async {
-    await _objectMethodOnFunctions_helper2(r'''
+    await _objectMethodOnFunctions_helper2(
+        r'''
 void main() {
   Function f;
   // No errors, correct type
@@ -3923,14 +4733,84 @@ void main() {
   (f)..toString;
   (f)..hashCode;
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 63, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 88, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 111, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 177, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 204, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 229, 2),
-    ]);
+''',
+        isNullSafetyEnabled
+            ? [
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 63, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    68,
+                    1),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 88, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    93,
+                    1),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 111, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    116,
+                    1),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 177, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    183,
+                    1),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 204, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    210,
+                    1),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 229, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    235,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    276,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    293,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    308,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    361,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    380,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    397,
+                    1),
+              ]
+            : [
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 63, 2),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 88, 2),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 111, 2),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 177, 2),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 204, 2),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 229, 2),
+              ]);
   }
 
   test_objectMethodOnFunctions_Static() async {
@@ -3958,6 +4838,8 @@ void main() {
   (f)..hashCode;
 }
 ''', [
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 16, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 2),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 96, 2),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 119, 2),
@@ -3968,7 +4850,8 @@ void main() {
   }
 
   test_objectMethodOnFunctions_Typedef() async {
-    await _objectMethodOnFunctions_helper2(r'''
+    await _objectMethodOnFunctions_helper2(
+        r'''
 typedef bool Predicate<T>(T object);
 
 void main() {
@@ -3993,14 +4876,84 @@ void main() {
   (f)..toString;
   (f)..hashCode;
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 107, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 132, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 155, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 221, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 248, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 273, 2),
-    ]);
+''',
+        isNullSafetyEnabled
+            ? [
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 107, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    112,
+                    1),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 132, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    137,
+                    1),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 155, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    160,
+                    1),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 221, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    227,
+                    1),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 248, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    254,
+                    1),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 273, 2),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    279,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    320,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    337,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    352,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    405,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    424,
+                    1),
+                error(
+                    CompileTimeErrorCode
+                        .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+                    441,
+                    1),
+              ]
+            : [
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 107, 2),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 132, 2),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 155, 2),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 221, 2),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 248, 2),
+                error(HintCode.UNUSED_LOCAL_VARIABLE, 273, 2),
+              ]);
   }
 
   test_returnOfInvalidType_object_void() async {
@@ -4063,7 +5016,11 @@ class A {
 Object set g(x) => null;
 ''', [
       error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 12, 6),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 38, 4),
       error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 46, 6),
+      if (isNullSafetyEnabled)
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 65, 4),
     ]);
   }
 
@@ -4074,8 +5031,9 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
+      if (isNullSafetyEnabled) error(HintCode.DEAD_CODE, 37, 1),
     ]);
-    expectInitializerType('foo', 'int');
+    expectInitializerType('foo', isNullSafetyEnabled ? 'int?' : 'int');
   }
 
   test_ternaryOperator_null_right() async {
@@ -4085,8 +5043,9 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
+      if (isNullSafetyEnabled) error(HintCode.DEAD_CODE, 34, 4),
     ]);
-    expectInitializerType('foo', 'int');
+    expectInitializerType('foo', isNullSafetyEnabled ? 'int?' : 'int');
   }
 
   void _assertLocalVarType(String name, String expectedType) {
@@ -4110,6 +5069,11 @@ main() {
     _assertLocalVarType('t5', "int");
   }
 }
+
+@reflectiveTest
+class StrongModeStaticTypeAnalyzer2WithoutNullSafetyTest
+    extends StaticTypeAnalyzer2TestShared
+    with StrongModeStaticTypeAnalyzer2TestCases, WithoutNullSafetyMixin {}
 
 @reflectiveTest
 class StrongModeTypePropagationTest extends PubPackageResolutionTest {

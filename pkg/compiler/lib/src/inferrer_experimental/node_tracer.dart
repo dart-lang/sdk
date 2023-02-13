@@ -104,7 +104,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
   // TODO(natebiggs): We allow null here to maintain current functionality
   // but we should verify we actually need to allow it.
-  final Setlet<MemberEntity> analyzedElements = Setlet<MemberEntity>();
+  final Setlet<MemberEntity?> analyzedElements = Setlet<MemberEntity?>();
 
   TracerVisitor(this.tracedType, this.inferrer);
 
@@ -163,7 +163,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         break;
       }
       for (final info in user.users) {
-        analyzedElements.add(info.owner!);
+        analyzedElements.add(info.owner);
         info.accept(this);
       }
       while (!listsToAnalyze.isEmpty) {
@@ -420,7 +420,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Used as key in Map');
     }
 
-    // "a[...] = x" could be a list (container) or map assignemnt.
+    // "a[...] = x" could be a list (container) or map assignment.
     if (isIndexSetValue(info)) {
       var receiverType = info.receiver.type;
       if (inferrer.abstractValueDomain.isContainer(receiverType)) {
@@ -475,7 +475,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
     final user = currentUser;
     if (user is MemberTypeInformation) {
-      if (info.concreteTargets.contains(user.member)) {
+      if (info.callees.contains(user.member)) {
         addNewEscapeInformation(info);
       }
     }

@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/unresolved_prefix_access.dart:8:10: Error: Method not found: 'unresolved'.
+//   prefix.unresolved();
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_prefix_access.dart:9:3: Error: A prefix can't be used with null-aware operators.
+// Try replacing '?.' with '.'
+//   prefix?.test();
+//   ^^^^^^
+//
+import self as self;
+
+import "org-dartlang-testcase:///unresolved_prefix_access.dart" as prefix;
+
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/unresolved_prefix_access.dart:8:10: Error: Method not found: 'unresolved'.
+  prefix.unresolved();
+         ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_prefix_access.dart:9:3: Error: A prefix can't be used with null-aware operators.
+Try replacing '?.' with '.'
+  prefix?.test();
+  ^^^^^^" in self::test();
+}
+static method main() → dynamic {}

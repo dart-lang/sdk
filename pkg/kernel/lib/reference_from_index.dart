@@ -16,7 +16,7 @@ import "ast.dart"
         ProcedureKind,
         Reference,
         Typedef,
-        View;
+        InlineClass;
 
 class ReferenceFromIndex {
   Map<Library, IndexedLibrary> _indexedLibraries =
@@ -85,7 +85,8 @@ class IndexedLibrary extends IndexedContainer {
   final Map<String, IndexedClass> _indexedClasses =
       new Map<String, IndexedClass>();
   final Map<String, Extension> _extensions = new Map<String, Extension>();
-  final Map<String, View> _views = new Map<String, View>();
+  final Map<String, InlineClass> _inlineClasses =
+      new Map<String, InlineClass>();
   @override
   final Library library;
 
@@ -112,10 +113,10 @@ class IndexedLibrary extends IndexedContainer {
         _extensions[extension.name] = extension;
       }
     }
-    for (int i = 0; i < library.views.length; i++) {
-      View view = library.views[i];
-      assert(_views[view.name] == null);
-      _views[view.name] = view;
+    for (int i = 0; i < library.inlineClasses.length; i++) {
+      InlineClass inlineClass = library.inlineClasses[i];
+      assert(_inlineClasses[inlineClass.name] == null);
+      _inlineClasses[inlineClass.name] = inlineClass;
     }
     _addProcedures(library.procedures);
     _addFields(library.fields);
@@ -144,7 +145,7 @@ class IndexedLibrary extends IndexedContainer {
   Class? lookupClass(String name) => _classes[name];
   IndexedClass? lookupIndexedClass(String name) => _indexedClasses[name];
   Extension? lookupExtension(String name) => _extensions[name];
-  View? lookupView(String name) => _views[name];
+  InlineClass? lookupInlineClass(String name) => _inlineClasses[name];
 }
 
 class IndexedClass extends IndexedContainer {

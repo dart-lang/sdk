@@ -206,7 +206,7 @@
 ///    update(s5, oldSet, newSet) {
 ///      var currentSet = importSet[s];
 ///      if (currentSet == oldSet) {
-///        // Use the memoized result, whohoo!
+///        // Use the memoized result, woohoo!
 ///        importSet[s] = newSet;
 ///      } else {
 ///        // Don't use the memoized result, instead use the worklist to later
@@ -268,29 +268,24 @@
 // contains a bigger delta.)
 library deferred_load;
 
-import 'program_split_constraints/builder.dart' as psc show Builder;
-
-import 'algorithm_state.dart';
-import 'entity_data.dart';
-import 'import_set.dart';
-import 'output_unit.dart';
-
 import '../../compiler_api.dart' as api show OutputType;
 import '../common.dart';
 import '../common/elements.dart' show KElementEnvironment;
 import '../common/metrics.dart'
     show Metric, Metrics, CountMetric, DurationMetric;
 import '../common/tasks.dart' show CompilerTask;
-import '../compiler_interfaces.dart' show CompilerDeferredLoadingFacade;
+import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kernel_world.dart' show KClosedWorld;
 import '../util/util.dart' show makeUnique;
-
-// TODO(48820): delete typedef after the migration is complete.
-typedef Compiler = CompilerDeferredLoadingFacade;
+import 'algorithm_state.dart';
+import 'entity_data.dart';
+import 'import_set.dart';
+import 'output_unit.dart';
+import 'program_split_constraints/builder.dart' as psc show Builder;
 
 class _DeferredLoadTaskMetrics implements Metrics {
   @override

@@ -17,6 +17,7 @@ import '../../ir/class_relation.dart';
 import '../../js_model/js_world.dart' show JClosedWorld;
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
+import '../../universe/member_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
@@ -50,8 +51,9 @@ class CommonMasks with AbstractValueDomain {
 
   /// Cache of [FlatTypeMask]s grouped by the possible values of the
   /// `FlatTypeMask.flags` property.
-  final List<Map<ClassEntity, TypeMask>?> _canonicalizedTypeMasks = List.filled(
-      _FlatTypeMaskKind.values.length << FlatTypeMask._USED_INDICES, null);
+  final List<Map<ClassEntity?, TypeMask>?> _canonicalizedTypeMasks =
+      List.filled(
+          _FlatTypeMaskKind.values.length << FlatTypeMask._USED_INDICES, null);
 
   /// Return the cached mask for [base] with the given flags, or
   /// calls [createMask] to create the mask and cache it.
@@ -107,6 +109,17 @@ class CommonMasks with AbstractValueDomain {
   @override
   late final TypeMask functionType =
       TypeMask.nonNullSubtype(commonElements.functionClass, _closedWorld);
+
+  @override
+  // TODO(50701): Use:
+  //
+  //     TypeMask.nonNullSubtype(commonElements.recordClass, _closedWorld);
+  //
+  // This will require either (1) open reasoning on the as-yet undefined
+  // subtypes of Record or (2) several live subtypes of Record. Everything
+  // 'works' for the similar interface `Function` because there are multiple
+  // live subclasses of `Closure`.
+  late final TypeMask recordType = dynamicType;
 
   @override
   late final TypeMask listType =
@@ -922,6 +935,12 @@ class CommonMasks with AbstractValueDomain {
   @override
   String getCompactText(covariant TypeMask value) {
     return formatType(dartTypes, value);
+  }
+
+  @override
+  Iterable<DynamicCallTarget> findRootsOfTargets(covariant TypeMask receiver,
+      Selector selector, MemberHierarchyBuilder memberHierarchyBuilder) {
+    return const [];
   }
 
   @override

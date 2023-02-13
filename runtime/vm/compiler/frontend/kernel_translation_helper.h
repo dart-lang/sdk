@@ -39,8 +39,6 @@ class TranslationHelper {
 
   Zone* zone() { return zone_; }
 
-  Isolate* isolate() { return isolate_; }
-
   IsolateGroup* isolate_group() { return isolate_group_; }
 
   Heap::Space allocation_space() { return allocation_space_; }
@@ -248,7 +246,6 @@ class TranslationHelper {
 
   Thread* thread_;
   Zone* zone_;
-  Isolate* isolate_;
   IsolateGroup* isolate_group_;
   Heap::Space allocation_space_;
 
@@ -495,6 +492,7 @@ class FieldHelper {
     kNonNullableByDefault = 1 << 7,
     kInternalImplementation = 1 << 8,
     kEnumElement = 1 << 9,
+    kInlineClassMember = 1 << 10,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -520,6 +518,9 @@ class FieldHelper {
   }
   bool IsLate() const { return (flags_ & kIsLate) != 0; }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
+  bool IsInlineClassMember() const {
+    return (flags_ & kInlineClassMember) != 0;
+  }
 
   NameIndex canonical_name_field_;
   NameIndex canonical_name_getter_;
@@ -593,6 +594,8 @@ class ProcedureHelper {
     kExtensionMember = 1 << 5,
     kSyntheticProcedure = 1 << 7,
     kInternalImplementation = 1 << 8,
+    kIsAbstractFieldAccessor = 1 << 9,
+    kInlineClassMember = 1 << 10,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -626,6 +629,9 @@ class ProcedureHelper {
     return stub_kind_ == kNoSuchMethodForwarderStubKind;
   }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
+  bool IsInlineClassMember() const {
+    return (flags_ & kInlineClassMember) != 0;
+  }
   bool IsMemberSignature() const {
     return stub_kind_ == kMemberSignatureStubKind;
   }
@@ -749,7 +755,11 @@ class ClassHelper {
     kFlagMixinDeclaration = 1 << 4,
     kHasConstConstructor = 1 << 5,
     kIsMacro = 1 << 6,
-    kisSealed = 1 << 7,
+    kIsSealed = 1 << 7,
+    kIsMixinClass = 1 << 8,
+    kIsBase = 1 << 9,
+    kIsInterface = 1 << 10,
+    kIsFinal = 1 << 11,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)
@@ -784,7 +794,7 @@ class ClassHelper {
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
   intptr_t procedure_count_ = 0;
-  uint8_t flags_ = 0;
+  uint32_t flags_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -817,7 +827,7 @@ class LibraryHelper {
     // * kTypedefs
     // * kClasses
     // * kExtensions
-    // * kViews
+    // * kInlineClasses
     // * kToplevelField
     // * kToplevelProcedures
     // * kSourceReferences
@@ -1550,7 +1560,7 @@ class TypeTranslator {
   void BuildRecordType();
   void BuildTypeParameterType();
   void BuildIntersectionType();
-  void BuildViewType();
+  void BuildInlineType();
 
   class TypeParameterScope {
    public:

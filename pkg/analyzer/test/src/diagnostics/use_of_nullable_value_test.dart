@@ -1795,6 +1795,31 @@ m(String? s) {
     ]);
   }
 
+  test_uncheckedOperatorInvocation_relationalPattern() async {
+    await assertErrorsInCode(r'''
+void f(int? x) {
+  if (x case > 0) {}
+}
+''', [
+      error(
+          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          30,
+          1),
+    ]);
+  }
+
+  test_uncheckedOperatorInvocation_relationalPattern_hasExtension() async {
+    await assertNoErrorsInCode(r'''
+void f(int? x) {
+  if (x case > 0) {}
+}
+
+extension on int? {
+  bool operator >(int other) => true;
+}
+''');
+  }
+
   test_yieldEach_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() sync* {

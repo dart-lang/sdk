@@ -4,7 +4,9 @@
 
 void main() {
   var c = Class();
-  c. /*1:main*/ test();
+  // NOTE: The following line should not be formatted because spaces are
+  // inserted around the comment that throw off the expected column.
+  c/*1:main*/.test();
 }
 
 class Class {

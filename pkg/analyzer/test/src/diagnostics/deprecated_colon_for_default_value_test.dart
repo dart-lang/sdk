@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.g.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -15,6 +15,9 @@ main() {
 
 @reflectiveTest
 class DeprecatedColonForDefaultValueTest extends PubPackageResolutionTest {
+  @override
+  String get testPackageLanguageVersion => '2.19';
+
   test_noDefault() async {
     await assertNoErrorsInCode('''
 void f({int? x}) {}

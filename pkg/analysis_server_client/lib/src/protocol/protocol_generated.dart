@@ -6,8 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-// ignore_for_file: constant_identifier_names
-
 import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server_client/src/protocol/protocol_base.dart';
@@ -2039,7 +2037,6 @@ class AnalysisOccurrencesParams implements HasToJson {
 ///   "enableDeferredLoading": optional bool
 ///   "enableEnums": optional bool
 ///   "enableNullAwareOperators": optional bool
-///   "enableSuperMixins": optional bool
 ///   "generateDart2jsHints": optional bool
 ///   "generateHints": optional bool
 ///   "generateLints": optional bool
@@ -2070,10 +2067,6 @@ class AnalysisOptions implements HasToJson {
   /// operators" feature.
   bool? enableNullAwareOperators;
 
-  /// True if the client wants to enable support for the proposed "less
-  /// restricted mixins" proposal (DEP 34).
-  bool? enableSuperMixins;
-
   /// True if hints that are specific to dart2js should be generated. This
   /// option is ignored if generateHints is false.
   bool? generateDart2jsHints;
@@ -2091,7 +2084,6 @@ class AnalysisOptions implements HasToJson {
       this.enableDeferredLoading,
       this.enableEnums,
       this.enableNullAwareOperators,
-      this.enableSuperMixins,
       this.generateDart2jsHints,
       this.generateHints,
       this.generateLints});
@@ -2121,11 +2113,6 @@ class AnalysisOptions implements HasToJson {
             '$jsonPath.enableNullAwareOperators',
             json['enableNullAwareOperators']);
       }
-      bool? enableSuperMixins;
-      if (json.containsKey('enableSuperMixins')) {
-        enableSuperMixins = jsonDecoder.decodeBool(
-            '$jsonPath.enableSuperMixins', json['enableSuperMixins']);
-      }
       bool? generateDart2jsHints;
       if (json.containsKey('generateDart2jsHints')) {
         generateDart2jsHints = jsonDecoder.decodeBool(
@@ -2146,7 +2133,6 @@ class AnalysisOptions implements HasToJson {
           enableDeferredLoading: enableDeferredLoading,
           enableEnums: enableEnums,
           enableNullAwareOperators: enableNullAwareOperators,
-          enableSuperMixins: enableSuperMixins,
           generateDart2jsHints: generateDart2jsHints,
           generateHints: generateHints,
           generateLints: generateLints);
@@ -2174,10 +2160,6 @@ class AnalysisOptions implements HasToJson {
     if (enableNullAwareOperators != null) {
       result['enableNullAwareOperators'] = enableNullAwareOperators;
     }
-    var enableSuperMixins = this.enableSuperMixins;
-    if (enableSuperMixins != null) {
-      result['enableSuperMixins'] = enableSuperMixins;
-    }
     var generateDart2jsHints = this.generateDart2jsHints;
     if (generateDart2jsHints != null) {
       result['generateDart2jsHints'] = generateDart2jsHints;
@@ -2203,7 +2185,6 @@ class AnalysisOptions implements HasToJson {
           enableDeferredLoading == other.enableDeferredLoading &&
           enableEnums == other.enableEnums &&
           enableNullAwareOperators == other.enableNullAwareOperators &&
-          enableSuperMixins == other.enableSuperMixins &&
           generateDart2jsHints == other.generateDart2jsHints &&
           generateHints == other.generateHints &&
           generateLints == other.generateLints;
@@ -2217,7 +2198,6 @@ class AnalysisOptions implements HasToJson {
         enableDeferredLoading,
         enableEnums,
         enableNullAwareOperators,
-        enableSuperMixins,
         generateDart2jsHints,
         generateHints,
         generateLints,
@@ -5315,8 +5295,8 @@ class CompletionResultsParams implements HasToJson {
   List<IncludedSuggestionSet>? includedSuggestionSets;
 
   /// The client is expected to check this list against the ElementKind sent in
-  /// IncludedSuggestionSet to decide whether or not these symbols should
-  /// should be presented to the user.
+  /// IncludedSuggestionSet to decide whether or not these symbols should be
+  /// presented to the user.
   List<ElementKind>? includedElementKinds;
 
   /// The client is expected to check this list against the values of the field
@@ -16498,7 +16478,7 @@ class TypeHierarchyItem implements HasToJson {
   List<int> interfaces;
 
   /// The indexes of the items representing the mixins referenced by this
-  /// class. The list will be empty if there are no classes mixed in to this
+  /// class. The list will be empty if there are no classes mixed into this
   /// class.
   List<int> mixins;
 

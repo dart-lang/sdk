@@ -12,6 +12,7 @@ main() {
       // [analyzer] unspecified
       // [cfe] unspecified
       print(x);
+    default:
   }
 
   print(switch (false) {
@@ -38,21 +39,22 @@ main() {
 
   // Error even if assignment is nested inside closure.
   switch (false) {
-    case true when () { x = true; }():
+    case var x when () { x = true; }():
       //                  ^
       // [analyzer] unspecified
       // [cfe] unspecified
       print(x);
+    default:
   }
 
   print(switch (false) {
-    case true when () { x = true; }() => x;
+    case var x when () { x = true; }() => x;
       //                  ^
       // [analyzer] unspecified
       // [cfe] unspecified
   });
 
-  if (false case true when () { x = true; }()) {
+  if (false case var x when () { x = true; }()) {
     //                            ^
     // [analyzer] unspecified
     // [cfe] unspecified
@@ -60,7 +62,7 @@ main() {
   }
 
   print([
-    if (false case true when () { x = true; }())
+    if (false case var x when () { x = true; }())
       //                          ^
       // [analyzer] unspecified
       // [cfe] unspecified
@@ -73,10 +75,12 @@ main() {
     case var x when local = true:
       // No error.
       print(x);
+    default:
   }
 
   print(switch (false) {
-    case var x when local = true = x; // No error.
+    var x when local = true => x, // No error.
+    _ => 0,
   });
 
   if (false case var x when local = true) {
@@ -95,10 +99,12 @@ main() {
         case bool y when x = true:
           // No error.
           print(y);
+        default:
       }
 
       print(switch (false) {
-        case bool y when x = true => y; // No error.
+        bool y when x = true => y, // No error.
+        _ => 0,
       });
 
       if (false case bool y when x = true) {

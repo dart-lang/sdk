@@ -9,7 +9,7 @@ RESULT: _T (dart.core::int)+
 RESULT: _T (dart.core::_OneByteString, "abc")
 ------------ indexingIntoConstantList1 ------------
 %i = _Parameter #0 [_T (dart.core::int)+?]
-t1 = _Join [dart.core::int*] (_T (dart.core::_Smi, 1), _T (dart.core::_Smi, 2), _T (dart.core::_Smi, 3))
+t1 = _Join [dart.core::int] (_T (dart.core::_Smi, 1), _T (dart.core::_Smi, 2), _T (dart.core::_Smi, 3))
 RESULT: t1
 ------------ indexingIntoConstantList2 ------------
 %i = _Parameter #0 [_T (dart.core::int)+?]
@@ -20,7 +20,7 @@ RESULT: t1
 RESULT: _T {}?
 ------------ _constList1 ------------
 
-RESULT: _T (dart.core::_ImmutableList, const <dart.core::int*>[1, 2, 3])
+RESULT: _T (dart.core::_ImmutableList, const <dart.core::int>[1, 2, 3])
 ------------ _constList2 ------------
 
 RESULT: _T (dart.core::_ImmutableList, const <dart.core::Object?>["hi", 33, null, -5])

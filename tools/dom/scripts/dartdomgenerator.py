@@ -307,7 +307,7 @@ def main():
         dest='dart_js_interop',
         action='store_true',
         default=False,
-        help='Use Javascript objects (dart:js) accessing the DOM in _blink')
+        help='Use JavaScript objects (dart:js) accessing the DOM in _blink')
     parser.add_option(
         '--no-cached-patches',
         dest='no_cached_patches',

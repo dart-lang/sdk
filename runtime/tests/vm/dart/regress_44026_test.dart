@@ -37,8 +37,7 @@ main() async {
     print('stdout: ${result.stdout}');
     print('stderr: ${result.stderr}');
     Expect.equals(kCompilationErrorExitCode, result.exitCode);
-    Expect.stringContainsInOrder(result.stderr, [
-      "Error: A library can't opt out of null safety by default, when using sound null safety."
-    ]);
+    Expect.stringContainsInOrder(
+        result.stderr, ["Error: Library doesn't support null safety."]);
   });
 }

@@ -29,7 +29,7 @@ class ACall {
 }
 
 main() {
-  // Each test declares a spearate async function, tests that `async`
+  // Each test declares a separate async function, tests that `async`
   // can occur in it, and makes sure the function is run.
   {
     const int async = 0;

@@ -17,5 +17,5 @@ abstract class Flag {
   /// The value of this flag as a string. [optional]
   ///
   /// If this property is absent, then the value of the flag was NULL.
-  String get valueAsString;
+  String? get valueAsString;
 }

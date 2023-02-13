@@ -1,0 +1,103 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/class_modifiers/interface/outside_library/main.dart:7:37: Error: The class 'A' can't be extended outside of its library because it's an interface class.
+// class ExtendsInterfaceClass extends A {}
+//                                     ^
+//
+// pkg/front_end/testcases/class_modifiers/interface/outside_library/main.dart:9:32: Error: The mixin 'M' can't be mixed-in outside of its library because it's an interface mixin.
+// class MixInInterfaceMixin with M {}
+//                                ^
+//
+// pkg/front_end/testcases/class_modifiers/interface/outside_library/main.dart:11:60: Error: The mixin 'M' can't be mixed-in outside of its library because it's an interface mixin.
+// class MixInInterfaceMixinExtendsObject extends Object with M {}
+//                                                            ^
+//
+// pkg/front_end/testcases/class_modifiers/interface/outside_library/main.dart:13:23: Error: The mixin 'M' can't be mixed-in outside of its library because it's an interface mixin.
+// enum EnumSubtype with M { x }
+//                       ^
+//
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class ExtendsInterfaceClass extends mai::A {
+  synthetic constructor •() → self::ExtendsInterfaceClass
+    : super mai::A::•()
+    ;
+}
+abstract class _MixInInterfaceMixin&Object&M = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MixInInterfaceMixin&Object&M
+    : super core::Object::•()
+    ;
+}
+class MixInInterfaceMixin extends self::_MixInInterfaceMixin&Object&M {
+  synthetic constructor •() → self::MixInInterfaceMixin
+    : super self::_MixInInterfaceMixin&Object&M::•()
+    ;
+}
+abstract class _MixInInterfaceMixinExtendsObject&Object&M = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MixInInterfaceMixinExtendsObject&Object&M
+    : super core::Object::•()
+    ;
+}
+class MixInInterfaceMixinExtendsObject extends self::_MixInInterfaceMixinExtendsObject&Object&M {
+  synthetic constructor •() → self::MixInInterfaceMixinExtendsObject
+    : super self::_MixInInterfaceMixinExtendsObject&Object&M::•()
+    ;
+}
+abstract class _EnumSubtype&_Enum&M = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumSubtype&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumSubtype extends self::_EnumSubtype&_Enum&M /*isEnum*/  {
+  static const field core::List<self::EnumSubtype> values = #C4;
+  enum-element static const field self::EnumSubtype x = #C3;
+  const constructor •(core::int #index, core::String #name) → self::EnumSubtype
+    : super self::_EnumSubtype&_Enum&M::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "EnumSubtype.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class MixinOnA extends mai::A /*isMixinDeclaration*/  {
+}
+abstract class MixinOnM extends mai::M /*isMixinDeclaration*/  {
+}
+abstract class _MixinOnAM&A&M extends core::Object implements mai::A, mai::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MixinOnAM&A&M
+    : super core::Object::•()
+    ;
+}
+abstract class MixinOnAM extends self::_MixinOnAM&A&M /*isMixinDeclaration*/  {
+}
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+
+interface class A extends core::Object {
+  synthetic constructor •() → mai::A
+    : super core::Object::•()
+    ;
+}
+abstract interface class M extends core::Object /*isMixinDeclaration*/  {
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "x"
+  #C3 = self::EnumSubtype {index:#C1, _name:#C2}
+  #C4 = <self::EnumSubtype*>[#C3]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main.dart:
+- EnumSubtype. (from org-dartlang-testcase:///main.dart:13:6)
+- _EnumSubtype&_Enum&M. (from org-dartlang-testcase:///main.dart:13:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

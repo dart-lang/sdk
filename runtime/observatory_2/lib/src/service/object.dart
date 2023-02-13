@@ -1894,8 +1894,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('setName', {'name': newName});
   }
 
-  Future setExceptionPauseMode(String mode) {
-    return invokeRpc('setExceptionPauseMode', {'mode': mode});
+  Future setIsolatePauseMode(String mode) {
+    return invokeRpc('setIsolatePauseMode', {'exceptionPauseMode': mode});
   }
 
   Future<ServiceMap> getStack({int limit}) {
@@ -4418,7 +4418,7 @@ class Code extends HeapObject implements M.Code {
   void _processDisassembly(List disassembly) {
     assert(disassembly != null);
     instructions.clear();
-    instructionsByAddressOffset = new List(endAddress - startAddress);
+    instructionsByAddressOffset = List.filled(endAddress - startAddress, null);
 
     assert((disassembly.length % 4) == 0);
     for (var i = 0; i < disassembly.length; i += 4) {
@@ -4517,7 +4517,7 @@ class SocketStats {
 }
 
 /// A peer to a Socket in dart:io. Sockets can represent network sockets or
-/// OS pipes. Each socket is owned by another ServceObject, for example,
+/// OS pipes. Each socket is owned by another ServiceObject, for example,
 /// a process or an HTTP server.
 class Socket extends ServiceObject {
   Socket._empty(ServiceObjectOwner owner) : super._empty(owner);

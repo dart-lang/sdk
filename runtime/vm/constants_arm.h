@@ -35,16 +35,12 @@ namespace dart {
 
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at
 // a time.
-#if defined(__ARM_ARCH_7A__)
-#define VFPv3_D32
-#elif defined(TARGET_ARCH_ARM) && !defined(HOST_ARCH_ARM)
-// If we're running in the simulator, use all 32.
+#if defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_LINUX)
+#define VFPv3_D16
+#elif defined(DART_TARGET_OS_MACOS_IOS) || defined(DART_TARGET_OS_WINDOWS)
 #define VFPv3_D32
 #else
-#define VFPv3_D16
-#endif
-#if defined(VFPv3_D16) == defined(VFPv3_D32)
-#error "Exactly one of VFPv3_D16 or VFPv3_D32 can be defined at a time."
+#error Which VFP?
 #endif
 
 // The Linux/Android ABI and the iOS ABI differ in their choice of frame
@@ -89,12 +85,12 @@ enum Register {
   R3 = 3,
   R4 = 4,
   R5 = 5,  // PP
-  R6 = 6,  // CODE
-  R7 = 7,  // iOS FP
+  R6 = 6,  // CODE_REG
+  R7 = 7,  // FP on iOS, DISPATCH_TABLE_REG on non-iOS (AOT only)
   R8 = 8,
   R9 = 9,
   R10 = 10,  // THR
-  R11 = 11,  // Linux/Android/Windows FP
+  R11 = 11,  // FP on non-iOS, DISPATCH_TABLE_REG on iOS (AOT only)
   R12 = 12,  // IP aka TMP
   R13 = 13,  // SP
   R14 = 14,  // LR
@@ -352,6 +348,25 @@ struct InstantiationABI {
   static const Register kScratchReg = R8;
 };
 
+// Registers in addition to those listed in InstantiationABI used inside the
+// implementation of the InstantiateTypeArguments stubs.
+struct InstantiateTAVInternalRegs {
+  // The set of registers that must be pushed/popped when probing a hash-based
+  // cache due to overlap with the registers in InstantiationABI.
+  static const intptr_t kSavedRegisters =
+#if defined(DART_PRECOMPILER)
+      (1 << DISPATCH_TABLE_REG) |
+#endif
+      (1 << InstantiationABI::kUninstantiatedTypeArgumentsReg);
+
+  // Additional registers used to probe hash-based caches.
+  static const Register kEntryStartReg = R9;
+  static const Register kProbeMaskReg = R4;
+  static const Register kProbeDistanceReg = DISPATCH_TABLE_REG;
+  static const Register kCurrentEntryIndexReg =
+      InstantiationABI::kUninstantiatedTypeArgumentsReg;
+};
+
 // Registers in addition to those listed in TypeTestABI used inside the
 // implementation of type testing stubs that are _not_ preserved.
 struct TTSInternalRegs {
@@ -517,17 +532,16 @@ struct AllocateArrayABI {
 // ABI for AllocateRecordStub.
 struct AllocateRecordABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kNumFieldsReg = R2;
-  static const Register kFieldNamesReg = R1;
-  static const Register kTemp1Reg = R3;
-  static const Register kTemp2Reg = R4;
+  static const Register kShapeReg = R1;
+  static const Register kTemp1Reg = R2;
+  static const Register kTemp2Reg = R3;
 };
 
 // ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
 // AllocateRecord3, AllocateRecord3Named).
 struct AllocateSmallRecordABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kFieldNamesReg = R1;
+  static const Register kShapeReg = R1;
   static const Register kValue0Reg = R2;
   static const Register kValue1Reg = R3;
   static const Register kValue2Reg = R4;
@@ -554,10 +568,11 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = R0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub,
+// ABI for SuspendStub (AwaitStub, AwaitWithTypeCheckStub, YieldAsyncStarStub,
 // SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = R0;
+  static const Register kTypeArgsReg = R1;  // Can be the same as kTempReg
   static const Register kTempReg = R1;
   static const Register kFrameSizeReg = R2;
   static const Register kSuspendStateReg = R3;
@@ -694,6 +709,8 @@ class CallingConventions {
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
       kAlignedToWordSizeAndValueSize;
+  static constexpr AlignmentStrategy kArgumentRegisterAlignmentVarArgs =
+      kArgumentRegisterAlignment;
 
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =

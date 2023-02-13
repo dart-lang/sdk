@@ -30,6 +30,9 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get sortConstructorsFirst => _isLintEnabled('sort_constructors_first');
 
   @override
+  bool get specifyTypes => _isLintEnabled('always_specify_types');
+
+  @override
   bool get useRelativeUris => _isLintEnabled('prefer_relative_imports');
 
   @override

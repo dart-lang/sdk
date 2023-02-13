@@ -21,7 +21,6 @@ import 'package:dev_compiler/dev_compiler.dart'
 // are a temporary state of things until frontend team builds better api
 // that would replace api used below. This api was made private in
 // an effort to discourage further use.
-// ignore_for_file: implementation_imports
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as ddc
     show IncrementalCompiler;
@@ -173,7 +172,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addFlag('sound-null-safety',
-      help: 'Respect the nullability of types at runtime.', defaultsTo: null)
+      help: 'Respect the nullability of types at runtime.', defaultsTo: true)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true)
@@ -396,7 +395,7 @@ class FrontendCompiler implements CompilerInterface {
   late bool _printIncrementalDependencies;
   late ProcessedOptions _processedOptions;
 
-  /// Initialized in [writeJavascriptBundle]
+  /// Initialized in [writeJavaScriptBundle]
   IncrementalJavaScriptBundler? _bundler;
 
   /// Nullable fields
@@ -456,7 +455,7 @@ class FrontendCompiler implements CompilerInterface {
     final String platformKernelDill =
         options['platform'] ?? 'platform_strong.dill';
     final String? packagesOption = _options['packages'];
-    final bool? nullSafety = _options['sound-null-safety'];
+    final bool nullSafety = _options['sound-null-safety'];
     final CompilerOptions compilerOptions = CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = _fileSystem
@@ -468,7 +467,7 @@ class FrontendCompiler implements CompilerInterface {
       ..explicitExperimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
-      ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
+      ..nnbdMode = (nullSafety == false) ? NnbdMode.Weak : NnbdMode.Strong
       ..onDiagnostic = _onDiagnostic
       ..verbosity = Verbosity.parseArgument(options['verbosity'],
           onError: (msg) => errors.add(msg));
@@ -531,11 +530,6 @@ class FrontendCompiler implements CompilerInterface {
         print('Error: --from-dill option cannot be used with --incremental');
         return false;
       }
-    }
-
-    if (nullSafety == null &&
-        compilerOptions.globalFeatures.nonNullable.isEnabled) {
-      await autoDetectNullSafetyMode(_mainSource, compilerOptions);
     }
 
     // Initialize additional supported kernel targets.
@@ -611,7 +605,7 @@ class FrontendCompiler implements CompilerInterface {
       transformer?.transform(results.component!);
 
       if (_compilerOptions.target!.name == 'dartdevc') {
-        await writeJavascriptBundle(results, _kernelBinaryFilename,
+        await writeJavaScriptBundle(results, _kernelBinaryFilename,
             options['filesystem-scheme'], options['dartdevc-module-format'],
             fullComponent: true);
       }
@@ -672,7 +666,7 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   /// Write a JavaScript bundle containing the provided component.
-  Future<void> writeJavascriptBundle(KernelCompilationResults results,
+  Future<void> writeJavaScriptBundle(KernelCompilationResults results,
       String filename, String fileSystemScheme, String moduleFormat,
       {required bool fullComponent}) async {
     // ignore: unnecessary_null_comparison
@@ -857,7 +851,7 @@ class FrontendCompiler implements CompilerInterface {
         deltaProgram.uriToSource.keys);
 
     if (_compilerOptions.target!.name == 'dartdevc') {
-      await writeJavascriptBundle(results, _kernelBinaryFilename,
+      await writeJavaScriptBundle(results, _kernelBinaryFilename,
           _options['filesystem-scheme'], _options['dartdevc-module-format'],
           fullComponent: false);
     } else {
@@ -1281,7 +1275,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         break;
       case _State.RECOMPILE_LIST:
         if (string == boundaryKey) {
-          compiler.recompileDelta(entryPoint: recompileEntryPoint);
+          await compiler.recompileDelta(entryPoint: recompileEntryPoint);
           state = _State.READY_FOR_INSTRUCTION;
         } else {
           compiler.invalidate(Uri.base.resolve(string));
@@ -1316,7 +1310,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
       case _State.COMPILE_EXPRESSION_IS_STATIC:
         if (string == 'true' || string == 'false') {
           compileExpressionRequest.isStatic = string == 'true';
-          compiler.compileExpression(
+          await compiler.compileExpression(
               compileExpressionRequest.expression,
               compileExpressionRequest.defs,
               compileExpressionRequest.defTypes,
@@ -1371,7 +1365,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         break;
       case _State.COMPILE_EXPRESSION_TO_JS_EXPRESSION:
         compileExpressionToJsRequest.expression = string;
-        compiler.compileExpressionToJs(
+        await compiler.compileExpressionToJs(
             compileExpressionToJsRequest.libraryUri,
             compileExpressionToJsRequest.line,
             compileExpressionToJsRequest.column,

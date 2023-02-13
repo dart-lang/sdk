@@ -35,5 +35,13 @@ class RemoveNonNullAssertion extends CorrectionProducer {
         builder.addDeletion(range.startStart(bangToken, bangToken.next!));
       });
     }
+
+    if (expression is NullAssertPattern) {
+      var bangToken = expression.operator;
+
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(range.startStart(bangToken, bangToken.next!));
+      });
+    }
   }
 }

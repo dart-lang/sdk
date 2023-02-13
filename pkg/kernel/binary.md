@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 89;
+  UInt32 formatVersion = 93;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -174,7 +174,7 @@ type MetadataMapping {
 
 // Component index with all fixed-size-32-bit integers.
 // This gives "semi-random-access" to certain parts of the binary.
-// By reading the last 4 bytes one knows the number of libaries,
+// By reading the last 4 bytes one knows the number of libraries,
 // which allows to skip to any other field in this component index,
 // which again allows to skip to what it points to.
 type ComponentIndex {
@@ -229,8 +229,8 @@ type TypedefReference {
   CanonicalNameReference canonicalName;
 }
 
-type ViewReference {
-  // Must be populated by a view (possibly later in the file).
+type InlineClassReference {
+  // Must be populated by an inline class (possibly later in the file).
   CanonicalNameReference canonicalName;
 }
 
@@ -257,7 +257,7 @@ type Library {
   List<Typedef> typedefs;
   List<Class> classes;
   List<Extension> extensions;
-  List<View> views;
+  List<InlineClass> inlineClasses;
   List<Field> fields;
   List<Procedure> procedures;
 
@@ -318,8 +318,9 @@ type Class extends Node {
   FileOffset startFileOffset; // Offset of the start of the class including any annotations.
   FileOffset fileOffset; // Offset of the name of the class.
   FileOffset fileEndOffset;
-  Byte flags (isAbstract, isEnum, isAnonymousMixin, isEliminatedMixin,
-              isMixinDeclaration, hasConstConstructor, isMacro, isSealed);
+  UInt flags (isAbstract, isEnum, isAnonymousMixin, isEliminatedMixin,
+              isMixinDeclaration, hasConstConstructor, isMacro, isSealed,
+              isMixinClass, isBase, isInterface, isFinal);
   StringReference name;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
@@ -375,7 +376,7 @@ type ExtensionMemberDescriptor {
   MemberReference member;
 }
 
-type View extends Node {
+type InlineClass extends Node {
   Byte tag = 85;
   CanonicalNameReference canonicalName;
   StringReference name;
@@ -384,15 +385,16 @@ type View extends Node {
   FileOffset fileOffset;
   Byte flags ();
   List<TypeParameter> typeParameters;
-  DartType representationType;
-  List<ViewMemberDescriptor> members;
+  DartType declaredRepresentationType;
+  StringReference representationName;
+  List<InlineClassMemberDescriptor> members;
 }
 
-enum ViewMemberKind { Constructor = 0, Factory = 1, Field = 2, Method = 3, Getter = 4, Setter = 5, Operator = 6, TearOff = 7, }
+enum InlineClassMemberKind { Constructor = 0, Factory = 1, Field = 2, Method = 3, Getter = 4, Setter = 5, Operator = 6, TearOff = 7, }
 
-type ViewMemberDescriptor {
+type InlineClassMemberDescriptor {
   Name name;
-  ViewMemberKind kind;
+  InlineClassMemberKind kind;
   Byte flags (isStatic);
   MemberReference member;
 }
@@ -411,7 +413,7 @@ type Field extends Member {
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
                 isNonNullableByDefault, isInternalImplementation,
-                isEnumElement);
+                isEnumElement, isInlineClassMember);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -466,7 +468,8 @@ type Procedure extends Member {
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isRedirectingFactory, isExtensionMember,
-              isNonNullableByDefault, isSynthetic, isInternalImplementation);
+              isNonNullableByDefault, isSynthetic, isInternalImplementation,
+              isInlineClassMember);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
@@ -1613,12 +1616,12 @@ type IntersectionType extends DartType {
   DartType right;
 }
 
-type ViewType extends DartType {
+type InlineType extends DartType {
   Byte tag = 103;
   Byte nullability; // Index into the Nullability enum above.
-  ViewReference viewReference;
+  InlineClassReference inlineClassReference;
   List<DartType> typeArguments;
-  DartType representationType;
+  DartType instantiatedRepresentationType;
 }
 
 type TypedefType {

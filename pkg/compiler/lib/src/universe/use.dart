@@ -645,7 +645,7 @@ class StaticUse {
 
   /// Inlining of [element].
   factory StaticUse.constructorInlining(
-      ConstructorEntity element, InterfaceType instanceType) {
+      ConstructorEntity element, InterfaceType? instanceType) {
     return StaticUse.internal(element, StaticUseKind.INLINING,
         type: instanceType);
   }
@@ -683,6 +683,7 @@ enum TypeUseKind {
   INSTANTIATION,
   NATIVE_INSTANTIATION,
   CONST_INSTANTIATION,
+  RECORD_INSTANTIATION,
   CONSTRUCTOR_REFERENCE,
   IMPLICIT_CAST,
   PARAMETER_CHECK,
@@ -745,6 +746,9 @@ class TypeUse {
         break;
       case TypeUseKind.CONST_INSTANTIATION:
         sb.write('const:');
+        break;
+      case TypeUseKind.RECORD_INSTANTIATION:
+        sb.write('record:');
         break;
       case TypeUseKind.CONSTRUCTOR_REFERENCE:
         sb.write('constructor:');
@@ -835,6 +839,11 @@ class TypeUse {
     return TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
   }
 
+  /// [type] used in a record instantiation, like `(1, 2)` or `const (1, 2)`.
+  factory TypeUse.recordInstantiation(RecordType type) {
+    return TypeUse.internal(type, TypeUseKind.RECORD_INSTANTIATION);
+  }
+
   /// [type] used as a direct RTI value.
   factory TypeUse.constTypeLiteral(DartType type) {
     return TypeUse.internal(type, TypeUseKind.RTI_VALUE);
@@ -876,7 +885,7 @@ class TypeUse {
 class ConstantUse {
   static const String tag = 'constant-use';
 
-  final ConstantValue /*!*/ value;
+  final ConstantValue value;
 
   ConstantUse._(this.value);
 
@@ -899,7 +908,7 @@ class ConstantUse {
   }
 
   /// Constant used as the initial value of a field.
-  ConstantUse.init(ConstantValue /*!*/ value) : this._(value);
+  ConstantUse.init(ConstantValue value) : this._(value);
 
   /// Type constant used for registration of custom elements.
   ConstantUse.customElements(TypeConstantValue value) : this._(value);

@@ -70,6 +70,7 @@ abstract class TypesBuilder {
   /// Return [TFClass] corresponding to the given [classNode].
   TFClass getTFClass(Class classNode);
 
+  late final Type functionType = ConeType(getTFClass(coreTypes.functionClass));
   late final Type recordType = ConeType(getTFClass(coreTypes.recordClass));
 
   /// Create a Type which corresponds to a set of instances constrained by
@@ -86,8 +87,8 @@ abstract class TypesBuilder {
     } else if (type is NeverType || type is NullType) {
       result = const EmptyType();
     } else if (type is FunctionType) {
-      // TODO(alexmarkov): support function types
-      result = const AnyType();
+      // TODO(alexmarkov): support inference of function types
+      result = functionType;
     } else if (type is RecordType) {
       // TODO(dartbug.com/49719): support inference of record types
       result = recordType;
@@ -111,6 +112,8 @@ abstract class TypesBuilder {
       } else {
         result = fromStaticType(bound, canBeNull);
       }
+    } else if (type is InlineType) {
+      result = fromStaticType(type.instantiatedRepresentationType, canBeNull);
     } else {
       throw 'Unexpected type ${type.runtimeType} $type';
     }
@@ -1141,7 +1144,7 @@ class RuntimeType extends Type {
   int _computeHashCode() {
     int hash = _type.hashCode ^ 0x1234 & kHashMask;
     // Only hash by the type arguments of the class. The type arguments of
-    // supertypes are are implied by them.
+    // supertypes are implied by them.
     for (int i = 0; i < numImmediateTypeArgs; ++i) {
       hash = (((hash * 31) & kHashMask) + typeArgs![i].hashCode) & kHashMask;
     }

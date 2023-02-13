@@ -7,6 +7,7 @@ library fasta.formal_parameter_builder;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show FormalParameterKind, FormalParameterKindExtension;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/fasta/source/constructor_declaration.dart';
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, NullLiteral, VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
@@ -23,6 +24,7 @@ import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
 import 'class_builder.dart';
 import 'constructor_builder.dart';
+import 'declaration_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
@@ -220,10 +222,14 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   }
 
   void finalizeInitializingFormal(
-      ClassBuilder classBuilder, ClassHierarchyBase hierarchy) {
-    Builder? fieldBuilder = classBuilder.lookupLocalMember(name);
+      DeclarationBuilder declarationBuilder,
+      ConstructorDeclaration constructorDeclaration,
+      ClassHierarchyBase hierarchy) {
+    Builder? fieldBuilder = declarationBuilder.lookupLocalMember(name);
     if (fieldBuilder is SourceFieldBuilder) {
-      type.registerInferredType(fieldBuilder.inferType(hierarchy));
+      DartType fieldType = fieldBuilder.inferType(hierarchy);
+      fieldType = constructorDeclaration.substituteFieldType(fieldType);
+      type.registerInferredType(fieldType);
     } else {
       type.registerInferredType(const DynamicType());
     }

@@ -242,7 +242,7 @@ class RequestErrorFactory {
 
   /// Return a request error representing an error condition caused by a request
   /// that had an invalid parameter. The [path] is the path to the invalid
-  /// parameter, in Javascript notation (e.g. "foo.bar" means that the parameter
+  /// parameter, in JavaScript notation (e.g. "foo.bar" means that the parameter
   /// "foo" contained a key "bar" whose value was the wrong type). The
   /// [expectation] is a description of the type of data that was expected.
   static RequestError invalidParameter(String path, String expectation) =>

@@ -49,7 +49,7 @@ class LazyLibraryScope extends LazyScope {
 
   LazyLibraryScope.top({bool isModifiable = false})
       : super(<String, Builder>{}, <String, MemberBuilder>{}, null, "top",
-            isModifiable: isModifiable);
+            isModifiable: isModifiable, kind: ScopeKind.library);
 
   @override
   void ensureScope() {

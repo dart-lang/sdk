@@ -70,7 +70,7 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
-    thread->set_name(name);
+    thread->SetName(name);
 
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
@@ -134,6 +134,12 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
   return ::GetCurrentThreadId();
 }
 #endif  // SUPPORT_TIMELINE
+
+char* OSThread::GetCurrentThreadName() {
+  // TODO(derekx): We aren't even setting the thread name on Windows, so we need
+  // to figure out how to set/get the thread name on Windows.
+  return nullptr;
+}
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);

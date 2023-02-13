@@ -115,7 +115,7 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   char* err;
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
-  api_flags.null_safety = (FLAG_sound_null_safety == kNullSafetyOptionStrong);
+  api_flags.null_safety = FLAG_sound_null_safety;
   Dart_Isolate isolate = NULL;
   if (len == 0) {
     isolate = Dart_CreateIsolateGroup(
@@ -433,6 +433,10 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   return result;
 }
 
+static void MallocFinalizer(void* isolate_callback_data, void* peer) {
+  free(peer);
+}
+
 Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
                                       const char* script,
                                       Dart_NativeEntryResolver resolver) {
@@ -448,12 +452,14 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
   if ((kernel_buffer == NULL) && (error != NULL)) {
     return Dart_NewApiError(error);
   }
-  Dart_Handle lib =
-      Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
-  EXPECT_VALID(lib);
 
-  // Ensure kernel buffer isn't leaked after test is run.
-  AddToKernelBuffers(kernel_buffer);
+  Dart_Handle td = Dart_NewExternalTypedDataWithFinalizer(
+      Dart_TypedData_kUint8, const_cast<uint8_t*>(kernel_buffer),
+      kernel_buffer_size, const_cast<uint8_t*>(kernel_buffer),
+      kernel_buffer_size, MallocFinalizer);
+  EXPECT_VALID(td);
+  Dart_Handle lib = Dart_LoadLibrary(td);
+  EXPECT_VALID(lib);
 
   // TODO(32618): Kernel doesn't correctly represent the root library.
   lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
@@ -488,12 +494,13 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
     return Dart_NewApiError(error);
   }
 
-  Dart_Handle lib =
-      Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
+  Dart_Handle td = Dart_NewExternalTypedDataWithFinalizer(
+      Dart_TypedData_kUint8, const_cast<uint8_t*>(kernel_buffer),
+      kernel_buffer_size, const_cast<uint8_t*>(kernel_buffer),
+      kernel_buffer_size, MallocFinalizer);
+  EXPECT_VALID(td);
+  Dart_Handle lib = Dart_LoadLibrary(td);
   EXPECT_VALID(lib);
-
-  // Ensure kernel buffer isn't leaked after test is run.
-  AddToKernelBuffers(kernel_buffer);
 
   // BOGUS: Kernel doesn't correctly represent the root library.
   lib = Dart_LookupLibrary(Dart_NewStringFromCString(

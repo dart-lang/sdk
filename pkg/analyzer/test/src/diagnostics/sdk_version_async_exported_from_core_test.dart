@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -93,7 +93,7 @@ import 'dart:core' show Future, int;
 
 Future<int> zero() async => 0;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 38, 6),
+      error(WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 38, 6),
     ]);
   }
 
@@ -112,7 +112,7 @@ Future<int> zero() async => 0;
     await verifyVersion('2.0.0', '''
 Future<int> zero() async => 0;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 0, 6),
+      error(WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 0, 6),
     ]);
   }
 
@@ -142,7 +142,7 @@ Future<int> zero() async => 0;
     final resolvedPart = resolvedLibrary.units.last;
     expect(resolvedPart.path, a.path);
     assertErrorsInList(resolvedPart.errors, [
-      error(HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 14, 6),
+      error(WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 14, 6),
     ]);
   }
 

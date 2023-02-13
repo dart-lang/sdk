@@ -36,6 +36,7 @@
 #include "vm/native_entry.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
+#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/os_thread.h"
@@ -54,6 +55,7 @@
 #include "vm/thread_registry.h"
 #include "vm/uri.h"
 #include "vm/version.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/aot/precompiler.h"
@@ -1285,7 +1287,7 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
     if (error != NULL) {
       *error = Utils::StrDup("Isolate creation failed");
     }
-    return reinterpret_cast<Dart_Isolate>(NULL);
+    return static_cast<Dart_Isolate>(NULL);
   }
 
   Thread* T = Thread::Current();
@@ -1329,7 +1331,7 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   }
 
   Dart::ShutdownIsolate();
-  return reinterpret_cast<Dart_Isolate>(NULL);
+  return static_cast<Dart_Isolate>(NULL);
 }
 
 static bool IsServiceOrKernelIsolateName(const char* name) {
@@ -1828,40 +1830,26 @@ DART_EXPORT void Dart_NotifyDestroyed() {
 
 DART_EXPORT void Dart_EnableHeapSampling() {
 #if !defined(PRODUCT)
-  IsolateGroup::ForEach([&](IsolateGroup* group) {
-    group->thread_registry()->ForEachThread(
-        [&](Thread* thread) { thread->heap_sampler().Enable(true); });
-  });
+  HeapProfileSampler::Enable(true);
 #endif
 }
 
 DART_EXPORT void Dart_DisableHeapSampling() {
 #if !defined(PRODUCT)
-  IsolateGroup::ForEach([&](IsolateGroup* group) {
-    group->thread_registry()->ForEachThread(
-        [&](Thread* thread) { thread->heap_sampler().Enable(false); });
-  });
+  HeapProfileSampler::Enable(false);
 #endif
 }
 
 DART_EXPORT void Dart_RegisterHeapSamplingCallback(
     Dart_HeapSamplingCallback callback) {
 #if !defined(PRODUCT)
-  IsolateGroup::ForEach([&](IsolateGroup* group) {
-    group->thread_registry()->ForEachThread([&](Thread* thread) {
-      thread->heap_sampler().SetSamplingCallback(callback);
-    });
-  });
+  HeapProfileSampler::SetSamplingCallback(callback);
 #endif
 }
 
 DART_EXPORT void Dart_SetHeapSamplingPeriod(intptr_t bytes) {
 #if !defined(PRODUCT)
-  IsolateGroup::ForEach([&](IsolateGroup* group) {
-    group->thread_registry()->ForEachThread([&](Thread* thread) {
-      thread->heap_sampler().SetSamplingInterval(bytes);
-    });
-  });
+  HeapProfileSampler::SetSamplingInterval(bytes);
 #endif
 }
 
@@ -3307,7 +3295,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   if ((index >= 0) && (index < array_obj.Length())) {                          \
     return Api::NewHandle(thread, array_obj.At(index));                        \
   }                                                                            \
-  return Api::NewError("Invalid index passed in to access list element");
+  return Api::NewError("Invalid index passed into access list element");
 
 DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
   DARTSCOPE(Thread::Current());
@@ -3340,7 +3328,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
     }                                                                          \
     return Api::Success();                                                     \
   }                                                                            \
-  return Api::NewError("Invalid offset/length passed in to access list");
+  return Api::NewError("Invalid offset/length passed into access list");
 
 DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
                                           intptr_t offset,
@@ -3393,7 +3381,7 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
     array.SetAt(index, value_obj);                                             \
     return Api::Success();                                                     \
   }                                                                            \
-  return Api::NewError("Invalid index passed in to set list element");
+  return Api::NewError("Invalid index passed into set list element");
 
 DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
                                        intptr_t index,
@@ -3512,7 +3500,7 @@ static ObjectPtr ThrowArgumentError(const char* exception_message) {
     }                                                                          \
     return Api::Success();                                                     \
   }                                                                            \
-  return Api::NewError("Invalid length passed in to access array elements");
+  return Api::NewError("Invalid length passed into access array elements");
 
 DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
                                             intptr_t offset,
@@ -3529,7 +3517,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
                 reinterpret_cast<uint8_t*>(array.DataAddr(offset)), length);
         return Api::Success();
       }
-      return Api::NewError("Invalid length passed in to access list elements");
+      return Api::NewError("Invalid length passed into access list elements");
     }
   }
   if (obj.IsArray()) {
@@ -3591,7 +3579,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     }                                                                          \
     return Api::Success();                                                     \
   }                                                                            \
-  return Api::NewError("Invalid length passed in to set array elements");
+  return Api::NewError("Invalid length passed into set array elements");
 
 DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             intptr_t offset,
@@ -3608,7 +3596,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                 native_array, length);
         return Api::Success();
       }
-      return Api::NewError("Invalid length passed in to access list elements");
+      return Api::NewError("Invalid length passed into access list elements");
     }
   }
   if (obj.IsArray() && !Array::Cast(obj).IsImmutable()) {
@@ -5039,7 +5027,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
     RETURN_TYPE_ERROR(thread->zone(), obj, Instance);
   }
   return Api::NewError(
-      "%s: invalid index %d passed in to access native instance field",
+      "%s: invalid index %d passed into access native instance field",
       CURRENT_FUNC, index);
 }
 
@@ -5053,7 +5041,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
   }
   if (!instance.IsValidNativeIndex(index)) {
     return Api::NewError(
-        "%s: invalid index %d passed in to set native instance field",
+        "%s: invalid index %d passed into set native instance field",
         CURRENT_FUNC, index);
   }
   instance.SetNativeField(index, value);
@@ -5853,24 +5841,8 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
   return error_in;
 }
 
-DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
-                                                   intptr_t buffer_size) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
-#else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  StackZone zone(T);
-
-  CHECK_CALLBACK_STATE(T);
-
-  // NOTE: We do not attach a finalizer for this object, because the embedder
-  // will/should free it once the isolate group has shutdown.
-  // See also http://dartbug.com/37030.
-  const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
-      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(buffer),
-      buffer_size, Heap::kOld));
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static Dart_Handle LoadLibrary(Thread* T, const ExternalTypedData& td) {
   const char* error = nullptr;
   std::unique_ptr<kernel::Program> program =
       kernel::Program::ReadFromTypedData(td, &error);
@@ -5885,6 +5857,40 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   source->add_loaded_blob(Z, td);
 
   return Api::NewHandle(T, result.ptr());
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
+                                                   intptr_t buffer_size) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  StackZone zone(T);
+
+  CHECK_CALLBACK_STATE(T);
+
+  // NOTE: We do not attach a finalizer for this object, because the embedder
+  // will/should free it once the isolate group has shutdown.
+  const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
+      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(buffer),
+      buffer_size, Heap::kOld));
+  return LoadLibrary(T, td);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle kernel_buffer) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
+  DARTSCOPE(Thread::Current());
+  const ExternalTypedData& td =
+      Api::UnwrapExternalTypedDataHandle(Z, kernel_buffer);
+  if (td.IsNull()) {
+    RETURN_TYPE_ERROR(Z, kernel_buffer, ExternalTypedData);
+  }
+  return LoadLibrary(T, td);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -5911,7 +5917,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   I->debugger()->NotifyDoneLoading();
 #endif
 
-  // After having loaded all the code, we can let the GC set reaonsable limits
+  // After having loaded all the code, we can let the GC set reasonable limits
   // for the heap growth.
   // If this is an auxiliary isolate inside a larger isolate group, we will not
   // re-initialize the growth policy.
@@ -6151,45 +6157,19 @@ Dart_CompileToKernel(const char* script_uri,
   result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, 0, NULL,
       incremental_compile, snapshot_compile, package_config, NULL, NULL,
-      FLAG_sound_null_safety, verbosity);
-  if (result.status == Dart_KernelCompilationStatus_Ok) {
-    Dart_KernelCompilationResult accept_result =
-        KernelIsolate::AcceptCompilation();
-    if (accept_result.status != Dart_KernelCompilationStatus_Ok) {
+      verbosity);
+  if (incremental_compile) {
+    Dart_KernelCompilationResult ack_result =
+        result.status == Dart_KernelCompilationStatus_Ok ?
+            KernelIsolate::AcceptCompilation():
+            KernelIsolate::RejectCompilation();
+    if (ack_result.status != Dart_KernelCompilationStatus_Ok) {
       FATAL1(
-          "An error occurred in the CFE while accepting the most recent"
+          "An error occurred in the CFE while acking the most recent"
           " compilation results: %s",
-          accept_result.error);
+          ack_result.error);
     }
   }
-#endif
-  return result;
-}
-
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileToKernelWithGivenNullsafety(
-    const char* script_uri,
-    const uint8_t* platform_kernel,
-    intptr_t platform_kernel_size,
-    bool snapshot_compile,
-    const char* package_config,
-    bool null_safety,
-    Dart_KernelCompilationVerbosityLevel verbosity) {
-  API_TIMELINE_DURATION(Thread::Current());
-
-  Dart_KernelCompilationResult result = {};
-#if defined(DART_PRECOMPILED_RUNTIME)
-  result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = Utils::StrDup("Dart_CompileToKernel is unsupported.");
-#else
-  intptr_t null_safety_option =
-      null_safety ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
-  result = KernelIsolate::CompileToKernel(
-      script_uri, platform_kernel, platform_kernel_size,
-      /*source_files_count=*/0, /*source_files=*/nullptr,
-      /*incremental_compile=*/false, snapshot_compile, package_config,
-      /*multiroot_filepaths=*/nullptr, /*multiroot_scheme=*/nullptr,
-      null_safety_option, verbosity);
 #endif
   return result;
 }
@@ -6221,20 +6201,29 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
                                        const uint8_t* snapshot_instructions,
                                        const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(FLAG_sound_null_safety != kNullSafetyOptionUnspecified);
-  return (FLAG_sound_null_safety == kNullSafetyOptionStrong);
-#else
-  bool null_safety;
-  if (FLAG_sound_null_safety == kNullSafetyOptionUnspecified) {
-    null_safety = Dart::DetectNullSafety(
-        script_uri, snapshot_data, snapshot_instructions, kernel_buffer,
-        kernel_buffer_size, package_config, original_working_directory);
-  } else {
-    null_safety = (FLAG_sound_null_safety == kNullSafetyOptionStrong);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // If snapshot is an app-jit snapshot we will figure out the mode by
+  // sniffing the feature string in the snapshot.
+  if (snapshot_data != nullptr) {
+    // Read the snapshot and check for null safety option.
+    const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
+    if (!Snapshot::IsAgnosticToNullSafety(snapshot->kind())) {
+      return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
+    }
   }
-  return null_safety;
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+  // If kernel_buffer is specified, it could be a self contained
+  // kernel file or the kernel file of the application,
+  // figure out the null safety mode by sniffing the kernel file.
+  if (kernel_buffer != nullptr) {
+    const char* error = nullptr;
+    std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
+        kernel_buffer, kernel_buffer_size, &error);
+    if (program != nullptr) {
+      return program->compilation_mode() == NNBDCompiledMode::kStrong;
+    }
+  }
+#endif
+  return FLAG_sound_null_safety;
 }
 
 // --- Service support ---
@@ -6340,6 +6329,11 @@ DART_EXPORT char* Dart_ServiceSendDataEvent(const char* stream_id,
 
 DART_EXPORT void Dart_SetGCEventCallback(Dart_GCEventCallback callback) {
   Dart::set_gc_event_callback(callback);
+}
+
+DART_EXPORT void Dart_SetDwarfStackTraceFootnoteCallback(
+    Dart_DwarfStackTraceFootnoteCallback callback) {
+  Dart::set_dwarf_stacktrace_footnote_callback(callback);
 }
 
 DART_EXPORT char* Dart_SetFileModifiedCallback(
@@ -7038,7 +7032,7 @@ DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
 
   // Note: can't use JSONStream in PRODUCT builds.
   const intptr_t kInitialBufferSize = 1 * MB;
-  TextBuffer text_buffer(kInitialBufferSize);
+  ZoneTextBuffer text_buffer(Api::TopScope(T)->zone(), kInitialBufferSize);
 
   text_buffer.AddChar('[');
   if (isolate_group->obfuscation_map() != nullptr) {
@@ -7054,7 +7048,7 @@ DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
   text_buffer.AddChar(']');
 
   *buffer_length = text_buffer.length();
-  *reinterpret_cast<char**>(buffer) = text_buffer.Steal();
+  *reinterpret_cast<char**>(buffer) = text_buffer.buffer();
   return Api::Success();
 #endif
 }
@@ -7124,6 +7118,20 @@ DART_EXPORT char* Dart_GetUserTagLabel(Dart_Handle user_tag) {
   }
   const String& label = String::Handle(Z, tag.label());
   return Utils::StrDup(label.ToCString());
+}
+
+DART_EXPORT char* Dart_WriteHeapSnapshot(
+    Dart_HeapSnapshotWriteChunkCallback write,
+    void* context) {
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
+  DARTSCOPE(Thread::Current());
+  CallbackHeapSnapshotWriter callback_writer(T, write, context);
+  HeapSnapshotWriter writer(T, &callback_writer);
+  writer.Write();
+  return nullptr;
+#else
+  return Utils::StrDup("VM is built without the heap snapshot writer.");
+#endif
 }
 
 }  // namespace dart

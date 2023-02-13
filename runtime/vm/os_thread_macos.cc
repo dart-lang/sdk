@@ -104,7 +104,7 @@ static void* ThreadStart(void* data_ptr) {
     int policy = SCHED_FIFO;
     struct sched_param schedule;
     if (pthread_getschedparam(thread, &policy, &schedule) != 0) {
-      FATAL1("Obtainign sched param failed: errno = %d\n", errno);
+      FATAL1("Obtaining sched param failed: errno = %d\n", errno);
     }
     schedule.sched_priority = FLAG_worker_thread_priority;
     if (pthread_setschedparam(thread, policy, &schedule) != 0) {
@@ -120,14 +120,18 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
-  // Set the thread name.
+  // Set the thread name. We need to impose a limit on the name length so that
+  // we can know how large of a buffer to use when retrieving the name. We
+  // truncate the name at 16 bytes to be consistent with Android and Linux.
+  char truncated_name[16];
+  snprintf(truncated_name, ARRAY_SIZE(truncated_name), "%s", name);
   pthread_setname_np(name);
 
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
-    thread->set_name(name);
+    thread->SetName(name);
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
   }
@@ -157,9 +161,9 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-const ThreadId OSThread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
+const ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(NULL);
 const ThreadJoinId OSThread::kInvalidThreadJoinId =
-    reinterpret_cast<ThreadJoinId>(NULL);
+    static_cast<ThreadJoinId>(NULL);
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   pthread_key_t key = kUnsetThreadLocalKey;
@@ -195,6 +199,13 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
   return ThreadIdFromIntPtr(pthread_mach_thread_np(pthread_self()));
 }
 #endif  // SUPPORT_TIMELINE
+
+char* OSThread::GetCurrentThreadName() {
+  const intptr_t kNameBufferSize = 16;
+  char* name = static_cast<char*>(malloc(kNameBufferSize));
+  pthread_getname_np(pthread_self(), name, kNameBufferSize);
+  return name;
+}
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);

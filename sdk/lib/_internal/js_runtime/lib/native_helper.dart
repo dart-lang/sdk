@@ -326,7 +326,7 @@ void initNativeDispatchContinue() {
 /// initialized by applying a series of hooks transformers.  Built-in hooks
 /// transformers deal with various known browser behaviours.
 ///
-/// Each hook tranformer takes a 'hooks' input which is a JavaScript object
+/// Each hook transformer takes a 'hooks' input which is a JavaScript object
 /// containing the hook functions, and returns the same or a new object with
 /// replacements.  The replacements can wrap the originals to provide alternate
 /// or modified behaviour.

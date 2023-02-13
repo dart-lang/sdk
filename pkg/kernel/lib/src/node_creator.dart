@@ -45,7 +45,7 @@ class NodeCreator {
   List<Library> _neededLibraries = [];
   List<Class> _neededClasses = [];
   List<Extension> _neededExtensions = [];
-  List<View> _neededViews = [];
+  List<InlineClass> _neededInlineClasses = [];
   List<Typedef> _neededTypedefs = [];
   List<TypeParameter> _neededTypeParameters = [];
   List<Constructor> _neededConstructors = [];
@@ -312,8 +312,8 @@ class NodeCreator {
         case NodeKind.Typedef:
           _needLibrary().addTypedef(node as Typedef);
           break;
-        case NodeKind.View:
-          _needLibrary().addView(node as View);
+        case NodeKind.InlineClass:
+          _needLibrary().addInlineClass(node as InlineClass);
           break;
       }
     }
@@ -384,20 +384,22 @@ class NodeCreator {
     return extension;
   }
 
-  /// Returns a [View] node that fits the requirements.
+  /// Returns an [InlineClass] node that fits the requirements.
   ///
-  /// If no such [View] exists in [_neededViews], a new [Extension] is
-  /// created and added to [_neededViews].
+  /// If no such [InlineClass] exists in [_neededInlineClasses], a new
+  /// [InlineClass] is created and added to [_neededInlineClasses].
   // TODO(johnniwinther): Add requirements when/where needed.
-  View _needView() {
-    for (View view in _neededViews) {
-      return view;
+  InlineClass _needInlineClass() {
+    for (InlineClass inlineClass in _neededInlineClasses) {
+      return inlineClass;
     }
-    View view = View(
-        name: 'foo', fileUri: _uri, representationType: const DynamicType());
-    _neededViews.add(view);
-    _needLibrary().addView(view);
-    return view;
+    InlineClass inlineClass = InlineClass(
+        name: 'foo',
+        fileUri: _uri,
+        declaredRepresentationType: const DynamicType());
+    _neededInlineClasses.add(inlineClass);
+    _needLibrary().addInlineClass(inlineClass);
+    return inlineClass;
   }
 
   /// Returns a [Typedef] node that fits the requirements.
@@ -953,13 +955,15 @@ class NodeCreator {
           ..fileOffset = _needFileOffset();
       case ExpressionKind.RecordIndexGet:
         return RecordIndexGet(_createExpression(),
-            _createDartTypeFromKind(DartTypeKind.RecordType) as RecordType, 0)
+            new RecordType([_createDartType()], [], Nullability.nonNullable), 0)
           ..fileOffset = _needFileOffset();
       case ExpressionKind.RecordNameGet:
+        String name = _createName().text;
         return RecordNameGet(
             _createExpression(),
-            _createDartTypeFromKind(DartTypeKind.RecordType) as RecordType,
-            _createName().text)
+            new RecordType([], [new NamedType(name, _createDartType())],
+                Nullability.nonNullable),
+            name)
           ..fileOffset = _needFileOffset();
       case ExpressionKind.RecordLiteral:
         return _createOneOf(_pendingExpressions, kind, index, [
@@ -1208,8 +1212,8 @@ class NodeCreator {
           // TODO(johnniwinther): Create non-trivial cases.
           () => TypedefType(_needTypedef(), Nullability.nonNullable, []),
         ]);
-      case DartTypeKind.ViewType:
-        return ViewType(_needView(), Nullability.nonNullable);
+      case DartTypeKind.InlineType:
+        return InlineType(_needInlineClass(), Nullability.nonNullable);
       case DartTypeKind.VoidType:
         return VoidType();
     }
@@ -1567,11 +1571,11 @@ class NodeCreator {
       case NodeKind.Typedef:
         return Typedef('foo', _createDartType(), fileUri: _uri)
           ..fileOffset = _needFileOffset();
-      case NodeKind.View:
+      case NodeKind.InlineClass:
         // TODO(johnniwinther): Add non-trivial cases.
-        return View(name: 'foo', fileUri: _uri)
+        return InlineClass(name: 'foo', fileUri: _uri)
           ..fileOffset = _needFileOffset()
-          ..representationType = _createDartType();
+          ..declaredRepresentationType = _createDartType();
     }
   }
 

@@ -45,6 +45,7 @@ import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -52,6 +53,8 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart';
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -59,6 +62,9 @@ import 'package:meta/meta.dart';
 /// Implementations of [AnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
 abstract class AnalysisServer {
+  /// A flag indicating whether plugins are supported in this build.
+  static final bool supportsPlugins = true;
+
   /// The options of this server instance.
   AnalysisServerOptions options;
 
@@ -87,11 +93,15 @@ abstract class AnalysisServer {
   late final SearchEngine searchEngine;
 
   late ByteStore byteStore;
+
   late FileContentCache fileContentCache;
+
+  final UnlinkedUnitStore unlinkedUnitStore = UnlinkedUnitStoreImpl();
 
   late analysis.AnalysisDriverScheduler analysisDriverScheduler;
 
   DeclarationsTracker? declarationsTracker;
+
   DeclarationsTrackerData? declarationsTrackerData;
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
@@ -178,13 +188,16 @@ abstract class AnalysisServer {
         instrumentationService, baseResourceProvider, pubApi, pubCommand);
     performance = performanceDuringStartup;
 
-    pluginManager = PluginManager(
-        resourceProvider,
-        _getByteStorePath(),
-        sdkManager.defaultSdkDirectory,
-        notificationManager,
-        instrumentationService);
-    var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
+    PluginWatcher? pluginWatcher;
+    if (supportsPlugins) {
+      pluginManager = PluginManager(
+          resourceProvider,
+          _getByteStorePath(),
+          sdkManager.defaultSdkDirectory,
+          notificationManager,
+          instrumentationService);
+      pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
+    }
 
     var name = options.newAnalysisDriverLog;
     StringSink sink = NullStringSink();
@@ -225,6 +238,7 @@ abstract class AnalysisServer {
       options.enabledExperiments,
       byteStore,
       fileContentCache,
+      unlinkedUnitStore,
       analysisPerformanceLogger,
       analysisDriverScheduler,
       instrumentationService,
@@ -259,6 +273,22 @@ abstract class AnalysisServer {
     for (var driver in driverMap.values) {
       declarationsTracker?.addContext(driver.analysisContext!);
     }
+  }
+
+  /// Broadcast a request built from the given [params] to all of the plugins
+  /// that are currently associated with the context root from the given
+  /// [driver]. Return a list containing futures that will complete when each of
+  /// the plugins have sent a response, or an empty list if no [driver] is
+  /// provided.
+  Map<PluginInfo, Future<Response>> broadcastRequestToPlugins(
+      RequestParams requestParams, analysis.AnalysisDriver? driver) {
+    if (driver == null || !AnalysisServer.supportsPlugins) {
+      return <PluginInfo, Future<Response>>{};
+    }
+    return pluginManager.broadcastRequest(
+      requestParams,
+      contextRoot: driver.analysisContext!.contextRoot,
+    );
   }
 
   /// If the state location can be accessed, return the file byte store,
@@ -540,7 +570,9 @@ abstract class AnalysisServer {
     // For now we record plugins only on shutdown. We might want to record them
     // every time the set of plugins changes, in which case we'll need to listen
     // to the `PluginManager.pluginsChanged` stream.
-    analyticsManager.changedPlugins(pluginManager);
+    if (supportsPlugins) {
+      analyticsManager.changedPlugins(pluginManager);
+    }
     // For now we record context-dependent information only on shutdown. We
     // might want to record it on start-up as well.
     analyticsManager.createdAnalysisContexts(contextManager.analysisContexts);
@@ -570,6 +602,12 @@ class ServerRecentPerformance {
   /// The maximum number of performance measurements to keep.
   static const int performanceListMaxLength = 50;
 
+  /// The maximum number of slow performance measurements to keep.
+  static const int slowRequestsListMaxLength = 1000;
+
+  /// The duration we use to categorize requests as slow.
+  static const Duration slowRequestsThreshold = Duration(milliseconds: 500);
+
   /// A list of code completion performance measurements for the latest
   /// completion operation up to [performanceListMaxLength] measurements.
   final RecentBuffer<CompletionPerformance> completion =
@@ -579,4 +617,9 @@ class ServerRecentPerformance {
   /// requests.
   final RecentBuffer<RequestPerformance> requests =
       RecentBuffer(performanceListMaxLength);
+
+  /// A [RecentBuffer] for performance information about the most recent
+  /// slow requests.
+  final RecentBuffer<RequestPerformance> slowRequests =
+      RecentBuffer(slowRequestsListMaxLength);
 }

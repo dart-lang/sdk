@@ -215,6 +215,9 @@ bool ClassFinalizer::ProcessPendingClasses() {
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeTypesInClass(cls);
+#if !defined(PRODUCT)
+      cls.SetUserVisibleNameInClassTable();
+#endif
     }
 
     // Clear pending classes array.
@@ -796,8 +799,13 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
       // parameterized class.
       const intptr_t offset = parameterized_class.NumTypeArguments() -
                               parameterized_class.NumTypeParameters();
+      const intptr_t index = type_parameter.index() + offset;
+      if (!Utils::IsUint(16, index)) {
+        FATAL("Too many type parameters in %s",
+              parameterized_class.UserVisibleNameCString());
+      }
       type_parameter.set_base(offset);  // Informative, but not needed.
-      type_parameter.set_index(type_parameter.index() + offset);
+      type_parameter.set_index(index);
 
       // Remove the reference to the parameterized class.
       type_parameter.set_parameterized_class_id(kClassCid);
@@ -935,11 +943,6 @@ AbstractTypePtr ClassFinalizer::FinalizeRecordType(
       record.SetFieldTypeAt(i, finalized_type);
     }
   }
-  // Canonicalize field names so they can be compared with pointer comparison.
-  // The field names are already sorted in the front-end.
-  Array& field_names = Array::Handle(zone, record.field_names());
-  field_names ^= field_names.Canonicalize(Thread::Current());
-  record.set_field_names(field_names);
 
   if (FLAG_trace_type_finalization) {
     THR_Print("Marking record type '%s' as finalized\n",
@@ -1149,7 +1152,7 @@ void ClassFinalizer::RegisterClassInHierarchy(Zone* zone, const Class& cls) {
     other_cls.AddDirectImplementor(cls, /* is_mixin = */ i == mixin_index);
   }
 
-  // Propogate known concrete implementors to interfaces.
+  // Propagate known concrete implementors to interfaces.
   if (!cls.is_abstract()) {
     GrowableArray<const Class*> worklist;
     worklist.Add(&cls);

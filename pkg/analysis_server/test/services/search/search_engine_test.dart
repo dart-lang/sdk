@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -209,7 +210,9 @@ class C implements B {}
 
     var element = findElement.class_('T');
 
-    var subtypes = await searchEngine.searchAllSubtypes(element);
+    var subtypes = <InterfaceElement>{};
+    await searchEngine.appendAllSubtypes(
+        element, subtypes, OperationPerformanceImpl("<root>"));
     expect(subtypes, hasLength(3));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');
@@ -233,7 +236,9 @@ class C extends B {}
     await resolveFile2('$aaaRootPath/lib/a.dart');
     var element = findElement.class_('T');
 
-    var subtypes = await searchEngine.searchAllSubtypes(element);
+    var subtypes = <InterfaceElement>{};
+    await searchEngine.appendAllSubtypes(
+        element, subtypes, OperationPerformanceImpl("<root>"));
     expect(subtypes, hasLength(3));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');
@@ -255,7 +260,9 @@ mixin E implements C {}
 
     var element = findElement.class_('T');
 
-    var subtypes = await searchEngine.searchAllSubtypes(element);
+    var subtypes = <InterfaceElement>{};
+    await searchEngine.appendAllSubtypes(
+        element, subtypes, OperationPerformanceImpl("<root>"));
     expect(subtypes, hasLength(5));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');

@@ -9,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
 import 'package:analyzer/src/summary2/macro.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as package_path;
 
@@ -92,7 +93,7 @@ class KernelCompilationService {
       final requestChannel = instance.requestChannel;
 
       MacroFileEntry uriStrToFile(Object? uriStr) {
-        final uri = Uri.parse(uriStr as String);
+        final uri = uriCache.parse(uriStr as String);
         final path = fileSystem.pathContext.fromUri(uri);
         return fileSystem.getFile(path);
       }

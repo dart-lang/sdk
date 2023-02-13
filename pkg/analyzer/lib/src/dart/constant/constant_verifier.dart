@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,11 +16,9 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -24,6 +27,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/exhaustiveness.dart';
 
 /// Instances of the class `ConstantVerifier` traverse an AST structure looking
 /// for additional errors and warnings not covered by the parser and resolver.
@@ -49,17 +53,29 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
+  /// Cache used for checking exhaustiveness.
+  final AnalyzerExhaustivenessCache _exhaustivenessCache;
+
+  /// Cache of constant values used for exhaustiveness checking.
+  ///
+  /// When verifying a switch statement/expression the constant values of the
+  /// contained [ConstantPattern]s are cached here. The cache is released once
+  /// the exhaustiveness of the switch has been checked.
+  Map<ConstantPattern, DartObjectImpl>? _constantPatternValues;
+
+  final ExhaustivenessDataForTesting? exhaustivenessDataForTesting;
+
   /// Initialize a newly created constant verifier.
-  ConstantVerifier(
-    ErrorReporter errorReporter,
-    LibraryElementImpl currentLibrary,
-    DeclaredVariables declaredVariables,
-  ) : this._(
+  ConstantVerifier(ErrorReporter errorReporter,
+      LibraryElementImpl currentLibrary, DeclaredVariables declaredVariables,
+      {bool retainDataForTesting = false})
+      : this._(
           errorReporter,
           currentLibrary,
           currentLibrary.typeSystem,
           currentLibrary.typeProvider,
           declaredVariables,
+          retainDataForTesting,
         );
 
   ConstantVerifier._(
@@ -68,12 +84,16 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     this._typeSystem,
     this._typeProvider,
     this.declaredVariables,
-  ) : _evaluationEngine = ConstantEvaluationEngine(
+    bool retainDataForTesting,
+  )   : _evaluationEngine = ConstantEvaluationEngine(
           declaredVariables: declaredVariables,
           isNonNullableByDefault:
               _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
           configuration: ConstantEvaluationConfiguration(),
-        );
+        ),
+        _exhaustivenessCache = AnalyzerExhaustivenessCache(_typeSystem),
+        exhaustivenessDataForTesting =
+            retainDataForTesting ? ExhaustivenessDataForTesting() : null;
 
   @override
   void visitAnnotation(Annotation node) {
@@ -96,6 +116,20 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       }
       // arguments should be constants
       _validateConstantArguments(argumentList);
+    }
+  }
+
+  @override
+  void visitConstantPattern(ConstantPattern node) {
+    super.visitConstantPattern(node);
+
+    var expression = node.expression.unParenthesized;
+    DartObjectImpl? value = _validate(
+      expression,
+      CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+    );
+    if (value != null) {
+      _constantPatternValues?[node] = value;
     }
   }
 
@@ -221,9 +255,67 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMapPattern(MapPattern node) {
+    node.typeArguments?.accept(this);
+
+    var uniqueKeys = HashMap<DartObjectImpl, Expression>(
+      hashCode: (_) => 0,
+      equals: (a, b) {
+        if (a.isIdentical2(_typeSystem, b).toBoolValue() == true) {
+          return true;
+        }
+        if (_isRecordTypeWithPrimitiveEqual(a.type) &&
+            _isRecordTypeWithPrimitiveEqual(b.type)) {
+          return a == b;
+        }
+        return false;
+      },
+    );
+    var duplicateKeys = <Expression, Expression>{};
+    for (var element in node.elements) {
+      element.accept(this);
+      if (element is MapPatternEntry) {
+        var key = element.key;
+        var keyValue = _validate(
+          key,
+          CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY,
+        );
+        if (keyValue != null) {
+          var existingKey = uniqueKeys[keyValue];
+          if (existingKey != null) {
+            duplicateKeys[key] = existingKey;
+          } else {
+            uniqueKeys[keyValue] = key;
+          }
+        }
+      }
+    }
+
+    for (var duplicateEntry in duplicateKeys.entries) {
+      _errorReporter.reportError(
+        _diagnosticFactory.equalKeysInMapPattern(
+          _errorReporter.source,
+          duplicateEntry.key,
+          duplicateEntry.value,
+        ),
+      );
+    }
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     _validateDefaultValues(node.parameters);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    super.visitRelationalPattern(node);
+
+    _validate(
+      node.operand,
+      CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+    );
   }
 
   @override
@@ -279,12 +371,18 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    if (_currentLibrary.isNonNullableByDefault) {
+    Map<ConstantPattern, DartObjectImpl>? previousConstantPatternValues =
+        _constantPatternValues;
+    _constantPatternValues = {};
+    super.visitSwitchStatement(node);
+    if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
+      _validateSwitchStatement_patterns(node, _constantPatternValues!);
+    } else if (_currentLibrary.isNonNullableByDefault) {
       _validateSwitchStatement_nullSafety(node);
     } else {
       _validateSwitchStatement_legacy(node);
     }
-    super.visitSwitchStatement(node);
+    _constantPatternValues = previousConstantPatternValues;
   }
 
   @override
@@ -308,10 +406,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       } else {
         _reportErrors(result.errors, null);
       }
-      _reportErrorIfFromDeferredLibrary(
-          initializer,
-          CompileTimeErrorCode
-              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
     }
   }
 
@@ -389,24 +483,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /// Given some computed [Expression], this method generates the passed
-  /// [ErrorCode] on the node if its' value consists of information from a
-  /// deferred library.
-  ///
-  /// @param expression the expression to be tested for a deferred library
-  ///        reference
-  /// @param errorCode the error code to be used if the expression is or
-  ///        consists of a reference to a deferred library
-  void _reportErrorIfFromDeferredLibrary(
-      Expression expression, ErrorCode errorCode,
-      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
-    DeferredLibraryReferenceDetector referenceDetector =
-        DeferredLibraryReferenceDetector();
-    expression.accept(referenceDetector);
-    if (referenceDetector.result) {
-      _errorReporter.reportErrorForNode(
-          errorCode, expression, arguments, messages);
-    }
+  bool _isRecordTypeWithPrimitiveEqual(DartType type) {
+    return type is RecordType && !_implementsEqualsWhenNotAllowed(type);
   }
 
   /// Report any errors in the given list. Except for special cases, use the
@@ -437,7 +515,49 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           identical(dataErrorCode,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
           identical(
-              dataErrorCode, CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH)) {
+              dataErrorCode, CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY)) {
         _errorReporter.reportError(data);
       } else if (errorCode != null) {
         _errorReporter.reportError(
@@ -505,12 +625,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           argument is NamedExpression ? argument.expression : argument;
       _validate(
           realArgument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
-      if (realArgument is PrefixedIdentifier && realArgument.isDeferred) {
-        _reportErrorIfFromDeferredLibrary(
-            realArgument,
-            CompileTimeErrorCode
-                .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
-      }
     }
   }
 
@@ -556,12 +670,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         } else {
           result = _validate(
               defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
-          if (result != null) {
-            _reportErrorIfFromDeferredLibrary(
-                defaultValue,
-                CompileTimeErrorCode
-                    .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
-          }
         }
         VariableElementImpl element =
             parameter.declaredElement as VariableElementImpl;
@@ -631,12 +739,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           continue;
         }
 
-        _reportErrorIfFromDeferredLibrary(
-          expression,
-          CompileTimeErrorCode
-              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
-        );
-
         var expressionValueType = _typeSystem.toLegacyTypeIfOptOut(
           expressionValue.type,
         );
@@ -670,26 +772,17 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateSwitchStatement_nullSafety(SwitchStatement node) {
-    for (var switchMember in node.members) {
-      if (switchMember is SwitchCase) {
-        Expression expression = switchMember.expression;
+    void validateExpression(Expression expression) {
+      var expressionValue = _validate(
+        expression,
+        CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
+      );
+      if (expressionValue == null) {
+        return;
+      }
 
-        var expressionValue = _validate(
-          expression,
-          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
-        );
-        if (expressionValue == null) {
-          continue;
-        }
-
-        _reportErrorIfFromDeferredLibrary(
-          expression,
-          CompileTimeErrorCode
-              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
-        );
-
+      if (!_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
         var expressionType = expressionValue.type;
-
         if (_implementsEqualsWhenNotAllowed(expressionType)) {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
@@ -698,6 +791,91 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           );
         }
       }
+    }
+
+    for (var switchMember in node.members) {
+      if (switchMember is SwitchCase) {
+        validateExpression(switchMember.expression);
+      } else if (switchMember is SwitchPatternCase) {
+        if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
+          switchMember.accept(this);
+        } else {
+          var pattern = switchMember.guardedPattern.pattern;
+          if (pattern is ConstantPattern) {
+            validateExpression(pattern.expression.unParenthesized);
+          }
+        }
+      }
+    }
+  }
+
+  void _validateSwitchStatement_patterns(SwitchStatement node,
+      Map<ConstantPattern, DartObjectImpl> constantPatternValues) {
+    DartType expressionType = node.expression.staticType!;
+    StaticType type = _exhaustivenessCache.getStaticType(expressionType);
+    List<Space> cases = [];
+    List<SwitchMember> caseMembers = [];
+    bool hasDefault = false;
+    for (var switchMember in node.members) {
+      if (switchMember is SwitchCase) {
+        Expression expression = switchMember.expression;
+        var expressionValue = _validate(
+          expression,
+          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
+        );
+        Space space =
+            convertConstantValueToSpace(_exhaustivenessCache, expressionValue);
+        cases.add(space);
+        caseMembers.add(switchMember);
+      } else if (switchMember is SwitchPatternCase) {
+        Space space;
+        if (switchMember.guardedPattern.whenClause != null) {
+          // TODO(johnniwinther): Test this.
+          space = Space(_exhaustivenessCache.getUnknownStaticType());
+        } else {
+          DartPattern pattern = switchMember.guardedPattern.pattern;
+          space = convertPatternToSpace(
+              _exhaustivenessCache, pattern, constantPatternValues);
+        }
+        cases.add(space);
+        caseMembers.add(switchMember);
+      } else if (switchMember is SwitchDefault) {
+        hasDefault = true;
+      }
+    }
+    List<Space>? remainingSpaces;
+    if (exhaustivenessDataForTesting != null) {
+      remainingSpaces = [];
+    }
+    for (ExhaustivenessError error
+        in reportErrors(type, cases, remainingSpaces)) {
+      if (error is UnreachableCaseError) {
+        _errorReporter.reportErrorForToken(
+          HintCode.UNREACHABLE_SWITCH_CASE,
+          caseMembers[error.index].keyword,
+          [],
+        );
+      } else if (error is NonExhaustiveError &&
+          isAlwaysExhaustiveType(expressionType) &&
+          !hasDefault) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
+          node.expression,
+          [expressionType, '${error.remaining}'],
+        );
+      }
+    }
+    if (exhaustivenessDataForTesting != null) {
+      assert(remainingSpaces!.length == cases.length + 1);
+      for (int i = 0; i < cases.length; i++) {
+        SwitchMember caseMember = caseMembers[i];
+        exhaustivenessDataForTesting!.caseSpaces[caseMember] = cases[i];
+        exhaustivenessDataForTesting!.remainingSpaces[caseMember] =
+            remainingSpaces![i];
+      }
+      exhaustivenessDataForTesting!.switchScrutineeType[node] = type;
+      exhaustivenessDataForTesting!.remainingSpaces[node] =
+          remainingSpaces!.last;
     }
   }
 }
@@ -722,8 +900,6 @@ class _ConstLiteralVerifier {
       var value = verifier._validate(element, errorCode);
       if (value == null) return false;
 
-      _validateExpressionFromDeferredLibrary(element);
-
       final listElementType = this.listElementType;
       if (listElementType != null) {
         return _validateListExpression(listElementType, element, value);
@@ -744,9 +920,6 @@ class _ConstLiteralVerifier {
 
       // The errors have already been reported.
       if (conditionBool == null) return false;
-
-      verifier._reportErrorIfFromDeferredLibrary(element.condition,
-          CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY);
 
       var thenValid = true;
       var elseValid = true;
@@ -770,9 +943,6 @@ class _ConstLiteralVerifier {
     } else if (element is SpreadElement) {
       var value = verifier._validate(element.expression, errorCode);
       if (value == null) return false;
-
-      verifier._reportErrorIfFromDeferredLibrary(element.expression,
-          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY);
 
       if (listElementType != null || setConfig != null) {
         return _validateListOrSetSpread(element, value);
@@ -827,20 +997,6 @@ class _ConstLiteralVerifier {
     return false;
   }
 
-  void _validateExpressionFromDeferredLibrary(Expression expression) {
-    if (listElementType != null) {
-      verifier._reportErrorIfFromDeferredLibrary(
-        expression,
-        CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
-      );
-    } else if (setConfig != null) {
-      verifier._reportErrorIfFromDeferredLibrary(
-        expression,
-        CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY,
-      );
-    }
-  }
-
   bool _validateListExpression(
       DartType listElementType, Expression expression, DartObjectImpl value) {
     if (!verifier._runtimeTypeMatch(value, listElementType)) {
@@ -851,11 +1007,6 @@ class _ConstLiteralVerifier {
       );
       return false;
     }
-
-    verifier._reportErrorIfFromDeferredLibrary(
-      expression,
-      CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
-    );
 
     return true;
   }
@@ -944,11 +1095,6 @@ class _ConstLiteralVerifier {
         );
       }
 
-      verifier._reportErrorIfFromDeferredLibrary(
-        keyExpression,
-        CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
-      );
-
       var existingKey = config.uniqueKeys[keyValue];
       if (existingKey != null) {
         config.duplicateKeys[keyExpression] = existingKey;
@@ -965,11 +1111,6 @@ class _ConstLiteralVerifier {
           [valueValue.type, config.valueType],
         );
       }
-
-      verifier._reportErrorIfFromDeferredLibrary(
-        valueExpression,
-        CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
-      );
     }
 
     return true;
@@ -1028,11 +1169,6 @@ class _ConstLiteralVerifier {
       );
       return false;
     }
-
-    verifier._reportErrorIfFromDeferredLibrary(
-      expression,
-      CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY,
-    );
 
     var existingValue = config.uniqueValues[value];
     if (existingValue != null) {

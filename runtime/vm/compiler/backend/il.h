@@ -305,6 +305,10 @@ class HierarchyInfo : public ThreadStackResource {
   // false.
   bool CanUseGenericSubtypeRangeCheckFor(const AbstractType& type);
 
+  // Returns `true` if [type] is a record type which fields can be tested using
+  // simple [CidRange]-based subtype-check.
+  bool CanUseRecordSubtypeRangeCheckFor(const AbstractType& type);
+
  private:
   // Does not use any hierarchy information available in the system but computes
   // it via O(n) class table traversal.
@@ -1025,7 +1029,7 @@ class Instruction : public ZoneAllocated {
 
   virtual bool ComputeCanDeoptimizeAfterCall() const {
     // TODO(dartbug.com/45213): Incrementally migrate IR instructions from using
-    // [ComputeCanDeoptimze] to either [ComputeCanDeoptimizeAfterCall] if they
+    // [ComputeCanDeoptimize] to either [ComputeCanDeoptimizeAfterCall] if they
     // can only lazy deoptimize.
     return false;
   }
@@ -2101,7 +2105,7 @@ class TargetEntryInstr : public BlockEntryInstr {
 // Represents an entrypoint to a function which callers can invoke (i.e. not
 // used for OSR entries).
 //
-// The flow graph builder might decide to create create multiple entrypoints
+// The flow graph builder might decide to create multiple entrypoints
 // (e.g. checked/unchecked entrypoints) and will attach those to the
 // [GraphEntryInstr].
 //
@@ -2796,8 +2800,8 @@ class PhiInstr : public VariadicDefinition {
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
 
-// This instruction represents an incomming parameter for a function entry,
-// or incoming value for OSR entry or incomming value for a catch entry.
+// This instruction represents an incoming parameter for a function entry,
+// or incoming value for OSR entry or incoming value for a catch entry.
 // Value [index] always denotes the position of the parameter. When [base_reg]
 // is set to FPREG, value [index] corresponds to environment variable index
 // (0 is the very first parameter, 1 is next and so on). When [base_reg] is
@@ -2973,7 +2977,7 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
 //
 // Currently this instruction uses pinpoints the register to be FP.
 //
-// This lowlevel instruction is non-inlinable since it makes assumptons about
+// This lowlevel instruction is non-inlinable since it makes assumptions about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -3028,10 +3032,12 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
                   Value* dest_start,
                   Value* length,
                   classid_t src_cid,
-                  classid_t dest_cid)
+                  classid_t dest_cid,
+                  bool unboxed_length)
       : src_cid_(src_cid),
         dest_cid_(dest_cid),
-        element_size_(Instance::ElementSizeFor(src_cid)) {
+        element_size_(Instance::ElementSizeFor(src_cid)),
+        unboxed_length_(unboxed_length) {
     ASSERT(IsArrayTypeSupported(src_cid));
     ASSERT(IsArrayTypeSupported(dest_cid));
     ASSERT(Instance::ElementSizeFor(src_cid) ==
@@ -3054,6 +3060,9 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   DECLARE_INSTRUCTION(MemoryCopy)
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    if (index == kLengthPos && unboxed_length_) {
+      return kUnboxedIntPtr;
+    }
     // All inputs are tagged (for now).
     return kTagged;
   }
@@ -3069,10 +3078,17 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   Value* dest_start() const { return inputs_[kDestStartPos]; }
   Value* length() const { return inputs_[kLengthPos]; }
 
+  intptr_t element_size() const { return element_size_; }
+  bool unboxed_length() const { return unboxed_length_; }
+
+  // Optimizes MemoryCopyInstr with constant parameters to use larger moves.
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
 #define FIELD_LIST(F)                                                          \
   F(classid_t, src_cid_)                                                       \
   F(classid_t, dest_cid_)                                                      \
-  F(intptr_t, element_size_)
+  F(intptr_t, element_size_)                                                   \
+  F(bool, unboxed_length_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MemoryCopyInstr,
                                           TemplateInstruction,
@@ -3081,12 +3097,11 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 
  private:
   // Set array_reg to point to the index indicated by start (contained in
-  // start_reg) of the typed data or string in array (contained in array_reg).
+  // start_loc) of the typed data or string in array (contained in array_reg).
   void EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                classid_t array_cid,
-                               Value* start,
                                Register array_reg,
-                               Register start_reg);
+                               Location start_loc);
 
   static bool IsArrayTypeSupported(classid_t array_cid) {
     if (IsTypedDataBaseClassId(array_cid)) {
@@ -3112,7 +3127,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 // usual location (stack or LR).  The arguments descriptor supplied by the
 // original caller will be put into ARGS_DESC_REG.
 //
-// This lowlevel instruction is non-inlinable since it makes assumptons about
+// This lowlevel instruction is non-inlinable since it makes assumptions about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class TailCallInstr : public TemplateInstruction<1, Throws, Pure> {
  public:
@@ -3487,7 +3502,7 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 // The FlowGraphCompiler will - as a post-processing step - invoke
 // [ComputeOffsetTable] of all [IndirectGotoInstr]s. In there we initialize a
 // TypedDataInt32Array containing offsets of all [IndirectEntryInstr]s (the
-// offests are relative to start of the instruction payload).
+// offsets are relative to start of the instruction payload).
 //
 //  => See `FlowGraphCompiler::CompileGraph()`
 //  => See `IndirectGotoInstr::ComputeOffsetTable`
@@ -4617,6 +4632,8 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
   const CallTargets& Targets();
   void SetTargets(const CallTargets* targets) { targets_ = targets; }
 
+  void EnsureICData(FlowGraph* graph);
+
 #define FIELD_LIST(F)                                                          \
   F(const intptr_t, checked_argument_count_)                                   \
   F(const AbstractType*, receivers_static_type_)
@@ -4672,7 +4689,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
 
   virtual intptr_t CallCount() const;
 
-  // If this polymophic call site was created to cover the remaining cids after
+  // If this polymorphic call site was created to cover the remaining cids after
   // inlining then we need to keep track of the total number of calls including
   // the ones that we inlined. This is different from the CallCount above:  Eg
   // if there were 100 calls originally, distributed across three class-ids in
@@ -5464,7 +5481,7 @@ class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
   explicit MakeTempInstr(Zone* zone)
       : null_(new (zone) ConstantInstr(Object::ZoneHandle())) {
     // Note: We put ConstantInstr inside MakeTemp to simplify code generation:
-    // having ConstantInstr allows us to use Location::Contant(null_) as an
+    // having ConstantInstr allows us to use Location::Constant(null_) as an
     // output location for this instruction.
   }
 
@@ -6654,7 +6671,7 @@ class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(RecordCoverageInstr);
 };
 
-// Note overrideable, built-in: value ? false : true.
+// Note overridable, built-in: value ? false : true.
 class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit BooleanNegateInstr(Value* value) { SetInputAt(0, value); }
@@ -6978,40 +6995,27 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
 };
 
 // Allocates and null initializes a record object.
-class AllocateRecordInstr : public TemplateAllocation<1> {
+class AllocateRecordInstr : public TemplateAllocation<0> {
  public:
-  enum { kFieldNamesPos = 0 };
   AllocateRecordInstr(const InstructionSource& source,
-                      intptr_t num_fields,
-                      Value* field_names,
+                      RecordShape shape,
                       intptr_t deopt_id)
-      : TemplateAllocation(source, deopt_id), num_fields_(num_fields) {
-    SetInputAt(kFieldNamesPos, field_names);
-  }
+      : TemplateAllocation(source, deopt_id), shape_(shape) {}
 
   DECLARE_INSTRUCTION(AllocateRecord)
   virtual CompileType ComputeType() const;
 
-  intptr_t num_fields() const { return num_fields_; }
-  Value* field_names() const { return InputAt(kFieldNamesPos); }
-
-  virtual const Slot* SlotForInput(intptr_t pos) {
-    switch (pos) {
-      case kFieldNamesPos:
-        return &Slot::Record_field_names();
-      default:
-        return TemplateAllocation::SlotForInput(pos);
-    }
-  }
+  RecordShape shape() const { return shape_; }
+  intptr_t num_fields() const { return shape_.num_fields(); }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
     return Heap::IsAllocatableInNewSpace(
-        compiler::target::Record::InstanceSize(num_fields_));
+        compiler::target::Record::InstanceSize(num_fields()));
   }
 
-#define FIELD_LIST(F) F(const intptr_t, num_fields_)
+#define FIELD_LIST(F) F(const RecordShape, shape_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateRecordInstr,
                                           TemplateAllocation,
@@ -7024,75 +7028,46 @@ class AllocateRecordInstr : public TemplateAllocation<1> {
 
 // Allocates and initializes fields of a small record object
 // (with 2 or 3 fields).
-class AllocateSmallRecordInstr : public TemplateAllocation<4> {
+class AllocateSmallRecordInstr : public TemplateAllocation<3> {
  public:
   AllocateSmallRecordInstr(const InstructionSource& source,
-                           intptr_t num_fields,  // 2 or 3.
-                           Value* field_names,   // Optional.
+                           RecordShape shape,  // 2 or 3 fields.
                            Value* value0,
                            Value* value1,
                            Value* value2,  // Optional.
                            intptr_t deopt_id)
-      : TemplateAllocation(source, deopt_id),
-        num_fields_(num_fields),
-        has_named_fields_(field_names != nullptr) {
+      : TemplateAllocation(source, deopt_id), shape_(shape) {
+    const intptr_t num_fields = shape.num_fields();
     ASSERT(num_fields == 2 || num_fields == 3);
     ASSERT((num_fields > 2) == (value2 != nullptr));
-    if (has_named_fields_) {
-      SetInputAt(0, field_names);
-      SetInputAt(1, value0);
-      SetInputAt(2, value1);
-      if (num_fields > 2) {
-        SetInputAt(3, value2);
-      }
-    } else {
-      SetInputAt(0, value0);
-      SetInputAt(1, value1);
-      if (num_fields > 2) {
-        SetInputAt(2, value2);
-      }
+    SetInputAt(0, value0);
+    SetInputAt(1, value1);
+    if (num_fields > 2) {
+      SetInputAt(2, value2);
     }
   }
 
   DECLARE_INSTRUCTION(AllocateSmallRecord)
   virtual CompileType ComputeType() const;
 
-  intptr_t num_fields() const { return num_fields_; }
-  bool has_named_fields() const { return has_named_fields_; }
+  RecordShape shape() const { return shape_; }
+  intptr_t num_fields() const { return shape().num_fields(); }
 
-  Value* field_names() const {
-    ASSERT(has_named_fields_);
-    return InputAt(0);
-  }
-
-  virtual intptr_t InputCount() const {
-    return (has_named_fields_ ? 1 : 0) + num_fields_;
-  }
+  virtual intptr_t InputCount() const { return num_fields(); }
 
   virtual const Slot* SlotForInput(intptr_t pos) {
-    if (has_named_fields_) {
-      if (pos == 0) {
-        return &Slot::Record_field_names();
-      } else {
-        return &Slot::GetRecordFieldSlot(
-            Thread::Current(), compiler::target::Record::field_offset(pos - 1));
-      }
-    } else {
-      return &Slot::GetRecordFieldSlot(
-          Thread::Current(), compiler::target::Record::field_offset(pos));
-    }
+    return &Slot::GetRecordFieldSlot(
+        Thread::Current(), compiler::target::Record::field_offset(pos));
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
     return Heap::IsAllocatableInNewSpace(
-        compiler::target::Record::InstanceSize(num_fields_));
+        compiler::target::Record::InstanceSize(num_fields()));
   }
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, num_fields_)                                               \
-  F(const bool, has_named_fields_)
+#define FIELD_LIST(F) F(const RecordShape, shape_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateSmallRecordInstr,
                                           TemplateAllocation,
@@ -7110,12 +7085,12 @@ class MaterializeObjectInstr : public VariadicDefinition {
  public:
   MaterializeObjectInstr(AllocationInstr* allocation,
                          const Class& cls,
-                         intptr_t num_elements,
+                         intptr_t length_or_shape,
                          const ZoneGrowableArray<const Slot*>& slots,
                          InputsArray&& values)
       : VariadicDefinition(std::move(values)),
         cls_(cls),
-        num_elements_(num_elements),
+        length_or_shape_(length_or_shape),
         slots_(slots),
         registers_remapped_(false),
         allocation_(allocation) {
@@ -7125,7 +7100,7 @@ class MaterializeObjectInstr : public VariadicDefinition {
   AllocationInstr* allocation() const { return allocation_; }
   const Class& cls() const { return cls_; }
 
-  intptr_t num_elements() const { return num_elements_; }
+  intptr_t length_or_shape() const { return length_or_shape_; }
 
   intptr_t FieldOffsetAt(intptr_t i) const {
     return slots_[i]->offset_in_bytes();
@@ -7165,7 +7140,7 @@ class MaterializeObjectInstr : public VariadicDefinition {
 
 #define FIELD_LIST(F)                                                          \
   F(const Class&, cls_)                                                        \
-  F(intptr_t, num_elements_)                                                   \
+  F(intptr_t, length_or_shape_)                                                \
   F(const ZoneGrowableArray<const Slot*>&, slots_)                             \
   F(bool, registers_remapped_)
 
@@ -10341,7 +10316,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
 // All SIMD intrinsics and recognized methods are represented via instances
 // of SimdOpInstr, a particular type of SimdOp is selected by SimdOpInstr::Kind.
 //
-// Defines below are used to contruct SIMD_OP_LIST - a list of all SIMD
+// Defines below are used to construct SIMD_OP_LIST - a list of all SIMD
 // operations. SIMD_OP_LIST contains information such as arity, input types and
 // output type for each SIMD op and is used to derive things like input
 // and output representations, type of return value, etc.
@@ -10388,14 +10363,14 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(Arity, _, Name##Z, Inputs, Output)                                         \
   M(Arity, _, Name##W, Inputs, Output)
 
-// Define convertion between two SIMD types.
+// Define conversion between two SIMD types.
 #define SIMD_CONVERSION(M, FromType, ToType)                                   \
   M(1, _, FromType##To##ToType, (FromType), ToType)
 
 // List of all recognized SIMD operations.
 // Note: except for operations that map to operators (Add, Mul, Sub, Div,
 // BitXor, BitOr) all other operations must match names used by
-// MethodRecognizer. This allows to autogenerate convertion from
+// MethodRecognizer. This allows to autogenerate conversion from
 // MethodRecognizer::Kind into SimdOpInstr::Kind (see KindForMethod helper).
 // Note: M is for those SimdOp that are recognized methods and BINARY_OP
 // is for operators.
@@ -10623,10 +10598,11 @@ class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
 };
 
 // Suspends execution using the suspend stub specified using [StubId].
-class SuspendInstr : public TemplateDefinition<1, Throws> {
+class SuspendInstr : public TemplateDefinition<2, Throws> {
  public:
   enum class StubId {
     kAwait,
+    kAwaitWithTypeCheck,
     kYieldAsyncStar,
     kSuspendSyncStarAtStart,
     kSuspendSyncStarAtYield,
@@ -10635,6 +10611,7 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
   SuspendInstr(const InstructionSource& source,
                StubId stub_id,
                Value* operand,
+               Value* type_args,
                intptr_t deopt_id,
                intptr_t resume_deopt_id)
       : TemplateDefinition(source, deopt_id),
@@ -10642,9 +10619,22 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
         resume_deopt_id_(resume_deopt_id),
         token_pos_(source.token_pos) {
     SetInputAt(0, operand);
+    if (has_type_args()) {
+      SetInputAt(1, type_args);
+    } else {
+      ASSERT(type_args == nullptr);
+    }
   }
 
+  bool has_type_args() const { return stub_id_ == StubId::kAwaitWithTypeCheck; }
+  virtual intptr_t InputCount() const { return has_type_args() ? 2 : 1; }
+
   Value* operand() const { return inputs_[0]; }
+  Value* type_args() const {
+    ASSERT(has_type_args());
+    return inputs_[1];
+  }
+
   StubId stub_id() const { return stub_id_; }
   intptr_t resume_deopt_id() const { return resume_deopt_id_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
@@ -10659,8 +10649,10 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(Suspend);
   PRINT_OPERANDS_TO_SUPPORT
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
 #define FIELD_LIST(F)                                                          \
-  F(const StubId, stub_id_)                                                    \
+  F(StubId, stub_id_)                                                          \
   F(const intptr_t, resume_deopt_id_)                                          \
   F(const TokenPosition, token_pos_)
 

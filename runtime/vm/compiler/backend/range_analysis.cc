@@ -21,8 +21,7 @@ DEFINE_FLAG(bool,
             "Print integer IR selection optimization pass.");
 DECLARE_FLAG(bool, trace_constant_propagation);
 
-// Quick access to the locally defined isolate() and zone() methods.
-#define I (isolate())
+// Quick access to the locally defined zone() method.
 #define Z (zone())
 
 void RangeAnalysis::Analyze() {
@@ -1367,7 +1366,7 @@ void RangeAnalysis::MarkUnreachableBlocks() {
     if (Range::IsUnknown(constraints_[i]->range())) {
       TargetEntryInstr* target = constraints_[i]->target();
       if (target == NULL) {
-        // TODO(vegorov): replace Constraint with an uncoditional
+        // TODO(vegorov): replace Constraint with an unconditional
         // deoptimization and kill all dominated dead code.
         continue;
       }
@@ -2766,16 +2765,18 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
 
+    case Slot::Kind::kTypeArguments_hash:
+      *range = Range(RangeBoundary::MinSmi(), RangeBoundary::MaxSmi());
+      break;
+
     case Slot::Kind::kTypeArguments_length:
       *range = Range(RangeBoundary::FromConstant(0),
                      RangeBoundary::FromConstant(
                          compiler::target::TypeArguments::kMaxElements));
       break;
 
-    case Slot::Kind::kRecord_num_fields:
-      *range = Range(
-          RangeBoundary::FromConstant(0),
-          RangeBoundary::FromConstant(compiler::target::Record::kMaxElements));
+    case Slot::Kind::kRecord_shape:
+      *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
 
     case Slot::Kind::kString_length:
@@ -2821,7 +2822,6 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kInstance_native_fields_array:
-    case Slot::Kind::kRecord_field_names:
     case Slot::Kind::kSuspendState_function_data:
     case Slot::Kind::kSuspendState_then_callback:
     case Slot::Kind::kSuspendState_error_callback:

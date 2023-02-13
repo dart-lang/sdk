@@ -272,12 +272,12 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       }
       break;
     }
-    case kViewType: {
-      // We skip the view type and only use the representation type.
+    case kInlineType: {
+      // We skip the inline type and only use the representation type.
       ReadNullability();
       SkipCanonicalNameReference();    // read index for canonical name.
       SkipListOfDartTypes();           // read type arguments
-      CalculateDartTypeFingerprint();  // read representation type.
+      CalculateDartTypeFingerprint();  // read instantiated representation type.
       break;
     }
     default:
@@ -673,7 +673,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read operand.
       if (ReadTag() == kSomething) {
-        SkipDartType();  // read runtime check type.
+        CalculateDartTypeFingerprint();  // read runtime check type.
       }
       return;
     case kConstStaticInvocation:

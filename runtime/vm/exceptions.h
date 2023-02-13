@@ -61,10 +61,8 @@ class Exceptions : AllStatic {
     kUnsupported,
     kStackOverflow,
     kOutOfMemory,
-    kNullThrown,
     kIsolateSpawn,
     kAssertion,
-    kCast,
     kType,
     kAbstractClassInstantiation,
     kCyclicInitializationError,
@@ -246,7 +244,7 @@ class CatchEntryMove {
 // at the catch entry.
 // Note: this is a deserialized representation that is used by the runtime
 // system as a temporary representation and for caching. That is why this
-// object is allocated in the malloced heap and not in the Dart heap.
+// object is allocated in the mallocated heap and not in the Dart heap.
 class CatchEntryMoves {
  public:
   static CatchEntryMoves* Allocate(intptr_t num_moves) {

@@ -386,7 +386,10 @@ abstract class AnnotationsData {
   // [ir.Field].
   CheckPolicy getLateVariableCheckPolicyAt(ir.TreeNode node);
 
+  /// The priority to load the specified library with.
   ///
+  /// Indicates that the `fetchpriority` attribute should be set to the
+  /// specified value on the injected script tag used to load the library.
   LoadLibraryPriority getLoadLibraryPriorityAt(ir.LoadLibrary node);
 }
 

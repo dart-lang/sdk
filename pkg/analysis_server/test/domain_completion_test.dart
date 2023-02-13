@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -488,7 +489,7 @@ extension E2 on int {
 
     var response = await _getTestCodeSuggestions(r'''
 import 'b.dart';
- 
+
 void f() {
   0.foo0^
 }
@@ -527,7 +528,7 @@ extension E2 on int {
 
     var response = await _getTestCodeSuggestions(r'''
 import 'b.dart';
- 
+
 void f() {
   0.foo0^
 }
@@ -566,7 +567,7 @@ extension E2 on int {
 
     var response = await _getTestCodeSuggestions(r'''
 import 'b.dart';
- 
+
 void f() {
   0.foo0^
 }
@@ -2875,9 +2876,10 @@ class B extends A {m() {^}}
   }
 
   Future<void> test_sentToPlugins() async {
+    if (!AnalysisServer.supportsPlugins) return;
     addTestFile('''
       void f() {
-        
+
       }
     ''');
     PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c',

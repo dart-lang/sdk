@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Const<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::Const::T% value;
+  const constructor •(self::Const::T% value) → self::Const<self::Const::T%>
+    : self::Const::value = value, super core::Object::•()
+    ;
+}
+static method main() → dynamic
+  ;
+static method test(dynamic value, core::bool expected) → void
+  ;

@@ -274,8 +274,6 @@ const deprecated = const Deprecated("next release");
 
 const override = const _Override();
 
-const proxy = const _Proxy();
-
 external bool identical(Object? a, Object? b);
 
 void print(Object? object) {}
@@ -294,7 +292,7 @@ class BigInt implements Comparable<BigInt> {
 
 abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
-      {bool defaultValue: false});
+      {bool defaultValue = false});
 
   external const factory bool.hasEnvironment(String name);
 
@@ -318,8 +316,8 @@ class DateTime extends Object {
 }
 
 class Deprecated extends Object {
-  final String expires;
-  const Deprecated(this.expires);
+  final String message;
+  const Deprecated(this.message);
 }
 
 class pragma {
@@ -335,6 +333,7 @@ abstract class double extends num {
   static const double minPositive = 5e-324;
   static const double maxFinite = 1.7976931348623157e+308;
 
+  bool get isNaN;
   double get sign;
   double operator %(num other);
   double operator *(num other);
@@ -363,6 +362,17 @@ abstract class double extends num {
 
 class Duration implements Comparable<Duration> {
   int compareTo(Duration other) => 0;
+}
+
+abstract class Enum {
+  int get index; // Enum
+  String get _name;
+}
+
+abstract class _Enum implements Enum {
+  final int index;
+  final String _name;
+  const _Enum(this.index, this._name);
 }
 
 class Error {
@@ -454,7 +464,6 @@ abstract class Iterator<E> {
 }
 
 class List<E> implements Iterable<E> {
-  external factory List([int? length]);
   external factory List.filled(int length, E fill, {bool growable = false});
   external factory List.empty({bool growable = false});
   external factory List.from(Iterable elements, {bool growable = true});
@@ -570,17 +579,6 @@ class Object {
   static int hashAllUnordered(Iterable<Object?> objects) => 0;
 }
 
-abstract class Enum {
-  int get index; // Enum
-  String get _name;
-}
-
-abstract class _Enum implements Enum {
-  final int index;
-  final String _name;
-  const _Enum(this.index, this._name);
-}
-
 abstract class Pattern {
   Iterable<Match> allMatches(String string, [int start = 0]);
 }
@@ -611,6 +609,10 @@ abstract class Set<E> implements Iterable<E> {
 
   static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>()? newSet}) =>
       throw '';
+}
+
+abstract class Sink {
+  void close();
 }
 
 class StackTrace {}
@@ -667,10 +669,6 @@ class Uri {
 
 class _Override {
   const _Override();
-}
-
-class _Proxy {
-  const _Proxy();
 }
 
 @Since("2.15")
@@ -754,7 +752,7 @@ final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
-  external DF asFunction<DF extends Function>({bool isLeaf:false});
+  external DF asFunction<DF extends Function>({bool isLeaf = false});
 }
 
 class _Compound extends NativeType {}
@@ -824,7 +822,7 @@ extension StructPointer<T extends Struct> on Pointer<T> {
 class FfiNative<T> {
   final String nativeName;
   final bool isLeaf;
-  const FfiNative(this.nativeName, {this.isLeaf: false});
+  const FfiNative(this.nativeName, {this.isLeaf = false});
 }
 
 class Native<T> {
@@ -894,6 +892,8 @@ class AbiSpecificIntegerMapping {
 abstract class Finalizable {
   factory Finalizable._() => throw UnsupportedError("");
 }
+
+abstract class VarArgs<T extends Record> extends NativeType {}
 ''',
   )
 ]);
@@ -1206,7 +1206,8 @@ abstract class FileSystemEntity {
   static Future<FileSystemEntityType> type(String path,
           {bool followLinks: true}) =>
       throw 0;
-  static FileSystemEntityType typeSync(String path, {bool followLinks: true}) =>
+  static FileSystemEntityType typeSync(String path,
+          {bool followLinks = true}) =>
       throw 0;
 }
 
@@ -1236,6 +1237,10 @@ abstract class Process {
     Encoding? stdoutEncoding,
     Encoding? stderrEncoding,
   });
+}
+
+abstract class Socket {
+  void destroy() {}
 }
 ''',
     )

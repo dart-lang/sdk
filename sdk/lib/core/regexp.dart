@@ -74,7 +74,7 @@ part of dart.core;
 /// magically.
 /// Anyone can write a regexp that performs inefficiently when
 /// applied to some string inputs.
-/// Often, such a regxp will perform well enough on small or common
+/// Often, such a regexp will perform well enough on small or common
 /// inputs, but have pathological performance on large and uncommon inputs.
 /// This inconsistent behavior makes performance issues harder to detect
 /// in testing.

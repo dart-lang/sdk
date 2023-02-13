@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -157,6 +158,9 @@ class ContextManagerImpl implements ContextManager {
   /// The cache of file contents shared between context of the collection.
   final FileContentCache _fileContentCache;
 
+  /// The cache of already deserialized unlinked units.
+  final UnlinkedUnitStore _unlinkedUnitStore;
+
   /// The logger used to create analysis contexts.
   final PerformanceLog _performanceLog;
 
@@ -230,6 +234,7 @@ class ContextManagerImpl implements ContextManager {
       this._enabledExperiments,
       this._byteStore,
       this._fileContentCache,
+      this._unlinkedUnitStore,
       this._performanceLog,
       this._scheduler,
       this._instrumentationService,
@@ -306,6 +311,7 @@ class ContextManagerImpl implements ContextManager {
         content,
         driver.sourceFactory,
         driver.currentSession.analysisContext.contextRoot.root.path,
+        driver.analysisOptions.sdkVersionConstraint,
       );
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,
@@ -472,6 +478,7 @@ class ContextManagerImpl implements ContextManager {
           sdkPath: sdkManager.defaultSdkDirectory,
           packagesFile: packagesFile,
           fileContentCache: _fileContentCache,
+          unlinkedUnitStore: _unlinkedUnitStore,
           updateAnalysisOptions2: ({
             required analysisOptions,
             required contextRoot,

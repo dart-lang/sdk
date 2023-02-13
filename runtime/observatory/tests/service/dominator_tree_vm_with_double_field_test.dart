@@ -19,7 +19,7 @@ double getDoubleWithHeapObjectTag() {
   return v;
 }
 
-// small example from [Lenguaer & Tarjan 1979]
+// small example from [Lengauer & Tarjan 1979]
 class R {
   final double fld = getDoubleWithHeapObjectTag();
   // Fields are marked with @pragma("vm:entry-point")

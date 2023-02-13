@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class WrongNumberOfTypeArgumentsTest extends PatternsResolutionTest {
+class WrongNumberOfTypeArgumentsTest extends PubPackageResolutionTest {
   test_class_tooFew() async {
     await assertErrorsInCode(r'''
 class A<E, F> {}
