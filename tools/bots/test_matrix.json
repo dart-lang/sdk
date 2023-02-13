@@ -697,29 +697,6 @@
         "builder-tag": "dart2wasm"
       }
     },
-    "dartkp-android-(debug|product|release)-arm_x64": {
-      "options": {
-        "builder-tag": "crossword",
-        "use-elf": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ]
-      }
-    },
-    "dartkp-android-(debug|product|release)-(arm|arm64|arm64c)": {
-      "options": {
-        "use-elf": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ]
-      }
-    },
     "vm-aot-android-(debug|product|release)-arm_x64": {
       "options": {
         "builder-tag": "crossword",
@@ -1245,35 +1222,6 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-aot-android-${mode}-${arch}",
-            "-j2"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 15
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-android-release-arm_x64",
-        "vm-kernel-precomp-android-release-arm64c"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm precomp builders on Android."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime",
-            "dart_precompiled_runtime",
-            "--os=android"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartkp-android-${mode}-${arch}",
             "-j2"
           ],
           "fileset": "vm-kernel",
