@@ -13,6 +13,7 @@ import 'directive_uri_test.dart' as directive_uri;
 import 'enum_constant_test.dart' as enum_constant;
 import 'enum_test.dart' as enum_;
 import 'field_formal_parameter_test.dart' as field_formal_parameter;
+import 'for_statement_test.dart' as for_statement;
 import 'if_element_test.dart' as if_element;
 import 'if_statement_test.dart' as if_statement;
 import 'list_pattern_test.dart' as list_pattern;
@@ -41,6 +42,7 @@ void main() {
     enum_constant.main();
     enum_.main();
     field_formal_parameter.main();
+    for_statement.main();
     if_element.main();
     if_statement.main();
     list_pattern.main();
