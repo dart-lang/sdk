@@ -6429,6 +6429,44 @@ main() {
             checkNotPromoted(x),
           ]);
         });
+
+        test('Promotes matched value', () {
+          // The code below is equivalent to:
+          //     int x;
+          //     (x && _!) = ... as dynamic;
+          // There should be an "unnecessary !" warning, because the `x` pattern
+          // implicitly promotes the matched value to type `int`.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int'),
+            x
+                .pattern()
+                .and(wildcard().nullAssert..errorId = 'NULLASSERT')
+                .assign(expr('dynamic'))
+                .stmt,
+          ], expectedErrors: {
+            'matchedTypeIsStrictlyNonNullable(pattern: NULLASSERT, '
+                'matchedType: int)'
+          });
+        });
+
+        test('Promotes scrutinee', () {
+          // The code below is equivalent to:
+          //     int x;
+          //     dynamic y = ...;
+          //     (x && _) = y;
+          //     // y is now promoted to `int`.
+          // The promotion occurs because the assignment to `x` performs an
+          // implicit downcast.
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, type: 'int'),
+            declare(y, initializer: expr('dynamic')),
+            x.pattern().and(wildcard()).assign(y.expr).stmt,
+            checkPromoted(y, 'int'),
+          ]);
+        });
       });
 
       test('Definite assignment', () {

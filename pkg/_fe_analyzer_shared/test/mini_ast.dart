@@ -873,11 +873,13 @@ class MiniAstOperations
   };
 
   static final Map<String, Type> _coreGlbs = {
+    '?, int': Type('int'),
     'Object?, double': Type('double'),
     'Object?, int': Type('int'),
     'double, int': Type('Never'),
     'double?, int?': Type('Null'),
     'int?, num': Type('int'),
+    'Null, int': Type('Never'),
   };
 
   static final Map<String, Type> _coreLubs = {
@@ -893,6 +895,7 @@ class MiniAstOperations
 
   static final Map<String, Type> _coreDownwardInferenceResults = {
     'dynamic <: int': Type('dynamic'),
+    'int <: dynamic': Type('int'),
     'int <: num': Type('int'),
     'int <: Object?': Type('int'),
     'List <: Iterable<int>': Type('List<int>'),
