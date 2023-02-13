@@ -331,6 +331,13 @@ class PragmaAnnotationData {
 
   @override
   String toString() => 'PragmaAnnotationData($name)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PragmaAnnotationData) return false;
+    return suffix == other.suffix && hasOptions == other.hasOptions;
+  }
 }
 
 PragmaAnnotationData? _getPragmaAnnotation(ir.Constant constant) {
