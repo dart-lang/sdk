@@ -1,3 +1,7 @@
+## 1.3.3
+
+- Updated `vm_service` version to ^11.0.0.
+
 ## 1.3.2
 
 - Updated `vm_service` version to ^10.0.0.

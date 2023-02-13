@@ -314,6 +314,8 @@ mixin TypeAnalyzer<
           matchedType: matchedType,
           requiredType: variableDeclaredType);
     }
+    flow.promoteForPattern(
+        matchedType: matchedType, knownType: variableDeclaredType);
     flow.assignedVariablePattern(node, variable, matchedType);
   }
 

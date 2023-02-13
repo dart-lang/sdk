@@ -285,7 +285,7 @@ void f() {
 }
 ''',
         errorFilter: (error) =>
-            error.errorCode == HintCode.MISSING_REQUIRED_PARAM);
+            error.errorCode == WarningCode.MISSING_REQUIRED_PARAM);
   }
 
   Future<void> test_constructor_single_closure_nnbd_into_legacy() async {

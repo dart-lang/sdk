@@ -1383,24 +1383,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION: [
       RemoveAnnotation.new,
     ],
-    HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE: [
-      CreateMissingOverrides.new,
-    ],
-    HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO: [
-      CreateMissingOverrides.new,
-    ],
-    HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS: [
-      CreateMissingOverrides.new,
-    ],
-    HintCode.MISSING_REQUIRED_PARAM: [
-      AddMissingRequiredArgument.new,
-    ],
-    HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS: [
-      AddMissingRequiredArgument.new,
-    ],
-    HintCode.MISSING_RETURN: [
-      AddAsync.missingReturn,
-    ],
     HintCode.MUST_CALL_SUPER: [
       AddCallSuper.new,
     ],
@@ -1570,6 +1552,24 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.INVALID_SEALED_ANNOTATION: [
       RemoveAnnotation.new,
+    ],
+    WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE: [
+      CreateMissingOverrides.new,
+    ],
+    WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO: [
+      CreateMissingOverrides.new,
+    ],
+    WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS: [
+      CreateMissingOverrides.new,
+    ],
+    WarningCode.MISSING_REQUIRED_PARAM: [
+      AddMissingRequiredArgument.new,
+    ],
+    WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS: [
+      AddMissingRequiredArgument.new,
+    ],
+    WarningCode.MISSING_RETURN: [
+      AddAsync.missingReturn,
     ],
     WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
       RemoveQuestionMark.new,

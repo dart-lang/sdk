@@ -6173,6 +6173,77 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the member
+  static const WarningCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE =
+      WarningCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete implementation of '{0}'.",
+    correctionMessage: "Try overriding the missing member.",
+    hasPublishedDocs: true,
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the first member
+  ///  1: the name of the second member
+  ///  2: the number of additional missing members that aren't listed
+  static const WarningCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS =
+      WarningCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete implementations of '{0}', '{1}', and {2} more.",
+    correctionMessage: "Try overriding the missing members.",
+    hasPublishedDocs: true,
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the first member
+  ///  1: the name of the second member
+  static const WarningCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO =
+      WarningCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete implementations of '{0}' and '{1}'.",
+    correctionMessage: "Try overriding the missing members.",
+    hasPublishedDocs: true,
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
+  );
+
+  ///  Generate a hint for a constructor, function or method invocation where a
+  ///  required parameter is missing.
+  ///
+  ///  Parameters:
+  ///  0: the name of the parameter
+  static const WarningCode MISSING_REQUIRED_PARAM = WarningCode(
+    'MISSING_REQUIRED_PARAM',
+    "The parameter '{0}' is required.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Generate a hint for a constructor, function or method invocation where a
+  ///  required parameter is missing.
+  ///
+  ///  Parameters:
+  ///  0: the name of the parameter
+  ///  1: message details
+  static const WarningCode MISSING_REQUIRED_PARAM_WITH_DETAILS = WarningCode(
+    'MISSING_REQUIRED_PARAM',
+    "The parameter '{0}' is required. {1}.",
+    hasPublishedDocs: true,
+    uniqueName: 'MISSING_REQUIRED_PARAM_WITH_DETAILS',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the declared return type
+  static const WarningCode MISSING_RETURN = WarningCode(
+    'MISSING_RETURN',
+    "This function has a return type of '{0}', but doesn't end with a return "
+        "statement.",
+    correctionMessage:
+        "Try adding a return statement, or changing the return type to 'void'.",
+    hasPublishedDocs: true,
+  );
+
   ///  This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR =
       HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;

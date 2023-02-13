@@ -409,7 +409,7 @@ class OptionsTest extends BaseTest {
 
     // missing_return: error
     var missing_return =
-        AnalysisError(TestSource(), 0, 1, HintCode.MISSING_RETURN, [
+        AnalysisError(TestSource(), 0, 1, WarningCode.MISSING_RETURN, [
       ['x']
     ]);
     expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
