@@ -894,6 +894,7 @@ class MiniAstOperations
   };
 
   static final Map<String, Type> _coreDownwardInferenceResults = {
+    'bool <: bool': Type('bool'),
     'dynamic <: int': Type('dynamic'),
     'int <: dynamic': Type('int'),
     'int <: num': Type('int'),

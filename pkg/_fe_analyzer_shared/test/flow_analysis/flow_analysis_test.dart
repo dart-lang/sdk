@@ -6479,7 +6479,7 @@ main() {
         ]);
       });
 
-      group('Boolean condition', () {
+      group('Boolean condition:', () {
         test('As main pattern', () {
           var b = Var('b');
           var x = Var('x');
@@ -6495,13 +6495,16 @@ main() {
         });
 
         test('As subpattern', () {
+          h.addMember('bool', 'foo', 'bool');
           var b = Var('b');
           var x = Var('x');
           h.run([
             declare(x, type: 'int?'),
             declare(b, type: 'bool'),
-            recordPattern([b.pattern().recordField()])
-                .assign(x.expr.notEq(nullLiteral).as_('dynamic'))
+            objectPattern(
+                    requiredType: 'bool',
+                    fields: [b.pattern().recordField('foo')])
+                .assign(x.expr.notEq(nullLiteral))
                 .stmt,
             if_(b.expr, [
               // Even though the RHS of the pattern is `x != null`, `x` is not
@@ -6577,6 +6580,26 @@ main() {
             checkReachable(false),
           ]),
         ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(wildcard().as_('num')..errorId = 'AS_NUM')
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ], expectedErrors: {
+          'matchedTypeIsSubtypeOfRequired(pattern: AS_NUM, matchedType: int, '
+              'requiredType: num)'
+        });
       });
     });
 
@@ -7004,6 +7027,23 @@ main() {
           ]),
         ]);
       });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('List<int>')
+                  .and(listPattern([], elementType: 'num'))
+                  .and(y.pattern(expectInferredType: 'List<int>')),
+              [
+                checkPromoted(x, 'List<int>'),
+              ]),
+        ]);
+      });
     });
 
     group('Map pattern:', () {
@@ -7028,6 +7068,23 @@ main() {
           ], [
             checkReachable(true),
           ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('Map<int, int>')
+                  .and(mapPattern([], keyType: 'num', valueType: 'num'))
+                  .and(y.pattern(expectInferredType: 'Map<int, int>')),
+              [
+                checkPromoted(x, 'Map<int, int>'),
+              ]),
         ]);
       });
     });
@@ -7123,6 +7180,23 @@ main() {
           ]),
         ]);
       });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int?')
+                  .and(wildcard().nullAssert)
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ]);
+      });
     });
 
     group('Null-check:', () {
@@ -7216,6 +7290,23 @@ main() {
           ]),
         ]);
       });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int?')
+                  .and(wildcard().nullCheck)
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ]);
+      });
     });
 
     group('Object pattern:', () {
@@ -7226,6 +7317,23 @@ main() {
           ifCase(x.expr, objectPattern(requiredType: 'int', fields: []), [
             checkPromoted(x, 'int'),
           ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(objectPattern(requiredType: 'num', fields: []))
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
         ]);
       });
     });
@@ -7270,6 +7378,23 @@ main() {
           ], [
             checkReachable(true),
           ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('(int,)')
+                  .and(recordPattern([wildcard().recordField()]))
+                  .and(y.pattern(expectInferredType: '(int,)')),
+              [
+                checkPromoted(x, '(int,)'),
+              ]),
         ]);
       });
     });
@@ -8116,6 +8241,24 @@ main() {
               ]),
         ]);
       });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        var z = Var('z');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(y.pattern(type: 'num'))
+                  .and(z.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ]);
+      });
     });
 
     group('Wildcard pattern:', () {
@@ -8206,6 +8349,23 @@ main() {
               [
                 checkPromoted(x, 'num'),
                 // TODO(paulberry): should promote `x.sign` to `int`.
+              ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(wildcard(type: 'num'))
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
               ]),
         ]);
       });
