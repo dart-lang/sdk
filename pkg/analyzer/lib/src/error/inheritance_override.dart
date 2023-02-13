@@ -927,19 +927,19 @@ class _ClassVerifier {
 
     if (namesForError.length == 1) {
       reporter.reportErrorForToken(
-        HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE,
+        WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE,
         classNameToken,
         namesForError,
       );
     } else if (namesForError.length == 2) {
       reporter.reportErrorForToken(
-        HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO,
+        WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO,
         classNameToken,
         namesForError,
       );
     } else {
       reporter.reportErrorForToken(
-        HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS,
+        WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS,
         classNameToken,
         [
           namesForError[0],

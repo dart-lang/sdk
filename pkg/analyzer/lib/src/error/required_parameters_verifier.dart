@@ -140,14 +140,14 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
             var reason = annotation.reason;
             if (reason != null) {
               _errorReporter.reportErrorForOffset(
-                HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
+                WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
                 errorNode.offset,
                 errorNode.length,
                 [parameterName, reason],
               );
             } else {
               _errorReporter.reportErrorForOffset(
-                HintCode.MISSING_REQUIRED_PARAM,
+                WarningCode.MISSING_REQUIRED_PARAM,
                 errorNode.offset,
                 errorNode.length,
                 [parameterName],

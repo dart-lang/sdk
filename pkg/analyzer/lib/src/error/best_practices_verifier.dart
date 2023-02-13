@@ -436,7 +436,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // Check the block for a return statement, if not, create the hint.
         if (!ExitDetector.exits(node.body)) {
           _errorReporter.reportErrorForNode(
-              HintCode.MISSING_RETURN, node, [node.returnType.name]);
+              WarningCode.MISSING_RETURN, node, [node.returnType.name]);
         }
       }
     }
@@ -1345,7 +1345,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// Note: for async functions/methods, this hint only applies when the
   /// function has a return type that Future<Null> is not assignable to.
   ///
-  /// See [HintCode.MISSING_RETURN].
+  /// See [WarningCode.MISSING_RETURN].
   void _checkForMissingReturn(FunctionBody body, AstNode functionNode) {
     if (_isNonNullableByDefault) {
       return;
@@ -1374,19 +1374,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     if (functionNode is FunctionDeclaration) {
       _errorReporter.reportErrorForToken(
-        HintCode.MISSING_RETURN,
+        WarningCode.MISSING_RETURN,
         functionNode.name,
         [returnType],
       );
     } else if (functionNode is MethodDeclaration) {
       _errorReporter.reportErrorForToken(
-        HintCode.MISSING_RETURN,
+        WarningCode.MISSING_RETURN,
         functionNode.name,
         [returnType],
       );
     } else {
       _errorReporter.reportErrorForNode(
-        HintCode.MISSING_RETURN,
+        WarningCode.MISSING_RETURN,
         functionNode,
         [returnType],
       );

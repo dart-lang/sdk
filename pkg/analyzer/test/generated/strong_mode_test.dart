@@ -4580,7 +4580,7 @@ void g() {
       error(
           isNullSafetyEnabled
               ? CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY
-              : HintCode.MISSING_RETURN,
+              : WarningCode.MISSING_RETURN,
           3,
           1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 1),

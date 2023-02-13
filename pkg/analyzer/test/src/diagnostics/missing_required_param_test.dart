@@ -110,7 +110,7 @@ void f() {
   A();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM, 46, 1),
+      error(WarningCode.MISSING_REQUIRED_PARAM, 46, 1),
     ]);
   }
 
@@ -252,7 +252,7 @@ void f() {
   foo();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM, 46, 3),
+      error(WarningCode.MISSING_REQUIRED_PARAM, 46, 3),
     ]);
   }
 
@@ -328,7 +328,7 @@ void f(A a) {
   a.foo();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM, 51, 3),
+      error(WarningCode.MISSING_REQUIRED_PARAM, 51, 3),
     ]);
   }
 
@@ -383,7 +383,7 @@ main() {
   new C();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM, 102, 1),
+      error(WarningCode.MISSING_REQUIRED_PARAM, 102, 1),
     ]);
   }
 
@@ -397,7 +397,7 @@ main() {
   new C();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 109, 1),
+      error(WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 109, 1),
     ]);
   }
 
@@ -413,7 +413,7 @@ main() {
   new C();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM, 88, 1),
+      error(WarningCode.MISSING_REQUIRED_PARAM, 88, 1),
     ]);
   }
 
@@ -429,7 +429,7 @@ main() {
   new C();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM, 91, 1),
+      error(WarningCode.MISSING_REQUIRED_PARAM, 91, 1),
     ]);
   }
 
@@ -445,7 +445,7 @@ main() {
   new C();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM, 94, 1),
+      error(WarningCode.MISSING_REQUIRED_PARAM, 94, 1),
     ]);
   }
 
@@ -457,7 +457,7 @@ class C {
   C.named() : this();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM, 81, 6),
+      error(WarningCode.MISSING_REQUIRED_PARAM, 81, 6),
     ]);
   }
 
@@ -473,7 +473,7 @@ class D extends C {
   D() : super();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 124, 7),
+      error(WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 124, 7),
     ]);
   }
 
@@ -487,7 +487,7 @@ main() {
   f();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 98, 1),
+      error(WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 98, 1),
     ]);
   }
 
@@ -501,7 +501,7 @@ f() {
   new A().m();
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 115, 1),
+      error(WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 115, 1),
     ]);
   }
 
@@ -516,7 +516,7 @@ f() {
   new A<double>().m(true);
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 135, 1),
+      error(WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 135, 1),
     ]);
   }
 
@@ -536,7 +536,7 @@ f() {
 
     await _resolveFile('$testPackageLibPath/a.dart');
     await _resolveFile('$testPackageLibPath/test.dart', [
-      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 33, 1),
+      error(WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 33, 1),
     ]);
   }
 
@@ -558,7 +558,7 @@ class C {
   F m() => ({@required String x}) => null;
 }
 ''', [
-      error(HintCode.MISSING_REQUIRED_PARAM, 54, 7),
+      error(WarningCode.MISSING_REQUIRED_PARAM, 54, 7),
     ]);
   }
 

@@ -18672,174 +18672,6 @@ HintCode:
       ```dart
       class C {}
       ```
-  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
-    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete implementation of '{0}'."
-    correctionMessage: Try overriding the missing member.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the member
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an instance member that has the
-      `@mustBeOverridden` annotation isn't overridden in a subclass.
-
-      #### Example
-
-      The following code produces this diagnostic because the class `B` doesn't
-      have an override of the inherited method `A.m` when `A.m` is annotated
-      with `@mustBeOverridden`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @mustBeOverridden
-        void m() {}
-      }
-
-      class [!B!] extends A {}
-      ```
-
-      #### Common fixes
-
-      If the annotation is appropriate for the member, then override the member
-      in the subclass:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @mustBeOverridden
-        void m() {}
-      }
-
-      class B extends A {
-        @override
-        void m() {}
-      }
-      ```
-
-      If the annotation isn't appropriate for the member, then remove the
-      annotation:
-
-      ```dart
-      class A {
-        void m() {}
-      }
-
-      class B extends A {}
-      ```
-  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
-    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete implementations of '{0}' and '{1}'."
-    correctionMessage: Try overriding the missing members.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the first member
-      1: the name of the second member
-  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
-    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete implementations of '{0}', '{1}', and {2} more."
-    correctionMessage: Try overriding the missing members.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the first member
-      1: the name of the second member
-      2: the number of additional missing members that aren't listed
-  MISSING_REQUIRED_PARAM:
-    problemMessage: "The parameter '{0}' is required."
-    hasPublishedDocs: true
-    comment: |-
-      Generate a hint for a constructor, function or method invocation where a
-      required parameter is missing.
-
-      Parameters:
-      0: the name of the parameter
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a method or function with a
-      named parameter that is annotated as being required is invoked without
-      providing a value for the parameter.
-
-      #### Example
-
-      The following code produces this diagnostic because the named parameter `x`
-      is required:
-
-      ```dart
-      %language=2.9
-      import 'package:meta/meta.dart';
-
-      void f({@required int x}) {}
-
-      void g() {
-        [!f!]();
-      }
-      ```
-
-      #### Common fixes
-
-      Provide the required value:
-
-      ```dart
-      %language=2.9
-      import 'package:meta/meta.dart';
-
-      void f({@required int x}) {}
-
-      void g() {
-        f(x: 2);
-      }
-      ```
-  MISSING_REQUIRED_PARAM_WITH_DETAILS:
-    sharedName: MISSING_REQUIRED_PARAM
-    problemMessage: "The parameter '{0}' is required. {1}."
-    hasPublishedDocs: true
-    comment: |-
-      Generate a hint for a constructor, function or method invocation where a
-      required parameter is missing.
-
-      Parameters:
-      0: the name of the parameter
-      1: message details
-  MISSING_RETURN:
-    problemMessage: "This function has a return type of '{0}', but doesn't end with a return statement."
-    correctionMessage: "Try adding a return statement, or changing the return type to 'void'."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the declared return type
-    documentation: |-
-      #### Description
-
-      Any function or method that doesn't end with either an explicit return or a
-      throw implicitly returns `null`. This is rarely the desired behavior. The
-      analyzer produces this diagnostic when it finds an implicit return.
-
-      #### Example
-
-      The following code produces this diagnostic because `f` doesn't end with a
-      return:
-
-      ```dart
-      %language=2.9
-      int [!f!](int x) {
-        if (x < 0) {
-          return 0;
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Add a `return` statement that makes the return value explicit, even if
-      `null` is the appropriate value.
   MIXIN_ON_SEALED_CLASS:
     problemMessage: "The class '{0}' shouldn't be used as a mixin constraint because it is sealed, and any class mixing in this mixin must have '{0}' as a superclass."
     correctionMessage: Try composing with this class, or refer to its documentation for more information.
@@ -22618,6 +22450,174 @@ WarningCode:
         void m() {}
       }
       ```
+  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
+    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
+    problemMessage: "Missing concrete implementation of '{0}'."
+    correctionMessage: Try overriding the missing member.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the member
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance member that has the
+      `@mustBeOverridden` annotation isn't overridden in a subclass.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `B` doesn't
+      have an override of the inherited method `A.m` when `A.m` is annotated
+      with `@mustBeOverridden`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @mustBeOverridden
+        void m() {}
+      }
+
+      class [!B!] extends A {}
+      ```
+
+      #### Common fixes
+
+      If the annotation is appropriate for the member, then override the member
+      in the subclass:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @mustBeOverridden
+        void m() {}
+      }
+
+      class B extends A {
+        @override
+        void m() {}
+      }
+      ```
+
+      If the annotation isn't appropriate for the member, then remove the
+      annotation:
+
+      ```dart
+      class A {
+        void m() {}
+      }
+
+      class B extends A {}
+      ```
+  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
+    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
+    problemMessage: "Missing concrete implementations of '{0}' and '{1}'."
+    correctionMessage: Try overriding the missing members.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the first member
+      1: the name of the second member
+  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
+    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
+    problemMessage: "Missing concrete implementations of '{0}', '{1}', and {2} more."
+    correctionMessage: Try overriding the missing members.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the first member
+      1: the name of the second member
+      2: the number of additional missing members that aren't listed
+  MISSING_REQUIRED_PARAM:
+    problemMessage: "The parameter '{0}' is required."
+    hasPublishedDocs: true
+    comment: |-
+      Generate a hint for a constructor, function or method invocation where a
+      required parameter is missing.
+
+      Parameters:
+      0: the name of the parameter
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method or function with a
+      named parameter that is annotated as being required is invoked without
+      providing a value for the parameter.
+
+      #### Example
+
+      The following code produces this diagnostic because the named parameter `x`
+      is required:
+
+      ```dart
+      %language=2.9
+      import 'package:meta/meta.dart';
+
+      void f({@required int x}) {}
+
+      void g() {
+        [!f!]();
+      }
+      ```
+
+      #### Common fixes
+
+      Provide the required value:
+
+      ```dart
+      %language=2.9
+      import 'package:meta/meta.dart';
+
+      void f({@required int x}) {}
+
+      void g() {
+        f(x: 2);
+      }
+      ```
+  MISSING_REQUIRED_PARAM_WITH_DETAILS:
+    sharedName: MISSING_REQUIRED_PARAM
+    problemMessage: "The parameter '{0}' is required. {1}."
+    hasPublishedDocs: true
+    comment: |-
+      Generate a hint for a constructor, function or method invocation where a
+      required parameter is missing.
+
+      Parameters:
+      0: the name of the parameter
+      1: message details
+  MISSING_RETURN:
+    problemMessage: "This function has a return type of '{0}', but doesn't end with a return statement."
+    correctionMessage: "Try adding a return statement, or changing the return type to 'void'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the declared return type
+    documentation: |-
+      #### Description
+
+      Any function or method that doesn't end with either an explicit return or a
+      throw implicitly returns `null`. This is rarely the desired behavior. The
+      analyzer produces this diagnostic when it finds an implicit return.
+
+      #### Example
+
+      The following code produces this diagnostic because `f` doesn't end with a
+      return:
+
+      ```dart
+      %language=2.9
+      int [!f!](int x) {
+        if (x < 0) {
+          return 0;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Add a `return` statement that makes the return value explicit, even if
+      `null` is the appropriate value.
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
     aliasFor: HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
     comment: This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
