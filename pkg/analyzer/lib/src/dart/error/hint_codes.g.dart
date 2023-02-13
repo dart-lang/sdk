@@ -418,15 +418,6 @@ class HintCode extends AnalyzerErrorCode {
     uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_SETTER',
   );
 
-  ///  It is a bad practice for a package import to reference anything outside the
-  ///  given package, or more generally, it is bad practice for a package import
-  ///  to contain a "..". For example, a source file should not contain a
-  ///  directive such as `import 'package:foo/../some.dart'`.
-  static const HintCode PACKAGE_IMPORT_CONTAINS_DOT_DOT = HintCode(
-    'PACKAGE_IMPORT_CONTAINS_DOT_DOT',
-    "A package import shouldn't contain '..'.",
-  );
-
   ///  When "strict-raw-types" is enabled, "raw types" must have type arguments.
   ///
   ///  A "raw type" is a type name that does not use inference to fill in missing
