@@ -14,7 +14,7 @@ import 'types.dart';
 class Module with SerializerMixin {
   final List<int>? watchPoints;
 
-  final Map<_FunctionTypeKey, FunctionType> functionTypeMap = {};
+  final Map<_FunctionTypeKey, FunctionType> _functionTypeMap = {};
 
   final List<DefType> defTypes = [];
   final List<int> recursionGroupSplits = [];
@@ -86,7 +86,7 @@ class Module with SerializerMixin {
     final List<ValueType> inputList = List.unmodifiable(inputs);
     final List<ValueType> outputList = List.unmodifiable(outputs);
     final _FunctionTypeKey key = _FunctionTypeKey(inputList, outputList);
-    return functionTypeMap.putIfAbsent(key, () {
+    return _functionTypeMap.putIfAbsent(key, () {
       final type = FunctionType(inputList, outputList, superType: superType)
         ..index = defTypes.length;
       defTypes.add(type);
@@ -515,6 +515,7 @@ class Tag implements Serializable {
     s.write(type);
   }
 
+  @override
   String toString() => "#$index";
 }
 
@@ -597,7 +598,9 @@ abstract class Import implements Serializable {
 
 /// An imported function.
 class ImportedFunction extends BaseFunction implements Import {
+  @override
   final String module;
+  @override
   final String name;
 
   ImportedFunction(this.module, this.name, super.index, super.type,
@@ -617,7 +620,9 @@ class ImportedFunction extends BaseFunction implements Import {
 
 /// An imported table.
 class ImportedTable extends Table implements Import {
+  @override
   final String module;
+  @override
   final String name;
 
   ImportedTable(this.module, this.name, super.index, super.type, super.minSize,
@@ -634,7 +639,9 @@ class ImportedTable extends Table implements Import {
 
 /// An imported memory.
 class ImportedMemory extends Memory implements Import {
+  @override
   final String module;
+  @override
   final String name;
 
   ImportedMemory(this.module, this.name, super.index, super.shared,
@@ -651,7 +658,9 @@ class ImportedMemory extends Memory implements Import {
 
 /// An imported global variable.
 class ImportedGlobal extends Global implements Import {
+  @override
   final String module;
+  @override
   final String name;
 
   ImportedGlobal(this.module, this.name, super.index, super.type);
@@ -728,6 +737,7 @@ abstract class Section with SerializerMixin implements Serializable {
 
   Section(this.module);
 
+  @override
   void serialize(Serializer s) {
     if (isNotEmpty) {
       serializeContents();
