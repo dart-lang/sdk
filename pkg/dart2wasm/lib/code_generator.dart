@@ -8,6 +8,7 @@ import 'package:dart2wasm/dispatch_table.dart';
 import 'package:dart2wasm/dynamic_forwarders.dart';
 import 'package:dart2wasm/intrinsics.dart';
 import 'package:dart2wasm/param_info.dart';
+import 'package:dart2wasm/records.dart';
 import 'package:dart2wasm/reference_extensions.dart';
 import 'package:dart2wasm/sync_star.dart';
 import 'package:dart2wasm/translator.dart';
@@ -2866,6 +2867,55 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         translator.classInfo[translator.typeClass]!.nonNullableType;
     translator.convertType(function, resultType, nonNullableTypeType);
     return nonNullableTypeType;
+  }
+
+  @override
+  w.ValueType visitRecordLiteral(RecordLiteral node, w.ValueType expectedType) {
+    final ClassInfo recordClassInfo =
+        translator.getRecordClassInfo(node.recordType);
+    translator.functions.allocateClass(recordClassInfo.classId);
+
+    b.i32_const(recordClassInfo.classId);
+    b.i32_const(initialIdentityHash);
+    for (Expression positional in node.positional) {
+      wrap(positional, translator.topInfo.nullableType);
+    }
+    for (NamedExpression named in node.named) {
+      wrap(named.value, translator.topInfo.nullableType);
+    }
+    b.struct_new(recordClassInfo.struct);
+
+    return recordClassInfo.nonNullableType;
+  }
+
+  @override
+  w.ValueType visitRecordIndexGet(
+      RecordIndexGet node, w.ValueType expectedType) {
+    final RecordShape recordShape = RecordShape.fromType(node.receiverType);
+    final ClassInfo recordClassInfo =
+        translator.getRecordClassInfo(node.receiverType);
+    translator.functions.allocateClass(recordClassInfo.classId);
+
+    wrap(node.receiver, translator.topInfo.nonNullableType);
+    b.ref_cast(w.RefType(recordClassInfo.struct, nullable: false));
+    b.struct_get(
+        recordClassInfo.struct, recordShape.getPositionalIndex(node.index));
+
+    return translator.topInfo.nullableType;
+  }
+
+  @override
+  w.ValueType visitRecordNameGet(RecordNameGet node, w.ValueType expectedType) {
+    final RecordShape recordShape = RecordShape.fromType(node.receiverType);
+    final ClassInfo recordClassInfo =
+        translator.getRecordClassInfo(node.receiverType);
+    translator.functions.allocateClass(recordClassInfo.classId);
+
+    wrap(node.receiver, translator.topInfo.nonNullableType);
+    b.ref_cast(w.RefType(recordClassInfo.struct, nullable: false));
+    b.struct_get(recordClassInfo.struct, recordShape.getNameIndex(node.name));
+
+    return translator.topInfo.nullableType;
   }
 
   /// Generate type checker method for a setter.

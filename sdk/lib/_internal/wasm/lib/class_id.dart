@@ -42,6 +42,8 @@ class ClassID {
   external static int get cidGrowableList;
   @pragma("wasm:class-id", "dart.core#_ImmutableList")
   external static int get cidImmutableList;
+  @pragma("wasm:class-id", "dart.core#Record")
+  external static int get cidRecord;
 
   // Class IDs for RTI Types.
   @pragma("wasm:class-id", "dart.core#_NeverType")
@@ -62,6 +64,8 @@ class ClassID {
   external static int get cidFunctionTypeParameterType;
   @pragma("wasm:class-id", "dart.core#_InterfaceTypeParameterType")
   external static int get cidInterfaceTypeParameterType;
+  @pragma("wasm:class-id", "dart.core#_RecordType")
+  external static int get cidRecordType;
 
   // Dummy, only used by VM-specific hash table code.
   static final int numPredefinedCids = 1;

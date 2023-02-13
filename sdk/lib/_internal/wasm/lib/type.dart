@@ -31,6 +31,7 @@ abstract class _Type implements Type {
   bool get isFunctionTypeParameterType =>
       _testID(ClassID.cidFunctionTypeParameterType);
   bool get isFunction => _testID(ClassID.cidFunctionType);
+  bool get isRecord => _testID(ClassID.cidRecordType);
 
   T as<T>() => unsafeCast<T>(this);
 
@@ -433,6 +434,80 @@ class _FunctionType extends _Type {
   }
 }
 
+class _RecordType extends _Type {
+  final List<String> names;
+  final List<_Type> fieldTypes;
+
+  @pragma("wasm:entry-point")
+  _RecordType(this.names, this.fieldTypes, super.isDeclaredNullable);
+
+  @override
+  _Type get _asNonNullable => _RecordType(names, fieldTypes, false);
+
+  @override
+  _Type get _asNullable => _RecordType(names, fieldTypes, true);
+
+  @override
+  String toString() {
+    StringBuffer buffer = StringBuffer('(');
+
+    final int numPositionals = fieldTypes.length - names.length;
+    final int numNames = names.length;
+
+    for (int i = 0; i < numPositionals; i += 1) {
+      buffer.write(fieldTypes[i]);
+      if (i != fieldTypes.length - 1) {
+        buffer.write(', ');
+      }
+    }
+
+    if (names.isNotEmpty) {
+      buffer.write('{');
+      for (int i = 0; i < numNames; i += 1) {
+        final String fieldName = names[i];
+        final _Type fieldType = fieldTypes[numPositionals + i];
+        buffer.write(fieldType);
+        buffer.write(' ');
+        buffer.write(fieldName);
+        if (i != numNames - 1) {
+          buffer.write(', ');
+        }
+      }
+      buffer.write('}');
+    }
+
+    buffer.write(')');
+    if (isDeclaredNullable) {
+      buffer.write('?');
+    }
+    return buffer.toString();
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! _RecordType) {
+      return false;
+    }
+
+    if (!_sameShape(other)) {
+      return false;
+    }
+
+    for (int fieldIdx = 0; fieldIdx < fieldTypes.length; fieldIdx += 1) {
+      if (fieldTypes[fieldIdx] != other.fieldTypes[fieldIdx]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool _sameShape(_RecordType other) =>
+      fieldTypes.length == other.fieldTypes.length &&
+      // Name lists are constants and can be compared with `identical`.
+      identical(names, other.names);
+}
+
 external List<List<int>> _getTypeRulesSupers();
 external List<List<List<_Type>>> _getTypeRulesSubstitutions();
 external List<String> _getTypeNames();
@@ -793,6 +868,25 @@ class _TypeUniverse {
     return true;
   }
 
+  bool isRecordSubtype(
+      _RecordType s, _Environment? sEnv, _RecordType t, _Environment? tEnv) {
+    // [s] <: [t] iff s and t have the same shape and fields of `s` are
+    // subtypes of the same field in `t` by index.
+    if (!s._sameShape(t)) {
+      return false;
+    }
+
+    final int numFields = s.fieldTypes.length;
+    for (int fieldIdx = 0; fieldIdx < numFields; fieldIdx += 1) {
+      if (!isSubtype(
+          s.fieldTypes[fieldIdx], sEnv, t.fieldTypes[fieldIdx], tEnv)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   // Subtype check based off of sdk/lib/_internal/js_runtime/lib/rti.dart.
   // Returns true if [s] is a subtype of [t], false otherwise.
   bool isSubtype(_Type s, _Environment? sEnv, _Type t, _Environment? tEnv) {
@@ -887,6 +981,18 @@ class _TypeUniverse {
     if (s.isFunction && t.isFunction) {
       return isFunctionSubtype(
           s.as<_FunctionType>(), sEnv, t.as<_FunctionType>(), tEnv);
+    }
+
+    // Records:
+    if (s.isRecord && t.isRecord) {
+      return isRecordSubtype(
+          s.as<_RecordType>(), sEnv, t.as<_RecordType>(), tEnv);
+    }
+
+    // Records are subtypes of the `Record` type:
+    if (s.isRecord && t.isInterface) {
+      final tInterfaceType = t.as<_InterfaceType>();
+      return tInterfaceType.classId == ClassID.cidRecord;
     }
 
     // Interface Compositionality + Super-Interface:

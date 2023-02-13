@@ -63,6 +63,7 @@ part "int.dart";
 part "list.dart";
 part "named_parameters.dart";
 part "object_patch.dart";
+part "record_patch.dart";
 part "regexp_patch.dart";
 part "stack_trace_patch.dart";
 part "stopwatch_patch.dart";
