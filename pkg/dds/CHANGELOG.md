@@ -1,3 +1,6 @@
+# 2.7.5
+- Updated `vm_service` version to >=9.0.0 <12.0.0.
+
 # 2.7.4
 - [DAP] Added support for `,d` (decimal), `,h` (hex) and `,nq` (no quotes) format specifiers to be used as suffixes to evaluation requests.
 - [DAP] Added support for `format.hex` in `variablesRequest` and `evaluateRequest`.

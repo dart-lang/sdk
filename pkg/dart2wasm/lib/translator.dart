@@ -14,6 +14,7 @@ import 'package:dart2wasm/functions.dart';
 import 'package:dart2wasm/globals.dart';
 import 'package:dart2wasm/kernel_nodes.dart';
 import 'package:dart2wasm/param_info.dart';
+import 'package:dart2wasm/records.dart';
 import 'package:dart2wasm/reference_extensions.dart';
 import 'package:dart2wasm/types.dart';
 
@@ -99,6 +100,10 @@ class Translator with KernelNodes {
   late final w.Memory ffiMemory = m.importMemory("ffi", "memory",
       options.importSharedMemory, 0, options.sharedMemoryMaxPages);
 
+  /// Maps record shapes to the record class for the shape. Classes generated
+  /// by `record_class_generator` library.
+  final Map<RecordShape, Class> recordClasses;
+
   // Caches for when identical source constructs need a common representation.
   final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
   final Map<w.BaseFunction, w.DefinedGlobal> functionRefCache = {};
@@ -109,6 +114,7 @@ class Translator with KernelNodes {
   late final ClassInfo objectInfo = classInfo[coreTypes.objectClass]!;
   late final ClassInfo closureInfo = classInfo[closureClass]!;
   late final ClassInfo stackTraceInfo = classInfo[stackTraceClass]!;
+  late final ClassInfo recordInfo = classInfo[coreTypes.recordClass]!;
   late final w.ArrayType listArrayType = (classInfo[listBaseClass]!
           .struct
           .fields[FieldIndex.listArray]
@@ -203,7 +209,7 @@ class Translator with KernelNodes {
     topInfo.nullableType
   ]);
 
-  Translator(this.component, this.coreTypes, this.options)
+  Translator(this.component, this.coreTypes, this.recordClasses, this.options)
       : libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
@@ -550,6 +556,9 @@ class Translator with KernelNodes {
     }
     if (type is InlineType) {
       return translateStorageType(type.instantiatedRepresentationType);
+    }
+    if (type is RecordType) {
+      return typeForInfo(getRecordClassInfo(type), type.isPotentiallyNullable);
     }
     throw "Unsupported type ${type.runtimeType}";
   }
@@ -964,6 +973,9 @@ class Translator with KernelNodes {
     b.struct_get(info.struct, FieldIndex.listLength);
     b.i32_wrap_i64();
   }
+
+  ClassInfo getRecordClassInfo(RecordType recordType) =>
+      classInfo[recordClasses[RecordShape.fromType(recordType)]!]!;
 }
 
 abstract class _FunctionGenerator {

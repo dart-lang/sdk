@@ -8080,6 +8080,99 @@ main() {
       });
     });
 
+    group('Wildcard pattern:', () {
+      group('covers matched type:', () {
+        test('without promotion candidate', () {
+          // In `if(<some int> case num _) ...`, the `else` branch should be
+          // unreachable because the type `num` fully covers the type `int`.
+          h.run([
+            ifCase(expr('int'), wildcard(type: 'num'), [
+              checkReachable(true),
+            ], [
+              checkReachable(false),
+            ]),
+          ]);
+        });
+
+        test('with promotion candidate', () {
+          // In `if(x case num _) ...`, the `else` branch should be unreachable
+          // because the type `num` fully covers the type `int`.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int'),
+            ifCase(x.expr, wildcard(type: 'num'), [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ], [
+              checkReachable(false),
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+      });
+
+      group("doesn't cover matched type:", () {
+        test('without promotion candidate', () {
+          // In `if(<some num> case int _) ...`, the `else` branch should be
+          // reachable because the type `int` doesn't fully cover the type
+          // `num`.
+          h.run([
+            ifCase(expr('num'), wildcard(type: 'int'), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        group('with promotion candidate:', () {
+          test('without factor', () {
+            var x = Var('x');
+            h.run([
+              declare(x, type: 'num'),
+              ifCase(x.expr, wildcard(type: 'int'), [
+                checkReachable(true),
+                checkPromoted(x, 'int'),
+              ], [
+                checkReachable(true),
+                checkNotPromoted(x),
+              ]),
+            ]);
+          });
+
+          test('with factor', () {
+            var x = Var('x');
+            h.run([
+              declare(x, type: 'int?'),
+              ifCase(x.expr, wildcard(type: 'Null'), [
+                checkReachable(true),
+                checkPromoted(x, 'Null'),
+              ], [
+                checkReachable(true),
+                checkPromoted(x, 'int'),
+              ]),
+            ]);
+          });
+        });
+      });
+
+      test("Subpattern doesn't promote scrutinee", () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          ifCase(
+              x.expr,
+              objectPattern(
+                  requiredType: 'num',
+                  fields: [wildcard(type: 'int').recordField('sign')]),
+              [
+                checkPromoted(x, 'num'),
+                // TODO(paulberry): should promote `x.sign` to `int`.
+              ]),
+        ]);
+      });
+    });
+
     test('Pattern inside guard', () {
       // Roughly equivalent Dart code:
       //     FutureOr<int> x = ...;

@@ -77,6 +77,7 @@ mixin KernelNodes {
   late final Class stackTraceClass = index.getClass("dart:core", "StackTrace");
   late final Class typeUniverseClass =
       index.getClass("dart:core", "_TypeUniverse");
+  late final Class recordTypeClass = index.getClass("dart:core", "_RecordType");
 
   // dart:core sync* support classes
   late final Class suspendStateClass =
