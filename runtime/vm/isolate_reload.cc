@@ -2379,7 +2379,16 @@ class FieldInvalidator {
       // Even if doing an identity reload, type check can fail if hot reload
       // happens while constructor is still running and field is not
       // initialized yet, so it has a null value.
-      ASSERT(!FLAG_identity_reload || value.IsNull());
+#ifdef DEBUG
+      if (FLAG_identity_reload && !value.IsNull()) {
+        FATAL(
+            "Type check failed during identity hot reload.\n"
+            "  field: %s\n"
+            "  type: %s\n"
+            "  value: %s\n",
+            field.ToCString(), type_.ToCString(), value.ToCString());
+      }
+#endif
       field.set_needs_load_guard(true);
     }
   }

@@ -236,9 +236,14 @@ class Abi {
 
 @pragma("vm:entry-point")
 class _FfiAbiSpecificMapping {
-  /// Indexed by [_abi].
+  /// A more concise representation of `AbiSpecificIntegerMapping`.
+  ///
+  /// `AbiSpecificIntegerMapping` contain a mapping from Abi to DartType.
+  /// Keys can be missing in `AbiSpecificIntegerMapping`.
+  ///
+  /// For easy access in the VM, this is a list, indexed by [Abi.index].
   @pragma("vm:entry-point")
-  final List<Object> nativeTypes;
+  final List<Type?> nativeTypes;
 
   const _FfiAbiSpecificMapping(this.nativeTypes);
 }
