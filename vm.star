@@ -269,15 +269,15 @@ _nightly_builder(
     channels = ["try"],
 )
 
-# vm|kernel-precomp|android
+# vm|android
 _extra_builder(
-    "vm-kernel-precomp-android-release-arm_x64",
-    category = "vm|kernel-precomp|android|a32",
+    "vm-aot-android-release-arm_x64",
+    category = "vm|android|a32",
     properties = slow_shards,
 )
 _extra_builder(
-    "vm-kernel-precomp-android-release-arm64c",
-    category = "vm|kernel-precomp|android|a64",
+    "vm-aot-android-release-arm64c",
+    category = "vm|android|a64",
     properties = slow_shards,
 )
 
