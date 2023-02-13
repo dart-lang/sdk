@@ -1319,7 +1319,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     late final w.ValueType nullableType;
     late final w.ValueType nonNullableType;
     late final void Function() compare;
-    if (node.cases.every((c) => c.expressions.isEmpty && c.isDefault)) {
+    if (node.cases.every((c) =>
+        c.expressions.isEmpty && c.isDefault ||
+        c.expressions.every((e) =>
+            e is NullLiteral ||
+            e is ConstantExpression && e.constant is NullConstant))) {
       // default-only switch
       nonNullableType = w.RefType.eq(nullable: false);
       nullableType = w.RefType.eq(nullable: true);
