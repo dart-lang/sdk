@@ -1187,35 +1187,41 @@ void f() {
   }
 
   test_syntheticPatternVariable_orPattern_inIfCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   if (x case <int>[var a || var a] when a > 0) {
     a;
   }
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 45, 8),
+    ]);
   }
 
   test_syntheticPatternVariable_orPattern_inSwitchExpression() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   (switch (x) {
     <int>[var a || var a] when a > 0 => a,
     _ => 0,
   });
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 52, 8),
+    ]);
   }
 
   test_syntheticPatternVariable_orPattern_inSwitchStatement() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case <int>[var a || var a] when a > 0:
       a;
   }
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 56, 8),
+    ]);
   }
 
   test_syntheticPatternVariable_switchCasesSharingABody() async {

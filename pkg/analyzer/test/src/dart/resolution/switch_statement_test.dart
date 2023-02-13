@@ -1108,7 +1108,9 @@ void f(Object? x) {
   }
 }
 ''', [
+      error(HintCode.DEAD_CODE, 55, 4),
       error(HintCode.UNREACHABLE_SWITCH_CASE, 55, 4),
+      error(HintCode.DEAD_CODE, 71, 7),
       error(
           CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
           86,
@@ -1346,14 +1348,16 @@ SwitchStatement
   }
 
   test_variables_logicalOr() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case <int>[var a || var a]:
       a;
   }
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 56, 8),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''

@@ -3745,7 +3745,11 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleDefault(Node node, int caseIndex) {
+  void handleDefault(
+    Node node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {
     _irBuilder.atom('default', Kind.caseHead, location: node.location);
   }
 
@@ -3826,6 +3830,13 @@ class _MiniAstTypeAnalyzer
   void handleNoStatement(Node node) {
     _irBuilder.atom('noop', Kind.statement, location: node.location);
   }
+
+  @override
+  void handleSwitchBeforeAlternative(
+    Node node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {}
 
   @override
   void handleSwitchScrutinee(Type type) {}

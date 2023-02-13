@@ -488,6 +488,12 @@ class NullSafetyDeadCodeVerifier {
         return;
       }
 
+      if (node is SwitchMember && node == firstDeadNode) {
+        _errorReporter.reportErrorForToken(HintCode.DEAD_CODE, node.keyword);
+        _firstDeadNode = null;
+        return;
+      }
+
       var parent = firstDeadNode.parent;
       if (parent is Assertion && identical(firstDeadNode, parent.message)) {
         // Don't report "dead code" for the message part of an assert statement,
@@ -547,6 +553,8 @@ class NullSafetyDeadCodeVerifier {
           if (grandParent is ForStatement) {
             _reportForUpdaters(grandParent);
           }
+        } else if (parent is LogicalOrPattern && node == parent.rightOperand) {
+          offset = parent.operator.offset;
         }
 
         var length = node.end - offset;

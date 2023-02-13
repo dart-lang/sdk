@@ -486,7 +486,7 @@ RecordPattern
   }
 
   test_recordType_sameShape_empty() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(() x) {
   switch (x) {
     case ():
@@ -494,7 +494,9 @@ void f(() x) {
     default:
   }
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 60, 7),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern

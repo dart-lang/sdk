@@ -8501,6 +8501,7 @@ class LogicalOrPatternImpl extends DartPatternImpl implements LogicalOrPattern {
   ) {
     resolverVisitor.analyzeLogicalOrPattern(
         context, this, leftOperand, rightOperand);
+    resolverVisitor.nullSafetyDeadCodeVerifier.flowEnd(rightOperand);
   }
 
   @override

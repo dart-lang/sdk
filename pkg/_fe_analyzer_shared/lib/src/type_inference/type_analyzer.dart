@@ -838,6 +838,7 @@ mixin TypeAnalyzer<
       context.patternVariablePromotionKeys[variableName] = promotionKey;
     }
     flow.logicalOrPattern_afterLhs();
+    handle_logicalOrPattern_afterLhs(node);
     Map<String, int> rightPromotionKeys = {};
     dispatchPattern(context.withPromotionKeys(rightPromotionKeys), rhs);
     // Stack: (Pattern left, Pattern right)
@@ -1483,6 +1484,7 @@ mixin TypeAnalyzer<
           getSwitchExpressionMemberInfo(node, i);
       flow.switchStatement_beginAlternatives();
       flow.switchStatement_beginAlternative();
+      handleSwitchBeforeAlternative(node, caseIndex: i, subIndex: 0);
       Node? pattern = memberInfo.head.pattern;
       Expression? guard;
       if (pattern != null) {
@@ -1516,7 +1518,7 @@ mixin TypeAnalyzer<
         }
         handleCaseHead(node, caseIndex: i, subIndex: 0);
       } else {
-        handleDefault(node, i);
+        handleDefault(node, caseIndex: i, subIndex: 0);
       }
       flow.switchStatement_endAlternative(guard);
       flow.switchStatement_endAlternatives(null, hasLabels: false);
@@ -1567,6 +1569,8 @@ mixin TypeAnalyzer<
             heads[headIndex];
         Node? pattern = head.pattern;
         flow.switchStatement_beginAlternative();
+        handleSwitchBeforeAlternative(node,
+            caseIndex: caseIndex, subIndex: headIndex);
         Expression? guard;
         if (pattern != null) {
           Map<String, List<Variable>> componentVariables = {};
@@ -1603,7 +1607,7 @@ mixin TypeAnalyzer<
           handleCaseHead(node, caseIndex: caseIndex, subIndex: headIndex);
         } else {
           hasDefault = true;
-          handleDefault(node, caseIndex);
+          handleDefault(node, caseIndex: caseIndex, subIndex: headIndex);
         }
         // Stack: (Expression, numExecutionPaths * StatementCase,
         //         numHeads * CaseHead),
@@ -1844,6 +1848,9 @@ mixin TypeAnalyzer<
   /// Called after visiting the `then` statement of an `if` statement.
   void handle_ifStatement_thenEnd(Statement node, Statement ifTrue) {}
 
+  /// Called after visiting the left hand side of a logical-or (`||`) pattern.
+  void handle_logicalOrPattern_afterLhs(Pattern node) {}
+
   /// Called after visiting a merged set of `case` / `default` clauses.
   ///
   /// [node] is the enclosing switch statement, [caseIndex] is the index of the
@@ -1867,9 +1874,14 @@ mixin TypeAnalyzer<
   ///
   /// [node] is the enclosing switch statement or switch expression and
   /// [caseIndex] is the index of the `default` clause.
+  /// [subIndex] is the index of the case head.
   ///
   /// Stack effect: pushes (CaseHead).
-  void handleDefault(Node node, int caseIndex);
+  void handleDefault(
+    Node node, {
+    required int caseIndex,
+    required int subIndex,
+  });
 
   /// Called after visiting a rest element in a list pattern.
   ///
@@ -1924,6 +1936,14 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Statement).
   void handleNoStatement(Statement node);
+
+  /// Called before visiting a single `case` or `default` clause.
+  ///
+  /// [node] is the enclosing switch statement or switch expression and
+  /// [caseIndex] is the index of the `case` or `default` clause.
+  /// [subIndex] is the index of the case head.
+  void handleSwitchBeforeAlternative(Node node,
+      {required int caseIndex, required int subIndex});
 
   /// Called after visiting the scrutinee part of a switch statement or switch
   /// expression.  This is a hook to allow the client to start exhaustiveness
