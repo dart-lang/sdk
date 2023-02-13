@@ -1389,6 +1389,24 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitSwitchExpression(SwitchExpression node) {
+    if (identical(entity, node.expression)) {
+      optype.completionLocation = 'SwitchExpression_expression';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    if (identical(entity, node.expression)) {
+      optype.completionLocation = 'SwitchExpressionCase_expression';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
     if (identical(entity, node.colon)) {
       var guardedPattern = node.guardedPattern;

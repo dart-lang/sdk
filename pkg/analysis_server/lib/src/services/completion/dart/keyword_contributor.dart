@@ -827,6 +827,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitSwitchExpression(SwitchExpression node) {
+    if (entity == node.expression) {
+      _addExpressionKeywords(node);
+    }
+  }
+
+  @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
     final entity = this.entity;
     if (entity == node.colon && request.target.offset <= node.colon.offset) {
@@ -861,22 +868,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
     } else if (entity == node.rightBracket) {
-      if (node.members.isEmpty) {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
-      } else {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
+      _addSuggestion(Keyword.CASE);
+      _addSuggestion2(DEFAULT_COLON);
+      if (node.members.isNotEmpty) {
         _addStatementKeywords(node);
       }
     }
     if (node.members.contains(entity)) {
-      if (entity == node.members.first) {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
-      } else {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
+      _addSuggestion(Keyword.CASE);
+      _addSuggestion2(DEFAULT_COLON);
+      if (entity != node.members.first) {
         _addStatementKeywords(node);
       }
     }
