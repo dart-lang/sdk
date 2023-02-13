@@ -246,10 +246,37 @@ void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
   Dart_Handle result = Dart_ListLength(buffer_obj, &array_len);
   ThrowIfError(result);
   ASSERT(end <= array_len);
-  uint8_t* buffer = Dart_ScopeAllocate(length);
+
+  uint8_t* buffer;
+  bool is_byte_data = false;
+
+  if (Dart_IsTypedData(buffer_obj)) {
+    // Avoid a memory copy if the input List<int> is an UInt8List.
+    Dart_TypedData_Type data_type;
+    intptr_t bytes_count;
+    ThrowIfError(Dart_TypedDataAcquireData(buffer_obj, &data_type,
+                                           reinterpret_cast<void**>(&buffer),
+                                           &bytes_count));
+    if (data_type == Dart_TypedData_kUint8) {
+      is_byte_data = true;
+      buffer += start;
+      ASSERT(bytes_count == array_len);
+    } else {
+      ThrowIfError(Dart_TypedDataReleaseData(buffer_obj));
+    }
+  }
+
+  if (!is_byte_data) {
+    buffer = Dart_ScopeAllocate(length);
+  }
+
   int64_t bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
   if (bytes_read >= 0) {
-    result = Dart_ListSetAsBytes(buffer_obj, start, buffer, bytes_read);
+    if (is_byte_data) {
+      result = Dart_TypedDataReleaseData(buffer_obj);
+    } else {
+      result = Dart_ListSetAsBytes(buffer_obj, start, buffer, bytes_read);
+    }
     if (Dart_IsError(result)) {
       Dart_SetReturnValue(args, result);
     } else {
