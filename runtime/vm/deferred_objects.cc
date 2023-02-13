@@ -136,7 +136,7 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   } else {
     if (deopt_context->HasDeoptFlag(ICData::kHoisted)) {
       // Prevent excessive deoptimization.
-      function.SetProhibitsHoistingCheckClass(true);
+      function.SetProhibitsInstructionHoisting(true);
     }
 
     if (deopt_context->HasDeoptFlag(ICData::kGeneralized)) {

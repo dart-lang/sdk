@@ -840,7 +840,6 @@ CheckClassInstr::CheckClassInstr(Value* value,
                                  const InstructionSource& source)
     : TemplateInstruction(source, deopt_id),
       cids_(cids),
-      licm_hoisted_(false),
       is_bit_test_(IsCompactCidRange(cids)),
       token_pos_(source.token_pos) {
   // Expected useful check data.
@@ -3629,9 +3628,7 @@ TestCidsInstr::TestCidsInstr(const InstructionSource& source,
                              Value* value,
                              const ZoneGrowableArray<intptr_t>& cid_results,
                              intptr_t deopt_id)
-    : TemplateComparison(source, kind, deopt_id),
-      cid_results_(cid_results),
-      licm_hoisted_(false) {
+    : TemplateComparison(source, kind, deopt_id), cid_results_(cid_results) {
   ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
   SetInputAt(0, value);
   set_operation_cid(kObjectCid);
@@ -5830,8 +5827,7 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label* deopt =
-      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
-                             licm_hoisted_ ? ICData::kHoisted : 0);
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
   if (IsNullCheck()) {
     EmitNullCheck(compiler, deopt);
     return;
@@ -6116,6 +6112,9 @@ Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
                   function_, (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
   copy->SetDeoptId(DeoptIdBits::decode(bitfield_));
   copy->SetLazyDeoptToBeforeDeoptId(LazyDeoptToBeforeDeoptId());
+  if (IsHoisted()) {
+    copy->MarkAsHoisted();
+  }
   if (locations_ != NULL) {
     Location* new_locations = zone->Alloc<Location>(length);
     copy->set_locations(new_locations);

@@ -4954,13 +4954,9 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   virtual bool AttributesEqual(const Instruction& other) const;
 
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const ZoneGrowableArray<intptr_t>&, cid_results_)                          \
-  F(bool, licm_hoisted_)
+#define FIELD_LIST(F) F(const ZoneGrowableArray<intptr_t>&, cid_results_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TestCidsInstr,
                                           TemplateComparison,
@@ -7693,7 +7689,7 @@ class CloneContextInstr : public TemplateDefinition<1, Throws> {
 class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
  public:
   CheckEitherNonSmiInstr(Value* left, Value* right, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id), licm_hoisted_(false) {
+      : TemplateInstruction(deopt_id) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -7709,14 +7705,7 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-
-#define FIELD_LIST(F) F(bool, licm_hoisted_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckEitherNonSmiInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
+  DECLARE_EMPTY_SERIALIZATION(CheckEitherNonSmiInstr, TemplateInstruction)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
@@ -9760,14 +9749,10 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual bool AttributesEqual(const Instruction& other) const;
 
-  bool licm_hoisted() const { return licm_hoisted_; }
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
   F(const Cids&, cids_)                                                        \
-  F(bool, licm_hoisted_)                                                       \
   F(bool, is_bit_test_)                                                        \
   F(const TokenPosition, token_pos_)
 
@@ -9800,9 +9785,7 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
   CheckSmiInstr(Value* value,
                 intptr_t deopt_id,
                 const InstructionSource& source)
-      : TemplateInstruction(source, deopt_id),
-        token_pos_(source.token_pos),
-        licm_hoisted_(false) {
+      : TemplateInstruction(source, deopt_id), token_pos_(source.token_pos) {
     SetInputAt(0, value);
   }
 
@@ -9817,12 +9800,7 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
-  bool licm_hoisted() const { return licm_hoisted_; }
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(bool, licm_hoisted_)
+#define FIELD_LIST(F) F(const TokenPosition, token_pos_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckSmiInstr,
                                           TemplateInstruction,
@@ -9982,9 +9960,7 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
 class CheckArrayBoundInstr : public CheckBoundBase {
  public:
   CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : CheckBoundBase(length, index, deopt_id),
-        generalized_(false),
-        licm_hoisted_(false) {}
+      : CheckBoundBase(length, index, deopt_id), generalized_(false) {}
 
   DECLARE_INSTRUCTION(CheckArrayBound)
 
@@ -10002,11 +9978,7 @@ class CheckArrayBoundInstr : public CheckBoundBase {
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-
-#define FIELD_LIST(F)                                                          \
-  F(bool, generalized_)                                                        \
-  F(bool, licm_hoisted_)
+#define FIELD_LIST(F) F(bool, generalized_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckArrayBoundInstr,
                                           CheckBoundBase,
@@ -10802,6 +10774,11 @@ class Environment : public ZoneAllocated {
     bitfield_ = LazyDeoptToBeforeDeoptId::update(true, bitfield_);
   }
 
+  // This environment belongs to an optimistically hoisted instruction.
+  bool IsHoisted() const { return Hoisted::decode(bitfield_); }
+
+  void MarkAsHoisted() { bitfield_ = Hoisted::update(true, bitfield_); }
+
   Environment* GetLazyDeoptEnv(Zone* zone) {
     const intptr_t num_args_to_prune = LazyDeoptPruneCount();
     if (num_args_to_prune == 0) return this;
@@ -10884,12 +10861,15 @@ class Environment : public ZoneAllocated {
   class LazyDeoptPruningBits : public BitField<uintptr_t, uintptr_t, 0, 8> {};
   class LazyDeoptToBeforeDeoptId
       : public BitField<uintptr_t, bool, LazyDeoptPruningBits::kNextBit, 1> {};
-  class DeoptIdBits
-      : public BitField<uintptr_t,
-                        intptr_t,
-                        LazyDeoptToBeforeDeoptId::kNextBit,
-                        kBitsPerWord - LazyDeoptToBeforeDeoptId::kNextBit,
-                        /*sign_extend=*/true> {};
+  class Hoisted : public BitField<uintptr_t,
+                                  bool,
+                                  LazyDeoptToBeforeDeoptId::kNextBit,
+                                  1> {};
+  class DeoptIdBits : public BitField<uintptr_t,
+                                      intptr_t,
+                                      Hoisted::kNextBit,
+                                      kBitsPerWord - Hoisted::kNextBit,
+                                      /*sign_extend=*/true> {};
 
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,

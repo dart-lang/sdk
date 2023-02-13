@@ -1241,6 +1241,10 @@ compiler::Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
   }
 
   ASSERT(is_optimizing_);
+  ASSERT(pending_deoptimization_env_ != nullptr);
+  if (pending_deoptimization_env_->IsHoisted()) {
+    flags |= ICData::kHoisted;
+  }
   CompilerDeoptInfoWithStub* stub = new (zone()) CompilerDeoptInfoWithStub(
       deopt_id, reason, flags, pending_deoptimization_env_);
   deopt_infos_.Add(stub);
