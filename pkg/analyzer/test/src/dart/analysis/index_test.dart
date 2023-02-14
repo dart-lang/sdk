@@ -168,7 +168,6 @@ class B extends p.A {} // 2
 30 + 1: IS_ANCESTOR_OF
 42 + 1: IS_EXTENDED_BY qualified
 42 + 1: IS_REFERENCED_BY qualified
-42 + 1: IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -226,7 +225,6 @@ class C = p.A with B;
 41 + 1: IS_ANCESTOR_OF
 47 + 1: IS_EXTENDED_BY qualified
 47 + 1: IS_REFERENCED_BY qualified
-47 + 1: IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -256,7 +254,6 @@ class B implements p.A {} // 2
     assertElementIndexText(element, r'''
 30 + 1: IS_ANCESTOR_OF
 45 + 1: IS_IMPLEMENTED_BY qualified
-45 + 1: IS_REFERENCED_BY qualified
 45 + 1: IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
@@ -619,11 +616,9 @@ import 'lib.dart' as p;
 class B extends Object with p.A {} // 2
 ''');
     final element = importFindLib().class_('A');
-    // TODO(scheglov) Why do we have duplicate?
     assertElementIndexText(element, r'''
 30 + 1: IS_ANCESTOR_OF
 54 + 1: IS_MIXED_IN_BY qualified
-54 + 1: IS_REFERENCED_BY qualified
 54 + 1: IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
@@ -1607,12 +1602,10 @@ int f() => p.A.f;
 class B extends p.A {}
 ''');
     final element = findElement.class_('B').supertype!.element;
-    // TODO(scheglov) Why duplicates?
     assertElementIndexText(element, r'''
 38 + 1: IS_REFERENCED_BY qualified
 50 + 1: IS_ANCESTOR_OF
 62 + 1: IS_EXTENDED_BY qualified
-62 + 1: IS_REFERENCED_BY qualified
 62 + 1: IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
@@ -1687,12 +1680,10 @@ void f() => p.A.m();
 class B extends p.A {}
 ''');
     final element = findElement.class_('B').supertype!.element;
-    // TODO(scheglov) Why duplicates?
     assertElementIndexText(element, r'''
 39 + 1: IS_REFERENCED_BY qualified
 53 + 1: IS_ANCESTOR_OF
 65 + 1: IS_EXTENDED_BY qualified
-65 + 1: IS_REFERENCED_BY qualified
 65 + 1: IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
@@ -1994,7 +1985,6 @@ class B extends p.A {}
 60 + 1: IS_ANCESTOR_OF
 72 + 1: IS_EXTENDED_BY qualified
 72 + 1: IS_REFERENCED_BY qualified
-72 + 1: IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -2015,7 +2005,6 @@ class B extends p.A {}
 35 + 1: IS_REFERENCED_BY qualified
 45 + 1: IS_ANCESTOR_OF
 57 + 1: IS_EXTENDED_BY qualified
-57 + 1: IS_REFERENCED_BY qualified
 57 + 1: IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
@@ -2382,11 +2371,14 @@ void f() {
     final relations = <_Relation>[];
     for (var i = 0; i < index.usedElementOffsets.length; i++) {
       if (index.usedElements[i] == elementId) {
-        relations.add(_Relation(
-            index.usedElementKinds[i],
-            index.usedElementOffsets[i],
-            index.usedElementLengths[i],
-            index.usedElementIsQualifiedFlags[i]));
+        relations.add(
+          _Relation(
+            kind: index.usedElementKinds[i],
+            offset: index.usedElementOffsets[i],
+            length: index.usedElementLengths[i],
+            isQualified: index.usedElementIsQualifiedFlags[i],
+          ),
+        );
       }
     }
 
@@ -2397,6 +2389,21 @@ void f() {
       }
       return a.kind.name.compareTo(b.kind.name);
     });
+
+    // Verify that there are no duplicate relations.
+    var lastOffset = -1;
+    var lastLength = -1;
+    IndexRelationKind? lastKind;
+    for (final relation in sortedRelations) {
+      if (relation.offset == lastOffset &&
+          relation.length == lastLength &&
+          relation.kind == lastKind) {
+        fail('Duplicate relation: $relation');
+      }
+      lastOffset = relation.offset;
+      lastLength = relation.length;
+      lastKind = relation.kind;
+    }
 
     final buffer = StringBuffer();
     for (final relation in sortedRelations) {
@@ -2595,11 +2602,16 @@ class _Relation {
   final int length;
   final bool isQualified;
 
-  _Relation(this.kind, this.offset, this.length, this.isQualified);
+  _Relation({
+    required this.kind,
+    required this.offset,
+    required this.length,
+    required this.isQualified,
+  });
 
   @override
   String toString() {
     return '_Relation{kind: $kind, offset: $offset, length: $length, '
-        'isQualified: $isQualified}lified)';
+        'isQualified: $isQualified})';
   }
 }
