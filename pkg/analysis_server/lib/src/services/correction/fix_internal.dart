@@ -147,6 +147,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_print.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_required.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
@@ -1398,22 +1399,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
       RemoveAnnotation.new,
     ],
-    HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
-      RemoveCharacter.new,
-      ReplaceWithUnicodeEscape.new,
-    ],
-    HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL: [
-      RemoveCharacter.new,
-      ReplaceWithUnicodeEscape.new,
-    ],
-    // TODO(brianwilkerson) Add a fix to normalize the path.
-//    HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT: [],
-    HintCode.TYPE_CHECK_IS_NOT_NULL: [
-      UseNotEqNull.new,
-    ],
-    HintCode.TYPE_CHECK_IS_NULL: [
-      UseEqEqNull.new,
-    ],
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.new,
     ],
@@ -1442,6 +1427,9 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.UNNECESSARY_QUESTION_MARK: [
       RemoveQuestionMark.new,
+    ],
+    HintCode.UNNECESSARY_SET_LITERAL: [
+      RemoveSetLiteral.new,
     ],
     HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
       RemoveComparison.typeCheck,
@@ -1600,6 +1588,20 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.SDK_VERSION_UI_AS_CODE: [
       UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
+      RemoveCharacter.new,
+      ReplaceWithUnicodeEscape.new,
+    ],
+    WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL: [
+      RemoveCharacter.new,
+      ReplaceWithUnicodeEscape.new,
+    ],
+    WarningCode.TYPE_CHECK_IS_NOT_NULL: [
+      UseNotEqNull.new,
+    ],
+    WarningCode.TYPE_CHECK_IS_NULL: [
+      UseEqEqNull.new,
     ],
     WarningCode.UNDEFINED_HIDDEN_NAME: [
       RemoveNameFromCombinator.new,

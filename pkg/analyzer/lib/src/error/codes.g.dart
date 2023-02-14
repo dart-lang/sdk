@@ -6503,6 +6503,48 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the unicode sequence of the code point.
+  static const WarningCode TEXT_DIRECTION_CODE_POINT_IN_COMMENT = WarningCode(
+    'TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
+    "The Unicode code point 'U+{0}' changes the appearance of text from how "
+        "it's interpreted by the compiler.",
+    correctionMessage:
+        "Try removing the code point or using the Unicode escape sequence "
+        "'\\u{0}'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the unicode sequence of the code point.
+  static const WarningCode TEXT_DIRECTION_CODE_POINT_IN_LITERAL = WarningCode(
+    'TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
+    "The Unicode code point 'U+{0}' changes the appearance of text from how "
+        "it's interpreted by the compiler.",
+    correctionMessage:
+        "Try removing the code point or using the Unicode escape sequence "
+        "'\\u{0}'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode TYPE_CHECK_IS_NOT_NULL = WarningCode(
+    'TYPE_CHECK_WITH_NULL',
+    "Tests for non-null should be done with '!= null'.",
+    correctionMessage: "Try replacing the 'is! Null' check with '!= null'.",
+    hasPublishedDocs: true,
+    uniqueName: 'TYPE_CHECK_IS_NOT_NULL',
+  );
+
+  ///  No parameters.
+  static const WarningCode TYPE_CHECK_IS_NULL = WarningCode(
+    'TYPE_CHECK_WITH_NULL',
+    "Tests for null should be done with '== null'.",
+    correctionMessage: "Try replacing the 'is Null' check with '== null'.",
+    hasPublishedDocs: true,
+    uniqueName: 'TYPE_CHECK_IS_NULL',
+  );
+
+  ///  Parameters:
   ///  0: the name of the library being imported
   ///  1: the name in the hide clause that isn't defined in the library
   static const WarningCode UNDEFINED_HIDDEN_NAME = WarningCode(

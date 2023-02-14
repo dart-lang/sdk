@@ -1188,6 +1188,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove invalid returned values in file',
   );
+  static const REMOVE_SET_LITERAL = FixKind(
+    'dart.fix.remove.setLiteral',
+    DartFixKindPriority.DEFAULT,
+    'Remove set literal',
+  );
+  static const REMOVE_SET_LITERAL_MULTI = FixKind(
+    'dart.fix.remove.setLiteral.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove set literal everywhere in file',
+  );
   static const REMOVE_THIS_EXPRESSION = FixKind(
     'dart.fix.remove.thisExpression',
     DartFixKindPriority.DEFAULT,

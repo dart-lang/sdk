@@ -887,8 +887,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       } else {
         _errorReporter.reportErrorForNode(
           node.notOperator == null
-              ? HintCode.TYPE_CHECK_IS_NULL
-              : HintCode.TYPE_CHECK_IS_NOT_NULL,
+              ? WarningCode.TYPE_CHECK_IS_NULL
+              : WarningCode.TYPE_CHECK_IS_NOT_NULL,
           node,
         );
       }

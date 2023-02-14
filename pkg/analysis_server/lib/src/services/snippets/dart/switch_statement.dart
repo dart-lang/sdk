@@ -6,10 +6,10 @@ import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_producer.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
-/// Produces a [Snippet] that creates an if statement.
+/// Produces a [Snippet] that creates a switch statement.
 class SwitchStatement extends DartSnippetProducer {
   static const prefix = 'switch';
-  static const label = 'switch case';
+  static const label = 'switch statement';
 
   SwitchStatement(super.request, {required super.elementImportCache});
 

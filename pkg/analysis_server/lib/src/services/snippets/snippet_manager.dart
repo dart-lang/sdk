@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/snippets/dart/function_declaration.
 import 'package:analysis_server/src/services/snippets/dart/if_else_statement.dart';
 import 'package:analysis_server/src/services/snippets/dart/if_statement.dart';
 import 'package:analysis_server/src/services/snippets/dart/main_function.dart';
+import 'package:analysis_server/src/services/snippets/dart/switch_expression.dart';
 import 'package:analysis_server/src/services/snippets/dart/switch_statement.dart';
 import 'package:analysis_server/src/services/snippets/dart/test_definition.dart';
 import 'package:analysis_server/src/services/snippets/dart/test_group_definition.dart';
@@ -59,7 +60,10 @@ class DartSnippetManager {
     ],
     SnippetContext.inClass: [
       FunctionDeclaration.new,
-    ]
+    ],
+    SnippetContext.inExpression: [
+      SwitchExpression.new,
+    ],
   };
 
   Future<List<Snippet>> computeSnippets(

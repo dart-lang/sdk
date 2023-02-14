@@ -27,8 +27,8 @@ class UnicodeTextVerifier {
         // (where Unicode is outside a string or comment).
         var errorCode =
             node is SimpleStringLiteral || node is InterpolationString
-                ? HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL
-                : HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT;
+                ? WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL
+                : WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT;
         var code = codeUnit.toRadixString(16).toUpperCase();
         errorReporter.reportErrorForOffset(errorCode, offset, 1, [code]);
       }

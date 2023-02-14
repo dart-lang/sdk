@@ -16,6 +16,7 @@ import 'function_declaration_test.dart' as function_declaration;
 import 'if_else_statement_test.dart' as if_else_statement;
 import 'if_statement_test.dart' as if_statement;
 import 'main_function_test.dart' as main_function;
+import 'switch_expression_test.dart' as switch_expression;
 import 'switch_statement_test.dart' as switch_statement;
 import 'test_definition_test.dart' as test_definition;
 import 'test_group_definition_test.dart' as test_group_definition;
@@ -35,6 +36,7 @@ void main() {
     if_else_statement.main();
     if_statement.main();
     main_function.main();
+    switch_expression.main();
     switch_statement.main();
     test_definition.main();
     test_group_definition.main();

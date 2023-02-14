@@ -180,6 +180,7 @@ import 'remove_print_test.dart' as remove_print;
 import 'remove_question_mark_test.dart' as remove_question_mark;
 import 'remove_required_test.dart' as remove_required;
 import 'remove_returned_value_test.dart' as remove_returned_value;
+import 'remove_set_literal_test.dart' as remove_set_literal;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
@@ -411,6 +412,7 @@ void main() {
     remove_question_mark.main();
     remove_required.main();
     remove_returned_value.main();
+    remove_set_literal.main();
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_type_arguments.main();
