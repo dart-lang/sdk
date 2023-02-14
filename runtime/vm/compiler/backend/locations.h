@@ -291,6 +291,9 @@ class Location : public ValueObject {
     return UnallocatedLocation(kPrefersRegister);
   }
 
+  // Blocks a CPU register for the entirety of the IL instruction.
+  //
+  // The register value _must_ be preserved by the machine code.
   static Location RequiresRegister() {
     return UnallocatedLocation(kRequiresRegister);
   }
@@ -299,6 +302,9 @@ class Location : public ValueObject {
     return UnallocatedLocation(kRequiresFpuRegister);
   }
 
+  // Blocks a CPU register for the entirety of the IL instruction.
+  //
+  // The register value does not have to be preserved by the machine code.
   static Location WritableRegister() {
     return UnallocatedLocation(kWritableRegister);
   }
@@ -317,7 +323,10 @@ class Location : public ValueObject {
     return PolicyField::decode(payload());
   }
 
-  // Register locations.
+  // Blocks `reg` for the entirety of the IL instruction.
+  //
+  // The register value does not have to be preserved by the machine code.
+  // TODO(https://dartbug.com/51409): Rename to WritableRegisterLocation.
   static Location RegisterLocation(Register reg) {
     return Location(kRegister, reg);
   }

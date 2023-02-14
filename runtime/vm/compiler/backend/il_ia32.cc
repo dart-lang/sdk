@@ -85,7 +85,7 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = remove_loop ? 1 : 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(kSrcPos, Location::RequiresRegister());
+  locs->set_in(kSrcPos, Location::WritableRegister());
   locs->set_in(kDestPos, Location::RegisterLocation(EDI));
   locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
   locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
