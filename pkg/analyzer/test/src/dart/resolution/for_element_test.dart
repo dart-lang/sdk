@@ -355,6 +355,74 @@ ForElement
     staticType: num
 ''');
   }
+
+  test_topLevelVariableInitializer() async {
+    await assertNoErrorsInCode(r'''
+final x = [0, 1, 2];
+final y = [ for (var (a) in x) a ];
+''');
+    var node = findNode.singleForElement;
+    assertResolvedNodeText(node, r'''
+ForElement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@43
+          type: int
+        matchedValueType: int
+      rightParenthesis: )
+      matchedValueType: int
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@getter::x
+      staticType: List<int>
+  rightParenthesis: )
+  body: SimpleIdentifier
+    token: a
+    staticElement: a@43
+    staticType: int
+''');
+  }
+
+  test_topLevelVariableInitializer_scope() async {
+    await assertNoErrorsInCode(r'''
+final x = [0, 1, 2];
+final y = [ for (var (x) in x) x ];
+''');
+    var node = findNode.singleForElement;
+    assertResolvedNodeText(node, r'''
+ForElement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: x
+        declaredElement: hasImplicitType x@43
+          type: int
+        matchedValueType: int
+      rightParenthesis: )
+      matchedValueType: int
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@getter::x
+      staticType: List<int>
+  rightParenthesis: )
+  body: SimpleIdentifier
+    token: x
+    staticElement: x@43
+    staticType: int
+''');
+  }
 }
 
 @reflectiveTest

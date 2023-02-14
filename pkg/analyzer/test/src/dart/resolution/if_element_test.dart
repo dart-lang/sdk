@@ -50,6 +50,38 @@ IfElement
 ''');
   }
 
+  test_caseClause_topLevelVariableInitializer() async {
+    await assertNoErrorsInCode(r'''
+final x = 0;
+final y = [ if (x case var a) a ];
+''');
+
+    final node = findNode.singleIfElement;
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@getter::x
+    staticType: int
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: DeclaredVariablePattern
+        keyword: var
+        name: a
+        declaredElement: hasImplicitType a@40
+          type: int
+        matchedValueType: int
+  rightParenthesis: )
+  thenElement: SimpleIdentifier
+    token: a
+    staticElement: a@40
+    staticType: int
+''');
+  }
+
   test_caseClause_variables_scope() async {
     // Each `guardedPattern` introduces a new case scope which is where the
     // variables defined by that case's pattern are bound.

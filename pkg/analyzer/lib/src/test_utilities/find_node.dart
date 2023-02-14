@@ -66,6 +66,19 @@ class FindNode {
     return nodes.single;
   }
 
+  /// Returns the [IfElement], there must be only one.
+  IfElement get singleIfElement {
+    var nodes = <IfElement>[];
+    unit.accept(
+      FunctionAstVisitor(
+        ifElement: (node) {
+          nodes.add(node);
+        },
+      ),
+    );
+    return nodes.single;
+  }
+
   /// Returns the [IfStatement], there must be only one.
   IfStatement get singleIfStatement {
     var nodes = <IfStatement>[];
