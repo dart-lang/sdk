@@ -6,6 +6,8 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/intersect.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:test/test.dart';
 
+import 'env.dart';
+
 void main() {
   test('hierarchy', () {
     //   (A)
@@ -13,12 +15,13 @@ void main() {
     //  B C(D)
     //     / \
     //    E   F
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', isSealed: true, inherits: [a]);
-    var e = StaticTypeImpl('E', inherits: [d]);
-    var f = StaticTypeImpl('F', inherits: [d]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', isSealed: true, inherits: [a]);
+    var e = env.createClass('E', inherits: [d]);
+    var f = env.createClass('F', inherits: [d]);
 
     expectIntersect(a, a, a);
     expectIntersect(a, b, b);
@@ -52,11 +55,12 @@ void main() {
     //   (B)  C
     //   / \ /
     //  D   E
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [b]);
-    var e = StaticTypeImpl('E', inherits: [b, c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [b]);
+    var e = env.createClass('E', inherits: [b, c]);
 
     expectIntersect(a, a, a);
     expectIntersect(a, b, b);
@@ -79,8 +83,9 @@ void main() {
     // A
     // |
     // B
-    var a = StaticTypeImpl('A');
-    var b = StaticTypeImpl('B', inherits: [a]);
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', inherits: [a]);
 
     expectIntersect(a, a.nullable, a);
     expectIntersect(a, StaticType.nullType, StaticType.neverType);

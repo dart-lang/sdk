@@ -2,20 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:test/test.dart';
 
+import 'env.dart';
 import 'utils.dart';
 
 void main() {
-  group('sealed subtypes', () {
+  group('sealed subtypes |', () {
     //   (A)
     //   / \
     //  B   C
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var t = StaticTypeImpl('T', fields: {'x': a, 'y': a});
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var t = env.createClass('T', fields: {'x': a, 'y': a});
 
     expectExhaustiveOnlyAll(t, [
       ty(t, {'x': b, 'y': b}),
@@ -25,15 +26,16 @@ void main() {
     ]);
   });
 
-  group('sealed subtypes medium', () {
+  group('sealed subtypes medium |', () {
     //   (A)
     //   /|\
     //  B C D
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [a]);
-    var t = StaticTypeImpl('T', fields: {'y': a, 'z': a});
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [a]);
+    var t = env.createClass('T', fields: {'y': a, 'z': a});
 
     expectExhaustiveOnlyAll(t, [
       ty(t, {'y': b, 'z': b}),
@@ -48,15 +50,16 @@ void main() {
     ]);
   });
 
-  group('sealed subtypes large', () {
+  group('sealed subtypes large |', () {
     //   (A)
     //   /|\
     //  B C D
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [a]);
-    var t = StaticTypeImpl('T', fields: {'w': a, 'x': a, 'y': a, 'z': a});
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [a]);
+    var t = env.createClass('T', fields: {'w': a, 'x': a, 'y': a, 'z': a});
 
     expectExhaustiveOnlyAll(t, [
       ty(t, {'w': b, 'x': b, 'y': b, 'z': b}),
@@ -143,20 +146,21 @@ void main() {
     ]);
   });
 
-  group('sealed transitive subtypes', () {
+  group('sealed transitive subtypes |', () {
     //     (A)
     //     / \
     //   (B) (C)
     //   / \   \
     //  D   E   F
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
-    var c = StaticTypeImpl('C', isSealed: true, inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [b]);
-    var e = StaticTypeImpl('E', inherits: [b]);
-    var f = StaticTypeImpl('F', inherits: [c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', isSealed: true, inherits: [a]);
+    var d = env.createClass('D', inherits: [b]);
+    var e = env.createClass('E', inherits: [b]);
+    var f = env.createClass('F', inherits: [c]);
 
-    var t = StaticTypeImpl('T', fields: {'x': a, 'y': a});
+    var t = env.createClass('T', fields: {'x': a, 'y': a});
     expectExhaustiveOnlyAll(t, [
       ty(t, {'x': a, 'y': a}),
     ]);
@@ -178,16 +182,17 @@ void main() {
     ]);
   });
 
-  group('unsealed subtypes', () {
+  group('unsealed subtypes |', () {
     //    A
     //   / \
     //  B   C
-    var a = StaticTypeImpl('A');
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
 
     // Not exhaustive even when known subtypes covered.
-    var t = StaticTypeImpl('T', fields: {'x': a, 'y': a});
+    var t = env.createClass('T', fields: {'x': a, 'y': a});
     expectNeverExhaustive(t, [
       ty(t, {'x': b, 'y': b}),
       ty(t, {'x': b, 'y': c}),
@@ -196,20 +201,21 @@ void main() {
     ]);
 
     // Exhaustive if field static type is a covered subtype.
-    var u = StaticTypeImpl('T', fields: {'x': b, 'y': c});
+    var u = env.createClass('U', fields: {'x': b, 'y': c});
     expectExhaustiveOnlyAll(u, [
       ty(u, {'x': b, 'y': c}),
     ]);
   });
 
-  group('different fields', () {
+  group('different fields |', () {
     //   (A)
     //   / \
     //  B   C
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var t = StaticTypeImpl('T', fields: {'x': a, 'y': a, 'z': a});
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var t = env.createClass('T', fields: {'x': a, 'y': a, 'z': a});
 
     expectNeverExhaustive(t, [
       ty(t, {'x': b}),
@@ -230,14 +236,15 @@ void main() {
     ]);
   });
 
-  group('field types', () {
+  group('field types |', () {
     //   (A)
     //   / \
     //  B   C
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var t = StaticTypeImpl('T', fields: {'x': a, 'y': b, 'z': c});
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var t = env.createClass('T', fields: {'x': a, 'y': b, 'z': c});
 
     expectExhaustiveOnlyAll(t, [
       ty(t, {'x': a, 'y': b, 'z': c}),

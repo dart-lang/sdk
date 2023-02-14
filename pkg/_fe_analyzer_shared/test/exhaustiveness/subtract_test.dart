@@ -7,13 +7,15 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/subtract.dart';
 import 'package:test/test.dart';
 
+import 'env.dart';
 import 'utils.dart';
 
 void main() {
   group('empty', () {
-    var a = StaticTypeImpl('A');
-    var b = StaticTypeImpl('B', inherits: [a], fields: {'x': a, 'y': a});
-    var c = StaticTypeImpl('C', inherits: [a]);
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', inherits: [a], fields: {'x': a, 'y': a});
+    var c = env.createClass('C', inherits: [a]);
 
     expectSubtract('∅', '∅', '∅');
 
@@ -46,12 +48,13 @@ void main() {
     //  B C(D)
     //     / \
     //    E   F
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', isSealed: true, inherits: [a]);
-    var e = StaticTypeImpl('E', inherits: [d]);
-    var f = StaticTypeImpl('F', inherits: [d]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', isSealed: true, inherits: [a]);
+    var e = env.createClass('E', inherits: [d]);
+    var f = env.createClass('F', inherits: [d]);
 
     expectSubtract(a, b, 'C|D');
     expectSubtract(a, c, 'B|D');
@@ -83,11 +86,12 @@ void main() {
     // C   D
     //  \ /
     //   E
-    var a = StaticTypeImpl('A');
-    var b = StaticTypeImpl('B');
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [a, b]);
-    var e = StaticTypeImpl('E', inherits: [c, d]);
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B');
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [a, b]);
+    var e = env.createClass('E', inherits: [c, d]);
 
     expectSubtract(a, a, '∅');
     expectSubtract(a, b, 'A');
@@ -124,10 +128,11 @@ void main() {
     //  X  A
     //  |  |
     //  Y  B
-    var x = StaticTypeImpl('X');
-    var y = StaticTypeImpl('Y', inherits: [x]);
-    var a = StaticTypeImpl('A', fields: {'x': StaticType.nullableObject});
-    var b = StaticTypeImpl('B', inherits: [a]);
+    var env = TestEnvironment();
+    var x = env.createClass('X');
+    var y = env.createClass('Y', inherits: [x]);
+    var a = env.createClass('A', fields: {'x': StaticType.nullableObject});
+    var b = env.createClass('B', inherits: [a]);
 
     Space A({required StaticType x}) => ty(a, {'x': x});
     Space B({required StaticType x}) => ty(b, {'x': x});
@@ -166,15 +171,16 @@ void main() {
     //   (X)    (A)
     //   /|\    /|\
     //  W Y Z  B C D
-    var x = StaticTypeImpl('X', isSealed: true);
-    StaticTypeImpl('W', inherits: [x]);
-    var y = StaticTypeImpl('Y', inherits: [x]);
-    StaticTypeImpl('Z', inherits: [x]);
-    var a = StaticTypeImpl('A',
+    var env = TestEnvironment();
+    var x = env.createClass('X', isSealed: true);
+    env.createClass('W', inherits: [x]);
+    var y = env.createClass('Y', inherits: [x]);
+    env.createClass('Z', inherits: [x]);
+    var a = env.createClass('A',
         isSealed: true, fields: {'x': StaticType.nullableObject});
-    var b = StaticTypeImpl('B', inherits: [a]);
-    StaticTypeImpl('C', inherits: [a]);
-    StaticTypeImpl('D', inherits: [a]);
+    var b = env.createClass('B', inherits: [a]);
+    env.createClass('C', inherits: [a]);
+    env.createClass('D', inherits: [a]);
 
     Space A({required StaticType x}) => ty(a, {'x': x});
     Space B({required StaticType x}) => ty(b, {'x': x});
@@ -216,15 +222,16 @@ void main() {
     //   (X)    (A)
     //   /|\    /|\
     //  W Y Z  B C D
-    var x = StaticTypeImpl('X', isSealed: true);
-    var w = StaticTypeImpl('W', inherits: [x]);
-    var y = StaticTypeImpl('Y', inherits: [x]);
-    var z = StaticTypeImpl('Z', inherits: [x]);
+    var env = TestEnvironment();
+    var x = env.createClass('X', isSealed: true);
+    var w = env.createClass('W', inherits: [x]);
+    var y = env.createClass('Y', inherits: [x]);
+    var z = env.createClass('Z', inherits: [x]);
     var a =
-        StaticTypeImpl('A', isSealed: true, fields: {'x': x, 'y': x, 'z': x});
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    StaticTypeImpl('D', inherits: [a]);
+        env.createClass('A', isSealed: true, fields: {'x': x, 'y': x, 'z': x});
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    env.createClass('D', inherits: [a]);
 
     Space A({StaticType? x, StaticType? y, StaticType? z}) => ty(a,
         {if (x != null) 'x': x, if (y != null) 'y': y, if (z != null) 'z': z});

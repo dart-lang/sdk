@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:test/test.dart';
 
+import 'env.dart';
 import 'utils.dart';
 
 /// Test `subtract()` on combinations of types.
@@ -17,12 +18,13 @@ void main() {
     //   (B) (C)
     //   / \   \
     //  D   E   F
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
-    var c = StaticTypeImpl('C', isSealed: true, inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [b]);
-    var e = StaticTypeImpl('E', inherits: [b]);
-    var f = StaticTypeImpl('F', inherits: [c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', isSealed: true, inherits: [a]);
+    var d = env.createClass('D', inherits: [b]);
+    var e = env.createClass('E', inherits: [b]);
+    var f = env.createClass('F', inherits: [c]);
 
     var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');
@@ -56,12 +58,13 @@ void main() {
     //    //|\\
     //   / /|\ \
     //  B C D E F
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [a]);
-    var e = StaticTypeImpl('E', inherits: [a]);
-    var f = StaticTypeImpl('F', inherits: [a]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [a]);
+    var e = env.createClass('E', inherits: [a]);
+    var f = env.createClass('F', inherits: [a]);
 
     var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');
@@ -78,11 +81,12 @@ void main() {
     //   (B)  C
     //   / \ /
     //  D   E
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [b]);
-    var e = StaticTypeImpl('E', inherits: [b, c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [b]);
+    var e = env.createClass('E', inherits: [b, c]);
 
     var checkExhaustive = _makeTestFunction([a, b, c, d, e]);
     checkExhaustive([a], 'ABCDE');
@@ -104,10 +108,11 @@ void main() {
     //   (B)
     //   / \
     //  C   D
-    var a = StaticTypeImpl('A');
-    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [b]);
-    var d = StaticTypeImpl('D', inherits: [b]);
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', inherits: [b]);
+    var d = env.createClass('D', inherits: [b]);
 
     var checkExhaustive = _makeTestFunction([a, b, c, d]);
     checkExhaustive([a], 'ABCD');
@@ -123,9 +128,10 @@ void main() {
     // (B)
     //  |
     //  C
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [b]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', inherits: [b]);
 
     var checkExhaustive = _makeTestFunction([a, b, c]);
     checkExhaustive([a], 'ABC');
@@ -143,12 +149,13 @@ void main() {
     //    B   C
     //   / \ / \
     //  D   E   F
-    var a = StaticTypeImpl('A');
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [b]);
-    var e = StaticTypeImpl('E', inherits: [b, c]);
-    var f = StaticTypeImpl('F', inherits: [c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [b]);
+    var e = env.createClass('E', inherits: [b, c]);
+    var f = env.createClass('F', inherits: [c]);
 
     var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');

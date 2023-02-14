@@ -130,75 +130,6 @@ class _NullType extends NullableStaticType {
   String get name => 'Null';
 }
 
-class StaticTypeImpl extends NonNullableStaticType {
-  @override
-  final String name;
-
-  @override
-  final bool isSealed;
-
-  final Map<String, StaticType> _fields;
-
-  final List<StaticType> _supertypes = [];
-
-  final List<StaticTypeImpl> _subtypes = [];
-
-  StaticTypeImpl(this.name,
-      {this.isSealed = false,
-      List<StaticTypeImpl>? inherits,
-      Map<String, StaticType> fields = const {}})
-      : _fields = fields {
-    if (inherits != null) {
-      for (StaticTypeImpl type in inherits) {
-        _supertypes.add(type);
-        type._subtypes.add(this);
-      }
-    } else {
-      _supertypes.add(StaticType.nonNullableObject);
-    }
-
-    int sealed = 0;
-    for (StaticType supertype in _supertypes) {
-      if (supertype.isSealed) sealed++;
-    }
-
-    // We don't allow a sealed type's subtypes to be shared with some other
-    // sibling supertype, as in D here:
-    //
-    //   (A) (B)
-    //   / \ / \
-    //  C   D   E
-    //
-    // We could remove this restriction but doing so will require
-    // expandTypes() to be more complex. In the example here, if we subtract
-    // E from A, the result should be C|D. That requires knowing that B should
-    // be expanded, which expandTypes() doesn't currently handle.
-    if (sealed > 1) {
-      throw new ArgumentError('Can only have one sealed supertype.');
-    }
-  }
-
-  @override
-  Map<String, StaticType> get fields {
-    return {
-      for (StaticType supertype in _supertypes) ...supertype.fields,
-      ..._fields
-    };
-  }
-
-  @override
-  Iterable<StaticType> get subtypes => _subtypes;
-
-  @override
-  bool isSubtypeOfInternal(StaticType other) {
-    for (StaticType supertype in _supertypes) {
-      if (supertype.isSubtypeOf(other)) return true;
-    }
-
-    return false;
-  }
-}
-
 class NullableStaticType extends _BaseStaticType {
   final StaticType underlying;
 
@@ -222,6 +153,15 @@ class NullableStaticType extends _BaseStaticType {
 
   @override
   StaticType get nullable => this;
+
+  @override
+  int get hashCode => underlying.hashCode * 11;
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    return other is NullableStaticType && underlying == other.underlying;
+  }
 }
 
 abstract class NonNullableStaticType extends _BaseStaticType {
