@@ -39,7 +39,7 @@ void f() {
   if ([1,2] case [int AB, int]) { }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 2),
       lint(33, 2),
     ]);
   }
@@ -58,7 +58,7 @@ void f() {
   var (AB, ) = (1, );
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 2),
       lint(18, 2),
     ]);
   }

@@ -105,7 +105,7 @@ f(bool c) {
 }
 ''', [
       // No lint.
-      error(HintCode.DEAD_CODE, 58, 8),
+      error(WarningCode.DEAD_CODE, 58, 8),
     ]);
   }
 }

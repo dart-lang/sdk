@@ -110,10 +110,10 @@ class _E {
 }
 ''', [
       // No lint.
-      error(HintCode.UNUSED_ELEMENT, 6, 2),
-      error(HintCode.UNUSED_FIELD, 29, 1),
-      error(HintCode.UNUSED_FIELD, 57, 1),
-      error(HintCode.UNUSED_ELEMENT_PARAMETER, 83, 1),
+      error(WarningCode.UNUSED_ELEMENT, 6, 2),
+      error(WarningCode.UNUSED_FIELD, 29, 1),
+      error(WarningCode.UNUSED_FIELD, 57, 1),
+      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 83, 1),
     ]);
   }
 
@@ -129,8 +129,8 @@ class _E {
 _E get e => _E();
 ''', [
       // No lint.
-      error(HintCode.UNUSED_FIELD, 29, 1),
-      error(HintCode.UNUSED_FIELD, 57, 1),
+      error(WarningCode.UNUSED_FIELD, 29, 1),
+      error(WarningCode.UNUSED_FIELD, 57, 1),
     ]);
   }
 
@@ -170,8 +170,8 @@ class _E {
 }
 ''', [
       // No lint.
-      error(HintCode.UNUSED_ELEMENT, 6, 2),
-      error(HintCode.UNUSED_FIELD, 45, 1),
+      error(WarningCode.UNUSED_ELEMENT, 6, 2),
+      error(WarningCode.UNUSED_FIELD, 45, 1),
     ]);
   }
 
@@ -186,8 +186,8 @@ class _E {
 }
 ''', [
       // No lint.
-      error(HintCode.UNUSED_ELEMENT, 6, 2),
-      error(HintCode.UNUSED_FIELD, 48, 2),
+      error(WarningCode.UNUSED_ELEMENT, 6, 2),
+      error(WarningCode.UNUSED_FIELD, 48, 2),
     ]);
   }
 
@@ -202,8 +202,8 @@ class _E {
 class F implements _E  {}
 ''', [
       // No lint.
-      error(HintCode.UNUSED_FIELD, 29, 1),
-      error(HintCode.UNUSED_FIELD, 57, 1),
+      error(WarningCode.UNUSED_FIELD, 29, 1),
+      error(WarningCode.UNUSED_FIELD, 57, 1),
     ]);
   }
 
@@ -263,9 +263,9 @@ class _E {
       // No lint.
       // todo(pq):consider relaxing the lint to flag cases w/o a const
       // but all final fields.
-      error(HintCode.UNUSED_ELEMENT, 6, 2),
-      error(HintCode.UNUSED_FIELD, 29, 1),
-      error(HintCode.UNUSED_FIELD, 57, 1),
+      error(WarningCode.UNUSED_ELEMENT, 6, 2),
+      error(WarningCode.UNUSED_FIELD, 29, 1),
+      error(WarningCode.UNUSED_FIELD, 57, 1),
     ]);
   }
 
@@ -279,8 +279,8 @@ class _E {
 }
 ''', [
       // No lint.
-      error(HintCode.UNUSED_ELEMENT, 6, 2),
-      error(HintCode.UNUSED_FIELD, 57, 1),
+      error(WarningCode.UNUSED_ELEMENT, 6, 2),
+      error(WarningCode.UNUSED_FIELD, 57, 1),
     ]);
   }
 
@@ -322,7 +322,7 @@ class _E {
 _E e = _E.withValue(0);
 ''', [
       lint(6, 2),
-      error(HintCode.UNUSED_FIELD, 57, 1),
+      error(WarningCode.UNUSED_FIELD, 57, 1),
     ]);
   }
 
@@ -350,9 +350,9 @@ class _A {
   const _A();
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 6, 2),
-      error(HintCode.UNUSED_FIELD, 29, 1),
-      error(HintCode.UNUSED_FIELD, 57, 1),
+      error(WarningCode.UNUSED_ELEMENT, 6, 2),
+      error(WarningCode.UNUSED_FIELD, 29, 1),
+      error(WarningCode.UNUSED_FIELD, 57, 1),
       lint(6, 2),
     ]);
   }

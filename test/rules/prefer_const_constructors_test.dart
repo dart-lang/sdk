@@ -59,7 +59,7 @@ void f() {
 }
 ''', [
       // No lint.
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 2),
     ]);
   }
 
@@ -78,7 +78,7 @@ K k() {
 }
 ''', [
       // No lint
-      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 90, 3),
+      error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 90, 3),
     ]);
   }
 }

@@ -58,7 +58,7 @@ class B extends A {
   int? _private;
 }
 ''', [
-      error(HintCode.UNUSED_FIELD, 44, 8),
+      error(WarningCode.UNUSED_FIELD, 44, 8),
     ]);
   }
 
@@ -132,7 +132,7 @@ class GC34 extends GC33 {
   Object gc33 = 'yada';
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 120, 1),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 120, 1),
       lint(127, 5),
       lint(202, 9),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 281, 4),

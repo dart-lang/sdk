@@ -86,7 +86,7 @@ void f(String? p) {
 }
 ''', [
       // No lint.
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
   }
 

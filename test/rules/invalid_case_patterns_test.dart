@@ -50,7 +50,7 @@ void f(Object o) {
 }
 ''', [
       lint(43, 12),
-      error(HintCode.DEAD_CODE, 54, 1),
+      error(WarningCode.DEAD_CODE, 54, 1),
     ]);
   }
 
@@ -103,7 +103,7 @@ void f(Object o) {
   }
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 43, 8),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 43, 8),
       lint(43, 8),
     ]);
   }
@@ -116,7 +116,7 @@ void f(Object o) {
   }
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 43, 9),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 43, 9),
       lint(43, 9),
     ]);
   }

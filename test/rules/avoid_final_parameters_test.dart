@@ -27,8 +27,8 @@ class C {
 }
 ''', [
       // TODO(srawlins): Do not report this lint rule here, as it is redundant
-      // with the Hint.
-      error(HintCode.UNNECESSARY_FINAL, 23, 5),
+      // with the Warning.
+      error(WarningCode.UNNECESSARY_FINAL, 23, 5),
       lint(23, 12),
     ]);
   }
@@ -189,8 +189,8 @@ class B extends A {
 ''', [
       // TODO(srawlins): Do not report this lint rule here, as it is redundant
       // with the Hint.
-      error(HintCode.UNNECESSARY_FINAL, 83, 5),
-      error(HintCode.UNNECESSARY_FINAL, 98, 5),
+      error(WarningCode.UNNECESSARY_FINAL, 83, 5),
+      error(WarningCode.UNNECESSARY_FINAL, 98, 5),
       lint(83, 13),
       lint(98, 13),
     ]);

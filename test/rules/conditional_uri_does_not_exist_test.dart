@@ -29,7 +29,7 @@ import ''
     if (dart.library.async) 'dart:missing_2';
 ''',
       [
-        error(HintCode.UNUSED_IMPORT, 7, 2),
+        error(WarningCode.UNUSED_IMPORT, 7, 2),
         lint(35, 16, messageContains: 'dart:missing_1'),
         lint(120, 16, messageContains: 'dart:missing_2'),
       ],
@@ -47,7 +47,7 @@ import ''
     if (dart.library.async) 'missing_2.dart';
 ''',
       [
-        error(HintCode.UNUSED_IMPORT, 7, 2),
+        error(WarningCode.UNUSED_IMPORT, 7, 2),
         lint(35, 16, messageContains: 'missing_1.dart'),
         lint(121, 16, messageContains: 'missing_2.dart'),
       ],
@@ -63,7 +63,7 @@ import ''
     if (dart.library.io) 'package:foo/missing_2.dart';
 ''',
       [
-        error(HintCode.UNUSED_IMPORT, 7, 2),
+        error(WarningCode.UNUSED_IMPORT, 7, 2),
         lint(35, 29, messageContains: 'missing_1.dart'),
         lint(142, 28, messageContains: 'missing_2.dart'),
       ],

@@ -26,7 +26,7 @@ condition() {
 }
 ''', [
       // No lint
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 4),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 4),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 3),
     ]);
   }
@@ -52,7 +52,7 @@ bool b = '11'.indexOf('2', 0) == -1;
 bool le3 = ([].indexOf(1) as int) > -1;
 ''', [
       lint(11, 27),
-      error(HintCode.UNNECESSARY_CAST, 12, 20),
+      error(WarningCode.UNNECESSARY_CAST, 12, 20),
     ]);
   }
 }
