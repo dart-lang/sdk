@@ -33,15 +33,15 @@ void main() {
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
+            "a.dart 32:40 [static warning] The diagnostic 'lines_longer_than_80_chars' doesn't need to be ignored here because it's already being ignored.",
+            "a.dart 32:68 [static warning] The diagnostic 'lines_longer_than_80_chars' doesn't need to be ignored here because it's already being ignored.",
             'a.dart 7:81',
             'a.dart 11:81',
             'a.dart 20:81',
             'a.dart 25:81',
-            "a.dart 32:40 [hint] The diagnostic 'lines_longer_than_80_chars' doesn't need to be ignored here because it's already being ignored.",
-            "a.dart 32:68 [hint] The diagnostic 'lines_longer_than_80_chars' doesn't need to be ignored here because it's already being ignored.",
             '1 file analyzed, 6 issues found, in'
           ]));
-      expect(exitCode, 1);
+      expect(exitCode, 2);
     });
   });
 }

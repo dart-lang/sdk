@@ -59,7 +59,7 @@ class NonConstantIdentifierNames extends LintRule {
     registry.addFormalParameterList(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
-    registry.addRecordPatternField(this, visitor);
+    registry.addPatternField(this, visitor);
     registry.addRecordLiteral(this, visitor);
     registry.addRecordTypeAnnotation(this, visitor);
     registry.addVariableDeclaration(this, visitor);
@@ -92,14 +92,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    // For rationale on accepting underscores, see:
+    // https://github.com/dart-lang/linter/issues/1854
     checkIdentifier(node.name, underscoresOk: true);
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    // For rationale on accepting underscores, see:
-    // https://github.com/dart-lang/linter/issues/1854
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     checkIdentifier(node.name, underscoresOk: true);
   }
 
@@ -130,19 +130,19 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    var pattern = node.pattern;
+    if (pattern is DeclaredVariablePattern) {
+      checkIdentifier(pattern.name);
+    }
+  }
+
+  @override
   void visitRecordLiteral(RecordLiteral node) {
     for (var fieldExpression in node.fields) {
       if (fieldExpression is NamedExpression) {
         checkIdentifier(fieldExpression.name.label.token);
       }
-    }
-  }
-
-  @override
-  void visitRecordPatternField(RecordPatternField node) {
-    var pattern = node.pattern;
-    if (pattern is DeclaredVariablePattern) {
-      checkIdentifier(pattern.name);
     }
   }
 

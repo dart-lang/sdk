@@ -45,6 +45,7 @@ void f() {
   final (AA, ) = (1, );
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 2),
       lint(20, 2),
     ]);
   }

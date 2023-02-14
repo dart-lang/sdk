@@ -85,8 +85,8 @@ class Visitor extends PubspecVisitor<void> {
   }
 
   @override
-  void visitPackageRepository(PSEntry repostory) {
-    _checkUrl(repostory.value);
+  void visitPackageRepository(PSEntry repository) {
+    _checkUrl(repository.value);
   }
 
   _checkUrl(PSNode? node) {
