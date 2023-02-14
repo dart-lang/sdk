@@ -111,8 +111,8 @@ void matchIL$unboxed2(FlowGraph graph) {
 
 void main(List<String> args) {
   shouldPrint = args.length > 22;
-  final intValue = args.length > 50 ? 0 : 1;
-  final doubleValue = args.length > 50 ? 42.5 : 24.5;
+  final intValue = args.length > 50 ? int.parse(args[0]) : 1;
+  final doubleValue = args.length > 50 ? double.parse(args[1]) : 24.5;
   final cValue = C(intValue, doubleValue);
   sinkhole(unboxed1(intValue, doubleValue, cValue, intValue, doubleValue));
   sinkhole(unboxed2(intValue, doubleValue, cValue, intValue, doubleValue));
