@@ -444,48 +444,6 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the unicode sequence of the code point.
-  static const HintCode TEXT_DIRECTION_CODE_POINT_IN_COMMENT = HintCode(
-    'TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
-    "The Unicode code point 'U+{0}' changes the appearance of text from how "
-        "it's interpreted by the compiler.",
-    correctionMessage:
-        "Try removing the code point or using the Unicode escape sequence "
-        "'\\u{0}'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the unicode sequence of the code point.
-  static const HintCode TEXT_DIRECTION_CODE_POINT_IN_LITERAL = HintCode(
-    'TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
-    "The Unicode code point 'U+{0}' changes the appearance of text from how "
-        "it's interpreted by the compiler.",
-    correctionMessage:
-        "Try removing the code point or using the Unicode escape sequence "
-        "'\\u{0}'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode TYPE_CHECK_IS_NOT_NULL = HintCode(
-    'TYPE_CHECK_WITH_NULL',
-    "Tests for non-null should be done with '!= null'.",
-    correctionMessage: "Try replacing the 'is! Null' check with '!= null'.",
-    hasPublishedDocs: true,
-    uniqueName: 'TYPE_CHECK_IS_NOT_NULL',
-  );
-
-  ///  No parameters.
-  static const HintCode TYPE_CHECK_IS_NULL = HintCode(
-    'TYPE_CHECK_WITH_NULL',
-    "Tests for null should be done with '== null'.",
-    correctionMessage: "Try replacing the 'is Null' check with '== null'.",
-    hasPublishedDocs: true,
-    uniqueName: 'TYPE_CHECK_IS_NULL',
-  );
-
-  ///  Parameters:
   ///  0: the name of the undefined parameter
   ///  1: the name of the targeted member
   static const HintCode UNDEFINED_REFERENCED_PARAMETER = HintCode(

@@ -1488,10 +1488,6 @@ HintCode.SUBTYPE_OF_SEALED_CLASS:
     in the next stable release.
     Remove the sealed class in the `extends` or `implements` clause.
     Use RemoveNameFromDeclarationClause.
-HintCode.TYPE_CHECK_IS_NOT_NULL:
-  status: hasFix
-HintCode.TYPE_CHECK_IS_NULL:
-  status: hasFix
 HintCode.UNDEFINED_REFERENCED_PARAMETER:
   status: needsFix
   notes: |-
@@ -1535,10 +1531,6 @@ HintCode.UNNECESSARY_SET_LITERAL:
 HintCode.UNNECESSARY_TYPE_CHECK_FALSE:
   status: hasFix
 HintCode.UNNECESSARY_TYPE_CHECK_TRUE:
-  status: hasFix
-HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
-  status: hasFix
-HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
   status: hasFix
 HintCode.UNREACHABLE_SWITCH_CASE:
   status: hasFix
@@ -2841,6 +2833,14 @@ WarningCode.SDK_VERSION_UI_AS_CODE:
 WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
   status: noFix
   notes: Deprecated
+WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
+  status: hasFix
+WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
+  status: hasFix
+WarningCode.TYPE_CHECK_IS_NOT_NULL:
+  status: hasFix
+WarningCode.TYPE_CHECK_IS_NULL:
+  status: hasFix
 WarningCode.UNDEFINED_HIDDEN_NAME:
   status: hasFix
 WarningCode.UNDEFINED_SHOWN_NAME:

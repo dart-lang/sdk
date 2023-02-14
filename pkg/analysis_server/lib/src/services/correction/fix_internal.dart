@@ -1398,22 +1398,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
       RemoveAnnotation.new,
     ],
-    HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
-      RemoveCharacter.new,
-      ReplaceWithUnicodeEscape.new,
-    ],
-    HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL: [
-      RemoveCharacter.new,
-      ReplaceWithUnicodeEscape.new,
-    ],
-    // TODO(brianwilkerson) Add a fix to normalize the path.
-//    HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT: [],
-    HintCode.TYPE_CHECK_IS_NOT_NULL: [
-      UseNotEqNull.new,
-    ],
-    HintCode.TYPE_CHECK_IS_NULL: [
-      UseEqEqNull.new,
-    ],
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.new,
     ],
@@ -1600,6 +1584,20 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.SDK_VERSION_UI_AS_CODE: [
       UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
+      RemoveCharacter.new,
+      ReplaceWithUnicodeEscape.new,
+    ],
+    WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL: [
+      RemoveCharacter.new,
+      ReplaceWithUnicodeEscape.new,
+    ],
+    WarningCode.TYPE_CHECK_IS_NOT_NULL: [
+      UseNotEqNull.new,
+    ],
+    WarningCode.TYPE_CHECK_IS_NULL: [
+      UseEqEqNull.new,
     ],
     WarningCode.UNDEFINED_HIDDEN_NAME: [
       RemoveNameFromCombinator.new,

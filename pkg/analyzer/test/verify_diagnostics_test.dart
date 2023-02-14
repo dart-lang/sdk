@@ -94,11 +94,6 @@ class DocumentationValidator {
     'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
-    // Produces more than one error range by design.
-    // TODO: update verification to allow for multiple highlight ranges.
-    'HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
-    // Produces more than one error range by design.
-    'HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
     // Produces two diagnostics when it should only produce one (see
     // https://github.com/dart-lang/sdk/issues/43051)
     'HintCode.UNNECESSARY_NULL_COMPARISON_FALSE',
@@ -124,6 +119,12 @@ class DocumentationValidator {
     'PubspecWarningCode.PATH_NOT_POSIX',
     'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
     'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
+
+    // Produces more than one error range by design.
+    // TODO: update verification to allow for multiple highlight ranges.
+    'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
+    // Produces more than one error range by design.
+    'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
   ];
 
   /// The buffer to which validation errors are written.

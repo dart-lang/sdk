@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,10 +23,10 @@ void f() { // \u2066
   // \u2066
 }
 ''', [
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 3, 1),
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 9, 1),
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 25, 1),
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 32, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 3, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 9, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 25, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 32, 1),
     ]);
   }
 
@@ -42,7 +42,7 @@ var u202a = '\u202AInteractive text\u202C';
     await assertErrorsInCode('''
 var u202a = '\u202A';
 ''', [
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 13, 1,
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 13, 1,
           messageContains: ['U+202A']),
     ]);
   }
@@ -53,7 +53,7 @@ var s = """ \u202a
         Multiline!
 """;
 ''', [
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 12, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 12, 1),
     ]);
   }
 
@@ -69,15 +69,15 @@ var u2067 = '\u2067';
 var u2068 = '\u2068';
 var u2069 = '\u2069';
 ''', [
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 13, 1),
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 30, 1),
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 47, 1),
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 64, 1),
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 81, 1),
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 98, 1),
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 115, 1),
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 132, 1),
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 149, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 13, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 30, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 47, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 64, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 81, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 98, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 115, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 132, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 149, 1),
     ]);
   }
 
@@ -86,7 +86,7 @@ var u2069 = '\u2069';
 var x = 'x';
 var u202a = '\u202A\$x';
 ''', [
-      error(HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 26, 1),
+      error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 26, 1),
     ]);
   }
 }

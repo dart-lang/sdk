@@ -21,7 +21,7 @@ bool m(i) {
   return i is! Null;
 }
 ''', [
-      error(HintCode.TYPE_CHECK_IS_NOT_NULL, 21, 10),
+      error(WarningCode.TYPE_CHECK_IS_NOT_NULL, 21, 10),
     ]);
   }
 }
