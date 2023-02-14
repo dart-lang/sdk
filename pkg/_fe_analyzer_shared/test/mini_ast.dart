@@ -3188,11 +3188,11 @@ class _MiniAstErrors
 
   @override
   void switchCaseCompletesNormally(
-      covariant _SwitchStatement node, int caseIndex, int numHeads) {
+      covariant _SwitchStatement node, int caseIndex) {
     _recordError(
       'switchCaseCompletesNormally',
       const {},
-      unnamed: [node, caseIndex, numHeads],
+      unnamed: [node, caseIndex],
     );
   }
 

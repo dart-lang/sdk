@@ -1069,7 +1069,7 @@ main() {
               isLegacyExhaustive: true,
             )..errorId = 'SWITCH'),
           ], expectedErrors: {
-            'switchCaseCompletesNormally(SWITCH, 0, 1)'
+            'switchCaseCompletesNormally(SWITCH, 0)'
           });
         });
 
@@ -1093,7 +1093,7 @@ main() {
               isLegacyExhaustive: true,
             )..errorId = 'SWITCH'),
           ], expectedErrors: {
-            'switchCaseCompletesNormally(SWITCH, 0, 1)'
+            'switchCaseCompletesNormally(SWITCH, 0)'
           });
         });
 
