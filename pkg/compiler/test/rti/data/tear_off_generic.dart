@@ -13,6 +13,6 @@ class A<T> {
 }
 
 main() {
-  new A<int>().m is void Function(int);
-  new A<int>().f is void Function(int);
+  A<int>().m is void Function(int);
+  A<int>().f is void Function(int);
 }

@@ -23,6 +23,6 @@ class Class1 {
 /*member: inlineSetter:[]*/
 @pragma('dart2js:noInline')
 inlineSetter() {
-  Class1 c = new Class1();
+  Class1 c = Class1();
   c.setter = 42;
 }

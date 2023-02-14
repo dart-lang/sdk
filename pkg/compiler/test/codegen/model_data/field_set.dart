@@ -11,7 +11,7 @@ main() {
   method2(new Class2b());
 
   method3(new Class3a());
-  Class3b b = new Class3b();
+  Class3b b = Class3b();
   method3(b);
   print(b.field3);
 

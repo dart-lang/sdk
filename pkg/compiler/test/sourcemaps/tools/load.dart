@@ -20,13 +20,13 @@ Usage: load <dir-containing 'out.js.map'>
 
   File? humanReadableSourceMapFile;
   File sourceMapFile;
-  if (args.length == 1 && new Directory(args[0]).existsSync()) {
-    humanReadableSourceMapFile = new File('${args[0]}/out.js.map2');
-    sourceMapFile = new File('${args[0]}/out.js.map');
+  if (args.length == 1 && Directory(args[0]).existsSync()) {
+    humanReadableSourceMapFile = File('${args[0]}/out.js.map2');
+    sourceMapFile = File('${args[0]}/out.js.map');
   } else {
-    sourceMapFile = new File(args[0]);
+    sourceMapFile = File(args[0]);
     if (args.length > 1) {
-      humanReadableSourceMapFile = new File(args[1]);
+      humanReadableSourceMapFile = File(args[1]);
     }
   }
   mainInternal(sourceMapFile, humanReadableSourceMapFile);
@@ -34,7 +34,7 @@ Usage: load <dir-containing 'out.js.map'>
 
 void mainInternal(File sourceMapFile, File? humanReadableSourceMapFile) {
   SingleMapping sourceMap =
-      new SingleMapping.fromJson(json.decode(sourceMapFile.readAsStringSync()));
+      SingleMapping.fromJson(json.decode(sourceMapFile.readAsStringSync()));
   String humanReadableSourceMap = convertToHumanReadableSourceMap(sourceMap);
   if (humanReadableSourceMapFile != null) {
     humanReadableSourceMapFile.writeAsStringSync(humanReadableSourceMap);
@@ -44,7 +44,7 @@ void mainInternal(File sourceMapFile, File? humanReadableSourceMapFile) {
 }
 
 String convertToHumanReadableSourceMap(SingleMapping sourceMap) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.write('{\n');
   sb.write('  "file": "${sourceMap.targetUrl}",\n');
   sb.write('  "sourceRoot": "${sourceMap.sourceRoot}",\n');

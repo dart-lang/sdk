@@ -26,7 +26,7 @@ class TS<A, B> = T<A> with S<B>;
 dyn(x) => x;
 
 main() {
-  var ts = new TS<int, String>();
+  var ts = TS<int, String>();
 
   makeLive("String" == ts.sType.toString());
   makeLive("int" == ts.tType.toString());

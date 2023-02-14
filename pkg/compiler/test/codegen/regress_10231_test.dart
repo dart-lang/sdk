@@ -28,8 +28,8 @@ void main() {
   runTests() async {
     String code = await compile(SOURCE, methodName: 'test');
     Expect.isNotNull(code);
-    Expect.equals(0, new RegExp('add').allMatches(code).length);
-    Expect.equals(3, new RegExp('\\+').allMatches(code).length);
+    Expect.equals(0, RegExp('add').allMatches(code).length);
+    Expect.equals(3, RegExp('\\+').allMatches(code).length);
   }
 
   asyncTest(() async {

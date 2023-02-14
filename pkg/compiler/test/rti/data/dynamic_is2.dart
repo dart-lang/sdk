@@ -16,6 +16,6 @@ class B {
 }
 
 main() {
-  var b = new B();
+  var b = B();
   b.instanceMethod<int>(new A(), 0);
 }

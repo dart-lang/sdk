@@ -44,20 +44,20 @@ import 'lib2.dart' deferred as lib2;
 void main() {
   asyncStart();
   Expect.throws(/*closure_unit=main{}*/ () {
-    new lib1.C();
+    lib1.C();
   });
   lib1.loadLibrary().then(/*closure_unit=main{}*/ (_) {
     lib2.loadLibrary().then(/*closure_unit=main{}*/ (_) {
       print("HERE");
-      Expect.equals(1, new lib1.C().bar());
-      var x = new lib1.C2();
+      Expect.equals(1, lib1.C().bar());
+      var x = lib1.C2();
       Expect.mapEquals({1: 2}, x.bar);
       x.bar = {2: 3};
       Expect.mapEquals({2: 3}, x.bar);
 
-      Expect.equals(lib1.x, new lib1.C3().bar);
-      Expect.mapEquals({lib1.x: lib1.x}, new lib1.C4().bar);
-      Expect.equals(1, new lib1.C5().bar());
+      Expect.equals(lib1.x, lib1.C3().bar);
+      Expect.mapEquals({lib1.x: lib1.x}, lib1.C4().bar);
+      Expect.equals(1, lib1.C5().bar());
 
       lib2.foo();
       asyncEnd();

@@ -30,13 +30,13 @@ void foo() {
 main() {
   runTests() async {
     await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      RegExp regexp = new RegExp("toBeRemoved");
+      RegExp regexp = RegExp("toBeRemoved");
       Expect.isTrue(!regexp.hasMatch(generated));
     });
     await compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      RegExp regexp = new RegExp("toBeRemoved");
+      RegExp regexp = RegExp("toBeRemoved");
       Expect.isTrue(!regexp.hasMatch(generated));
-      regexp = new RegExp("temp");
+      regexp = RegExp("temp");
       Expect.isTrue(!regexp.hasMatch(generated));
     });
   }

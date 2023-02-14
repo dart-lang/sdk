@@ -104,8 +104,8 @@ get _condition => false;
 
 /*member: refineToClass:[null]*/
 refineToClass() {
-  var nullOrClass1 = _condition ? null : new Class1();
-  var nullOrClass2 = _condition ? null : new Class2();
+  var nullOrClass1 = _condition ? null : Class1();
+  var nullOrClass2 = _condition ? null : Class2();
   _refineUnion(nullOrClass1);
   _refineUnion(nullOrClass2);
 

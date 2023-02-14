@@ -108,9 +108,9 @@ class Sub extends Super {
 
 /*member: main:invoke*/
 void main() {
-  new Super.constructor3(null);
-  new Sub.constructor1(null);
-  new Sub.constructor2()
+  Super.constructor3(null);
+  Sub.constructor1(null);
+  Sub.constructor2()
     ..readSuperField()
     ..writeSuperField()
     ..invokeSuperField()

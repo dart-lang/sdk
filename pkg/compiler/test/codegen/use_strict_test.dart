@@ -48,7 +48,7 @@ const MEMORY_SOURCE_FILES = const {
 
 main() {
   runTest() async {
-    OutputCollector collector = new OutputCollector();
+    OutputCollector collector = OutputCollector();
     await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     String jsOutput = collector.getOutput('', api.OutputType.js)!;
@@ -70,7 +70,7 @@ main() {
         .where((String line) => !filters.any((regexp) => regexp.hasMatch(line)))
         .join("\n");
 
-    RegExp re = new RegExp(r'[^\w$](arguments|eval)[^\w$]');
+    RegExp re = RegExp(r'[^\w$](arguments|eval)[^\w$]');
     Expect.isFalse(re.hasMatch(filtered));
   }
 

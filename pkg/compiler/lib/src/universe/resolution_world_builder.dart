@@ -78,7 +78,7 @@ class InstantiationInfo {
   ///
   ///    abstract class AbstractClass<S> {
   ///      factory AbstractClass.a() = Class<S>.a;
-  ///      factory AbstractClass.b() => new Class<S>.b();
+  ///      factory AbstractClass.b() => Class<S>.b();
   ///    }
   ///    class Class<T> implements AbstractClass<T> {
   ///      Class.a();
@@ -88,13 +88,13 @@ class InstantiationInfo {
   ///
   ///
   ///    main() {
-  ///      new Class.a();
-  ///      new Class<int>.a();
-  ///      new Class<String>.b();
-  ///      new Class<num>.c();
-  ///      new AbstractClass<double>.a();
-  ///      new AbstractClass<bool>.b();
-  ///      new DivElement(); // native instantiation
+  ///      Class.a();
+  ///      Class<int>.a();
+  ///      Class<String>.b();
+  ///      Class<num>.c();
+  ///      AbstractClass<double>.a();
+  ///      AbstractClass<bool>.b();
+  ///      DivElement(); // native instantiation
   ///    }
   ///
   /// will generate the mappings

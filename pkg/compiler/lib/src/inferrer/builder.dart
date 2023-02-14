@@ -2028,7 +2028,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       // and exit-edge. For now, avoid strengthening on the condition until the
       // proper fix is found.
       //
-      //     _state = new LocalState.childPath(_stateAfterWhenTrue, node.body);
+      //     _state = LocalState.childPath(_stateAfterWhenTrue, node.body);
     });
   }
 

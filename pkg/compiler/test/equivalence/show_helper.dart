@@ -14,7 +14,7 @@ import 'package:compiler/src/source_file_provider.dart';
 import 'id_equivalence_helper.dart';
 
 ArgParser createArgParser() {
-  ArgParser argParser = new ArgParser(allowTrailingOptions: true);
+  ArgParser argParser = ArgParser(allowTrailingOptions: true);
   argParser.addFlag('verbose', negatable: true, defaultsTo: false);
   argParser.addFlag('colors', negatable: true);
   argParser.addFlag('all', negatable: false, defaultsTo: false);
@@ -45,7 +45,7 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
     show = [entryPoint.pathSegments.last];
   }
 
-  options = new List<String>.from(options);
+  options = List<String>.from(options);
   if (omitImplicitChecks) {
     options.add(Flags.omitImplicitChecks);
   }
@@ -73,7 +73,7 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
           as SourceFile<List<int>>?;
       String? sourceCode = sourceFile?.slowText();
       if (sourceCode == null) {
-        sourceCode = new File.fromUri(fileUri).readAsStringSync();
+        sourceCode = File.fromUri(fileUri).readAsStringSync();
       }
       print('--annotations for $uri----------------------------------------');
       print(withAnnotations(sourceCode, data.computeAnnotations(uri)));

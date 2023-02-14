@@ -13,15 +13,14 @@ import 'trace_graph.dart';
 
 /// Create a [TraceGraph] for [info] registering usage in [coverage].
 TraceGraph createTraceGraph(SourceMapInfo info, Coverage coverage) {
-  TraceGraph graph = new TraceGraph();
-  TraceListener listener = new StepTraceListener(graph);
+  TraceGraph graph = TraceGraph();
+  TraceListener listener = StepTraceListener(graph);
   CodePositionMap codePositions =
-      new CodePositionCoverage(info.jsCodePositions, coverage);
-  JavaScriptTracer tracer = new JavaScriptTracer(
-      codePositions, const SourceInformationReader(), [
-    new CoverageListener(coverage, const SourceInformationReader()),
-    listener
-  ]);
+      CodePositionCoverage(info.jsCodePositions, coverage);
+  JavaScriptTracer tracer = JavaScriptTracer(
+      codePositions,
+      const SourceInformationReader(),
+      [CoverageListener(coverage, const SourceInformationReader()), listener]);
   info.node.accept(tracer);
   return graph;
 }
@@ -111,8 +110,7 @@ class StepTraceListener extends TraceListener
       text = [node];
     }
 
-    TraceStep step =
-        new TraceStep(kind, id, node, offset, text, sourceLocation);
+    TraceStep step = TraceStep(kind, id, node, offset, text, sourceLocation);
     graph.addStep(step);
 
     steppableMap[node] = step;

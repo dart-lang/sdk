@@ -40,10 +40,10 @@ invokes(parameter) {
   (parameter)();
 
   parameter.dynamicInvoke();
-  new C(parameter).instanceInvokes();
-  new C(parameter).superInvokes();
-  new C(parameter).invalidInvokes();
-  new C(parameter).thisInstanceInvokes();
+  C(parameter).instanceInvokes();
+  C(parameter).superInvokes();
+  C(parameter).invalidInvokes();
+  C(parameter).thisInstanceInvokes();
 }
 
 toplevelFunction() {

@@ -20,7 +20,7 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     print('Testing computation of WorldImpact through ImpactData');
     print('==================================================================');
     await checkTests(dataDir, const ImpactDataComputer(),
@@ -48,7 +48,7 @@ class ImpactDataComputer extends DataComputer<Features> {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     WorldImpact impact = compiler.impactCache[member]!;
     ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
-    Features features = new Features();
+    Features features = Features();
     if (impact.typeUses.length > 50) {
       features.addElement(Tags.typeUse, wildcard);
     } else {
@@ -73,7 +73,7 @@ class ImpactDataComputer extends DataComputer<Features> {
     impactData.apply(ImpactDataGoldener(frontendStrategy.elementMap, features));
     Id id = computeMemberId(node);
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
-    actualMap[id] = new ActualData<Features>(id, features,
+    actualMap[id] = ActualData<Features>(id, features,
         nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
   }
 

@@ -47,10 +47,10 @@ main() {
           "Type parameter mismatch on $data with $parameterStructure.");
       CallStructure callStructure = parameterStructure.callStructure;
       Expect.isTrue(callStructure.signatureApplies(parameterStructure));
-      CallStructure noTypeArguments = new CallStructure(
+      CallStructure noTypeArguments = CallStructure(
           callStructure.argumentCount, callStructure.namedArguments, 0);
       Expect.isTrue(noTypeArguments.signatureApplies(parameterStructure));
-      CallStructure tooManyTypeArguments = new CallStructure(
+      CallStructure tooManyTypeArguments = CallStructure(
           callStructure.argumentCount,
           callStructure.namedArguments,
           callStructure.typeArgumentCount + 1);

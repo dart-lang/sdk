@@ -10,5 +10,5 @@ class A<T> {
 }
 
 main() {
-  new A<int>().m(0);
+  A<int>().m(0);
 }

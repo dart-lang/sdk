@@ -16,11 +16,10 @@ import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:expect/expect.dart';
 
 void main(List<String> args) {
-  ArgParser argParser = new ArgParser(allowTrailingOptions: true);
+  ArgParser argParser = ArgParser(allowTrailingOptions: true);
   argParser.addFlag('continued', abbr: 'c', defaultsTo: false);
   ArgResults argResults = argParser.parse(args);
-  Directory dataDir =
-      new Directory.fromUri(Platform.script.resolve('minified'));
+  Directory dataDir = Directory.fromUri(Platform.script.resolve('minified'));
   print('Input folder: ${dataDir.uri}');
   asyncTest(() async {
     bool continuing = false;
@@ -33,7 +32,7 @@ void main(List<String> args) {
         continue;
       }
       print('\ninput $name');
-      await runTest(await new File.fromUri(entity.uri).readAsString());
+      await runTest(await File.fromUri(entity.uri).readAsString());
       if (argResults['continued']) continuing = true;
     }
   });
@@ -64,14 +63,14 @@ class MinifiedNameTest {
   MinifiedNameTest(this.pattern, this._kind, this.expectedName, this.code);
 }
 
-RegExp _patternMatcher = new RegExp("// Error pattern: (.*)\n");
-RegExp _kindMatcher = new RegExp("// Kind of minified name: (.*)\n");
-RegExp _nameMatcher = new RegExp("// Expected deobfuscated name: (.*)\n");
+RegExp _patternMatcher = RegExp("// Error pattern: (.*)\n");
+RegExp _kindMatcher = RegExp("// Kind of minified name: (.*)\n");
+RegExp _nameMatcher = RegExp("// Expected deobfuscated name: (.*)\n");
 
 Future runTest(String code) async {
   var patternMatch = _patternMatcher.firstMatch(code);
   Expect.isNotNull(patternMatch, "Could not find the error pattern.");
-  var pattern = new RegExp(patternMatch!.group(1)!);
+  var pattern = RegExp(patternMatch!.group(1)!);
   var kindMatch = _kindMatcher.firstMatch(code);
   Expect.isNotNull(kindMatch, "Could not find the expected minified kind.");
   var kind = kindMatch!.group(1)!;
@@ -85,7 +84,7 @@ Future runTest(String code) async {
   var nameMatch = _nameMatcher.firstMatch(code);
   Expect.isNotNull(nameMatch, "Could not find the expected deobfuscated name.");
   var expectedName = nameMatch!.group(1)!;
-  var test = new MinifiedNameTest(pattern, kind, expectedName, code);
+  var test = MinifiedNameTest(pattern, kind, expectedName, code);
   print('expectations: ${pattern.pattern} $kind $expectedName');
   await checkExpectation(test, false);
   await checkExpectation(test, true);
@@ -120,7 +119,7 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
   }
 
   var sourceMap = '${result.outputPath}.map';
-  var json = jsonDecode(await new File(sourceMap).readAsString());
+  var json = jsonDecode(await File(sourceMap).readAsString());
 
   var mapping = Dart2jsMapping.json(json);
   Expect.isTrue(mapping.globalNames.isNotEmpty,

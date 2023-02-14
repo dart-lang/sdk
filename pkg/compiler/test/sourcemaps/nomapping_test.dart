@@ -41,7 +41,7 @@ void main(List<String> arguments) {
     }
   }
   if (indices == null) {
-    indices = new List<int>.generate(TESTS.length * 2, (i) => i);
+    indices = List<int>.generate(TESTS.length * 2, (i) => i);
   }
   asyncTest(() async {
     for (int index in indices!) {
@@ -61,7 +61,7 @@ Future runTest(int index, String code,
   print("--$index------------------------------------------------------------");
   print("Compiling dart2js ${useNewSourceInfo ? Flags.useNewSourceInfo : ''}\n"
       "${code}");
-  OutputCollector collector = new OutputCollector();
+  OutputCollector collector = OutputCollector();
   List<String> options = <String>['--out=out.js', '--source-map=out.js.map'];
   if (useNewSourceInfo) {
     options.add(Flags.useNewSourceInfo);
@@ -76,9 +76,9 @@ Future runTest(int index, String code,
   String sourceMapText = collector.getOutput('', api.OutputType.sourceMap)!;
   final sourceMap = parse(sourceMapText) as SingleMapping;
   if (writeJs) {
-    new File('out.js')
+    File('out.js')
         .writeAsStringSync(collector.getOutput('', api.OutputType.js)!);
-    new File('out.js.map').writeAsStringSync(sourceMapText);
+    File('out.js.map').writeAsStringSync(sourceMapText);
   }
   Expect.isTrue(sourceMap.lines.isNotEmpty);
   TargetLineEntry firstLineEntry = sourceMap.lines.first;
@@ -99,7 +99,7 @@ Future runTest(int index, String code,
 
 String entryToString(
     TargetLineEntry lineEntry, TargetEntry entry, SingleMapping mapping) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.write('[line=');
   sb.write(lineEntry.line);
   sb.write(',column=');

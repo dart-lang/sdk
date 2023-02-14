@@ -36,7 +36,7 @@ class SourceFileSink implements api.OutputSink {
 
   @override
   void close() {
-    sourceFile = new StringSourceFile.fromName(filename, sb.toString());
+    sourceFile = StringSourceFile.fromName(filename, sb.toString());
   }
 }
 
@@ -51,7 +51,7 @@ class OutputProvider implements api.CompilerOutput {
   SourceFileSink createSourceFileSink(
       String name, String extension, api.OutputType type) {
     String filename = '$name.$extension';
-    SourceFileSink sink = new SourceFileSink(filename);
+    SourceFileSink sink = SourceFileSink(filename);
     Uri uri = Uri.parse(filename);
     outputMap[uri] = sink;
     return sink;
@@ -65,27 +65,27 @@ class OutputProvider implements api.CompilerOutput {
 
   @override
   api.BinaryOutputSink createBinarySink(Uri uri) =>
-      throw new UnsupportedError("OutputProvider.createBinarySink");
+      throw UnsupportedError("OutputProvider.createBinarySink");
 }
 
 class CloningOutputProvider extends OutputProvider {
   RandomAccessFileOutputProvider outputProvider;
 
   CloningOutputProvider(Uri jsUri, Uri jsMapUri)
-      : outputProvider = new RandomAccessFileOutputProvider(jsUri, jsMapUri);
+      : outputProvider = RandomAccessFileOutputProvider(jsUri, jsMapUri);
 
   @override
   api.OutputSink createOutputSink(
       String name, String extension, api.OutputType type) {
     api.OutputSink output =
         outputProvider.createOutputSink(name, extension, type);
-    return new CloningOutputSink(
+    return CloningOutputSink(
         [output, createSourceFileSink(name, extension, type)]);
   }
 
   @override
   api.BinaryOutputSink createBinarySink(Uri uri) =>
-      throw new UnsupportedError("CloningOutputProvider.createBinarySink");
+      throw UnsupportedError("CloningOutputProvider.createBinarySink");
 }
 
 abstract class SourceFileManager {
@@ -116,7 +116,7 @@ class RecordingPrintingContext extends LenientPrintingContext {
   void exitNode(
       js.Node node, int startPosition, int endPosition, int? closingPosition) {
     codePositions[node] =
-        new CodePosition(startPosition, endPosition, closingPosition);
+        CodePosition(startPosition, endPosition, closingPosition);
     listener.onPositions(node, startPosition, endPosition, closingPosition);
   }
 }
@@ -131,8 +131,7 @@ class RecordingSourceMapperProvider implements SourceMapperProvider {
 
   @override
   SourceMapper createSourceMapper(String name) {
-    return new RecordingSourceMapper(
-        sourceMapperProvider.createSourceMapper(name),
+    return RecordingSourceMapper(sourceMapperProvider.createSourceMapper(name),
         nodeToSourceLocationsMap);
   }
 }
@@ -226,11 +225,10 @@ class RecordingSourceInformationStrategy
       SourceMapperProvider provider, SourceInformationReader reader) {
     final nodeToSourceLocationsMap = _LocationRecorder();
     final codePositions = CodePositionRecorder();
-    return new RecordingSourceInformationProcessor(
+    return RecordingSourceInformationProcessor(
         this,
         strategy.createProcessor(
-            new RecordingSourceMapperProvider(
-                provider, nodeToSourceLocationsMap),
+            RecordingSourceMapperProvider(provider, nodeToSourceLocationsMap),
             reader),
         codePositions,
         nodeToSourceLocationsMap);
@@ -242,7 +240,7 @@ class RecordingSourceInformationStrategy
       CodePositionRecorder codePositions,
       LocationMap nodeToSourceLocationsMap) {
     RecordedSourceInformationProcess subProcess =
-        new RecordedSourceInformationProcess(
+        RecordedSourceInformationProcess(
             root, code.getText(), codePositions, nodeToSourceLocationsMap);
     processMap[subProcess] = root;
   }
@@ -251,14 +249,14 @@ class RecordingSourceInformationStrategy
     return nodeMap.putIfAbsent(node, () {
       for (RecordedSourceInformationProcess subProcess in processMap.keys) {
         js.Node root = processMap[subProcess]!;
-        FindVisitor visitor = new FindVisitor(node);
+        FindVisitor visitor = FindVisitor(node);
         root.accept(visitor);
         if (visitor.found) {
-          return new RecordedSourceInformationProcess(
+          return RecordedSourceInformationProcess(
               node,
               subProcess.code,
               subProcess.codePositions,
-              new _FilteredLocationMap(
+              _FilteredLocationMap(
                   visitor.nodes, subProcess.nodeToSourceLocationsMap));
         }
         return null;
@@ -275,7 +273,7 @@ class FindVisitor extends js.BaseVisitorVoid {
   final js.Node soughtNode;
   bool found = false;
   bool add = false;
-  final Set<js.Node> nodes = new Set<js.Node>();
+  final Set<js.Node> nodes = Set<js.Node>();
 
   FindVisitor(this.soughtNode);
 
@@ -329,10 +327,10 @@ class SourceMapProcessor {
       bool perElement = true,
       bool forMain = false}) async {
     OutputProvider outputProvider = outputToFile
-        ? new CloningOutputProvider(targetUri, sourceMapFileUri)
-        : new OutputProvider();
+        ? CloningOutputProvider(targetUri, sourceMapFileUri)
+        : OutputProvider();
     if (options.contains(Flags.useNewSourceInfo)) {
-      if (verbose) print('Using the new source information system.');
+      if (verbose) print('Using the source information system.');
     }
     if (options.contains(Flags.disableInlining)) {
       if (verbose) print('Inlining disabled');
@@ -348,9 +346,9 @@ class SourceMapProcessor {
           dynamic handler = compiler.handler;
           SourceFileProvider sourceFileProvider = handler.provider;
           sourceFileManager =
-              new ProviderSourceFileManager(sourceFileProvider, outputProvider);
+              ProviderSourceFileManager(sourceFileProvider, outputProvider);
           RecordingSourceInformationStrategy strategy =
-              new RecordingSourceInformationStrategy(
+              RecordingSourceInformationStrategy(
                   backendStrategy.sourceInformationStrategy
                       as JavaScriptSourceInformationStrategy);
           backendStrategy.sourceInformationStrategy = strategy;
@@ -381,12 +379,12 @@ class SourceMapProcessor {
         String code = subProcess.code;
         CodePositionRecorder codePositions = subProcess.codePositions;
         CodePointComputer visitor =
-            new CodePointComputer(sourceFileManager, code, nodeMap);
-        new JavaScriptTracer(
+            CodePointComputer(sourceFileManager, code, nodeMap);
+        JavaScriptTracer(
                 codePositions, const SourceInformationReader(), [visitor])
             .apply(node);
         List<CodePoint> codePoints = visitor.codePoints;
-        elementSourceMapInfos[element] = new SourceMapInfo(
+        elementSourceMapInfos[element] = SourceMapInfo(
             element, code, node, codePoints, codePositions, nodeMap);
       });
     }
@@ -401,16 +399,16 @@ class SourceMapProcessor {
       code = process.code;
       codePositions = process.codePositions;
       CodePointComputer visitor =
-          new CodePointComputer(sourceFileManager, code, nodeMap);
-      new JavaScriptTracer(
+          CodePointComputer(sourceFileManager, code, nodeMap);
+      JavaScriptTracer(
               codePositions, const SourceInformationReader(), [visitor])
           .apply(node);
       List<CodePoint> codePoints = visitor.codePoints;
-      mainSourceMapInfo = new SourceMapInfo(
-          null, code, node, codePoints, codePositions, nodeMap);
+      mainSourceMapInfo =
+          SourceMapInfo(null, code, node, codePoints, codePositions, nodeMap);
     }
 
-    return new SourceMaps(
+    return SourceMaps(
         compiler, sourceFileManager, mainSourceMapInfo, elementSourceMapInfos);
   }
 }
@@ -512,11 +510,11 @@ class CodePointComputer extends TraceListener {
   CodePointComputer(this.sourceFileManager, this.code, this.nodeMap);
 
   String nodeToString(js.Node node) {
-    js.JavaScriptPrintingOptions options = new js.JavaScriptPrintingOptions(
+    js.JavaScriptPrintingOptions options = js.JavaScriptPrintingOptions(
         shouldCompressOutput: true,
         preferSemicolonToNewlineInMinifiedOutput: true);
-    LenientPrintingContext printingContext = new LenientPrintingContext();
-    new js.Printer(options, printingContext).visit(node);
+    LenientPrintingContext printingContext = LenientPrintingContext();
+    js.Printer(options, printingContext).visit(node);
     return printingContext.buffer.toString();
   }
 
@@ -622,8 +620,8 @@ class IOSourceFileManager implements SourceFileManager {
       absoluteUri = base.resolve(uri);
     }
     return sourceFiles.putIfAbsent(absoluteUri, () {
-      String text = new File.fromUri(absoluteUri).readAsStringSync();
-      return new StringSourceFile.fromUri(absoluteUri, text);
+      String text = File.fromUri(absoluteUri).readAsStringSync();
+      return StringSourceFile.fromUri(absoluteUri, text);
     });
   }
 }

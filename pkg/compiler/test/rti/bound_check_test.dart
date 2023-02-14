@@ -26,7 +26,7 @@ main() {
   method3<T extends B>() {}
 
   dynamic m1 = method1;
-  dynamic m2 = new C().method2;
+  dynamic m2 = C().method2;
   dynamic m3 = method3;
 
   m1<A>();

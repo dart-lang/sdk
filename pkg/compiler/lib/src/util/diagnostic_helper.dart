@@ -35,7 +35,7 @@ class DiagnosticCollector implements api.CompilerDiagnostics {
   @override
   void report(covariant Message? message, Uri? uri, int? begin, int? end,
       String text, api.Diagnostic kind) {
-    messages.add(new CollectedMessage(message, uri, begin, end, text, kind));
+    messages.add(CollectedMessage(message, uri, begin, end, text, kind));
   }
 
   Iterable<CollectedMessage> filterMessagesByKinds(List<api.Diagnostic> kinds) {

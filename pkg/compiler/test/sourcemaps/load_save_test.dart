@@ -52,7 +52,7 @@ void main() {
 }
 
 void testReadWrite() {
-  SingleMapping sourceMap = new SingleMapping.fromJson(json.decode(SOURCEMAP));
+  SingleMapping sourceMap = SingleMapping.fromJson(json.decode(SOURCEMAP));
   String humanReadable = convertToHumanReadableSourceMap(sourceMap);
   SingleMapping sourceMap2 = convertFromHumanReadableSourceMap(humanReadable);
   String humanReadable2 = convertToHumanReadableSourceMap(sourceMap2);

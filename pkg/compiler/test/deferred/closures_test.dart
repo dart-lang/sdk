@@ -18,7 +18,7 @@ void main() {
 }
 
 runTest() async {
-  OutputCollector collector = new OutputCollector();
+  OutputCollector collector = OutputCollector();
   await runCompiler(memorySourceFiles: sources, outputProvider: collector);
   String mainOutput = collector.getOutput("", api.OutputType.js)!;
   String deferredOutput = collector.getOutput("out_1", api.OutputType.jsPart)!;

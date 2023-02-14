@@ -20,7 +20,7 @@ class Super {}
 class Class extends Super with Mixin<int> {}
 
 main() {
-  new Class().method(0);
+  Class().method(0);
 }
 ''';
 

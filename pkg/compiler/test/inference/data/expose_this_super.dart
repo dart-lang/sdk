@@ -36,7 +36,7 @@ class Class1 extends Super1 {
 }
 
 /*member: exposeThis1:[exact=Class1]*/
-exposeThis1() => new Class1();
+exposeThis1() => Class1();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Expose this through super access.
@@ -60,7 +60,7 @@ class Class2 extends Super2 {
 }
 
 /*member: exposeThis2:[exact=Class2]*/
-exposeThis2() => new Class2();
+exposeThis2() => Class2();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Expose this through super access.
@@ -83,7 +83,7 @@ class Class3 extends Super3 {
 }
 
 /*member: exposeThis3:[exact=Class3]*/
-exposeThis3() => new Class3();
+exposeThis3() => Class3();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Expose this in the constructor of a super class.
@@ -110,4 +110,4 @@ class Class4 extends Super4 {
 }
 
 /*member: exposeThis4:[exact=Class4]*/
-exposeThis4() => new Class4();
+exposeThis4() => Class4();

@@ -22,7 +22,7 @@ main() {
   test(new Foo(), Foo, expectTypeArguments: false);
   // ignore: unnecessary_cast
   test(new Bar() as Bar<num>, Bar, expectTypeArguments: false);
-  Baz<num> b = new Baz();
+  Baz<num> b = Baz();
   dynamic c = b;
   test(c as Baz<num>, Baz, expectTypeArguments: true);
 }

@@ -17,7 +17,7 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('kdata'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('kdata'));
     await checkTests(dataDir, const KAllocatorAnalysisDataComputer(),
         args: args, testedConfigs: allSpecConfigs);
   });
@@ -41,7 +41,7 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
       KFieldAnalysis allocatorAnalysis =
           frontendStrategy.fieldAnalysisForTesting;
       ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
-      Features features = new Features();
+      Features features = Features();
       if (member.isInstanceMember) {
         AllocatorData? data =
             allocatorAnalysis.getAllocatorDataForTesting(member as KField);
@@ -66,7 +66,7 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
       }
       Id id = computeMemberId(node);
       ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
-      actualMap[id] = new ActualData<Features>(id, features,
+      actualMap[id] = ActualData<Features>(id, features,
           nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
     }
   }

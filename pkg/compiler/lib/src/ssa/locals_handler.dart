@@ -58,7 +58,7 @@ class LocalsHandler {
   ///       Foo(this.field);
   ///     }
   ///     main() {
-  ///       new Foo<String>('foo');
+  ///       Foo<String>('foo');
   ///     }
   ///
   final InterfaceType? instanceType;

@@ -25,7 +25,7 @@ void main() {
       C(this.field1, this.field2);
     }
 
-    main() => new C(null, null);
+    main() => C(null, null);
     """);
     ClassEntity C = env.getClass('C');
     InterfaceType C_raw = env.elementEnvironment.getRawType(C);
@@ -33,13 +33,13 @@ void main() {
         .lookupClassMember(C, PublicName('field1')) as FieldEntity;
     final field2 = env.elementEnvironment
         .lookupClassMember(C, PublicName('field2')) as FieldEntity;
-    ConstructedConstantValue value1 = new ConstructedConstantValue(C_raw, {
-      field1: new IntConstantValue(BigInt.zero),
-      field2: new IntConstantValue(BigInt.one),
+    ConstructedConstantValue value1 = ConstructedConstantValue(C_raw, {
+      field1: IntConstantValue(BigInt.zero),
+      field2: IntConstantValue(BigInt.one),
     });
-    ConstantValue value2 = new ConstructedConstantValue(C_raw, {
-      field2: new IntConstantValue(BigInt.one),
-      field1: new IntConstantValue(BigInt.zero),
+    ConstantValue value2 = ConstructedConstantValue(C_raw, {
+      field2: IntConstantValue(BigInt.one),
+      field1: IntConstantValue(BigInt.zero),
     });
     Expect.equals(value1.hashCode, value2.hashCode, "Hashcode mismatch.");
     Expect.equals(value1, value2, "Value mismatch.");

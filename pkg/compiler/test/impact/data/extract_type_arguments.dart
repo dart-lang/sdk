@@ -124,7 +124,7 @@ testB(c, f) => extractTypeArguments<B>(c, f);
 
 /*member: main:static=[C.(0),testA(2),testB(2)],type=[inst:JSNull]*/
 main() {
-  var c = new C();
+  var c = C();
   testA(c, null);
   testB(c, null);
 }

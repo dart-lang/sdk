@@ -146,9 +146,9 @@ class SerializationTask extends CompilerTask {
       // Consider using a strategy like we do for the global data, so we can also
       // test it with the objectSink/objectSource:
       //   List<Object> encoding = [];
-      //   DataSink sink = new ObjectSink(encoding, useDataKinds: true);
+      //   DataSink sink = ObjectSink(encoding, useDataKinds: true);
       //   data.toDataSink(sink);
-      //   DataSource source = new ObjectSource(encoding, useDataKinds: true);
+      //   DataSource source = ObjectSource(encoding, useDataKinds: true);
       //   source.registerComponentLookup(new ComponentLookup(component));
       //   ModuleData.fromDataSource(source);
       BytesSink bytes = BytesSink();

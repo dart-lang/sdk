@@ -44,7 +44,7 @@ class Class {
 _instanceTearOffHelper(f) => Function.apply(f, []);
 
 instanceTearOff() {
-  var c = new Class();
+  var c = Class();
   _instanceTearOffHelper(c.instanceTearOff1);
   return c.instanceTearOff2;
 }

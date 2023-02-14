@@ -100,8 +100,8 @@ main() {
   Expect.equals(1, method2(new Class1()));
   Expect.equals(2, method3(new Class1()));
   Expect.equals(3, method3(new Class2()));
-  Expect.equals(0, new Class3().method4());
-  Expect.equals(4, new Class4().method5());
+  Expect.equals(0, Class3().method4());
+  Expect.equals(4, Class4().method5());
   Expect.equals(0, method6(new Class1()));
   Expect.throws(/*calls=[method6(1)],params=0*/ () => method6(null));
   Expect.equals(4, method7(new Class1()));

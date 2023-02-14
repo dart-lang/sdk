@@ -9,7 +9,7 @@
 // Expected deobfuscated name: MyClass
 
 main() {
-  throw new MyClass();
+  throw MyClass();
 }
 
 class MyClass {}

@@ -384,7 +384,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       // Consider this:
       //
       //    abstract class A<T> {
-      //      factory A.regular() => new B<T>();
+      //      factory A.regular() => B<T>();
       //      factory A.redirect() = B<T>;
       //    }
       //

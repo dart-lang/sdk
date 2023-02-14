@@ -15,7 +15,7 @@ class Class {
 
 /*member: main:[null]*/
 main() {
-  new Class();
+  Class();
   statementOrderFieldAccess(null);
   statementOrderFieldUpdate(null);
   statementOrderInvocation(null);

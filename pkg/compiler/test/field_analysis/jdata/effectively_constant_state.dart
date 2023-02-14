@@ -76,7 +76,7 @@ class Class {
 }
 
 main() {
-  var c = new Class();
+  var c = Class();
   c.method1a();
   c.method1b();
   c.method2a();

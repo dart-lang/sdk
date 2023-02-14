@@ -39,7 +39,7 @@ const MEMORY_SOURCE_FILES = const {
 
 void main() {
   runTest() async {
-    OutputCollector collector = new OutputCollector();
+    OutputCollector collector = OutputCollector();
     await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES,
         outputProvider: collector,

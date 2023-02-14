@@ -40,22 +40,22 @@ testClassSets() async {
 
   Future run(List<String> instantiated) async {
     print('---- testing $instantiated ---------------------------------------');
-    StringBuffer main = new StringBuffer();
+    StringBuffer main = StringBuffer();
     main.writeln(CLASSES);
     main.writeln('main() {');
     main.writeln('  dynamic d;');
     main.writeln('  d.foo(); d.bar(); d.baz();');
     for (String cls in instantiated) {
-      main.writeln('  new $cls();');
+      main.writeln('  $cls();');
     }
     main.writeln('}');
     testMode = '$instantiated';
 
     var env =
         await TypeEnvironment.create(main.toString(), testBackendWorld: true);
-    foo = new Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
-    bar = new Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
-    baz = new Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);
+    foo = Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
+    bar = Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
+    baz = Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);
 
     closedWorld = env.jClosedWorld;
     superclass = env.getElement('Superclass') as ClassEntity;

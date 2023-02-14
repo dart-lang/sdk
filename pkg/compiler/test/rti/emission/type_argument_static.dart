@@ -19,7 +19,7 @@ class C<T> {}
 class D {}
 
 @pragma('dart2js:noInline')
-m<T>() => new C<T>();
+m<T>() => C<T>();
 
 @pragma('dart2js:noInline')
 test(o) => o is C<A>;

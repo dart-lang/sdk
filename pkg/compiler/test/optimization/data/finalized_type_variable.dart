@@ -56,12 +56,12 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
 
 /*prod.member: main:FieldSet=[name=AppView.ctx]*/
 main() {
-  var c1 = new ViewCardComponent();
-  c1.ctx = new CardComponent();
+  var c1 = ViewCardComponent();
+  c1.ctx = CardComponent();
   c1.method1('foo');
   c1.method2();
-  var c2 = new ViewCardComponent2();
-  c2.ctx = new CardComponent2();
+  var c2 = ViewCardComponent2();
+  c2.ctx = CardComponent2();
   c2.method1('bar');
   c2.method2();
 }

@@ -32,7 +32,7 @@ Future runTest() async {
 
     main() {
       (new A())();
-      new B();
+      B();
       (new C())();
       localFunction() {}
       () {};
@@ -47,13 +47,13 @@ Future runTest() async {
 
   JClosedWorld closedWorld = env.jClosedWorld;
   int closureCount = 0;
-  Selector callSelector = new Selector.callClosure(0);
+  Selector callSelector = Selector.callClosure(0);
   closedWorld.classHierarchy.forEachStrictSubclassOf(
       closedWorld.commonElements.objectClass, (ClassEntity cls) {
     if (!cls.library.canonicalUri.isScheme('memory'))
       return IterationStep.CONTINUE;
 
-    TypeMask mask = new TypeMask.nonNullSubclass(cls, closedWorld);
+    TypeMask mask = TypeMask.nonNullSubclass(cls, closedWorld);
     final receiverType =
         closedWorld.computeReceiverType(callSelector, mask) as TypeMask;
     if (cls.isClosure) {

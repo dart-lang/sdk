@@ -17,7 +17,7 @@ class B extends A {}
 class C implements A {}
 class D implements A {}
 main() {
-  print([new A(), new B(), new C(), new D()]);
+  print([new A(), B(), C(), D()]);
 }
 """;
 
@@ -39,15 +39,15 @@ main() {
     dynamic classC = elementEnvironment.lookupClass(mainLibrary, 'C');
     dynamic classD = elementEnvironment.lookupClass(mainLibrary, 'D');
 
-    var exactA = new TypeMask.nonNullExact(classA, closedWorld);
-    var exactB = new TypeMask.nonNullExact(classB, closedWorld);
-    var exactC = new TypeMask.nonNullExact(classC, closedWorld);
-    var exactD = new TypeMask.nonNullExact(classD, closedWorld);
+    var exactA = TypeMask.nonNullExact(classA, closedWorld);
+    var exactB = TypeMask.nonNullExact(classB, closedWorld);
+    var exactC = TypeMask.nonNullExact(classC, closedWorld);
+    var exactD = TypeMask.nonNullExact(classD, closedWorld);
 
-    var subclassA = new TypeMask.nonNullSubclass(classA, closedWorld);
-    var subtypeA = new TypeMask.nonNullSubtype(classA, closedWorld);
+    var subclassA = TypeMask.nonNullSubclass(classA, closedWorld);
+    var subtypeA = TypeMask.nonNullSubtype(classA, closedWorld);
 
-    var subclassObject = new TypeMask.nonNullSubclass(
+    var subclassObject = TypeMask.nonNullSubclass(
         closedWorld.commonElements.objectClass, closedWorld);
 
     var unionABC = UnionTypeMask.unionOf([exactA, exactB, exactC], commonMasks);

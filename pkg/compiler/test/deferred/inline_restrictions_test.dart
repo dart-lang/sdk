@@ -13,7 +13,7 @@ import 'package:compiler/src/util/memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
-    OutputCollector collector = new OutputCollector();
+    OutputCollector collector = OutputCollector();
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
@@ -42,21 +42,21 @@ void main() {
     //
     // TODO(sigmund): reenable, this commented test changed after porting
     // deferred loading to the new common frontend.
-    // RegExp re1 = new RegExp(r"inlined as empty");
+    // RegExp re1 = RegExp(r"inlined as empty");
     // Expect.isFalse(re1.hasMatch(mainOutput));
 
     // Test that inlineFromMain was inlined and thus the string moved to lib1.
-    RegExp re2 = new RegExp(r"inlined from main");
+    RegExp re2 = RegExp(r"inlined from main");
     Expect.isFalse(re2.hasMatch(mainOutput));
     Expect.isTrue(re2.hasMatch(lib1Output));
 
     // Test that inlineFromLib1 was not inlined into main.
-    RegExp re3 = new RegExp(r"inlined from lib1");
+    RegExp re3 = RegExp(r"inlined from lib1");
     Expect.isFalse(re3.hasMatch(mainOutput));
     Expect.isTrue(re3.hasMatch(lib1Output));
 
     // Test that inlineSameContext was inlined into lib1.
-    RegExp re4 = new RegExp(r"inline same context");
+    RegExp re4 = RegExp(r"inline same context");
     // Output can be null when it contains no code.
     Expect.isTrue(lib3Output == null || !re4.hasMatch(lib3Output));
     Expect.isTrue(re4.hasMatch(lib1Output));

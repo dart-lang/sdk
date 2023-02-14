@@ -26,7 +26,7 @@ class Class1 {
 }
 
 /*member: thisExact:[exact=Class1]*/
-thisExact() => new Class1(). /*invoke: [exact=Class1]*/ method();
+thisExact() => Class1(). /*invoke: [exact=Class1]*/ method();
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return `this` of a class with an instantiated subclass.
@@ -43,8 +43,8 @@ class Class2b extends Class2a {}
 
 /*member: thisSubclass:[subclass=Class2a]*/
 thisSubclass() {
-  new Class2b();
-  return new Class2a(). /*invoke: [exact=Class2a]*/ method();
+  Class2b();
+  return Class2a(). /*invoke: [exact=Class2a]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ class Class3b extends Class3a {}
 
 /*member: thisSubclassExact:[exact=Class3a]*/
 thisSubclassExact() {
-  return new Class3a(). /*invoke: [exact=Class3a]*/ method();
+  return Class3a(). /*invoke: [exact=Class3a]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -79,8 +79,8 @@ class Class4b extends Object with Class4a {}
 
 /*member: thisSubtype:[subtype=Class4a]*/
 thisSubtype() {
-  new Class4b();
-  return new Class4a(). /*invoke: [exact=Class4a]*/ method();
+  Class4b();
+  return Class4a(). /*invoke: [exact=Class4a]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ class Class5b extends Object with Class5a {}
 
 /*member: thisSubtypeExact:[exact=Class5a]*/
 thisSubtypeExact() {
-  return new Class5a(). /*invoke: [exact=Class5a]*/ method();
+  return Class5a(). /*invoke: [exact=Class5a]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -115,8 +115,8 @@ class Class6b extends Object with Class6a {}
 
 /*member: thisSubtypeMixedIn:[subtype=Class6a]*/
 thisSubtypeMixedIn() {
-  new Class6a();
-  return new Class6b(). /*invoke: [exact=Class6b]*/ method();
+  Class6a();
+  return Class6b(). /*invoke: [exact=Class6b]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -133,5 +133,5 @@ class Class7b extends Object with Class7a {}
 
 /*member: thisSubtypeExactMixedIn:[exact=Class7b]*/
 thisSubtypeExactMixedIn() {
-  return new Class7b(). /*invoke: [exact=Class7b]*/ method();
+  return Class7b(). /*invoke: [exact=Class7b]*/ method();
 }

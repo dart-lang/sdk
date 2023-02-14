@@ -50,13 +50,13 @@ class Test {
 
 Test processTestCode(String code) {
   List<SourceLocation> expectedLocations = <SourceLocation>[];
-  AnnotatedCode annotatedCode = new AnnotatedCode.fromText(code);
+  AnnotatedCode annotatedCode = AnnotatedCode.fromText(code);
   for (Annotation annotation in annotatedCode.annotations) {
     String methodName = annotation.text;
     expectedLocations.add(
-        new SourceLocation(methodName, annotation.lineNo, annotation.columnNo));
+        SourceLocation(methodName, annotation.lineNo, annotation.columnNo));
   }
-  return new Test(code, annotatedCode.sourceCode, expectedLocations);
+  return Test(code, annotatedCode.sourceCode, expectedLocations);
 }
 
 void main(List<String> arguments) {
@@ -84,7 +84,7 @@ void main(List<String> arguments) {
     }
   }
   if (indices == null) {
-    indices = new List<int>.generate(TESTS.length, (i) => i);
+    indices = List<int>.generate(TESTS.length, (i) => i);
   }
   asyncTest(() async {
     for (int index in indices!) {
@@ -98,7 +98,7 @@ Future runTest(int index, Test test,
     {bool printJs = false, required bool writeJs, bool verbose = false}) async {
   print("--$index------------------------------------------------------------");
   print("Compiling dart2js\n ${test.annotatedCode}");
-  OutputCollector collector = new OutputCollector();
+  OutputCollector collector = OutputCollector();
   List<String> options = <String>['--out=out.js', '--source-map=out.js.map'];
   CompilationResult compilationResult = await runCompiler(
       entryPoint: Uri.parse('memory:main.dart'),
@@ -111,9 +111,9 @@ Future runTest(int index, Test test,
   String sourceMapText = collector.getOutput('', api.OutputType.sourceMap)!;
   final sourceMap = parse(sourceMapText) as SingleMapping;
   if (writeJs) {
-    new File('out.js')
+    File('out.js')
         .writeAsStringSync(collector.getOutput('', api.OutputType.js)!);
-    new File('out.js.map').writeAsStringSync(sourceMapText);
+    File('out.js.map').writeAsStringSync(sourceMapText);
   }
 
   Set<SourceLocation> expectedLocations = test.expectedLocations.toSet();
@@ -127,7 +127,7 @@ Future runTest(int index, Test test,
         if (targetEntry.sourceNameId != null) {
           methodName = sourceMap.names[targetEntry.sourceNameId!];
         }
-        SourceLocation location = new SourceLocation(methodName,
+        SourceLocation location = SourceLocation(methodName,
             targetEntry.sourceLine! + 1, targetEntry.sourceColumn! + 1);
         actualLocations.add(location);
         if (!expectedLocations.remove(location)) {
@@ -139,7 +139,7 @@ Future runTest(int index, Test test,
 
   if (expectedLocations.isNotEmpty) {
     print('--Missing source locations:---------------------------------------');
-    AnnotatedCode annotatedCode = new AnnotatedCode(test.code, test.code, []);
+    AnnotatedCode annotatedCode = AnnotatedCode(test.code, test.code, []);
     expectedLocations.forEach((l) => annotatedCode.addAnnotation(
         l.lineNo, l.columnNo, '/*', l.methodName!, '*/'));
     print(annotatedCode.toText());
@@ -152,7 +152,7 @@ Future runTest(int index, Test test,
   }
   if (extraLocations.isNotEmpty) {
     print('--Extra source locations:-----------------------------------------');
-    AnnotatedCode annotatedCode = new AnnotatedCode(test.code, test.code, []);
+    AnnotatedCode annotatedCode = AnnotatedCode(test.code, test.code, []);
     extraLocations.forEach((l) => annotatedCode.addAnnotation(
         l.lineNo, l.columnNo, '/*', l.methodName!, '*/'));
     print(annotatedCode.toText());

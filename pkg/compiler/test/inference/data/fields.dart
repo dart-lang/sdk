@@ -22,7 +22,7 @@ class Class1 {
 }
 
 /*member: fieldGetUnset:[null]*/
-fieldGetUnset() => new Class1(). /*[exact=Class1]*/ field;
+fieldGetUnset() => Class1(). /*[exact=Class1]*/ field;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Get a field initialized to `null`.
@@ -34,7 +34,7 @@ class Class4 {
 }
 
 /*member: fieldGetUnsetInitialized:[null]*/
-fieldGetUnsetInitialized() => new Class4(). /*[exact=Class4]*/ field;
+fieldGetUnsetInitialized() => Class4(). /*[exact=Class4]*/ field;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Set an uninitialized field.
@@ -47,7 +47,7 @@ class Class2 {
 
 /*member: fieldSet:[null]*/
 fieldSet() {
-  new Class2(). /*update: [exact=Class2]*/ field = 0;
+  Class2(). /*update: [exact=Class2]*/ field = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,5 +61,5 @@ class Class3 {
 
 /*member: fieldSetReturn:[exact=JSUInt31]*/
 fieldSetReturn() {
-  return new Class3(). /*update: [exact=Class3]*/ field = 0;
+  return Class3(). /*update: [exact=Class3]*/ field = 0;
 }

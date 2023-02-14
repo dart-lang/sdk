@@ -74,8 +74,8 @@ test(param) {
 Future compileAndTest(String code) {
   return compile(code, entry: 'test', check: (String generated) {
     RegExp validAdd =
-        new RegExp("($anyIdentifier \\+ 42)|($anyIdentifier \\+= 42)");
-    RegExp invalidAdd = new RegExp("$anyIdentifier \\+ 53");
+        RegExp("($anyIdentifier \\+ 42)|($anyIdentifier \\+= 42)");
+    RegExp invalidAdd = RegExp("$anyIdentifier \\+ 53");
     Expect.isTrue(validAdd.hasMatch(generated));
     Expect.isFalse(invalidAdd.hasMatch(generated));
   });

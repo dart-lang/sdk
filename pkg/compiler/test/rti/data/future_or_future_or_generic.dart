@@ -20,5 +20,5 @@ class B<T> {}
 class C {}
 
 main() {
-  new A<FutureOr<C>>().m(new B<C>());
+  A<FutureOr<C>>().m(new B<C>());
 }

@@ -428,6 +428,6 @@ class Subclass extends Clazz {
   {"id":"function/package:expect/expect.dart::Expect.throws"}]
 */
 main() {
-  Super<Object> s = new Subclass()..test();
+  Super<Object> s = Subclass()..test();
   Expect.throws(() => s.method(''));
 }

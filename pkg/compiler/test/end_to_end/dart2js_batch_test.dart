@@ -21,7 +21,7 @@ copyDirectory(Directory sourceDir, Directory destinationDir) {
     if (element is File) {
       element.copySync(newPath);
     } else if (element is Directory) {
-      Directory newDestinationDir = new Directory(newPath);
+      Directory newDestinationDir = Directory(newPath);
       newDestinationDir.createSync();
       copyDirectory(element, newDestinationDir);
     }

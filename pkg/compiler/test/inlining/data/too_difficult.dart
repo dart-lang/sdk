@@ -178,5 +178,5 @@ class Class1 {
 /*member: closureInInitializer:[]*/
 @pragma('dart2js:noInline')
 closureInInitializer() {
-  new Class1();
+  Class1();
 }

@@ -72,10 +72,10 @@ main() {
 """;
 
 main() {
-  var plusZero = new RegExp(r"\+ 0");
-  var zeroPlus = new RegExp(r"0 \+");
-  var timesOne = new RegExp(r"\* 1");
-  var oneTimes = new RegExp(r"1 \*");
+  var plusZero = RegExp(r"\+ 0");
+  var zeroPlus = RegExp(r"0 \+");
+  var timesOne = RegExp(r"\* 1");
+  var oneTimes = RegExp(r"1 \*");
 
   test() async {
     await compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero);

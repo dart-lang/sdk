@@ -10,7 +10,7 @@ import 'dart:_js_helper';
 @Native('Class')
 class Class {
   factory Class() {
-    throw new UnsupportedError("Not supported");
+    throw UnsupportedError("Not supported");
   }
 
   method1(a, [b, c])

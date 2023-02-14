@@ -20,7 +20,7 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const InliningDataComputer(), args: args);
   });
 }
@@ -38,7 +38,7 @@ class InliningDataComputer extends DataComputer<String> {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new InliningIrComputer(compiler.reporter, actualMap, elementMap, member,
+    InliningIrComputer(compiler.reporter, actualMap, elementMap, member,
             compiler.backendStrategy, closedWorld.closureDataLookup)
         .run(definition.node);
   }
@@ -61,7 +61,7 @@ class InliningIrComputer extends IrDataExtractor<String> {
       MemberEntity member,
       this._backendStrategy,
       this._closureDataLookup)
-      : this._inlineDataCache = new InlineDataCache(enableUserAssertions: true),
+      : this._inlineDataCache = InlineDataCache(enableUserAssertions: true),
         super(reporter, actualMap);
 
   String? getMemberValue(MemberEntity member) {
@@ -91,7 +91,7 @@ class InliningIrComputer extends IrDataExtractor<String> {
           }
         }
       });
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       String? tooDifficultReason1 = getTooDifficultReasonForbidLoops(member);
       String? tooDifficultReason2 = getTooDifficultReasonAllowLoops(member);
       inlinedIn.sort();

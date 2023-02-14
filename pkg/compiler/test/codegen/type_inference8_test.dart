@@ -53,8 +53,8 @@ Future runTest1() async {
   MemberEntity element = elementEnvironment.lookupLibraryMember(
       elementEnvironment.mainLibrary!, 'foo')!;
   AbstractValue mask = results.resultOfMember(element).returnType;
-  AbstractValue falseType = new ValueTypeMask(
-      commonMasks.boolType as TypeMask, new FalseConstantValue());
+  AbstractValue falseType =
+      ValueTypeMask(commonMasks.boolType as TypeMask, FalseConstantValue());
   // 'foo' should always return false
   Expect.equals(falseType, mask);
   // the argument to 'bar' is always false

@@ -37,14 +37,14 @@ class TestRandomAccessFileOutputProvider implements api.CompilerOutput {
   }
 
   @override
-  api.BinaryOutputSink createBinarySink(Uri uri) => new NullBinarySink(uri);
+  api.BinaryOutputSink createBinarySink(Uri uri) => NullBinarySink(uri);
 }
 
 late CompileFunc oldCompileFunc;
 
 Future<Null> test(List<String> arguments, List<String> expectedOutput,
     {List<String> groupOutputs = const <String>[]}) async {
-  List<String> options = new List<String>.from(arguments)
+  List<String> options = List<String>.from(arguments)
     ..add('--platform-binaries=$sdkPlatformBinariesPath')
     ..add('--libraries-spec=$sdkLibrariesSpecificationUri');
   print('--------------------------------------------------------------------');
@@ -58,7 +58,7 @@ Future<Null> test(List<String> arguments, List<String> expectedOutput,
         compilerOptions,
         compilerInput,
         compilerDiagnostics,
-        outputProvider = new TestRandomAccessFileOutputProvider(
+        outputProvider = TestRandomAccessFileOutputProvider(
             compilerOutput as RandomAccessFileOutputProvider));
   };
   await internalMain(options);

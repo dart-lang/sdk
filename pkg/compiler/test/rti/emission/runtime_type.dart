@@ -13,5 +13,5 @@ class A<T> {}
 class B<T> {}
 
 main() {
-  makeLive("A<B<int>>" == new A<B<int>>().runtimeType.toString());
+  makeLive("A<B<int>>" == A<B<int>>().runtimeType.toString());
 }

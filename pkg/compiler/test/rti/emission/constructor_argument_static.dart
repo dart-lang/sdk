@@ -46,10 +46,10 @@ class Use extends Test2 {
 }
 
 main() {
-  new Test1(new A1());
-  new Test1(new B1());
-  new Test1(null);
+  Test1(new A1());
+  Test1(new B1());
+  Test1(null);
 
-  new Use.A2();
-  new Use.B2();
+  Use.A2();
+  Use.B2();
 }

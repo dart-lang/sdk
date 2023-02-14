@@ -146,7 +146,7 @@ class Class1 {
 
 /*member: _callClosure:[subclass=Closure]*/
 _callClosure(/*[subclass=Closure]*/ f({c})) {
-  f(c: new Class1()).method1();
+  f(c: Class1()).method1();
   return f;
 }
 

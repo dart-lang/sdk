@@ -19,10 +19,10 @@ class BB {}
 class B<T> implements BB {
   @pragma('dart2js:noInline')
   foo() {
-    return new A<T>().foo(new B());
+    return A<T>().foo(new B());
   }
 }
 
 main() {
-  new B<BB>().foo();
+  B<BB>().foo();
 }

@@ -22,8 +22,8 @@ import '../helpers/ir_types.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir =
-        new Directory.fromUri(Platform.script.resolve('type_promotion_data'));
-    await checkTests(dataDir, new TypePromotionDataComputer(), args: args);
+        Directory.fromUri(Platform.script.resolve('type_promotion_data'));
+    await checkTests(dataDir, TypePromotionDataComputer(), args: args);
   });
 }
 
@@ -33,9 +33,9 @@ class TypePromotionDataComputer extends DataComputer<String> {
   ir.TypeEnvironment getTypeEnvironment(KernelToElementMap elementMap) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
-      ir.CoreTypes coreTypes = new ir.CoreTypes(component);
-      _typeEnvironment = new ir.TypeEnvironment(
-          coreTypes, new ir.ClassHierarchy(component, coreTypes));
+      ir.CoreTypes coreTypes = ir.CoreTypes(component);
+      _typeEnvironment = ir.TypeEnvironment(
+          coreTypes, ir.ClassHierarchy(component, coreTypes));
     }
     return _typeEnvironment!;
   }
@@ -52,8 +52,7 @@ class TypePromotionDataComputer extends DataComputer<String> {
     Map<ir.Expression, TypeMap> typeMaps =
         elementMap.getTypeMapsForTesting(member as KMember)!;
     ir.Member node = elementMap.getMemberNode(member);
-    new TypePromotionIrComputer(compiler.reporter, actualMap, typeMaps)
-        .run(node);
+    TypePromotionIrComputer(compiler.reporter, actualMap, typeMaps).run(node);
   }
 
   @override

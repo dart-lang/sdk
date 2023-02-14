@@ -16,9 +16,9 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script
+    Directory dataDir = Directory.fromUri(Platform.script
         .resolve('../../../../pkg/front_end/test/id_testing/data'));
-    await checkTests(dataDir, new IdTestingDataComputer(),
+    await checkTests(dataDir, IdTestingDataComputer(),
         args: args, testedConfigs: [sharedConfig]);
   });
 }
@@ -31,8 +31,7 @@ class IdTestingDataComputer extends DataComputer<String> {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Member node = elementMap.getMemberNode(member);
-    new IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
-        .run(node);
+    IdTestingDataExtractor(compiler.reporter, actualMap, elementMap).run(node);
   }
 
   @override
@@ -42,7 +41,7 @@ class IdTestingDataComputer extends DataComputer<String> {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Class node = elementMap.getClassNode(cls);
-    new IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
+    IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
         .computeForClass(node);
   }
 
@@ -53,7 +52,7 @@ class IdTestingDataComputer extends DataComputer<String> {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Library node = elementMap.getLibraryNode(library);
-    new IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
+    IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
         .computeForLibrary(node);
   }
 
@@ -83,7 +82,7 @@ class IdTestingDataExtractor extends IrDataExtractor<String> {
 
   @override
   String computeLibraryValue(Id id, ir.Library library) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('file=${library.importUri.pathSegments.last}');
     if (library.name != null) {
       sb.write(',name=${library.name}');

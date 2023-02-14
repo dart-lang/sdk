@@ -7,12 +7,12 @@
 /*Debugger:stepOver*/
 main() {
   /*bl*/
-  Foo foo = new /*s:1*/ Foo(1, 2);
+  Foo foo = /*s:1*/ Foo(1, 2);
   /*s:2*/ print(foo.x);
   /*s:3*/ print(foo.y);
   /*s:4*/ print(foo.z);
 
-  foo = new /*s:5*/ Foo.named();
+  foo = Foo. /*s:5*/ named();
   /*s:6*/ print(foo.x);
   /*s:7*/ print(foo.y);
   /*s:8*/ print(foo.z);

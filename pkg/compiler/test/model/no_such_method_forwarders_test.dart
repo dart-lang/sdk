@@ -87,17 +87,17 @@ class H3<T> extends H1<T> with H2<T> {
 }
 
 main() {
-  new A();
-  new B();
-  new C2();
-  new D3();
-  new E1();
-  new E3();
-  new F1();
-  new F2();
-  new F3();
-  new G3();
-  new H3();
+  A();
+  B();
+  C2();
+  D3();
+  E1();
+  E3();
+  F1();
+  F2();
+  F3();
+  G3();
+  H3();
   dynamic d;
   d.method();
 }

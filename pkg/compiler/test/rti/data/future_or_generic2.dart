@@ -20,5 +20,5 @@ class B<T> {}
 class C {}
 
 main() {
-  new A<C>().m(new B<C>());
+  A<C>().m(new B<C>());
 }

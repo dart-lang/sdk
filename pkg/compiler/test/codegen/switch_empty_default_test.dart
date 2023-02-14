@@ -115,9 +115,9 @@ void main() {
 """;
 
 main() {
-  var def = new RegExp(r"default:");
-  var defOrCase3 = new RegExp(r"(default:|case 3):");
-  var case3 = new RegExp(r"case 3:");
+  var def = RegExp(r"default:");
+  var defOrCase3 = RegExp(r"(default:|case 3):");
+  var case3 = RegExp(r"case 3:");
 
   runTests() async {
     await compileAndDoNotMatch(SIMPLY_EMPTY, 'main', def);

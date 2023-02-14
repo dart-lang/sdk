@@ -29,7 +29,7 @@ class Box<T> {
 /*member: B.:member_unit=1{lib}*/
 class B<T> extends A {
   /*member: B.box:member_unit=1{lib}*/
-  final box = new Box<T>();
+  final box = Box<T>();
 }
 
 /*class: C:

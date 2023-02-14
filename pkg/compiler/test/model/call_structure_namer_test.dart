@@ -13,7 +13,7 @@ main() {
         {int positionalParameters = 0,
         int typeParameters = 0,
         List<String> namedParameters = const <String>[]}) {
-      CallStructure callStructure = new CallStructure(
+      CallStructure callStructure = CallStructure(
           positionalParameters + namedParameters.length,
           namedParameters,
           typeParameters);

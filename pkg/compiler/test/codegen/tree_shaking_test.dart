@@ -19,10 +19,10 @@ class C implements A {
   noSuchMethod(_) {}
 }
 main() {
-  new A();
-  new B();
-  new C();
-  new A().foo();
+  A();
+  B();
+  C();
+  A().foo();
 }
 """;
 

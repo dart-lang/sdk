@@ -8,5 +8,5 @@
 class A<T> {}
 
 main() {
-  new A<int>() is A<int>;
+  A<int>() is A<int>;
 }

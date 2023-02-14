@@ -23,11 +23,11 @@ class B {}
 class C {
   /*spec.member: C.bar:explicit=[A<bar.T*>*],implicit=[bar.T],needsArgs,selectors=[Selector(call, bar, arity=1, types=1)],test*/
   /*prod.member: C.bar:needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
-  A<T> bar<T>(A<T> t) => new A<T>(t.field);
+  A<T> bar<T>(A<T> t) => A<T>(t.field);
 }
 
 main() {
-  C c = new C();
+  C c = C();
 
   dynamic x = c.bar<B>(new A<B>(new B()));
   makeLive(x is A<B>);

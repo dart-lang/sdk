@@ -24,7 +24,7 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
       print('--- create temp directory $dir -------------------------------');
     }
     memorySourceFiles.forEach((String name, String source) {
-      new File.fromUri(dir.uri.resolve(name)).writeAsStringSync(source);
+      File.fromUri(dir.uri.resolve(name)).writeAsStringSync(source);
     });
     entryPoint = dir.uri.resolve(entryPoint.path);
   }
@@ -71,7 +71,7 @@ Future<D8Result> runWithD8(
     Expect.stringEquals(expectedOutput.trim(),
         runResult.stdout.replaceAll('\r\n', '\n').trim());
   }
-  return new D8Result(result, runResult, output);
+  return D8Result(result, runResult, output);
 }
 
 class D8Result {

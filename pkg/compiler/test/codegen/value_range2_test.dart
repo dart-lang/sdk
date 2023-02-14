@@ -7,7 +7,7 @@ import "package:compiler/src/inferrer/abstract_value_domain.dart";
 import "package:compiler/src/ssa/nodes.dart";
 import "package:compiler/src/ssa/value_range_analyzer.dart";
 
-ValueRangeInfo info = new ValueRangeInfo();
+ValueRangeInfo info = ValueRangeInfo();
 
 class AbstractValueDomainMock implements AbstractValueDomain {
   const AbstractValueDomainMock();

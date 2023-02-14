@@ -17,7 +17,7 @@ main() {
     fe.InitializedCompilerState initializedCompilerState =
         fe.initializeCompiler(
             null,
-            new Dart2jsTarget('dart2js', new TargetFlags()),
+            Dart2jsTarget('dart2js', TargetFlags()),
             sdkLibrariesSpecificationUri,
             [], // additionalDills
             Uri.base

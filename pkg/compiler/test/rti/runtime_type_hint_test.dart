@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 test(String code, List<String> options, List<MessageKind> expectedHints) async {
-  DiagnosticCollector collector = new DiagnosticCollector();
+  DiagnosticCollector collector = DiagnosticCollector();
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': code},
       options: options,

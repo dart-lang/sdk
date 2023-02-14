@@ -62,7 +62,7 @@ class ProgramLookup {
     for (Fragment fragment in program.fragments) {
       for (Library library in fragment.libraries) {
         assert(!map.containsKey(library.element));
-        map[library.element] = new LibraryData(library, fragment);
+        map[library.element] = LibraryData(library, fragment);
       }
     }
     return map;
@@ -119,13 +119,13 @@ class LibraryData {
   LibraryData(this.library, Fragment fragment) {
     for (Class cls in library.classes) {
       assert(!_classMap.containsKey(cls.element));
-      _classMap[cls.element] = new ClassData(cls);
+      _classMap[cls.element] = ClassData(cls);
     }
     for (StaticMethod method in library.statics) {
       ClassEntity? enclosingClass = method.element?.enclosingClass;
       if (enclosingClass != null) {
         ClassData data =
-            _classMap.putIfAbsent(enclosingClass, () => new ClassData(null));
+            _classMap.putIfAbsent(enclosingClass, () => ClassData(null));
         assert(!data._methodMap.containsKey(method.element));
         data._methodMap[method.element as FunctionEntity] = method;
       } else if (method.element != null) {
@@ -138,7 +138,7 @@ class LibraryData {
       ClassEntity? enclosingClass = field.element.enclosingClass;
       if (enclosingClass != null) {
         ClassData data =
-            _classMap.putIfAbsent(enclosingClass, () => new ClassData(null));
+            _classMap.putIfAbsent(enclosingClass, () => ClassData(null));
         assert(!data._fieldMap.containsKey(field.element));
         data._staticFieldMap[field.element] = field;
       } else {
@@ -226,7 +226,7 @@ void forEachNode(js.Node root,
     void Function(js.PropertyAccess)? onPropertyAccess,
     void Function(js.Assignment)? onAssignment,
     void Function(js.Switch)? onSwitch}) {
-  CallbackVisitor visitor = new CallbackVisitor(
+  CallbackVisitor visitor = CallbackVisitor(
       onCall: onCall,
       onPropertyAccess: onPropertyAccess,
       onAssignment: onAssignment,

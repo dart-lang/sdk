@@ -11,7 +11,7 @@ class A {
 
 main() {
   local() {
-    var a = new A();
+    var a = A();
     a.instanceMethod<int>(0);
   }
 

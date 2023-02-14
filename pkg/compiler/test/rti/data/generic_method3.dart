@@ -19,7 +19,7 @@ class BB {}
 
 /*member: method2:deps=[B],implicit=[method2.T],needsArgs,test*/
 @pragma('dart2js:noInline')
-method2<T>() => new A<T>();
+method2<T>() => A<T>();
 
 /*class: B:implicit=[B.T],needsArgs,test*/
 class B<T> implements BB {

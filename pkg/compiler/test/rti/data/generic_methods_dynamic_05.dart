@@ -27,7 +27,7 @@ class C {
 }
 
 main() {
-  C c = new C();
+  C c = C();
   dynamic x = c.bar<B>(<B>[new B()]);
   makeLive(x is List<B>);
 }

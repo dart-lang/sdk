@@ -102,7 +102,7 @@ import 'lib2.dart' deferred as lib2;
 void main() {
   lib1.loadLibrary().then((_) {
         lib1.foo1();
-        new lib1.C();
+        lib1.C();
     lib2.loadLibrary().then((_) {
         lib2.foo2();
     });
@@ -120,7 +120,7 @@ import "lib4.dart" deferred as lib4_1;
 class C {}
 
 foo1() {
-  new InputElement();
+  InputElement();
   lib4_1.loadLibrary().then((_) {
     lib4_1.bar1();
   });

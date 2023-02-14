@@ -171,7 +171,7 @@ class Class1 {
 }
 
 /*member: customIndex:[exact=JSUInt31]*/
-customIndex() => new Class1() /*[exact=Class1]*/ [42];
+customIndex() => Class1() /*[exact=Class1]*/ [42];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Index access on custom class through `this`.
@@ -187,7 +187,7 @@ class Class2 {
 }
 
 /*member: customIndexThis:[exact=JSUInt31]*/
-customIndexThis() => new Class2(). /*invoke: [exact=Class2]*/ method();
+customIndexThis() => Class2(). /*invoke: [exact=Class2]*/ method();
 
 /*member: main:[null]*/
 main() {

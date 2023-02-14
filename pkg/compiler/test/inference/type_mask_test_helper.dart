@@ -29,12 +29,12 @@ TypeMask interceptorOrComparable(JClosedWorld closedWorld,
   // 'Interceptor' and not 'Comparable'. Maybe the union mask should be changed
   // to favor 'Interceptor' when flattening.
   if (nullable) {
-    return new TypeMask.subtype(
+    return TypeMask.subtype(
         closedWorld.elementEnvironment
             .lookupClass(closedWorld.commonElements.coreLibrary, 'Comparable')!,
         closedWorld);
   } else {
-    return new TypeMask.nonNullSubtype(
+    return TypeMask.nonNullSubtype(
         closedWorld.elementEnvironment
             .lookupClass(closedWorld.commonElements.coreLibrary, 'Comparable')!,
         closedWorld);

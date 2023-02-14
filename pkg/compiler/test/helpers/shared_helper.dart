@@ -7,8 +7,8 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 
 String constantToText(DartTypes dartTypes, ConstantValue constant) {
-  StringBuffer sb = new StringBuffer();
-  new ConstantToTextVisitor(dartTypes).visit(constant, sb);
+  StringBuffer sb = StringBuffer();
+  ConstantToTextVisitor(dartTypes).visit(constant, sb);
   return sb.toString();
 }
 
@@ -130,7 +130,7 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
 class ConstantToTextVisitor
     implements ConstantValueVisitor<void, StringBuffer> {
   final DartTypes _dartTypes;
-  final DartTypeToTextVisitor typeToText = new DartTypeToTextVisitor();
+  final DartTypeToTextVisitor typeToText = DartTypeToTextVisitor();
 
   ConstantToTextVisitor(this._dartTypes);
 

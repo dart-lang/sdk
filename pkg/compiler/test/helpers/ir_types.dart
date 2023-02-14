@@ -9,7 +9,7 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
 
   @override
   void defaultDartType(ir.DartType node, StringBuffer sb) {
-    throw new UnsupportedError("Unhandled type $node (${node.runtimeType}).");
+    throw UnsupportedError("Unhandled type $node (${node.runtimeType}).");
   }
 
   void writeType(ir.DartType type, StringBuffer sb) {
@@ -166,13 +166,13 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
 }
 
 String typeToText(ir.DartType type) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   const TypeTextVisitor().writeType(type, sb);
   return sb.toString();
 }
 
 String typesToText(Iterable<ir.DartType> types) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   String comma = '';
   for (ir.DartType type in types) {
     sb.write(comma);

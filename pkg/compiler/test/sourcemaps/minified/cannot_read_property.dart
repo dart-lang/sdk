@@ -9,7 +9,7 @@
 // Expected deobfuscated name: method
 
 main() {
-  new MyClass().f.method();
+  MyClass().f.method();
 }
 
 class MyClass {

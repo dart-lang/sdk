@@ -67,7 +67,7 @@ class FxUtil {
         window.convertPointFromNodeToPage(element, testPoint);
     final pointRelativeToTarget =
         window.convertPointFromPageToNode(target, pagePoint);
-    return new Coordinate(pointRelativeToTarget.x, pointRelativeToTarget.y);
+    return Coordinate(pointRelativeToTarget.x, pointRelativeToTarget.y);
     */
     // TODO(sra): Test this version that avoids the nonstandard
     // `convertPointFromPageToNode`.

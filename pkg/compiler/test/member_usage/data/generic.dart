@@ -28,7 +28,7 @@ class Class {
 
 /*member: main:invoke*/
 main() {
-  dynamic c = new Class();
+  dynamic c = Class();
   c.method1();
   c.method2<int>();
   c.method3();

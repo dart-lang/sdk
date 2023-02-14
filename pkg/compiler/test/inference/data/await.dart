@@ -22,7 +22,7 @@ _method1(/*[null|subclass=JSInt]*/ o) {}
 
 /*member: awaitOfFuture:[exact=_Future]*/
 awaitOfFuture() async {
-  var future = new Future.value(0);
+  var future = Future.value(0);
   var local = await future;
   _method1(local);
 }
@@ -56,7 +56,7 @@ _method4(/*[null|subclass=JSInt]*/ o) {}
 awaitForOfStream() async {
   var list = [0];
   _method3(list);
-  var stream = new Stream.fromIterable(list);
+  var stream = Stream.fromIterable(list);
   /*current: [exact=_StreamIterator]*/
   /*moveNext: [exact=_StreamIterator]*/
   await for (var local in stream) {

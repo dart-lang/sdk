@@ -145,7 +145,7 @@ Iterable<List<Impact>> permutations(List<Impact> impacts) sync* {
   } else {
     for (int index = 0; index < length; index++) {
       Impact head = impacts[index];
-      List<Impact> tail = new List<Impact>.from(impacts)..removeAt(index);
+      List<Impact> tail = List<Impact>.from(impacts)..removeAt(index);
       for (List<Impact> permutation in permutations(tail)) {
         yield [head]..addAll(permutation);
       }
@@ -181,7 +181,7 @@ main() {}
     ConstructorEntity constructor =
         elementEnvironment.lookupConstructor(cls, '')!;
     InterfaceType type = elementEnvironment.getRawType(cls);
-    WorldImpact impact = new WorldImpactBuilderImpl()
+    WorldImpact impact = WorldImpactBuilderImpl()
       ..registerStaticUse(new StaticUse.typedConstructorInvoke(constructor,
           constructor.parameterStructure.callStructure, type, null));
     enqueuer.applyImpact(impact);
@@ -195,12 +195,12 @@ main() {}
       Object Function(ClassEntity cls) createConstraint) {
     ClassEntity cls = elementEnvironment.lookupClass(
         elementEnvironment.mainLibrary!, className)!;
-    Selector selector = new Selector.call(
-        new Name(methodName, elementEnvironment.mainLibrary!.canonicalUri),
+    Selector selector = Selector.call(
+        Name(methodName, elementEnvironment.mainLibrary!.canonicalUri),
         CallStructure.NO_ARGS);
-    WorldImpact impact = new WorldImpactBuilderImpl()
+    WorldImpact impact = WorldImpactBuilderImpl()
       ..registerDynamicUse(
-          new DynamicUse(selector, createConstraint(cls), const <DartType>[]));
+          DynamicUse(selector, createConstraint(cls), const <DartType>[]));
     enqueuer.applyImpact(impact);
   }
 
@@ -255,7 +255,7 @@ main() {}
     checkInvariant(enqueuer, elementEnvironment);
 
     Object createConstraint(ClassEntity cls) {
-      return new StrongModeConstraint(compiler.frontendStrategy.commonElements,
+      return StrongModeConstraint(compiler.frontendStrategy.commonElements,
           compiler.frontendStrategy.elementMap.nativeBasicData, cls);
     }
 
@@ -271,7 +271,7 @@ main() {}
     checkInvariant(enqueuer, elementEnvironment);
 
     Object createConstraint(ClassEntity cls) {
-      return new TypeMask.subtype(cls, closedWorld);
+      return TypeMask.subtype(cls, closedWorld);
     }
 
     for (Impact impact in impacts) {

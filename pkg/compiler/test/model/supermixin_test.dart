@@ -29,7 +29,7 @@ mixin Mixin on SuperA {
 class Class extends SuperB with Mixin {}
 
 main() {
-  var c = new Class();
+  var c = Class();
   Expect.equals("BMC", c.method1('C'));
   Expect.equals("MC", c.method2('C'));
 }
@@ -65,7 +65,7 @@ main() {
         lookupMember(elementEnvironment, 'Class.method2') as FunctionEntity;
     Expect.equals(mixin, method2.enclosingClass);
 
-    ProgramLookup lookup = new ProgramLookup(result.compiler.backendStrategy);
+    ProgramLookup lookup = ProgramLookup(result.compiler.backendStrategy);
     ClassData data = lookup.getClassData(superClass)!;
     Expect.isNotNull(data.getMethod(method1));
     Expect.isNull(data.getMethod(method2));

@@ -37,10 +37,10 @@ class Class2<T> {
 }
 
 main() {
-  new Class1<int>().method();
-  new Class1<String>().method();
-  new Class2<int>().method();
-  new Class2<String>().method();
+  Class1<int>().method();
+  Class1<String>().method();
+  Class2<int>().method();
+  Class2<String>().method();
 }
 
 test1(o) {

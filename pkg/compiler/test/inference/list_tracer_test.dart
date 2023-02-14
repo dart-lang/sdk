@@ -118,7 +118,7 @@ main() {
   (() => listReturnedFromClosure)()[0] = aDouble;
 
   listInField[0] = anInt;
-  new A(listInField).useField();
+  A(listInField).useField();
 
   listUsedWithCascade[0] = anInt;
   listUsedWithCascade..[0] = aDouble;
@@ -127,10 +127,10 @@ main() {
   (() => listUsedInClosure[0] = aDouble)();
 
   listPassedToSelector[0] = anInt;
-  new A(null).receiveIt(listPassedToSelector);
+  A(null).receiveIt(listPassedToSelector);
 
   listReturnedFromSelector[0] = anInt;
-  new A(null).returnIt()[0] = aDouble;
+  A(null).returnIt()[0] = aDouble;
 
   listUsedWithAddAndInsert.add(anInt);
   listUsedWithAddAndInsert.insert(0, aDouble);
@@ -155,14 +155,14 @@ main() {
   listOnlySetWithConstraint[0]++;
 
   listEscapingInSetterValue[0] = anInt;
-  new A(null).callSetter = listEscapingInSetterValue;
+  A(null).callSetter = listEscapingInSetterValue;
 
   listEscapingInIndex[0] = anInt;
-  new A(null)[listEscapingInIndex];
+  A(null)[listEscapingInIndex];
 
-  new A(null)[listEscapingInIndexSet] = 42;
+  A(null)[listEscapingInIndexSet] = 42;
 
-  new A(null)[listEscapingTwiceInIndexSet] = listEscapingTwiceInIndexSet;
+  A(null)[listEscapingTwiceInIndexSet] = listEscapingTwiceInIndexSet;
 
   listPassedAsOptionalParameter[0] = anInt;
   takeOptional(listPassedAsOptionalParameter);
@@ -171,7 +171,7 @@ main() {
   takeNamed(list: listPassedAsNamedParameter);
 
   listSetInNonFinalField[0] = anInt;
-  new B(listSetInNonFinalField);
+  B(listSetInNonFinalField);
 
   listWithChangedLength[0] = anInt;
   listWithChangedLength.length = 54;
@@ -248,7 +248,7 @@ doTest(String allocation, {required bool nullify}) async {
   checkType('listStoredInListButEscapes', commonMasks.dynamicType);
 
   if (!allocation.contains('filled')) {
-    checkType('listUnset', new TypeMask.nonNullEmpty());
-    checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
+    checkType('listUnset', TypeMask.nonNullEmpty());
+    checkType('listOnlySetWithConstraint', TypeMask.nonNullEmpty());
   }
 }

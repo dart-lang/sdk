@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  var c = new Class1.a();
+  var c = Class1.a();
   c.field3a = null;
   c.field4a = null;
   c.field5a = null;
-  new Class1.b();
+  Class1.b();
 
   print(c.field1);
   print(c.field2);

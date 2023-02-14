@@ -106,6 +106,6 @@ main() {
   readLocalInClosure(null);
   writeLocalInAnonymousClosure(null);
   writeLocalInClosure(null);
-  new Foo().baz();
-  new Repro().qux();
+  Foo().baz();
+  Repro().qux();
 }

@@ -18,7 +18,7 @@ class C {
   method1<T>() => method2<T>();
 
   @pragma('dart2js:noInline')
-  method2<T>() => new A<T>();
+  method2<T>() => A<T>();
 }
 
 /*class: D:typeArgument*/

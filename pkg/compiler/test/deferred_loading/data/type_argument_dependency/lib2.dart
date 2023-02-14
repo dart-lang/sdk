@@ -18,4 +18,4 @@ class A {
 class B extends A {}
 
 /*member: createA:member_unit=1{c}*/
-createA() => new A();
+createA() => A();

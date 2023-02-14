@@ -241,7 +241,7 @@ Future<CompilationResult> compile(
   var compiler = Compiler(
       compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
   return compiler.run().then((bool success) {
-    return new CompilationResult(compiler,
+    return CompilationResult(compiler,
         isSuccess: success,
         kernelInitializedCompilerState: compiler.initializedCompilerState);
   });

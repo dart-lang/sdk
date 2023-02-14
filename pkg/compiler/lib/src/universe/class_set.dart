@@ -112,7 +112,7 @@ class ClassHierarchyNode {
   /// For instance `C` but _not_ `B` in:
   ///   class B {}
   ///   class C extends B {}
-  ///   main() => new C();
+  ///   main() => C();
   ///
   bool get isDirectlyInstantiated =>
       _mask.contains(Instantiation.DIRECTLY_INSTANTIATED);
@@ -177,7 +177,7 @@ class ClassHierarchyNode {
   ///   class A {}
   ///   class B extends A {}
   ///   class C extends B {}
-  ///   main() => [new B(), new C()];
+  ///   main() => [B(), C()];
   ///
   bool get isIndirectlyInstantiated => _instantiatedSubclassCount > 0;
 
