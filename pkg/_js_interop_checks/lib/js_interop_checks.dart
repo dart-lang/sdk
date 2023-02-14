@@ -294,6 +294,8 @@ class JsInteropChecks extends RecursiveVisitor {
 
   @override
   void visitProcedure(Procedure procedure) {
+    // TODO(joshualitt): Add a check that only supported operators are allowed
+    // in external extension members / inline classes.
     _checkInstanceMemberJSAnnotation(procedure);
     if (_classHasJSAnnotation && !procedure.isExternal) {
       // If not one of few exceptions, member is not allowed to exclude

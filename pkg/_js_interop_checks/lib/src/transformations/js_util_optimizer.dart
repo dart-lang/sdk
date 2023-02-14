@@ -124,12 +124,14 @@ class JsUtilOptimizer extends Transformer {
       if (_inlineExtensionIndex.isInstanceInteropMember(node)) {
         var shouldTrustType =
             _inlineExtensionIndex.isTrustTypesMember(node.reference);
-        if (_isGetter(node)) {
+        if (_inlineExtensionIndex.isGetter(node)) {
           transformedBody = _getExternalGetterBody(node, shouldTrustType);
-        } else if (_isSetter(node)) {
+        } else if (_inlineExtensionIndex.isSetter(node)) {
           transformedBody = _getExternalSetterBody(node);
-        } else if (_isMethod(node)) {
+        } else if (_inlineExtensionIndex.isMethod(node)) {
           transformedBody = _getExternalMethodBody(node, shouldTrustType);
+        } else if (_inlineExtensionIndex.isOperator(node)) {
+          transformedBody = _getExternalOperatorBody(node, shouldTrustType);
         }
       } else {
         // Do the lowerings for top-levels, static class members, and
@@ -140,12 +142,12 @@ class JsUtilOptimizer extends Transformer {
               node, dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'));
           var shouldTrustType = node.enclosingClass != null &&
               hasTrustTypesAnnotation(node.enclosingClass!);
-          if (_isGetter(node)) {
+          if (_inlineExtensionIndex.isGetter(node)) {
             transformedBody =
                 _getExternalGetterBody(node, shouldTrustType, receiver);
-          } else if (_isSetter(node)) {
+          } else if (_inlineExtensionIndex.isSetter(node)) {
             transformedBody = _getExternalSetterBody(node, receiver);
-          } else if (_isMethod(node)) {
+          } else if (_inlineExtensionIndex.isMethod(node)) {
             transformedBody =
                 _getExternalMethodBody(node, shouldTrustType, receiver);
           } else if (_isNonLiteralConstructor(node)) {
@@ -167,38 +169,6 @@ class JsUtilOptimizer extends Transformer {
     _staticTypeContext.leaveMember(node);
     return node;
   }
-
-  bool _isOneOfKinds(Procedure node, InlineClassMemberKind inlineKind,
-      ExtensionMemberKind extensionKind, ProcedureKind procedureKind) {
-    var reference = node.reference;
-    if (node.isInlineClassMember) {
-      return _inlineExtensionIndex.getInlineDescriptor(reference)?.kind ==
-          inlineKind;
-    } else if (node.isExtensionMember) {
-      return _inlineExtensionIndex.getExtensionDescriptor(reference)?.kind ==
-          extensionKind;
-    } else {
-      return node.kind == procedureKind;
-    }
-  }
-
-  bool _isGetter(Procedure node) => _isOneOfKinds(
-      node,
-      InlineClassMemberKind.Getter,
-      ExtensionMemberKind.Getter,
-      ProcedureKind.Getter);
-
-  bool _isSetter(Procedure node) => _isOneOfKinds(
-      node,
-      InlineClassMemberKind.Setter,
-      ExtensionMemberKind.Setter,
-      ProcedureKind.Setter);
-
-  bool _isMethod(Procedure node) => _isOneOfKinds(
-      node,
-      InlineClassMemberKind.Method,
-      ExtensionMemberKind.Method,
-      ProcedureKind.Method);
 
   bool _isNonLiteralConstructor(Procedure node) {
     if (node.isInlineClassMember) {
@@ -314,24 +284,29 @@ class JsUtilOptimizer extends Transformer {
   /// The new function body will call the optimized version of
   /// `js_util.getProperty` for the given external getter. If [shouldTrustType]
   /// is true, we call a variant that does not check the return type. If
-  /// [receiver] is non-null, we use that instead of the first positional
+  /// [maybeReceiver] is non-null, we use that instead of the first positional
   /// parameter as the receiver for `js_util.getProperty`.
   ReturnStatement _getExternalGetterBody(Procedure node, bool shouldTrustType,
-      [Expression? receiver]) {
+      [Expression? maybeReceiver]) {
     var function = node.function;
     // Parameter `this` only exists for inline and extension instance members.
-    assert(function.positionalParameters.length ==
-        (_inlineExtensionIndex.isInstanceInteropMember(node) ? 1 : 0));
+    // Operators take a `this` and an index.
+    final positionalParameters = function.positionalParameters;
+    bool isOperator = _inlineExtensionIndex.isOperator(node);
+    assert(positionalParameters.length ==
+        (isOperator
+            ? 2
+            : _inlineExtensionIndex.isInstanceInteropMember(node)
+                ? 1
+                : 0));
     Procedure target =
         shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
-    var getPropertyInvocation = StaticInvocation(
-        target,
-        Arguments([
-          receiver ?? VariableGet(function.positionalParameters.first),
-          StringLiteral(_getMemberJSName(node))
-        ], types: [
-          function.returnType
-        ]))
+    final receiver = maybeReceiver ?? VariableGet(positionalParameters.first);
+    final property = isOperator
+        ? VariableGet(positionalParameters[1])
+        : StringLiteral(_getMemberJSName(node));
+    final getPropertyInvocation = StaticInvocation(
+        target, Arguments([receiver, property], types: [function.returnType]))
       ..fileOffset = node.fileOffset;
     return ReturnStatement(getPropertyInvocation);
   }
@@ -339,25 +314,29 @@ class JsUtilOptimizer extends Transformer {
   /// Returns a new function body for the given [node] external setter.
   ///
   /// The new function body will call the optimized version of
-  /// `js_util.setProperty` for the given external setter. If [receiver] is
+  /// `js_util.setProperty` for the given external setter. If [maybeReceiver] is
   /// non-null, we use that instead of the first positional parameter as the
   /// receiver for `js_util.setProperty`.
   ReturnStatement _getExternalSetterBody(Procedure node,
-      [Expression? receiver]) {
+      [Expression? maybeReceiver]) {
     var function = node.function;
     // Parameter `this` only exists for inline and extension instance members.
-    assert(function.positionalParameters.length ==
-        (_inlineExtensionIndex.isInstanceInteropMember(node) ? 2 : 1));
-    var value = function.positionalParameters.last;
-    var setPropertyInvocation = StaticInvocation(
-        _setPropertyTarget,
-        Arguments([
-          receiver ?? VariableGet(function.positionalParameters.first),
-          StringLiteral(_getMemberJSName(node)),
-          VariableGet(value)
-        ], types: [
-          value.type
-        ]))
+    // Operators take a `this`, an index, and a value.
+    final positionalParameters = function.positionalParameters;
+    bool isOperator = _inlineExtensionIndex.isOperator(node);
+    assert(positionalParameters.length ==
+        (isOperator
+            ? 3
+            : _inlineExtensionIndex.isInstanceInteropMember(node)
+                ? 2
+                : 1));
+    final receiver = maybeReceiver ?? VariableGet(positionalParameters.first);
+    final index = isOperator
+        ? VariableGet(positionalParameters[1])
+        : StringLiteral(_getMemberJSName(node));
+    final value = positionalParameters.last;
+    final setPropertyInvocation = StaticInvocation(_setPropertyTarget,
+        Arguments([receiver, index, VariableGet(value)], types: [value.type]))
       ..fileOffset = node.fileOffset;
     return ReturnStatement(_lowerSetProperty(setPropertyInvocation));
   }
@@ -393,6 +372,23 @@ class JsUtilOptimizer extends Transformer {
       ..fileOffset = node.fileOffset;
     return ReturnStatement(_lowerCallMethod(callMethodInvocation,
         shouldTrustType: shouldTrustType));
+  }
+
+  /// Returns a new function body for the given [node] external operator.
+  ReturnStatement? _getExternalOperatorBody(
+      Procedure node, bool shouldTrustTypes) {
+    switch (_inlineExtensionIndex.operatorName(node)) {
+      case '[]':
+        return _getExternalGetterBody(node, shouldTrustTypes);
+      case '[]=':
+        return _getExternalSetterBody(node);
+      default:
+        // TODO(joshualitt): Unfortunately, our current behavior is to allow
+        // operators on extension methods to `@JS` classes, but the runtime
+        // behavior is undefined. We should really convert this to an error, but
+        // it would also technically be a breaking change.
+        return null;
+    }
   }
 
   /// Returns a new function body for the given [node] external non-object
@@ -740,5 +736,58 @@ class InlineExtensionIndex {
           descriptor.kind != InlineClassMemberKind.Factory;
     }
     return false;
+  }
+
+  bool _isOneOfKinds(Procedure node, InlineClassMemberKind inlineKind,
+      ExtensionMemberKind extensionKind, ProcedureKind procedureKind) {
+    var reference = node.reference;
+    if (node.isInlineClassMember) {
+      return getInlineDescriptor(reference)?.kind == inlineKind;
+    } else if (node.isExtensionMember) {
+      return getExtensionDescriptor(reference)?.kind == extensionKind;
+    } else {
+      return node.kind == procedureKind;
+    }
+  }
+
+  bool isGetter(Procedure node) => _isOneOfKinds(
+      node,
+      InlineClassMemberKind.Getter,
+      ExtensionMemberKind.Getter,
+      ProcedureKind.Getter);
+
+  bool isSetter(Procedure node) => _isOneOfKinds(
+      node,
+      InlineClassMemberKind.Setter,
+      ExtensionMemberKind.Setter,
+      ProcedureKind.Setter);
+
+  bool isMethod(Procedure node) => _isOneOfKinds(
+      node,
+      InlineClassMemberKind.Method,
+      ExtensionMemberKind.Method,
+      ProcedureKind.Method);
+
+  bool isOperator(Procedure node) => _isOneOfKinds(
+      node,
+      InlineClassMemberKind.Operator,
+      ExtensionMemberKind.Operator,
+      ProcedureKind.Operator);
+
+  String operatorName(Procedure node) {
+    if (getJSName(node).isNotEmpty) {
+      throw Exception('Operators cannot have `@JS` annotations.');
+    }
+    final reference = node.reference;
+    final String name;
+    if (node.isInlineClassMember) {
+      name = getInlineDescriptor(reference)!.name.text;
+    } else if (node.isExtensionMember) {
+      name = getExtensionDescriptor(reference)!.name.text;
+    } else {
+      throw Exception(
+          'Operators are only allowed on extensions / inline classes');
+    }
+    return name;
   }
 }
