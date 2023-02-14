@@ -40,6 +40,18 @@ class MyListOfOneElement extends Object
   }
 }
 
+/// Throws when any index is assigned to e.g. `l[0] = 5;`.
+class BrokenList extends Object with ListMixin<int> implements List<int> {
+  int get length => 5;
+  void set length(int index) => throw UnsupportedError('Cannot set length');
+
+  void operator []=(int index, int value) {
+    throw StateError('[$index] = $value');
+  }
+
+  operator [](int index) => 0;
+}
+
 class FileTest {
   static late Directory tempDirectory;
   static late File largeFile;
@@ -852,6 +864,21 @@ class FileTest {
     read(2, 3, 1, [49, 49, 1]);
     read(0, 0, 0, [49, 49, 49]);
 
+    openedFile.closeSync();
+  }
+
+  /// Tests that `RandomAccessFile.readInto` propogates exceptions when
+  /// assigning data to a list that throws.
+  static void testReadIntoSyncBadList() {
+    File file =
+        new File(tempDirectory.path + "/out_read_into_sync_broken_list");
+
+    var openedFile = file.openSync(mode: FileMode.write);
+    openedFile.writeFromSync(const [1, 2, 3]);
+
+    openedFile.setPositionSync(0);
+    final list = BrokenList();
+    Expect.throws(() => openedFile.readIntoSync(list), (e) => e is StateError);
     openedFile.closeSync();
   }
 
@@ -1772,6 +1799,7 @@ class FileTest {
       // readIntoSync should worked with typed data that is not uint8.
       testReadIntoSync(
           (length, fill) => Uint16List(length)..fillRange(0, length, fill));
+      testReadIntoSyncBadList();
       testWriteFrom();
       testWriteFromSync();
       testCloseException();

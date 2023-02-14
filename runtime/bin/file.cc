@@ -271,17 +271,14 @@ void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
   }
 
   int64_t bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
+  if (is_byte_data) {
+    ThrowIfError(Dart_TypedDataReleaseData(buffer_obj));
+  }
   if (bytes_read >= 0) {
-    if (is_byte_data) {
-      result = Dart_TypedDataReleaseData(buffer_obj);
-    } else {
-      result = Dart_ListSetAsBytes(buffer_obj, start, buffer, bytes_read);
+    if (!is_byte_data) {
+      ThrowIfError(Dart_ListSetAsBytes(buffer_obj, start, buffer, bytes_read));
     }
-    if (Dart_IsError(result)) {
-      Dart_SetReturnValue(args, result);
-    } else {
-      Dart_SetIntegerReturnValue(args, bytes_read);
-    }
+    Dart_SetIntegerReturnValue(args, bytes_read);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
