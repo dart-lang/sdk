@@ -1331,6 +1331,8 @@ mixin TypeAnalyzer<
     Pattern node, {
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
+    List<Type> demonstratedPositionalTypes = [];
+    List<NamedType<Type>> demonstratedNamedTypes = [];
     void dispatchField(
       RecordPatternField<Node, Pattern> field,
       Type matchedType,
@@ -1340,6 +1342,13 @@ mixin TypeAnalyzer<
         context.withUnnecessaryWildcardKind(null),
         field.pattern,
       );
+      Type demonstratedType = flow.getMatchedValueType();
+      String? name = field.name;
+      if (name == null) {
+        demonstratedPositionalTypes.add(demonstratedType);
+      } else {
+        demonstratedNamedTypes.add(new NamedType(name, demonstratedType));
+      }
       flow.popSubpattern();
     }
 
@@ -1403,6 +1412,13 @@ mixin TypeAnalyzer<
         requiredType: requiredType,
       );
     }
+
+    Type demonstratedType = recordType(
+        positional: demonstratedPositionalTypes, named: demonstratedNamedTypes);
+    flow.promoteForPattern(
+        matchedType: matchedType,
+        knownType: demonstratedType,
+        matchFailsIfWrongType: false);
     return requiredType;
   }
 

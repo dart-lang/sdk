@@ -903,6 +903,8 @@ class MiniAstOperations
     'Never <: int': Type('Never'),
     'num <: int': Type('num'),
     'num <: Object': Type('num'),
+    'Object <: num': Type('Object'),
+    'String <: num': Type('String'),
   };
 
   static final Map<String, Type> _coreNormalizeResults = {
