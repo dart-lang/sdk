@@ -105,7 +105,7 @@ class Compiler {
   DiagnosticReporter get reporter => _reporter;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
 
-  final Environment environment;
+  late final Environment environment;
 
   late final List<CompilerTask> tasks;
   late final GenericTask loadKernelTask;
@@ -147,10 +147,10 @@ class Compiler {
       this.options)
       // NOTE: allocating measurer is done upfront to ensure the wallclock is
       // started before other computations.
-      : measurer = Measurer(enableTaskMeasurements: options.verbose),
-        this.environment = Environment(options.environment) {
+      : measurer = Measurer(enableTaskMeasurements: options.verbose) {
     options.deriveOptions();
     options.validate();
+    environment = Environment(options.environment);
 
     abstractValueStrategy = options.experimentalInferrer
         ? (options.useTrivialAbstractValueDomain

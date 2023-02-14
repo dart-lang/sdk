@@ -834,6 +834,8 @@ class CompilerOptions implements DiagnosticOptions {
     if (_mergeFragmentsThreshold != null) {
       mergeFragmentsThreshold = _mergeFragmentsThreshold;
     }
+
+    environment['dart.web.assertions_enabled'] = '$enableUserAssertions';
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.
