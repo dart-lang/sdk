@@ -147,6 +147,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_print.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_required.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
@@ -1426,6 +1427,9 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.UNNECESSARY_QUESTION_MARK: [
       RemoveQuestionMark.new,
+    ],
+    HintCode.UNNECESSARY_SET_LITERAL: [
+      RemoveSetLiteral.new,
     ],
     HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
       RemoveComparison.typeCheck,
