@@ -14,7 +14,7 @@ class NodeTextExpectationsCollector {
   static const assertMethods = {
     'ContextResolutionTest.assertDriverStateString',
     'FileResolutionTest.assertStateString',
-    'IndexTest.assertRelationsText',
+    'IndexTest.assertElementIndexText',
     'ParserDiagnosticsTest.assertParsedNodeText',
     'ResolutionTest.assertParsedNodeText',
     'ResolutionTest.assertResolvedNodeText',

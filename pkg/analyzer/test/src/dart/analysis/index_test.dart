@@ -71,19 +71,19 @@ class M extends Object with A {}
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-17 + 2: IS_ANCESTOR_OF
-28 + 1: IS_EXTENDED_BY
-28 + 1: IS_REFERENCED_BY
-39 + 2: IS_ANCESTOR_OF
-53 + 1: IS_IMPLEMENTED_BY
-53 + 1: IS_REFERENCED_BY
-64 + 2: IS_ANCESTOR_OF
-87 + 2: IS_ANCESTOR_OF
-110 + 2: IS_ANCESTOR_OF
-136 + 2: IS_ANCESTOR_OF
-162 + 1: IS_ANCESTOR_OF
-184 + 1: IS_MIXED_IN_BY
-184 + 1: IS_REFERENCED_BY
+17 2:7 |B1| IS_ANCESTOR_OF
+28 2:18 |A| IS_EXTENDED_BY
+28 2:18 |A| IS_REFERENCED_BY
+39 3:7 |B2| IS_ANCESTOR_OF
+53 3:21 |A| IS_IMPLEMENTED_BY
+53 3:21 |A| IS_REFERENCED_BY
+64 4:7 |C1| IS_ANCESTOR_OF
+87 5:7 |C2| IS_ANCESTOR_OF
+110 6:7 |C3| IS_ANCESTOR_OF
+136 7:7 |C4| IS_ANCESTOR_OF
+162 8:7 |M| IS_ANCESTOR_OF
+184 8:29 |A| IS_MIXED_IN_BY
+184 8:29 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -97,20 +97,20 @@ class C2 = Object with B;
 
     final elementA = findElement.class_('A');
     assertElementIndexText(elementA, r'''
-17 + 1: IS_ANCESTOR_OF
-27 + 1: IS_EXTENDED_BY
-27 + 1: IS_REFERENCED_BY
-38 + 2: IS_ANCESTOR_OF
-55 + 1: IS_MIXED_IN_BY
-55 + 1: IS_REFERENCED_BY
-64 + 2: IS_ANCESTOR_OF
+17 2:7 |B| IS_ANCESTOR_OF
+27 2:17 |A| IS_EXTENDED_BY
+27 2:17 |A| IS_REFERENCED_BY
+38 3:7 |C1| IS_ANCESTOR_OF
+55 3:24 |A| IS_MIXED_IN_BY
+55 3:24 |A| IS_REFERENCED_BY
+64 4:7 |C2| IS_ANCESTOR_OF
 ''');
 
     final elementB = findElement.class_('B');
     assertElementIndexText(elementB, r'''
-64 + 2: IS_ANCESTOR_OF
-81 + 1: IS_MIXED_IN_BY
-81 + 1: IS_REFERENCED_BY
+64 4:7 |C2| IS_ANCESTOR_OF
+81 4:24 |B| IS_MIXED_IN_BY
+81 4:24 |B| IS_REFERENCED_BY
 ''');
   }
 
@@ -127,18 +127,18 @@ mixin M5 on M2 {}
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-17 + 1: IS_ANCESTOR_OF
-27 + 1: IS_EXTENDED_BY
-27 + 1: IS_REFERENCED_BY
-39 + 2: IS_ANCESTOR_OF
-45 + 1: CONSTRAINS
-45 + 1: IS_REFERENCED_BY
-56 + 2: IS_ANCESTOR_OF
-73 + 2: IS_ANCESTOR_OF
-87 + 1: IS_IMPLEMENTED_BY
-87 + 1: IS_REFERENCED_BY
-98 + 2: IS_ANCESTOR_OF
-123 + 2: IS_ANCESTOR_OF
+17 2:7 |B| IS_ANCESTOR_OF
+27 2:17 |A| IS_EXTENDED_BY
+27 2:17 |A| IS_REFERENCED_BY
+39 4:7 |M1| IS_ANCESTOR_OF
+45 4:13 |A| CONSTRAINS
+45 4:13 |A| IS_REFERENCED_BY
+56 5:7 |M2| IS_ANCESTOR_OF
+73 6:7 |M3| IS_ANCESTOR_OF
+87 6:21 |A| IS_IMPLEMENTED_BY
+87 6:21 |A| IS_REFERENCED_BY
+98 7:7 |M4| IS_ANCESTOR_OF
+123 8:7 |M5| IS_ANCESTOR_OF
 ''');
   }
 
@@ -149,9 +149,9 @@ mixin M on A {} // 2
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-22 + 1: IS_ANCESTOR_OF
-27 + 1: CONSTRAINS
-27 + 1: IS_REFERENCED_BY
+22 2:7 |M| IS_ANCESTOR_OF
+27 2:12 |A| CONSTRAINS
+27 2:12 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -165,9 +165,9 @@ class B extends p.A {} // 2
 ''');
     final element = importFindLib().class_('A');
     assertElementIndexText(element, r'''
-30 + 1: IS_ANCESTOR_OF
-42 + 1: IS_EXTENDED_BY qualified
-42 + 1: IS_REFERENCED_BY qualified
+30 2:7 |B| IS_ANCESTOR_OF
+42 2:19 |A| IS_EXTENDED_BY qualified
+42 2:19 |A| IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -179,8 +179,8 @@ class A {}
     final elementA = findElement.class_('A');
     final elementObject = elementA.supertype!.element;
     assertElementIndexText(elementObject, r'''
-6 + 1: IS_ANCESTOR_OF
-6 + 0: IS_EXTENDED_BY qualified
+6 1:7 |A| IS_ANCESTOR_OF
+6 1:7 || IS_EXTENDED_BY qualified
 ''');
   }
 
@@ -192,8 +192,8 @@ class C extends B {}
 ''');
     final element = findElement.typeAlias('B');
     assertElementIndexText(element, r'''
-50 + 1: IS_EXTENDED_BY
-50 + 1: IS_REFERENCED_BY
+50 3:17 |B| IS_EXTENDED_BY
+50 3:17 |B| IS_REFERENCED_BY
 ''');
   }
 
@@ -205,9 +205,9 @@ class C = A with B;
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-28 + 1: IS_ANCESTOR_OF
-32 + 1: IS_EXTENDED_BY
-32 + 1: IS_REFERENCED_BY
+28 3:7 |C| IS_ANCESTOR_OF
+32 3:11 |A| IS_EXTENDED_BY
+32 3:11 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -222,9 +222,9 @@ class C = p.A with B;
 ''');
     final element = importFindLib().class_('A');
     assertElementIndexText(element, r'''
-41 + 1: IS_ANCESTOR_OF
-47 + 1: IS_EXTENDED_BY qualified
-47 + 1: IS_REFERENCED_BY qualified
+41 3:7 |C| IS_ANCESTOR_OF
+47 3:13 |A| IS_EXTENDED_BY qualified
+47 3:13 |A| IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -236,9 +236,9 @@ class B implements A {} // 2
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-22 + 1: IS_ANCESTOR_OF
-35 + 1: IS_IMPLEMENTED_BY
-35 + 1: IS_REFERENCED_BY
+22 2:7 |B| IS_ANCESTOR_OF
+35 2:20 |A| IS_IMPLEMENTED_BY
+35 2:20 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -252,9 +252,9 @@ class B implements p.A {} // 2
 ''');
     final element = importFindLib().class_('A');
     assertElementIndexText(element, r'''
-30 + 1: IS_ANCESTOR_OF
-45 + 1: IS_IMPLEMENTED_BY qualified
-45 + 1: IS_REFERENCED_BY qualified
+30 2:7 |B| IS_ANCESTOR_OF
+45 2:22 |A| IS_IMPLEMENTED_BY qualified
+45 2:22 |A| IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -267,8 +267,8 @@ class C implements B {}
 ''');
     final element = findElement.typeAlias('B');
     assertElementIndexText(element, r'''
-53 + 1: IS_IMPLEMENTED_BY
-53 + 1: IS_REFERENCED_BY
+53 3:20 |B| IS_IMPLEMENTED_BY
+53 3:20 |B| IS_REFERENCED_BY
 ''');
   }
 
@@ -280,9 +280,9 @@ class C = Object with A implements B; // 3
 ''');
     final element = findElement.class_('B');
     assertElementIndexText(element, r'''
-38 + 1: IS_ANCESTOR_OF
-67 + 1: IS_IMPLEMENTED_BY
-67 + 1: IS_REFERENCED_BY
+38 3:7 |C| IS_ANCESTOR_OF
+67 3:36 |B| IS_IMPLEMENTED_BY
+67 3:36 |B| IS_REFERENCED_BY
 ''');
   }
 
@@ -295,9 +295,9 @@ enum E implements A { // 2
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-21 + 1: IS_ANCESTOR_OF
-34 + 1: IS_IMPLEMENTED_BY
-34 + 1: IS_REFERENCED_BY
+21 2:6 |E| IS_ANCESTOR_OF
+34 2:19 |A| IS_IMPLEMENTED_BY
+34 2:19 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -308,9 +308,9 @@ mixin M implements A {} // 2
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-22 + 1: IS_ANCESTOR_OF
-35 + 1: IS_IMPLEMENTED_BY
-35 + 1: IS_REFERENCED_BY
+22 2:7 |M| IS_ANCESTOR_OF
+35 2:20 |A| IS_IMPLEMENTED_BY
+35 2:20 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -328,8 +328,8 @@ void f() {
 }''');
     final element = importFindLib().topFunction('foo');
     assertElementIndexText(element, r'''
-64 + 3: IS_INVOKED_BY qualified
-78 + 3: IS_INVOKED_BY
+64 4:8 |foo| IS_INVOKED_BY qualified
+78 5:3 |foo| IS_INVOKED_BY
 ''');
   }
 
@@ -344,8 +344,8 @@ void f() {
     LibraryElement mathLib = findElement.import('dart:math').importedLibrary!;
     final element = mathLib.loadLibraryFunction;
     assertElementIndexText(element, r'''
-55 + 11: IS_INVOKED_BY qualified
-82 + 11: IS_INVOKED_BY qualified
+55 3:8 |loadLibrary| IS_INVOKED_BY qualified
+82 4:8 |loadLibrary| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -360,8 +360,8 @@ class A {
 }''');
     final element = findElement.method('foo');
     assertElementIndexText(element, r'''
-43 + 3: IS_INVOKED_BY qualified
-59 + 3: IS_INVOKED_BY
+43 4:10 |foo| IS_INVOKED_BY qualified
+59 5:5 |foo| IS_INVOKED_BY
 ''');
   }
 
@@ -381,9 +381,9 @@ void f(E e) {
 ''');
     final element = findElement.method('foo');
     assertElementIndexText(element, r'''
-54 + 3: IS_INVOKED_BY qualified
-71 + 3: IS_INVOKED_BY
-108 + 3: IS_INVOKED_BY qualified
+54 5:10 |foo| IS_INVOKED_BY qualified
+71 6:5 |foo| IS_INVOKED_BY
+108 10:5 |foo| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -399,7 +399,7 @@ void f() {
 ''');
     final element = findElement.method('foo');
     assertElementIndexText(element, r'''
-55 + 3: IS_INVOKED_BY qualified
+55 6:5 |foo| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -415,7 +415,7 @@ void f() {
 ''');
     final element = findElement.method('foo');
     assertElementIndexText(element, r'''
-62 + 3: IS_INVOKED_BY qualified
+62 6:5 |foo| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -437,12 +437,12 @@ void f() {
 
     var intMethod = findNode.methodDeclaration('foo() {} // int');
     assertElementIndexText(intMethod.declaredElement!, r'''
-111 + 3: IS_INVOKED_BY qualified
+111 10:5 |foo| IS_INVOKED_BY qualified
 ''');
 
     var doubleMethod = findNode.methodDeclaration('foo() {} // double');
     assertElementIndexText(doubleMethod.declaredElement!, r'''
-137 + 3: IS_INVOKED_BY qualified
+137 11:9 |foo| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -458,7 +458,7 @@ void f() {
 ''');
     final element = findElement.method('foo');
     assertElementIndexText(element, r'''
-57 + 3: IS_INVOKED_BY qualified
+57 6:5 |foo| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -476,10 +476,10 @@ void f(A a) {
 ''');
     final element = findElement.method('+');
     assertElementIndexText(element, r'''
-65 + 1: IS_INVOKED_BY qualified
-75 + 2: IS_INVOKED_BY qualified
-83 + 2: IS_INVOKED_BY qualified
-91 + 2: IS_INVOKED_BY qualified
+65 5:11 |+| IS_INVOKED_BY qualified
+75 6:5 |+=| IS_INVOKED_BY qualified
+83 7:3 |++| IS_INVOKED_BY qualified
+91 8:4 |++| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -496,12 +496,12 @@ void f(A a) {
 ''');
     final readElement = findElement.method('[]');
     assertElementIndexText(readElement, r'''
-85 + 1: IS_INVOKED_BY qualified
+85 6:10 |[| IS_INVOKED_BY qualified
 ''');
 
     final writeElement = findElement.method('[]=');
     assertElementIndexText(writeElement, r'''
-94 + 1: IS_INVOKED_BY qualified
+94 7:4 |[| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -516,7 +516,7 @@ void f(A a) {
 ''');
     final element = findElement.method('~');
     assertElementIndexText(element, r'''
-60 + 1: IS_INVOKED_BY qualified
+60 5:9 |~| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -535,10 +535,10 @@ void f(E e) {
 ''');
     final element = findElement.method('+');
     assertElementIndexText(element, r'''
-64 + 1: IS_INVOKED_BY qualified
-73 + 2: IS_INVOKED_BY qualified
-81 + 2: IS_INVOKED_BY qualified
-89 + 2: IS_INVOKED_BY qualified
+64 6:5 |+| IS_INVOKED_BY qualified
+73 7:5 |+=| IS_INVOKED_BY qualified
+81 8:3 |++| IS_INVOKED_BY qualified
+89 9:4 |++| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -556,12 +556,12 @@ void f(E e) {
 ''');
     final readElement = findElement.method('[]');
     assertElementIndexText(readElement, r'''
-108 + 1: IS_INVOKED_BY qualified
+108 7:4 |[| IS_INVOKED_BY qualified
 ''');
 
     final writeElement = findElement.method('[]=');
     assertElementIndexText(writeElement, r'''
-116 + 1: IS_INVOKED_BY qualified
+116 8:4 |[| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -577,7 +577,7 @@ void f(E e) {
 ''');
     final element = findElement.method('~');
     assertElementIndexText(element, r'''
-57 + 1: IS_INVOKED_BY qualified
+57 6:3 |~| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -589,8 +589,8 @@ class C extends Object with B {}
 ''');
     final element = findElement.typeAlias('B');
     assertElementIndexText(element, r'''
-62 + 1: IS_MIXED_IN_BY
-62 + 1: IS_REFERENCED_BY
+62 3:29 |B| IS_MIXED_IN_BY
+62 3:29 |B| IS_REFERENCED_BY
 ''');
   }
 
@@ -601,9 +601,9 @@ class B extends Object with A {} // 2
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-22 + 1: IS_ANCESTOR_OF
-44 + 1: IS_MIXED_IN_BY
-44 + 1: IS_REFERENCED_BY
+22 2:7 |B| IS_ANCESTOR_OF
+44 2:29 |A| IS_MIXED_IN_BY
+44 2:29 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -617,9 +617,9 @@ class B extends Object with p.A {} // 2
 ''');
     final element = importFindLib().class_('A');
     assertElementIndexText(element, r'''
-30 + 1: IS_ANCESTOR_OF
-54 + 1: IS_MIXED_IN_BY qualified
-54 + 1: IS_REFERENCED_BY qualified
+30 2:7 |B| IS_ANCESTOR_OF
+54 2:31 |A| IS_MIXED_IN_BY qualified
+54 2:31 |A| IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -631,9 +631,9 @@ class B extends Object with A {} // 2
 ''');
     final element = findElement.mixin('A');
     assertElementIndexText(element, r'''
-22 + 1: IS_ANCESTOR_OF
-44 + 1: IS_MIXED_IN_BY
-44 + 1: IS_REFERENCED_BY
+22 2:7 |B| IS_ANCESTOR_OF
+44 2:29 |A| IS_MIXED_IN_BY
+44 2:29 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -644,9 +644,9 @@ class B = Object with A; // 2
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-22 + 1: IS_ANCESTOR_OF
-38 + 1: IS_MIXED_IN_BY
-38 + 1: IS_REFERENCED_BY
+22 2:7 |B| IS_ANCESTOR_OF
+38 2:23 |A| IS_MIXED_IN_BY
+38 2:23 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -657,9 +657,9 @@ class B = Object with A; // 2
 ''');
     final element = findElement.mixin('A');
     assertElementIndexText(element, r'''
-22 + 1: IS_ANCESTOR_OF
-38 + 1: IS_MIXED_IN_BY
-38 + 1: IS_REFERENCED_BY
+22 2:7 |B| IS_ANCESTOR_OF
+38 2:23 |A| IS_MIXED_IN_BY
+38 2:23 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -672,9 +672,9 @@ enum E with M { // 2
 ''');
     final element = findElement.mixin('M');
     assertElementIndexText(element, r'''
-21 + 1: IS_ANCESTOR_OF
-28 + 1: IS_MIXED_IN_BY
-28 + 1: IS_REFERENCED_BY
+21 2:6 |E| IS_ANCESTOR_OF
+28 2:13 |M| IS_MIXED_IN_BY
+28 2:13 |M| IS_REFERENCED_BY
 ''');
   }
 
@@ -689,8 +689,8 @@ class A {
 }''');
     final element = findElement.getter('field');
     assertElementIndexText(element, r'''
-45 + 5: IS_REFERENCED_BY qualified
-63 + 5: IS_REFERENCED_BY
+45 4:10 |field| IS_REFERENCED_BY qualified
+63 5:5 |field| IS_REFERENCED_BY
 ''');
   }
 
@@ -705,8 +705,8 @@ class A {
 }''');
     PropertyAccessorElement element = findElement.getter('ggg');
     assertElementIndexText(element, r'''
-51 + 3: IS_REFERENCED_BY qualified
-67 + 3: IS_REFERENCED_BY
+51 4:10 |ggg| IS_REFERENCED_BY qualified
+67 5:5 |ggg| IS_REFERENCED_BY
 ''');
   }
 
@@ -724,11 +724,11 @@ void f(A p) {
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-39 + 1: IS_REFERENCED_BY
-48 + 1: IS_REFERENCED_BY
-59 + 1: IS_REFERENCED_BY
-71 + 1: IS_REFERENCED_BY
-92 + 1: IS_REFERENCED_BY
+39 4:8 |A| IS_REFERENCED_BY
+48 5:3 |A| IS_REFERENCED_BY
+59 6:7 |A| IS_REFERENCED_BY
+71 7:3 |A| IS_REFERENCED_BY
+92 8:9 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -743,9 +743,9 @@ void f(MyEnum p) {
 ''');
     final element = findElement.enum_('MyEnum');
     assertElementIndexText(element, r'''
-24 + 6: IS_REFERENCED_BY
-38 + 6: IS_REFERENCED_BY
-50 + 6: IS_REFERENCED_BY
+24 3:8 |MyEnum| IS_REFERENCED_BY
+38 4:3 |MyEnum| IS_REFERENCED_BY
+50 5:3 |MyEnum| IS_REFERENCED_BY
 ''');
   }
 
@@ -757,7 +757,7 @@ extension E on A<int> {}
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-30 + 1: IS_REFERENCED_BY
+30 3:16 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -769,7 +769,7 @@ void f() {
 }''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-24 + 1: IS_REFERENCED_BY
+24 3:3 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -784,9 +784,9 @@ void f() {}
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-21 + 1: IS_REFERENCED_BY
-30 + 1: IS_REFERENCED_BY
-32 + 1: IS_REFERENCED_BY
+21 2:9 |A| IS_REFERENCED_BY
+30 5:2 |A| IS_REFERENCED_BY
+32 5:4 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -798,7 +798,7 @@ void f(({int foo, A bar}) r) {}
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-30 + 1: IS_REFERENCED_BY
+30 3:19 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -810,7 +810,7 @@ void f((int, A) r) {}
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-25 + 1: IS_REFERENCED_BY
+25 3:14 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -822,11 +822,11 @@ typedef B = A<int>;
 ''');
     final elementA = findElement.class_('A');
     assertElementIndexText(elementA, r'''
-27 + 1: IS_REFERENCED_BY
+27 3:13 |A| IS_REFERENCED_BY
 ''');
 
     assertElementIndexText(intElement, r'''
-29 + 3: IS_REFERENCED_BY
+29 3:15 |int| IS_REFERENCED_BY
 ''');
   }
 
@@ -841,7 +841,7 @@ void f() {
 }''');
     final element = importFindLib().class_('A');
     assertElementIndexText(element, r'''
-39 + 1: IS_REFERENCED_BY qualified
+39 3:5 |A| IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -856,7 +856,7 @@ void g() {
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-41 + 1: IS_REFERENCED_BY
+41 4:5 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -870,8 +870,8 @@ void f(B p) {
 ''');
     final element = findElement.class_('B');
     assertElementIndexText(element, r'''
-43 + 1: IS_REFERENCED_BY
-52 + 1: IS_REFERENCED_BY
+43 3:8 |B| IS_REFERENCED_BY
+52 4:3 |B| IS_REFERENCED_BY
 ''');
   }
 
@@ -887,8 +887,8 @@ void f(A a) {}
 ''');
     final element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
-28 + 1: IS_REFERENCED_BY
-39 + 1: IS_REFERENCED_BY
+28 3:9 |A| IS_REFERENCED_BY
+39 4:8 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -904,8 +904,8 @@ void f(p.A a) {}
 ''');
     final element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
-34 + 1: IS_REFERENCED_BY qualified
-47 + 1: IS_REFERENCED_BY qualified
+34 3:10 |A| IS_REFERENCED_BY qualified
+47 4:10 |A| IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -920,7 +920,7 @@ export 'lib.dart';
     final element =
         findElement.export('package:test/lib.dart').exportedLibrary!;
     assertElementIndexText(element, r'''
-7 + 10: IS_REFERENCED_BY qualified
+7 1:8 |'lib.dart'| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -934,7 +934,7 @@ import 'lib.dart';
     final element =
         findElement.import('package:test/lib.dart').importedLibrary!;
     assertElementIndexText(element, r'''
-7 + 10: IS_REFERENCED_BY qualified
+7 1:8 |'lib.dart'| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -946,7 +946,7 @@ part 'my_unit.dart';
 ''');
     final element = findElement.part('package:test/my_unit.dart');
     assertElementIndexText(element, r'''
-21 + 14: IS_REFERENCED_BY qualified
+21 2:6 |'my_unit.dart'| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -980,12 +980,12 @@ void f() {
 ''');
     final element = findElement.constructor('foo');
     assertElementIndexText(element, r'''
-10 + 4: IS_REFERENCED_BY qualified
-57 + 4: IS_INVOKED_BY qualified
-105 + 4: IS_INVOKED_BY qualified
-139 + 4: IS_REFERENCED_BY qualified
-166 + 4: IS_INVOKED_BY qualified
-182 + 4: IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+10 1:11 |.foo| IS_REFERENCED_BY qualified
+57 4:17 |.foo| IS_INVOKED_BY qualified
+105 7:14 |.foo| IS_INVOKED_BY qualified
+139 8:22 |.foo| IS_REFERENCED_BY qualified
+166 11:4 |.foo| IS_INVOKED_BY qualified
+182 12:4 |.foo| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
 ''');
   }
 
@@ -1016,12 +1016,12 @@ class A {
 ''');
     final constructor = findElement.unnamedConstructor('A');
     assertElementIndexText(constructor, r'''
-51 + 0: IS_INVOKED_BY qualified
+51 3:17 || IS_INVOKED_BY qualified
 ''');
 
     final constructor_bar = findElement.constructor('bar');
     assertElementIndexText(constructor_bar, r'''
-22 + 4: IS_INVOKED_BY qualified
+22 2:13 |.bar| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -1043,12 +1043,12 @@ void f() {
 ''');
     final element = findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
-10 + 0: IS_REFERENCED_BY qualified
-51 + 0: IS_INVOKED_BY qualified
-95 + 0: IS_INVOKED_BY qualified
-127 + 0: IS_REFERENCED_BY qualified
-150 + 0: IS_INVOKED_BY qualified
-162 + 4: IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+10 1:11 || IS_REFERENCED_BY qualified
+51 4:19 || IS_INVOKED_BY qualified
+95 7:14 || IS_INVOKED_BY qualified
+127 8:24 || IS_REFERENCED_BY qualified
+150 11:4 || IS_INVOKED_BY qualified
+162 12:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
 ''');
   }
 
@@ -1070,12 +1070,12 @@ void f() {
 ''');
     final element = findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
-10 + 0: IS_REFERENCED_BY qualified
-55 + 0: IS_INVOKED_BY qualified
-99 + 0: IS_INVOKED_BY qualified
-129 + 0: IS_REFERENCED_BY qualified
-152 + 0: IS_INVOKED_BY qualified
-164 + 4: IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+10 1:11 || IS_REFERENCED_BY qualified
+55 4:19 || IS_INVOKED_BY qualified
+99 7:14 || IS_INVOKED_BY qualified
+129 8:22 || IS_REFERENCED_BY qualified
+152 11:4 || IS_INVOKED_BY qualified
+164 12:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
 ''');
   }
 
@@ -1094,11 +1094,11 @@ void f() {
 ''');
     final element = findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
-10 + 0: IS_REFERENCED_BY qualified
-58 + 0: IS_INVOKED_BY qualified
-88 + 0: IS_REFERENCED_BY qualified
-111 + 0: IS_INVOKED_BY qualified
-123 + 4: IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+10 1:11 || IS_REFERENCED_BY qualified
+58 4:14 || IS_INVOKED_BY qualified
+88 5:22 || IS_REFERENCED_BY qualified
+111 8:4 || IS_INVOKED_BY qualified
+123 9:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
 ''');
   }
 
@@ -1120,14 +1120,14 @@ void f() {
 ''');
     final constructor = findElement.unnamedConstructor('A');
     assertElementIndexText(constructor, r'''
-118 + 0: IS_INVOKED_BY qualified
-158 + 0: IS_INVOKED_BY qualified
+118 9:8 || IS_INVOKED_BY qualified
+158 11:8 || IS_INVOKED_BY qualified
 ''');
 
     final constructor_named = findElement.constructor('named', of: 'A');
     assertElementIndexText(constructor_named, r'''
-135 + 6: IS_INVOKED_BY qualified
-175 + 6: IS_INVOKED_BY qualified
+135 10:8 |.named| IS_INVOKED_BY qualified
+175 12:8 |.named| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -1155,9 +1155,9 @@ enum E {
 ''');
     final element = findElement.constructor('foo');
     assertElementIndexText(element, r'''
-10 + 4: IS_REFERENCED_BY qualified
-30 + 4: IS_INVOKED_BY qualified
-70 + 4: IS_INVOKED_BY qualified
+10 1:11 |.foo| IS_REFERENCED_BY qualified
+30 3:4 |.foo| IS_INVOKED_BY qualified
+70 5:17 |.foo| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -1174,11 +1174,11 @@ enum E {
 ''');
     final element = findElement.unnamedConstructor('E');
     assertElementIndexText(element, r'''
-10 + 0: IS_REFERENCED_BY qualified
-27 + 0: IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
-38 + 0: IS_INVOKED_BY qualified
-51 + 4: IS_INVOKED_BY qualified
-89 + 0: IS_INVOKED_BY qualified
+10 1:11 || IS_REFERENCED_BY qualified
+27 3:5 || IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
+38 4:5 || IS_INVOKED_BY qualified
+51 5:5 |.new| IS_INVOKED_BY qualified
+89 7:19 || IS_INVOKED_BY qualified
 ''');
   }
 
@@ -1195,11 +1195,11 @@ enum E {
 ''');
     final element = findElement.unnamedConstructor('E');
     assertElementIndexText(element, r'''
-10 + 0: IS_REFERENCED_BY qualified
-27 + 0: IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
-38 + 0: IS_INVOKED_BY qualified
-51 + 4: IS_INVOKED_BY qualified
-95 + 0: IS_INVOKED_BY qualified
+10 1:11 || IS_REFERENCED_BY qualified
+27 3:5 || IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
+38 4:5 || IS_INVOKED_BY qualified
+51 5:5 |.new| IS_INVOKED_BY qualified
+95 7:19 || IS_INVOKED_BY qualified
 ''');
   }
 
@@ -1214,10 +1214,10 @@ enum E {
 ''');
     final element = findElement.unnamedConstructor('E');
     assertElementIndexText(element, r'''
-10 + 0: IS_REFERENCED_BY qualified
-27 + 0: IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
-38 + 0: IS_INVOKED_BY qualified
-51 + 4: IS_INVOKED_BY qualified
+10 1:11 || IS_REFERENCED_BY qualified
+27 3:5 || IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
+38 4:5 || IS_INVOKED_BY qualified
+51 5:5 |.new| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -1243,8 +1243,8 @@ void f(E e) {
 ''');
     final element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
-27 + 1: IS_REFERENCED_BY
-38 + 1: IS_REFERENCED_BY
+27 3:8 |E| IS_REFERENCED_BY
+38 4:5 |E| IS_REFERENCED_BY
 ''');
   }
 
@@ -1264,8 +1264,8 @@ void f(p.E e) {
 ''');
     final element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
-58 + 1: IS_REFERENCED_BY qualified
-71 + 1: IS_REFERENCED_BY qualified
+58 4:10 |E| IS_REFERENCED_BY qualified
+71 5:7 |E| IS_REFERENCED_BY qualified
 Prefixes: p,q
 ''');
   }
@@ -1285,8 +1285,8 @@ void f(p.E e) {
 ''');
     final element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
-34 + 1: IS_REFERENCED_BY qualified
-47 + 1: IS_REFERENCED_BY qualified
+34 3:10 |E| IS_REFERENCED_BY qualified
+47 4:7 |E| IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -1303,7 +1303,7 @@ void f() {
 ''');
     final element = findElement.extension_('E');
     assertElementIndexText(element, r'''
-53 + 1: IS_REFERENCED_BY
+53 6:3 |E| IS_REFERENCED_BY
 ''');
   }
 
@@ -1328,17 +1328,17 @@ void f(A a) {
     final setter = field.setter!;
 
     assertElementIndexText(field, r'''
-33 + 5: IS_WRITTEN_BY qualified
+33 3:11 |field| IS_WRITTEN_BY qualified
 ''');
 
     assertElementIndexText(getter, r'''
-81 + 5: IS_REFERENCED_BY
-145 + 5: IS_REFERENCED_BY qualified
+81 6:11 |field| IS_REFERENCED_BY
+145 11:11 |field| IS_REFERENCED_BY qualified
 ''');
 
     assertElementIndexText(setter, r'''
-54 + 5: IS_REFERENCED_BY
-119 + 5: IS_REFERENCED_BY qualified
+54 5:5 |field| IS_REFERENCED_BY
+119 10:5 |field| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1362,13 +1362,13 @@ class A {
       final getter = field.getter!;
       final setter = field.setter!;
       assertElementIndexText(field, r'''
-41 + 3: IS_WRITTEN_BY qualified
+41 4:10 |aaa| IS_WRITTEN_BY qualified
 ''');
       assertElementIndexText(getter, r'''
-77 + 3: IS_REFERENCED_BY
+77 6:11 |aaa| IS_REFERENCED_BY
 ''');
       assertElementIndexText(setter, r'''
-87 + 3: IS_REFERENCED_BY
+87 7:5 |aaa| IS_REFERENCED_BY
 ''');
     }
     // bbb
@@ -1377,13 +1377,13 @@ class A {
       final getter = field.getter!;
       final setter = field.setter!;
       assertElementIndexText(field, r'''
-51 + 3: IS_WRITTEN_BY qualified
+51 4:20 |bbb| IS_WRITTEN_BY qualified
 ''');
       assertElementIndexText(getter, r'''
-106 + 3: IS_REFERENCED_BY
+106 8:11 |bbb| IS_REFERENCED_BY
 ''');
       assertElementIndexText(setter, r'''
-116 + 3: IS_REFERENCED_BY
+116 9:5 |bbb| IS_REFERENCED_BY
 ''');
     }
   }
@@ -1397,7 +1397,7 @@ class A {
 ''');
     final element = findElement.field('f');
     assertElementIndexText(element, r'''
-18 + 1: IS_WRITTEN_BY qualified
+18 2:9 |f| IS_WRITTEN_BY qualified
 ''');
   }
 
@@ -1411,7 +1411,7 @@ class A {
 ''');
     final element = findElement.field('f');
     assertElementIndexText(element, r'''
-18 + 1: IS_WRITTEN_BY qualified
+18 2:9 |f| IS_WRITTEN_BY qualified
 ''');
   }
 
@@ -1424,7 +1424,7 @@ class A {
 ''');
     final element = findElement.field('f');
     assertElementIndexText(element, r'''
-18 + 1: IS_WRITTEN_BY qualified
+18 2:9 |f| IS_WRITTEN_BY qualified
 ''');
   }
 
@@ -1450,17 +1450,17 @@ void f(E e) {
     final setter = field.setter!;
 
     assertElementIndexText(field, r'''
-62 + 5: IS_WRITTEN_BY qualified
+62 4:11 |field| IS_WRITTEN_BY qualified
 ''');
 
     assertElementIndexText(getter, r'''
-111 + 5: IS_REFERENCED_BY
-168 + 5: IS_REFERENCED_BY qualified
+111 7:5 |field| IS_REFERENCED_BY
+168 12:5 |field| IS_REFERENCED_BY qualified
 ''');
 
     assertElementIndexText(setter, r'''
-90 + 5: IS_REFERENCED_BY
-148 + 5: IS_REFERENCED_BY qualified
+90 6:5 |field| IS_REFERENCED_BY
+148 11:5 |field| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1478,21 +1478,21 @@ void f() {
 ''');
 
     assertElementIndexText(findElement.getter('values'), r'''
-52 + 6: IS_REFERENCED_BY qualified
+52 5:16 |values| IS_REFERENCED_BY qualified
 ''');
 
     var index = typeProvider.enumElement!.getGetter('index')!;
     assertElementIndexText(index, r'''
-78 + 5: IS_REFERENCED_BY qualified
+78 6:18 |index| IS_REFERENCED_BY qualified
 ''');
 
     assertElementIndexText(findElement.getter('A'), r'''
-76 + 1: IS_REFERENCED_BY qualified
-101 + 1: IS_REFERENCED_BY qualified
+76 6:16 |A| IS_REFERENCED_BY qualified
+101 7:16 |A| IS_REFERENCED_BY qualified
 ''');
 
     assertElementIndexText(findElement.getter('B'), r'''
-120 + 1: IS_REFERENCED_BY qualified
+120 8:16 |B| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1506,7 +1506,7 @@ enum E {
 ''');
     final element = findElement.field('f');
     assertElementIndexText(element, r'''
-22 + 1: IS_WRITTEN_BY qualified
+22 3:9 |f| IS_WRITTEN_BY qualified
 ''');
   }
 
@@ -1521,7 +1521,7 @@ enum E {
 ''');
     final element = findElement.field('f');
     assertElementIndexText(element, r'''
-22 + 1: IS_WRITTEN_BY qualified
+22 3:9 |f| IS_WRITTEN_BY qualified
 ''');
   }
 
@@ -1535,7 +1535,7 @@ enum E {
 ''');
     final element = findElement.field('f');
     assertElementIndexText(element, r'''
-22 + 1: IS_WRITTEN_BY qualified
+22 3:9 |f| IS_WRITTEN_BY qualified
 ''');
   }
 
@@ -1549,8 +1549,8 @@ void f() {
 ''');
     final element = findElement.topFunction('foo');
     assertElementIndexText(element, r'''
-28 + 3: IS_REFERENCED_BY
-42 + 3: IS_INVOKED_BY
+28 3:9 |foo| IS_REFERENCED_BY
+42 4:9 |foo| IS_INVOKED_BY
 ''');
   }
 
@@ -1567,12 +1567,12 @@ void f() {
 
     var importFind = findElement.importFind('package:test/foo.dart');
     assertElementIndexText(importFind.importedLibrary, r'''
-7 + 10: IS_REFERENCED_BY qualified
+7 1:8 |"foo.dart"| IS_REFERENCED_BY qualified
 ''');
 
     FunctionElement bar = importFind.topFunction('bar');
     assertElementIndexText(bar, r'''
-32 + 3: IS_INVOKED_BY
+32 3:3 |bar| IS_INVOKED_BY
 ''');
   }
 
@@ -1584,7 +1584,7 @@ void f(A p) {
 ''');
     final element = findElement.typeAlias('A');
     assertElementIndexText(element, r'''
-20 + 1: IS_REFERENCED_BY
+20 2:8 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -1603,10 +1603,10 @@ class B extends p.A {}
 ''');
     final element = findElement.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
-38 + 1: IS_REFERENCED_BY qualified
-50 + 1: IS_ANCESTOR_OF
-62 + 1: IS_EXTENDED_BY qualified
-62 + 1: IS_REFERENCED_BY qualified
+38 3:14 |A| IS_REFERENCED_BY qualified
+50 5:7 |B| IS_ANCESTOR_OF
+62 5:19 |A| IS_EXTENDED_BY qualified
+62 5:19 |A| IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -1624,7 +1624,7 @@ var myVariable = null;
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-16 + 1: IS_REFERENCED_BY
+16 2:6 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -1639,8 +1639,8 @@ class A {
 }''');
     final element = findElement.method('method');
     assertElementIndexText(element, r'''
-52 + 6: IS_REFERENCED_BY qualified
-76 + 6: IS_REFERENCED_BY
+52 4:16 |method| IS_REFERENCED_BY qualified
+76 5:11 |method| IS_REFERENCED_BY
 ''');
   }
 
@@ -1660,9 +1660,9 @@ void f(E e) {
 ''');
     final element = findElement.method('foo');
     assertElementIndexText(element, r'''
-54 + 3: IS_REFERENCED_BY qualified
-69 + 3: IS_REFERENCED_BY
-104 + 3: IS_REFERENCED_BY qualified
+54 5:10 |foo| IS_REFERENCED_BY qualified
+69 6:5 |foo| IS_REFERENCED_BY
+104 10:5 |foo| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1681,10 +1681,10 @@ class B extends p.A {}
 ''');
     final element = findElement.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
-39 + 1: IS_REFERENCED_BY qualified
-53 + 1: IS_ANCESTOR_OF
-65 + 1: IS_EXTENDED_BY qualified
-65 + 1: IS_REFERENCED_BY qualified
+39 3:15 |A| IS_REFERENCED_BY qualified
+53 5:7 |B| IS_ANCESTOR_OF
+65 5:19 |A| IS_EXTENDED_BY qualified
+65 5:19 |A| IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -1715,7 +1715,7 @@ void f() {
 ''');
     final element = findElement.parameter('p');
     assertElementIndexText(element, r'''
-33 + 1: IS_REFERENCED_BY qualified
+33 3:7 |p| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1771,7 +1771,7 @@ class B extends A {
 ''');
     final element = findElement.unnamedConstructor('A').parameter('a');
     assertElementIndexText(element, r'''
-75 + 1: IS_REFERENCED_BY qualified
+75 5:21 |a| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1786,7 +1786,7 @@ class B extends A {
 ''');
     final element = findElement.unnamedConstructor('A').parameter('a');
     assertElementIndexText(element, r'''
-54 + 1: IS_REFERENCED_BY qualified
+54 5:11 |a| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1802,7 +1802,7 @@ void f() {
 ''');
     final element = findElement.parameter('test');
     assertElementIndexText(element, r'''
-47 + 4: IS_REFERENCED_BY qualified
+47 6:5 |test| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1818,7 +1818,7 @@ void f(A<int> a) {
 ''');
     final element = findElement.parameter('test');
     assertElementIndexText(element, r'''
-68 + 4: IS_REFERENCED_BY qualified
+68 6:9 |test| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1832,7 +1832,7 @@ void() {
 ''');
     final element = findElement.parameter('test');
     assertElementIndexText(element, r'''
-41 + 4: IS_REFERENCED_BY qualified
+41 4:7 |test| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1846,7 +1846,7 @@ void() {
 ''');
     final element = findElement.parameter('test');
     assertElementIndexText(element, r'''
-58 + 4: IS_REFERENCED_BY qualified
+58 4:10 |test| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1861,7 +1861,7 @@ void f() {
 ''');
     final element = findElement.parameter('p');
     assertElementIndexText(element, r'''
-40 + 0: IS_REFERENCED_BY qualified
+40 5:7 || IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1875,7 +1875,7 @@ void() {
 ''');
     final element = findElement.parameter('test');
     assertElementIndexText(element, r'''
-49 + 4: IS_REFERENCED_BY qualified
+49 4:7 |test| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1895,11 +1895,11 @@ void f() {
     final setter = findElement.setter('foo');
 
     assertElementIndexText(getter, r'''
-84 + 3: IS_REFERENCED_BY qualified
+84 7:5 |foo| IS_REFERENCED_BY qualified
 ''');
 
     assertElementIndexText(setter, r'''
-93 + 3: IS_REFERENCED_BY qualified
+93 8:5 |foo| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1919,11 +1919,11 @@ void f() {
     final setter = findElement.setter('foo');
 
     assertElementIndexText(getter, r'''
-98 + 3: IS_REFERENCED_BY qualified
+98 7:5 |foo| IS_REFERENCED_BY qualified
 ''');
 
     assertElementIndexText(setter, r'''
-107 + 3: IS_REFERENCED_BY qualified
+107 8:5 |foo| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1950,19 +1950,19 @@ void f() {
     var intGetter = findNode.methodDeclaration('0; // int getter');
     var intSetter = findNode.methodDeclaration('{} // int setter');
     assertElementIndexText(intGetter.declaredElement!, r'''
-214 + 3: IS_REFERENCED_BY qualified
+214 12:5 |foo| IS_REFERENCED_BY qualified
 ''');
     assertElementIndexText(intSetter.declaredElement!, r'''
-241 + 3: IS_REFERENCED_BY qualified
+241 13:5 |foo| IS_REFERENCED_BY qualified
 ''');
 
     var doubleGetter = findNode.methodDeclaration('0; // double getter');
     var doubleSetter = findNode.methodDeclaration('{} // double setter');
     assertElementIndexText(doubleGetter.declaredElement!, r'''
-276 + 3: IS_REFERENCED_BY qualified
+276 14:9 |foo| IS_REFERENCED_BY qualified
 ''');
     assertElementIndexText(doubleSetter.declaredElement!, r'''
-310 + 3: IS_REFERENCED_BY qualified
+310 15:9 |foo| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -1981,10 +1981,10 @@ class B extends p.A {}
 ''');
     final element = findElement.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
-44 + 1: IS_REFERENCED_BY qualified
-60 + 1: IS_ANCESTOR_OF
-72 + 1: IS_EXTENDED_BY qualified
-72 + 1: IS_REFERENCED_BY qualified
+44 3:20 |A| IS_REFERENCED_BY qualified
+60 5:7 |B| IS_ANCESTOR_OF
+72 5:19 |A| IS_EXTENDED_BY qualified
+72 5:19 |A| IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -2002,10 +2002,10 @@ class B extends p.A {}
 ''');
     final element = findElement.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
-35 + 1: IS_REFERENCED_BY qualified
-45 + 1: IS_ANCESTOR_OF
-57 + 1: IS_EXTENDED_BY qualified
-57 + 1: IS_REFERENCED_BY qualified
+35 3:11 |A| IS_REFERENCED_BY qualified
+45 5:7 |B| IS_ANCESTOR_OF
+57 5:19 |A| IS_EXTENDED_BY qualified
+57 5:19 |A| IS_REFERENCED_BY qualified
 Prefixes: p
 ''');
   }
@@ -2039,18 +2039,18 @@ void f() {
     TopLevelVariableElement variable = importFindLib().topVar('V');
 
     assertElementIndexText(variable, r'''
-23 + 1: IS_REFERENCED_BY qualified
+23 1:24 |V| IS_REFERENCED_BY qualified
 ''');
 
     assertElementIndexText(variable.getter!, r'''
-103 + 1: IS_REFERENCED_BY qualified
-135 + 1: IS_REFERENCED_BY
+103 5:14 |V| IS_REFERENCED_BY qualified
+135 7:9 |V| IS_REFERENCED_BY
 Prefixes: pref
 ''');
 
     assertElementIndexText(variable.setter!, r'''
-78 + 1: IS_REFERENCED_BY qualified
-114 + 1: IS_REFERENCED_BY
+78 4:8 |V| IS_REFERENCED_BY qualified
+114 6:3 |V| IS_REFERENCED_BY
 ''');
   }
 
@@ -2064,7 +2064,7 @@ import 'lib.dart' show V;
 ''');
     final element = importFindLib().topVar('V');
     assertElementIndexText(element, r'''
-23 + 1: IS_REFERENCED_BY qualified
+23 1:24 |V| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -2077,7 +2077,7 @@ import 'lib.dart' show V;
 ''');
     final element = importFindLib().topVar('V');
     assertElementIndexText(element, r'''
-23 + 1: IS_REFERENCED_BY qualified
+23 1:24 |V| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -2100,12 +2100,12 @@ void f(B p) {
 ''');
     final element = findElement.typeAlias('B');
     assertElementIndexText(element, r'''
-94 + 1: IS_REFERENCED_BY
-103 + 1: IS_REFERENCED_BY
-110 + 1: IS_REFERENCED_BY
-122 + 1: IS_REFERENCED_BY
-137 + 1: IS_REFERENCED_BY
-153 + 1: IS_REFERENCED_BY
+94 8:8 |B| IS_REFERENCED_BY
+103 9:3 |B| IS_REFERENCED_BY
+110 10:3 |B| IS_REFERENCED_BY
+122 11:3 |B| IS_REFERENCED_BY
+137 12:3 |B| IS_REFERENCED_BY
+153 13:3 |B| IS_REFERENCED_BY
 ''');
   }
 
@@ -2116,7 +2116,7 @@ A myVariable = null;
 ''');
     final element = findElement.class_('A');
     assertElementIndexText(element, r'''
-11 + 1: IS_REFERENCED_BY
+11 2:1 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -2130,8 +2130,8 @@ class A {
 ''');
     final element = findElement.field('field');
     assertElementIndexText(element, r'''
-37 + 5: IS_WRITTEN_BY qualified
-58 + 5: IS_WRITTEN_BY qualified
+37 3:15 |field| IS_WRITTEN_BY qualified
+58 4:13 |field| IS_WRITTEN_BY qualified
 ''');
   }
 
@@ -2366,6 +2366,7 @@ void f() {
   }
 
   String _getRelationsText(Element element) {
+    final lineInfo = result.lineInfo;
     final elementId = _findElementId(element);
 
     final relations = <_Relation>[];
@@ -2407,10 +2408,18 @@ void f() {
 
     final buffer = StringBuffer();
     for (final relation in sortedRelations) {
-      buffer.write(relation.offset);
-      buffer.write(' + ');
-      buffer.write(relation.length);
-      buffer.write(': ');
+      final offset = relation.offset;
+      final length = relation.length;
+      final location = lineInfo.getLocation(offset);
+      final snippet = result.content.substring(offset, offset + length);
+      buffer.write(offset);
+      buffer.write(' ');
+      buffer.write(location.lineNumber);
+      buffer.write(':');
+      buffer.write(location.columnNumber);
+      buffer.write(' ');
+      buffer.write('|$snippet|');
+      buffer.write(' ');
       buffer.write(relation.kind.name);
       if (relation.isQualified) {
         buffer.write(' qualified');
