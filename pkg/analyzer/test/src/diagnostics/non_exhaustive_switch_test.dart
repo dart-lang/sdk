@@ -39,6 +39,28 @@ Object f(bool x) {
 ''');
   }
 
+  test_class_int_wildcard() async {
+    await assertNoErrorsInCode(r'''
+Object f(int x) {
+  return switch (x) {
+    0 => 0,
+    _ => 1,
+  };
+}
+''');
+  }
+
+  test_class_withField_wildcard() async {
+    await assertNoErrorsInCode(r'''
+Object f(int x) {
+  return switch (x) {
+    int(isEven: true) => 0,
+    _ => 1,
+  };
+}
+''');
+  }
+
   test_enum_2at2_hasWhen() async {
     await assertErrorsInCode(r'''
 enum E {

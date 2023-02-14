@@ -198,8 +198,13 @@ List<Pattern> _expandFields(
     } else {
       // This pattern doesn't test this field, so add a pattern for the
       // field that matches all values. This way the columns stay aligned.
-      result.add(new Pattern(
-          type.fields[fieldName]!, {}, [...pattern.path, fieldName]));
+      result.add(
+        new Pattern(
+          type.fields[fieldName] ?? StaticType.nullableObject,
+          {},
+          [...pattern.path, fieldName],
+        ),
+      );
     }
   }
 
