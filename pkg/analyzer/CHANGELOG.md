@@ -1,4 +1,4 @@
-## 5.5.0-dev
+## 5.5.0
 * Rename `RecordPatternField` to `PatternField`.
 * Rename `RecordPatternFieldName` to `PatternFieldName`.
 
