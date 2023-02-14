@@ -74,13 +74,17 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
       }
       features[Tags.scrutineeFields] =
           fieldsToText(result.scrutineeType.fields);
-      features[Tags.remaining] = spaceToText(result.remainingSpaces.last);
+      if (result.remainingSpaces.isNotEmpty) {
+        features[Tags.remaining] = spaceToText(result.remainingSpaces.last);
+      }
       Uri uri = node.location!.file;
       for (int i = 0; i < result.caseSpaces.length; i++) {
         int offset = result.caseOffsets[i];
         Features caseFeatures = new Features();
         caseFeatures[Tags.space] = spaceToText(result.caseSpaces[i]);
-        caseFeatures[Tags.remaining] = spaceToText(result.remainingSpaces[i]);
+        if (result.remainingSpaces.isNotEmpty) {
+          caseFeatures[Tags.remaining] = spaceToText(result.remainingSpaces[i]);
+        }
         registerValue(
             uri, offset, new NodeId(offset, IdKind.node), caseFeatures, node);
       }

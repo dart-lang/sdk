@@ -5,6 +5,7 @@
 import 'space.dart';
 import 'static_type.dart';
 import 'subtract.dart';
+import 'witness.dart';
 
 /// Returns `true` if [cases] exhaustively covers all possible values of
 /// [value].
@@ -24,7 +25,14 @@ bool isExhaustive(Space value, List<Space> cases) {
 /// Returns a string containing any unreachable case or non-exhaustive match
 /// errors. Returns an empty string if all cases are reachable and the cases
 /// are exhaustive.
+
 List<ExhaustivenessError> reportErrors(StaticType valueType, List<Space> cases,
+    [List<Space>? remainingSpaces]) {
+  return reportErrorsNew(valueType, cases);
+}
+
+List<ExhaustivenessError> reportErrorsOld(
+    StaticType valueType, List<Space> cases,
     [List<Space>? remainingSpaces]) {
   List<ExhaustivenessError> errors = <ExhaustivenessError>[];
 
@@ -34,7 +42,7 @@ List<ExhaustivenessError> reportErrors(StaticType valueType, List<Space> cases,
     if (i > 0) {
       Space previous = new Space.union(cases.sublist(0, i));
       if (subtract(cases[i], previous) == Space.empty) {
-        errors.add(new UnreachableCaseError(valueType, cases, i, previous));
+        errors.add(new UnreachableCaseErrorOld(valueType, cases, i, previous));
       }
     }
 
@@ -44,7 +52,7 @@ List<ExhaustivenessError> reportErrors(StaticType valueType, List<Space> cases,
   remainingSpaces?.add(remaining);
 
   if (remaining != Space.empty) {
-    errors.add(new NonExhaustiveError(valueType, cases, remaining));
+    errors.add(new NonExhaustiveErrorOld(valueType, cases, remaining));
   }
 
   return errors;
@@ -52,25 +60,79 @@ List<ExhaustivenessError> reportErrors(StaticType valueType, List<Space> cases,
 
 class ExhaustivenessError {}
 
-class NonExhaustiveError implements ExhaustivenessError {
-  final StaticType valueType;
-  final List<Space> cases;
-  final Space remaining;
+abstract class NonExhaustiveError implements ExhaustivenessError {
+  StaticType get valueType;
+  List<Space> get cases;
+  String get witness;
+}
 
-  NonExhaustiveError(this.valueType, this.cases, this.remaining);
+class NonExhaustiveErrorNew implements NonExhaustiveError {
+  @override
+  final StaticType valueType;
+
+  @override
+  final List<Space> cases;
+
+  @override
+  final String witness;
+
+  NonExhaustiveErrorNew(this.valueType, this.cases, this.witness);
 
   @override
   String toString() =>
       '$valueType is not exhaustively matched by ${new Space.union(cases)}.';
 }
 
-class UnreachableCaseError implements ExhaustivenessError {
+class NonExhaustiveErrorOld implements NonExhaustiveError {
+  @override
   final StaticType valueType;
+
+  @override
   final List<Space> cases;
+
+  final Space remaining;
+
+  NonExhaustiveErrorOld(this.valueType, this.cases, this.remaining);
+
+  @override
+  String get witness => '$remaining';
+
+  @override
+  String toString() =>
+      '$valueType is not exhaustively matched by ${new Space.union(cases)}.';
+}
+
+abstract class UnreachableCaseError implements ExhaustivenessError {
+  StaticType get valueType;
+  List<Space> get cases;
+  int get index;
+}
+
+class UnreachableCaseErrorNew implements UnreachableCaseError {
+  @override
+  final StaticType valueType;
+  @override
+  final List<Space> cases;
+  @override
+  final int index;
+
+  UnreachableCaseErrorNew(this.valueType, this.cases, this.index);
+
+  @override
+  String toString() => 'Case #${index + 1} ${cases[index]} is unreachable.';
+}
+
+class UnreachableCaseErrorOld implements UnreachableCaseError {
+  @override
+  final StaticType valueType;
+  @override
+  final List<Space> cases;
+  @override
   final int index;
   final Space previous;
 
-  UnreachableCaseError(this.valueType, this.cases, this.index, this.previous);
+  UnreachableCaseErrorOld(
+      this.valueType, this.cases, this.index, this.previous);
 
   @override
   String toString() =>

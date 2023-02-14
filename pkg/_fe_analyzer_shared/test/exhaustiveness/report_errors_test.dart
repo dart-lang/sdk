@@ -49,15 +49,15 @@ void main() {
 
   test('unreachable case', () {
     // Same type.
-    expectReportErrors(b, [b, b], 'Case #2 B is covered by B.');
+    expectReportErrors(b, [b, b], 'Case #2 B is unreachable.');
 
     // Previous case is supertype.
-    expectReportErrors(b, [a, b], 'Case #2 B is covered by A.');
+    expectReportErrors(b, [a, b], 'Case #2 B is unreachable.');
 
     // Previous subtype cases cover sealed supertype.
-    expectReportErrors(a, [b, c, a], 'Case #3 A is covered by B|C.');
-    expectReportErrors(a, [d, e, f, a], 'Case #4 A is covered by D|E|F.');
-    expectReportErrors(a, [b, f, a], 'Case #3 A is covered by B|F.');
+    expectReportErrors(a, [b, c, a], 'Case #3 A is unreachable.');
+    expectReportErrors(a, [d, e, f, a], 'Case #4 A is unreachable.');
+    expectReportErrors(a, [b, f, a], 'Case #3 A is unreachable.');
     expectReportErrors(a, [c, d, a]);
 
     // Previous subtype cases do not cover unsealed supertype.
@@ -80,7 +80,7 @@ void main() {
           {'x': a},
           {'x': b}
         ],
-        'Case #2 (x: B) is covered by (x: A).');
+        'Case #2 (x: B) is unreachable.');
   });
 
   test('nullable sealed', () {
@@ -111,15 +111,15 @@ void main() {
 
     // Nullable covers the non-null.
     expectReportErrors(
-        a.nullable, [a.nullable, a], 'Case #2 A is covered by A?.');
+        a.nullable, [a.nullable, a], 'Case #2 A is unreachable.');
     expectReportErrors(
-        b.nullable, [a.nullable, b], 'Case #2 B is covered by A?.');
+        b.nullable, [a.nullable, b], 'Case #2 B is unreachable.');
 
     // Nullable covers null.
     expectReportErrors(a.nullable, [a.nullable, StaticType.nullType],
-        'Case #2 Null is covered by A?.');
+        'Case #2 Null is unreachable.');
     expectReportErrors(b.nullable, [a.nullable, StaticType.nullType],
-        'Case #2 Null is covered by A?.');
+        'Case #2 Null is unreachable.');
   });
 }
 

@@ -22,7 +22,7 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:55:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
-// Try adding a default case or cases that match Enum.a|Enum.c.
+// Try adding a default case or cases that match Enum.a.
 //   switch (e) /* Error */ {
 //           ^
 //

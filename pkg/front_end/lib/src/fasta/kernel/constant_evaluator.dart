@@ -838,7 +838,7 @@ class ConstantsTransformer extends RemovingTransformer {
                   switchInfo.fileOffset,
                   templateNonExhaustiveSwitch.withArguments(
                       switchInfo.expressionType,
-                      '${error.remaining}',
+                      '${error.witness}',
                       library.isNonNullableByDefault)));
         }
       }

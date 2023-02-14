@@ -5,22 +5,15 @@
 void exhaustiveSwitch(bool b) {
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=∅,
    subtypes={true,false},
    type=bool
   */
   switch (b) {
-    /*
-     remaining=bool,
-     space=true
-    */
+    /*space=true*/
     case true:
       print('true');
       break;
-    /*
-     remaining=false,
-     space=false
-    */
+    /*space=false*/
     case false:
       print('false');
       break;
@@ -33,22 +26,15 @@ const f1 = false;
 void exhaustiveSwitchAliasedBefore(bool b) {
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=∅,
    subtypes={true,false},
    type=bool
   */
   switch (b) {
-    /*
-     remaining=bool,
-     space=true
-    */
+    /*space=true*/
     case t1:
       print('true');
       break;
-    /*
-     remaining=false,
-     space=false
-    */
+    /*space=false*/
     case f1:
       print('false');
       break;
@@ -58,22 +44,15 @@ void exhaustiveSwitchAliasedBefore(bool b) {
 void exhaustiveSwitchAliasedAfter(bool b) {
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=∅,
    subtypes={true,false},
    type=bool
   */
   switch (b) {
-    /*
-     remaining=bool,
-     space=true
-    */
+    /*space=true*/
     case t2:
       print('true');
       break;
-    /*
-     remaining=false,
-     space=false
-    */
+    /*space=false*/
     case f2:
       print('false');
       break;
@@ -86,15 +65,11 @@ const f2 = false;
 void nonExhaustiveSwitch1(bool b) {
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=false,
    subtypes={true,false},
    type=bool
   */
   switch (b) {
-    /*
-     remaining=bool,
-     space=true
-    */
+    /*space=true*/
     case true:
       print('true');
       break;
@@ -104,15 +79,11 @@ void nonExhaustiveSwitch1(bool b) {
 void nonExhaustiveSwitch2(bool b) {
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=true,
    subtypes={true,false},
    type=bool
   */
   switch (b) {
-    /*
-     remaining=bool,
-     space=false
-    */
+    /*space=false*/
     case false:
       print('false');
       break;
@@ -122,15 +93,11 @@ void nonExhaustiveSwitch2(bool b) {
 void nonExhaustiveSwitchWithDefault(bool b) {
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=false,
    subtypes={true,false},
    type=bool
   */
   switch (b) {
-    /*
-     remaining=bool,
-     space=true
-    */
+    /*space=true*/
     case true:
       print('true');
       break;
@@ -143,29 +110,19 @@ void nonExhaustiveSwitchWithDefault(bool b) {
 void exhaustiveNullableSwitch(bool? b) {
   /*
    fields={},
-   remaining=∅,
    subtypes={bool,Null},
    type=bool?
   */
   switch (b) {
-    /*
-     remaining=bool?,
-     space=true
-    */
+    /*space=true*/
     case true:
       print('true');
       break;
-    /*
-     remaining=false?,
-     space=false
-    */
+    /*space=false*/
     case false:
       print('false');
       break;
-    /*
-     remaining=Null,
-     space=Null
-    */
+    /*space=Null*/
     case null:
       print('null');
       break;
@@ -175,22 +132,15 @@ void exhaustiveNullableSwitch(bool? b) {
 void nonExhaustiveNullableSwitch1(bool? b) {
   /*
    fields={},
-   remaining=Null,
    subtypes={bool,Null},
    type=bool?
   */
   switch (b) {
-    /*
-     remaining=bool?,
-     space=true
-    */
+    /*space=true*/
     case true:
       print('true');
       break;
-    /*
-     remaining=false?,
-     space=false
-    */
+    /*space=false*/
     case false:
       print('false');
       break;
@@ -200,22 +150,15 @@ void nonExhaustiveNullableSwitch1(bool? b) {
 void nonExhaustiveNullableSwitch2(bool? b) {
   /*
    fields={},
-   remaining=false,
    subtypes={bool,Null},
    type=bool?
   */
   switch (b) {
-    /*
-     remaining=bool?,
-     space=true
-    */
+    /*space=true*/
     case true:
       print('true');
       break;
-    /*
-     remaining=false?,
-     space=Null
-    */
+    /*space=Null*/
     case null:
       print('null');
       break;
@@ -225,29 +168,19 @@ void nonExhaustiveNullableSwitch2(bool? b) {
 void unreachableCase1(bool b) {
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=∅,
    subtypes={true,false},
    type=bool
   */
   switch (b) {
-    /*
-     remaining=bool,
-     space=true
-    */
+    /*space=true*/
     case true:
       print('true1');
       break;
-    /*
-     remaining=false,
-     space=false
-    */
+    /*space=false*/
     case false:
       print('false');
       break;
-    /*
-     remaining=∅,
-     space=true
-    */
+    /*space=true*/
     case true: // Unreachable
       print('true2');
       break;
@@ -258,29 +191,19 @@ void unreachableCase2(bool b) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=∅,
    subtypes={true,false},
    type=bool
   */
   switch (b) {
-    /*
-     remaining=bool,
-     space=true
-    */
+    /*space=true*/
     case true:
       print('true');
       break;
-    /*
-     remaining=false,
-     space=false
-    */
+    /*space=false*/
     case false:
       print('false');
       break;
-    /*
-     remaining=∅,
-     space=Null
-    */
+    /*space=Null*/
     case null:
       print('null');
       break;
@@ -290,36 +213,23 @@ void unreachableCase2(bool b) {
 void unreachableCase3(bool? b) {
   /*
    fields={},
-   remaining=∅,
    subtypes={bool,Null},
    type=bool?
   */
   switch (b) {
-    /*
-     remaining=bool?,
-     space=true
-    */
+    /*space=true*/
     case true:
       print('true');
       break;
-    /*
-     remaining=false?,
-     space=false
-    */
+    /*space=false*/
     case false:
       print('false');
       break;
-    /*
-     remaining=Null,
-     space=Null
-    */
+    /*space=Null*/
     case null:
       print('null1');
       break;
-    /*
-     remaining=∅,
-     space=Null
-    */
+    /*space=Null*/
     case null:
       print('null2');
       break;

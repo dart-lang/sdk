@@ -40,8 +40,8 @@ void nonExhaustiveSwitch1(A a) {
   switch (a) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //      ^
-  // [cfe] The type 'A' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'A' is not exhaustively matched by the switch cases.
     case B b:
       print('B');
       break;
@@ -55,8 +55,8 @@ void nonExhaustiveSwitch2(A a) {
   switch (a) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //      ^
-  // [cfe] The type 'A' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'A' is not exhaustively matched by the switch cases.
     case C c:
       print('C');
       break;
@@ -70,8 +70,8 @@ void nonExhaustiveSwitch3(A a) {
   switch (a) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //      ^
-  // [cfe] The type 'A' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'A' is not exhaustively matched by the switch cases.
     case B b:
       print('B');
       break;
@@ -113,8 +113,8 @@ void nonExhaustiveNullableSwitch1(A? a) {
   switch (a) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //      ^
-  // [cfe] The type 'A?' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'A?' is not exhaustively matched by the switch cases.
     case A a:
       print('A');
       break;
@@ -125,8 +125,8 @@ void nonExhaustiveNullableSwitch2(A? a) {
   switch (a) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //      ^
-  // [cfe] The type 'A?' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'A?' is not exhaustively matched by the switch cases.
     case B b:
       print('B');
       break;

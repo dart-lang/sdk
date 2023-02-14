@@ -810,22 +810,28 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
           switchKeyword,
-          [scrutineeType, '${error.remaining}'],
+          [scrutineeType, error.witness],
         );
       }
     }
 
     // Record data for testing.
     if (exhaustivenessDataForTesting != null && remainingSpaces != null) {
-      assert(remainingSpaces.length == caseSpaces.length + 1);
+      assert(remainingSpaces.isEmpty ||
+          remainingSpaces.length == caseSpaces.length + 1);
       for (var i = 0; i < caseSpaces.length; i++) {
         final caseNode = caseNodesWithSpace[i];
         exhaustivenessDataForTesting.caseSpaces[caseNode] = caseSpaces[i];
-        exhaustivenessDataForTesting.remainingSpaces[caseNode] =
-            remainingSpaces[i];
+        if (remainingSpaces.isNotEmpty) {
+          exhaustivenessDataForTesting.remainingSpaces[caseNode] =
+              remainingSpaces[i];
+        }
       }
       exhaustivenessDataForTesting.switchScrutineeType[node] = scrutineeTypeEx;
-      exhaustivenessDataForTesting.remainingSpaces[node] = remainingSpaces.last;
+      if (remainingSpaces.isNotEmpty) {
+        exhaustivenessDataForTesting.remainingSpaces[node] =
+            remainingSpaces.last;
+      }
     }
   }
 

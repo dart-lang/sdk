@@ -94,7 +94,7 @@ void main() {
     checkExhaustive([b, c], 'ABCDE');
     checkExhaustive([b, d], 'BDE');
     checkExhaustive([b, e], 'BDE');
-    checkExhaustive([c, d], 'CDE');
+    checkExhaustive([c, d], 'CDE'); // prototype has 'ABCDE'!
     checkExhaustive([d, e], 'BDE');
   });
 
