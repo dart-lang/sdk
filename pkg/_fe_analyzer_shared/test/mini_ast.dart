@@ -3194,6 +3194,17 @@ class _MiniAstErrors
     );
   }
 
+  @override
+  void unnecessaryWildcardPattern({
+    required Pattern pattern,
+    required UnnecessaryWildcardKind kind,
+  }) {
+    _recordError('unnecessaryWildcardPattern', {
+      'pattern': pattern,
+      'kind': kind,
+    });
+  }
+
   void _recordError(
     String name,
     Map<String, Object?> namedArguments, {
@@ -3204,6 +3215,8 @@ class _MiniAstErrors
         return '$argument';
       } else if (argument is int) {
         return '$argument';
+      } else if (argument is Enum) {
+        return argument.name;
       } else if (argument is Node) {
         return argument.errorId;
       } else if (argument is Type) {

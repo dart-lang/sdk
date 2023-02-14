@@ -2484,12 +2484,19 @@ main() {
     group('Logical-and:', () {
       test('Type schema', () {
         h.run([
-          match(wildcard(type: 'int?').and(wildcard(type: 'double?')),
+          match(
+                  (wildcard(type: 'int?')..errorId = 'WILDCARD1')
+                      .and(wildcard(type: 'double?')..errorId = 'WILDCARD2'),
                   nullLiteral.checkContext('Null'))
               .checkIr('match(null, logicalAndPattern(wildcardPattern('
                   'matchedType: Null), wildcardPattern(matchedType: Null), '
                   'matchedType: Null))'),
-        ]);
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD1, '
+              'kind: logicalAndPatternOperand)',
+          'unnecessaryWildcardPattern(pattern: WILDCARD2, '
+              'kind: logicalAndPatternOperand)'
+        });
       });
 
       test('Refutability', () {

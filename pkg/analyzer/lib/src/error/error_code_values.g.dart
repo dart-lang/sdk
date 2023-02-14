@@ -1000,6 +1000,7 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.UNDEFINED_HIDDEN_NAME,
   WarningCode.UNDEFINED_SHOWN_NAME,
   WarningCode.UNNECESSARY_CAST_PATTERN,
+  WarningCode.UNNECESSARY_WILDCARD_PATTERN,
   WarningCode.UNUSED_CATCH_CLAUSE,
   WarningCode.UNUSED_CATCH_STACK,
 ];

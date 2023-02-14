@@ -23529,6 +23529,10 @@ WarningCode:
   UNNECESSARY_TYPE_CHECK_TRUE:
     aliasFor: HintCode.UNNECESSARY_TYPE_CHECK_TRUE
     comment: This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_TRUE].
+  UNNECESSARY_WILDCARD_PATTERN:
+    problemMessage: Unnecessary wildcard pattern.
+    correctionMessage: Try removing the wildcard pattern.
+    comment: No parameters.
   UNUSED_CATCH_CLAUSE:
     problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
     correctionMessage: Try removing the catch clause.

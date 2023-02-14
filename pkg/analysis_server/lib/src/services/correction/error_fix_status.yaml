@@ -2847,6 +2847,8 @@ WarningCode.UNDEFINED_SHOWN_NAME:
   status: hasFix
 WarningCode.UNNECESSARY_CAST_PATTERN:
   status: needsEvaluation
+WarningCode.UNNECESSARY_WILDCARD_PATTERN:
+  status: needsEvaluation
 WarningCode.UNUSED_CATCH_CLAUSE:
   status: hasFix
 WarningCode.UNUSED_CATCH_STACK:
