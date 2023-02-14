@@ -97,15 +97,15 @@ class JsUtilOptimizer extends Transformer {
         _listEmptyFactory =
             _coreTypes.index.getProcedure('dart:core', 'List', 'empty'),
         _staticTypeContext = StatefulStaticTypeContext.stacked(
-            TypeEnvironment(_coreTypes, hierarchy)) {}
+            TypeEnvironment(_coreTypes, hierarchy));
 
   @override
-  visitLibrary(Library lib) {
-    _inlineExtensionIndex = InlineExtensionIndex(lib);
-    _staticTypeContext.enterLibrary(lib);
-    lib.transformChildren(this);
-    _staticTypeContext.leaveLibrary(lib);
-    return lib;
+  visitLibrary(Library node) {
+    _inlineExtensionIndex = InlineExtensionIndex(node);
+    _staticTypeContext.enterLibrary(node);
+    node.transformChildren(this);
+    _staticTypeContext.leaveLibrary(node);
+    return node;
   }
 
   @override
@@ -660,26 +660,27 @@ class InlineExtensionIndex {
     if (_extensionMemberIndex != null) return;
     _extensionMemberIndex = {};
     _shouldTrustType = {};
-    _library.extensions
-        .forEach((extension) => extension.members.forEach((descriptor) {
-              var reference = descriptor.member;
-              var onType = extension.onType;
-              Annotatable? cls;
-              if (onType is InterfaceType) {
-                cls = onType.classNode;
-                // For now, `@trustTypes` can only be used on non-inline
-                // classes.
-                if (hasTrustTypesAnnotation(cls)) {
-                  _shouldTrustType.add(reference);
-                }
-              } else if (onType is InlineType) {
-                cls = onType.inlineClass;
-              }
-              if (cls == null) return;
-              if (hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls)) {
-                _extensionMemberIndex![reference] = descriptor;
-              }
-            }));
+    for (var extension in _library.extensions) {
+      for (var descriptor in extension.members) {
+        var reference = descriptor.member;
+        var onType = extension.onType;
+        Annotatable? cls;
+        if (onType is InterfaceType) {
+          cls = onType.classNode;
+          // For now, `@trustTypes` can only be used on non-inline
+          // classes.
+          if (hasTrustTypesAnnotation(cls)) {
+            _shouldTrustType.add(reference);
+          }
+        } else if (onType is InlineType) {
+          cls = onType.inlineClass;
+        }
+        if (cls == null) continue;
+        if (hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls)) {
+          _extensionMemberIndex![reference] = descriptor;
+        }
+      }
+    }
   }
 
   ExtensionMemberDescriptor? getExtensionDescriptor(Reference reference) {
@@ -700,15 +701,15 @@ class InlineExtensionIndex {
     if (_inlineMemberIndex != null) return;
     _inlineMemberIndex = {};
     _inlineClassIndex = {};
-    _library.inlineClasses.forEach((inlineClass) {
+    for (var inlineClass in _library.inlineClasses) {
       if (hasJSInteropAnnotation(inlineClass)) {
-        inlineClass.members.forEach((descriptor) {
+        for (var descriptor in inlineClass.members) {
           var reference = descriptor.member;
           _inlineMemberIndex![reference] = descriptor;
           _inlineClassIndex[reference] = inlineClass;
-        });
+        }
       }
-    });
+    }
   }
 
   InlineClassMemberDescriptor? getInlineDescriptor(Reference reference) {

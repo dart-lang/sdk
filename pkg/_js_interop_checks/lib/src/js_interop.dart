@@ -185,14 +185,14 @@ List<String> stringAnnotationValues(Expression node) {
         var value = constant.fieldValues.values.elementAt(0);
         if (value is StringConstant) values.addAll(value.value.split(','));
       } else if (argLength > 1) {
-        throw new ArgumentError('Method expects annotation with at most one '
+        throw ArgumentError('Method expects annotation with at most one '
             'positional argument: $node.');
       }
     }
   } else if (node is ConstructorInvocation) {
     var argLength = node.arguments.positional.length;
     if (argLength > 1 || node.arguments.named.isNotEmpty) {
-      throw new ArgumentError('Method expects annotation with at most one '
+      throw ArgumentError('Method expects annotation with at most one '
           'positional argument: $node.');
     } else if (argLength == 1) {
       var value = node.arguments.positional[0];
@@ -233,7 +233,7 @@ List<Library>? calculateTransitiveImportsOfJsInteropIfUsed(
   if (jsInteropLibrary == null) return null;
 
   kernel_graph.LibraryGraph graph =
-      new kernel_graph.LibraryGraph(component.libraries);
+      kernel_graph.LibraryGraph(component.libraries);
   Set<Library> result =
       kernel_graph.calculateTransitiveDependenciesOf(graph, {jsInteropLibrary});
   return result.toList();

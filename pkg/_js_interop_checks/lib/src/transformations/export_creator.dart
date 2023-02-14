@@ -2,6 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: implementation_imports
+
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show
+        Message,
+        LocatedMessage,
+        templateJsInteropExportClassNotMarkedExportable;
+import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         templateJsInteropExportInvalidInteropTypeArgument,
@@ -9,12 +17,6 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show
-        Message,
-        LocatedMessage,
-        templateJsInteropExportClassNotMarkedExportable;
-import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 
 import 'export_checker.dart';
 import 'static_interop_mock_validator.dart';
@@ -126,13 +128,16 @@ class ExportCreator extends Transformer {
       // This occurs when we deserialize previously compiled modules. Those
       // modules may contain export classes, so we need to revisit the classes
       // in those previously compiled modules if they are used.
-      dartClass.procedures
-          .forEach((member) => _exportChecker.visitMember(member));
-      dartClass.fields.forEach((member) => _exportChecker.visitMember(member));
+      for (var member in dartClass.procedures) {
+        _exportChecker.visitMember(member);
+      }
+      for (var member in dartClass.fields) {
+        _exportChecker.visitMember(member);
+      }
       _exportChecker.visitClass(dartClass);
     }
     var exportStatus = _exportChecker.exportStatus[dartClass.reference];
-    if (exportStatus == ExportStatus.NON_EXPORTABLE) {
+    if (exportStatus == ExportStatus.nonExportable) {
       _diagnosticReporter.report(
           templateJsInteropExportClassNotMarkedExportable
               .withArguments(dartClass.name),
@@ -141,7 +146,7 @@ class ExportCreator extends Transformer {
           node.location?.file);
       return false;
     }
-    return exportStatus == ExportStatus.EXPORTABLE;
+    return exportStatus == ExportStatus.exportable;
   }
 
   /// Create the object literal using the export map that was computed from the

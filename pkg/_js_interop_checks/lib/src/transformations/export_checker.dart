@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart';
-import 'package:kernel/target/targets.dart';
+// ignore_for_file: implementation_imports
+
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         Message,
@@ -13,18 +13,20 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropExportMemberCollision,
         templateJsInteropExportNoExportableMembers;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
+import 'package:kernel/ast.dart';
+import 'package:kernel/target/targets.dart';
 
 enum ExportStatus {
-  EXPORT_ERROR,
-  EXPORTABLE,
-  NON_EXPORTABLE,
+  exportError,
+  exportable,
+  nonExportable,
 }
 
-class _GetSet {
+class GetSet {
   Member? getter;
   Member? setter;
 
-  _GetSet(this.getter, this.setter);
+  GetSet(this.getter, this.setter);
 }
 
 class ExportChecker {
@@ -44,7 +46,7 @@ class ExportChecker {
   ///
   /// [exports] should be a set of members from the [exportClassToMemberMap]. If
   /// missing a getter and/or setter, the corresponding field will be `null`.
-  _GetSet getGetterSetter(Set<Member> exports) {
+  GetSet getGetterSetter(Set<Member> exports) {
     assert(exports.isNotEmpty && exports.length <= 2);
     Member? getter;
     Member? setter;
@@ -70,7 +72,7 @@ class ExportChecker {
       }
     }
 
-    return _GetSet(getter, setter);
+    return GetSet(getter, setter);
   }
 
   /// Calculates the overrides, including inheritance, for [cls].
@@ -95,10 +97,10 @@ class ExportChecker {
     ]) {
       var memberName = member.name.text;
       if (member is Procedure && member.isSetter) {
-        memberMap[memberName + '='] = member;
+        memberMap['$memberName='] = member;
       } else {
         if (member is Field && !member.isFinal) {
-          memberMap[memberName + '='] = member;
+          memberMap['$memberName='] = member;
         }
         memberMap[memberName] = member;
       }
@@ -122,8 +124,8 @@ class ExportChecker {
     // when we visited the members and checked their annotations, there's
     // nothing to do for this class.
     if (!classHasJSExport &&
-        exportStatus[cls.reference] != ExportStatus.EXPORTABLE) {
-      exportStatus[cls.reference] = ExportStatus.NON_EXPORTABLE;
+        exportStatus[cls.reference] != ExportStatus.exportable) {
+      exportStatus[cls.reference] = ExportStatus.nonExportable;
       return;
     }
 
@@ -134,7 +136,7 @@ class ExportChecker {
           cls.fileOffset,
           cls.name.length,
           cls.location?.file);
-      exportStatus[cls.reference] = ExportStatus.EXPORT_ERROR;
+      exportStatus[cls.reference] = ExportStatus.exportError;
     }
 
     _collectOverrides(cls);
@@ -195,7 +197,7 @@ class ExportChecker {
           cls.fileOffset,
           cls.name.length,
           cls.location?.file);
-      exportStatus[cls.reference] = ExportStatus.EXPORT_ERROR;
+      exportStatus[cls.reference] = ExportStatus.exportError;
     }
 
     if (exports.isEmpty) {
@@ -204,11 +206,11 @@ class ExportChecker {
           cls.fileOffset,
           cls.name.length,
           cls.location?.file);
-      exportStatus[cls.reference] = ExportStatus.EXPORT_ERROR;
+      exportStatus[cls.reference] = ExportStatus.exportError;
     }
 
     exportClassToMemberMap[cls.reference] = exports;
-    exportStatus[cls.reference] ??= ExportStatus.EXPORTABLE;
+    exportStatus[cls.reference] ??= ExportStatus.exportable;
   }
 
   /// Check that the [member] can be exportable if it has an annotation, and if
@@ -225,12 +227,12 @@ class ExportChecker {
             member.name.text.length,
             member.location?.file);
         if (cls != null) {
-          exportStatus[cls.reference] = ExportStatus.EXPORT_ERROR;
+          exportStatus[cls.reference] = ExportStatus.exportError;
         }
       } else {
         // Mark as exportable so we know that the class has an exportable member
         // when we process the class later.
-        if (cls != null) exportStatus[cls.reference] = ExportStatus.EXPORTABLE;
+        if (cls != null) exportStatus[cls.reference] = ExportStatus.exportable;
       }
     }
   }
@@ -249,34 +251,34 @@ class ExportChecker {
 }
 
 extension ExtensionMemberDescriptorExtension on ExtensionMemberDescriptor {
-  bool get isGetter => this.kind == ExtensionMemberKind.Getter;
-  bool get isSetter => this.kind == ExtensionMemberKind.Setter;
-  bool get isMethod => this.kind == ExtensionMemberKind.Method;
+  bool get isGetter => kind == ExtensionMemberKind.Getter;
+  bool get isSetter => kind == ExtensionMemberKind.Setter;
+  bool get isMethod => kind == ExtensionMemberKind.Method;
 
-  bool get isExternal => (this.member.asProcedure).isExternal;
+  bool get isExternal => (member.asProcedure).isExternal;
 }
 
 extension ProcedureExtension on Procedure {
   // We only care about concrete instance procedures.
   bool get exportable =>
-      !this.isAbstract &&
-      !this.isStatic &&
-      !this.isExtensionMember &&
-      !this.isFactory &&
-      !this.isExternal &&
-      this.kind != ProcedureKind.Operator;
+      !isAbstract &&
+      !isStatic &&
+      !isExtensionMember &&
+      !isFactory &&
+      !isExternal &&
+      kind != ProcedureKind.Operator;
 }
 
 extension FieldExtension on Field {
   // We only care about concrete instance fields.
-  bool get exportable => !this.isAbstract && !this.isStatic && !this.isExternal;
+  bool get exportable => !isAbstract && !isStatic && !isExternal;
 }
 
 extension MemberExtension on Member {
   // Get the property name that this member will be exported as.
   String get exportPropertyName {
     var rename = js_interop.getJSExportName(this);
-    return rename.isEmpty ? this.name.text : rename;
+    return rename.isEmpty ? name.text : rename;
   }
 
   bool get exportable =>
@@ -297,8 +299,7 @@ extension MemberExtension on Member {
       this is Field || (this is Procedure && (this as Procedure).isGetter);
 
   bool get isSetter =>
-      this.isNonFinalField ||
-      (this is Procedure && (this as Procedure).isSetter);
+      isNonFinalField || (this is Procedure && (this as Procedure).isSetter);
 
   bool get isMethod =>
       this is Procedure && (this as Procedure).kind == ProcedureKind.Method;
