@@ -711,19 +711,23 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [matchedType] should be the matched value type, and [knownType] should
   /// be the type that the matched value is now known to satisfy.
   ///
-  /// If [updateUnmatched] is `true` (the default), flow analysis models the
-  /// usual semantics of a type test in a pattern: if the matched value fails to
-  /// have the type [knownType], the pattern will fail to match.  If it is
-  /// `false`, it models the semantics where the no match failure can occur
-  /// (either because the matched value is known, due to other invariants to
-  /// have the type [knownType], or because a type test failure would result in
-  /// an exception being thrown).
+  /// If [matchFailsIfWrongType] is `true` (the default), flow analysis models
+  /// the usual semantics of a type test in a pattern: if the matched value
+  /// fails to have the type [knownType], the pattern will fail to match.
+  /// If it is `false`, it models the semantics where the no match failure can
+  /// occur (either because the matched value is known, due to other invariants
+  /// to have the type [knownType], or because a type test failure would result
+  /// in an exception being thrown).
+  ///
+  /// If [matchMayFailEvenIfCorrectType] is `true`, flow analysis would always
+  /// update the unmatched value.
   ///
   /// Returns `true` if [matchedType] is a subtype of [knownType].
   bool promoteForPattern(
       {required Type matchedType,
       required Type knownType,
-      bool updateUnmatched = true});
+      bool matchFailsIfWrongType = true,
+      bool matchMayFailEvenIfCorrectType = false});
 
   /// Call this method just after visiting a property get expression.
   /// [wholeExpression] should be the whole property get, [target] should be the
@@ -1602,14 +1606,18 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   bool promoteForPattern(
       {required Type matchedType,
       required Type knownType,
-      bool updateUnmatched = true}) {
+      bool matchFailsIfWrongType = true,
+      bool matchMayFailEvenIfCorrectType = false}) {
     return _wrap(
         'patternRequiredType(matchedType: $matchedType, '
-        'requiredType: $knownType, updateUnmatched: $updateUnmatched)',
+        'requiredType: $knownType, '
+        'matchFailsIfWrongType: $matchFailsIfWrongType, '
+        'matchMayFailEvenIfCorrectType: $matchMayFailEvenIfCorrectType)',
         () => _wrapped.promoteForPattern(
             matchedType: matchedType,
             knownType: knownType,
-            updateUnmatched: updateUnmatched),
+            matchFailsIfWrongType: matchFailsIfWrongType,
+            matchMayFailEvenIfCorrectType: matchMayFailEvenIfCorrectType),
         isQuery: true,
         isPure: false);
   }
@@ -4486,7 +4494,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   bool promoteForPattern(
       {required Type matchedType,
       required Type knownType,
-      bool updateUnmatched = true}) {
+      bool matchFailsIfWrongType = true,
+      bool matchMayFailEvenIfCorrectType = false}) {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     ReferenceWithType<Type> matchedValueReference =
         context.createReference(matchedType);
@@ -4511,8 +4520,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           .ifFalse;
     }
     _current = ifTrue;
-    if (updateUnmatched && !coversMatchedType) {
-      _unmatched = _join(_unmatched!, ifFalse);
+    if (matchMayFailEvenIfCorrectType ||
+        (matchFailsIfWrongType && !coversMatchedType)) {
+      _unmatched = _join(_unmatched!, coversMatchedType ? ifTrue : ifFalse);
     }
     return coversMatchedType;
   }
@@ -5850,7 +5860,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   bool promoteForPattern(
           {required Type matchedType,
           required Type knownType,
-          bool updateUnmatched = true}) =>
+          bool matchFailsIfWrongType = true,
+          bool matchMayFailEvenIfCorrectType = false}) =>
       false;
 
   @override

@@ -340,7 +340,7 @@ mixin TypeAnalyzer<
     bool matchedTypeIsSubtypeOfRequired = flow.promoteForPattern(
         matchedType: matchedValueType,
         knownType: requiredType,
-        updateUnmatched: false);
+        matchFailsIfWrongType: false);
     if (matchedTypeIsSubtypeOfRequired) {
       errors?.matchedTypeIsSubtypeOfRequired(
         pattern: pattern,
@@ -699,7 +699,10 @@ mixin TypeAnalyzer<
       }
     }
     Type requiredType = listType(valueType);
-    flow.promoteForPattern(matchedType: matchedType, knownType: requiredType);
+    flow.promoteForPattern(
+        matchedType: matchedType,
+        knownType: requiredType,
+        matchMayFailEvenIfCorrectType: true);
     // Stack: ()
     Node? previousRestPattern;
     for (Node element in elements) {
@@ -921,7 +924,10 @@ mixin TypeAnalyzer<
       keyType: keyType,
       valueType: valueType,
     );
-    flow.promoteForPattern(matchedType: matchedType, knownType: requiredType);
+    flow.promoteForPattern(
+        matchedType: matchedType,
+        knownType: requiredType,
+        matchMayFailEvenIfCorrectType: true);
     // Stack: ()
 
     bool hasDuplicateRestPatternReported = false;

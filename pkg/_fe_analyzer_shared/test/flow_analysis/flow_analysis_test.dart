@@ -7044,6 +7044,18 @@ main() {
               ]),
         ]);
       });
+
+      test('Reachability', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<int>')),
+          ifCase(x.expr, listPattern([], elementType: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
     });
 
     group('Map pattern:', () {
@@ -7085,6 +7097,18 @@ main() {
               [
                 checkPromoted(x, 'Map<int, int>'),
               ]),
+        ]);
+      });
+
+      test('Reachability', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Map<int, int>')),
+          ifCase(x.expr, mapPattern([], keyType: 'int', valueType: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
         ]);
       });
     });
