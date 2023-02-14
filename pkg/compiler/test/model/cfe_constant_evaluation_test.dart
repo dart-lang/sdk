@@ -584,7 +584,7 @@ main(List<String> args) {
 }
 
 Future testData(TestData data) async {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.writeln('${data.declarations}');
   Map<String, ConstantData> constants = {};
   List<String> names = <String>[];
@@ -617,7 +617,7 @@ Future testData(TestData data) async {
     ir.TypeEnvironment typeEnvironment = elementMap.typeEnvironment;
     KElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
-    ConstantValuefier constantValuefier = new ConstantValuefier(elementMap);
+    ConstantValuefier constantValuefier = ConstantValuefier(elementMap);
     LibraryEntity library = elementEnvironment.mainLibrary!;
     constants.forEach((String name, ConstantData data) {
       final field = elementEnvironment.lookupLibraryMember(library, name)!;
@@ -634,7 +634,7 @@ Future testData(TestData data) async {
         expectedResults
             .forEach((Map<String, String> environment, String expectedText) {
           List<String> errors = [];
-          Dart2jsConstantEvaluator evaluator = new Dart2jsConstantEvaluator(
+          Dart2jsConstantEvaluator evaluator = Dart2jsConstantEvaluator(
               elementMap.env.mainComponent, elementMap.typeEnvironment,
               (ir.LocatedMessage message, List<ir.LocatedMessage>? context) {
             // TODO(johnniwinther): Assert that `message.uri != null`. Currently
@@ -650,11 +650,11 @@ Future testData(TestData data) async {
                   ? ir.EvaluationMode.weak
                   : ir.EvaluationMode.strong);
           ir.Constant evaluatedConstant = evaluator.evaluate(
-              new ir.StaticTypeContext(node, typeEnvironment), initializer);
+              ir.StaticTypeContext(node, typeEnvironment), initializer);
 
           ConstantValue value = evaluatedConstant is! ir.UnevaluatedConstant
               ? constantValuefier.visitConstant(evaluatedConstant)
-              : new NonConstantValue();
+              : NonConstantValue();
 
           Expect.isNotNull(
               value,

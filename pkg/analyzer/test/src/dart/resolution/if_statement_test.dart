@@ -128,13 +128,15 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr2_nested() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   if (x case <int>[var a || var a] when a > 0) {
     a;
   }
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 45, 8),
+    ]);
 
     final node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''

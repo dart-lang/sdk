@@ -9,7 +9,7 @@ import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/util/memory_compiler.dart';
 
 void testLoadMap() async {
-  var collector = new OutputCollector();
+  var collector = OutputCollector();
   await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES,
       options: ['--deferred-map=deferred_map.json'],
@@ -31,7 +31,7 @@ void testLoadMap() async {
 }
 
 void testDumpDeferredGraph() async {
-  var collector = new OutputCollector();
+  var collector = OutputCollector();
   await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES,
       options: ['--dump-deferred-graph=deferred_graph.txt'],
@@ -68,13 +68,13 @@ import 'lib2.dart' deferred as lib2;
 void main() {
   lib1.loadLibrary().then((_) {
         lib1.foo1();
-        new lib1.C();
+        lib1.C();
     lib2.loadLibrary().then((_) {
         lib2.foo2();
     });
   });
   convert.loadLibrary().then((_) {
-    new convert.JsonCodec();
+    convert.JsonCodec();
   });
 }
 """,
@@ -89,7 +89,7 @@ import "lib4.dart" deferred as lib4_1;
 class C {}
 
 foo1() {
-  new InputElement();
+  InputElement();
   lib4_1.loadLibrary().then((_) {
     lib4_1.bar1();
   });

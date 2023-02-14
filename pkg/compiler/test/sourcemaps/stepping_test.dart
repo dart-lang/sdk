@@ -16,13 +16,12 @@ import 'package:sourcemap_testing/src/stepping_helper.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 void main(List<String> args) {
-  ArgParser argParser = new ArgParser(allowTrailingOptions: true);
+  ArgParser argParser = ArgParser(allowTrailingOptions: true);
   argParser.addFlag('debug', abbr: 'd', defaultsTo: false);
   argParser.addFlag('verbose', abbr: 'v', defaultsTo: false);
   argParser.addFlag('continued', abbr: 'c', defaultsTo: false);
   ArgResults argResults = argParser.parse(args);
-  Directory dataDir =
-      new Directory.fromUri(Platform.script.resolve('stepping'));
+  Directory dataDir = Directory.fromUri(Platform.script.resolve('stepping'));
   asyncTest(() async {
     bool continuing = false;
     await for (FileSystemEntity entity in dataDir.list()) {
@@ -35,7 +34,7 @@ void main(List<String> args) {
       print('----------------------------------------------------------------');
       print('Checking ${entity.uri}');
       print('----------------------------------------------------------------');
-      String annotatedCode = await new File.fromUri(entity.uri).readAsString();
+      String annotatedCode = await File.fromUri(entity.uri).readAsString();
       await testAnnotatedCode(annotatedCode,
           verbose: argResults['verbose'], debug: argResults['debug']);
       if (argResults['continued']) {
@@ -50,7 +49,7 @@ const String kernelMarker = 'kernel.';
 Future testAnnotatedCode(String code,
     {bool debug = false, bool verbose = false}) async {
   AnnotatedCode annotatedCode =
-      new AnnotatedCode.fromText(code, commentStart, commentEnd);
+      AnnotatedCode.fromText(code, commentStart, commentEnd);
   print(annotatedCode.sourceCode);
   Map<String, AnnotatedCode> split =
       splitByPrefixes(annotatedCode, [kernelMarker]);
@@ -67,7 +66,7 @@ Future runTest(AnnotatedCode annotatedCode, String config,
   String testFileName = 'test.dart';
   String path = dir.path;
   String inputFile = '$path/$testFileName';
-  new File(inputFile).writeAsStringSync(annotatedCode.sourceCode);
+  File(inputFile).writeAsStringSync(annotatedCode.sourceCode);
   String outputFile = '$path/js.js';
   List<String> arguments = <String>[
     '--out=$outputFile',

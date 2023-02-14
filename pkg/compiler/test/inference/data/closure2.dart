@@ -133,5 +133,5 @@ main() {
   returnInt4();
   returnNum1();
   returnIntOrNull();
-  new A(). /*invoke: [exact=A]*/ foo();
+  A(). /*invoke: [exact=A]*/ foo();
 }

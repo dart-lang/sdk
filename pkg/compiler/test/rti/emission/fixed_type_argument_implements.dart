@@ -21,7 +21,7 @@ class C<T> {}
 class D implements C<B> {}
 
 main() {
-  C<A> c = new D();
+  C<A> c = D();
   test(c);
 }
 

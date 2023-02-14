@@ -36,29 +36,28 @@ class MemorySourceFileProvider extends CompilerSourceFileProvider {
 
     var source = memorySourceFiles[resourceUri.path];
     if (source == null) {
-      return Future.error(new Exception(
+      return Future.error(Exception(
           'No such memory file $resourceUri in ${memorySourceFiles.keys}'));
     }
     api.Input<List<int>> input;
     StringSourceFile? stringFile;
     if (source is String) {
-      stringFile = new StringSourceFile.fromUri(resourceUri, source);
+      stringFile = StringSourceFile.fromUri(resourceUri, source);
     }
     switch (inputKind) {
       case api.InputKind.UTF8:
         utf8SourceFiles[resourceUri] =
-            input = stringFile ?? new Utf8BytesSourceFile(resourceUri, source);
+            input = stringFile ?? Utf8BytesSourceFile(resourceUri, source);
         break;
       case api.InputKind.binary:
         if (stringFile != null) {
           utf8SourceFiles[resourceUri] = stringFile;
           source = stringFile.data;
         }
-        input =
-            binarySourceFiles[resourceUri] = new Binary(resourceUri, source);
+        input = binarySourceFiles[resourceUri] = Binary(resourceUri, source);
         break;
     }
-    return new Future.value(input);
+    return Future.value(input);
   }
 
   @override

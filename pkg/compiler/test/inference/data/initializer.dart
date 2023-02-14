@@ -25,7 +25,7 @@ class Class1 {
 }
 
 /*member: initializingFormal:[exact=Class1]*/
-initializingFormal() => new Class1(0);
+initializingFormal() => Class1(0);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor with field initializer.
@@ -40,7 +40,7 @@ class Class2 {
 }
 
 /*member: fieldInitializer:[exact=Class2]*/
-fieldInitializer() => new Class2(0);
+fieldInitializer() => Class2(0);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Redirecting generative constructor.
@@ -58,7 +58,7 @@ class Class3 {
 }
 
 /*member: thisInitializer:[exact=Class3]*/
-thisInitializer() => new Class3(0);
+thisInitializer() => Class3(0);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor with super constructor call.
@@ -78,4 +78,4 @@ class Class4 extends SuperClass4 {
 }
 
 /*member: superInitializer:[exact=Class4]*/
-superInitializer() => new Class4(0);
+superInitializer() => Class4(0);

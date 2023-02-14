@@ -6543,6 +6543,13 @@ class WarningCode extends AnalyzerErrorCode {
   static const HintCode UNNECESSARY_TYPE_CHECK_TRUE =
       HintCode.UNNECESSARY_TYPE_CHECK_TRUE;
 
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_WILDCARD_PATTERN = WarningCode(
+    'UNNECESSARY_WILDCARD_PATTERN',
+    "Unnecessary wildcard pattern.",
+    correctionMessage: "Try removing the wildcard pattern.",
+  );
+
   ///  Parameters:
   ///  0: the name of the exception variable
   static const WarningCode UNUSED_CATCH_CLAUSE = WarningCode(

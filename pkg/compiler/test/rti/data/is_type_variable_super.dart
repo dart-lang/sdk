@@ -12,5 +12,5 @@ class B<T> extends A<T> {
 }
 
 main() {
-  new B<int>().m(0);
+  B<int>().m(0);
 }

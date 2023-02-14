@@ -1424,22 +1424,6 @@ LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
                  Instruction* current) {
-  if (auto check = current->AsCheckClass()) {
-    check->set_licm_hoisted(true);
-  } else if (auto check = current->AsCheckSmi()) {
-    check->set_licm_hoisted(true);
-  } else if (auto check = current->AsCheckEitherNonSmi()) {
-    check->set_licm_hoisted(true);
-  } else if (auto check = current->AsCheckArrayBound()) {
-    ASSERT(!CompilerState::Current().is_aot());  // speculative in JIT only
-    check->set_licm_hoisted(true);
-  } else if (auto check = current->AsGenericCheckBound()) {
-    ASSERT(CompilerState::Current().is_aot());  // non-speculative in AOT only
-    // Does not deopt, so no need for licm_hoisted flag.
-    USE(check);
-  } else if (auto check = current->AsTestCids()) {
-    check->set_licm_hoisted(true);
-  }
   if (FLAG_trace_optimization) {
     THR_Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",
               current->DebugName(), current->GetDeoptId(),
@@ -1458,6 +1442,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   // If the hoisted instruction lazy-deopts, it should continue at the start of
   // the Goto (of which we copy the deopt-id from).
   current->env()->MarkAsLazyDeoptToBeforeDeoptId();
+  current->env()->MarkAsHoisted();
   current->CopyDeoptIdFrom(*last);
 }
 
@@ -1512,7 +1497,7 @@ void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
 }
 
 void LICM::OptimisticallySpecializeSmiPhis() {
-  if (flow_graph()->function().ProhibitsHoistingCheckClass() ||
+  if (flow_graph()->function().ProhibitsInstructionHoisting() ||
       CompilerState::Current().is_aot()) {
     // Do not hoist any: Either deoptimized on a hoisted check,
     // or compiling precompiled code where we can't do optimistic
@@ -1549,7 +1534,7 @@ static bool MayHaveVisibleEffect(Instruction* instr) {
 }
 
 void LICM::Optimize() {
-  if (flow_graph()->function().ProhibitsHoistingCheckClass()) {
+  if (flow_graph()->function().ProhibitsInstructionHoisting()) {
     // Do not hoist any.
     return;
   }

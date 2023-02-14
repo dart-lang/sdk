@@ -12,8 +12,8 @@ class A {
   A();
 }
 main() {
-  new A();
-  new A.foo();
+  A();
+  A.foo();
 }
 """;
 

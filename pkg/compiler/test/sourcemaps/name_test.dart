@@ -66,8 +66,8 @@ main() {
   Class.staticAnonymous();
   Class.staticLocal();
 
-  var c = new Class();
-  c = new Class.named();
+  var c = Class();
+  c = Class.named();
   c.instanceField = c.instanceMethod();
   c.instanceAnonymous();
   c.instanceLocal();

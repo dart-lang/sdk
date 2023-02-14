@@ -3805,9 +3805,9 @@ Thread* Isolate::ScheduleThread(bool is_mutator,
     mutator_thread_ = thread;
     scheduled_mutator_thread_ = thread;
     thread->is_mutator_thread_ = true;
+    thread->field_table_values_ = field_table_->table();
   }
   thread->isolate_ = this;
-  thread->field_table_values_ = field_table_->table();
 
   return thread;
 }

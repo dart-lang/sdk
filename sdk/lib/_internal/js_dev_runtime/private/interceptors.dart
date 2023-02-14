@@ -117,7 +117,7 @@ class UnknownJavaScriptObject extends LegacyJavaScriptObject {
 }
 
 @JsPeerInterface(name: 'Error')
-class NativeError extends Interceptor {
+class NativeError extends JavaScriptObject {
   String dartStack() => JS<String>('!', '#.stack', this);
 }
 
@@ -287,7 +287,7 @@ final Object jsNull = JSNull();
 // Note that this needs to be in interceptors.dart in order for
 // it to be picked up as an extension type.
 @JsPeerInterface(name: 'RangeError')
-class JSRangeError extends Interceptor implements ArgumentError {
+class JSRangeError extends JavaScriptObject implements ArgumentError {
   StackTrace get stackTrace => dart.stackTrace(this);
 
   get invalidValue => null;

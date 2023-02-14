@@ -13,6 +13,6 @@ class B {
 }
 
 main() {
-  var b = new B();
+  var b = B();
   b.instanceMethod<int>(staticMethod, 0);
 }

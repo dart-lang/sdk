@@ -18,7 +18,7 @@ main() {
   method1a();
   T Function<T>() f1 = method1b;
 
-  Class c = new Class();
+  Class c = Class();
   c.method2a();
   T Function<T>() f2 = c.method2b;
 

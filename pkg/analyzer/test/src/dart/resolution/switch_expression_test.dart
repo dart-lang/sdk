@@ -397,14 +397,16 @@ SwitchExpression
   }
 
   test_variables_logicalOr() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   (switch (x) {
     <int>[var a || var a] => a,
     _ => 0,
   });
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 52, 8),
+    ]);
 
     final node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''

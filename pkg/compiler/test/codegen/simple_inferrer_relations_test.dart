@@ -39,8 +39,8 @@ class B extends A {
 }
 
 main() {
-  var a = new A(inscrutable(0) == 0 ? 42 : "fish");
-  var b = new B(0, inscrutable(0) == 0 ? 2 : "horse");
+  var a = A(inscrutable(0) == 0 ? 42 : "fish");
+  var b = B(0, inscrutable(0) == 0 ? 2 : "horse");
   var c = inscrutable(0) == 0 ? a : "kurt";
   var d = inscrutable(0) == 0 ? b : "gert";
   if (c == d) {

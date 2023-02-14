@@ -34,7 +34,7 @@ HSV toColor(int index) {
   double h = 360.0 * (index % HUE_COUNT) / HUE_COUNT;
   double v = 1.0;
   double s = 0.5;
-  return new HSV(h, s, v);
+  return HSV(h, s, v);
 }
 
 /// Return the CSS color value for the [index]th color.
@@ -47,7 +47,7 @@ String toPattern(int index) {
   /// Use gradient on spans to visually identify consecutive spans mapped to the
   /// same source location.
   HSV startColor = toColor(index);
-  HSV endColor = new HSV(startColor.h, startColor.s + 0.4, startColor.v - 0.2);
+  HSV endColor = HSV(startColor.h, startColor.s + 0.4, startColor.v - 0.2);
   return 'linear-gradient(to right, ${startColor.toCss}, ${endColor.toCss})';
 }
 
@@ -130,7 +130,7 @@ class PatternCssColorScheme implements CssColorScheme {
 
   @override
   String multiLocationToCssColor(List<int> indices) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     double delta = 100.0 / (indices.length);
     double position = 0.0;
 
@@ -161,7 +161,7 @@ class SingleColorScheme implements CssColorScheme {
 
   @override
   String multiLocationToCssColor(List<int> indices) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     double delta = 100.0 / (indices.length);
     double position = 0.0;
 
@@ -207,7 +207,7 @@ class CodeProcessor {
     });
     return convertAnnotatedCodeToHtml(text, annotations,
         colorScheme: colorScheme,
-        elementScheme: new HighlightLinkScheme(name),
+        elementScheme: HighlightLinkScheme(name),
         windowSize: 3);
   }
 }
@@ -258,14 +258,14 @@ String convertAnnotatedCodeToHtml(String code, Iterable<Annotation> annotations,
     {CssColorScheme colorScheme = const SingleColorScheme(),
     required ElementScheme elementScheme,
     required int windowSize}) {
-  StringBuffer htmlBuffer = new StringBuffer();
+  StringBuffer htmlBuffer = StringBuffer();
   List<CodeLine> lines = convertAnnotatedCodeToCodeLines(code, annotations,
       windowSize: windowSize);
   int? lineNoWidth;
   if (lines.isNotEmpty) {
     lineNoWidth = '${lines.last.lineNo + 1}'.length;
   }
-  HtmlPrintContext context = new HtmlPrintContext(
+  HtmlPrintContext context = HtmlPrintContext(
       lineNoWidth: lineNoWidth,
       getAnnotationData: createAnnotationDataFunction(
           colorScheme: colorScheme, elementScheme: elementScheme));
@@ -303,8 +303,7 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
   }
 
   void beginLine(int currentOffset) {
-    lines
-        .add(currentLine = new CodeLine(lines.length, currentOffset, uri: uri));
+    lines.add(currentLine = CodeLine(lines.length, currentOffset, uri: uri));
   }
 
   void endCurrentLocation() {
@@ -378,7 +377,7 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
 
 /// Computes the HTML representation for a collection of JavaScript code blocks.
 String computeJsHtml(Iterable<SourceMapHtmlInfo> infoList) {
-  StringBuffer jsCodeBuffer = new StringBuffer();
+  StringBuffer jsCodeBuffer = StringBuffer();
   for (SourceMapHtmlInfo info in infoList) {
     String name = info.sourceMapInfo.name!;
     String html = info.codeProcessor.convertToHtml(info.sourceMapInfo.code);
@@ -397,7 +396,7 @@ $html
 /// Computes the HTML representation of the source mapping information for a
 /// collection of JavaScript code blocks.
 String computeJsTraceHtml(Iterable<SourceMapHtmlInfo> infoList) {
-  StringBuffer jsTraceBuffer = new StringBuffer();
+  StringBuffer jsTraceBuffer = StringBuffer();
   for (SourceMapHtmlInfo info in infoList) {
     String name = info.sourceMapInfo.name!;
     String jsTrace = computeJsTraceHtmlPart(
@@ -416,9 +415,8 @@ $jsTrace
 SourceMapHtmlInfo createHtmlInfo(
     SourceLocationCollection collection, SourceMapInfo info) {
   String name = info.name!;
-  SourceLocationCollection subcollection =
-      new SourceLocationCollection(collection);
-  CodeProcessor codeProcessor = new CodeProcessor(name, subcollection);
+  SourceLocationCollection subcollection = SourceLocationCollection(collection);
+  CodeProcessor codeProcessor = CodeProcessor(name, subcollection);
   for (js.Node node in info.nodeMap.nodes) {
     info.nodeMap[node]!
         .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
@@ -427,7 +425,7 @@ SourceMapHtmlInfo createHtmlInfo(
       }
     });
   }
-  return new SourceMapHtmlInfo(info, codeProcessor, subcollection);
+  return SourceMapHtmlInfo(info, codeProcessor, subcollection);
 }
 
 /// Outputs a HTML file in [jsMapHtmlUri] containing an interactive
@@ -436,7 +434,7 @@ SourceMapHtmlInfo createHtmlInfo(
 void createTraceSourceMapHtml(Uri jsMapHtmlUri,
     SourceMapProcessor sourceMapProcessor, Iterable<SourceMapInfo> infoList) {
   SourceFileManager sourceFileManager = sourceMapProcessor.sourceFileManager;
-  SourceLocationCollection collection = new SourceLocationCollection();
+  SourceLocationCollection collection = SourceLocationCollection();
   List<SourceMapHtmlInfo> htmlInfoList = <SourceMapHtmlInfo>[];
   for (SourceMapInfo info in infoList) {
     htmlInfoList.add(createHtmlInfo(collection, info));
@@ -454,7 +452,7 @@ void createTraceSourceMapHtml(Uri jsMapHtmlUri,
 /// [infoList].
 String computeDartHtml(
     SourceFileManager sourceFileManager, Iterable<SourceMapHtmlInfo> infoList) {
-  StringBuffer dartCodeBuffer = new StringBuffer();
+  StringBuffer dartCodeBuffer = StringBuffer();
   for (SourceMapHtmlInfo info in infoList) {
     dartCodeBuffer.write(computeDartHtmlPart(info.sourceMapInfo.name!,
         sourceFileManager, info.sourceLocationCollection));
@@ -467,7 +465,7 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
     SourceLocationCollection collection,
     {bool showAsBlock = false}) {
   const int windowSize = 3;
-  StringBuffer dartCodeBuffer = new StringBuffer();
+  StringBuffer dartCodeBuffer = StringBuffer();
   Map<Uri, Map<int, List<SourceLocation>>> sourceLocationMap = {};
   collection.sourceLocations.forEach((SourceLocation sourceLocation) {
     if (sourceLocation.sourceUri == null) return;
@@ -483,7 +481,7 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
       print('No source file for $uri');
       return;
     }
-    StringBuffer codeBuffer = new StringBuffer();
+    StringBuffer codeBuffer = StringBuffer();
 
     int? firstLineIndex;
     int? lastLineIndex;
@@ -582,7 +580,7 @@ ${dartCodeBuffer}
 /// Computes a HTML visualization of the [codePoints].
 String computeJsTraceHtmlPart(
     List<CodePoint> codePoints, SourceLocationCollection collection) {
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = StringBuffer();
   buffer.write('<table style="width:100%;">');
   buffer.write('<tr><th>Node kind</th><th>JS code @ offset</th>'
       '<th>Dart code @ mapped location</th><th>file:position:name</th></tr>');

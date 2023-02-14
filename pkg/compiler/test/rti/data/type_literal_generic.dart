@@ -54,7 +54,7 @@ topLevelMethodNested<S>() {
 }
 
 main() {
-  var a = new A<int>();
+  var a = A<int>();
   a.instanceMethod();
   a.genericMethod<String>();
   a.genericMethodNested<String>();

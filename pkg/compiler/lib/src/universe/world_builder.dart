@@ -30,8 +30,8 @@ import 'strong_mode_constraint.dart' show StrongModeConstraintInterface;
 ///     class C {
 ///        foo(a, b) {}
 ///     }
-///     new A().foo(a, b);
-///     new B().foo(0, 42);
+///     A().foo(a, b);
+///     B().foo(0, 42);
 ///
 /// the selector constraints for dynamic calls to 'foo' with two positional
 /// arguments could be 'receiver of exact instance `A` or `B`'.
@@ -47,7 +47,7 @@ abstract class SelectorConstraints {
   ///     class B {
   ///        foo(a, b) {}
   ///     }
-  ///     new A().foo(a, b);
+  ///     A().foo(a, b);
   ///
   /// Ideally the selector constraints for calls `foo` with two positional
   /// arguments apply to `A.foo` but `B.foo`.
@@ -60,7 +60,7 @@ abstract class SelectorConstraints {
   ///
   ///     class A {}
   ///     class B { foo() {} }
-  ///     m(b) => (b ? new A() : new B()).foo();
+  ///     m(b) => (b ? A() : B()).foo();
   ///
   /// the potential receiver `new A()` has no implementation of `foo` and thus
   /// needs to handle the call through its `noSuchMethod` handler.

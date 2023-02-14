@@ -723,6 +723,17 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    if (identical(entity, node.iterable)) {
+      optype.completionLocation = 'visitForEachPartsWithPattern_iterable';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    } else {
+      visitForEachParts(node);
+    }
+  }
+
+  @override
   void visitForElement(ForElement node) {
     // for (^) {}
     // for (Str^ str = null;) {}
@@ -1385,6 +1396,24 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
       optype.includeVoidReturnSuggestions = true;
+    }
+  }
+
+  @override
+  void visitSwitchExpression(SwitchExpression node) {
+    if (identical(entity, node.expression)) {
+      optype.completionLocation = 'SwitchExpression_expression';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    if (identical(entity, node.expression)) {
+      optype.completionLocation = 'SwitchExpressionCase_expression';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 

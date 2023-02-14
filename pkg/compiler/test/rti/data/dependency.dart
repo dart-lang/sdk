@@ -5,12 +5,12 @@
 // @dart = 2.7
 
 class A<T> {
-  m() => new B<T>();
+  m() => B<T>();
 }
 
 /*class: B:deps=[A]*/
 class B<T> {}
 
 main() {
-  new A<int>().m();
+  A<int>().m();
 }

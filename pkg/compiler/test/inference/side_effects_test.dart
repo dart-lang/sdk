@@ -18,7 +18,7 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir =
-        new Directory.fromUri(Platform.script.resolve('side_effects'));
+        Directory.fromUri(Platform.script.resolve('side_effects'));
     await checkTests(dataDir, const SideEffectsDataComputer(),
         args: args,
         options: [stopAfterTypeInference],
@@ -39,7 +39,7 @@ class SideEffectsDataComputer extends DataComputer<String> {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new SideEffectsIrComputer(compiler.reporter, actualMap, closedWorld,
+    SideEffectsIrComputer(compiler.reporter, actualMap, closedWorld,
             compiler.globalInference.resultsForTesting!.inferredData)
         .run(definition.node);
   }

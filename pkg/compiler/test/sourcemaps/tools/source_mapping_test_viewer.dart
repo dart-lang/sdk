@@ -21,7 +21,7 @@ main(List<String> arguments) async {
   bool measure = false;
   bool missingOnly = false;
   String outputPath = DEFAULT_OUTPUT_PATH;
-  Set<String> configurations = new Set<String>();
+  Set<String> configurations = Set<String>();
   Map<String, Uri> tests = <String, Uri>{};
   for (String argument in arguments) {
     if (argument.startsWith('-')) {
@@ -50,7 +50,7 @@ main(List<String> arguments) async {
   }
 
   OutputConfigurations outputConfigurations =
-      new OutputConfigurations(configurations, tests.keys);
+      OutputConfigurations(configurations, tests.keys);
   bool generateMultiConfigs = false;
   if (configurations.length > 1 || tests.length > 1) {
     for (String config in configurations) {
@@ -97,19 +97,19 @@ class OutputConfigurations implements Configurations {
   OutputConfigurations(this.configs, this.files);
 
   void registerPathUri(String config, String file, String path, Uri uri) {
-    Pair key = new Pair(config, file);
+    Pair key = Pair(config, file);
     pathMap[key] = path;
     uriMap[key] = uri;
   }
 
   Uri? getUri(String config, String file) {
-    Pair key = new Pair(config, file);
+    Pair key = Pair(config, file);
     return uriMap[key];
   }
 
   @override
   String getPath(String config, String file) {
-    Pair key = new Pair(config, file);
+    Pair key = Pair(config, file);
     return pathMap[key]!;
   }
 }
@@ -137,7 +137,7 @@ Future<Measurement> runTest(
     }
     createTraceSourceMapHtml(outputUri, result.processor, infoList);
   }
-  return new Measurement(
+  return Measurement(
       config,
       filename,
       result.missingCodePointsMap.values.fold(0, (s, i) => s + i.length),

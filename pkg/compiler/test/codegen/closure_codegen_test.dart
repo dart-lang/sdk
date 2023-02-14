@@ -39,7 +39,7 @@ class A {
   }
 }
 
-main() { new A().foo(1); }
+main() { A().foo(1); }
 """;
 
 Future closureInvocation({required bool minify, required String prefix}) async {
@@ -58,7 +58,7 @@ Future closureInvocation({required bool minify, required String prefix}) async {
 // the closure.
 Future closureBailout({required bool minify, required String prefix}) async {
   String generated = await compileAll(TEST_BAILOUT, minify: minify);
-  RegExp regexp = new RegExp("$prefix\\\$0\\(\\)${minify ? "" : " "}{");
+  RegExp regexp = RegExp("$prefix\\\$0\\(\\)${minify ? "" : " "}{");
   Iterator<Match> matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 1);
 }

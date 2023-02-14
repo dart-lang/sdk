@@ -57,17 +57,17 @@ api.CompilerDiagnostics createCompilerDiagnostics(
     {bool showDiagnostics = true, bool verbose = false}) {
   if (showDiagnostics) {
     if (diagnostics == null) {
-      diagnostics = new FormattingDiagnosticHandler()
+      diagnostics = FormattingDiagnosticHandler()
         ..verbose = verbose
         ..registerFileProvider(provider);
     } else {
-      var formattingHandler = new FormattingDiagnosticHandler()
+      var formattingHandler = FormattingDiagnosticHandler()
         ..verbose = verbose
         ..registerFileProvider(provider);
-      diagnostics = new MultiDiagnostics([diagnostics, formattingHandler]);
+      diagnostics = MultiDiagnostics([diagnostics, formattingHandler]);
     }
   } else if (diagnostics == null) {
-    diagnostics = new MultiDiagnostics();
+    diagnostics = MultiDiagnostics();
   }
   return diagnostics;
 }
@@ -174,7 +174,7 @@ Compiler compilerFor(
   }
 
   MemorySourceFileProvider provider;
-  provider = new MemorySourceFileProvider(sources);
+  provider = MemorySourceFileProvider(sources);
   diagnosticHandler = createCompilerDiagnostics(diagnosticHandler, provider,
       showDiagnostics: showDiagnostics,
       verbose: options.contains('-v') || options.contains('--verbose'));
@@ -190,8 +190,8 @@ Compiler compilerFor(
     ..packageConfig = packageConfig;
   compilerOptions.kernelInitializedCompilerState =
       kernelInitializedCompilerState;
-  var compiler = new Compiler(
-      provider, outputProvider, diagnosticHandler, compilerOptions);
+  var compiler =
+      Compiler(provider, outputProvider, diagnosticHandler, compilerOptions);
 
   return compiler;
 }

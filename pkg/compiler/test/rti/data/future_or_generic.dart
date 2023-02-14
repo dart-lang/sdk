@@ -18,5 +18,5 @@ class A<T> {
 class B {}
 
 main() {
-  new A<B>().m(new B());
+  A<B>().m(new B());
 }

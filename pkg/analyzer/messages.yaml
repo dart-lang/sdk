@@ -19078,13 +19078,6 @@ HintCode:
       A setter with the override annotation does not override an existing setter.
 
       No parameters.
-  PACKAGE_IMPORT_CONTAINS_DOT_DOT:
-    problemMessage: "A package import shouldn't contain '..'."
-    comment: |-
-      It is a bad practice for a package import to reference anything outside the
-      given package, or more generally, it is bad practice for a package import
-      to contain a "..". For example, a source file should not contain a
-      directive such as `import 'package:foo/../some.dart'`.
   STRICT_RAW_TYPE:
     problemMessage: "The generic type '{0}' should have explicit type arguments but doesn't."
     correctionMessage: "Use explicit type arguments for '{0}'."
@@ -23536,6 +23529,10 @@ WarningCode:
   UNNECESSARY_TYPE_CHECK_TRUE:
     aliasFor: HintCode.UNNECESSARY_TYPE_CHECK_TRUE
     comment: This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_TRUE].
+  UNNECESSARY_WILDCARD_PATTERN:
+    problemMessage: Unnecessary wildcard pattern.
+    correctionMessage: Try removing the wildcard pattern.
+    comment: No parameters.
   UNUSED_CATCH_CLAUSE:
     problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
     correctionMessage: Try removing the catch clause.

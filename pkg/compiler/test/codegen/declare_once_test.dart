@@ -22,7 +22,7 @@ main() {
         '}',
         entry: 'foo',
         minify: false);
-    RegExp re = new RegExp(r"var ");
+    RegExp re = RegExp(r"var ");
     Expect.isTrue(re.hasMatch(generated));
     print(generated);
     Expect.equals(1, re.allMatches(generated).length);

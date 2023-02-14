@@ -73,7 +73,8 @@ class SetupCompilerOptions {
   final fe.CompilerOptions options;
   final bool soundNullSafety;
 
-  static fe.CompilerOptions _getOptions(bool soundNullSafety) {
+  static fe.CompilerOptions _getOptions(
+      {required bool enableAsserts, required bool soundNullSafety}) {
     var options = fe.CompilerOptions()
       ..verbose = false // set to true for debugging
       ..sdkRoot = sdkRoot
@@ -83,16 +84,22 @@ class SetupCompilerOptions {
       ..omitPlatform = true
       ..sdkSummary =
           p.toUri(soundNullSafety ? sdkSoundSummaryPath : sdkUnsoundSummaryPath)
-      ..environmentDefines = const {}
+      ..environmentDefines = addGeneratedVariables({},
+          // Disable asserts due to failures to load source and
+          // locations on kernel loaded from dill files in DDC.
+          // https://github.com/dart-lang/sdk/issues/43986
+          enableAsserts: false)
       ..nnbdMode = soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak;
     return options;
   }
 
   SetupCompilerOptions(
-      {this.soundNullSafety = true,
+      {bool enableAsserts = true,
+      this.soundNullSafety = true,
       this.legacyCode = false,
       this.moduleFormat = ModuleFormat.amd})
-      : options = _getOptions(soundNullSafety) {
+      : options = _getOptions(
+            soundNullSafety: soundNullSafety, enableAsserts: enableAsserts) {
     options.onDiagnostic = (fe.DiagnosticMessage m) {
       diagnosticMessages.addAll(m.plainTextFormatted);
       if (m.severity == fe.Severity.error) {
@@ -193,7 +200,8 @@ class TestCompiler {
     }
     setup.diagnosticMessages.clear();
 
-    var sourceMap = source_maps.SingleMapping.fromJson(code.sourceMap!);
+    var sourceMap = source_maps.SingleMapping.fromJson(
+        code.sourceMap!.cast<String, dynamic>());
     return TestCompiler._(
         setup, component, evaluator, code.metadata, sourceMap);
   }

@@ -19,5 +19,5 @@ class Class<T> {
 }
 
 main() {
-  new Class<int>().method();
+  Class<int>().method();
 }

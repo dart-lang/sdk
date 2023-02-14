@@ -31,7 +31,7 @@ class Class1 {
 }
 
 /*member: exposeThis1:[exact=Class1]*/
-exposeThis1() => new Class1();
+exposeThis1() => Class1();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class with initializers in the constructor body. No closure.
@@ -51,7 +51,7 @@ class Class2 {
 }
 
 /*member: exposeThis2:[exact=Class2]*/
-exposeThis2() => new Class2();
+exposeThis2() => Class2();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class with closure after two initializers in the constructor body.
@@ -74,7 +74,7 @@ class Class4 {
 }
 
 /*member: exposeThis4:[exact=Class4]*/
-exposeThis4() => new Class4();
+exposeThis4() => Class4();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class with closure between two initializers in the constructor body.
@@ -97,4 +97,4 @@ class Class5 {
 }
 
 /*member: exposeThis5:[exact=Class5]*/
-exposeThis5() => new Class5();
+exposeThis5() => Class5();

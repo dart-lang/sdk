@@ -48,7 +48,7 @@ class A1 {
 
 /*member: test1:[null]*/
 test1() {
-  new A1();
+  A1();
 }
 
 /*member: A2.:[exact=A2]*/
@@ -62,7 +62,7 @@ class A2 {
 
 /*member: test2:[null]*/
 test2() {
-  new A2();
+  A2();
 }
 
 class A3 {
@@ -78,7 +78,7 @@ class A3 {
 
 /*member: test3:[null]*/
 test3() {
-  new A3(). /*update: [exact=A3]*/ f3b = 2;
+  A3(). /*update: [exact=A3]*/ f3b = 2;
 }
 
 class A4 {
@@ -94,7 +94,7 @@ class A4 {
 
 /*member: test4:[null]*/
 test4() {
-  A4 a = new A4();
+  A4 a = A4();
   a. /*update: [exact=A4]*/ f4a = "a";
   a. /*update: [exact=A4]*/ f4b = "a";
 }
@@ -119,8 +119,8 @@ class A5 {
 
 /*member: test5:[null]*/
 test5() {
-  new A5(true);
-  new A5(false);
+  A5(true);
+  A5(false);
 }
 
 class A6 {
@@ -139,17 +139,17 @@ class A6 {
       /*update: [exact=A6]*/ f6b = "2";
     }
     if (x) {
-      /*update: [exact=A6]*/ f6b = new List();
+      /*update: [exact=A6]*/ f6b = List();
     } else {
-      /*update: [exact=A6]*/ f6b = new List();
+      /*update: [exact=A6]*/ f6b = List();
     }
   }
 }
 
 /*member: test6:[null]*/
 test6() {
-  new A6(true);
-  new A6(false);
+  A6(true);
+  A6(false);
 }
 
 class A7 {
@@ -168,18 +168,18 @@ class A7 {
       /*update: [exact=A7]*/ f7b = "2";
     }
     if (x) {
-      /*update: [exact=A7]*/ f7a = new List();
-      /*update: [exact=A7]*/ f7b = new List();
+      /*update: [exact=A7]*/ f7a = List();
+      /*update: [exact=A7]*/ f7b = List();
     } else {
-      /*update: [exact=A7]*/ f7b = new List();
+      /*update: [exact=A7]*/ f7b = List();
     }
   }
 }
 
 /*member: test7:[null]*/
 test7() {
-  new A7(true);
-  new A7(false);
+  A7(true);
+  A7(false);
 }
 
 class A8 {
@@ -196,8 +196,8 @@ class A8 {
 
 /*member: test8:[null]*/
 test8() {
-  new A8(true);
-  new A8(false);
+  A8(true);
+  A8(false);
 }
 
 class A9 {
@@ -215,8 +215,8 @@ class A9 {
 
 /*member: test9:[null]*/
 test9() {
-  new A9(true);
-  new A9(false);
+  A9(true);
+  A9(false);
 }
 
 class A10 {
@@ -240,7 +240,7 @@ void f10(/*[null]*/ x) {
 test10() {
   A10 a;
   f10(a);
-  a = new A10();
+  a = A10();
   a. /*invoke: [exact=A10]*/ m10();
 }
 
@@ -265,7 +265,7 @@ class A11 extends S11 {
 
 /*member: test11:[null]*/
 test11() {
-  A11 a = new A11();
+  A11 a = A11();
   a. /*invoke: [exact=A11]*/ m11();
 }
 
@@ -284,7 +284,7 @@ class A12 extends S12 {}
 
 /*member: test12:[null]*/
 test12() {
-  new A12();
+  A12();
 }
 
 class S13 {
@@ -306,7 +306,7 @@ class A13 extends S13 {
 
 /*member: test13:[null]*/
 test13() {
-  new A13();
+  A13();
 }
 
 class A14 {
@@ -326,8 +326,8 @@ class A14 {
 /*member: test14:[null]*/
 test14() {
   // ignore: unused_local_variable
-  A14 a = new A14();
-  a = new A14.other();
+  A14 a = A14();
+  a = A14.other();
 }
 
 class A15 {
@@ -341,15 +341,15 @@ class A15 {
 
   /*member: A15.other:[exact=A15]*/
   A15.other() {
-    /*update: [exact=A15]*/ f15 = new List();
+    /*update: [exact=A15]*/ f15 = List();
   }
 }
 
 /*member: test15:[null]*/
 test15() {
   // ignore: unused_local_variable
-  A15 a = new A15();
-  a = new A15.other();
+  A15 a = A15();
+  a = A15.other();
 }
 
 class A16 {
@@ -371,8 +371,8 @@ class A16 {
 /*member: test16:[null]*/
 test16() {
   // ignore: unused_local_variable
-  A16 a = new A16();
-  a = new A16.other();
+  A16 a = A16();
+  a = A16.other();
 }
 
 /*member: g17:[exact=JSUInt31]*/
@@ -396,8 +396,8 @@ class A17 {
 
 /*member: test17:[null]*/
 test17() {
-  new A17(true);
-  new A17(false);
+  A17(true);
+  A17(false);
 }
 
 class A18 {
@@ -427,8 +427,8 @@ class A18 {
 
 /*member: test18:[null]*/
 test18() {
-  new A18(true);
-  new A18(false);
+  A18(true);
+  A18(false);
 }
 
 class A19 {
@@ -459,8 +459,8 @@ class A19 {
 
 /*member: test19:[null]*/
 test19() {
-  new A19(true);
-  new A19(false);
+  A19(true);
+  A19(false);
 }
 
 class A20 {
@@ -485,7 +485,7 @@ class A20 {
 
 /*member: test20:[null]*/
 test20() {
-  new A20();
+  A20();
 }
 
 class A20b extends Iterable implements Iterator {
@@ -516,7 +516,7 @@ class A20b extends Iterable implements Iterator {
 
 /*member: test20b:[null]*/
 test20b() {
-  new A20b();
+  A20b();
 }
 
 class A21 {
@@ -540,7 +540,7 @@ class A21 {
 
 /*member: test21:[null]*/
 test21() {
-  new A21();
+  A21();
 }
 
 class A21b extends Iterable {
@@ -566,7 +566,7 @@ class A21b extends Iterable {
 
 /*member: test21b:[null]*/
 test21b() {
-  new A21b();
+  A21b();
 }
 
 class A22 {
@@ -593,7 +593,7 @@ class A22 {
 
 /*member: test22:[null]*/
 test22() {
-  new A22();
+  A22();
 }
 
 class A23 {
@@ -626,7 +626,7 @@ class A23 {
 
 /*member: test23:[null]*/
 test23() {
-  new A23();
+  A23();
 }
 
 class A24 {
@@ -681,9 +681,9 @@ class B24 extends A24 {
 
 /*member: test24:[null]*/
 test24() {
-  new A24();
-  new A24.foo(new A24());
-  new A24.foo(new B24());
+  A24();
+  A24.foo(new A24());
+  A24.foo(new B24());
 }
 
 /*member: A25.:[exact=A25]*/
@@ -700,8 +700,8 @@ class B25 {
 
 /*member: test25:[null]*/
 test25() {
-  new B25();
-  new A25(). /*update: [exact=A25]*/ f25 = new A25(). /*[exact=A25]*/ f25;
+  B25();
+  A25(). /*update: [exact=A25]*/ f25 = A25(). /*[exact=A25]*/ f25;
 }
 
 /*member: A26.:[exact=A26]*/
@@ -718,7 +718,7 @@ class B26 {
 
 /*member: test26:[null]*/
 test26() {
-  new A26(). /*update: [exact=A26]*/ f26 = <dynamic>[new B26(), new A26()]
+  A26(). /*update: [exact=A26]*/ f26 = <dynamic>[new B26(), A26()]
               /*Container([exact=JSExtendableArray], element: Union([exact=A26], [exact=B26]), length: 2)*/
               [0]
           . /*Union([exact=A26], [exact=B26])*/ f26 /*invoke: [subclass=JSPositiveInt]*/ +
@@ -747,8 +747,8 @@ class B27 extends A27 {
 
 /*member: test27:[null]*/
 test27() {
-  new A27();
-  new B27();
+  A27();
+  B27();
 }
 
 class A28 {
@@ -768,8 +768,8 @@ class A28 {
 
 /*member: test28:[null]*/
 test28() {
-  new A28(0);
-  new A28(1);
+  A28(0);
+  A28(1);
 }
 
 class A29 {
@@ -792,8 +792,8 @@ class A29 {
 
 /*member: test29:[null]*/
 test29() {
-  new A29(0);
-  new A29(1);
+  A29(0);
+  A29(1);
 }
 
 class A30 {
@@ -821,6 +821,6 @@ class A30 {
 
 /*member: test30:[null]*/
 test30() {
-  new A30(0);
-  new A30(1);
+  A30(0);
+  A30(1);
 }

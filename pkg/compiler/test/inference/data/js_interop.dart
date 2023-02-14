@@ -24,7 +24,7 @@ class Class1 {
 }
 
 /*member: anonymousClass:[null|subclass=LegacyJavaScriptObject]*/
-anonymousClass() => new Class1(a: 1, b: '');
+anonymousClass() => Class1(a: 1, b: '');
 
 @JS()
 class JsInteropClass {
@@ -42,7 +42,7 @@ class JsInteropClass {
 
 /*member: jsInteropClass:[subclass=JSInt]*/
 jsInteropClass() {
-  JsInteropClass cls = new JsInteropClass();
+  JsInteropClass cls = JsInteropClass();
   return cls. /*update: [null|subclass=LegacyJavaScriptObject]*/ setter =
       cls. /*[null|subclass=LegacyJavaScriptObject]*/ getter /*invoke: [null|subclass=JSInt]*/ +
           cls. /*invoke: [subclass=LegacyJavaScriptObject]*/ method(

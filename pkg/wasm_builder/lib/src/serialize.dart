@@ -51,6 +51,7 @@ mixin SerializerMixin implements Serializer {
     _traces[_index] ??= data;
   }
 
+  @override
   void writeByte(int byte) {
     if (traceEnabled) _debugTrace(StackTrace.current);
     assert(byte == byte & 0xFF);
@@ -58,12 +59,14 @@ mixin SerializerMixin implements Serializer {
     _data[_index++] = byte;
   }
 
+  @override
   void writeBytes(List<int> bytes) {
     if (traceEnabled) _debugTrace(StackTrace.current);
     _ensure(bytes.length);
     _data.setRange(_index, _index += bytes.length, bytes);
   }
 
+  @override
   void writeSigned(int value) {
     while (value < -0x40 || value >= 0x40) {
       writeByte((value & 0x7F) | 0x80);
@@ -72,6 +75,7 @@ mixin SerializerMixin implements Serializer {
     writeByte(value & 0x7F);
   }
 
+  @override
   void writeUnsigned(int value) {
     assert(value >= 0);
     while (value >= 0x80) {
@@ -81,6 +85,7 @@ mixin SerializerMixin implements Serializer {
     writeByte(value);
   }
 
+  @override
   void writeF32(double value) {
     // Get the binary representation of the F32.
     List<int> bytes = Float32List.fromList([value]).buffer.asUint8List();
@@ -89,6 +94,7 @@ mixin SerializerMixin implements Serializer {
     writeBytes(bytes);
   }
 
+  @override
   void writeF64(double value) {
     // Get the binary representation of the F64.
     List<int> bytes = Float64List.fromList([value]).buffer.asUint8List();
@@ -97,16 +103,19 @@ mixin SerializerMixin implements Serializer {
     writeBytes(bytes);
   }
 
+  @override
   void writeName(String name) {
     List<int> bytes = utf8.encode(name);
     writeUnsigned(bytes.length);
     writeBytes(bytes);
   }
 
+  @override
   void write(Serializable object) {
     object.serialize(this);
   }
 
+  @override
   void writeList(List<Serializable> objects) {
     writeUnsigned(objects.length);
     for (int i = 0; i < objects.length; i++) {
@@ -114,6 +123,7 @@ mixin SerializerMixin implements Serializer {
     }
   }
 
+  @override
   void writeData(Serializer chunk, [List<int>? watchPoints]) {
     if (traceEnabled) _debugTrace(chunk);
     if (watchPoints != null) {
@@ -137,5 +147,6 @@ mixin SerializerMixin implements Serializer {
     writeBytes(chunk.data);
   }
 
+  @override
   Uint8List get data => Uint8List.sublistView(_data, 0, _index);
 }

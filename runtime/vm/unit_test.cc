@@ -284,12 +284,18 @@ void FUNCTION_NAME(Test_CollectOldSpace)(Dart_NativeArguments native_args) {
   GCTestHelper::CollectOldSpace();
 }
 
-static Dart_Handle LoadIsolateReloadTestLib() {
-  return TestCase::LoadTestLibrary(IsolateReloadTestLibUri(),
-                                   kIsolateReloadTestLibSource,
-                                   IsolateReloadTestNativeResolver);
-}
 #endif  // !PRODUCT
+
+static void LoadIsolateReloadTestLibIfNeeded(const char* script) {
+#ifndef PRODUCT
+  if (strstr(script, IsolateReloadTestLibUri()) != nullptr) {
+    Dart_Handle result = TestCase::LoadTestLibrary(
+        IsolateReloadTestLibUri(), kIsolateReloadTestLibSource,
+        IsolateReloadTestNativeResolver);
+    EXPECT_VALID(result);
+  }
+#endif  // ifndef PRODUCT
+}
 
 char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const char* source,
@@ -418,12 +424,7 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
                                      const char* lib_url,
                                      bool finalize_classes,
                                      bool allow_compile_errors) {
-#ifndef PRODUCT
-  if (strstr(script, IsolateReloadTestLibUri()) != NULL) {
-    Dart_Handle result = LoadIsolateReloadTestLib();
-    EXPECT_VALID(result);
-  }
-#endif  // ifndef PRODUCT
+  LoadIsolateReloadTestLibIfNeeded(script);
   Dart_SourceFile* sourcefiles = NULL;
   intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script, lib_url);
   Dart_Handle result =
@@ -440,6 +441,7 @@ static void MallocFinalizer(void* isolate_callback_data, void* peer) {
 Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
                                       const char* script,
                                       Dart_NativeEntryResolver resolver) {
+  LoadIsolateReloadTestLibIfNeeded(script);
   const char* prefixed_lib_uri =
       OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_uri);
   Dart_SourceFile sourcefiles[] = {{prefixed_lib_uri, script}};

@@ -22,7 +22,7 @@ class E<T, L> extends D<L, T> {}
 class G extends F {}
 
 main() {
-  var l = [new A(), new B(), new C<E<G, G>>()];
+  var l = [new A(), B(), C<E<G, G>>()];
   Expect.isTrue(l[1] is B);
   Expect.isTrue(l[2] is C<D<F, G>>);
   for (int i = 0; i < l.length; i++) {

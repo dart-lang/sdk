@@ -19,7 +19,7 @@
 /*class: global#JSNumNotInt:*/
 
 main() {
-  var c = new Class<double, int>();
+  var c = Class<double, int>();
   var map = c.m();
   var set = map.keys.toSet();
   set is Set<String>;

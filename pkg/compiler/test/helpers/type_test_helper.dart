@@ -38,7 +38,7 @@ class TypeEnvironment {
       bool testBackendWorld = false,
       List<String> options = const <String>[],
       Map<String, String> fieldTypeMap = const <String, String>{}}) async {
-    memory.DiagnosticCollector collector = new memory.DiagnosticCollector();
+    memory.DiagnosticCollector collector = memory.DiagnosticCollector();
     Uri uri = Uri.parse('memory:main.dart');
     memory.CompilationResult result = await memory.runCompiler(
         entryPoint: uri,
@@ -57,7 +57,7 @@ class TypeEnvironment {
       var warnings = collector.warnings;
       Expect.isTrue(warnings.isEmpty, 'Unexpected warnings: ${warnings}');
     }
-    return new TypeEnvironment._(compiler, testBackendWorld: testBackendWorld);
+    return TypeEnvironment._(compiler, testBackendWorld: testBackendWorld);
   }
 
   TypeEnvironment._(Compiler this.compiler, {this.testBackendWorld = false});
@@ -155,7 +155,7 @@ class TypeEnvironment {
 
   DartType? getClosureType(String name, [ClassEntity? cls]) {
     if (testBackendWorld) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           "getClosureType not supported for backend testing.");
     }
     MemberEntity member = _getMember(name, cls);
@@ -224,7 +224,7 @@ class FunctionTypeData {
 ///     $returnType $name$parameters => null;
 String createMethods(List<FunctionTypeData> dataList,
     {String additionalData = '', String prefix = ''}) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   for (FunctionTypeData data in dataList) {
     sb.writeln(
         '${data.returnType} $prefix${data.name}${data.parameters} => null;');
@@ -242,7 +242,7 @@ String createMethods(List<FunctionTypeData> dataList,
 /// where a field using the typedef is add to make the type accessible by name.
 String createTypedefs(List<FunctionTypeData> dataList,
     {String additionalData = '', String prefix = ''}) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];
     sb.writeln(
@@ -258,7 +258,7 @@ String createTypedefs(List<FunctionTypeData> dataList,
 
 /// Return source code that uses the function types in [dataList].
 String createUses(List<FunctionTypeData> dataList, {String prefix = ''}) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];
     sb.writeln('$prefix${data.name};');

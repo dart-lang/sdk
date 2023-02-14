@@ -7,7 +7,7 @@ import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 import 'package:source_maps/source_maps.dart';
 
-ArgParser parser = new ArgParser()
+ArgParser parser = ArgParser()
   ..addFlag('inline',
       abbr: 'i',
       negatable: true,
@@ -29,7 +29,7 @@ main(List<String> arguments) async {
   if (url.startsWith("http://") || url.startsWith("https://")) {
     data = (await http.get(Uri.parse(url))).body;
   } else {
-    data = new File(url).readAsStringSync();
+    data = File(url).readAsStringSync();
   }
 
   final sourceMap = parse(data) as SingleMapping;
@@ -54,7 +54,7 @@ main(List<String> arguments) async {
   List<String> tailMessages = [];
 
   for (String line in lines) {
-    Iterable<Match> ms = new RegExp(r"(\d+):(\d+)").allMatches(line);
+    Iterable<Match> ms = RegExp(r"(\d+):(\d+)").allMatches(line);
     if (ms.isEmpty) {
       if (options['inline']) {
         print("----- (unparseable) -----");

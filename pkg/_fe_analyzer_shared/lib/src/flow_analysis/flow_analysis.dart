@@ -711,19 +711,23 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [matchedType] should be the matched value type, and [knownType] should
   /// be the type that the matched value is now known to satisfy.
   ///
-  /// If [updateUnmatched] is `true` (the default), flow analysis models the
-  /// usual semantics of a type test in a pattern: if the matched value fails to
-  /// have the type [knownType], the pattern will fail to match.  If it is
-  /// `false`, it models the semantics where the no match failure can occur
-  /// (either because the matched value is known, due to other invariants to
-  /// have the type [knownType], or because a type test failure would result in
-  /// an exception being thrown).
+  /// If [matchFailsIfWrongType] is `true` (the default), flow analysis models
+  /// the usual semantics of a type test in a pattern: if the matched value
+  /// fails to have the type [knownType], the pattern will fail to match.
+  /// If it is `false`, it models the semantics where the no match failure can
+  /// occur (either because the matched value is known, due to other invariants
+  /// to have the type [knownType], or because a type test failure would result
+  /// in an exception being thrown).
+  ///
+  /// If [matchMayFailEvenIfCorrectType] is `true`, flow analysis would always
+  /// update the unmatched value.
   ///
   /// Returns `true` if [matchedType] is a subtype of [knownType].
   bool promoteForPattern(
       {required Type matchedType,
       required Type knownType,
-      bool updateUnmatched = true});
+      bool matchFailsIfWrongType = true,
+      bool matchMayFailEvenIfCorrectType = false});
 
   /// Call this method just after visiting a property get expression.
   /// [wholeExpression] should be the whole property get, [target] should be the
@@ -1602,14 +1606,18 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   bool promoteForPattern(
       {required Type matchedType,
       required Type knownType,
-      bool updateUnmatched = true}) {
+      bool matchFailsIfWrongType = true,
+      bool matchMayFailEvenIfCorrectType = false}) {
     return _wrap(
         'patternRequiredType(matchedType: $matchedType, '
-        'requiredType: $knownType, updateUnmatched: $updateUnmatched)',
+        'requiredType: $knownType, '
+        'matchFailsIfWrongType: $matchFailsIfWrongType, '
+        'matchMayFailEvenIfCorrectType: $matchMayFailEvenIfCorrectType)',
         () => _wrapped.promoteForPattern(
             matchedType: matchedType,
             knownType: knownType,
-            updateUnmatched: updateUnmatched),
+            matchFailsIfWrongType: matchFailsIfWrongType,
+            matchMayFailEvenIfCorrectType: matchMayFailEvenIfCorrectType),
         isQuery: true,
         isPure: false);
   }
@@ -4052,10 +4060,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   Type getMatchedValueType() {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     return _current
-            .infoFor(context._matchedValueReference.promotionKey)
+            .infoFor(context._matchedValuePromotionKey)
             .promotedTypes
             ?.last ??
-        context._matchedValueReference.type;
+        context._matchedValueUnpromotedType;
   }
 
   @override
@@ -4332,8 +4340,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void logicalOrPattern_begin() {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     // Save the pieces of the current flow state that will be needed later.
-    _stack.add(new _OrPatternContext<Type>(context._matchedValueInfo,
-        context._matchedValueReference, _unmatched!));
+    _stack.add(new _OrPatternContext<Type>(
+        context._matchedValueInfo,
+        context._matchedValuePromotionKey,
+        context._matchedValueUnpromotedType,
+        _unmatched!));
     // Initialize `_unmatched` to a fresh unreachable flow state, so that after
     // we visit the left hand side, `_unmatched` will represent the flow state
     // if the left hand side failed to match.
@@ -4483,10 +4494,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   bool promoteForPattern(
       {required Type matchedType,
       required Type knownType,
-      bool updateUnmatched = true}) {
+      bool matchFailsIfWrongType = true,
+      bool matchMayFailEvenIfCorrectType = false}) {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     ReferenceWithType<Type> matchedValueReference =
-        context._matchedValueReference;
+        context.createReference(matchedType);
     bool coversMatchedType = operations.isSubtypeOf(matchedType, knownType);
     // Promote the synthetic cache variable the pattern is being matched
     // against.
@@ -4508,8 +4520,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           .ifFalse;
     }
     _current = ifTrue;
-    if (updateUnmatched && !coversMatchedType) {
-      _unmatched = _join(_unmatched!, ifFalse);
+    if (matchMayFailEvenIfCorrectType ||
+        (matchFailsIfWrongType && !coversMatchedType)) {
+      _unmatched = _join(_unmatched!, coversMatchedType ? ifTrue : ifFalse);
     }
     return coversMatchedType;
   }
@@ -4526,7 +4539,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     assert(_stack.last is _PatternContext<Type>);
     assert(_unmatched != null);
     _stack.add(new _PatternContext<Type>(
-        null, _makeTemporaryReference(new SsaNode<Type>(null), matchedType)));
+        null, _makeTemporaryReference(new SsaNode<Type>(null)), matchedType));
   }
 
   @override
@@ -4961,7 +4974,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     _EqualityCheckResult equalityCheckResult = _equalityCheck(
         new EqualityInfo._(context._matchedValueInfo, getMatchedValueType(),
-            context._matchedValueReference),
+            context.createReference(getMatchedValueType())),
         equalityOperand_end(operand, operandType));
     if (equalityCheckResult is _NoEqualityInformation) {
       // We have no information so we have to assume the pattern might or
@@ -5103,13 +5116,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   FlowModel<Type> _join(FlowModel<Type>? first, FlowModel<Type>? second) =>
       FlowModel.join(operations, first, second, _current._emptyVariableMap);
 
-  /// Creates a [ReferenceWithType] representing a temporary variable that
-  /// doesn't correspond to any variable in the user's source code.  This is
-  /// used by flow analysis to model the synthetic variables used during pattern
+  /// Creates a promotion key representing a temporary variable that doesn't
+  /// correspond to any variable in the user's source code.  This is used by
+  /// flow analysis to model the synthetic variables used during pattern
   /// matching to cache the values that the pattern, and its subpatterns, are
   /// being matched against.
-  ReferenceWithType<Type> _makeTemporaryReference(
-      SsaNode<Type>? ssaNode, Type matchedType) {
+  int _makeTemporaryReference(SsaNode<Type>? ssaNode) {
     int promotionKey = promotionKeyStore.makeTemporaryKey();
     _current = _current._updateVariableInfo(
         promotionKey,
@@ -5119,8 +5131,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
             assigned: true,
             unassigned: false,
             ssaNode: ssaNode));
-    return new ReferenceWithType<Type>(promotionKey, matchedType,
-        isPromotable: true, isThisOrSuper: false);
+    return promotionKey;
   }
 
   FlowModel<Type> _merge(FlowModel<Type> first, FlowModel<Type>? second) =>
@@ -5134,9 +5145,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// If the matched value's type is non-nullable, then `null` is returned.
   FlowModel<Type>? _nullCheckPattern() {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
-    ReferenceWithType<Type> matchedValueReference =
-        context._matchedValueReference;
     Type matchedValueType = getMatchedValueType();
+    ReferenceWithType<Type> matchedValueReference =
+        context.createReference(matchedValueType);
     // Promote
     TypeClassification typeClassification =
         operations.classifyType(matchedValueType);
@@ -5185,8 +5196,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// into a pattern or subpattern match.  [matchedValueInfo] should be the
   /// [EqualityInfo] representing the value being matched.
   void _pushPattern(EqualityInfo<Type> matchedValueInfo) {
-    _stack.add(new _TopPatternContext<Type>(matchedValueInfo._expressionInfo,
-        matchedValueInfo._reference!, _unmatched));
+    _stack.add(new _TopPatternContext<Type>(
+        matchedValueInfo._expressionInfo,
+        matchedValueInfo._reference!.promotionKey,
+        matchedValueInfo._type,
+        _unmatched));
     _unmatched = _current.setUnreachable();
   }
 
@@ -5210,8 +5224,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _scrutineeSsaNode = scrutineeReference == null
         ? new SsaNode<Type>(null)
         : _current.infoFor(scrutineeReference.promotionKey).ssaNode;
-    return new EqualityInfo._(scrutineeInfo?._expressionInfo, scrutineeType,
-        _makeTemporaryReference(_scrutineeSsaNode, scrutineeType));
+    return new EqualityInfo._(
+        scrutineeInfo?._expressionInfo,
+        scrutineeType,
+        new ReferenceWithType(
+            _makeTemporaryReference(_scrutineeSsaNode), scrutineeType,
+            isPromotable: true, isThisOrSuper: false));
   }
 
   /// Associates [expression], which should be the most recently visited
@@ -5842,7 +5860,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   bool promoteForPattern(
           {required Type matchedType,
           required Type knownType,
-          bool updateUnmatched = true}) =>
+          bool matchFailsIfWrongType = true,
+          bool matchMayFailEvenIfCorrectType = false}) =>
       false;
 
   @override
@@ -6097,8 +6116,8 @@ class _OrPatternContext<Type extends Object> extends _PatternContext<Type> {
   /// side matched.
   FlowModel<Type>? _lhsMatched;
 
-  _OrPatternContext(super.matchedValueInfo, super.matchedValueReference,
-      this._previousUnmatched);
+  _OrPatternContext(super.matchedValueInfo, super.matchedValuePromotionKey,
+      super.matchedValueUnpromotedType, this._previousUnmatched);
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -6114,18 +6133,28 @@ class _PatternContext<Type extends Object> extends _FlowContext {
   /// [ExpressionInfo] for the value being matched.
   final ExpressionInfo<Type>? _matchedValueInfo;
 
-  /// Reference for the value being matched.
-  final ReferenceWithType<Type> _matchedValueReference;
+  /// Promotion key for the value being matched.
+  final int _matchedValuePromotionKey;
 
-  _PatternContext(this._matchedValueInfo, this._matchedValueReference);
+  /// The type of the matched value, before any type promotion.
+  final Type _matchedValueUnpromotedType;
+
+  _PatternContext(this._matchedValueInfo, this._matchedValuePromotionKey,
+      this._matchedValueUnpromotedType);
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
     ..['matchedValueInfo'] = _matchedValueInfo
-    ..['matchedValueReference'] = _matchedValueReference;
+    ..['matchedValuePromotionKey'] = _matchedValuePromotionKey
+    ..['matchedValueUnpromotedType'] = _matchedValueUnpromotedType;
 
   @override
   String get _debugType => '_PatternContext';
+
+  /// Creates a reference to the matched value having type [matchedType].
+  ReferenceWithType<Type> createReference(Type matchedType) =>
+      new ReferenceWithType(_matchedValuePromotionKey, matchedType,
+          isPromotable: true, isThisOrSuper: false);
 }
 
 /// [ReferenceWithType] object representing a property get.
@@ -6251,8 +6280,8 @@ class _SwitchStatementContext<Type extends Object>
 class _TopPatternContext<Type extends Object> extends _PatternContext<Type> {
   final FlowModel<Type>? _previousUnmatched;
 
-  _TopPatternContext(super._matchedValueInfo, super._matchedValueReference,
-      this._previousUnmatched);
+  _TopPatternContext(super._matchedValueInfo, super._matchedValuePromotionKey,
+      super._matchedValueUnpromotedType, this._previousUnmatched);
 
   @override
   Map<String, Object?> get _debugFields =>

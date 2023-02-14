@@ -34,7 +34,7 @@ returnDyn3() {
 returnDyn4() {
   var a;
   ((a = 52) /*invoke: [exact=JSUInt31]*/ == true) ||
-      ((a = new X()) /*invoke: [exact=X]*/ == true);
+      ((a = X()) /*invoke: [exact=X]*/ == true);
   return a;
 }
 
@@ -42,14 +42,14 @@ returnDyn4() {
 returnDyn5() {
   var a;
   ((a = 52) /*invoke: [exact=JSUInt31]*/ == true) &&
-      ((a = new X()) /*invoke: [exact=X]*/ == true);
+      ((a = X()) /*invoke: [exact=X]*/ == true);
   return a;
 }
 
 /*member: returnDyn6:Union([exact=JSString], [exact=X])*/
 returnDyn6() {
   var a;
-  a = a == 54 ? 'foo' : new X();
+  a = a == 54 ? 'foo' : X();
   return a;
 }
 

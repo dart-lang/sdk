@@ -12,5 +12,5 @@ import 'dart:async';
 class A {}
 
 main() {
-  new A() is FutureOr<FutureOr<A>>;
+  A() is FutureOr<FutureOr<A>>;
 }

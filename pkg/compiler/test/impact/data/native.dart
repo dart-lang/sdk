@@ -111,7 +111,7 @@ class NativeClass {
   final Object field;
 
   factory NativeClass._() {
-    throw new UnsupportedError("Not supported");
+    throw UnsupportedError("Not supported");
   }
 }
 

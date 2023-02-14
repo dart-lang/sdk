@@ -14,8 +14,8 @@ void record(result) {
 
 main(args) {
   counter++;
-  operations(args.length > 0, 0, 1.5, args[0], new Complex(0, 1),
-      new Complex(1.5, 2.5));
+  operations(
+      args.length > 0, 0, 1.5, args[0], Complex(0, 1), Complex(1.5, 2.5));
   specialized(args.length > 0, null, 2, []);
   specialized(args.length > 0, 2, 2, []);
   return counter;
@@ -79,7 +79,7 @@ class Complex {
 
   const Complex(this.re, this.im);
 
-  operator +(Complex other) => new Complex(re + other.re, im + other.im);
+  operator +(Complex other) => Complex(re + other.re, im + other.im);
 
   // TODO(johnniwinther): Support implicit null check in '=='.
   //operator ==(Complex other) => re == other.re && im == other.im;

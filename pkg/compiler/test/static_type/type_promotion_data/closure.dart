@@ -21,7 +21,7 @@ closure6(var x) {
   var closure;
   /*{}*/ x is B && _returnTrue(closure = () => /*{}*/ x.f());
   /*{}*/ x;
-  x = new A();
+  x = A();
   /*{}*/ closure();
   /*{}*/ x;
 }
@@ -39,20 +39,20 @@ class E extends D {
 _closure7(C x) {
   /*{}*/ x is D && _returnTrue((() => /*{}*/ x)())
       ? /*{x:[{true:D}|D]}*/ x.f()
-      : x = new C();
+      : x = C();
   _returnTrue((() => /*{}*/ x)()) && /*{}*/ x is D
       ? /*{x:[{true:D}|D]}*/ x.f()
-      : x = new C();
+      : x = C();
 
   (/*{}*/ x is D && _returnTrue((() => /*{}*/ x)())) &&
           (/*{x:[{true:D}|D]}*/ x is E && _returnTrue((() => /*{}*/ x)()))
       ? /*{x:[{true:D,E}|D,E]}*/ x.g()
-      : x = new C();
+      : x = C();
 
   (_returnTrue((() => /*{}*/ x)()) && /*{}*/ x is E) &&
           (_returnTrue((() => /*{}*/ x)()) && /*{x:[{true:E}|E]}*/ x is D)
       ? /*{x:[{true:E,D}|E,D]}*/ x.g()
-      : x = new C();
+      : x = C();
 }
 
 closure7() {

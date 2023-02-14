@@ -123,7 +123,7 @@ closure6(var x) {
       _returnTrue(
           closure = () => /*dynamic*/ x. /*invoke: [dynamic]->dynamic*/ f());
   /*dynamic*/ x;
-  x = new A();
+  x = A();
   /*dynamic*/ closure. /*invoke: [dynamic]->dynamic*/ call();
   /*dynamic*/ x;
 }
@@ -141,20 +141,20 @@ class E extends D {
 _closure7(C x) {
   /*C*/ x is D && _returnTrue((() => /*C*/ x))
       ? /*D*/ x. /*invoke: [D]->dynamic*/ f()
-      : x = new C();
+      : x = C();
   _returnTrue((() => /*C*/ x)) && /*C*/ x is D
       ? /*D*/ x. /*invoke: [D]->dynamic*/ f()
-      : x = new C();
+      : x = C();
 
   (/*C*/ x is D && _returnTrue((() => /*C*/ x))) &&
           (/*D*/ x is E && _returnTrue((() => /*C*/ x)))
       ? /*E*/ x. /*invoke: [E]->dynamic*/ g()
-      : x = new C();
+      : x = C();
 
   (_returnTrue((() => /*C*/ x)) && /*C*/ x is E) &&
           (_returnTrue((() => /*C*/ x)) && /*E*/ x is D)
       ? /*E*/ x. /*invoke: [E]->dynamic*/ g()
-      : x = new C();
+      : x = C();
 }
 
 closure7() {

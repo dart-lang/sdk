@@ -13,8 +13,8 @@ class A { }
 class B { }
 
 main() {
-  new A();
-  new B();
+  A();
+  B();
 }
 """;
 
@@ -23,8 +23,8 @@ class A { }
 class B extends A { }
 
 main() {
-  new A();
-  new B();
+  A();
+  B();
   String c = '';
   print(c);
 }
@@ -37,8 +37,8 @@ class A { }
 main() {
   String c = '';
   print(c);
-  new B();
-  new A();
+  B();
+  A();
 }
 """;
 
@@ -57,7 +57,7 @@ class B extends A {
 }
 
 main() {
-  new B();
+  B();
 }
 """;
 
@@ -69,7 +69,7 @@ class A {
 }
 
 main() {
-  new A(3);
+  A(3);
 }
 """;
 

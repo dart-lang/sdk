@@ -394,6 +394,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       } else {
         _addSuggestion(Keyword.IN);
       }
+    } else if (!node.inKeyword.isSynthetic && node.iterable.isSynthetic) {
+      _addSuggestion(Keyword.AWAIT);
     }
   }
 
@@ -504,7 +506,25 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     // Actual: for (va^)
     // Parsed: for (va^; ;)
     if (node.forLoopParts == entity) {
-      _addSuggestion(Keyword.VAR);
+      _addSuggestions([Keyword.FINAL, Keyword.VAR]);
+    } else if (node.rightParenthesis == entity) {
+      var parts = node.forLoopParts;
+      if (parts is ForPartsWithDeclarations) {
+        var variables = parts.variables;
+        var keyword = variables.keyword;
+        if (variables.variables.length == 1 &&
+            variables.variables[0].name.isSynthetic &&
+            keyword != null &&
+            parts.leftSeparator.isSynthetic) {
+          var afterKeyword = keyword.next!;
+          if (afterKeyword.type == TokenType.OPEN_PAREN) {
+            var endGroup = afterKeyword.endGroup;
+            if (endGroup != null && request.offset >= endGroup.end) {
+              _addSuggestion(Keyword.IN);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -827,6 +847,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitSwitchExpression(SwitchExpression node) {
+    if (entity == node.expression) {
+      _addExpressionKeywords(node);
+    }
+  }
+
+  @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
     final entity = this.entity;
     if (entity == node.colon && request.target.offset <= node.colon.offset) {
@@ -861,22 +888,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
     } else if (entity == node.rightBracket) {
-      if (node.members.isEmpty) {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
-      } else {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
+      _addSuggestion(Keyword.CASE);
+      _addSuggestion2(DEFAULT_COLON);
+      if (node.members.isNotEmpty) {
         _addStatementKeywords(node);
       }
     }
     if (node.members.contains(entity)) {
-      if (entity == node.members.first) {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
-      } else {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
+      _addSuggestion(Keyword.CASE);
+      _addSuggestion2(DEFAULT_COLON);
+      if (entity != node.members.first) {
         _addStatementKeywords(node);
       }
     }
@@ -934,12 +955,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitVariableDeclarationList(VariableDeclarationList node) {
     var keyword = node.keyword;
     var variables = node.variables;
-    if (variables.isNotEmpty &&
-        entity == variables[0] &&
-        node.type == null &&
-        (keyword == null || keyword.lexeme != 'var')) {
-      _addSuggestion(Keyword.DYNAMIC);
-      _addSuggestion(Keyword.VOID);
+    if (variables.isNotEmpty && entity == variables[0]) {
+      var type = node.type;
+      if (type == null && keyword?.keyword != Keyword.VAR) {
+        _addSuggestion(Keyword.DYNAMIC);
+        _addSuggestion(Keyword.VOID);
+      } else if (type is RecordTypeAnnotation) {
+        // This might be a record pattern that happens to look like a type, in
+        // which case the user might be typing `in`.
+        _addSuggestion(Keyword.IN);
+      }
     }
   }
 

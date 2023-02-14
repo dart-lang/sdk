@@ -8,7 +8,7 @@ import 'package:compiler/src/commandline_options.dart';
 
 /// Creates an [ArgParser] that supports various dart2js command-line options.
 ArgParser createArgParser() {
-  ArgParser argParser = new ArgParser(allowTrailingOptions: true);
+  ArgParser argParser = ArgParser(allowTrailingOptions: true);
   argParser.addFlag('fast-startup', defaultsTo: false);
   argParser.addFlag('omit-implicit-checks', defaultsTo: false);
   argParser.addFlag('minify', abbr: 'm', defaultsTo: false);
@@ -24,7 +24,7 @@ Uri? getEntryPoint(ArgResults argResults) {
   Uri? entryPoint;
   if (argResults.rest.isNotEmpty) {
     if (argResults.rest.length > 1) {
-      throw new ArgumentError(
+      throw ArgumentError(
           'Extra arguments: ${argResults.rest.skip(1).join(" ")}');
     }
     entryPoint = Uri.base.resolve(nativeToUriPath(argResults.rest.single));

@@ -28,8 +28,8 @@ testMixinSupertypes() async {
       class C2<C2_T> = S<C2_T> with M1<C2_T>, M2<C2_T>, M3<C2_T>;
 
       main() {
-        new C1();
-        new C2();
+        C1();
+        C2();
       }
       """, expectNoWarningsOrErrors: true);
   ClassEntity Object = env.getElement('Object') as ClassEntity;
@@ -98,14 +98,14 @@ testNonTrivialSubstitutions() async {
       class F2<F2_T> = A<_> with B<_, B<F2_T, _>>;
 
       main() {
-        new C1();
-        new C2();
-        new D1();
-        new D2();
-        new E1();
-        new E2();
-        new F1();
-        new F2();
+        C1();
+        C2();
+        D1();
+        D2();
+        E1();
+        E2();
+        F1();
+        F2();
       }
       """, expectNoWarningsOrErrors: true);
   var types = env.types;

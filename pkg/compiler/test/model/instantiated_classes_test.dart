@@ -15,11 +15,11 @@ void main() {
   Future runTests() async {
     Future test(String source, List<String> directlyInstantiatedClasses,
         [List<String> newClasses = const <String>["Class"]]) async {
-      StringBuffer mainSource = new StringBuffer();
+      StringBuffer mainSource = StringBuffer();
       mainSource.writeln(source);
       mainSource.write('main() {\n');
       for (String newClass in newClasses) {
-        mainSource.write('  new $newClass();\n');
+        mainSource.write('  $newClass();\n');
       }
       mainSource.write('}');
       dynamic env = await TypeEnvironment.create(mainSource.toString());

@@ -21,22 +21,24 @@ class A {
   operator []=(/*[empty]*/ index, /*[subclass=JSNumber]*/ value) {}
 
   /*member: A.returnDynamic1:Union([exact=JSString], [exact=JSUInt31])*/
-  returnDynamic1() => /*[subclass=A]*/ /*update: [subclass=A]*/ foo /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --;
+  returnDynamic1() => /*[subclass=A]*/ /*update: [subclass=A]*/
+      foo /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --;
 
   /*member: A.returnNum1:[subclass=JSNumber]*/
-  returnNum1() => /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -- /*[subclass=A]*/ /*update: [subclass=A]*/ foo;
+  returnNum1() => /*invoke: Union([exact=JSString], [exact=JSUInt31])*/
+      -- /*[subclass=A]*/ /*update: [subclass=A]*/ foo;
 
   /*member: A.returnNum2:[subclass=JSNumber]*/
-  returnNum2() => /*[subclass=A]*/ /*update: [subclass=A]*/ foo /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -=
-      42;
+  returnNum2() => /*[subclass=A]*/ /*update: [subclass=A]*/
+      foo /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -= 42;
 
   /*member: A.returnDynamic2:Union([exact=JSString], [exact=JSUInt31])*/
   returnDynamic2() => this /*[subclass=A]*/ /*update: [subclass=A]*/ [
       index] /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --;
 
   /*member: A.returnNum3:[subclass=JSNumber]*/
-  returnNum3() => /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --this /*[subclass=A]*/ /*update: [subclass=A]*/ [
-      index];
+  returnNum3() => /*invoke: Union([exact=JSString], [exact=JSUInt31])*/
+      --this /*[subclass=A]*/ /*update: [subclass=A]*/ [index];
 
   /*member: A.returnNum4:[subclass=JSNumber]*/
   returnNum4() => this /*[subclass=A]*/ /*update: [subclass=A]*/ [
@@ -100,7 +102,7 @@ class B extends A {
 
 /*member: main:[null]*/
 main() {
-  new A()
+  A()
     .. /*invoke: [exact=A]*/ returnNum1()
     .. /*invoke: [exact=A]*/ returnNum2()
     .. /*invoke: [exact=A]*/ returnNum3()
@@ -111,7 +113,7 @@ main() {
     .. /*invoke: [exact=A]*/ returnEmpty2()
     .. /*invoke: [exact=A]*/ returnEmpty3();
 
-  new B()
+  B()
     .. /*invoke: [exact=B]*/ returnString1()
     .. /*invoke: [exact=B]*/ returnString2()
     .. /*invoke: [exact=B]*/ returnDynamic1()

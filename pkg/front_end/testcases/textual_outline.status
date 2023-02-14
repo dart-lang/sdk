@@ -182,6 +182,7 @@ rasta/issue_000047: FormatterCrash
 rasta/malformed_const_constructor: FormatterCrash
 rasta/mandatory_parameter_initializer: FormatterCrash
 records/access_through_type_variable: FormatterCrash
+records/block_combine_statements: FormatterCrash
 records/const_local_access: FormatterCrash
 records/const_record_literal: FormatterCrash
 records/duplicated_name_errors: FormatterCrash

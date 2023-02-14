@@ -35,10 +35,10 @@ foo() {
 
 main() {
   runTests() async {
-    await compileAndMatch(TEST_1, 'foo', new RegExp(r'return 72'));
-    await compileAndDoNotMatch(TEST_1, 'foo', new RegExp(r'Hello'));
-    await compileAndMatch(TEST_2, 'foo', new RegExp(r'Hello'));
-    await compileAndMatch(TEST_3, 'foo', new RegExp(r'Hello'));
+    await compileAndMatch(TEST_1, 'foo', RegExp(r'return 72'));
+    await compileAndDoNotMatch(TEST_1, 'foo', RegExp(r'Hello'));
+    await compileAndMatch(TEST_2, 'foo', RegExp(r'Hello'));
+    await compileAndMatch(TEST_3, 'foo', RegExp(r'Hello'));
   }
 
   asyncTest(() async {

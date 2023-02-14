@@ -50,6 +50,7 @@ class Expression extends Label {
     localInitializationStackHeight = 0;
   }
 
+  @override
   List<ValueType> get targetTypes => outputs;
 }
 
@@ -57,6 +58,7 @@ class Block extends Label {
   Block(List<ValueType> inputs, List<ValueType> outputs)
       : super._(inputs, outputs);
 
+  @override
   List<ValueType> get targetTypes => outputs;
 }
 
@@ -64,6 +66,7 @@ class Loop extends Label {
   Loop(List<ValueType> inputs, List<ValueType> outputs)
       : super._(inputs, outputs);
 
+  @override
   List<ValueType> get targetTypes => inputs;
 }
 
@@ -73,6 +76,7 @@ class If extends Label {
   If(List<ValueType> inputs, List<ValueType> outputs)
       : super._(inputs, outputs);
 
+  @override
   List<ValueType> get targetTypes => outputs;
 }
 
@@ -82,6 +86,7 @@ class Try extends Label {
   Try(List<ValueType> inputs, List<ValueType> outputs)
       : super._(inputs, outputs);
 
+  @override
   List<ValueType> get targetTypes => outputs;
 }
 
@@ -186,9 +191,9 @@ class Instructions with SerializerMixin {
       _indent += indentBefore;
       String byteOffset =
           byteOffsetEnabled ? "${data.length}".padLeft(byteOffsetWidth) : "";
-      String instr = "  " * _indent + " " + trace.join(" ");
+      String instr = "${"  " * _indent} ${trace.join(" ")}";
       instr = instr.length > instructionColumnWidth - 2
-          ? instr.substring(0, instructionColumnWidth - 4) + "... "
+          ? "${instr.substring(0, instructionColumnWidth - 4)}... "
           : instr.padRight(instructionColumnWidth);
       final int stackHeight = _stackTypes.length;
       final String stack = reachableAfter
@@ -210,9 +215,8 @@ class Instructions with SerializerMixin {
 
   bool _comment(String text) {
     if (traceEnabled) {
-      final String line = " " * (byteOffsetEnabled ? byteOffsetWidth : 0) +
-          "  " * _indent +
-          " ;; $text\n";
+      final String line = "${" " * (byteOffsetEnabled ? byteOffsetWidth : 0)}"
+          "${"  " * _indent} ;; $text\n";
       _traceLines.add(line);
     }
     return true;

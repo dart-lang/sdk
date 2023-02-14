@@ -49,11 +49,11 @@ call1(c) => c.method1<int>(0);
 
 // A call to A.method1.
 @pragma('dart2js:noInline')
-call1a() => new A().method1<int>(0);
+call1a() => A().method1<int>(0);
 
 // A call to B.method1.
 @pragma('dart2js:noInline')
-call1b() => new B().method1<int>(0);
+call1b() => B().method1<int>(0);
 
 // A call to either A.method2 or B.method2.
 @pragma('dart2js:noInline')
@@ -61,11 +61,11 @@ call2(c) => c.method2<int>(0);
 
 // A call to A.method2.
 @pragma('dart2js:noInline')
-call2a() => new A().method2<int>(0);
+call2a() => A().method2<int>(0);
 
 // A call to B.method2.
 @pragma('dart2js:noInline')
-call2b() => new B().method2<int>(0);
+call2b() => B().method2<int>(0);
 
 // A call to either A.method3 or B.method3.
 @pragma('dart2js:noInline')
@@ -73,11 +73,11 @@ call3(c) => c.method3<int>(0);
 
 // A call to A.method3.
 @pragma('dart2js:noInline')
-call3a() => new A().method3<int>(0);
+call3a() => A().method3<int>(0);
 
 // A call to B.method3.
 @pragma('dart2js:noInline')
-call3b() => new B().method3<int>(0);
+call3b() => B().method3<int>(0);
 
 main() {
   call1(new A());
@@ -106,12 +106,11 @@ main() {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-    ProgramLookup programLookup = new ProgramLookup(backendStrategy);
+    ProgramLookup programLookup = ProgramLookup(backendStrategy);
 
     js.Name getName(String name, int typeArguments) {
       return backendStrategy.namerForTesting.invocationName(new Selector.call(
-          new PublicName(name),
-          new CallStructure(1, const <String>[], typeArguments)));
+          PublicName(name), CallStructure(1, const <String>[], typeArguments)));
     }
 
     void checkParameters(String name,

@@ -143,5 +143,5 @@ class Class {
 
 /*member: main:invoke*/
 main() {
-  new Class().test();
+  Class().test();
 }

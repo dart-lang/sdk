@@ -15,14 +15,14 @@ main() {
       class B {}
 
       main() {
-        new A();
-        new B();
+        A();
+        B();
       }
       """, testBackendWorld: true);
     JClosedWorld world = env.jClosedWorld;
     final commonMasks = world.abstractValueDomain as CommonMasks;
-    FlatTypeMask mask1 = new FlatTypeMask.exact(env.getClass('A'), world);
-    FlatTypeMask mask2 = new FlatTypeMask.exact(env.getClass('B'), world);
+    FlatTypeMask mask1 = FlatTypeMask.exact(env.getClass('A'), world);
+    FlatTypeMask mask2 = FlatTypeMask.exact(env.getClass('B'), world);
     final union1 =
         mask1.nonNullable().union(mask2, commonMasks) as UnionTypeMask;
     final union2 =

@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 main() {
-  var c = new Class();
+  var c = Class();
   c.method1a(null);
   c.method1b(null);
   c.method2a(null);

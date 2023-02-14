@@ -17,9 +17,9 @@ class B<S, T> {
 }
 
 main() {
-  var a = new A<int>();
+  var a = A<int>();
   String name1 = '${a.instanceMethod()}';
-  var b = new B<int, String>();
+  var b = B<int, String>();
   String name2 = '${b.instanceMethod<bool>()}';
 
   makeLive('A<int>' == name1);

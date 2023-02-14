@@ -24,5 +24,5 @@ class Class<T> {
 
 /*member: main:[null]*/
 main() {
-  new Class(). /*invoke: [exact=Class]*/ method();
+  Class(). /*invoke: [exact=Class]*/ method();
 }

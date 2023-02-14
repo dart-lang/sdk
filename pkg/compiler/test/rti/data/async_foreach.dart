@@ -24,5 +24,5 @@ class Class<T> {
 }
 
 main() async {
-  new Class<int>().method();
+  Class<int>().method();
 }

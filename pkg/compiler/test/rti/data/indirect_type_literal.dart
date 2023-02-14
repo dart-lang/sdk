@@ -16,10 +16,10 @@ class Indirect<T> {
 }
 
 void main() {
-  makeLive(A == new Indirect<A>().type);
-  makeLive(A == new Indirect<A<dynamic>>().type);
-  makeLive(A == new Indirect<A<num>>().type);
-  makeLive(B == new Indirect<B>().type);
-  makeLive(B == new Indirect<B<num>>().type);
-  makeLive(B == new Indirect<B<int>>().type);
+  makeLive(A == Indirect<A>().type);
+  makeLive(A == Indirect<A<dynamic>>().type);
+  makeLive(A == Indirect<A<num>>().type);
+  makeLive(B == Indirect<B>().type);
+  makeLive(B == Indirect<B<num>>().type);
+  makeLive(B == Indirect<B<int>>().type);
 }

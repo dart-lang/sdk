@@ -9378,7 +9378,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Statement node, int caseIndex, Iterable<VariableDeclaration> variables) {}
 
   @override
-  void handleDefault(TreeNode node, int caseIndex) {}
+  void handleDefault(
+    TreeNode node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {}
 
   @override
   void handleNoStatement(Statement node) {
@@ -9403,6 +9407,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       /* expression = */ ValueKinds.ExpressionOrNull,
     ]));
   }
+
+  @override
+  void handleSwitchBeforeAlternative(
+    TreeNode node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {}
 
   @override
   void handleSwitchScrutinee(DartType type) {

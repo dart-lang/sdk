@@ -1177,12 +1177,6 @@ extension E on int {
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  Future<void> test_for_initialization_var() async {
-    addTestSource('void f() {for (^)}');
-    await computeSuggestions();
-    assertSuggestKeywords([Keyword.VAR]);
-  }
-
   Future<void> test_formalParameterList_beforeFunctionType() async {
     addTestSource('void f(^void Function() g) {}');
     await computeSuggestions();

@@ -41,12 +41,12 @@ runTests({bool strongMode = false}) async {
       abstract class I implements H {}
 
       main() {
-        new A().call;
-        new C();
-        new D();
-        new E();
-        new F();
-        new G();
+        A().call;
+        C();
+        D();
+        E();
+        F();
+        G();
       }
       """);
   KClosedWorld world = env.kClosedWorld;

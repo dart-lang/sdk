@@ -111,8 +111,8 @@ _forUnion(/*[exact=Class1]*/ o) {
 
 /*member: forUnion:[null]*/
 forUnion() {
-  var c1 = new Class1();
-  var c2 = new Class2();
+  var c1 = Class1();
+  var c2 = Class2();
   c1. /*update: [exact=Class1]*/ field = c2;
   c2. /*update: [exact=Class2]*/ field = c1;
   _forUnion(c1);
@@ -142,8 +142,8 @@ _forIs(/*[exact=Class3]*/ o) {
 
 /*member: forIs:[null]*/
 forIs() {
-  var c1 = new Class3();
-  var c2 = new Class4();
+  var c1 = Class3();
+  var c2 = Class4();
   c1. /*update: [exact=Class3]*/ field = c2;
   c2. /*update: [exact=Class4]*/ field = c1;
   _forIs(c1);
@@ -175,8 +175,8 @@ _forIsNot(/*[exact=Class5]*/ o) {
 
 /*member: forIsNot:[null]*/
 forIsNot() {
-  var c1 = new Class5();
-  var c2 = new Class6();
+  var c1 = Class5();
+  var c2 = Class6();
   c1. /*update: [exact=Class5]*/ field = c2;
   c2. /*update: [exact=Class6]*/ field = c1;
   _forIsNot(c1);

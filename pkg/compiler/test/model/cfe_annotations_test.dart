@@ -47,12 +47,12 @@ main() {
   method2();
   method3();
   method4();
-  new JsClass1()..jsMethod1()..jsMethod2();
-  new JsClass2();
+  JsClass1()..jsMethod1()..jsMethod2();
+  JsClass2();
   jsMethod3();
-  new NativeClass1()..nativeMethod()..nativeField;
-  new NativeClass2()..nativeField;
-  new NativeClass3()..nativeMethod()..nativeGetter;
+  NativeClass1()..nativeMethod()..nativeField;
+  NativeClass2()..nativeField;
+  NativeClass3()..nativeMethod()..nativeGetter;
   nativeMethod();
 }
 ''',

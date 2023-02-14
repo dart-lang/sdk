@@ -1419,7 +1419,7 @@ void Simulator::SupervisorCall(Instr* instr) {
           THR_Print("Call to host function at 0x%" Pd "\n", external);
         }
         if (redirection->call_kind() == kRuntimeCall) {
-          NativeArguments arguments(NULL, 0, NULL, NULL);
+          NativeArguments arguments;
           ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
           arguments.thread_ = reinterpret_cast<Thread*>(get_register(R0));
           arguments.argc_tag_ = get_register(R1);

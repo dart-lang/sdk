@@ -186,6 +186,8 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
+  "_js_types": const LibraryInfo("_internal/js_shared/lib/js_types.dart",
+      categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_async_await_error_codes": const LibraryInfo(
       "_internal/js_runtime/lib/synced/async_await_error_codes.dart",
       categories: "",

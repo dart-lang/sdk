@@ -17,7 +17,7 @@ main() {
   while2(null);
   whileNext(null);
   whileNextGeneric(null);
-  new Class1<int>()
+  Class1<int>()
     .. /*invoke: [Class1<int>]->dynamic*/ whileNext1()
     .. /*invoke: [Class1<int>]->dynamic*/ whileNext2()
     .. /*invoke: [Class1<int>]->dynamic*/ whileNext3();

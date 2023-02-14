@@ -134,10 +134,11 @@ class RefType extends ValueType {
   final HeapType heapType;
 
   /// The nullability of this reference type.
+  @override
   final bool nullable;
 
   RefType(this.heapType, {bool? nullable})
-      : this.nullable = nullable ??
+      : nullable = nullable ??
             heapType.nullableByDefault ??
             (throw "Unspecified nullability");
 

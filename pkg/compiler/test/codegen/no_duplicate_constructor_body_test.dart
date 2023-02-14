@@ -11,7 +11,7 @@ class A {
 }
 
 main() {
-  new A("foo");
+  A("foo");
 }
 """;
 

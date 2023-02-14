@@ -18,7 +18,7 @@ class W {
 }
 add1(x) => x + 1;
 main() {
-  var w = new W(add1);
+  var w = W(add1);
   var x = w.foo(42);
 }
 ''';
@@ -32,7 +32,7 @@ class W {
 }
 add1(x) => x + 1;
 main() {
-  var w = new W(add1);
+  var w = W(add1);
   var x = w.foo(42);
 }
 ''';

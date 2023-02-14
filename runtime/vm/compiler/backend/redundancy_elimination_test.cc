@@ -1600,4 +1600,113 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
 
 #endif  // !defined(TARGET_ARCH_IA32)
 
+// Regression test for https://github.com/dart-lang/sdk/issues/51220.
+// Verifies that deoptimization at the hoisted BinarySmiOp
+// doesn't result in the infinite re-optimization loop.
+ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress51220) {
+  auto kScript =
+      Utils::CStringUniquePtr(OS::SCreate(nullptr,
+                                          R"(
+        int n = int.parse('3');
+        main() {
+          int x = 0;
+          for (int i = 0; i < n; ++i) {
+            if (i > ((1 << %d)*1024)) {
+              ++x;
+            }
+          }
+          return x;
+        }
+      )",
+                                          static_cast<int>(kSmiBits + 1 - 10)),
+                              std::free);
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+
+  // Run unoptimized code.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // Only 2 rounds of deoptimization are allowed:
+  // * the first round should disable LICM;
+  // * the second round should disable BinarySmiOp.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+  //  EXPECT(function.ProhibitsInstructionHoisting());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+  //  EXPECT(function.ProhibitsInstructionHoisting());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // Should not deoptimize.
+  Invoke(root_library, "main");
+  EXPECT(function.HasOptimizedCode());
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/50245.
+// Verifies that deoptimization at the hoisted GuardFieldClass
+// doesn't result in the infinite re-optimization loop.
+ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress50245) {
+  if (!FLAG_sound_null_safety) {
+    return;
+  }
+
+  const char* kScript = R"(
+    class A {
+      List<int> foo;
+      A(this.foo);
+    }
+
+    A obj = A([1, 2, 3]);
+    int n = int.parse('3');
+
+    main() {
+      // Make sure A.foo= is compiled.
+      obj.foo = [];
+      int sum = 0;
+      for (int i = 0; i < n; ++i) {
+        if (int.parse('1') != 1) {
+          // Field guard from this unreachable code is moved up
+          // and causes repeated deoptimization.
+          obj.foo = const [];
+        }
+        sum += i;
+      }
+      return sum;
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+
+  // Run unoptimized code.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // LICM should be disabled after the first round of deoptimization.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+  //  EXPECT(function.ProhibitsInstructionHoisting());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // Should not deoptimize.
+  Invoke(root_library, "main");
+  EXPECT(function.HasOptimizedCode());
+}
+
 }  // namespace dart

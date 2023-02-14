@@ -22,5 +22,5 @@ class Class<T> {
 main() {
   makeLive(method1a.runtimeType == method1b.runtimeType);
   makeLive(method1a.runtimeType == method2.runtimeType);
-  new Class<int>();
+  Class<int>();
 }

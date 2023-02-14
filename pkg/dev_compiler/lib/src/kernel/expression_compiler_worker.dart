@@ -97,6 +97,11 @@ class ExpressionCompilerWorker {
     this.onDone,
   );
 
+  // Disable asserts due to failures to load source and locations on kernel
+  // loaded from dill files in DDC.
+  // https://github.com/dart-lang/sdk/issues/43986
+  static const bool _enableAsserts = false;
+
   /// Create expression compiler worker from [args] and start it.
   ///
   /// If [sendPort] is provided, creates a `receivePort` and sends it to
@@ -231,9 +236,9 @@ class ExpressionCompilerWorker {
           soundNullSafety: soundNullSafety))
       ..fileSystem = fileSystem
       ..omitPlatform = true
-      ..environmentDefines = {
+      ..environmentDefines = addGeneratedVariables({
         if (environmentDefines != null) ...environmentDefines,
-      }
+      }, enableAsserts: _enableAsserts)
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
       ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
@@ -435,10 +440,7 @@ class ExpressionCompilerWorker {
           summarizeApi: false,
           moduleName: moduleName,
           soundNullSafety: _compilerOptions.nnbdMode == NnbdMode.Strong,
-          // Disable asserts due to failures to load source and
-          // locations on kernel loaded from dill files in DDC.
-          // https://github.com/dart-lang/sdk/issues/43986
-          enableAsserts: false),
+          enableAsserts: _enableAsserts),
       _moduleCache.componentForLibrary,
       _moduleCache.moduleNameForComponent,
       coreTypes: coreTypes,

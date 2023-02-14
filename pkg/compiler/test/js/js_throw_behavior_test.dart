@@ -10,7 +10,7 @@ import 'package:compiler/src/js/js.dart' as js;
 void test(String source, NativeThrowBehavior expectedThrowBehavior) {
   js.Template template = js.js.parseForeignJS(source);
   NativeThrowBehavior throwBehavior =
-      new ThrowBehaviorVisitor().analyze(template.ast);
+      ThrowBehaviorVisitor().analyze(template.ast);
   Expect.equals(expectedThrowBehavior, throwBehavior, 'source "$source"');
 }
 

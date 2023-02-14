@@ -23,8 +23,8 @@ import '../helpers/ir_types.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, new StaticTypeDataComputer(),
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
+    await checkTests(dataDir, StaticTypeDataComputer(),
         args: args, testedConfigs: allSpecConfigs);
   });
 }
@@ -36,11 +36,11 @@ class StaticTypeDataComputer extends DataComputer<String> {
       KernelToElementMap elementMap, ir.Member node) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
-      ir.CoreTypes coreTypes = new ir.CoreTypes(component);
-      _typeEnvironment = new ir.TypeEnvironment(
-          coreTypes, new ir.ClassHierarchy(component, coreTypes));
+      ir.CoreTypes coreTypes = ir.CoreTypes(component);
+      _typeEnvironment = ir.TypeEnvironment(
+          coreTypes, ir.ClassHierarchy(component, coreTypes));
     }
-    return new ir.StaticTypeContext(node, _typeEnvironment!);
+    return ir.StaticTypeContext(node, _typeEnvironment!);
   }
 
   /// Compute type inference data for [member] from kernel based inference.
@@ -55,10 +55,10 @@ class StaticTypeDataComputer extends DataComputer<String> {
     StaticTypeCache staticTypeCache =
         elementMap.getCachedStaticTypes(member as KMember);
     ir.Member node = elementMap.getMemberNode(member);
-    new StaticTypeIrComputer(
+    StaticTypeIrComputer(
             compiler.reporter,
             actualMap,
-            new CachedStaticType(
+            CachedStaticType(
                 getStaticTypeContext(elementMap, node),
                 staticTypeCache,
                 ThisInterfaceType.from(node.enclosingClass?.getThisType(

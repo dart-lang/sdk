@@ -17,8 +17,7 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir =
-        new Directory.fromUri(Platform.script.resolve('callers'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('callers'));
     await checkTests(dataDir, const CallersDataComputer(),
         args: args, options: [stopAfterTypeInference]);
   });
@@ -34,7 +33,7 @@ class CallersDataComputer extends DataComputer<String> {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new CallersIrComputer(
+    CallersIrComputer(
             compiler.reporter,
             actualMap,
             elementMap,
@@ -65,7 +64,7 @@ class CallersIrComputer extends IrDataExtractor<String> {
     Iterable<MemberEntity>? callers = inferrer.getCallersOfForTesting(member);
     if (callers != null) {
       List<String> names = callers.map((MemberEntity member) {
-        StringBuffer sb = new StringBuffer();
+        StringBuffer sb = StringBuffer();
         if (member.enclosingClass != null) {
           sb.write(member.enclosingClass!.name);
           sb.write('.');

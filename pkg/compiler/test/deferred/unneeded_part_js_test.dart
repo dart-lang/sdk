@@ -10,8 +10,8 @@ import 'package:compiler/src/util/memory_compiler.dart';
 
 main() {
   runTest() async {
-    DiagnosticCollector diagnostics = new DiagnosticCollector();
-    OutputCollector output = new OutputCollector();
+    DiagnosticCollector diagnostics = DiagnosticCollector();
+    OutputCollector output = OutputCollector();
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES,
         diagnosticHandler: diagnostics,
@@ -39,7 +39,7 @@ const fisk = const Greeting('Hello, World!');
 main() {
   var x = fisk;
   if (new DateTime.now().millisecondsSinceEpoch == 42) {
-    x = new Greeting(\"I\'m confused\");
+    x = Greeting(\"I\'m confused\");
   }
   print(x.message);
 }

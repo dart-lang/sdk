@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:analyzer/dart/ast/ast.dart';
@@ -253,5 +254,20 @@ class SharedTypeAnalyzerErrors
     _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
         node.members[caseIndex + numHeads - 1].keyword);
+  }
+
+  @override
+  void unnecessaryWildcardPattern({
+    required covariant WildcardPatternImpl pattern,
+    required UnnecessaryWildcardKind kind,
+  }) {
+    switch (kind) {
+      case UnnecessaryWildcardKind.logicalAndPatternOperand:
+        _errorReporter.reportErrorForNode(
+          WarningCode.UNNECESSARY_WILDCARD_PATTERN,
+          pattern,
+        );
+        break;
+    }
   }
 }

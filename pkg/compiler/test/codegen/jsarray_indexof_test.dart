@@ -49,9 +49,9 @@ runTest(List<String> options) async {
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   final jsArrayIndexOf =
       findClassMember(closedWorld, 'JSArray', 'indexOf') as FunctionEntity;
-  ProgramLookup programLookup = new ProgramLookup(backendStrategy);
+  ProgramLookup programLookup = ProgramLookup(backendStrategy);
 
-  Selector getLengthSelector = new Selector.getter(const PublicName('length'));
+  Selector getLengthSelector = Selector.getter(const PublicName('length'));
   js.Name getLengthName =
       backendStrategy.namerForTesting.invocationName(getLengthSelector);
 

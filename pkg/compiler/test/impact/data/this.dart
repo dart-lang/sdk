@@ -64,8 +64,8 @@ class Subtype implements Class {
  static=[Class.(0),Subclass.(0),Subtype.(0)]
 */
 main() {
-  var c = new Class();
-  c = new Subclass();
-  c = new Subtype();
+  var c = Class();
+  c = Subclass();
+  c = Subtype();
   c.method1();
 }

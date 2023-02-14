@@ -16,7 +16,7 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('jdata'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('jdata'));
     await checkTests(dataDir, const JAllocatorAnalysisDataComputer(),
         args: args, testedConfigs: allSpecConfigs);
   });
@@ -46,7 +46,7 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       JFieldAnalysis fieldAnalysis = closedWorld.fieldAnalysis;
       final node =
           closedWorld.elementMap.getMemberDefinition(member).node as ir.Member;
-      Features features = new Features();
+      Features features = Features();
       FieldAnalysisData fieldData = fieldAnalysis.getFieldData(member);
       if (fieldData.isElided && !fieldData.isEffectivelyConstant) {
         features.add(Tags.isElided);
@@ -82,7 +82,7 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       }
       Id id = computeMemberId(node);
       ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
-      actualMap[id] = new ActualData<Features>(id, features,
+      actualMap[id] = ActualData<Features>(id, features,
           nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
     }
   }

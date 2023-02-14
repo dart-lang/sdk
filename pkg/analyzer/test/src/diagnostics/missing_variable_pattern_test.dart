@@ -91,6 +91,7 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.DEAD_CODE, 37, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -312,7 +313,9 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.DEAD_CODE, 37, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(HintCode.DEAD_CODE, 48, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -445,6 +448,7 @@ void f(int x) {
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(HintCode.DEAD_CODE, 42, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -521,6 +525,7 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(HintCode.DEAD_CODE, 48, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -622,8 +627,9 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+      error(HintCode.DEAD_CODE, 59, 4),
       error(HintCode.UNREACHABLE_SWITCH_CASE, 59, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
     ]);
 
     final node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;

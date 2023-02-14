@@ -17,7 +17,7 @@ import 'package:kernel/ast.dart' as ir;
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const JumpDataComputer(),
         options: [stopAfterTypeInference], args: args);
   });
@@ -39,8 +39,7 @@ class JumpDataComputer extends DataComputer<String> {
     GlobalLocalsMap localsMap =
         compiler.globalInference.resultsForTesting!.globalLocalsMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new JumpsIrChecker(
-            compiler.reporter, actualMap, localsMap.getLocalsMap(member))
+    JumpsIrChecker(compiler.reporter, actualMap, localsMap.getLocalsMap(member))
         .run(definition.node);
   }
 
@@ -86,7 +85,7 @@ class JumpsIrChecker extends IrDataExtractor<String> {
 
   void processData() {
     targets.forEach((JumpTarget target, TargetData data) {
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.write(data.index);
       sb.write('@');
       bool needsComma = false;
@@ -106,7 +105,7 @@ class JumpsIrChecker extends IrDataExtractor<String> {
           data.sourceSpan.uri, data.sourceSpan.begin, data.id, value, target);
     });
     gotos.forEach((GotoData data) {
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.write('target=');
       TargetData targetData = targets[data.target]!;
       sb.write(targetData.index);
@@ -131,7 +130,7 @@ class JumpsIrChecker extends IrDataExtractor<String> {
   void addTargetData(ir.TreeNode node, NodeId id, JumpTarget? target) {
     if (target != null) {
       SourceSpan sourceSpan = computeSourceSpan(node);
-      targets[target] = new TargetData(index++, id, sourceSpan, target);
+      targets[target] = TargetData(index++, id, sourceSpan, target);
     }
   }
 
@@ -178,7 +177,7 @@ class JumpsIrChecker extends IrDataExtractor<String> {
     if (target != null) {
       NodeId id = createLabeledStatementId(node)!;
       SourceSpan sourceSpan = computeSourceSpan(node);
-      targets[target] = new TargetData(index++, id, sourceSpan, target);
+      targets[target] = TargetData(index++, id, sourceSpan, target);
     }
     super.visitLabeledStatement(node);
   }

@@ -73,36 +73,36 @@ class Class {
 
 /*member: main:invoke*/
 main() {
-  new Class.constructor1();
+  Class.constructor1();
 
-  new Class.constructor2a();
-  new Class.constructor2b(null);
-  new Class.constructor2c();
-  new Class.constructor2c(null);
+  Class.constructor2a();
+  Class.constructor2b(null);
+  Class.constructor2c();
+  Class.constructor2c(null);
 
-  new Class.constructor3a();
-  new Class.constructor3b();
-  new Class.constructor3b(null);
-  new Class.constructor3c(null, null);
+  Class.constructor3a();
+  Class.constructor3b();
+  Class.constructor3b(null);
+  Class.constructor3c(null, null);
 
-  new Class.constructor4a();
-  new Class.constructor4b(a: null);
-  new Class.constructor4c();
-  new Class.constructor4c(a: null);
+  Class.constructor4a();
+  Class.constructor4b(a: null);
+  Class.constructor4c();
+  Class.constructor4c(a: null);
 
-  new Class.constructor5a();
-  new Class.constructor5b(a: null);
-  new Class.constructor5c(b: null);
+  Class.constructor5a();
+  Class.constructor5b(a: null);
+  Class.constructor5c(b: null);
 
-  new Class.constructor6a(null);
-  new Class.constructor6b(null);
-  new Class.constructor6b(null, null);
-  new Class.constructor6c(null, null, null);
+  Class.constructor6a(null);
+  Class.constructor6b(null);
+  Class.constructor6b(null, null);
+  Class.constructor6c(null, null, null);
 
-  new Class.constructor7a(null);
-  new Class.constructor7b(null, b: null);
-  new Class.constructor7c(null, c: null);
+  Class.constructor7a(null);
+  Class.constructor7b(null, b: null);
+  Class.constructor7c(null, c: null);
 
-  new Class.constructor8a();
-  new Class.constructor8b();
+  Class.constructor8a();
+  Class.constructor8b();
 }

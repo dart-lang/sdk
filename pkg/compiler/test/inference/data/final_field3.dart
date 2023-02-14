@@ -19,6 +19,6 @@ class A {
 
 /*member: main:[null]*/
 main() {
-  new A();
-  new A.bar('foo');
+  A();
+  A.bar('foo');
 }

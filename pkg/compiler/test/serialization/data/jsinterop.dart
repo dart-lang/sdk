@@ -23,5 +23,5 @@ main() {
 
 @pragma('dart2js:tryInline')
 method() {
-  new GenericClass().setter = 42;
+  GenericClass().setter = 42;
 }

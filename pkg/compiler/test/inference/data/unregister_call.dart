@@ -25,6 +25,6 @@ foo() {
 
 /*member: main:[null]*/
 main() {
-  new A() /*invoke: [exact=A]*/ + 42;
+  A() /*invoke: [exact=A]*/ + 42;
   foo();
 }

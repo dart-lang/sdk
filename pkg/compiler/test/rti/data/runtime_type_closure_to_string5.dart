@@ -17,5 +17,5 @@ method2(int i, String s) => i;
 main() {
   makeLive('${method1.runtimeType}');
   method2(0, '');
-  new Class();
+  Class();
 }

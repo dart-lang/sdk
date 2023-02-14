@@ -66,4 +66,24 @@ void f(bool x) {
       error(HintCode.UNREACHABLE_SWITCH_CASE, 67, 4),
     ]);
   }
+
+  test_typeCheck_exact() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case int():
+      break;
+    case int():
+    case int():
+      break;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 64, 4),
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 64, 4),
+      error(HintCode.DEAD_CODE, 80, 4),
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 80, 4),
+      error(HintCode.DEAD_CODE, 98, 6),
+    ]);
+  }
 }

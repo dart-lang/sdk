@@ -9,7 +9,7 @@ library output_collector;
 import 'package:compiler/compiler_api.dart' as api;
 
 class BufferedOutputSink implements api.OutputSink {
-  StringBuffer? sb = new StringBuffer();
+  StringBuffer? sb = StringBuffer();
   String? text;
 
   @override
@@ -88,7 +88,7 @@ class OutputCollector implements api.CompilerOutput {
   @override
   api.BinaryOutputSink createBinarySink(Uri uri) {
     return binaryOutputMap.putIfAbsent(
-        uri, () => new BufferedBinaryOutputSink(uri));
+        uri, () => BufferedBinaryOutputSink(uri));
   }
 
   /// `true` if any output has been collected.
@@ -109,7 +109,7 @@ class OutputCollector implements api.CompilerOutput {
       String name, String extension, api.OutputType type) {
     Map<String, BufferedOutputSink> sinkMap =
         outputMap.putIfAbsent(type, () => {});
-    return sinkMap.putIfAbsent(name, () => new BufferedOutputSink());
+    return sinkMap.putIfAbsent(name, () => BufferedOutputSink());
   }
 
   Map<api.OutputType, Map<String, String>> clear() {

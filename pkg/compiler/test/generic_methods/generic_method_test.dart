@@ -52,7 +52,7 @@ class Class1<T> {
   String toString() => 'c$index';
 }
 
-method4<T>(int index) => new Class1<T>(index);
+method4<T>(int index) => Class1<T>(index);
 
 testMethod4() {
   print('method4:');
@@ -111,19 +111,19 @@ main(args) {
   method2<String, double>(0.5, 'foo');
   method3<double, String>(1.5, 'bar');
   testMethod4();
-  new Class2().method5<int>(0);
-  new Class3().method6<int>(0);
-  dynamic c3 = args != null ? new Class3() : new Class2();
+  Class2().method5<int>(0);
+  Class3().method6<int>(0);
+  dynamic c3 = args != null ? Class3() : Class2();
   c3.method6(0); // Missing type arguments.
   try {
-    dynamic c2 = args == null ? new Class3() : new Class2();
+    dynamic c2 = args == null ? Class3() : Class2();
     c2.method6(0); // Valid call.
     c2.method6<int>(0); // Extra type arguments.
   } catch (e) {
     print('noSuchMethod: Class2.method6<int>');
     print('');
   }
-  var c = new Class4<bool>();
+  var c = Class4<bool>();
   print((c.method7<int>()).runtimeType);
   outside();
 }

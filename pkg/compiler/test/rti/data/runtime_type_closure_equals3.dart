@@ -34,6 +34,6 @@ class Class2<T> {
 }
 
 main() {
-  new Class1<int>().method();
-  new Class2<int>();
+  Class1<int>().method();
+  Class2<int>();
 }

@@ -57,10 +57,16 @@ html/history_test: Skip # Issue 22050
 html/request_animation_frame_test: Skip # Async test hangs.
 
 [ $compiler == dart2js && $runtime == safari ]
+html/audiocontext_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
 html/callback_list_test: SkipByDesign # FileSystem not supported in Safari.
 html/file_sample_test: Skip # FileSystem not supported on Safari.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
+html/input_element_date_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
+html/input_element_datetime_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
+html/input_element_time_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
 html/interactive_media_test: SkipSlow
+html/mediasource_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
+js/js_util/bigint_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
 
 [ $compiler == dart2js && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.

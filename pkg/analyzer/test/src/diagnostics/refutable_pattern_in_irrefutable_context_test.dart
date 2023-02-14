@@ -55,6 +55,7 @@ void f() {
 ''', [
       error(
           CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 18, 6),
+      error(HintCode.DEAD_CODE, 20, 4),
     ]);
 
     var node = findNode.singlePatternVariableDeclaration;

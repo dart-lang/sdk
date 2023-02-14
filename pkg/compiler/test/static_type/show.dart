@@ -19,6 +19,6 @@ main(List<String> args) async {
   await show(
       results,
       showTypePromotion
-          ? new TypePromotionDataComputer()
-          : new StaticTypeDataComputer());
+          ? TypePromotionDataComputer()
+          : StaticTypeDataComputer());
 }

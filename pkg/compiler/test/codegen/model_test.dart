@@ -22,7 +22,7 @@ import '../helpers/program_lookup.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir =
-        new Directory.fromUri(Platform.script.resolve('model_data'));
+        Directory.fromUri(Platform.script.resolve('model_data'));
     await checkTests(dataDir, const ModelDataComputer(),
         args: args, testedConfigs: allInternalConfigs);
   });
@@ -41,8 +41,8 @@ class ModelDataComputer extends DataComputer<Features> {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new ModelIrComputer(compiler.reporter, actualMap, elementMap, member,
-            compiler, closedWorld.closureDataLookup)
+    ModelIrComputer(compiler.reporter, actualMap, elementMap, member, compiler,
+            closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -81,7 +81,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
       MemberEntity member,
       Compiler compiler,
       this._closureDataLookup)
-      : _programLookup = new ProgramLookup(compiler.backendStrategy),
+      : _programLookup = ProgramLookup(compiler.backendStrategy),
         super(reporter, actualMap);
 
   void registerCalls(Features features, String tag, js.Node node,
@@ -156,7 +156,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
     if (member is FieldEntity) {
       Field? field = _programLookup.getField(member);
       if (field != null) {
-        Features features = new Features();
+        Features features = Features();
         if (field.needsCheckedSetter) {
           features.add(Tags.needsCheckedSetter);
         }
@@ -198,7 +198,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
       }
       StaticField? staticField = _programLookup.getStaticField(member);
       if (staticField != null) {
-        Features features = new Features();
+        Features features = Features();
         features.add(Tags.isEmitted);
         if (staticField.isLazy) {
           features.add(Tags.isLazy);
@@ -208,13 +208,13 @@ class ModelIrComputer extends IrDataExtractor<Features> {
     } else if (member is FunctionEntity) {
       Method? method = _programLookup.getMethod(member);
       if (method != null) {
-        Features features = new Features();
+        Features features = Features();
         js.Expression code = method.code;
         if (code is js.Fun) {
           features[Tags.parameterCount] = '${code.params.length}';
         }
 
-        Set<js.PropertyAccess> handledAccesses = new Set();
+        Set<js.PropertyAccess> handledAccesses = Set();
 
         registerCalls(features, Tags.call, code,
             handledAccesses: handledAccesses);

@@ -1342,8 +1342,7 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
 
   compiler::Label* deopt =
       CanDeoptimize()
-          ? compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids,
-                                   licm_hoisted_ ? ICData::kHoisted : 0)
+          ? compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids)
           : NULL;
 
   const intptr_t true_result = (kind() == Token::kIS) ? 1 : 0;
@@ -3899,8 +3898,7 @@ LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(Zone* zone,
 
 void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label* deopt =
-      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryDoubleOp,
-                             licm_hoisted_ ? ICData::kHoisted : 0);
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryDoubleOp);
   intptr_t left_cid = left()->Type()->ToCid();
   intptr_t right_cid = right()->Type()->ToCid();
   const Register left = locs()->in(0).reg();
@@ -5537,8 +5535,8 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary(Zone* zone,
 
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
-  compiler::Label* deopt = compiler->AddDeoptStub(
-      deopt_id(), ICData::kDeoptCheckSmi, licm_hoisted_ ? ICData::kHoisted : 0);
+  compiler::Label* deopt =
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckSmi);
   __ BranchIfNotSmi(value, deopt);
 }
 
@@ -5566,7 +5564,6 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   uint32_t flags = generalized_ ? ICData::kGeneralized : 0;
-  flags |= licm_hoisted_ ? ICData::kHoisted : 0;
   compiler::Label* deopt =
       compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckArrayBound, flags);
 

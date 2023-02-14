@@ -135,7 +135,7 @@ main() {
   (() => mapReturnedFromClosure)()[aKey] = aDouble;
 
   mapInField[aKey] = anInt;
-  new A(mapInField).useField();
+  A(mapInField).useField();
 
   mapUsedWithCascade[aKey] = anInt;
   mapUsedWithCascade..[aKey] = aDouble;
@@ -144,10 +144,10 @@ main() {
   (() => mapUsedInClosure[aKey] = aDouble)();
 
   mapPassedToSelector[aKey] = anInt;
-  new A(null).receiveIt(mapPassedToSelector);
+  A(null).receiveIt(mapPassedToSelector);
 
   mapReturnedFromSelector[aKey] = anInt;
-  new A(null).returnIt()[aKey] = aDouble;
+  A(null).returnIt()[aKey] = aDouble;
 
   mapUsedWithNonOkSelector[aKey] = anInt;
   mapUsedWithNonOkSelector.map((k,v) => v);
@@ -169,14 +169,14 @@ main() {
   mapOnlySetWithConstraint[aKey]++;
 
   mapEscapingInSetterValue[aKey] = anInt;
-  new A(null).callSetter = mapEscapingInSetterValue;
+  A(null).callSetter = mapEscapingInSetterValue;
 
   mapEscapingInIndex[aKey] = anInt;
-  new A(null)[mapEscapingInIndex];
+  A(null)[mapEscapingInIndex];
 
-  new A(null)[mapEscapingInIndexSet] = 42;
+  A(null)[mapEscapingInIndexSet] = 42;
 
-  new C()[mapEscapingTwiceInIndexSet] = mapEscapingTwiceInIndexSet;
+  C()[mapEscapingTwiceInIndexSet] = mapEscapingTwiceInIndexSet;
 
   mapPassedAsOptionalParameter[aKey] = anInt;
   takeOptional(mapPassedAsOptionalParameter);
@@ -185,7 +185,7 @@ main() {
   takeNamed(map: mapPassedAsNamedParameter);
 
   mapSetInNonFinalField[aKey] = anInt;
-  new B(mapSetInNonFinalField);
+  B(mapSetInNonFinalField);
 
   a = [mapStoredInList];
   a[0][aKey] = 42;
@@ -232,7 +232,7 @@ doTest(String allocation,
       compiler.globalInference.resultsForTesting!;
   JClosedWorld closedWorld = results.closedWorld;
   final commonMasks = closedWorld.abstractValueDomain as CommonMasks;
-  TypeMask emptyType = new TypeMask.nonNullEmpty();
+  TypeMask emptyType = TypeMask.nonNullEmpty();
   MemberEntity aKey = findMember(closedWorld, 'aKey');
   var aKeyType = results.resultOfMember(aKey).type as TypeMask;
   if (keyElementName != null) {

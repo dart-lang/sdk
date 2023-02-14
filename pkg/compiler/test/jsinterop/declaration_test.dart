@@ -20,7 +20,7 @@ import 'package:js/js.dart';
 @JS()
 class A {}
 
-main() => new A();
+main() => A();
 ''', warnings: const []),
   const SingleTest('Js-interop class with external method.', '''
 @JS()
@@ -33,7 +33,7 @@ class A {
   external method();
 }
 
-main() => new A();
+main() => A();
 '''),
   const SingleTest(
       'Js-interop class with external method with required parameters.', '''
@@ -47,7 +47,7 @@ class A {
   external method(a, b);
 }
 
-main() => new A();
+main() => A();
 '''),
   const SingleTest(
       'Js-interop class with external method with optional parameters.', '''
@@ -61,7 +61,7 @@ class A {
   external method([a, b]);
 }
 
-main() => new A();
+main() => A();
 '''),
   const SingleTest(
       'Js-interop class with external method with optional parameters '
@@ -77,7 +77,7 @@ class A {
   external method([a = 1, b = 2]);
 }
 
-main() => new A();
+main() => A();
 '''),
   const SingleTest('Js-interop class with static method.', '''
 @JS()
@@ -90,7 +90,7 @@ class A {
   static method() {}
 }
 
-main() => new A();
+main() => A();
 '''),
   const SingleTest('Js-interop class that extends a js-interop class.', '''
 @JS()
@@ -108,7 +108,7 @@ class B extends A {
   external method();
 }
 
-main() => new B();
+main() => B();
 '''),
   const SingleTest(
       'Js-interop class that extends a js-interop class, '
@@ -129,7 +129,7 @@ abstract class A {
   method();
 }
 
-main() => new B();
+main() => B();
 '''),
   const MultiTest(
       'Js-interop class that extends a js-interop class from a different '
@@ -147,7 +147,7 @@ class B extends A {
   external method();
 }
 
-main() => new B();
+main() => B();
 ''',
         'other.dart': '''
 @JS()
@@ -176,7 +176,7 @@ class B implements A {
   external method();
 }
 
-main() => new B();
+main() => B();
 '''),
   const SingleTest('Js-interop class that implements a js-interop class.', '''
 @JS()
@@ -194,7 +194,7 @@ class B implements A {
   external method();
 }
 
-main() => new B();
+main() => B();
 '''),
   const SingleTest('Js-interop class with generative constructor.', '''
 @JS()
@@ -207,7 +207,7 @@ class A {
   external A();
 }
 
-main() => new A();
+main() => A();
 '''),
   const SingleTest('Js-interop class with factory constructor.', '''
 @JS()
@@ -220,7 +220,7 @@ class A {
   factory A() => null;
 }
 
-main() => new A();
+main() => A();
 '''),
   const SingleTest('Empty anonymous js-interop class.', '''
 @JS()
@@ -232,7 +232,7 @@ import 'package:js/js.dart';
 @anonymous
 class A {}
 
-main() => new A();
+main() => A();
 '''),
   const SingleTest(
       'Anonymous js-interop class with generative constructor.', '''
@@ -247,7 +247,7 @@ class A {
   external A();
 }
 
-main() => new A();
+main() => A();
 '''),
   const SingleTest('Anonymous js-interop class with factory constructor.', '''
 @JS()
@@ -261,7 +261,7 @@ class A {
   factory A() => null;
 }
 
-main() => new A();
+main() => A();
 '''),
   const SingleTest(
       'Anonymous js-interop class with external factory constructor.', '''
@@ -276,7 +276,7 @@ class A {
   external factory A();
 }
 
-main() => new A();
+main() => A();
 '''),
   const SingleTest('External factory constructor with named parameters.', '''
 @JS()
@@ -290,7 +290,7 @@ class A {
   external factory A({a, b});
 }
 
-main() => new A(a: 1);
+main() => A(a: 1);
 '''),
   const SingleTest(
       'External factory constructor with named parameters '
@@ -307,7 +307,7 @@ class A {
   external factory A({a: 1, b: 2});
 }
 
-main() => new A(a: 1);
+main() => A(a: 1);
 '''),
   const SingleTest('Function-typed return type', '''
 @JS()
@@ -409,7 +409,7 @@ runTest(Test test) async {
 }
 
 runTestInternal(Test test) async {
-  DiagnosticCollector collector = new DiagnosticCollector();
+  DiagnosticCollector collector = DiagnosticCollector();
   List<String> options = <String>[];
   // TODO(redemption): Enable inlining.
   options.add(Flags.disableInlining);

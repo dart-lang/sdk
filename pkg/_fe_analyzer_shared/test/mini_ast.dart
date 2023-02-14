@@ -894,6 +894,7 @@ class MiniAstOperations
   };
 
   static final Map<String, Type> _coreDownwardInferenceResults = {
+    'bool <: bool': Type('bool'),
     'dynamic <: int': Type('dynamic'),
     'int <: dynamic': Type('int'),
     'int <: num': Type('int'),
@@ -3193,6 +3194,17 @@ class _MiniAstErrors
     );
   }
 
+  @override
+  void unnecessaryWildcardPattern({
+    required Pattern pattern,
+    required UnnecessaryWildcardKind kind,
+  }) {
+    _recordError('unnecessaryWildcardPattern', {
+      'pattern': pattern,
+      'kind': kind,
+    });
+  }
+
   void _recordError(
     String name,
     Map<String, Object?> namedArguments, {
@@ -3203,6 +3215,8 @@ class _MiniAstErrors
         return '$argument';
       } else if (argument is int) {
         return '$argument';
+      } else if (argument is Enum) {
+        return argument.name;
       } else if (argument is Node) {
         return argument.errorId;
       } else if (argument is Type) {
@@ -3745,7 +3759,11 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleDefault(Node node, int caseIndex) {
+  void handleDefault(
+    Node node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {
     _irBuilder.atom('default', Kind.caseHead, location: node.location);
   }
 
@@ -3826,6 +3844,13 @@ class _MiniAstTypeAnalyzer
   void handleNoStatement(Node node) {
     _irBuilder.atom('noop', Kind.statement, location: node.location);
   }
+
+  @override
+  void handleSwitchBeforeAlternative(
+    Node node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {}
 
   @override
   void handleSwitchScrutinee(Type type) {}

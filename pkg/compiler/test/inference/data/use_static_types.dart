@@ -40,45 +40,45 @@ T genericFunction<T>(T Function() /*[subclass=Closure]*/ f) => f();
 
 /*member: invokeGenericFunction1:[null|subclass=A]*/
 invokeGenericFunction1() {
-  return genericFunction<A>(/*[exact=A]*/ () => new A());
+  return genericFunction<A>(/*[exact=A]*/ () => A());
 }
 
 /*member: invokeGenericFunction2:[null|exact=B]*/
 invokeGenericFunction2() {
-  return genericFunction<B>(/*[exact=B]*/ () => new B());
+  return genericFunction<B>(/*[exact=B]*/ () => B());
 }
 
 /*member: invokeGenericFunction3:[null|exact=C]*/
 invokeGenericFunction3() {
-  return genericFunction<C>(/*[exact=C]*/ () => new C());
+  return genericFunction<C>(/*[exact=C]*/ () => C());
 }
 
 /*member: invokeGenericLocalFunction1:[null|subclass=A]*/
 invokeGenericLocalFunction1() {
   /*[null|subclass=Object]*/
   T local<T>(T Function() /*[subclass=Closure]*/ f) => f();
-  return local<A>(/*[exact=A]*/ () => new A());
+  return local<A>(/*[exact=A]*/ () => A());
 }
 
 /*member: invokeGenericLocalFunction2:[null|exact=B]*/
 invokeGenericLocalFunction2() {
   /*[null|subclass=Object]*/
   T local<T>(T Function() /*[subclass=Closure]*/ f) => f();
-  return local<B>(/*[exact=B]*/ () => new B());
+  return local<B>(/*[exact=B]*/ () => B());
 }
 
 /*member: invokeGenericLocalFunction3:[null|exact=C]*/
 invokeGenericLocalFunction3() {
   /*[null|subclass=Object]*/
   T local<T>(T Function() /*[subclass=Closure]*/ f) => f();
-  return local<C>(/*[exact=C]*/ () => new C());
+  return local<C>(/*[exact=C]*/ () => C());
 }
 
 /*member: invokeFunctions:[null]*/
 invokeFunctions() {
-  invokeFunction1(/*[exact=A]*/ () => new A());
-  invokeFunction2(/*[exact=B]*/ () => new B());
-  invokeFunction3(/*[exact=C]*/ () => new C());
+  invokeFunction1(/*[exact=A]*/ () => A());
+  invokeFunction2(/*[exact=B]*/ () => B());
+  invokeFunction3(/*[exact=C]*/ () => C());
   invokeGenericFunction1();
   invokeGenericFunction2();
   invokeGenericFunction3();
@@ -102,15 +102,15 @@ class GenericClass<T> {
   T get getter => /*[subclass=GenericClass]*/ field;
 
   /*member: GenericClass.functionTypedGetter:[subclass=Closure]*/
-  T Function()
-      get functionTypedGetter => /*[subclass=GenericClass]*/ functionTypedField;
+  T Function() get functionTypedGetter => /*[subclass=GenericClass]*/
+      functionTypedField;
 
   /*member: GenericClass.method:Union([exact=C], [subclass=A])*/
   T method() => /*[subclass=GenericClass]*/ field;
 
   /*member: GenericClass.functionTypedMethod:[subclass=Closure]*/
-  T Function()
-      functionTypedMethod() => /*[subclass=GenericClass]*/ functionTypedField;
+  T Function() functionTypedMethod() => /*[subclass=GenericClass]*/
+      functionTypedField;
 }
 
 class GenericSubclass<T> extends GenericClass<T> {
@@ -401,27 +401,27 @@ invokeGenericMethod3(C /*[exact=C]*/ c) => genericMethod<C>(c);
 
 /*member: invokeGenericInstanceMethod1:[subclass=A]*/
 invokeGenericInstanceMethod1() =>
-    new Class(). /*invoke: [exact=Class]*/ genericMethod<A>(new A());
+    Class(). /*invoke: [exact=Class]*/ genericMethod<A>(new A());
 
 /*member: invokeGenericInstanceMethod2:[exact=B]*/
 invokeGenericInstanceMethod2() =>
-    new Class(). /*invoke: [exact=Class]*/ genericMethod<B>(new B());
+    Class(). /*invoke: [exact=Class]*/ genericMethod<B>(new B());
 
 /*member: invokeGenericInstanceMethod3:[exact=C]*/
 invokeGenericInstanceMethod3() =>
-    new Class(). /*invoke: [exact=Class]*/ genericMethod<C>(new C());
+    Class(). /*invoke: [exact=Class]*/ genericMethod<C>(new C());
 
 /*member: invokeGenericSuperMethod1:[subclass=A]*/
 invokeGenericSuperMethod1() =>
-    new Subclass(). /*invoke: [exact=Subclass]*/ superMethod1();
+    Subclass(). /*invoke: [exact=Subclass]*/ superMethod1();
 
 /*member: invokeGenericSuperMethod2:[exact=B]*/
 invokeGenericSuperMethod2() =>
-    new Subclass(). /*invoke: [exact=Subclass]*/ superMethod2();
+    Subclass(). /*invoke: [exact=Subclass]*/ superMethod2();
 
 /*member: invokeGenericSuperMethod3:[exact=C]*/
 invokeGenericSuperMethod3() =>
-    new Subclass(). /*invoke: [exact=Subclass]*/ superMethod3();
+    Subclass(). /*invoke: [exact=Subclass]*/ superMethod3();
 
 /*member: invokeFunctionTypedGenericMethod1:[null|subclass=A]*/
 invokeFunctionTypedGenericMethod1(A /*[exact=A]*/ a) =>
@@ -436,28 +436,28 @@ invokeFunctionTypedGenericMethod3(C /*[exact=C]*/ c) =>
     functionTypedGenericMethod<C>(c)();
 
 /*member: invokeFunctionTypedGenericInstanceMethod1:[null|subclass=A]*/
-invokeFunctionTypedGenericInstanceMethod1() => new Class()
-    . /*invoke: [exact=Class]*/ functionTypedGenericMethod<A>(new A())();
+invokeFunctionTypedGenericInstanceMethod1() =>
+    Class(). /*invoke: [exact=Class]*/ functionTypedGenericMethod<A>(new A())();
 
 /*member: invokeFunctionTypedGenericInstanceMethod2:[null|exact=B]*/
-invokeFunctionTypedGenericInstanceMethod2() => new Class()
-    . /*invoke: [exact=Class]*/ functionTypedGenericMethod<B>(new B())();
+invokeFunctionTypedGenericInstanceMethod2() =>
+    Class(). /*invoke: [exact=Class]*/ functionTypedGenericMethod<B>(new B())();
 
 /*member: invokeFunctionTypedGenericInstanceMethod3:[null|exact=C]*/
-invokeFunctionTypedGenericInstanceMethod3() => new Class()
-    . /*invoke: [exact=Class]*/ functionTypedGenericMethod<C>(new C())();
+invokeFunctionTypedGenericInstanceMethod3() =>
+    Class(). /*invoke: [exact=Class]*/ functionTypedGenericMethod<C>(new C())();
 
 /*member: invokeFunctionTypedGenericSuperMethod1:[null|subclass=A]*/
 invokeFunctionTypedGenericSuperMethod1() =>
-    new Subclass(). /*invoke: [exact=Subclass]*/ functionTypedSuperMethod1();
+    Subclass(). /*invoke: [exact=Subclass]*/ functionTypedSuperMethod1();
 
 /*member: invokeFunctionTypedGenericSuperMethod2:[null|exact=B]*/
 invokeFunctionTypedGenericSuperMethod2() =>
-    new Subclass(). /*invoke: [exact=Subclass]*/ functionTypedSuperMethod2();
+    Subclass(). /*invoke: [exact=Subclass]*/ functionTypedSuperMethod2();
 
 /*member: invokeFunctionTypedGenericSuperMethod3:[null|exact=C]*/
 invokeFunctionTypedGenericSuperMethod3() =>
-    new Subclass(). /*invoke: [exact=Subclass]*/ functionTypedSuperMethod3();
+    Subclass(). /*invoke: [exact=Subclass]*/ functionTypedSuperMethod3();
 
 /*member: invokeGenericMethods:[null]*/
 invokeGenericMethods() {

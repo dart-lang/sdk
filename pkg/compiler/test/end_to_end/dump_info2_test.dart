@@ -88,7 +88,7 @@ class Doubler {
   }
 }
 void main() {
-  var f = new Doubler();
+  var f = Doubler();
   print(f.double(4));
 }
 """;
@@ -107,7 +107,7 @@ infoTest(String program, bool useBinary, InfoCheck check) async {
   // have the logic in dart2js.dart to imply dump-info when --dump-info=binary
   // is provided.
   if (useBinary) options.add("${Flags.dumpInfo}=binary");
-  var collector = new OutputCollector();
+  var collector = OutputCollector();
   var result = await runCompiler(
       memorySourceFiles: {'main.dart': program},
       options: options,
@@ -119,7 +119,7 @@ infoTest(String program, bool useBinary, InfoCheck check) async {
     var sink = collector.binaryOutputMap[Uri.parse('out.js.info.data')]!;
     info = binary.decode(sink.list);
   } else {
-    info = new AllInfoJsonCodec().decode(
+    info = AllInfoJsonCodec().decode(
         json.decode(collector.getOutput("out.js", api.OutputType.dumpInfo)!));
   }
   check(info);

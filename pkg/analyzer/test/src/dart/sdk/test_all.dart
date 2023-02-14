@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'sdk_test.dart' as sdk;
+import 'sdk_utils_test.dart' as sdk_utils;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
     sdk.main();
+    sdk_utils.main();
   }, name: 'sdk');
 }

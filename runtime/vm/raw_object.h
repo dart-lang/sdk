@@ -1276,7 +1276,7 @@ class UntaggedFunction : public UntaggedObject {
     DART_FORCE_INLINE void SetAt(intptr_t position, UnboxedState state) {
       ASSERT(position < kCapacity);
       const intptr_t shift = kBitsPerElement * position;
-      bitmap_ = (bitmap_ & ((~kElementBitmask) << shift)) |
+      bitmap_ = (bitmap_ & ~(kElementBitmask << shift)) |
                 (static_cast<decltype(bitmap_)>(state) << shift);
     }
 

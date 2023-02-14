@@ -1474,11 +1474,6 @@ HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
   status: hasFix
 HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
   status: hasFix
-HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT:
-  status: needsFix
-  notes: |-
-    We should be able to convert the import into a `package:` import. At least
-    some of the time.
 HintCode.STRICT_RAW_TYPE:
   status: needsFix
   notes: |-
@@ -2851,6 +2846,8 @@ WarningCode.UNDEFINED_HIDDEN_NAME:
 WarningCode.UNDEFINED_SHOWN_NAME:
   status: hasFix
 WarningCode.UNNECESSARY_CAST_PATTERN:
+  status: needsEvaluation
+WarningCode.UNNECESSARY_WILDCARD_PATTERN:
   status: needsEvaluation
 WarningCode.UNUSED_CATCH_CLAUSE:
   status: hasFix

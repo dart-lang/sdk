@@ -38,7 +38,7 @@ class Class1 {
 
 /*member: instanceAssignPlus:[subclass=JSPositiveInt]*/
 instanceAssignPlus() {
-  var c = new Class1();
+  var c = Class1();
   return c. /*[exact=Class1]*/ /*update: [exact=Class1]*/ field /*invoke: [subclass=JSPositiveInt]*/ +=
       42;
 }
@@ -51,7 +51,7 @@ class Class2 {
 
 /*member: instanceAssignAnd:[exact=JSUInt31]*/
 instanceAssignAnd() {
-  var c = new Class2();
+  var c = Class2();
   return c. /*[exact=Class2]*/ /*update: [exact=Class2]*/ field /*invoke: [exact=JSUInt31]*/ &=
       42;
 }

@@ -103,8 +103,7 @@ void matchIL$test(FlowGraph graph) {
       'obj2' << match.Parameter(index: 5),
       match.CheckStackOverflow(),
 
-      'x_unboxed' << match.UnboxInt64('x'),
-      match.PushArgument('x_unboxed'),
+      match.PushArgument('x'),
       match.PushArgument('z'),
       'r1' << match.StaticCall(),
       'r1_0' << match.ExtractNthOutput('r1', index: 0),
@@ -150,10 +149,10 @@ void matchIL$test(FlowGraph graph) {
 void main() {
   // Make sure all parameters are non-constant
   // and obj1 has a known type for devirtualization.
-  test(int.parse('5')!,
+  test(int.parse('5'),
     int.parse('3') == 4,
     'foo' + 3.toString(),
-    int.parse('7')!,
-    B(int.parse('8')!, double.parse('9')!),
+    int.parse('7'),
+    B(int.parse('8'), double.parse('9')),
     int.parse('10') == 11 ? B(1, 2) : C());
 }

@@ -32,13 +32,13 @@ class I<T> {
 }
 
 main() {
-  new A();
-  new C();
-  new D();
-  new E();
-  new F();
-  new H();
-  new I();
+  A();
+  C();
+  D();
+  E();
+  F();
+  H();
+  I();
   method<int>();
 }
 
@@ -82,7 +82,7 @@ main() {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
-    ProgramLookup programLookup = new ProgramLookup(compiler.backendStrategy);
+    ProgramLookup programLookup = ProgramLookup(compiler.backendStrategy);
 
     List<ClassEntity> closures = <ClassEntity>[];
 

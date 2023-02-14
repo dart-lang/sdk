@@ -9,7 +9,7 @@ import 'deferred_validator_test_lib.dart' deferred as def;
 void main() {
   def.loadLibrary().then((_) {
     () {
-      var helloClass = new def.HelloClass();
+      var helloClass = def.HelloClass();
       helloClass.printHello();
     }();
   });

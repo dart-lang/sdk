@@ -869,7 +869,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant SwitchExpressionImpl node,
     int caseIndex,
   ) {
-    node.cases[caseIndex].expression = popRewrite()!;
+    final case_ = node.cases[caseIndex];
+    case_.expression = popRewrite()!;
+    nullSafetyDeadCodeVerifier.flowEnd(case_);
   }
 
   @override
@@ -1049,6 +1051,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void handle_logicalOrPattern_afterLhs(covariant LogicalOrPatternImpl node) {
+    checkUnreachableNode(node.rightOperand);
+  }
+
+  @override
   void handleCase_afterCaseHeads(
       AstNode node, int caseIndex, Iterable<PromotableElement> variables) {}
 
@@ -1062,15 +1069,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite(); // "when" expression
     // Stack: ()
     if (node is SwitchStatementImpl) {
-      legacySwitchExhaustiveness
-          ?.visitSwitchMember(node.memberGroups[caseIndex]);
+      final group = node.memberGroups[caseIndex];
+      legacySwitchExhaustiveness?.visitSwitchMember(group);
+      nullSafetyDeadCodeVerifier.flowEnd(group.members[subIndex]);
     }
-    // TODO(scheglov) Exhaustiveness for SwitchExpressions?
   }
 
   @override
-  void handleDefault(covariant SwitchStatementImpl node, int caseIndex) {
-    legacySwitchExhaustiveness?.visitSwitchMember(node.memberGroups[caseIndex]);
+  void handleDefault(
+    covariant SwitchStatementImpl node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {
+    final group = node.memberGroups[caseIndex];
+    legacySwitchExhaustiveness?.visitSwitchMember(group);
+    nullSafetyDeadCodeVerifier.flowEnd(group.members[subIndex]);
   }
 
   @override
@@ -1114,6 +1127,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void handleNoStatement(Statement node) {}
+
+  @override
+  void handleSwitchBeforeAlternative(
+    covariant AstNodeImpl node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {
+    if (node is SwitchExpressionImpl) {
+      final case_ = node.cases[caseIndex];
+      checkUnreachableNode(case_);
+    } else if (node is SwitchStatementImpl) {
+      final member = node.memberGroups[caseIndex].members[subIndex];
+      checkUnreachableNode(member);
+    }
+  }
 
   @override
   void handleSwitchScrutinee(DartType type) {

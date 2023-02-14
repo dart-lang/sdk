@@ -27,6 +27,6 @@ class Sub extends Super {
 }
 
 main() {
-  var c = new Sub();
+  var c = Sub();
   c.method();
 }

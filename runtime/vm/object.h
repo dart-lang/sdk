@@ -3807,14 +3807,14 @@ class Function : public Object {
 // VM instantiation. It is independent from presence of type feedback
 // (ic_data_array) and code, which may be loaded from a snapshot.
 // 'WasExecuted' is true if the usage counter has ever been positive.
-// 'ProhibitsHoistingCheckClass' is true if this function deoptimized before on
-// a hoisted check class instruction.
+// 'ProhibitsInstructionHoisting' is true if this function deoptimized before on
+// a hoisted instruction.
 // 'ProhibitsBoundsCheckGeneralization' is true if this function deoptimized
 // before on a generalized bounds check.
 #define STATE_BITS_LIST(V)                                                     \
   V(WasCompiled)                                                               \
   V(WasExecutedBit)                                                            \
-  V(ProhibitsHoistingCheckClass)                                               \
+  V(ProhibitsInstructionHoisting)                                              \
   V(ProhibitsBoundsCheckGeneralization)
 
   enum StateBits {

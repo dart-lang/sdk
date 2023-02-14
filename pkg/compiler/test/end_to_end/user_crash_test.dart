@@ -18,7 +18,7 @@ final Uri entryPoint = Uri.parse('memory:main.dart');
 main() {
   runTests() async {
     test('Empty program', await run());
-    test('Crash diagnostics', await run(diagnostics: new CrashingDiagnostics()),
+    test('Crash diagnostics', await run(diagnostics: CrashingDiagnostics()),
         expectedLines: [
           'Uncaught exception in diagnostic handler: $EXCEPTION',
           null /* Stack trace*/
@@ -33,8 +33,7 @@ main() {
       "Error: ${cantReadFile.problemMessage}",
       "Error: ${messageMissingMain.problemMessage}",
     ];
-    test('Throw in input provider',
-        await run(memorySourceFiles: new CrashingMap()),
+    test('Throw in input provider', await run(memorySourceFiles: CrashingMap()),
         expectedLines: expectedLines);
   }
 
@@ -67,7 +66,7 @@ void test(String title, RunResult result,
 Future<RunResult> run(
     {Map<String, String> memorySourceFiles = const {'main.dart': 'main() {}'},
     api.CompilerDiagnostics? diagnostics}) async {
-  RunResult result = new RunResult();
+  RunResult result = RunResult();
   await runZoned(() async {
     try {
       await runCompiler(
@@ -78,7 +77,7 @@ Future<RunResult> run(
     } catch (e) {
       result.exceptions.add(e);
     }
-  }, zoneSpecification: new ZoneSpecification(
+  }, zoneSpecification: ZoneSpecification(
       print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
     result.lines.add(line);
   }));

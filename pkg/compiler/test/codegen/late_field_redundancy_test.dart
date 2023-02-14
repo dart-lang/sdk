@@ -33,7 +33,7 @@ void main() {
         disableTypeInference: false,
         disableInlining: false,
         soundNullSafety: true, check: (String generated) {
-      RegExp regexp = new RegExp(r'=== \$');
+      RegExp regexp = RegExp(r'=== \$');
       Expect.equals(1, regexp.allMatches(generated).length);
     });
   });

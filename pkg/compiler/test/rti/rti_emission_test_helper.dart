@@ -25,8 +25,7 @@ main(List<String> args) {
 
 runTests(List<String> args, [int? shardIndex]) {
   asyncTest(() async {
-    Directory dataDir =
-        new Directory.fromUri(Platform.script.resolve('emission'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('emission'));
     await checkTests(dataDir, const RtiEmissionDataComputer(),
         args: args,
         shardIndex: shardIndex ?? 0,
@@ -58,7 +57,7 @@ abstract class ComputeValueMixin {
 
   String getClassValue(ClassEntity element) {
     Class? cls = lookup.getClass(element);
-    Features features = new Features();
+    Features features = Features();
     if (cls != null) {
       features.addElement(Tags.isChecks);
       for (StubMethod stub in cls.isChecks) {
@@ -116,8 +115,8 @@ class RtiEmissionDataComputer extends DataComputer<String> {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap,
-            compiler, closedWorld.closureDataLookup)
+    RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap, compiler,
+            closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -127,8 +126,8 @@ class RtiEmissionDataComputer extends DataComputer<String> {
       {bool verbose = false}) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
-    new RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap,
-            compiler, closedWorld.closureDataLookup)
+    RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap, compiler,
+            closedWorld.closureDataLookup)
         .computeForClass(elementMap.getClassDefinition(cls).node as ir.Class);
   }
 

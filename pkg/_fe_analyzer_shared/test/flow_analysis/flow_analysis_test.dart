@@ -6463,9 +6463,16 @@ main() {
           h.run([
             declare(x, type: 'int'),
             declare(y, initializer: expr('dynamic')),
-            x.pattern().and(wildcard()).assign(y.expr).stmt,
+            x
+                .pattern()
+                .and(wildcard()..errorId = 'WILDCARD')
+                .assign(y.expr)
+                .stmt,
             checkPromoted(y, 'int'),
-          ]);
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          });
         });
       });
 
@@ -6479,7 +6486,7 @@ main() {
         ]);
       });
 
-      group('Boolean condition', () {
+      group('Boolean condition:', () {
         test('As main pattern', () {
           var b = Var('b');
           var x = Var('x');
@@ -6495,13 +6502,16 @@ main() {
         });
 
         test('As subpattern', () {
+          h.addMember('bool', 'foo', 'bool');
           var b = Var('b');
           var x = Var('x');
           h.run([
             declare(x, type: 'int?'),
             declare(b, type: 'bool'),
-            recordPattern([b.pattern().recordField()])
-                .assign(x.expr.notEq(nullLiteral).as_('dynamic'))
+            objectPattern(
+                    requiredType: 'bool',
+                    fields: [b.pattern().recordField('foo')])
+                .assign(x.expr.notEq(nullLiteral))
                 .stmt,
             if_(b.expr, [
               // Even though the RHS of the pattern is `x != null`, `x` is not
@@ -6558,13 +6568,15 @@ main() {
           declare(x, type: 'Object?'),
           ifCase(
               x.expr,
-              objectPattern(requiredType: 'int', fields: [])
-                  .as_('num')
-                  .and(wildcard(expectInferredType: 'num')),
+              objectPattern(requiredType: 'int', fields: []).as_('num').and(
+                  wildcard(expectInferredType: 'num')..errorId = 'WILDCARD'),
               [
                 checkPromoted(x, 'num'),
               ]),
-        ]);
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD, '
+              'kind: logicalAndPatternOperand)',
+        });
       });
 
       test('Match failure unreachable', () {
@@ -6577,6 +6589,26 @@ main() {
             checkReachable(false),
           ]),
         ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(wildcard().as_('num')..errorId = 'AS_NUM')
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ], expectedErrors: {
+          'matchedTypeIsSubtypeOfRequired(pattern: AS_NUM, matchedType: int, '
+              'requiredType: num)'
+        });
       });
     });
 
@@ -6802,20 +6834,28 @@ main() {
             declare(x, type: 'num'),
             ifCase(
                 x.expr,
-                wildcard(type: 'int').and(wildcard(expectInferredType: 'int')),
+                wildcard(type: 'int').and(
+                    wildcard(expectInferredType: 'int')..errorId = 'WILDCARD'),
                 [
                   checkPromoted(x, 'int'),
                 ]),
-          ]);
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          });
         });
 
         test('when scrutinee is not promotable', () {
           h.run([
             ifCase(
                 expr('num'),
-                wildcard(type: 'int').and(wildcard(expectInferredType: 'int')),
+                wildcard(type: 'int').and(
+                    wildcard(expectInferredType: 'int')..errorId = 'WILDCARD'),
                 []),
-          ]);
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          });
         });
       });
 
@@ -6825,12 +6865,15 @@ main() {
           declare(x, type: 'Object'),
           ifCase(
               x.expr,
-              wildcard(type: 'num').and(wildcard(type: 'int')
-                  .and(wildcard(expectInferredType: 'int'))),
+              wildcard(type: 'num').and(wildcard(type: 'int').and(
+                  wildcard(expectInferredType: 'int')..errorId = 'WILDCARD')),
               [
                 checkPromoted(x, 'int'),
               ]),
-        ]);
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD, '
+              'kind: logicalAndPatternOperand)',
+        });
       });
     });
 
@@ -6878,9 +6921,13 @@ main() {
                 objectPattern(requiredType: 'num', fields: [])
                     .and(objectPattern(requiredType: 'int', fields: []))
                     .or(objectPattern(requiredType: 'num', fields: []))
-                    .and(wildcard(expectInferredType: 'num')),
+                    .and(wildcard(expectInferredType: 'num')
+                      ..errorId = 'WILDCARD'),
                 []),
-          ]);
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          });
         });
 
         test('RHS more promoted', () {
@@ -6891,9 +6938,13 @@ main() {
                 objectPattern(requiredType: 'num', fields: [])
                     .or(objectPattern(requiredType: 'num', fields: [])
                         .and(objectPattern(requiredType: 'int', fields: [])))
-                    .and(wildcard(expectInferredType: 'num')),
+                    .and(wildcard(expectInferredType: 'num')
+                      ..errorId = 'WILDCARD'),
                 []),
-          ]);
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          });
         });
       });
 
@@ -7004,6 +7055,35 @@ main() {
           ]),
         ]);
       });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('List<int>')
+                  .and(listPattern([], elementType: 'num'))
+                  .and(y.pattern(expectInferredType: 'List<int>')),
+              [
+                checkPromoted(x, 'List<int>'),
+              ]),
+        ]);
+      });
+
+      test('Reachability', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<int>')),
+          ifCase(x.expr, listPattern([], elementType: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
     });
 
     group('Map pattern:', () {
@@ -7024,6 +7104,35 @@ main() {
       test('Match failure reachable', () {
         h.run([
           ifCase(expr('Object?'), mapPattern([]), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('Map<int, int>')
+                  .and(mapPattern([], keyType: 'num', valueType: 'num'))
+                  .and(y.pattern(expectInferredType: 'Map<int, int>')),
+              [
+                checkPromoted(x, 'Map<int, int>'),
+              ]),
+        ]);
+      });
+
+      test('Reachability', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Map<int, int>')),
+          ifCase(x.expr, mapPattern([], keyType: 'int', valueType: 'int'), [
             checkReachable(true),
           ], [
             checkReachable(true),
@@ -7103,9 +7212,13 @@ main() {
         h.run([
           ifCase(
               expr('Object?'),
-              wildcard().nullAssert.and(wildcard(expectInferredType: 'Object')),
+              wildcard().nullAssert.and(
+                  wildcard(expectInferredType: 'Object')..errorId = 'WILDCARD'),
               []),
-        ]);
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD, '
+              'kind: logicalAndPatternOperand)'
+        });
       });
 
       test('Unreachable if null', () {
@@ -7121,6 +7234,23 @@ main() {
           ifCase(expr('Object?'), wildcard().nullAssert, [
             checkReachable(true),
           ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int?')
+                  .and(wildcard().nullAssert)
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
         ]);
       });
     });
@@ -7196,9 +7326,13 @@ main() {
         h.run([
           ifCase(
               expr('Object?'),
-              wildcard().nullCheck.and(wildcard(expectInferredType: 'Object')),
+              wildcard().nullCheck.and(
+                  wildcard(expectInferredType: 'Object')..errorId = 'WILDCARD'),
               []),
-        ]);
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD, '
+              'kind: logicalAndPatternOperand)'
+        });
       });
 
       test('Unreachable if null', () {
@@ -7216,6 +7350,23 @@ main() {
           ]),
         ]);
       });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int?')
+                  .and(wildcard().nullCheck)
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ]);
+      });
     });
 
     group('Object pattern:', () {
@@ -7226,6 +7377,23 @@ main() {
           ifCase(x.expr, objectPattern(requiredType: 'int', fields: []), [
             checkPromoted(x, 'int'),
           ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(objectPattern(requiredType: 'num', fields: []))
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
         ]);
       });
     });
@@ -7270,6 +7438,23 @@ main() {
           ], [
             checkReachable(true),
           ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('(int,)')
+                  .and(recordPattern([wildcard().recordField()]))
+                  .and(y.pattern(expectInferredType: '(int,)')),
+              [
+                checkPromoted(x, '(int,)'),
+              ]),
         ]);
       });
     });
@@ -7418,23 +7603,30 @@ main() {
                 break_(),
               ]),
               relationalPattern('!=', nullLiteral)
-                  .and(wildcard(expectInferredType: 'int'))
+                  .and(
+                      wildcard(expectInferredType: 'int')..errorId = 'WILDCARD')
                   .then([
                 checkReachable(true),
                 checkNotPromoted(x),
               ]),
             ]),
-          ]);
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)'
+          });
         });
 
         test('Null pattern promotes matched pattern var', () {
           h.run([
             ifCase(
                 expr('int?'),
-                relationalPattern('!=', nullLiteral)
-                    .and(wildcard(expectInferredType: 'int')),
+                relationalPattern('!=', nullLiteral).and(
+                    wildcard(expectInferredType: 'int')..errorId = 'WILDCARD'),
                 []),
-          ]);
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)'
+          });
         });
 
         test('Null pattern can even match non-nullable types', () {
@@ -7549,7 +7741,7 @@ main() {
           declare(x, initializer: expr('Object')),
           switchExpr(x.expr, [
             wildcard(type: 'int')
-                .and(wildcard(expectInferredType: 'int'))
+                .and(wildcard(expectInferredType: 'int')..errorId = 'WILDCARD1')
                 .thenExpr(block([
                   checkPromoted(x, 'int'),
                 ]).thenExpr(intLiteral(0))),
@@ -7557,13 +7749,18 @@ main() {
                 .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
                 .thenExpr(intLiteral(1)),
             wildcard(type: 'int')
-                .and(wildcard(expectInferredType: 'int'))
+                .and(wildcard(expectInferredType: 'int')..errorId = 'WILDCARD2')
                 .thenExpr(block([
                   checkNotPromoted(x),
                 ]).thenExpr(intLiteral(2))),
             wildcard().thenExpr(intLiteral(3)),
           ]).stmt,
-        ]);
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD1, '
+              'kind: logicalAndPatternOperand)',
+          'unnecessaryWildcardPattern(pattern: WILDCARD2, '
+              'kind: logicalAndPatternOperand)',
+        });
       });
 
       test(
@@ -7827,7 +8024,7 @@ main() {
           declare(x, initializer: expr('Object')),
           switch_(x.expr, [
             wildcard(type: 'int')
-                .and(wildcard(expectInferredType: 'int'))
+                .and(wildcard(expectInferredType: 'int')..errorId = 'WILDCARD1')
                 .then([
               checkPromoted(x, 'int'),
             ]),
@@ -7837,12 +8034,17 @@ main() {
               break_(),
             ]),
             wildcard(type: 'int')
-                .and(wildcard(expectInferredType: 'int'))
+                .and(wildcard(expectInferredType: 'int')..errorId = 'WILDCARD2')
                 .then([
               checkNotPromoted(x),
             ])
           ]),
-        ]);
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD1, '
+              'kind: logicalAndPatternOperand)',
+          'unnecessaryWildcardPattern(pattern: WILDCARD2, '
+              'kind: logicalAndPatternOperand)'
+        });
       });
 
       test(
@@ -8116,6 +8318,24 @@ main() {
               ]),
         ]);
       });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        var z = Var('z');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(y.pattern(type: 'num'))
+                  .and(z.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ]);
+      });
     });
 
     group('Wildcard pattern:', () {
@@ -8208,6 +8428,26 @@ main() {
                 // TODO(paulberry): should promote `x.sign` to `int`.
               ]),
         ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(wildcard(type: 'num')..errorId = 'WILDCARD')
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD, '
+              'kind: logicalAndPatternOperand)',
+        });
       });
     });
 

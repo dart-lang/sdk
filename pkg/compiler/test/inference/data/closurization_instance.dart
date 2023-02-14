@@ -21,7 +21,7 @@ class Class {
 
 /*member: closurizedCallToString:[exact=JSString]*/
 closurizedCallToString() {
-  var c = new Class();
+  var c = Class();
   var local = c. /*[exact=Class]*/ method;
   local. /*invoke: [subclass=Closure]*/ toString();
   local();

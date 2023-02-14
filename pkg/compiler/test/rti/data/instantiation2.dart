@@ -18,5 +18,5 @@ class B<S> {
 }
 
 main() {
-  new B();
+  B();
 }

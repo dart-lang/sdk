@@ -29,16 +29,16 @@ class C {
   /*member: C.method1:implicit=[method1.T],needsArgs,selectors=[Selector(call, method1, arity=0, types=1)],test*/
   @pragma('dart2js:noInline')
   method1<T>() {
-    return new B<T>().foo(this);
+    return B<T>().foo(this);
   }
 
   /*member: C.method2:deps=[B],implicit=[method2.T],needsArgs,selectors=[Selector(call, method2, arity=0, types=1)],test*/
   @pragma('dart2js:noInline')
-  method2<T>() => new A<T>();
+  method2<T>() => A<T>();
 }
 
 main() {
-  var c = new C();
+  var c = C();
   makeLive(c.method1<BB>());
   makeLive(c.method1<String>());
 }

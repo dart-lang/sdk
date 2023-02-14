@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:front_end/src/fasta/type_inference/inference_visitor.dart';
 import 'package:kernel/ast.dart';
@@ -224,5 +225,13 @@ class SharedTypeAnalyzerErrors
       covariant SwitchStatement node, int caseIndex, int numMergedCases) {
     helper.addProblem(messageSwitchCaseFallThrough,
         node.cases[caseIndex].fileOffset, noLength);
+  }
+
+  @override
+  void unnecessaryWildcardPattern({
+    required Pattern pattern,
+    required UnnecessaryWildcardKind kind,
+  }) {
+    // TODO(scheglov): implement unnecessaryWildcardPattern
   }
 }

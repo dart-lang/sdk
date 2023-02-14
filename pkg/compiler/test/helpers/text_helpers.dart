@@ -47,7 +47,7 @@ int? checkEqualContentAndShowDiff(String text1, String text2,
               print('- $j ${text}');
               print('+ $j ${newText}');
               assert(text != newText);
-              StringBuffer diff = new StringBuffer();
+              StringBuffer diff = StringBuffer();
               diff.write('  $j ');
               for (int k = 0; k < text.length && k < newText.length; k++) {
                 int? char1 = k < text.length ? text.codeUnitAt(k) : null;

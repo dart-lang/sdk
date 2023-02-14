@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  new Class1.a();
-  new Class1.b();
+  Class1.a();
+  Class1.b();
 }
 
 class Class1 {

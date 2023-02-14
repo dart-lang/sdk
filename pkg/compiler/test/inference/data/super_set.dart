@@ -24,14 +24,14 @@ class Super1 {
 class Sub1 extends Super1 {
   /*member: Sub1.method:[subclass=Closure]*/
   method() {
-    var a = super.field = new Sub1();
+    var a = super.field = Sub1();
     return a. /*[exact=Sub1]*/ method;
   }
 }
 
 /*member: superFieldUpdate:[null]*/
 superFieldUpdate() {
-  new Sub1(). /*invoke: [exact=Sub1]*/ method();
+  Sub1(). /*invoke: [exact=Sub1]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,12 +47,12 @@ class Super2 {
 class Sub2 extends Super2 {
   /*member: Sub2.method:[subclass=Closure]*/
   method() {
-    var a = super.setter = new Sub2();
+    var a = super.setter = Sub2();
     return a. /*[exact=Sub2]*/ method;
   }
 }
 
 /*member: superSetterUpdate:[null]*/
 superSetterUpdate() {
-  new Sub2(). /*invoke: [exact=Sub2]*/ method();
+  Sub2(). /*invoke: [exact=Sub2]*/ method();
 }
