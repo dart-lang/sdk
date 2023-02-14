@@ -5713,6 +5713,26 @@ class WarningCode extends AnalyzerErrorCode {
         "changing the return type to 'void'.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the unassigned variable
+  static const WarningCode CAST_FROM_NULLABLE_ALWAYS_FAILS = WarningCode(
+    'CAST_FROM_NULLABLE_ALWAYS_FAILS',
+    "This cast will always throw an exception because the nullable local "
+        "variable '{0}' is not assigned.",
+    correctionMessage:
+        "Try giving it an initializer expression, or ensure that it's assigned "
+        "on every execution path.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode CAST_FROM_NULL_ALWAYS_FAILS = WarningCode(
+    'CAST_FROM_NULL_ALWAYS_FAILS',
+    "This cast always throws an exception because the expression always "
+        "evaluates to 'null'.",
+    hasPublishedDocs: true,
+  );
+
   ///  This is the new replacement for [HintCode.DEAD_CODE].
   static const HintCode DEAD_CODE = HintCode.DEAD_CODE;
 
@@ -6241,6 +6261,28 @@ class WarningCode extends AnalyzerErrorCode {
         "statement.",
     correctionMessage:
         "Try adding a return statement, or changing the return type to 'void'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Generate a hint for classes that inherit from classes annotated with
+  ///  `@immutable` but that are not immutable.
+  ///
+  ///  Parameters:
+  ///  0: the name of the class
+  static const WarningCode MUST_BE_IMMUTABLE = WarningCode(
+    'MUST_BE_IMMUTABLE',
+    "This class (or a class that this class inherits from) is marked as "
+        "'@immutable', but one or more of its instance fields aren't final: "
+        "{0}",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the class declaring the overridden method
+  static const WarningCode MUST_CALL_SUPER = WarningCode(
+    'MUST_CALL_SUPER',
+    "This method overrides a method annotated as '@mustCallSuper' in '{0}', "
+        "but doesn't invoke the overridden method.",
     hasPublishedDocs: true,
   );
 

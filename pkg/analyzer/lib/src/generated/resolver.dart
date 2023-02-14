@@ -1853,7 +1853,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           typeSystem.isNonNullable(staticType) &&
           flowAnalysis.isDefinitelyUnassigned(simpleIdentifier, element)) {
         errorReporter.reportErrorForNode(
-          HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS,
+          WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS,
           simpleIdentifier,
           [simpleIdentifier.name],
         );

@@ -25,7 +25,7 @@ m() {
   x as int;
 }
 ''', [
-      error(HintCode.CAST_FROM_NULL_ALWAYS_FAILS, 18, 8),
+      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 18, 8),
     ]);
   }
 
@@ -372,7 +372,7 @@ void f() {
   x as int;
 }
 ''', [
-      error(HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS, 23, 1),
+      error(WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS, 23, 1),
     ]);
   }
 

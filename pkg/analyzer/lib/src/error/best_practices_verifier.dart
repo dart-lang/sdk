@@ -357,7 +357,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _typeSystem.isNonNullable(type) &&
         node.expression.typeOrThrow.isDartCoreNull) {
       _errorReporter.reportErrorForNode(
-          HintCode.CAST_FROM_NULL_ALWAYS_FAILS, node);
+          WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, node);
     }
     super.visitAsExpression(node);
   }
@@ -1072,8 +1072,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           definedOrInheritedNonFinalInstanceFields(
               element, HashSet<InterfaceElement>());
       if (nonFinalFields.isNotEmpty) {
-        _errorReporter.reportErrorForToken(
-            HintCode.MUST_BE_IMMUTABLE, node.name, [nonFinalFields.join(', ')]);
+        _errorReporter.reportErrorForToken(WarningCode.MUST_BE_IMMUTABLE,
+            node.name, [nonFinalFields.join(', ')]);
       }
     }
   }

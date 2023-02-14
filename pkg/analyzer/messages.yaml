@@ -18716,117 +18716,6 @@ HintCode:
       If the classes that use the mixin don't need to be subclasses of the sealed
       class, then consider adding a field and delegating to the wrapped instance
       of the sealed class.
-  MUST_BE_IMMUTABLE:
-    problemMessage: "This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: {0}"
-    hasPublishedDocs: true
-    comment: |-
-      Generate a hint for classes that inherit from classes annotated with
-      `@immutable` but that are not immutable.
-
-      Parameters:
-      0: the name of the class
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an immutable class defines one
-      or more instance fields that aren't final. A class is immutable if it's
-      marked as being immutable using the annotation
-      `[immutable][meta-immutable]` or if it's a subclass of an immutable class.
-
-      #### Example
-
-      The following code produces this diagnostic because the field `x` isn't
-      final:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @immutable
-      class [!C!] {
-        int x;
-
-        C(this.x);
-      }
-      ```
-
-      #### Common fixes
-
-      If instances of the class should be immutable, then add the keyword `final`
-      to all non-final field declarations:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @immutable
-      class C {
-        final int x;
-
-        C(this.x);
-      }
-      ```
-
-      If the instances of the class should be mutable, then remove the
-      annotation, or choose a different superclass if the annotation is
-      inherited:
-
-      ```dart
-      class C {
-        int x;
-
-        C(this.x);
-      }
-      ```
-  MUST_CALL_SUPER:
-    problemMessage: "This method overrides a method annotated as '@mustCallSuper' in '{0}', but doesn't invoke the overridden method."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the class declaring the overridden method
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a method that overrides a method
-      that is annotated as `[mustCallSuper][meta-mustCallSuper]` doesn't invoke
-      the overridden method as required.
-
-      #### Example
-
-      The following code produces this diagnostic because the method `m` in `B`
-      doesn't invoke the overridden method `m` in `A`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @mustCallSuper
-        m() {}
-      }
-
-      class B extends A {
-        @override
-        [!m!]() {}
-      }
-      ```
-
-      #### Common fixes
-
-      Add an invocation of the overridden method in the overriding method:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @mustCallSuper
-        m() {}
-      }
-
-      class B extends A {
-        @override
-        m() {
-          super.m();
-        }
-      }
-      ```
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
     sharedName: NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
     problemMessage: "This instance creation must be 'const', because the {0} constructor is marked as '@literal'."
@@ -18885,87 +18774,6 @@ HintCode:
       }
 
       void f() => const C();
-      ```
-  CAST_FROM_NULL_ALWAYS_FAILS:
-    problemMessage: "This cast always throws an exception because the expression always evaluates to 'null'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an expression whose type is
-      `Null` is being cast to a non-nullable type.
-
-      #### Example
-
-      The following code produces this diagnostic because `n` is known to always
-      be `null`, but it's being cast to a non-nullable type:
-
-      ```dart
-      void f(Null n) {
-        [!n as int!];
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary cast:
-
-      ```dart
-      void f(Null n) {
-        n;
-      }
-      ```
-  CAST_FROM_NULLABLE_ALWAYS_FAILS:
-    problemMessage: "This cast will always throw an exception because the nullable local variable '{0}' is not assigned."
-    correctionMessage: "Try giving it an initializer expression, or ensure that it's assigned on every execution path."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the unassigned variable
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a local variable that has a
-      nullable type hasn't been assigned and is cast to a non-nullable type.
-      Because the variable hasn't been assigned it has the default value of
-      `null`, causing the cast to throw an exception.
-
-      #### Example
-
-      The following code produces this diagnostic because the variable `x` is
-      cast to a non-nullable type (`int`) when it's known to have the value
-      `null`:
-
-      ```dart
-      void f() {
-        num? x;
-        [!x!] as int;
-        print(x);
-      }
-      ```
-
-      #### Common fixes
-
-      If the variable is expected to have a value before the cast, then add an
-      initializer or an assignment:
-
-      ```dart
-      void f() {
-        num? x = 3;
-        x as int;
-        print(x);
-      }
-      ```
-
-      If the variable isn't expected to be assigned, then remove the cast:
-
-      ```dart
-      void f() {
-        num? x;
-        print(x);
-      }
       ```
   NULL_CHECK_ALWAYS_FAILS:
     problemMessage: "This null-check will always throw an exception because the expression will always evaluate to 'null'."
@@ -21255,6 +21063,87 @@ WarningCode:
         return '';
       }
       ```
+  CAST_FROM_NULL_ALWAYS_FAILS:
+    problemMessage: "This cast always throws an exception because the expression always evaluates to 'null'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an expression whose type is
+      `Null` is being cast to a non-nullable type.
+
+      #### Example
+
+      The following code produces this diagnostic because `n` is known to always
+      be `null`, but it's being cast to a non-nullable type:
+
+      ```dart
+      void f(Null n) {
+        [!n as int!];
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary cast:
+
+      ```dart
+      void f(Null n) {
+        n;
+      }
+      ```
+  CAST_FROM_NULLABLE_ALWAYS_FAILS:
+    problemMessage: "This cast will always throw an exception because the nullable local variable '{0}' is not assigned."
+    correctionMessage: "Try giving it an initializer expression, or ensure that it's assigned on every execution path."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the unassigned variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a local variable that has a
+      nullable type hasn't been assigned and is cast to a non-nullable type.
+      Because the variable hasn't been assigned it has the default value of
+      `null`, causing the cast to throw an exception.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable `x` is
+      cast to a non-nullable type (`int`) when it's known to have the value
+      `null`:
+
+      ```dart
+      void f() {
+        num? x;
+        [!x!] as int;
+        print(x);
+      }
+      ```
+
+      #### Common fixes
+
+      If the variable is expected to have a value before the cast, then add an
+      initializer or an assignment:
+
+      ```dart
+      void f() {
+        num? x = 3;
+        x as int;
+        print(x);
+      }
+      ```
+
+      If the variable isn't expected to be assigned, then remove the cast:
+
+      ```dart
+      void f() {
+        num? x;
+        print(x);
+      }
+      ```
   DEAD_CODE:
     aliasFor: HintCode.DEAD_CODE
     comment: This is the new replacement for [HintCode.DEAD_CODE].
@@ -22473,6 +22362,117 @@ WarningCode:
 
       Add a `return` statement that makes the return value explicit, even if
       `null` is the appropriate value.
+  MUST_BE_IMMUTABLE:
+    problemMessage: "This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: {0}"
+    hasPublishedDocs: true
+    comment: |-
+      Generate a hint for classes that inherit from classes annotated with
+      `@immutable` but that are not immutable.
+
+      Parameters:
+      0: the name of the class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an immutable class defines one
+      or more instance fields that aren't final. A class is immutable if it's
+      marked as being immutable using the annotation
+      `[immutable][meta-immutable]` or if it's a subclass of an immutable class.
+
+      #### Example
+
+      The following code produces this diagnostic because the field `x` isn't
+      final:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @immutable
+      class [!C!] {
+        int x;
+
+        C(this.x);
+      }
+      ```
+
+      #### Common fixes
+
+      If instances of the class should be immutable, then add the keyword `final`
+      to all non-final field declarations:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @immutable
+      class C {
+        final int x;
+
+        C(this.x);
+      }
+      ```
+
+      If the instances of the class should be mutable, then remove the
+      annotation, or choose a different superclass if the annotation is
+      inherited:
+
+      ```dart
+      class C {
+        int x;
+
+        C(this.x);
+      }
+      ```
+  MUST_CALL_SUPER:
+    problemMessage: "This method overrides a method annotated as '@mustCallSuper' in '{0}', but doesn't invoke the overridden method."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the class declaring the overridden method
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method that overrides a method
+      that is annotated as `[mustCallSuper][meta-mustCallSuper]` doesn't invoke
+      the overridden method as required.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `m` in `B`
+      doesn't invoke the overridden method `m` in `A`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @mustCallSuper
+        m() {}
+      }
+
+      class B extends A {
+        @override
+        [!m!]() {}
+      }
+      ```
+
+      #### Common fixes
+
+      Add an invocation of the overridden method in the overriding method:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @mustCallSuper
+        m() {}
+      }
+
+      class B extends A {
+        @override
+        m() {
+          super.m();
+        }
+      }
+      ```
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
     aliasFor: HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
     comment: This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
