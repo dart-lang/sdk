@@ -25,6 +25,17 @@ void defineDocTests() {
     expect(result.exitCode, 0);
   });
 
+  test('Passing conflicting options fails', () async {
+    final p = project();
+    final result =
+        await p.run(['doc', '--validate-links', '--dry-run', p.dirPath]);
+    expect(
+      result.stderr,
+      contains("'dart doc' can not validate links when dry-running."),
+    );
+    expect(result.exitCode, errorExitCode);
+  });
+
   test('Passing multiple directories fails', () async {
     final p = project();
     final result = await p.run(['doc', 'foo', 'bar']);
