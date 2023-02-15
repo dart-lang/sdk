@@ -482,6 +482,53 @@ main() {
           });
         });
       });
+
+      group('With errorOnSwitchExhaustiveness enabled', () {
+        test('Errors if there is no default', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            (switchExpr(expr('int'), [
+              intLiteral(0).pattern.thenExpr(expr('int')),
+            ])
+                  ..errorId = 'SWITCH')
+                .stmt,
+          ], expectedErrors: {
+            'nonExhaustiveSwitch(node: SWITCH, scrutineeType: int)'
+          });
+        });
+
+        test('Does not error if there is a default', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            switchExpr(expr('int'), [
+              default_.thenExpr(expr('int')),
+            ]).stmt,
+          ]);
+        });
+
+        test('Does not error if there is a catchall case', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            switchExpr(expr('int'), [
+              wildcard().thenExpr(expr('int')),
+            ]).stmt,
+          ]);
+        });
+
+        test('Errors even if the switch is unreachable', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            return_(),
+            (switchExpr(expr('int'), [
+              intLiteral(0).pattern.thenExpr(expr('int')),
+            ])
+                  ..errorId = 'SWITCH')
+                .stmt,
+          ], expectedErrors: {
+            'nonExhaustiveSwitch(node: SWITCH, scrutineeType: int)'
+          });
+        });
+      });
     });
   });
 
@@ -1557,6 +1604,71 @@ main() {
               expectRequiresExhaustivenessValidation: false,
             ),
           ]);
+        });
+      });
+
+      group('With errorOnSwitchExhaustiveness enabled', () {
+        test('Errors if the type is always-exhaustive and there is no default',
+            () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            (switch_(expr('bool'), [
+              booleanLiteral(false).pattern.then([
+                break_(),
+              ]),
+            ])
+              ..errorId = 'SWITCH'),
+          ], expectedErrors: {
+            'nonExhaustiveSwitch(node: SWITCH, scrutineeType: bool)'
+          });
+        });
+
+        test(
+            'Does not error if the type is always-exhaustive and there is a '
+            'default', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            switch_(expr('bool'), [
+              default_.then([break_()]),
+            ]),
+          ]);
+        });
+
+        test(
+            'Does not error if the type is always-exhaustive and there is a '
+            'catchall case', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            switch_(expr('bool'), [
+              wildcard().then([break_()]),
+            ]),
+          ]);
+        });
+
+        test('Does not error if the type is not always-exhaustive', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            switch_(expr('int'), [
+              intLiteral(0).pattern.then([
+                break_(),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('Errors even if the switch is unreachable', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            return_(),
+            (switch_(expr('bool'), [
+              booleanLiteral(false).pattern.then([
+                break_(),
+              ]),
+            ])
+              ..errorId = 'SWITCH'),
+          ], expectedErrors: {
+            'nonExhaustiveSwitch(node: SWITCH, scrutineeType: bool)'
+          });
         });
       });
     });

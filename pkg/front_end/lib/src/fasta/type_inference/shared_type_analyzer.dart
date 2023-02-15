@@ -168,6 +168,16 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void nonExhaustiveSwitch(
+      {required TreeNode node, required DartType scrutineeType}) {
+    helper.addProblem(
+        templateNonExhaustiveSwitch.withArguments(
+            scrutineeType, scrutineeType.toString(), isNonNullableByDefault),
+        node.fileOffset,
+        noLength);
+  }
+
+  @override
   void patternForInExpressionIsNotIterable({
     required TreeNode node,
     required Expression expression,

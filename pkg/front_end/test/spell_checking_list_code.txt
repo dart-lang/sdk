@@ -125,6 +125,7 @@ benchmarked
 benchmarker
 benchmarking
 benchmarks
+beta
 bf
 bi
 bias
@@ -1115,6 +1116,7 @@ protobuf
 protocol
 prototype's
 prove
+proven
 provider
 provisional
 prune
@@ -1335,6 +1337,7 @@ shares
 shas
 shelf
 shifts
+ship
 shl
 shortening
 showing
