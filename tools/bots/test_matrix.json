@@ -368,10 +368,7 @@
         "mode": "release",
         "runtime": "vm",
         "timeout": 240,
-        "use-sdk": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ]
+        "use-sdk": true
       }
     },
     "web-unittest-asserts-legacy-(linux|mac|win)": {
@@ -382,10 +379,7 @@
         "mode": "release",
         "runtime": "vm",
         "timeout": 240,
-        "use-sdk": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ]
+        "use-sdk": true
       }
     },
     "unittest-asserts-(debug|product|release)-(linux|mac|win)": {
@@ -2809,7 +2803,6 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "--no-sound-null-safety",
             "pkg/compiler/tool/modular_test_suite_legacy.dart",
             "-nweb-unittest-asserts-legacy-linux",
             "--verbose",
@@ -2821,7 +2814,6 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "--no-sound-null-safety",
             "pkg/compiler/tool/modular_test_suite.dart",
             "-nweb-unittest-asserts-linux",
             "--verbose",
