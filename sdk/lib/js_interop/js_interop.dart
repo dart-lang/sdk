@@ -49,6 +49,9 @@ typedef JSFunction = js_types.JSFunction;
 /// TODO(joshualitt): Detail exactly what are the requirements.
 typedef JSExportedDartFunction = js_types.JSExportedDartFunction;
 
+/// The type of JS promises and promise-like objects, [JSPromise] <: [JSObject].
+typedef JSPromise = js_types.JSPromise;
+
 /// The type of all JS arrays, [JSArray] <: [JSObject].
 typedef JSArray = js_types.JSArray;
 
@@ -92,6 +95,10 @@ typedef JSString = js_types.JSString;
 
 /// TODO(joshualitt): Figure out how we want to handle JSUndefined and JSNull.
 
+/// The type of `JSUndefined` when returned from functions. Unlike pure JS,
+/// no actual object will be returned.
+typedef JSVoid = js_types.JSVoid;
+
 /// Extension members to support conversions between Dart types and JS types.
 /// Not all Dart types can be converted to JS types and vice versa.
 /// TODO(joshualitt): We might want to investigate using inline classes instead
@@ -113,6 +120,11 @@ extension JSExportedDartObjectToObject on JSExportedDartObject {
 
 extension ObjectToJSExportedDartObject on Object {
   external JSExportedDartObject get toJS;
+}
+
+/// [JSPromise] -> [Future<JSAny?>].
+extension JSPromiseToFuture on JSPromise {
+  external Future<JSAny?> get toDart;
 }
 
 /// TODO(joshualitt): On Wasm backends List / Array conversion methods will

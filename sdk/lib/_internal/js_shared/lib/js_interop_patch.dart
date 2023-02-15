@@ -5,6 +5,7 @@
 import 'dart:_internal' show patch;
 import 'dart:_js_types';
 import 'dart:js';
+import 'dart:js_util';
 import 'dart:typed_data';
 
 /// [JSExportedDartFunction] <-> [Function]
@@ -27,6 +28,12 @@ extension JSExportedDartObjectToObject on JSExportedDartObject {
 extension ObjectToJSExportedDartObject on Object {
   @patch
   JSExportedDartObject get toJS => this;
+}
+
+/// [JSPromise] -> [Future<JSAny?>].
+extension JSPromiseToFuture on JSPromise {
+  @patch
+  Future<JSAny?> get toDart => promiseToFuture<JSAny?>(this);
 }
 
 /// [JSArrayBuffer] <-> [ByteBuffer]

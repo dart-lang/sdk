@@ -131,7 +131,7 @@ class NullRejectionException implements Exception {
   // Indicates whether the value is `undefined` or `null`.
   final bool isUndefined;
 
-  NullRejectionException._(this.isUndefined);
+  NullRejectionException(this.isUndefined);
 
   @override
   String toString() {

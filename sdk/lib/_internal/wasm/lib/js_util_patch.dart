@@ -161,7 +161,7 @@ Future<T> promiseToFuture<T>(Object jsPromise) {
     // so we cannot tell them apart. In the future we should reify `undefined`
     // in Dart.
     if (e == null) {
-      return completer.completeError(NullRejectionException._(false));
+      return completer.completeError(NullRejectionException(false));
     }
     return completer.completeError(e);
   });

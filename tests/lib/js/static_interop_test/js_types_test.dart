@@ -5,6 +5,7 @@
 // Check that JS types work.
 
 import 'dart:js_interop';
+import 'dart:js_util';
 import 'dart:typed_data';
 
 import 'package:expect/minitest.dart';
@@ -91,7 +92,7 @@ class DartObject {
   String get foo => 'bar';
 }
 
-void main() {
+void syncTests() {
   eval('''
     globalThis.obj = {
       'foo': 'bar',
@@ -217,4 +218,91 @@ void main() {
   expect(str is JSString, true);
   String dartStr = str.toDart;
   expect(dartStr, 'foo');
+}
+
+@JS()
+external JSPromise get resolvedPromise;
+
+@JS()
+external JSPromise get rejectedPromise;
+
+@JS()
+external JSPromise getResolvedPromise();
+
+@JS()
+external JSPromise getRejectablePromise();
+
+@JS()
+external JSVoid rejectPromiseWithNull();
+
+@JS()
+external JSVoid rejectPromiseWithUndefined();
+
+Future<void> asyncTests() async {
+  eval(r'''
+    globalThis.resolvedPromise = new Promise(resolve => resolve('resolved'));
+    globalThis.getResolvedPromise = function() {
+      return resolvedPromise;
+    }
+    globalThis.getRejectablePromise = function() {
+      return new Promise(function(_, reject) {
+        globalThis.rejectPromise = reject;
+      });
+    }
+    globalThis.rejectPromiseWithNull = function() {
+      globalThis.rejectPromise(null);
+    }
+    globalThis.rejectPromiseWithUndefined = function() {
+      globalThis.rejectPromise(undefined);
+    }
+  ''');
+
+  // [JSPromise] -> [Future].
+  // Test resolved
+  {
+    Future<JSAny?> f = resolvedPromise.toDart;
+    expect(((await f) as JSString).toDart, 'resolved');
+  }
+
+  // Test rejected
+  // TODO(joshualitt): Write a test for rejected promises that works on all
+  // backends.
+
+  // Test return resolved
+  {
+    Future<JSAny?> f = getResolvedPromise().toDart;
+    expect(((await f) as JSString).toDart, 'resolved');
+  }
+
+  // Test promise chaining
+  {
+    bool didThen = false;
+    Future<JSAny?> f = getResolvedPromise().toDart;
+    f.then((resolved) {
+      expect((resolved as JSString).toDart, 'resolved');
+      didThen = true;
+    });
+    await f;
+    expect(didThen, true);
+  }
+
+  // Test rejecting promise with null should trigger an exception.
+  // TODO(joshualitt): `catchError` doesn't seem to clear the JS exception on
+  // Dart2Wasm.
+  //{
+  //  bool threw = false;
+  //  Future<JSAny?> f = getRejectablePromise().toDart;
+  //  f.then((_) {}).catchError((e) {
+  //    threw = true;
+  //    expect(e is NullRejectionException, true);
+  //  });
+  //  rejectPromiseWithNull();
+  //  await f;
+  //  expect(threw, true);
+  //}
+}
+
+void main() async {
+  syncTests();
+  await asyncTests();
 }

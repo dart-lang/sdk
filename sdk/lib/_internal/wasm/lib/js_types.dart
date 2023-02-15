@@ -61,6 +61,10 @@ class JSFunction implements JSObject {}
 @staticInterop
 class JSExportedDartFunction implements JSFunction {}
 
+@JS()
+@staticInterop
+class JSPromise implements JSObject {}
+
 @JS('Array')
 @staticInterop
 class JSArray implements JSObject {
@@ -131,3 +135,8 @@ class JSBoolean implements JSAny {}
 @JS()
 @staticInterop
 class JSString implements JSAny {}
+
+/// [JSVoid] is just a typedef for [void]. While we could just use
+/// `JSUndefined`, in the future we may be able to use this to elide `return`s
+/// in JS trampolines.
+typedef JSVoid = void;
