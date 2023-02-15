@@ -346,6 +346,17 @@ part of my.lib;
     expect(element, isLibraryElement);
   }
 
+  test_locate_PatternField() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case int(isEven: true)) {}
+}
+''');
+    var node = findNode.patternField('isEven:');
+    var element = ElementLocator.locate(node);
+    expect(element, isPropertyAccessorElement);
+  }
+
   test_locate_PostfixExpression() async {
     await resolveTestCode('int addOne(int x) => x++;');
     var node = findNode.postfix('x++');

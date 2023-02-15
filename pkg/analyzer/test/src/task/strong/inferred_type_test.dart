@@ -3603,7 +3603,7 @@ test1() {
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 572, 1),
       error(
           isNullSafetyEnabled
-              ? HintCode.CAST_FROM_NULL_ALWAYS_FAILS
+              ? WarningCode.CAST_FROM_NULL_ALWAYS_FAILS
               : HintCode.UNNECESSARY_CAST,
           591,
           9),

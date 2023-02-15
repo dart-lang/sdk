@@ -250,10 +250,10 @@ class SharedTypeAnalyzerErrors
 
   @override
   void switchCaseCompletesNormally(
-      covariant SwitchStatement node, int caseIndex, int numHeads) {
+      covariant SwitchStatement node, int caseIndex) {
     _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
-        node.members[caseIndex + numHeads - 1].keyword);
+        node.members[caseIndex].keyword);
   }
 
   @override

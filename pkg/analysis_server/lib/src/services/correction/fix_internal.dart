@@ -1342,6 +1342,7 @@ class FixProcessor extends BaseProcessor {
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH: [
       RemoveNameFromDeclarationClause.new,
     ],
+
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
       ReplaceWithNullAware.inChain,
     ],
@@ -1383,9 +1384,6 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION: [
       RemoveAnnotation.new,
-    ],
-    HintCode.MUST_CALL_SUPER: [
-      AddCallSuper.new,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
       RemoveAnnotation.new,
@@ -1461,6 +1459,7 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNUSED_SHOWN_NAME: [
       RemoveNameFromCombinator.new,
     ],
+
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
       RemoveAbstract.bulkFixable,
     ],
@@ -1558,6 +1557,9 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.MISSING_RETURN: [
       AddAsync.missingReturn,
+    ],
+    WarningCode.MUST_CALL_SUPER: [
+      AddCallSuper.new,
     ],
     WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
       RemoveQuestionMark.new,

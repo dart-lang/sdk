@@ -1384,10 +1384,6 @@ HintCode.ASSIGNMENT_OF_DO_NOT_STORE:
     Fix depends on user's intent, which can't be known.
 HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
   status: hasFix
-HintCode.CAST_FROM_NULL_ALWAYS_FAILS:
-  status: noFix
-HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS:
-  status: noFix
 HintCode.DEAD_CODE:
   status: hasFix
 HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
@@ -1450,10 +1446,6 @@ HintCode.MIXIN_ON_SEALED_CLASS:
   notes: |-
     `sealed` annotation is likely to be replaced by the `sealed` keyword
     in the next stable release.
-HintCode.MUST_BE_IMMUTABLE:
-  status: noFix
-HintCode.MUST_CALL_SUPER:
-  status: hasFix
 HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
   status: needsFix
   notes: |-
@@ -2628,6 +2620,10 @@ WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
     Fix depends on user's intent, which can't be known.
 WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
   status: needsFix
+WarningCode.CAST_FROM_NULL_ALWAYS_FAILS:
+  status: noFix
+WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS:
+  status: noFix
 WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
   status: hasFix
 WarningCode.DEPRECATED_EXTENDS_FUNCTION:
@@ -2776,6 +2772,10 @@ WarningCode.MISSING_REQUIRED_PARAM:
 WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
   status: hasFix
 WarningCode.MISSING_RETURN:
+  status: hasFix
+WarningCode.MUST_BE_IMMUTABLE:
+  status: noFix
+WarningCode.MUST_CALL_SUPER:
   status: hasFix
 WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
   status: hasFix

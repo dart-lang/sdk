@@ -241,6 +241,24 @@ class A {
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
   }
 
+  Future<void> test_class_getter_in_objectPattern() async {
+    addTestFile('''
+void f(Object? x) {
+  if (x case A(foo: 0)) {}
+  if (x case A(: var foo)) {}
+}
+
+class A {
+  int get foo => 0;
+}
+''');
+    await findElementReferences('foo =>', false);
+    expect(searchElement!.kind, ElementKind.FIELD);
+    expect(results, hasLength(2));
+    assertHasResult(SearchResultKind.READ, 'foo: 0');
+    assertHasResult(SearchResultKind.READ, ': var foo');
+  }
+
   Future<void> test_class_method() async {
     addTestFile('''
 class A {

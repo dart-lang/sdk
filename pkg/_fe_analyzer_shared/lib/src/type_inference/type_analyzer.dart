@@ -1692,7 +1692,7 @@ mixin TypeAnalyzer<
           options.nullSafetyEnabled &&
           !options.patternsEnabled &&
           !lastCaseTerminates) {
-        errors?.switchCaseCompletesNormally(node, caseIndex, 1);
+        errors?.switchCaseCompletesNormally(node, caseIndex);
       }
       handleMergedStatementCase(node,
           caseIndex: caseIndex, isTerminating: lastCaseTerminates);
@@ -2443,10 +2443,8 @@ abstract class TypeAnalyzerErrors<
   /// enabled.
   ///
   /// [node] is the AST node of the switch statement.  [caseIndex] is the index
-  /// of the first case sharing the erroneous case body.  [numMergedCases] is
-  /// the number of case heads sharing the erroneous case body.
-  void switchCaseCompletesNormally(
-      Statement node, int caseIndex, int numMergedCases);
+  /// of the merged case with the erroneous case body.
+  void switchCaseCompletesNormally(Statement node, int caseIndex);
 
   /// Called when a wildcard pattern appears in the context where it is not
   /// necessary, e.g. `0 && var _` vs. `[var _]`, and does not add anything

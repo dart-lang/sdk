@@ -1,3 +1,5 @@
+include: package:lints/recommended.yaml
+
 analyzer:
   errors:
     import_internal_library: ignore

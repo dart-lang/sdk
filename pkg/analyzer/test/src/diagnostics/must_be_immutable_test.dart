@@ -29,7 +29,7 @@ class A {
   int x = 0;
 }
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 50, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 50, 1),
     ]);
   }
 
@@ -41,7 +41,7 @@ mixin A {
   int x = 0;
 }
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 50, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 50, 1),
     ]);
   }
 
@@ -54,7 +54,7 @@ class B extends A {
   int x = 0;
 }
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 61, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 61, 1),
     ]);
   }
 
@@ -78,7 +78,7 @@ class B {
 }
 class C extends A with B {}
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 86, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 86, 1),
     ]);
   }
 
@@ -92,7 +92,7 @@ class B {
 }
 class C = A with B;
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 86, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 86, 1),
     ]);
   }
 
@@ -106,7 +106,7 @@ class B {}
 @immutable
 class C = A with B;
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 86, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 86, 1),
     ]);
   }
 

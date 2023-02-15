@@ -710,6 +710,42 @@ class A {
 ''');
   }
 
+  test_isReferencedBy_class_getter_in_objectPattern() async {
+    await _indexTestUnit('''
+void f(Object? x) {
+  if (x case A(foo: 0)) {}
+  if (x case A(: var foo)) {}
+}
+
+class A {
+  int get foo => 0;
+}
+''');
+    final element = findElement.getter('foo');
+    assertElementIndexText(element, r'''
+35 2:16 |foo| IS_REFERENCED_BY qualified
+62 3:16 || IS_REFERENCED_BY qualified
+''');
+  }
+
+  test_isReferencedBy_class_method_in_objectPattern() async {
+    await _indexTestUnit('''
+void f(Object? x) {
+  if (x case A(foo: _)) {}
+  if (x case A(: var foo)) {}
+}
+
+class A {
+  void foo() {}
+}
+''');
+    final element = findElement.method('foo');
+    assertElementIndexText(element, r'''
+35 2:16 |foo| IS_REFERENCED_BY qualified
+62 3:16 || IS_REFERENCED_BY qualified
+''');
+  }
+
   test_isReferencedBy_ClassElement() async {
     await _indexTestUnit('''
 class A {

@@ -644,6 +644,66 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_createChange_getter_in_objectPattern() async {
+    await indexTestUnit('''
+void f(Object? x) {
+  if (x case A(test: 0)) {}
+  if (x case A(: var test)) {}
+}
+
+class A {
+  int get test => 0;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test =>');
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(Object? x) {
+  if (x case A(newName: 0)) {}
+  if (x case A(newName: var test)) {}
+}
+
+class A {
+  int get newName => 0;
+}
+''');
+  }
+
+  Future<void> test_createChange_method_in_objectPattern() async {
+    await indexTestUnit('''
+void f(Object? x) {
+  if (x case A(test: _)) {}
+  if (x case A(: var test)) {}
+}
+
+class A {
+  void test() {}
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test() {}');
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.elementKindName, 'method');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(Object? x) {
+  if (x case A(newName: _)) {}
+  if (x case A(newName: var test)) {}
+}
+
+class A {
+  void newName() {}
+}
+''');
+  }
+
   Future<void> test_createChange_MethodElement() async {
     await indexTestUnit('''
 /// [A.test]

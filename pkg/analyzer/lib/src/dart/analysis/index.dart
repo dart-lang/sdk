@@ -806,6 +806,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitPatternField(PatternField node) {
+    final nameNode = node.name;
+    if (nameNode != null) {
+      final nameToken = nameNode.name;
+      final int offset;
+      final int length;
+      if (nameToken != null) {
+        offset = nameToken.offset;
+        length = nameToken.length;
+      } else {
+        offset = nameNode.offset;
+        length = 0;
+      }
+      recordRelationOffset(node.element, IndexRelationKind.IS_REFERENCED_BY,
+          offset, length, true);
+    }
+    return super.visitPatternField(node);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     recordOperatorReference(node.operator, node.staticElement);
     super.visitPostfixExpression(node);

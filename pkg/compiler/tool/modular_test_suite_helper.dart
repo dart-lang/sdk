@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /// Test the modular compilation pipeline of dart2js.
 ///
 /// This is a shell that runs multiple tests, one per folder under `data/`.
@@ -23,9 +21,9 @@ import 'package:modular_test/src/suite.dart';
 String packageConfigJsonPath = ".dart_tool/package_config.json";
 Uri sdkRoot = Platform.script.resolve("../../../");
 Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
-Options _options;
-String _dart2jsScript;
-String _kernelWorkerScript;
+late Options _options;
+late String _dart2jsScript;
+late String _kernelWorkerScript;
 
 const dillSummaryId = DataId("summary.dill");
 const dillId = DataId("full.dill");
@@ -57,7 +55,7 @@ String getRootScheme(Module module) {
 
 String sourceToImportUri(Module module, Uri relativeUri) {
   if (module.isPackage) {
-    var basePath = module.packageBase.path;
+    var basePath = module.packageBase!.path;
     var packageRelativePath = basePath == "./"
         ? relativeUri.path
         : relativeUri.path.substring(basePath.length);
@@ -112,7 +110,7 @@ abstract class CFEStep extends IOModularStep {
         await File.fromUri(platform).copy(destination.toFilePath());
         return;
       }
-      sources = requiredLibraries['dart2js'] + ['dart:core'];
+      sources = requiredLibraries['dart2js']! + ['dart:core'];
       extraArgs += [
         '--libraries-file',
         '$rootScheme:///sdk/lib/libraries.json'
@@ -331,7 +329,7 @@ class ConcatenateDillsStep extends IOModularStep {
   @override
   bool get onlyOnMain => true;
 
-  ConcatenateDillsStep({this.useModularAnalysis});
+  ConcatenateDillsStep({required this.useModularAnalysis});
 
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
@@ -380,7 +378,7 @@ class ConcatenateDillsStep extends IOModularStep {
 class ComputeClosedWorldStep extends IOModularStep {
   final bool useModularAnalysis;
 
-  ComputeClosedWorldStep({this.useModularAnalysis});
+  ComputeClosedWorldStep({required this.useModularAnalysis});
 
   List<DataId> get dependencies => [
         fullDillId,

@@ -37,26 +37,6 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage: "Replace the '.' with a '?.' in the invocation.",
   );
 
-  ///  Parameters:
-  ///  0: the name of the unassigned variable
-  static const HintCode CAST_FROM_NULLABLE_ALWAYS_FAILS = HintCode(
-    'CAST_FROM_NULLABLE_ALWAYS_FAILS',
-    "This cast will always throw an exception because the nullable local "
-        "variable '{0}' is not assigned.",
-    correctionMessage:
-        "Try giving it an initializer expression, or ensure that it's assigned "
-        "on every execution path.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode CAST_FROM_NULL_ALWAYS_FAILS = HintCode(
-    'CAST_FROM_NULL_ALWAYS_FAILS',
-    "This cast always throws an exception because the expression always "
-        "evaluates to 'null'.",
-    hasPublishedDocs: true,
-  );
-
   ///  Dead code is code that is never reached, this can happen for instance if a
   ///  statement follows a return statement.
   ///
@@ -305,28 +285,6 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try composing with this class, or refer to its documentation for more "
         "information.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Generate a hint for classes that inherit from classes annotated with
-  ///  `@immutable` but that are not immutable.
-  ///
-  ///  Parameters:
-  ///  0: the name of the class
-  static const HintCode MUST_BE_IMMUTABLE = HintCode(
-    'MUST_BE_IMMUTABLE',
-    "This class (or a class that this class inherits from) is marked as "
-        "'@immutable', but one or more of its instance fields aren't final: "
-        "{0}",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the class declaring the overridden method
-  static const HintCode MUST_CALL_SUPER = HintCode(
-    'MUST_CALL_SUPER',
-    "This method overrides a method annotated as '@mustCallSuper' in '{0}', "
-        "but doesn't invoke the overridden method.",
     hasPublishedDocs: true,
   );
 

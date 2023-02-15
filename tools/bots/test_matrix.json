@@ -368,10 +368,7 @@
         "mode": "release",
         "runtime": "vm",
         "timeout": 240,
-        "use-sdk": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ]
+        "use-sdk": true
       }
     },
     "web-unittest-asserts-legacy-(linux|mac|win)": {
@@ -382,10 +379,7 @@
         "mode": "release",
         "runtime": "vm",
         "timeout": 240,
-        "use-sdk": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ]
+        "use-sdk": true
       }
     },
     "unittest-asserts-(debug|product|release)-(linux|mac|win)": {
@@ -424,6 +418,28 @@
       "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options.",
       "options": {
         "builder-tag": "ffi"
+      }
+    },
+    "vm-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "nnbd": "strong"
+      }
+    },
+    "vm-aot-(linux|mac)-(debug|product|release)-(x64|arm64)": {
+      "options": {
+        "nnbd": "strong"
+      }
+    },
+    "vm-aot-win-(debug|product|release)-(x64|arm64)": {
+      "options": {
+        "nnbd": "strong",
+        "use-elf": true
+      }
+    },
+    "vm-aot-(linux|mac|win)-(debug|product|release)-(simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "nnbd": "strong",
+        "use-elf": true
       }
     },
     "vm-asan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
@@ -1524,6 +1540,57 @@
           ],
           "fileset": "vm-kernel",
           "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-linux-product-x64",
+        "vm-aot-win-product-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm AOT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-mac-product-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm AOT builders. Without shards because shards are missing XCode."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}"
+          ]
         }
       ]
     },
@@ -2736,7 +2803,6 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "--no-sound-null-safety",
             "pkg/compiler/tool/modular_test_suite_legacy.dart",
             "-nweb-unittest-asserts-legacy-linux",
             "--verbose",
@@ -2748,7 +2814,6 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "--no-sound-null-safety",
             "pkg/compiler/tool/modular_test_suite.dart",
             "-nweb-unittest-asserts-linux",
             "--verbose",

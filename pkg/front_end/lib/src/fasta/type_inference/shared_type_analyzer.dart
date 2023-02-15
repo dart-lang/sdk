@@ -222,7 +222,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void switchCaseCompletesNormally(
-      covariant SwitchStatement node, int caseIndex, int numMergedCases) {
+      covariant SwitchStatement node, int caseIndex) {
     helper.addProblem(messageSwitchCaseFallThrough,
         node.cases[caseIndex].fileOffset, noLength);
   }
