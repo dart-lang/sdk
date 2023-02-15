@@ -3079,7 +3079,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     final rewrittenPropertyAccess =
         _prefixedIdentifierResolver.resolve(node, contextType: contextType);
     if (rewrittenPropertyAccess != null) {
-      rewrittenPropertyAccess.accept(this);
+      visitPropertyAccess(rewrittenPropertyAccess, contextType: contextType);
+      // We did record that `node` was replaced with `rewrittenPropertyAccess`.
+      // But if `rewrittenPropertyAccess` was itself rewritten, replace the
+      // rewrite result of `node`.
+      assert(() {
+        final rewrite = _replacements[rewrittenPropertyAccess];
+        if (rewrite != null) {
+          _replacements[node] = rewrite;
+        }
+        return true;
+      }());
       return;
     }
     _insertImplicitCallReference(
