@@ -186,6 +186,7 @@ records/block_combine_statements: FormatterCrash
 records/const_local_access: FormatterCrash
 records/const_record_literal: FormatterCrash
 records/duplicated_name_errors: FormatterCrash
+records/for_in_without_variable: FormatterCrash
 records/issue50132: FormatterCrash
 records/issue50133: FormatterCrash
 records/issue50157: FormatterCrash

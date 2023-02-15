@@ -2261,7 +2261,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             element,
             element.variable,
             element.iterable,
-            element.syntheticAssignment!,
+            element.syntheticAssignment,
             element.expressionEffects,
             isAsync: element.isAsync,
             hasProblem: element.problem != null);
