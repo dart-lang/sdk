@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.stress;
 
 import 'package:compiler/src/dart2js.dart' as dart2js;
@@ -13,7 +11,7 @@ const ITERATIONS_FLAG_PREFIX = "--iterations=";
 void main(List<String> args) {
   Stopwatch sw = new Stopwatch();
   int count = 0;
-  int maxCount = null;
+  int? maxCount = null;
   if (args.isNotEmpty && args[0].startsWith(ITERATIONS_FLAG_PREFIX)) {
     maxCount = int.parse(args[0].substring(ITERATIONS_FLAG_PREFIX.length));
     args = args.sublist(1);
