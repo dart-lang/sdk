@@ -32,7 +32,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-void group(String name, body()) {
+void group(String name, Function() body) {
   var oldName = _pushName(name);
   try {
     body();
@@ -41,7 +41,7 @@ void group(String name, body()) {
   }
 }
 
-void test(String name, body()) {
+void test(String name, Function() body) {
   var oldName = _pushName(name);
 
   asyncStart();
@@ -147,7 +147,7 @@ dynamic expectAsync(Function f, {int count = 1}) {
       return result;
     };
   }
-  throw new UnsupportedError(
+  throw UnsupportedError(
       "expectAsync only accepts up to five argument functions");
 }
 
@@ -190,7 +190,7 @@ Matcher lessThanOrEqualTo(num n) => (dynamic v) {
       Expect.fail("$v is not less than $n");
     };
 
-Matcher predicate(bool fn(dynamic value), [String description = ""]) =>
+Matcher predicate(bool Function(dynamic value) fn, [String description = ""]) =>
     (dynamic v) {
       Expect.isTrue(fn(v), description);
     };
@@ -215,7 +215,8 @@ void isNull(dynamic o) {
   Expect.isNull(o);
 }
 
-void _checkThrow<T extends Object>(dynamic v, void onError(error)) {
+void _checkThrow<T extends Object>(
+    dynamic v, void Function(dynamic error) onError) {
   if (v is Future) {
     asyncStart();
     v.then((_) {
@@ -288,6 +289,7 @@ abstract class _Matcher {
 
 // ignore: camel_case_types
 class isInstanceOf<T> implements _Matcher {
+  @override
   void call(dynamic o) {
     Expect.type<T>(o);
   }
@@ -302,7 +304,7 @@ void throwsStateError(dynamic v) {
 }
 
 void fail(String message) {
-  Expect.fail("$message");
+  Expect.fail(message);
 }
 
 /// Key for zone value holding current test name.
