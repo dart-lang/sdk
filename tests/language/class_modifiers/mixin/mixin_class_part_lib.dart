@@ -11,7 +11,3 @@ part of 'mixin_class_part_test.dart';
 class A with MixinClass {}
 
 abstract class B with MixinClass {}
-
-class NonMixinClass {
-  int foo = 0;
-}
