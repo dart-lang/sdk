@@ -100,20 +100,36 @@ class Expando<T extends Object> {
 
   @patch
   T? operator [](Object object) {
-    _checkType(object); // WeakMap doesn't check on reading, only writing.
+    // `WeakMap.prototype.get` does not check on reading.
+    _checkType(object);
     return JS('', '#.get(#)', _jsWeakMap, object);
   }
 
   @patch
   void operator []=(Object object, T? value) {
+    // `WeakMap.prototype.set` checks for null, bool, num and string, but not
+    // the classes we use for records.
+    // TODO(51366): Make `is Record` more efficient.
+    if (object is Record) {
+      _badExpandoKey(object);
+    }
     JS('void', '#.set(#, #)', _jsWeakMap, object, value);
   }
 
-  static _checkType(object) {
-    if (object == null || object is bool || object is num || object is String) {
-      throw new ArgumentError.value(object,
-          "Expandos are not allowed on strings, numbers, booleans or null");
+  static void _checkType(object) {
+    if (object == null ||
+        object is bool ||
+        object is num ||
+        object is String ||
+        // TODO(51366): Make `is Record` more efficient.
+        object is Record) {
+      _badExpandoKey(object);
     }
+  }
+
+  static Never _badExpandoKey(object) {
+    throw ArgumentError.value(object, 'object',
+        "Expandos are not allowed on strings, numbers, bools, records or null");
   }
 }
 
