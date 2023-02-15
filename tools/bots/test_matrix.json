@@ -426,6 +426,28 @@
         "builder-tag": "ffi"
       }
     },
+    "vm-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "nnbd": "strong"
+      }
+    },
+    "vm-aot-(linux|mac)-(debug|product|release)-(x64|arm64)": {
+      "options": {
+        "nnbd": "strong"
+      }
+    },
+    "vm-aot-win-(debug|product|release)-(x64|arm64)": {
+      "options": {
+        "nnbd": "strong",
+        "use-elf": true
+      }
+    },
+    "vm-aot-(linux|mac|win)-(debug|product|release)-(simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "nnbd": "strong",
+        "use-elf": true
+      }
+    },
     "vm-asan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "asan",
@@ -1524,6 +1546,57 @@
           ],
           "fileset": "vm-kernel",
           "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-linux-product-x64",
+        "vm-aot-win-product-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm AOT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-mac-product-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm AOT builders. Without shards because shards are missing XCode."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}"
+          ]
         }
       ]
     },
