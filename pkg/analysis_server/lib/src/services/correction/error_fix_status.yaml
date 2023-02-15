@@ -867,13 +867,13 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
 CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY:
-  status: needsFix
+  status: hasFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
-  status: needsFix
+  status: hasFix
   notes: |-
     Make the pattern expression a constant.
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:

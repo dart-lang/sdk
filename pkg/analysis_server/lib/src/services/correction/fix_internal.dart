@@ -1136,6 +1136,12 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR: [
       AddConst.new,
     ],
+    CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY: [
+      AddConst.new,
+    ],
+    CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION: [
+      AddConst.new,
+    ],
     CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM: [
       MakeFinal.new,
     ],
