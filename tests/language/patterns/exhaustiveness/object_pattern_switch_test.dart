@@ -38,8 +38,8 @@ void nonExhaustiveSwitch1(A r) {
   switch (r) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //      ^
-  // [cfe] The type 'A' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'A' is not exhaustively matched by the switch cases.
     case A(a: Enum.a, b: false):
       print('A(a, false)');
       break;
@@ -56,8 +56,8 @@ void nonExhaustiveSwitch2(A r) {
   switch (r) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //      ^
-  // [cfe] The type 'A' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'A' is not exhaustively matched by the switch cases.
     case A(a: Enum.b, b: false):
       print('A(b, false)');
       break;
@@ -105,8 +105,8 @@ void nonExhaustiveNullableSwitch1(A? r) {
   switch (r) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //      ^
-  // [cfe] The type 'A?' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'A?' is not exhaustively matched by the switch cases.
     case A(a: Enum.a, b: false):
       print('A(a, false)');
       break;
@@ -126,8 +126,8 @@ void nonExhaustiveNullableSwitch2(A? r) {
   switch (r) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //      ^
-  // [cfe] The type 'A?' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'A?' is not exhaustively matched by the switch cases.
     case A(a: Enum.a, b: false):
       print('A(a, false)');
       break;

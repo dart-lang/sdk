@@ -6,6 +6,8 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/subtract.dart';
 import 'package:test/test.dart';
 
+import 'env.dart';
+
 void main() {
   test('sealed', () {
     //   (A)
@@ -13,12 +15,13 @@ void main() {
     //  B C(D)
     //     / \
     //    E   F
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', isSealed: true, inherits: [a]);
-    var e = StaticTypeImpl('E', inherits: [d]);
-    var f = StaticTypeImpl('F', inherits: [d]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', isSealed: true, inherits: [a]);
+    var e = env.createClass('E', inherits: [d]);
+    var f = env.createClass('F', inherits: [d]);
 
     expectExpand(a, a, 'A');
     expectExpand(a, b, 'B|C|D');
@@ -41,12 +44,13 @@ void main() {
     //  B C D
     //     / \
     //    E   F
-    var a = StaticTypeImpl('A');
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [a]);
-    var e = StaticTypeImpl('E', inherits: [d]);
-    var f = StaticTypeImpl('F', inherits: [d]);
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [a]);
+    var e = env.createClass('E', inherits: [d]);
+    var f = env.createClass('F', inherits: [d]);
 
     expectExpand(a, a, 'A');
     expectExpand(a, b, 'A');
@@ -71,13 +75,14 @@ void main() {
     //     D  (E)
     //        / \
     //       F   G
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [c]);
-    var e = StaticTypeImpl('E', isSealed: true, inherits: [c]);
-    var f = StaticTypeImpl('F', inherits: [e]);
-    var g = StaticTypeImpl('G', inherits: [e]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [c]);
+    var e = env.createClass('E', isSealed: true, inherits: [c]);
+    var f = env.createClass('F', inherits: [e]);
+    var g = env.createClass('G', inherits: [e]);
 
     expectExpand(a, a, 'A');
     expectExpand(a, b, 'B|C');
@@ -109,14 +114,15 @@ void main() {
     //  D  E F  G
     //     \ /
     //      H
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
-    var c = StaticTypeImpl('C', isSealed: true, inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [b]);
-    var e = StaticTypeImpl('E', inherits: [b]);
-    var f = StaticTypeImpl('F', inherits: [c]);
-    var g = StaticTypeImpl('G', inherits: [c]);
-    var h = StaticTypeImpl('H', inherits: [e, f]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', isSealed: true, inherits: [a]);
+    var d = env.createClass('D', inherits: [b]);
+    var e = env.createClass('E', inherits: [b]);
+    var f = env.createClass('F', inherits: [c]);
+    var g = env.createClass('G', inherits: [c]);
+    var h = env.createClass('H', inherits: [e, f]);
 
     expectExpand(a, a, 'A');
     expectExpand(a, b, 'B|C');
@@ -163,11 +169,12 @@ void main() {
     //   (B)  C
     //   / \ /
     //  D   E
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [b]);
-    var e = StaticTypeImpl('E', inherits: [b, c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [b]);
+    var e = env.createClass('E', inherits: [b, c]);
 
     expectExpand(a, a, 'A');
     expectExpand(a, b, 'B|C');
@@ -206,10 +213,11 @@ void main() {
     //  B   C
     //     / \
     //    D   E
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [c]);
 
     expectExpand(a.nullable, a, 'A|Null');
     expectExpand(a, a.nullable, 'A');

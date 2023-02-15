@@ -619,6 +619,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitForElement(covariant ForElementImpl node) {
+    _withNameScope(() {
+      super.visitForElement(node);
+    });
+  }
+
+  @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     _withNameScope(() {
       super.visitForPartsWithDeclarations(node);
@@ -861,7 +868,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitIfElement(covariant IfElementImpl node) {
-    _visitIf(node);
+    _withNameScope(() {
+      _visitIf(node);
+    });
   }
 
   @override

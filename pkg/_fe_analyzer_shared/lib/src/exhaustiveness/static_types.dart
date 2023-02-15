@@ -164,7 +164,7 @@ class ExhaustivenessCache<
     return value ? _boolStaticType.trueType : _boolStaticType.falseType;
   }
 
-  /// Returns the [StaticType]  for [type].
+  /// Returns the [StaticType] for [type].
   StaticType getStaticType(Type type) {
     if (_typeOperations.isNeverType(type)) {
       return StaticType.neverType;
@@ -340,6 +340,19 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
 
   @override
   String get name => _typeOperations.typeToString(_type);
+
+  @override
+  int get hashCode => Object.hash(_type, identity);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    return other is TypeBasedStaticType<Type> &&
+        _type == other._type &&
+        identity == other.identity;
+  }
+
+  Type get typeForTesting => _type;
 }
 
 /// [StaticType] for an instantiation of an enum that support access to the

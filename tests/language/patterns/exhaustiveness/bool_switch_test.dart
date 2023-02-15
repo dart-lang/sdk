@@ -47,8 +47,8 @@ void nonExhaustiveSwitch1(bool b) {
   switch (b) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-    //    ^
-    // [cfe] The type 'bool' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'bool' is not exhaustively matched by the switch cases.
     case true:
       print('true');
       break;
@@ -59,8 +59,8 @@ void nonExhaustiveSwitch2(bool b) {
   switch (b) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-    //    ^
-    // [cfe] The type 'bool' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'bool' is not exhaustively matched by the switch cases.
     case false:
       print('false');
       break;
@@ -96,8 +96,8 @@ void nonExhaustiveNullableSwitch1(bool? b) {
   switch (b) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-    //    ^
-    // [cfe] The type 'bool?' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'bool?' is not exhaustively matched by the switch cases.
     case true:
       print('true');
       break;
@@ -111,8 +111,8 @@ void nonExhaustiveNullableSwitch2(bool? b) {
   switch (b) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-    //    ^
-    // [cfe] The type 'bool?' is not exhaustively matched by the switch cases.
+//        ^
+// [cfe] The type 'bool?' is not exhaustively matched by the switch cases.
     case true:
       print('true');
       break;

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -60,7 +61,16 @@ Space convertPatternToSpace(
       fields[name] =
           convertPatternToSpace(cache, field.pattern, constantPatternValues);
     }
-    return Space(cache.getStaticType(pattern.type.type!), fields);
+    final type = pattern.type.typeOrThrow;
+    return Space(cache.getStaticType(type), fields);
+  } else if (pattern is WildcardPattern) {
+    final typeNode = pattern.type;
+    if (typeNode == null) {
+      return Space.top;
+    } else {
+      final type = typeNode.typeOrThrow;
+      return Space(cache.getStaticType(type));
+    }
   }
   // TODO(johnniwinther): Handle remaining patterns.
   DartObjectImpl? value = constantPatternValues[pattern];

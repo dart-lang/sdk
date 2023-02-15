@@ -7,15 +7,17 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:test/test.dart';
 
+import 'env.dart';
 import 'utils.dart';
 
 void main() {
   //   (A)
   //   / \
   //  B   C
-  var a = StaticTypeImpl('A', isSealed: true);
-  var b = StaticTypeImpl('B', inherits: [a]);
-  var c = StaticTypeImpl('C', inherits: [a]);
+  var env = TestEnvironment();
+  var a = env.createClass('A', isSealed: true);
+  var b = env.createClass('B', inherits: [a]);
+  var c = env.createClass('C', inherits: [a]);
 
   Space A({StaticType? x, StaticType? y, StaticType? z}) => ty(
       a, {if (x != null) 'x': x, if (y != null) 'y': y, if (z != null) 'z': z});

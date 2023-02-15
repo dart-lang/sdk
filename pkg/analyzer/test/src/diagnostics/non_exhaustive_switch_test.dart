@@ -39,6 +39,28 @@ Object f(bool x) {
 ''');
   }
 
+  test_class_int_wildcard() async {
+    await assertNoErrorsInCode(r'''
+Object f(int x) {
+  return switch (x) {
+    0 => 0,
+    _ => 1,
+  };
+}
+''');
+  }
+
+  test_class_withField_wildcard() async {
+    await assertNoErrorsInCode(r'''
+Object f(int x) {
+  return switch (x) {
+    int(isEven: true) => 0,
+    _ => 1,
+  };
+}
+''');
+  }
+
   test_enum_2at2_hasWhen() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -85,9 +107,31 @@ void f(bool x) {
 ''');
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
-  test_alwaysExhaustive_bool_wildcard() async {
+  test_alwaysExhaustive_bool_wildcard_typed_bool() async {
+    await assertNoErrorsInCode(r'''
+void f(bool x) {
+  switch (x) {
+    case bool _:
+      break;
+  }
+}
+''');
+  }
+
+  test_alwaysExhaustive_bool_wildcard_typed_int() async {
+    await assertErrorsInCode(r'''
+void f(bool x) {
+  switch (x) {
+    case int _:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 19, 6),
+    ]);
+  }
+
+  test_alwaysExhaustive_bool_wildcard_untyped() async {
     await assertNoErrorsInCode(r'''
 void f(bool x) {
   switch (x) {
@@ -269,8 +313,6 @@ void f(A x) {
 ''');
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
   test_alwaysExhaustive_sealedClass_2at2_wildcard() async {
     await assertNoErrorsInCode(r'''
 sealed class A {}

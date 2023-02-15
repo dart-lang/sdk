@@ -160,6 +160,7 @@ brevity
 brianwilkerson
 bridge
 bridges
+brute
 bs
 bsd
 bslash
@@ -216,6 +217,7 @@ clamp
 clamped
 clarification
 clarify
+clash
 clashes
 class's
 clazz
@@ -234,6 +236,7 @@ codes
 collision
 coloring
 colorized
+columns
 com
 combinations
 combinator
@@ -822,6 +825,7 @@ lhs
 lib
 libs
 lifetime
+lift
 lifted
 lifter
 limiting
@@ -1109,6 +1113,8 @@ proposed
 proto
 protobuf
 protocol
+prototype's
+prove
 provider
 provisional
 prune
@@ -1271,6 +1277,9 @@ rough
 roughly
 rounding
 roundtrip
+row
+row's
+rows
 rparen
 rpc
 rs
@@ -1355,6 +1364,7 @@ sk
 sky
 slash
 slb
+slipped
 slots
 slowing
 smi
@@ -1401,6 +1411,7 @@ starter
 stated
 statics
 stats
+stay
 stderr
 stdin
 stdio
@@ -1617,6 +1628,7 @@ unlower
 unmark
 unneeded
 unordered
+unpacks
 unpaired
 unparenthesized
 unparsed
@@ -1712,6 +1724,7 @@ winds
 wise
 wiser
 wishes
+witness
 wn
 worst
 worthwhile
@@ -1760,6 +1773,7 @@ yaml
 yb
 yet
 yi
+yielded
 yielding
 yields
 yn

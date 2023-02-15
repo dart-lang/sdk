@@ -299,12 +299,14 @@ class _JSLowerer extends Transformer {
             type = _getTypeForInlineClassMember(kind);
           } else {
             jsString = _getJSString(node, nodeDescriptor.name.text);
-            if (nodeDescriptor.kind == InlineClassMemberKind.Getter) {
+            if (_inlineExtensionIndex.isGetter(node)) {
               type = _MethodType.getter;
-            } else if (nodeDescriptor.kind == InlineClassMemberKind.Setter) {
+            } else if (_inlineExtensionIndex.isSetter(node)) {
               type = _MethodType.setter;
-            } else if (nodeDescriptor.kind == InlineClassMemberKind.Method) {
+            } else if (_inlineExtensionIndex.isMethod(node)) {
               type = _MethodType.method;
+            } else if (_inlineExtensionIndex.isOperator(node)) {
+              type = _MethodType.operator;
             }
           }
         }
@@ -314,16 +316,13 @@ class _JSLowerer extends Transformer {
         if (nodeDescriptor != null) {
           if (!nodeDescriptor.isStatic) {
             jsString = _getJSString(node, nodeDescriptor.name.text);
-            if (nodeDescriptor.kind == ExtensionMemberKind.Getter) {
+            if (_inlineExtensionIndex.isGetter(node)) {
               type = _MethodType.getter;
-            } else if (nodeDescriptor.kind == ExtensionMemberKind.Setter) {
+            } else if (_inlineExtensionIndex.isSetter(node)) {
               type = _MethodType.setter;
-            } else if (nodeDescriptor.kind == ExtensionMemberKind.Method) {
+            } else if (_inlineExtensionIndex.isMethod(node)) {
               type = _MethodType.method;
-            } else if (nodeDescriptor.kind == ExtensionMemberKind.Operator) {
-              if (getJSName(node).isNotEmpty) {
-                throw 'Operators cannot have `@JS` annotations.';
-              }
+            } else if (_inlineExtensionIndex.isOperator(node)) {
               type = _MethodType.operator;
             }
           }
@@ -359,8 +358,9 @@ class _JSLowerer extends Transformer {
   }
 
   bool _isStaticInteropType(DartType type) =>
-      type is InterfaceType &&
-      hasStaticInteropAnnotation(type.className.asClass);
+      (type is InterfaceType &&
+          hasStaticInteropAnnotation(type.className.asClass)) ||
+      (type is InlineType && hasJSInteropAnnotation(type.inlineClass));
 
   // We could generate something more human readable, but for now we just
   // generate something short and unique.
