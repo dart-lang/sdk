@@ -24,9 +24,9 @@ thread_local ThreadState* OSThread::current_vm_thread_ = NULL;
 
 #if defined(SUPPORT_TIMELINE)
 inline void UpdateTimelineTrackMetadata(const OSThread& thread) {
-  RecorderLockScope rl;
+  RecorderShutdownSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder != nullptr && !rl.IsShuttingDown()) {
+  if (recorder != nullptr && !ls.IsShuttingDown()) {
     recorder->AddTrackMetadataBasedOnThread(
         OS::ProcessId(), OSThread::ThreadIdToIntPtr(thread.trace_id()),
         thread.name());
