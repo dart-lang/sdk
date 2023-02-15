@@ -136,6 +136,16 @@ class OpType {
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
 
+  /// Mark this op-type appropriately for a [completionLocation] in which any
+  /// kind of pattern is appropriate.
+  void _forPattern(String completionLocation) {
+    this.completionLocation = completionLocation;
+    includeReturnValueSuggestions = true;
+    includeTypeNameSuggestions = true;
+    includeVarNameSuggestions = true;
+    mustBeConst = true;
+  }
+
   /// Return the statement before [entity]
   /// where [entity] can be a statement or the `}` closing the given block.
   static Statement? getPreviousStatement(Block node, Object? entity) {
@@ -966,7 +976,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitListPattern(ListPattern node) {
-    optype.forPattern('ListPattern_element');
+    optype._forPattern('ListPattern_element');
   }
 
   @override
@@ -987,7 +997,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitMapPatternEntry(MapPatternEntry node) {
-    optype.forPattern('MapPatternEntry_value');
+    optype._forPattern('MapPatternEntry_value');
   }
 
   @override
@@ -1126,7 +1136,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitParenthesizedPattern(ParenthesizedPattern node) {
-    optype.forPattern('ParenthesizedPattern_expression');
+    optype._forPattern('ParenthesizedPattern_expression');
   }
 
   @override
@@ -1290,14 +1300,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         optype.includeTypeNameSuggestions = true;
         return;
       }
-      optype.forPattern('RelationalPattern_operand');
+      optype._forPattern('RelationalPattern_operand');
     }
   }
 
   @override
   void visitRestPatternElement(RestPatternElement node) {
     if (identical(entity, node.pattern)) {
-      optype.forPattern('RestPatternElement_pattern');
+      optype._forPattern('RestPatternElement_pattern');
     }
   }
 
@@ -1655,15 +1665,5 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     }
     return parameterList is FormalParameterList &&
         parameterList.parent is GenericFunctionType;
-  }
-}
-
-extension on OpType {
-  void forPattern(String completionLocation) {
-    this.completionLocation = completionLocation;
-    includeReturnValueSuggestions = true;
-    includeTypeNameSuggestions = true;
-    includeVarNameSuggestions = true;
-    mustBeConst = true;
   }
 }
