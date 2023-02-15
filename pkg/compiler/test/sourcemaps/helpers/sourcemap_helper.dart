@@ -89,7 +89,7 @@ class CloningOutputProvider extends OutputProvider {
 }
 
 abstract class SourceFileManager {
-  SourceFile? getSourceFile(var uri);
+  SourceFile? getSourceFile(Object? uri);
 }
 
 class ProviderSourceFileManager implements SourceFileManager {
@@ -99,7 +99,8 @@ class ProviderSourceFileManager implements SourceFileManager {
   ProviderSourceFileManager(this.sourceFileProvider, this.outputProvider);
 
   @override
-  SourceFile<List<int>> getSourceFile(uri) {
+  SourceFile<List<int>>? getSourceFile(covariant Uri? uri) {
+    if (uri == null) return null;
     return (sourceFileProvider.getUtf8SourceFile(uri) ??
         sourceFileProvider.readUtf8FromFileSyncForTesting(uri) ??
         outputProvider.getSourceFile(uri)) as SourceFile<List<int>>;
@@ -612,12 +613,12 @@ class IOSourceFileManager implements SourceFileManager {
   IOSourceFileManager(this.base);
 
   @override
-  SourceFile getSourceFile(var uri) {
+  SourceFile getSourceFile(Object? uri) {
     Uri absoluteUri;
     if (uri is Uri) {
       absoluteUri = base.resolveUri(uri);
     } else {
-      absoluteUri = base.resolve(uri);
+      absoluteUri = base.resolve(uri as String);
     }
     return sourceFiles.putIfAbsent(absoluteUri, () {
       String text = File.fromUri(absoluteUri).readAsStringSync();
