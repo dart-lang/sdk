@@ -3590,7 +3590,7 @@ class BodyBuilder extends StackListenerImpl
       assert(checkState(token, [ValueKinds.Scope]));
       Scope thenScope = scope.createNestedScope(
           debugName: "then body", kind: ScopeKind.statementLocalScope);
-      exitLocalScope();
+      exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
       push(condition);
       enterLocalScope(thenScope);
     } else {
@@ -6473,10 +6473,39 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void handleThenControlFlow(Token token) {
+    assert(checkState(token, [ValueKinds.Condition]));
     // This is matched by the call to [deferNode] in
     // [handleElseControlFlow] and by the call to [endNode] in
     // [endIfControlFlow].
     typeInferrer.assignedVariables.beginNode();
+
+    Condition condition = pop() as Condition;
+    PatternGuard? patternGuard = condition.patternGuard;
+    if (patternGuard != null) {
+      if (patternGuard.guard != null) {
+        Scope thenScope = scope.createNestedScope(
+            debugName: "then-control-flow", kind: ScopeKind.ifElement);
+        exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
+        enterLocalScope(thenScope);
+      } else {
+        createAndEnterLocalScope(
+            debugName: "if-case-head", kind: ScopeKind.ifCaseHead);
+        for (VariableDeclaration variable
+            in patternGuard.pattern.declaredVariables) {
+          declareVariable(variable, scope);
+          typeInferrer.assignedVariables.declare(variable);
+        }
+        Scope thenScope = scope.createNestedScope(
+            debugName: "then-control-flow", kind: ScopeKind.ifElement);
+        exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
+        enterLocalScope(thenScope);
+      }
+    } else {
+      createAndEnterLocalScope(
+          debugName: "then-control-flow", kind: ScopeKind.ifElement);
+    }
+    push(condition);
+
     super.handleThenControlFlow(token);
   }
 
@@ -6504,22 +6533,33 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.MapLiteralEntry,
       ]),
       ValueKinds.Condition,
+      ValueKinds.Scope,
       ValueKinds.Token,
     ]));
 
     Object? entry = pop();
     Condition condition = pop() as Condition;
-    assert(condition.patternGuard == null,
-        "Unexpected pattern in control flow if: ${condition.patternGuard}.");
+    exitLocalScope(expectedScopeKinds: const [ScopeKind.ifElement]);
     Token ifToken = pop() as Token;
 
+    PatternGuard? patternGuard = condition.patternGuard;
     TreeNode node;
     if (entry is MapLiteralEntry) {
-      node = forest.createIfMapEntry(
-          offsetForToken(ifToken), condition.expression, entry);
+      if (patternGuard == null) {
+        node = forest.createIfMapEntry(
+            offsetForToken(ifToken), condition.expression, entry);
+      } else {
+        node = forest.createIfCaseMapEntry(
+            offsetForToken(ifToken), condition.expression, patternGuard, entry);
+      }
     } else {
-      node = forest.createIfElement(
-          offsetForToken(ifToken), condition.expression, toValue(entry));
+      if (patternGuard == null) {
+        node = forest.createIfElement(
+            offsetForToken(ifToken), condition.expression, toValue(entry));
+      } else {
+        node = forest.createIfCaseElement(offsetForToken(ifToken),
+            condition.expression, patternGuard, toValue(entry));
+      }
     }
     push(node);
     // This is matched by the call to [beginNode] in
@@ -6545,6 +6585,7 @@ class BodyBuilder extends StackListenerImpl
       ]),
       ValueKinds.AssignedVariablesNodeInfo,
       ValueKinds.Condition,
+      ValueKinds.Scope,
       ValueKinds.Token,
     ]));
 
@@ -6553,8 +6594,7 @@ class BodyBuilder extends StackListenerImpl
     AssignedVariablesNodeInfo assignedVariablesInfo =
         pop() as AssignedVariablesNodeInfo;
     Condition condition = pop() as Condition; // parenthesized expression
-    assert(condition.patternGuard == null,
-        "Unexpected pattern in control flow if: ${condition.patternGuard}.");
+    exitLocalScope(expectedScopeKinds: const [ScopeKind.ifElement]);
     Token ifToken = pop() as Token;
 
     TreeNode node;
@@ -6612,8 +6652,17 @@ class BodyBuilder extends StackListenerImpl
           ..fileOffset = offsetForToken(ifToken);
       }
     } else {
-      node = forest.createIfElement(offsetForToken(ifToken),
-          condition.expression, toValue(thenEntry), toValue(elseEntry));
+      if (condition.patternGuard == null) {
+        node = forest.createIfElement(offsetForToken(ifToken),
+            condition.expression, toValue(thenEntry), toValue(elseEntry));
+      } else {
+        node = forest.createIfCaseElement(
+            offsetForToken(ifToken),
+            condition.expression,
+            condition.patternGuard!,
+            toValue(thenEntry),
+            toValue(elseEntry));
+      }
     }
     push(node);
     // This is matched by the call to [deferNode] in
@@ -6875,7 +6924,8 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(fasta.messageNamedFunctionExpression,
                 declaration.fileOffset, noLength,
                 // Error has already been reported by the parser.
-                suppressMessage: true)));
+                suppressMessage: true))
+          ..fileOffset = declaration.fileOffset);
       } else {
         push(statement);
       }

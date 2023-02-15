@@ -1800,10 +1800,15 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseSendOrFunctionLiteral(Token token, IdentifierContext context) {
-    doPrint('parseSendOrFunctionLiteral(' '$token, ' '$context)');
+  Token parseSendOrFunctionLiteral(Token token, IdentifierContext context,
+      ConstantPatternContext constantPatternContext) {
+    doPrint('parseSendOrFunctionLiteral('
+        '$token, '
+        '$context, '
+        '$constantPatternContext)');
     indent++;
-    var result = super.parseSendOrFunctionLiteral(token, context);
+    var result = super
+        .parseSendOrFunctionLiteral(token, context, constantPatternContext);
     indent--;
     return result;
   }
@@ -1931,10 +1936,11 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseSend(Token token, IdentifierContext context) {
-    doPrint('parseSend(' '$token, ' '$context)');
+  Token parseSend(Token token, IdentifierContext context,
+      ConstantPatternContext constantPatternContext) {
+    doPrint('parseSend(' '$token, ' '$context, ' '$constantPatternContext)');
     indent++;
-    var result = super.parseSend(token, context);
+    var result = super.parseSend(token, context, constantPatternContext);
     indent--;
     return result;
   }

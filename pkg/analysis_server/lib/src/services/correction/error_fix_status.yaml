@@ -2305,6 +2305,8 @@ ParserErrorCode.INVALID_CODE_POINT:
   status: needsEvaluation
 ParserErrorCode.INVALID_COMMENT_REFERENCE:
   status: needsEvaluation
+ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX:
+  status: needsEvaluation
 ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST:
   status: needsEvaluation
 ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL:

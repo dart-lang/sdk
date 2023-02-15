@@ -11,6 +11,8 @@ void func() {}
 class Class {
   const Class([a]);
 
+  const Class.named();
+
   call() {}
 
   test(o) async {
@@ -29,12 +31,16 @@ class Class {
       case 'foo': // Ok
       case 'foo' 'bar': // Ok
       case value: // Ok
+      case value!: // Ok
+      case value?: // Ok
+      case value as int: // Ok
       case -value: // Error
       case local: // Ok
       case -local: // Error
       case func: // Ok
       case prefix.value: // Ok
       case -prefix.value: // Error
+      case prefix.Class.named: // Ok
       case 1 + 2: // Error
       case 1 * 2: // Error
       case void fun() {}: // Error
@@ -44,6 +50,27 @@ class Class {
       case !false: // Error
       case ~0: // Error
       case ++variable: // Error
+      case const 0: // Error
+      case const 0x0: // Error
+      case const 0.5: // Error
+      case const true: // Error
+      case const null: // Error
+      case const -0: // Error
+      case const 'foo': // Error
+      case const #a: // Error
+      case const value: // Error
+      case const local: // Error
+      case const prefix.value: // Error
+      case const -prefix.value: // Error
+      case const prefix.Class.named: // Error
+      case const 1 + 2: // Error
+      case const void fun() {}: // Error
+      case const assert(false): // Error
+      case const switch (o) { _ => true }: // Error
+      case const await 0: // Error
+      case const !false: // Error
+      case const ~0: // Error
+      case const ++variable: // Error
       case const Class(): // Ok
       case const Class(0): // Ok
       case const GenericClass(): // Ok
@@ -79,6 +106,8 @@ class Class {
       case prefix.GenericClass<int>: // Error
       case GenericClass<int>.new: // Error
       case prefix.GenericClass<int>.new: // Error
+      case const GenericClass<int>: // Error
+      case const prefix.GenericClass<int>: // Error
       case const (GenericClass<int>): // Ok
       case const (prefix.GenericClass<int>): // Ok
       case const (GenericClass<int>.new): // Ok

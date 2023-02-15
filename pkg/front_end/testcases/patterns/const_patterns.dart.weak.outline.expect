@@ -8,6 +8,9 @@ class Class extends core::Object /*hasConstConstructor*/  {
   const constructor •([dynamic a = null]) → self::Class
     : super core::Object::•()
     ;
+  const constructor named() → self::Class
+    : super core::Object::•()
+    ;
   method call() → dynamic
     ;
   method test(dynamic o) → dynamic async 

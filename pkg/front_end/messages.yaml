@@ -6417,6 +6417,17 @@ InvalidConstantPatternGeneric:
       if (x case List<int>) {}
     }
 
+InvalidConstantPatternConstPrefix:
+  problemMessage: "The expression can't be prefixed by 'const' to form a constant pattern."
+  correctionMessage: "Try wrapping the expression in 'const ( ... )' instead."
+  analyzerCode: ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX
+  index: 140
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case const 1) {}
+    }
+
 PatternAssignmentDeclaresVariable:
   problemMessage: "Variable '#name' can't be declared in a pattern assignment."
   correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."

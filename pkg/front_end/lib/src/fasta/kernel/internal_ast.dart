@@ -32,6 +32,8 @@ import '../type_inference/inference_visitor.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
+import 'collections.dart';
+
 typedef SharedMatchContext = shared
     .MatchContext<TreeNode, Expression, Pattern, DartType, VariableDeclaration>;
 
@@ -4804,4 +4806,91 @@ enum ObjectAccessKind {
 
   /// Erroneous property access.
   Error,
+}
+
+class IfCaseElement extends InternalExpression with ControlFlowElement {
+  Expression expression;
+  PatternGuard patternGuard;
+  Expression then;
+  Expression? otherwise;
+  late List<Statement> replacement;
+
+  IfCaseElement(this.expression, this.patternGuard, this.then, this.otherwise) {
+    expression.parent = this;
+    patternGuard.parent = this;
+    then.parent = this;
+    otherwise?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    throw new UnsupportedError("IfCaseElement.acceptInference");
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('if (');
+    printer.writeExpression(expression);
+    printer.write(' case ');
+    patternGuard.toTextInternal(printer);
+    printer.write(') ');
+    printer.writeExpression(then);
+    if (otherwise != null) {
+      printer.write(' else ');
+      printer.writeExpression(otherwise!);
+    }
+  }
+
+  @override
+  MapLiteralEntry? toMapLiteralEntry(
+      void Function(TreeNode from, TreeNode to) onConvertElement) {
+    // TODO(cstefantsova): implement toMapLiteralEntry
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    return "IfCaseElement(${toStringInternal()})";
+  }
+}
+
+class IfCaseMapEntry extends TreeNode
+    with InternalTreeNode, ControlFlowMapEntry {
+  Expression expression;
+  PatternGuard patternGuard;
+  MapLiteralEntry then;
+  MapLiteralEntry? otherwise;
+
+  IfCaseMapEntry(
+      this.expression, this.patternGuard, this.then, this.otherwise) {
+    expression.parent = this;
+    patternGuard.parent = this;
+    then.parent = this;
+    otherwise?.parent = this;
+  }
+
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    throw new UnsupportedError("IfCaseMapEntry.acceptInference");
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('if (');
+    expression.toTextInternal(printer);
+    printer.write(' case ');
+    patternGuard.toTextInternal(printer);
+    printer.write(') ');
+    then.toTextInternal(printer);
+    if (otherwise != null) {
+      printer.write(' else ');
+      otherwise!.toTextInternal(printer);
+    }
+  }
+
+  @override
+  String toString() {
+    return "IfCaseMapEntry(${toStringInternal()})";
+  }
 }

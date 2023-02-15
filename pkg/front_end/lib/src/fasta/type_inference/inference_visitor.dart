@@ -2193,6 +2193,100 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                   isNonNullableByDefault:
                       libraryBuilder.isNonNullableByDefault),
           element);
+    } else if (element is IfCaseElement) {
+      int? stackBase;
+      assert(checkStackBase(element, stackBase = stackHeight));
+
+      CollectionElementInferenceContext context =
+          new CollectionElementInferenceContext(
+              typeContext: inferredTypeArgument,
+              inferredSpreadTypes: inferredSpreadTypes,
+              inferredConditionTypes: inferredConditionTypes);
+      analyzeIfCaseElement(
+          node: element,
+          expression: element.expression,
+          pattern: element.patternGuard.pattern,
+          variables: {
+            for (VariableDeclaration variable
+                in element.patternGuard.pattern.declaredVariables)
+              variable.name!: variable
+          },
+          guard: element.patternGuard.guard,
+          ifTrue: element.then,
+          ifFalse: element.otherwise,
+          context: context);
+
+      assert(checkStack(element, stackBase, [
+        /* ifFalse = */ ValueKinds.ExpressionOrNull,
+        /* ifTrue = */ ValueKinds.Expression,
+        /* guard = */ ValueKinds.ExpressionOrNull,
+        /* pattern = */ ValueKinds.Pattern,
+        /* scrutinee = */ ValueKinds.Expression,
+      ]));
+
+      Object? rewrite = popRewrite(NullValues.Expression);
+      if (!identical(element.otherwise, rewrite)) {
+        element.otherwise = (rewrite as Expression?)?..parent = element;
+      }
+
+      rewrite = popRewrite();
+      if (!identical(element.then, rewrite)) {
+        element.then = (rewrite as Expression)..parent = element;
+      }
+
+      PatternGuard patternGuard = element.patternGuard;
+      rewrite = popRewrite(NullValues.Expression);
+      if (!identical(patternGuard.guard, rewrite)) {
+        patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
+      }
+
+      rewrite = popRewrite();
+      if (!identical(patternGuard.pattern, rewrite)) {
+        patternGuard.pattern = (rewrite as Pattern)..parent = patternGuard;
+      }
+
+      rewrite = popRewrite();
+      if (!identical(element.expression, rewrite)) {
+        element.expression = (rewrite as Expression)..parent = patternGuard;
+      }
+
+      DartType thenType = context.inferredConditionTypes[element.then]!;
+      DartType? otherwiseType = element.otherwise == null
+          ? null
+          : context.inferredConditionTypes[element.otherwise!]!;
+
+      MatchingCache matchingCache = createMatchingCache();
+      MatchingExpressionVisitor matchingExpressionVisitor =
+          new MatchingExpressionVisitor(matchingCache);
+      // TODO(cstefantsova): Provide a more precise scrutinee type.
+      CacheableExpression matchedExpression = matchingCache
+          .createRootExpression(element.expression, const DynamicType());
+      DelayedExpression matchingExpression = matchingExpressionVisitor
+          .visitPattern(element.patternGuard.pattern, matchedExpression);
+
+      matchingExpression.registerUse();
+
+      Expression condition =
+          matchingExpression.createExpression(typeSchemaEnvironment);
+      Expression? guard = element.patternGuard.guard;
+      if (guard != null) {
+        condition =
+            createAndExpression(condition, guard, fileOffset: guard.fileOffset);
+      }
+      element.expression = condition;
+      element.replacement = [
+        ...element.patternGuard.pattern.declaredVariables,
+        ...matchingCache.declarations,
+      ];
+
+      return new ExpressionInferenceResult(
+          otherwiseType == null
+              ? thenType
+              : typeSchemaEnvironment.getStandardUpperBound(
+                  thenType, otherwiseType,
+                  isNonNullableByDefault:
+                      libraryBuilder.isNonNullableByDefault),
+          element);
     } else if (element is ForElement) {
       // TODO(johnniwinther): Use _visitStatements instead.
       List<VariableDeclaration>? variables;
@@ -2261,7 +2355,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             element,
             element.variable,
             element.iterable,
-            element.syntheticAssignment!,
+            element.syntheticAssignment,
             element.expressionEffects,
             isAsync: element.isAsync,
             hasProblem: element.problem != null);
@@ -2561,6 +2655,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (element is IfElement) {
       _translateIfElement(element, receiverType, elementType, result, body,
           isSet: isSet);
+    } else if (element is IfCaseElement) {
+      _translateIfCaseElement(element, receiverType, elementType, result, body,
+          isSet: isSet);
     } else if (element is ForElement) {
       _translateForElement(element, receiverType, elementType, result, body,
           isSet: isSet);
@@ -2605,6 +2702,39 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     IfStatement ifStatement =
         _createIf(element.fileOffset, element.condition, thenBody, elseBody);
     libraryBuilder.loader.dataForTesting?.registerAlias(element, ifStatement);
+    body.add(ifStatement);
+  }
+
+  void _translateIfCaseElement(
+      IfCaseElement element,
+      InterfaceType receiverType,
+      DartType elementType,
+      VariableDeclaration result,
+      List<Statement> body,
+      {required bool isSet}) {
+    List<Statement> thenStatements = [];
+    _translateElement(
+        element.then, receiverType, elementType, result, thenStatements,
+        isSet: isSet);
+    List<Statement>? elseStatements;
+    if (element.otherwise != null) {
+      _translateElement(element.otherwise!, receiverType, elementType, result,
+          elseStatements = <Statement>[],
+          isSet: isSet);
+    }
+    Statement thenBody = thenStatements.length == 1
+        ? thenStatements.first
+        : _createBlock(thenStatements);
+    Statement? elseBody;
+    if (elseStatements != null && elseStatements.isNotEmpty) {
+      elseBody = elseStatements.length == 1
+          ? elseStatements.first
+          : _createBlock(elseStatements);
+    }
+    IfStatement ifStatement =
+        _createIf(element.fileOffset, element.expression, thenBody, elseBody);
+    libraryBuilder.loader.dataForTesting?.registerAlias(element, ifStatement);
+    body.addAll(element.replacement);
     body.add(ifStatement);
   }
 
@@ -3780,6 +3910,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       flowAnalysis.ifStatement_end(entry.otherwise != null);
       return entry;
+    } else if (entry is IfCaseMapEntry) {
+      // TODO(cstefantsova): Pass an appropriate context message.
+      analyzeIfCaseElement(
+          node: entry,
+          expression: entry.expression,
+          pattern: entry.patternGuard.pattern,
+          variables: {
+            for (VariableDeclaration variable
+                in entry.patternGuard.pattern.declaredVariables)
+              variable.name!: variable
+          },
+          guard: entry.patternGuard.guard,
+          ifTrue: entry.then,
+          ifFalse: entry.otherwise,
+          context: null);
+      // TODO(cstefantsova): Implement inference for if-case map entries.
+      throw new UnimplementedError();
     } else if (entry is ForMapEntry) {
       // TODO(johnniwinther): Use _visitStatements instead.
       List<VariableDeclaration>? variables;
@@ -10440,9 +10587,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void dispatchCollectionElement(TreeNode element, Object? context) {
-    // TODO(scheglov): implement dispatchCollectionElement
-    throw new UnimplementedError('TODO(scheglov)');
+  void dispatchCollectionElement(covariant Expression element,
+      covariant CollectionElementInferenceContext context) {
+    ExpressionInferenceResult inferenceResult = inferElement(
+        element,
+        context.typeContext,
+        context.inferredSpreadTypes,
+        context.inferredConditionTypes);
+    // TODO(cstefantsova): Should the key to the map be [element] instead?
+    context.inferredConditionTypes[inferenceResult.expression] =
+        inferenceResult.inferredType;
+    pushRewrite(inferenceResult.expression);
   }
 
   @override
@@ -10459,8 +10614,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void handleNoCollectionElement(TreeNode element) {
-    // TODO(scheglov): implement handleNoCollectionElement
-    throw new UnimplementedError('TODO(scheglov)');
+    pushRewrite(NullValues.Expression);
   }
 
   @override
@@ -10655,4 +10809,15 @@ extension on SwitchCase {
     }
     return count;
   }
+}
+
+class CollectionElementInferenceContext {
+  DartType typeContext;
+  Map<TreeNode, DartType> inferredSpreadTypes;
+  Map<Expression, DartType> inferredConditionTypes;
+
+  CollectionElementInferenceContext(
+      {required this.typeContext,
+      required this.inferredSpreadTypes,
+      required this.inferredConditionTypes});
 }

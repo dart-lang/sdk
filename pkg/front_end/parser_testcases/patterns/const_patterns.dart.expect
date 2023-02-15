@@ -1,160 +1,268 @@
 Problems reported:
 
-parser/patterns/const_patterns:32:13: Only negation of a numeric literal is supported as a constant pattern.
+parser/patterns/const_patterns:37:13: Only negation of a numeric literal is supported as a constant pattern.
       case -value: // Error
             ^^^^^
 
-parser/patterns/const_patterns:34:13: Only negation of a numeric literal is supported as a constant pattern.
+parser/patterns/const_patterns:39:13: Only negation of a numeric literal is supported as a constant pattern.
       case -local: // Error
             ^^^^^
 
-parser/patterns/const_patterns:37:13: Only negation of a numeric literal is supported as a constant pattern.
+parser/patterns/const_patterns:42:13: Only negation of a numeric literal is supported as a constant pattern.
       case -prefix.value: // Error
             ^^^^^^
 
-parser/patterns/const_patterns:38:14: Expected ':' before this.
+parser/patterns/const_patterns:42:20: Only negation of a numeric literal is supported as a constant pattern.
+      case -prefix.value: // Error
+                   ^^^^^
+
+parser/patterns/const_patterns:44:14: Expected ':' before this.
       case 1 + 2: // Error
              ^
 
-parser/patterns/const_patterns:38:14: '+' is not a prefix operator.
+parser/patterns/const_patterns:44:14: '+' is not a prefix operator.
       case 1 + 2: // Error
              ^
 
-parser/patterns/const_patterns:38:16: Expected ';' after this.
+parser/patterns/const_patterns:44:16: Expected ';' after this.
       case 1 + 2: // Error
                ^
 
-parser/patterns/const_patterns:38:17: Expected an identifier, but got ':'.
+parser/patterns/const_patterns:44:17: Expected an identifier, but got ':'.
       case 1 + 2: // Error
                 ^
 
-parser/patterns/const_patterns:38:16: Expected ';' after this.
+parser/patterns/const_patterns:44:16: Expected ';' after this.
       case 1 + 2: // Error
                ^
 
-parser/patterns/const_patterns:38:17: Unexpected token ':'.
+parser/patterns/const_patterns:44:17: Unexpected token ':'.
       case 1 + 2: // Error
                 ^
 
-parser/patterns/const_patterns:39:14: Expected ':' before this.
+parser/patterns/const_patterns:45:14: Expected ':' before this.
       case 1 * 2: // Error
              ^
 
-parser/patterns/const_patterns:39:14: Expected an identifier, but got '*'.
+parser/patterns/const_patterns:45:14: Expected an identifier, but got '*'.
       case 1 * 2: // Error
              ^
 
-parser/patterns/const_patterns:39:16: Expected ';' after this.
+parser/patterns/const_patterns:45:16: Expected ';' after this.
       case 1 * 2: // Error
                ^
 
-parser/patterns/const_patterns:39:17: Expected an identifier, but got ':'.
+parser/patterns/const_patterns:45:17: Expected an identifier, but got ':'.
       case 1 * 2: // Error
                 ^
 
-parser/patterns/const_patterns:39:16: Expected ';' after this.
+parser/patterns/const_patterns:45:16: Expected ';' after this.
       case 1 * 2: // Error
                ^
 
-parser/patterns/const_patterns:39:17: Unexpected token ':'.
+parser/patterns/const_patterns:45:17: Unexpected token ':'.
       case 1 * 2: // Error
                 ^
 
-parser/patterns/const_patterns:40:20: Expected ':' before this.
+parser/patterns/const_patterns:46:20: Expected ':' before this.
       case void fun() {}: // Error
                    ^
 
-parser/patterns/const_patterns:40:24: Expected ';' after this.
+parser/patterns/const_patterns:46:24: Expected ';' after this.
       case void fun() {}: // Error
                        ^
 
-parser/patterns/const_patterns:40:25: Expected an identifier, but got ':'.
+parser/patterns/const_patterns:46:25: Expected an identifier, but got ':'.
       case void fun() {}: // Error
                         ^
 
-parser/patterns/const_patterns:40:24: Expected ';' after this.
+parser/patterns/const_patterns:46:24: Expected ';' after this.
       case void fun() {}: // Error
                        ^
 
-parser/patterns/const_patterns:40:25: Unexpected token ':'.
+parser/patterns/const_patterns:46:25: Unexpected token ':'.
       case void fun() {}: // Error
                         ^
 
-parser/patterns/const_patterns:41:12: `assert` can't be used as an expression.
+parser/patterns/const_patterns:47:12: `assert` can't be used as an expression.
       case assert(false): // Error
            ^^^^^^
 
-parser/patterns/const_patterns:44:12: The unary operator ! is not supported as a constant pattern.
+parser/patterns/const_patterns:50:12: The unary operator ! is not supported as a constant pattern.
       case !false: // Error
            ^
 
-parser/patterns/const_patterns:45:12: The unary operator ~ is not supported as a constant pattern.
+parser/patterns/const_patterns:51:12: The unary operator ~ is not supported as a constant pattern.
       case ~0: // Error
            ^
 
-parser/patterns/const_patterns:59:18: Duplicate 'const' keyword in constant expression.
+parser/patterns/const_patterns:53:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const 0: // Error
+                 ^
+
+parser/patterns/const_patterns:54:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const 0x0: // Error
+                 ^^^
+
+parser/patterns/const_patterns:55:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const 0.5: // Error
+                 ^^^
+
+parser/patterns/const_patterns:56:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const true: // Error
+                 ^^^^
+
+parser/patterns/const_patterns:57:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const null: // Error
+                 ^^^^
+
+parser/patterns/const_patterns:58:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const -0: // Error
+                 ^
+
+parser/patterns/const_patterns:59:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const 'foo': // Error
+                 ^^^^^
+
+parser/patterns/const_patterns:60:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const #a: // Error
+                 ^
+
+parser/patterns/const_patterns:61:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const value: // Error
+                 ^^^^^
+
+parser/patterns/const_patterns:62:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const local: // Error
+                 ^^^^^
+
+parser/patterns/const_patterns:63:25: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const prefix.value: // Error
+                        ^^^^^
+
+parser/patterns/const_patterns:64:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const -prefix.value: // Error
+                 ^
+
+parser/patterns/const_patterns:65:31: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const prefix.Class.named: // Error
+                              ^^^^^
+
+parser/patterns/const_patterns:66:18: The expression can't be prefixed by 'const' to form a constant pattern.
+      case const 1 + 2: // Error
+                 ^
+
+parser/patterns/const_patterns:66:20: Expected ':' before this.
+      case const 1 + 2: // Error
+                   ^
+
+parser/patterns/const_patterns:66:20: '+' is not a prefix operator.
+      case const 1 + 2: // Error
+                   ^
+
+parser/patterns/const_patterns:66:22: Expected ';' after this.
+      case const 1 + 2: // Error
+                     ^
+
+parser/patterns/const_patterns:66:23: Expected an identifier, but got ':'.
+      case const 1 + 2: // Error
+                      ^
+
+parser/patterns/const_patterns:66:22: Expected ';' after this.
+      case const 1 + 2: // Error
+                     ^
+
+parser/patterns/const_patterns:66:23: Unexpected token ':'.
+      case const 1 + 2: // Error
+                      ^
+
+parser/patterns/const_patterns:67:23: A function expression can't have a name.
+      case const void fun() {}: // Error
+                      ^^^
+
+parser/patterns/const_patterns:68:18: `assert` can't be used as an expression.
+      case const assert(false): // Error
+                 ^^^^^^
+
+parser/patterns/const_patterns:71:18: The unary operator ! is not supported as a constant pattern.
+      case const !false: // Error
+                 ^
+
+parser/patterns/const_patterns:72:18: The unary operator ~ is not supported as a constant pattern.
+      case const ~0: // Error
+                 ^
+
+parser/patterns/const_patterns:86:18: Duplicate 'const' keyword in constant expression.
       case const const Class(): // Error
                  ^^^^^
 
-parser/patterns/const_patterns:60:18: Duplicate 'const' keyword in constant expression.
+parser/patterns/const_patterns:87:18: Duplicate 'const' keyword in constant expression.
       case const const Class(0): // Error
                  ^^^^^
 
-parser/patterns/const_patterns:61:18: Duplicate 'const' keyword in constant expression.
+parser/patterns/const_patterns:88:18: Duplicate 'const' keyword in constant expression.
       case const const GenericClass(): // Error
                  ^^^^^
 
-parser/patterns/const_patterns:62:18: Duplicate 'const' keyword in constant expression.
+parser/patterns/const_patterns:89:18: Duplicate 'const' keyword in constant expression.
       case const const GenericClass(a: 0): // Error
                  ^^^^^
 
-parser/patterns/const_patterns:63:18: Duplicate 'const' keyword in constant expression.
+parser/patterns/const_patterns:90:18: Duplicate 'const' keyword in constant expression.
       case const const GenericClass<int>(): // Error
                  ^^^^^
 
-parser/patterns/const_patterns:64:18: Duplicate 'const' keyword in constant expression.
+parser/patterns/const_patterns:91:18: Duplicate 'const' keyword in constant expression.
       case const const GenericClass<int>(a: 0): // Error
                  ^^^^^
 
-parser/patterns/const_patterns:65:18: Duplicate 'const' keyword in constant expression.
+parser/patterns/const_patterns:92:18: Duplicate 'const' keyword in constant expression.
       case const const []: // Error
                  ^^^^^
 
-parser/patterns/const_patterns:66:18: Duplicate 'const' keyword in constant expression.
+parser/patterns/const_patterns:93:18: Duplicate 'const' keyword in constant expression.
       case const const <int>[]: // Error
                  ^^^^^
 
-parser/patterns/const_patterns:67:18: Duplicate 'const' keyword in constant expression.
+parser/patterns/const_patterns:94:18: Duplicate 'const' keyword in constant expression.
       case const const {}: // Error
                  ^^^^^
 
-parser/patterns/const_patterns:68:18: Duplicate 'const' keyword in constant expression.
+parser/patterns/const_patterns:95:18: Duplicate 'const' keyword in constant expression.
       case const const <int, String>{}: // Error
                  ^^^^^
 
-parser/patterns/const_patterns:71:19: The empty record literal is not supported as a constant pattern.
+parser/patterns/const_patterns:98:18: The empty record literal is not supported as a constant pattern.
       case const (): // Error
-                  ^
+                 ^
 
-parser/patterns/const_patterns:72:18: Duplicate 'const' keyword in constant expression.
+parser/patterns/const_patterns:99:18: Duplicate 'const' keyword in constant expression.
       case const const (): // Error
                  ^^^^^
 
-parser/patterns/const_patterns:78:24: This expression is not supported as a constant pattern.
+parser/patterns/const_patterns:105:24: This expression is not supported as a constant pattern.
       case GenericClass<int>: // Error
                        ^
 
-parser/patterns/const_patterns:79:31: This expression is not supported as a constant pattern.
+parser/patterns/const_patterns:106:31: This expression is not supported as a constant pattern.
       case prefix.GenericClass<int>: // Error
                               ^
 
-parser/patterns/const_patterns:80:24: This expression is not supported as a constant pattern.
+parser/patterns/const_patterns:107:24: This expression is not supported as a constant pattern.
       case GenericClass<int>.new: // Error
                        ^
 
-parser/patterns/const_patterns:81:31: This expression is not supported as a constant pattern.
+parser/patterns/const_patterns:108:31: This expression is not supported as a constant pattern.
       case prefix.GenericClass<int>.new: // Error
                               ^
+
+parser/patterns/const_patterns:109:30: This expression is not supported as a constant pattern.
+      case const GenericClass<int>: // Error
+                             ^
+
+parser/patterns/const_patterns:110:37: This expression is not supported as a constant pattern.
+      case const prefix.GenericClass<int>: // Error
+                                    ^
 
 beginCompilationUnit(import)
   beginMetadataStar(import)
@@ -228,6 +336,22 @@ beginCompilationUnit(import)
                 endFormalParameter(null, null, null, a, null, null, FormalParameterKind.optionalPositional, MemberKind.NonStaticMethod)
               endOptionalFormalParameters(1, [, ])
             endFormalParameters(1, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassConstructor(null, const, (, null, ;)
+        endMember()
+        beginMetadataStar(const)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, const, null, Class)
+            handleNoType(const)
+            handleIdentifier(Class, methodDeclaration)
+            handleIdentifier(named, methodDeclarationContinuation)
+            handleQualified(.)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
             handleNoInitializers()
             handleAsyncModifier(null, null)
             handleEmptyFunctionBody(;)
@@ -392,6 +516,41 @@ beginCompilationUnit(import)
                   endCaseExpression(case, null, :)
                   beginCaseExpression(case)
                     beginConstantPattern(null)
+                      handleIdentifier(value, expression)
+                      handleNoTypeArguments(!)
+                      handleNoArguments(!)
+                      handleSend(value, !)
+                    endConstantPattern(null)
+                    handleNullAssertPattern(!)
+                    handleSwitchCaseNoWhenClause(!)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(null)
+                      handleIdentifier(value, expression)
+                      handleNoTypeArguments(?)
+                      handleNoArguments(?)
+                      handleSend(value, ?)
+                    endConstantPattern(null)
+                    handleNullCheckPattern(?)
+                    handleSwitchCaseNoWhenClause(?)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(null)
+                      handleIdentifier(value, expression)
+                      handleNoTypeArguments(as)
+                      handleNoArguments(as)
+                      handleSend(value, as)
+                    endConstantPattern(null)
+                    beginAsOperatorType(as)
+                      handleIdentifier(int, typeReference)
+                      handleNoTypeArguments(:)
+                      handleType(int, null)
+                    endAsOperatorType(as)
+                    handleCastPattern(as)
+                    handleSwitchCaseNoWhenClause(int)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(null)
                       handleRecoverableError(InvalidConstantPatternNegation, value, value)
                       handleIdentifier(value, expression)
                       handleNoTypeArguments(:)
@@ -451,6 +610,7 @@ beginCompilationUnit(import)
                       handleNoTypeArguments(.)
                       handleNoArguments(.)
                       handleSend(prefix, .)
+                      handleRecoverableError(InvalidConstantPatternNegation, value, value)
                       handleIdentifier(value, expressionContinuation)
                       handleNoTypeArguments(:)
                       handleNoArguments(:)
@@ -462,12 +622,31 @@ beginCompilationUnit(import)
                   endCaseExpression(case, null, :)
                   beginCaseExpression(case)
                     beginConstantPattern(null)
+                      handleIdentifier(prefix, expression)
+                      handleNoTypeArguments(.)
+                      handleNoArguments(.)
+                      handleSend(prefix, .)
+                      handleIdentifier(Class, expressionContinuation)
+                      handleNoTypeArguments(.)
+                      handleNoArguments(.)
+                      handleSend(Class, .)
+                      handleEndingBinaryExpression(.)
+                      handleIdentifier(named, expressionContinuation)
+                      handleNoTypeArguments(:)
+                      handleNoArguments(:)
+                      handleSend(named, :)
+                      handleEndingBinaryExpression(.)
+                    endConstantPattern(null)
+                    handleSwitchCaseNoWhenClause(named)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(null)
                       handleLiteralInt(1)
                     endConstantPattern(null)
                     handleSwitchCaseNoWhenClause(1)
                     handleRecoverableError(Message[ExpectedButGot, Expected ':' before this., null, {string: :}], +, +)
                   endCaseExpression(case, null, :)
-                  beginSwitchCase(0, 19, case)
+                  beginSwitchCase(0, 23, case)
                     handleRecoverableError(UnsupportedPrefixPlus, +, +)
                     handleIdentifier(, expression)
                     handleNoTypeArguments(+)
@@ -486,7 +665,7 @@ beginCompilationUnit(import)
                     handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 2, 2)
                     handleExpressionStatement(;)
                     handleRecoverableError(Message[UnexpectedToken, Unexpected token ':'., null, {lexeme: :}], :, :)
-                  endSwitchCase(0, 19, null, null, 2, case, case)
+                  endSwitchCase(0, 23, null, null, 2, case, case)
                   beginCaseExpression(case)
                     beginConstantPattern(null)
                       handleLiteralInt(1)
@@ -601,6 +780,247 @@ beginCompilationUnit(import)
                       handleSend(variable, :)
                       handleUnaryPrefixAssignmentExpression(++)
                     endConstantPattern(null)
+                    handleSwitchCaseNoWhenClause(variable)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, 0, 0)
+                      handleLiteralInt(0)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(0)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, 0x0, 0x0)
+                      handleLiteralInt(0x0)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(0x0)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, 0.5, 0.5)
+                      handleLiteralDouble(0.5)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(0.5)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, true, true)
+                      handleLiteralBool(true)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(true)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, null, null)
+                      handleLiteralNull(null)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(null)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, -, -)
+                      handleLiteralInt(0)
+                      handleUnaryPrefixExpression(-)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(0)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, 'foo', 'foo')
+                      beginLiteralString('foo')
+                      endLiteralString(0, :)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause('foo')
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, #, #)
+                      beginLiteralSymbol(#)
+                        handleIdentifier(a, literalSymbol)
+                      endLiteralSymbol(#, 1)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(a)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleIdentifier(value, expression)
+                      handleNoTypeArguments(:)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, value, value)
+                      handleNoArguments(:)
+                      handleSend(value, :)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(value)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleIdentifier(local, expression)
+                      handleNoTypeArguments(:)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, local, local)
+                      handleNoArguments(:)
+                      handleSend(local, :)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(local)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleIdentifier(prefix, expression)
+                      handleNoTypeArguments(.)
+                      handleNoArguments(.)
+                      handleSend(prefix, .)
+                      handleIdentifier(value, expressionContinuation)
+                      handleNoTypeArguments(:)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, value, value)
+                      handleNoArguments(:)
+                      handleSend(value, :)
+                      handleEndingBinaryExpression(.)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(value)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, -, -)
+                      handleIdentifier(prefix, expression)
+                      handleNoTypeArguments(.)
+                      handleNoArguments(.)
+                      handleSend(prefix, .)
+                      handleIdentifier(value, expressionContinuation)
+                      handleNoTypeArguments(:)
+                      handleNoArguments(:)
+                      handleSend(value, :)
+                      handleEndingBinaryExpression(.)
+                      handleUnaryPrefixExpression(-)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(value)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleIdentifier(prefix, expression)
+                      handleNoTypeArguments(.)
+                      handleNoArguments(.)
+                      handleSend(prefix, .)
+                      handleIdentifier(Class, expressionContinuation)
+                      handleNoTypeArguments(.)
+                      handleNoArguments(.)
+                      handleSend(Class, .)
+                      handleEndingBinaryExpression(.)
+                      handleIdentifier(named, expressionContinuation)
+                      handleNoTypeArguments(:)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, named, named)
+                      handleNoArguments(:)
+                      handleSend(named, :)
+                      handleEndingBinaryExpression(.)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(named)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, 1, 1)
+                      handleLiteralInt(1)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(1)
+                    handleRecoverableError(Message[ExpectedButGot, Expected ':' before this., null, {string: :}], +, +)
+                  endCaseExpression(case, null, :)
+                  beginSwitchCase(0, 20, case)
+                    handleRecoverableError(UnsupportedPrefixPlus, +, +)
+                    handleIdentifier(, expression)
+                    handleNoTypeArguments(+)
+                    handleNoArguments(+)
+                    handleSend(, +)
+                    beginBinaryExpression(+)
+                      handleLiteralInt(2)
+                    endBinaryExpression(+)
+                    handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 2, 2)
+                    handleExpressionStatement(;)
+                    handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ':'., Try inserting an identifier before ':'., {lexeme: :}], :, :)
+                    handleIdentifier(, expression)
+                    handleNoTypeArguments(:)
+                    handleNoArguments(:)
+                    handleSend(, :)
+                    handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 2, 2)
+                    handleExpressionStatement(;)
+                    handleRecoverableError(Message[UnexpectedToken, Unexpected token ':'., null, {lexeme: :}], :, :)
+                  endSwitchCase(0, 20, null, null, 2, case, case)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleNoTypeVariables(()
+                      beginNamedFunctionExpression(void)
+                        handleVoidKeyword(void)
+                        beginFunctionName(fun)
+                          handleIdentifier(fun, localFunctionDeclaration)
+                          handleRecoverableError(NamedFunctionExpression, fun, fun)
+                        endFunctionName(void, ()
+                        beginFormalParameters((, MemberKind.Local)
+                        endFormalParameters(0, (, ), MemberKind.Local)
+                        handleNoInitializers()
+                        handleAsyncModifier(null, null)
+                        beginBlockFunctionBody({)
+                        endBlockFunctionBody(0, {, })
+                      endNamedFunctionExpression(})
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(})
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      beginAssert(assert, Assert.Expression)
+                        handleLiteralBool(false)
+                        handleRecoverableError(AssertAsExpression, assert, assert)
+                      endAssert(assert, Assert.Expression, (, null, :)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause())
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      beginSwitchExpression(switch)
+                        handleIdentifier(o, expression)
+                        handleNoTypeArguments())
+                        handleNoArguments())
+                        handleSend(o, ))
+                        handleParenthesizedCondition((, null, null)
+                        beginSwitchExpressionBlock({)
+                          beginSwitchExpressionCase()
+                            handleNoType({)
+                            handleVariablePattern(null, _, false)
+                            handleSwitchExpressionCasePattern(_)
+                            handleLiteralBool(true)
+                          endSwitchExpressionCase(null, =>, true)
+                        endSwitchExpressionBlock(1, {, })
+                      endSwitchExpression(switch, })
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(})
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      beginAwaitExpression(await)
+                        handleLiteralInt(0)
+                      endAwaitExpression(await, :)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(0)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(Message[InvalidConstantPatternUnary, The unary operator ! is not supported as a constant pattern., Try wrapping the expression in 'const ( ... )'., {name: !}], !, !)
+                      handleLiteralBool(false)
+                      handleUnaryPrefixExpression(!)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(false)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleRecoverableError(Message[InvalidConstantPatternUnary, The unary operator ~ is not supported as a constant pattern., Try wrapping the expression in 'const ( ... )'., {name: ~}], ~, ~)
+                      handleLiteralInt(0)
+                      handleUnaryPrefixExpression(~)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(0)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleIdentifier(variable, expression)
+                      handleNoTypeArguments(:)
+                      handleNoArguments(:)
+                      handleSend(variable, :)
+                      handleUnaryPrefixAssignmentExpression(++)
+                    endConstantPattern(const)
                     handleSwitchCaseNoWhenClause(variable)
                   endCaseExpression(case, null, :)
                   beginCaseExpression(case)
@@ -945,7 +1365,7 @@ beginCompilationUnit(import)
                   beginCaseExpression(case)
                     beginConstantPattern(const)
                       beginParenthesizedExpressionOrRecordLiteral(()
-                        handleRecoverableError(InvalidConstantPatternEmptyRecordLiteral, ), ))
+                        handleRecoverableError(InvalidConstantPatternEmptyRecordLiteral, (, ()
                       endRecordLiteral((, 0, null)
                     endConstantPattern(const)
                     handleSwitchCaseNoWhenClause())
@@ -1099,6 +1519,43 @@ beginCompilationUnit(import)
                   endCaseExpression(case, null, :)
                   beginCaseExpression(case)
                     beginConstantPattern(const)
+                      handleIdentifier(GenericClass, expression)
+                      handleNoTypeArguments(<)
+                      handleNoArguments(<)
+                      handleSend(GenericClass, <)
+                      beginTypeArguments(<)
+                        handleIdentifier(int, typeReference)
+                        handleNoTypeArguments(>)
+                        handleType(int, null)
+                      endTypeArguments(1, <, >)
+                      handleRecoverableError(InvalidConstantPatternGeneric, <, <)
+                      handleTypeArgumentApplication(<)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(>)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
+                      handleIdentifier(prefix, expression)
+                      handleNoTypeArguments(.)
+                      handleNoArguments(.)
+                      handleSend(prefix, .)
+                      handleIdentifier(GenericClass, expressionContinuation)
+                      handleNoTypeArguments(<)
+                      handleNoArguments(<)
+                      handleSend(GenericClass, <)
+                      handleEndingBinaryExpression(.)
+                      beginTypeArguments(<)
+                        handleIdentifier(int, typeReference)
+                        handleNoTypeArguments(>)
+                        handleType(int, null)
+                      endTypeArguments(1, <, >)
+                      handleRecoverableError(InvalidConstantPatternGeneric, <, <)
+                      handleTypeArgumentApplication(<)
+                    endConstantPattern(const)
+                    handleSwitchCaseNoWhenClause(>)
+                  endCaseExpression(case, null, :)
+                  beginCaseExpression(case)
+                    beginConstantPattern(const)
                       beginParenthesizedExpressionOrRecordLiteral(()
                         handleIdentifier(GenericClass, expression)
                         handleNoTypeArguments(<)
@@ -1187,7 +1644,7 @@ beginCompilationUnit(import)
                     endConstantPattern(const)
                     handleSwitchCaseNoWhenClause())
                   endCaseExpression(case, null, :)
-                  beginSwitchCase(0, 45, case)
+                  beginSwitchCase(0, 48, case)
                     handleIdentifier(print, expression)
                     handleNoTypeArguments(()
                     beginArguments(()
@@ -1195,13 +1652,13 @@ beginCompilationUnit(import)
                     endArguments(1, (, ))
                     handleSend(print, ;)
                     handleExpressionStatement(;)
-                  endSwitchCase(0, 45, null, null, 1, case, })
-                endSwitchBlock(4, {, })
+                  endSwitchCase(0, 48, null, null, 1, case, })
+                endSwitchBlock(5, {, })
               endSwitchStatement(switch, })
             endBlockFunctionBody(3, {, })
           endClassMethod(null, test, (, null, })
         endMember()
-      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 3, {, })
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 4, {, })
     endClassDeclaration(class, })
   endTopLevelDeclaration(class)
   beginMetadataStar(class)

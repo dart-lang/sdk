@@ -166,6 +166,7 @@ patterns/pattern_matching: FormatterCrash
 patterns/pattern_types: FormatterCrash
 patterns/records/destructuring: FormatterCrash
 patterns/records/record_pattern_inside_if_case: FormatterCrash
+patterns/simple_if_case_in_lists: FormatterCrash
 patterns/switchExpression_empty: FormatterCrash
 patterns/switchExpression_onePattern_guarded: FormatterCrash
 patterns/switchExpression_onePattern_noTrailingComma: FormatterCrash
@@ -186,6 +187,7 @@ records/block_combine_statements: FormatterCrash
 records/const_local_access: FormatterCrash
 records/const_record_literal: FormatterCrash
 records/duplicated_name_errors: FormatterCrash
+records/for_in_without_variable: FormatterCrash
 records/issue50132: FormatterCrash
 records/issue50133: FormatterCrash
 records/issue50157: FormatterCrash

@@ -5716,7 +5716,7 @@ class Parser {
             token = parsePrimary(
                 token.next!,
                 IdentifierContext.expressionContinuation,
-                ConstantPatternContext.none);
+                constantPatternContext);
             listener.handleEndingBinaryExpression(operator);
 
             Token bangToken = token;
@@ -5981,7 +5981,8 @@ class Parser {
       token = parseArgumentOrIndexStar(
           token, noTypeParamOrArg, /* checkedNullAware = */ false);
     } else {
-      token = parseSend(token, IdentifierContext.expressionContinuation);
+      token = parseSend(token, IdentifierContext.expressionContinuation,
+          ConstantPatternContext.none);
       listener.handleEndingBinaryExpression(cascadeOperator);
     }
     Token next = token.next!;
@@ -5990,7 +5991,8 @@ class Parser {
       mark = token;
       if (optional('.', next) || optional('?.', next)) {
         Token period = next;
-        token = parseSend(next, IdentifierContext.expressionContinuation);
+        token = parseSend(next, IdentifierContext.expressionContinuation,
+            ConstantPatternContext.none);
         next = token.next!;
         listener.handleEndingBinaryExpression(period);
       } else if (optional('!', next)) {
@@ -6069,6 +6071,12 @@ class Parser {
       return token;
     } else if (identical(value, '-')) {
       Token operator = token.next!;
+      if (constantPatternContext == ConstantPatternContext.explicit) {
+        reportRecoverableError(
+            operator, codes.messageInvalidConstantPatternConstPrefix);
+        // Avoid subsequent errors.
+        constantPatternContext = ConstantPatternContext.none;
+      }
       // Right associative, so we recurse at the same precedence
       // level.
       token = parsePrecedenceExpression(
@@ -6219,20 +6227,38 @@ class Parser {
       if (constantPatternContext == ConstantPatternContext.numericLiteralOnly) {
         reportRecoverableError(
             next, codes.messageInvalidConstantPatternNegation);
+        // Avoid subsequent errors.
+        constantPatternContext == ConstantPatternContext.none;
       }
-      return parseSendOrFunctionLiteral(token, context);
+      return parseSendOrFunctionLiteral(token, context, constantPatternContext);
     } else if (kind == INT_TOKEN || kind == HEXADECIMAL_TOKEN) {
+      if (constantPatternContext == ConstantPatternContext.explicit) {
+        reportRecoverableError(
+            next, codes.messageInvalidConstantPatternConstPrefix);
+      }
       return parseLiteralInt(token);
     } else if (kind == DOUBLE_TOKEN) {
+      if (constantPatternContext == ConstantPatternContext.explicit) {
+        reportRecoverableError(
+            next, codes.messageInvalidConstantPatternConstPrefix);
+      }
       return parseLiteralDouble(token);
     } else if (kind == STRING_TOKEN) {
-      if (constantPatternContext == ConstantPatternContext.numericLiteralOnly) {
+      if (constantPatternContext == ConstantPatternContext.explicit) {
+        reportRecoverableError(
+            next, codes.messageInvalidConstantPatternConstPrefix);
+      } else if (constantPatternContext ==
+          ConstantPatternContext.numericLiteralOnly) {
         reportRecoverableError(
             next, codes.messageInvalidConstantPatternNegation);
       }
       return parseLiteralString(token);
     } else if (kind == HASH_TOKEN) {
-      if (constantPatternContext == ConstantPatternContext.numericLiteralOnly) {
+      if (constantPatternContext == ConstantPatternContext.explicit) {
+        reportRecoverableError(
+            next, codes.messageInvalidConstantPatternConstPrefix);
+      } else if (constantPatternContext ==
+          ConstantPatternContext.numericLiteralOnly) {
         reportRecoverableError(
             next, codes.messageInvalidConstantPatternNegation);
       }
@@ -6240,14 +6266,20 @@ class Parser {
     } else if (kind == KEYWORD_TOKEN) {
       final String? value = next.stringValue;
       if (identical(value, "true") || identical(value, "false")) {
-        if (constantPatternContext ==
+        if (constantPatternContext == ConstantPatternContext.explicit) {
+          reportRecoverableError(
+              next, codes.messageInvalidConstantPatternConstPrefix);
+        } else if (constantPatternContext ==
             ConstantPatternContext.numericLiteralOnly) {
           reportRecoverableError(
               next, codes.messageInvalidConstantPatternNegation);
         }
         return parseLiteralBool(token);
       } else if (identical(value, "null")) {
-        if (constantPatternContext ==
+        if (constantPatternContext == ConstantPatternContext.explicit) {
+          reportRecoverableError(
+              next, codes.messageInvalidConstantPatternConstPrefix);
+        } else if (constantPatternContext ==
             ConstantPatternContext.numericLiteralOnly) {
           reportRecoverableError(
               next, codes.messageInvalidConstantPatternNegation);
@@ -6269,7 +6301,8 @@ class Parser {
         }
         return parseConstExpression(token);
       } else if (identical(value, "void")) {
-        return parseSendOrFunctionLiteral(token, context);
+        return parseSendOrFunctionLiteral(
+            token, context, constantPatternContext);
       } else if (!inPlainSync &&
           (identical(value, "yield") || identical(value, "async"))) {
         // Fall through to the recovery code.
@@ -6282,8 +6315,11 @@ class Parser {
             ConstantPatternContext.numericLiteralOnly) {
           reportRecoverableError(
               next, codes.messageInvalidConstantPatternNegation);
+          // Avoid subsequent errors.
+          constantPatternContext == ConstantPatternContext.none;
         }
-        return parseSendOrFunctionLiteral(token, context);
+        return parseSendOrFunctionLiteral(
+            token, context, constantPatternContext);
       } else if (identical(value, "return")) {
         // Recovery
         token = token.next!;
@@ -6310,7 +6346,7 @@ class Parser {
     //
     // Recovery code.
     //
-    return parseSend(token, context);
+    return parseSend(token, context, constantPatternContext);
   }
 
   Token parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(
@@ -6444,7 +6480,7 @@ class Parser {
             token, codes.messageRecordLiteralOnePositionalFieldNoTrailingComma);
       } else if (constantPatternContext != ConstantPatternContext.none) {
         reportRecoverableError(
-            token, codes.messageInvalidConstantPatternEmptyRecordLiteral);
+            begin, codes.messageInvalidConstantPatternEmptyRecordLiteral);
       }
       listener.endRecordLiteral(begin, count, constKeywordForRecord);
     } else {
@@ -6794,9 +6830,10 @@ class Parser {
     return token;
   }
 
-  Token parseSendOrFunctionLiteral(Token token, IdentifierContext context) {
+  Token parseSendOrFunctionLiteral(Token token, IdentifierContext context,
+      ConstantPatternContext constantPatternContext) {
     if (!mayParseFunctionExpressions) {
-      return parseSend(token, context);
+      return parseSend(token, context, constantPatternContext);
     }
     TypeInfo typeInfo = computeType(token, /* required = */ false);
     Token beforeName = typeInfo.skipType(token);
@@ -6811,7 +6848,7 @@ class Parser {
         }
       }
     }
-    return parseSend(token, context);
+    return parseSend(token, context, constantPatternContext);
   }
 
   Token ensureArguments(Token token) {
@@ -7180,7 +7217,8 @@ class Parser {
       listener.handleThisExpression(next, IdentifierContext.expression);
       return next;
     } else {
-      return parseSend(token, IdentifierContext.expression);
+      return parseSend(
+          token, IdentifierContext.expression, ConstantPatternContext.none);
     }
   }
 
@@ -7209,7 +7247,8 @@ class Parser {
     return token;
   }
 
-  Token parseSend(Token token, IdentifierContext context) {
+  Token parseSend(Token token, IdentifierContext context,
+      ConstantPatternContext constantPatternContext) {
     // Least-costly recovery of `Map<...>?{`, `Set<...>?{`, `List<...>[` and
     // `List<...>?[]`.
     // Note that we have to "peek" into the identifier because we don't want to
@@ -7273,6 +7312,18 @@ class Parser {
       token = typeArg.parseArguments(token, this);
     } else {
       listener.handleNoTypeArguments(token.next!);
+    }
+    if (constantPatternContext == ConstantPatternContext.explicit &&
+        !(optional('.', token.next!) ||
+            optional('(', token.next!) ||
+            optional('<', token.next!))) {
+      // For '.', '(' and '<' we might end up with a valid constant pattern,
+      // i.e. a const constructor invocation, so we only report an error here
+      // otherwise.
+      reportRecoverableError(
+          token, codes.messageInvalidConstantPatternConstPrefix);
+      // Avoid subsequent errors.
+      constantPatternContext = ConstantPatternContext.none;
     }
     token = parseArgumentsOpt(token);
     listener.handleSend(beginToken, token.next!);
