@@ -167,7 +167,7 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void nonBooleanCondition(Expression node) {
+  void nonBooleanCondition({required Expression node}) {
     _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.NON_BOOL_CONDITION,
       node,
@@ -175,7 +175,7 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void patternDoesNotAllowLate(AstNode pattern) {
+  void patternDoesNotAllowLate({required AstNode pattern}) {
     throw UnimplementedError('TODO(paulberry)');
   }
 
@@ -207,7 +207,8 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void refutablePatternInIrrefutableContext(AstNode pattern, AstNode context) {
+  void refutablePatternInIrrefutableContext(
+      {required AstNode pattern, required AstNode context}) {
     _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
       pattern,
@@ -228,9 +229,8 @@ class SharedTypeAnalyzerErrors
 
   @override
   void restPatternNotLastInMap(
-    covariant MapPatternImpl node,
-    covariant RestPatternElementImpl element,
-  ) {
+      {required covariant MapPatternImpl node,
+      required covariant RestPatternElementImpl element}) {
     _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN,
       element,
@@ -239,9 +239,8 @@ class SharedTypeAnalyzerErrors
 
   @override
   void restPatternWithSubPatternInMap(
-    covariant MapPatternImpl node,
-    covariant RestPatternElementImpl element,
-  ) {
+      {required covariant MapPatternImpl node,
+      required covariant RestPatternElementImpl element}) {
     _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN,
       element.pattern!,
@@ -250,7 +249,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void switchCaseCompletesNormally(
-      covariant SwitchStatement node, int caseIndex) {
+      {required covariant SwitchStatement node, required int caseIndex}) {
     _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
         node.members[caseIndex].keyword);
