@@ -193,6 +193,10 @@ class Timeline : public AllStatic {
   // Cleanup timeline system. Not thread safe.
   static void Cleanup();
 
+  // Used to prevent races between reading / modifying the value of
+  // |Timeline::recorder_|.
+  static Mutex* recorder_lock() { return recorder_lock_; }
+
   // Access the global recorder. Not thread safe.
   static TimelineEventRecorder* recorder() { return recorder_; }
 
@@ -237,6 +241,12 @@ class Timeline : public AllStatic {
   static void ClearUnsafe();
   static void ReclaimCachedBlocksFromThreadsUnsafe();
 
+  // |recorder_lock_| is used in |OSThread|'s constructor, so it must not be
+  // destroyed until |OSThread|s can no longer be created. Therefore, there is
+  // currently no opportunity to delete this lock. If a thread only begins to
+  // run after we have started to run TLS destructors for a call to |exit()|,
+  // there will be a race involving this lock's deletion.
+  static Mutex* recorder_lock_;
   static TimelineEventRecorder* recorder_;
   static Dart_TimelineRecorderCallback callback_;
   static MallocGrowableArray<char*>* enabled_streams_;

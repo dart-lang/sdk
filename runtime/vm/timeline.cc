@@ -235,7 +235,19 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
 void Timeline::Init() {
   RecorderShutdownSynchronizationLock::Init();
   ASSERT(recorder_ == NULL);
-  recorder_ = CreateTimelineRecorder();
+  {
+    MutexLocker ml(Timeline::recorder_lock());
+    recorder_ = CreateTimelineRecorder();
+  }
+  // The following is needed to backfill information about any |OSThread|s that
+  // were initialized before this point.
+  OSThreadIterator it;
+  while (it.HasNext()) {
+    OSThread& thread = *it.Next();
+    recorder_->AddTrackMetadataBasedOnThread(
+        OS::ProcessId(), OSThread::ThreadIdToIntPtr(thread.trace_id()),
+        thread.name());
+  }
   if (FLAG_trace_timeline) {
     OS::PrintErr("Using the %s timeline recorder.\n", recorder_->name());
   }
@@ -438,6 +450,7 @@ void TimelineEventArguments::Free() {
   length_ = 0;
 }
 
+Mutex* Timeline::recorder_lock_ = new Mutex();
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 Dart_TimelineRecorderCallback Timeline::callback_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
@@ -1071,17 +1084,7 @@ TimelineEventRecorder::TimelineEventRecorder()
       track_uuid_to_track_metadata_(
           &SimpleHashMap::SamePointerValue,
           TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity),
-      track_uuid_to_track_metadata_lock_() {
-  // The following is needed to backfill information about any |OSThread|s that
-  // were initialized before this point.
-  OSThreadIterator it;
-  while (it.HasNext()) {
-    OSThread& thread = *it.Next();
-    AddTrackMetadataBasedOnThread(OS::ProcessId(),
-                                  OSThread::ThreadIdToIntPtr(thread.trace_id()),
-                                  thread.name());
-  }
-}
+      track_uuid_to_track_metadata_lock_() {}
 
 TimelineEventRecorder::~TimelineEventRecorder() {
   for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
