@@ -19,7 +19,7 @@ var tests = <IsolateTest>[
     WebSocket _socket =
         await WebSocket.connect((vm as WebSocketVM).target.networkAddress);
     WebSocket _socket_invoker =
-        await WebSocket.connect((vm as WebSocketVM).target.networkAddress);
+        await WebSocket.connect(vm.target.networkAddress);
 
     final socket = new StreamController<Map>();
     final socket_invoker = new StreamController<Map>();

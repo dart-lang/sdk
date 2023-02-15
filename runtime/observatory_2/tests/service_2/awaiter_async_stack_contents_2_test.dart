@@ -5,15 +5,14 @@
 // VMOptions=--async-debugger --verbose-debug
 
 import 'dart:developer';
-import 'package:observatory_2/models.dart' as M;
 import 'package:observatory_2/service_io.dart';
 import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 28;
-const LINE_B = 34;
-const LINE_C = 38;
+const LINE_A = 27;
+const LINE_B = 33;
+const LINE_C = 37;
 
 notCalled() async {
   await null;

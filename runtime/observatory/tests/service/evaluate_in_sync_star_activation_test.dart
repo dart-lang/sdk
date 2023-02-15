@@ -19,7 +19,7 @@ generator() sync* {
 }
 
 testFunction() {
-  for (var ignored in generator());
+  for (var _ in generator());
 }
 
 var tests = <IsolateTest>[

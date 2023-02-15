@@ -812,8 +812,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
         line.script.isolate!.addBreakpoint(line.script, line.line).then((_) {},
             onError: (e, st) {
           if (e is! S.ServerRpcException ||
-              (e as S.ServerRpcException).code !=
-                  S.ServerRpcException.kCannotAddBreakpoint) {
+              e.code != S.ServerRpcException.kCannotAddBreakpoint) {
             ObservatoryApplication.app.handleException(e, st);
           }
         }).whenComplete(() {

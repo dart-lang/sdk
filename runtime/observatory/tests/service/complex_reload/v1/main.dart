@@ -7,6 +7,6 @@ import 'dart:isolate';
 test() => 'apple';
 
 main() {
-  RawReceivePort keepAlive = new RawReceivePort();
+  RawReceivePort _ = new RawReceivePort();
   print('spawned isolate running');
 }

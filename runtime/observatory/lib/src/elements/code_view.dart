@@ -18,7 +18,6 @@ import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -637,7 +636,8 @@ class CodeViewElement extends CustomElement implements Renderable {
         return 'tag';
       case M.CodeKind.collected:
         return 'collected';
+      default:
+        throw new Exception('Unknown CodeKind ($kind)');
     }
-    throw new Exception('Unknown CodeKind ($kind)');
   }
 }

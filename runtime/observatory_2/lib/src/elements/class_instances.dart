@@ -5,12 +5,9 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory_2/models.dart' as M;
-import 'package:observatory_2/src/elements/class_ref.dart';
 import 'package:observatory_2/src/elements/helpers/any_ref.dart';
 import 'package:observatory_2/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory_2/src/elements/helpers/custom_element.dart';
-import 'package:observatory_2/src/elements/inbound_references.dart';
-import 'package:observatory_2/src/elements/retaining_path.dart';
 import 'package:observatory_2/src/elements/sentinel_value.dart';
 import 'package:observatory_2/src/elements/strongly_reachable_instances.dart';
 import 'package:observatory_2/utils.dart';

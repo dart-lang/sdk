@@ -5,7 +5,6 @@
 library service_test_common;
 
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'package:dds/dds.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_common.dart';

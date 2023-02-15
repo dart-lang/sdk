@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 const int LINE_A = 14;
 
 code() {
-  var x = {}; // LINE_A
+  var _ = {}; // LINE_A
 }
 
 Future stepThroughProgram(Isolate isolate) async {

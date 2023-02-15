@@ -5,15 +5,14 @@
 // VMOptions=--verbose_debug
 
 import 'dart:developer';
-import 'package:observatory_2/models.dart' as M;
 import 'package:observatory_2/service_io.dart';
 import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_C = 20;
-const LINE_A = 26;
-const LINE_B = 32;
+const LINE_C = 19;
+const LINE_A = 25;
+const LINE_B = 31;
 
 foobar() {
   debugger();

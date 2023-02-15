@@ -9,7 +9,7 @@ import 'deferred.dart' deferred as prefix2;
 
 main() {
   prefix1.loadLibrary();
-  RawReceivePort keepAlive = new RawReceivePort();
+  RawReceivePort _ = new RawReceivePort();
   print('spawned isolate running');
 }
 

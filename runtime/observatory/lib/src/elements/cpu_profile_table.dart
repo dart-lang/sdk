@@ -256,7 +256,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
   void _setSorting(
       _Table table, _SortingField field, _SortingDirection defaultDirection) {
     if (_sortingField[table] == field) {
-      switch (_sortingDirection[table]) {
+      switch (_sortingDirection[table]!) {
         case _SortingDirection.descending:
           _sortingDirection[table] = _SortingDirection.ascending;
           break;
@@ -431,7 +431,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
 
   _createSorter(_Table table) {
     var getter;
-    switch (_sortingField[table]) {
+    switch (_sortingField[table]!) {
       case _SortingField.exclusive:
         getter = _getExclusiveT;
         break;
@@ -448,7 +448,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
         getter = (M.ProfileFunction s) => M.getFunctionFullName(s.function!);
         break;
     }
-    switch (_sortingDirection[table]) {
+    switch (_sortingDirection[table]!) {
       case _SortingDirection.ascending:
         int sort(a, b) {
           return getter(a).compareTo(getter(b));

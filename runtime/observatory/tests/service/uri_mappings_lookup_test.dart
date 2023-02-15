@@ -5,8 +5,6 @@
 import 'dart:io';
 
 import 'package:observatory/service_io.dart';
-// Already a dependency of package:test.
-import 'package:pool/pool.dart';
 import 'package:test/test.dart';
 
 import 'test_helper.dart';

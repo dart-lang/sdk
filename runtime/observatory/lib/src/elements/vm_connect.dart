@@ -58,8 +58,6 @@ class VMConnectElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    final host = window.location.hostname;
-    final port = window.location.port;
     children = <Element>[
       navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue).element,

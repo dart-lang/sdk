@@ -49,9 +49,8 @@ String getFunctionFullName(FunctionRef function) {
   String content = function.name!;
   ObjectRef? owner = function.dartOwner;
   while (owner is FunctionRef) {
-    FunctionRef function = (owner as FunctionRef);
-    content = "${function.name!}.${content}";
-    owner = function.dartOwner!;
+    content = "${owner.name!}.${content}";
+    owner = owner.dartOwner!;
   }
   if (owner is ClassRef) {
     content = "${owner.name!}.${content}";

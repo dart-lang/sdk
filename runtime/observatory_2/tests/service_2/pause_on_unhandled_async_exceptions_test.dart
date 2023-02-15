@@ -5,12 +5,11 @@
 // VMOptions=--async_debugger
 
 import 'package:observatory_2/service_io.dart';
-import 'package:observatory_2/models.dart' as M;
 import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
-const LINE_A = 36;
+const LINE_A = 35;
 
 class Foo {}
 

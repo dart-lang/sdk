@@ -12,7 +12,6 @@ import 'package:observatory_2/src/elements/helpers/uris.dart';
 import 'package:observatory_2/src/elements/isolate_ref.dart';
 import 'package:observatory_2/src/elements/isolate/location.dart';
 import 'package:observatory_2/src/elements/isolate/run_state.dart';
-import 'package:observatory_2/src/elements/isolate/shared_summary.dart';
 
 class IsolateSummaryElement extends CustomElement implements Renderable {
   RenderingScheduler<IsolateSummaryElement> _r;

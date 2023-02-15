@@ -12,22 +12,17 @@ import 'dart:math' as Math;
 import 'dart:typed_data';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/object_graph.dart';
-import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/containers/virtual_tree.dart';
-import 'package:observatory/src/elements/curly_block.dart';
-import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/tree_map.dart';
-import 'package:observatory/repositories.dart';
 import 'package:observatory/utils.dart';
 
 enum HeapSnapshotTreeMode {
@@ -617,7 +612,6 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       var file = input.files![0];
       var reader = new FileReader();
       reader.onLoad.listen((event) async {
-        var encoded = <Uint8List>[reader.result as Uint8List];
         var snapshotReader = new SnapshotReader();
         _snapshotLoading(snapshotReader);
         snapshotReader.add(reader.result as Uint8List);

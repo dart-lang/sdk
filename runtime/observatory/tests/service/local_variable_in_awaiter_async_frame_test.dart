@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:developer';
-import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const int LINE_A = 14;
+const int LINE_A = 12;
 
 Future<String> testFunction(String caption) async {
   await Future.delayed(Duration(milliseconds: 1));

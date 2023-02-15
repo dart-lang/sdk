@@ -5,7 +5,6 @@
 import 'package:observatory_2/object_graph.dart';
 import 'package:observatory_2/service_io.dart';
 import 'package:test/test.dart';
-import 'service_test_common.dart';
 import 'test_helper.dart';
 
 @pragma("vm:entry-point") // Prevent obfuscation

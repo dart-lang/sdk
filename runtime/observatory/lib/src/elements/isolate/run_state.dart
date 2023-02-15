@@ -49,7 +49,7 @@ class IsolateRunStateElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    switch (_isolate.status) {
+    switch (_isolate.status!) {
       case M.IsolateStatus.loading:
         children = <Element>[new SpanElement()..text = 'loading... '];
         break;

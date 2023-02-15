@@ -453,10 +453,6 @@ class AllocationProfileElement extends CustomElement implements Renderable {
     final collections = '${space.collections}';
     final avgCollectionTime =
         '${Utils.formatDurationInMilliseconds(space.avgCollectionTime)} ms';
-    final totalCollectionTime =
-        '${Utils.formatDurationInSeconds(space.totalCollectionTime)} secs';
-    final avgCollectionPeriod =
-        '${Utils.formatDurationInMilliseconds(space.avgCollectionPeriod)} ms';
     return [
       new DivElement()
         ..classes = ['memberItem']

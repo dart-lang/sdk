@@ -5,10 +5,8 @@
 // Check the VM correctly undoes the layers of mixin application to report the
 // evaluation scope the frontend as the original mixin.
 
-import 'dart:developer';
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
-import 'service_test_common.dart';
 import 'test_helper.dart';
 
 class S {}

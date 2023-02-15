@@ -25,7 +25,7 @@ late WebSocketVM client2;
 final hotReloadTest = <IsolateTest>[
   // Multiple clients, hot reload approval.
   (Isolate isolate) async {
-    final resumeFuture = waitForResume(isolate);
+    waitForResume(isolate);
 
     client1 = await createClient(isolate.owner as WebSocketVM);
     await setRequireApprovalForResume(

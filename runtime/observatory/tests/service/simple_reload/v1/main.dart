@@ -9,7 +9,7 @@ test() => 'apple';
 class Foo<T> {}
 
 main() {
-  RawReceivePort keepAlive = new RawReceivePort();
+  RawReceivePort _ = new RawReceivePort();
   new Foo<String>();
   print('spawned isolate running');
 }

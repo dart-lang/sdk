@@ -18,7 +18,6 @@ import 'package:observatory_2/src/elements/isolate/location.dart';
 import 'package:observatory_2/src/elements/isolate/run_state.dart';
 import 'package:observatory_2/src/elements/isolate/shared_summary.dart';
 import 'package:observatory_2/src/elements/library_ref.dart';
-import 'package:observatory_2/src/elements/nav/class_menu.dart';
 import 'package:observatory_2/src/elements/nav/isolate_menu.dart';
 import 'package:observatory_2/src/elements/nav/notify.dart';
 import 'package:observatory_2/src/elements/nav/refresh.dart';
@@ -27,7 +26,6 @@ import 'package:observatory_2/src/elements/nav/top_menu.dart';
 import 'package:observatory_2/src/elements/nav/vm_menu.dart';
 import 'package:observatory_2/src/elements/script_inset.dart';
 import 'package:observatory_2/src/elements/source_inset.dart';
-import 'package:observatory_2/utils.dart';
 
 class IsolateViewElement extends CustomElement implements Renderable {
   RenderingScheduler<IsolateViewElement> _r;

@@ -6,23 +6,15 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:convert';
 import 'package:observatory_2/models.dart' as M;
-import 'package:observatory_2/object_graph.dart';
-import 'package:observatory_2/src/elements/class_ref.dart';
-import 'package:observatory_2/src/elements/containers/virtual_tree.dart';
-import 'package:observatory_2/src/elements/curly_block.dart';
-import 'package:observatory_2/src/elements/helpers/any_ref.dart';
 import 'package:observatory_2/src/elements/helpers/nav_bar.dart';
 import 'package:observatory_2/src/elements/helpers/nav_menu.dart';
 import 'package:observatory_2/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory_2/src/elements/helpers/custom_element.dart';
-import 'package:observatory_2/src/elements/helpers/uris.dart';
-import 'package:observatory_2/src/elements/nav/isolate_menu.dart';
 import 'package:observatory_2/src/elements/nav/notify.dart';
 import 'package:observatory_2/src/elements/nav/refresh.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
 import 'package:observatory_2/src/elements/nav/vm_menu.dart';
 import 'package:observatory_2/src/elements/tree_map.dart';
-import 'package:observatory_2/repositories.dart';
 import 'package:observatory_2/utils.dart';
 
 class ProcessItemTreeMap extends NormalTreeMap<Map> {
@@ -251,26 +243,6 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
         }).toList(growable: false)
         ..onChange.listen((_) {
           _snapshotA = _loadedSnapshots[s.selectedIndex];
-          selection = null;
-          _r.dirty();
-        })
-    ];
-  }
-
-  List<Element> _createSnapshotSelectB() {
-    var s;
-    return [
-      s = new SelectElement()
-        ..classes = ['analysis-select']
-        ..value = snapshotToString(_snapshotB)
-        ..children = _loadedSnapshots.map((snapshot) {
-          return new OptionElement(
-              value: snapshotToString(snapshot),
-              selected: _snapshotB == snapshot)
-            ..text = snapshotToString(snapshot);
-        }).toList(growable: false)
-        ..onChange.listen((_) {
-          _snapshotB = _loadedSnapshots[s.selectedIndex];
           selection = null;
           _r.dirty();
         })

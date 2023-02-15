@@ -3,10 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--deterministic --optimization-counter-threshold=1000
 
-import 'dart:convert';
-
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
@@ -29,7 +26,7 @@ var tests = <IsolateTest>[
   hasStoppedWithUnhandledException,
   (Isolate isolate) async {
     print("We stopped!");
-    var stack = await isolate.getStack();
+    await isolate.getStack();
   }
 ];
 

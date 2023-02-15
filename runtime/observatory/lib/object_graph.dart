@@ -5,7 +5,6 @@
 library object_graph;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -876,13 +875,10 @@ class _SnapshotGraph implements SnapshotGraph {
     return this;
   }
 
-  Uint8List? _encoded;
-
   String? _description;
 
   int? _kStackCid;
   int? _kFieldCid;
-  int? _numCids;
   int? _N; // Objects in the snapshot.
   int? _Nconnected; // Objects reachable from root.
   int? _E; // References in the snapshot.
@@ -951,7 +947,6 @@ class _SnapshotGraph implements SnapshotGraph {
       classes[cid] = cls;
     }
 
-    _numCids = K;
     _classes = classes;
   }
 

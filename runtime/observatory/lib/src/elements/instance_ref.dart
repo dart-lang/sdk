@@ -205,8 +205,9 @@ class InstanceRefElement extends CustomElement implements Renderable {
             ..classes = ['emphasize']
             ..text = _instance.clazz!.name
         ];
+      default:
+        throw new Exception('Unknown InstanceKind: ${_instance.kind}');
     }
-    throw new Exception('Unknown InstanceKind: ${_instance.kind}');
   }
 
   bool _hasValue() {
