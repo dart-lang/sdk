@@ -6428,6 +6428,17 @@ InvalidConstantPatternConstPrefix:
       if (x case const 1) {}
     }
 
+InvalidConstantPatternBinary:
+  problemMessage: "The binary operator #name is not supported as a constant pattern."
+  correctionMessage: "Try wrapping the expression in 'const ( ... )'."
+  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY
+  index: 141
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case 1 + 2) {}
+    }
+
 PatternAssignmentDeclaresVariable:
   problemMessage: "Variable '#name' can't be declared in a pattern assignment."
   correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."

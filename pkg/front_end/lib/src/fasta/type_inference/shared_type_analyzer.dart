@@ -155,14 +155,14 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void nonBooleanCondition(Expression node) {
+  void nonBooleanCondition({required Expression node}) {
     // TODO(johnniwinther): Find a way to propagate the error state to the
     // parent of the guard.
     helper.addProblem(messageNonBoolCondition, node.fileOffset, noLength);
   }
 
   @override
-  void patternDoesNotAllowLate(TreeNode pattern) {
+  void patternDoesNotAllowLate({required TreeNode pattern}) {
     // TODO(johnniwinther): Is late even supported by the grammar or parser?
     throw new UnimplementedError('TODO(paulberry)');
   }
@@ -191,7 +191,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void refutablePatternInIrrefutableContext(
-      covariant Pattern pattern, TreeNode context) {
+      {required covariant Pattern pattern, required TreeNode context}) {
     pattern.error = helper.buildProblem(
         messageRefutablePatternInIrrefutableContext,
         pattern.fileOffset,
@@ -211,18 +211,20 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void restPatternNotLastInMap(Pattern node, TreeNode element) {
+  void restPatternNotLastInMap(
+      {required Pattern node, required TreeNode element}) {
     // This is reported in the body builder.
   }
 
   @override
-  void restPatternWithSubPatternInMap(Pattern node, TreeNode element) {
+  void restPatternWithSubPatternInMap(
+      {required Pattern node, required TreeNode element}) {
     // This is reported in the body builder.
   }
 
   @override
   void switchCaseCompletesNormally(
-      covariant SwitchStatement node, int caseIndex) {
+      {required covariant SwitchStatement node, required int caseIndex}) {
     helper.addProblem(messageSwitchCaseFallThrough,
         node.cases[caseIndex].fileOffset, noLength);
   }

@@ -7,9 +7,9 @@
 // Error when applying the mixin modifier to a class whose superclass is not
 // Object.
 
-class NotObject {}
+mixin class NotObject {}
 
-class AlsoNotObject {}
+mixin class AlsoNotObject {}
 
 mixin class MixinClass extends NotObject {}
 //                             ^^^^^^^^^

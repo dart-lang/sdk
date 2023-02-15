@@ -796,6 +796,9 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
         Object::Handle(SuspendState::Cast(suspend_state).function_data());
     futureOrListener =
         caller_closure_finder.GetFutureFutureListener(futureOrListener);
+    if (futureOrListener.IsNull()) {
+      return false;
+    }
     return caller_closure_finder.HasCatchError(futureOrListener);
   }
 

@@ -3112,13 +3112,13 @@ class _MiniAstErrors
   }
 
   @override
-  void nonBooleanCondition(Expression node) {
-    _recordError('nonBooleanCondition', {}, unnamed: [node]);
+  void nonBooleanCondition({required Expression node}) {
+    _recordError('nonBooleanCondition', {'node': node});
   }
 
   @override
-  void patternDoesNotAllowLate(Node pattern) {
-    _recordError('patternDoesNotAllowLate', {}, unnamed: [pattern]);
+  void patternDoesNotAllowLate({required Node pattern}) {
+    _recordError('patternDoesNotAllowLate', {'pattern': pattern});
   }
 
   @override
@@ -3149,12 +3149,10 @@ class _MiniAstErrors
   }
 
   @override
-  void refutablePatternInIrrefutableContext(Node pattern, Node context) {
-    _recordError(
-      'refutablePatternInIrrefutableContext',
-      const {},
-      unnamed: [pattern, context],
-    );
+  void refutablePatternInIrrefutableContext(
+      {required Node pattern, required Node context}) {
+    _recordError('refutablePatternInIrrefutableContext',
+        {'pattern': pattern, 'context': context});
   }
 
   @override
@@ -3169,31 +3167,22 @@ class _MiniAstErrors
   }
 
   @override
-  void restPatternNotLastInMap(Pattern node, Node element) {
-    _recordError(
-      'restPatternNotLastInMap',
-      const {},
-      unnamed: [node, element],
-    );
+  void restPatternNotLastInMap({required Pattern node, required Node element}) {
+    _recordError('restPatternNotLastInMap', {'node': node, 'element': element});
   }
 
   @override
-  void restPatternWithSubPatternInMap(Pattern node, Node element) {
+  void restPatternWithSubPatternInMap(
+      {required Pattern node, required Node element}) {
     _recordError(
-      'restPatternWithSubPatternInMap',
-      const {},
-      unnamed: [node, element],
-    );
+        'restPatternWithSubPatternInMap', {'node': node, 'element': element});
   }
 
   @override
   void switchCaseCompletesNormally(
-      covariant _SwitchStatement node, int caseIndex) {
+      {required covariant _SwitchStatement node, required int caseIndex}) {
     _recordError(
-      'switchCaseCompletesNormally',
-      const {},
-      unnamed: [node, caseIndex],
-    );
+        'switchCaseCompletesNormally', {'node': node, 'caseIndex': caseIndex});
   }
 
   @override
@@ -3207,11 +3196,7 @@ class _MiniAstErrors
     });
   }
 
-  void _recordError(
-    String name,
-    Map<String, Object?> namedArguments, {
-    List<Object?>? unnamed,
-  }) {
+  void _recordError(String name, Map<String, Object?> namedArguments) {
     String argumentStr(Object? argument) {
       if (argument is bool) {
         return '$argument';
@@ -3228,14 +3213,9 @@ class _MiniAstErrors
       }
     }
 
-    String argumentsStr;
-    if (unnamed != null) {
-      argumentsStr = unnamed.map(argumentStr).join(', ');
-    } else {
-      argumentsStr = namedArguments.entries.map((entry) {
-        return '${entry.key}: ${argumentStr(entry.value)}';
-      }).join(', ');
-    }
+    String argumentsStr = namedArguments.entries.map((entry) {
+      return '${entry.key}: ${argumentStr(entry.value)}';
+    }).join(', ');
 
     var errorText = '$name($argumentsStr)';
 

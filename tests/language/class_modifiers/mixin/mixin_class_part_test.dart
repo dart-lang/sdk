@@ -16,10 +16,7 @@ mixin class MixinClass {
 
 class BImpl extends B {}
 
-class WithNonMixinClass with NonMixinClass {}
-
 main() {
   Expect.equals(0, A().foo);
   Expect.equals(0, BImpl().foo);
-  Expect.equals(0, WithNonMixinClass().foo);
 }

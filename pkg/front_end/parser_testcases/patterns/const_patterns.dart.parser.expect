@@ -39,8 +39,8 @@ case func:
 case prefix.value:
 case -prefix.value:
 case prefix.Class.named:
-case 1 :*synthetic*+ 2;*synthetic*;:
-case 1 :*synthetic** 2;*synthetic*;:
+case 1 + 2:
+case 1 * 2:
 case void fun:() {};*synthetic*;:
 case assert(false):
 case switch (o) { _ => true }:
@@ -61,7 +61,7 @@ case const local:
 case const prefix.value:
 case const -prefix.value:
 case const prefix.Class.named:
-case const 1 :*synthetic*+ 2;*synthetic*;:
+case const 1 + 2:
 case const void fun() {}:
 case const assert(false):
 case const switch (o) { _ => true }:
@@ -159,8 +159,8 @@ case[KeywordToken] func[StringToken]:[SimpleToken]
 case[KeywordToken] prefix[StringToken].[SimpleToken]value[StringToken]:[SimpleToken]
 case[KeywordToken] -[SimpleToken]prefix[StringToken].[SimpleToken]value[StringToken]:[SimpleToken]
 case[KeywordToken] prefix[StringToken].[SimpleToken]Class[StringToken].[SimpleToken]named[StringToken]:[SimpleToken]
-case[KeywordToken] 1[StringToken] :[SyntheticToken][SyntheticStringToken]+[SimpleToken] 2[StringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken]:[SimpleToken]
-case[KeywordToken] 1[StringToken] :[SyntheticToken][SyntheticStringToken]*[SimpleToken] 2[StringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] +[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] *[SimpleToken] 2[StringToken]:[SimpleToken]
 case[KeywordToken] void[KeywordToken] fun[StringToken]:[SyntheticToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken]:[SimpleToken]
 case[KeywordToken] assert[KeywordToken]([BeginToken]false[KeywordToken])[SimpleToken]:[SimpleToken]
 case[KeywordToken] switch[KeywordToken] ([BeginToken]o[StringToken])[SimpleToken] {[BeginToken] _[StringToken] =>[SimpleToken] true[KeywordToken] }[SimpleToken]:[SimpleToken]
@@ -181,7 +181,7 @@ case[KeywordToken] const[KeywordToken] local[StringToken]:[SimpleToken]
 case[KeywordToken] const[KeywordToken] prefix[StringToken].[SimpleToken]value[StringToken]:[SimpleToken]
 case[KeywordToken] const[KeywordToken] -[SimpleToken]prefix[StringToken].[SimpleToken]value[StringToken]:[SimpleToken]
 case[KeywordToken] const[KeywordToken] prefix[StringToken].[SimpleToken]Class[StringToken].[SimpleToken]named[StringToken]:[SimpleToken]
-case[KeywordToken] const[KeywordToken] 1[StringToken] :[SyntheticToken][SyntheticStringToken]+[SimpleToken] 2[StringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] +[SimpleToken] 2[StringToken]:[SimpleToken]
 case[KeywordToken] const[KeywordToken] void[KeywordToken] fun[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]:[SimpleToken]
 case[KeywordToken] const[KeywordToken] assert[KeywordToken]([BeginToken]false[KeywordToken])[SimpleToken]:[SimpleToken]
 case[KeywordToken] const[KeywordToken] switch[KeywordToken] ([BeginToken]o[StringToken])[SimpleToken] {[BeginToken] _[StringToken] =>[SimpleToken] true[KeywordToken] }[SimpleToken]:[SimpleToken]

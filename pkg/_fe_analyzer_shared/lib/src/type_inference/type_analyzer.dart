@@ -383,7 +383,8 @@ mixin TypeAnalyzer<
         errors = this.errors;
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null) {
-      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+      errors?.refutablePatternInIrrefutableContext(
+          pattern: node, context: irrefutableContext);
     }
     Type matchedType = flow.getMatchedValueType();
     Type expressionType = analyzeExpression(expression, matchedType);
@@ -834,7 +835,8 @@ mixin TypeAnalyzer<
       Node rhs) {
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null) {
-      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+      errors?.refutablePatternInIrrefutableContext(
+          pattern: node, context: irrefutableContext);
       // Avoid cascading errors
       context = context.makeRefutable();
     }
@@ -983,12 +985,12 @@ mixin TypeAnalyzer<
         assert(isRestPatternElement(element));
         if (!hasDuplicateRestPatternReported) {
           if (i != elements.length - 1) {
-            errors?.restPatternNotLastInMap(node, element);
+            errors?.restPatternNotLastInMap(node: node, element: element);
           }
         }
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
-          errors?.restPatternWithSubPatternInMap(node, element);
+          errors?.restPatternWithSubPatternInMap(node: node, element: element);
           flow.pushSubpattern(dynamicType);
           dispatchPattern(
             context.withUnnecessaryWildcardKind(null),
@@ -1064,7 +1066,8 @@ mixin TypeAnalyzer<
     bool matchedTypeIsStrictlyNonNullable =
         flow.nullCheckOrAssertPattern_begin(isAssert: isAssert);
     if (irrefutableContext != null && !isAssert) {
-      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+      errors?.refutablePatternInIrrefutableContext(
+          pattern: node, context: irrefutableContext);
       // Avoid cascading errors
       context = context.makeRefutable();
     } else if (matchedTypeIsStrictlyNonNullable) {
@@ -1286,7 +1289,7 @@ mixin TypeAnalyzer<
       {required bool isFinal, required bool isLate}) {
     // Stack: ()
     if (isLate && !isVariablePattern(pattern)) {
-      errors?.patternDoesNotAllowLate(pattern);
+      errors?.patternDoesNotAllowLate(pattern: pattern);
     }
     if (isLate) {
       flow.lateInitializer_begin(node);
@@ -1463,7 +1466,8 @@ mixin TypeAnalyzer<
         errors = this.errors;
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null) {
-      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+      errors?.refutablePatternInIrrefutableContext(
+          pattern: node, context: irrefutableContext);
     }
     Type matchedValueType = flow.getMatchedValueType();
     RelationalOperatorResolution<Type>? operator =
@@ -1692,7 +1696,7 @@ mixin TypeAnalyzer<
           options.nullSafetyEnabled &&
           !options.patternsEnabled &&
           !lastCaseTerminates) {
-        errors?.switchCaseCompletesNormally(node, caseIndex);
+        errors?.switchCaseCompletesNormally(node: node, caseIndex: caseIndex);
       }
       handleMergedStatementCase(node,
           caseIndex: caseIndex, isTerminating: lastCaseTerminates);
@@ -2140,7 +2144,7 @@ mixin TypeAnalyzer<
     // logic permits `T extends bool`, `T promoted to bool`, or `Never`.  What
     // do we want?
     if (!operations.isAssignableTo(type, boolType)) {
-      errors?.nonBooleanCondition(expression);
+      errors?.nonBooleanCondition(node: expression);
     }
   }
 
@@ -2380,7 +2384,7 @@ abstract class TypeAnalyzerErrors<
   });
 
   /// Called if the static type of a condition is not assignable to `bool`.
-  void nonBooleanCondition(Expression node);
+  void nonBooleanCondition({required Expression node});
 
   /// Called if a pattern is illegally used in a variable declaration statement
   /// that is marked `late`, and that pattern is not allowed in such a
@@ -2388,7 +2392,7 @@ abstract class TypeAnalyzerErrors<
   /// declaration is a variable pattern.
   ///
   /// [pattern] is the AST node of the illegal pattern.
-  void patternDoesNotAllowLate(Node pattern);
+  void patternDoesNotAllowLate({required Node pattern});
 
   /// Called if in a pattern `for-in` statement or element, the [expression]
   /// that should be an `Iterable` (or dynamic) is actually not.
@@ -2419,7 +2423,8 @@ abstract class TypeAnalyzerErrors<
   /// containing AST node that established an irrefutable context.
   ///
   /// TODO(paulberry): move this error reporting to the parser.
-  void refutablePatternInIrrefutableContext(Node pattern, Node context);
+  void refutablePatternInIrrefutableContext(
+      {required Node pattern, required Node context});
 
   /// Called if the [returnType] of the invoked relational operator is not
   /// assignable to `bool`.
@@ -2431,12 +2436,13 @@ abstract class TypeAnalyzerErrors<
   /// Called if a rest pattern inside a map pattern is not the last element.
   ///
   /// [node] is the map pattern.  [element] is the rest pattern.
-  void restPatternNotLastInMap(Pattern node, Node element);
+  void restPatternNotLastInMap({required Pattern node, required Node element});
 
   /// Called if a rest pattern inside a map pattern has a subpattern.
   ///
   /// [node] is the map pattern.  [element] is the rest pattern.
-  void restPatternWithSubPatternInMap(Pattern node, Node element);
+  void restPatternWithSubPatternInMap(
+      {required Pattern node, required Node element});
 
   /// Called if one of the case bodies of a switch statement completes normally
   /// (other than the last case body), and the "patterns" feature is not
@@ -2444,7 +2450,8 @@ abstract class TypeAnalyzerErrors<
   ///
   /// [node] is the AST node of the switch statement.  [caseIndex] is the index
   /// of the merged case with the erroneous case body.
-  void switchCaseCompletesNormally(Statement node, int caseIndex);
+  void switchCaseCompletesNormally(
+      {required Statement node, required int caseIndex});
 
   /// Called when a wildcard pattern appears in the context where it is not
   /// necessary, e.g. `0 && var _` vs. `[var _]`, and does not add anything

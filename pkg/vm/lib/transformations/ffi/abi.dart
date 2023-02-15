@@ -4,8 +4,6 @@
 
 import 'common.dart';
 
-// TODO(http://dartbug.com/47823): Remove this copy of `Abi`.
-
 /// The hardware architectures the Dart VM runs on.
 enum _Architecture {
   arm,

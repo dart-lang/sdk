@@ -147,6 +147,7 @@ pause_on_exceptions_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_start_then_step_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_unhandled_async_exceptions2_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_unhandled_async_exceptions3_test: SkipByDesign # Debugger is disabled in AOT mode.
+pause_on_unhandled_async_exceptions4_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_unhandled_async_exceptions_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_unhandled_exceptions_test: SkipByDesign # Debugger is disabled in AOT mode.
 positive_token_pos_test: SkipByDesign # Debugger is disabled in AOT mode.

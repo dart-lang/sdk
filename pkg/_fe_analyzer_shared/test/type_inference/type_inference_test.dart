@@ -125,7 +125,7 @@ main() {
               intLiteral(0).checkContext('int').asCollectionElement,
             ).inContextElementType('int'),
           ], expectedErrors: {
-            'nonBooleanCondition(GUARD)'
+            'nonBooleanCondition(node: GUARD)'
           });
         });
 
@@ -215,7 +215,8 @@ main() {
                     'matchedType: int?), celt(expr(Object)))')
                 .inContextElementType('Object'),
           ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, FOR)',
+            'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                'context: FOR)',
           });
         });
         test('When the variable type is not a subtype of the matched type', () {
@@ -380,7 +381,7 @@ main() {
                   .thenExpr(expr('int')),
             ]).stmt,
           ], expectedErrors: {
-            'nonBooleanCondition(GUARD)'
+            'nonBooleanCondition(node: GUARD)'
           });
         });
 
@@ -574,7 +575,7 @@ main() {
               [],
             ),
           ], expectedErrors: {
-            'nonBooleanCondition(GUARD)'
+            'nonBooleanCondition(node: GUARD)'
           });
         });
 
@@ -1069,7 +1070,7 @@ main() {
               isLegacyExhaustive: true,
             )..errorId = 'SWITCH'),
           ], expectedErrors: {
-            'switchCaseCompletesNormally(SWITCH, 0)'
+            'switchCaseCompletesNormally(node: SWITCH, caseIndex: 0)'
           });
         });
 
@@ -1093,7 +1094,7 @@ main() {
               isLegacyExhaustive: true,
             )..errorId = 'SWITCH'),
           ], expectedErrors: {
-            'switchCaseCompletesNormally(SWITCH, 0)'
+            'switchCaseCompletesNormally(node: SWITCH, caseIndex: 0)'
           });
         });
 
@@ -1462,7 +1463,7 @@ main() {
               ],
             ),
           ], expectedErrors: {
-            'nonBooleanCondition(GUARD)'
+            'nonBooleanCondition(node: GUARD)'
           });
         });
 
@@ -1619,7 +1620,7 @@ main() {
               listPattern([wildcard()])..errorId = 'PATTERN', expr('List<int>'),
               isLate: true),
         ], expectedErrors: {
-          'patternDoesNotAllowLate(PATTERN)'
+          'patternDoesNotAllowLate(pattern: PATTERN)'
         });
       });
 
@@ -1628,7 +1629,8 @@ main() {
           (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0))
             ..errorId = 'CONTEXT'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
     });
@@ -1697,7 +1699,8 @@ main() {
                       'varPattern(x, matchedType: int, staticType: int), '
                       'matchedType: int?), block())'),
             ], expectedErrors: {
-              'refutablePatternInIrrefutableContext(PATTERN, FOR)',
+              'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                  'context: FOR)',
             });
           });
           test('When the variable type is not a subtype of the matched type',
@@ -1799,7 +1802,8 @@ main() {
                       'varPattern(x, matchedType: int, staticType: int), '
                       'matchedType: int?), block())'),
             ], expectedErrors: {
-              'refutablePatternInIrrefutableContext(PATTERN, FOR)',
+              'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                  'context: FOR)',
             });
           });
           test('When the variable type is not a subtype of the matched type',
@@ -1898,7 +1902,8 @@ main() {
           (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0))
             ..errorId = 'CONTEXT'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
     });
@@ -2102,7 +2107,7 @@ main() {
               expr('dynamic'),
             ),
           ], expectedErrors: {
-            'restPatternNotLastInMap(MAP_PATTERN, REST_ELEMENT)'
+            'restPatternNotLastInMap(node: MAP_PATTERN, element: REST_ELEMENT)'
           });
         });
         test('Two rest elements at the end', () {
@@ -2153,7 +2158,8 @@ main() {
               expr('dynamic'),
             ),
           ], expectedErrors: {
-            'restPatternWithSubPatternInMap(MAP_PATTERN, REST_ELEMENT)'
+            'restPatternWithSubPatternInMap(node: MAP_PATTERN, '
+                'element: REST_ELEMENT)'
           });
         });
       });
@@ -2534,7 +2540,8 @@ main() {
             nullLiteral.checkContext('?'),
           )..errorId = 'CONTEXT'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
 
@@ -2549,7 +2556,8 @@ main() {
               expr('num'))
             ..errorId = 'CONTEXT'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
 
@@ -2847,7 +2855,8 @@ main() {
               expr('int').checkContext('?'))
             ..errorId = 'CONTEXT'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
 
@@ -2857,7 +2866,8 @@ main() {
             (match(wildcard().nullCheck..errorId = 'PATTERN', expr('int?'))
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+            'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT)'
           });
         });
 
@@ -2866,7 +2876,8 @@ main() {
             (match(wildcard().nullCheck..errorId = 'PATTERN', expr('int'))
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+            'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT)'
           });
         });
 
@@ -2875,7 +2886,8 @@ main() {
             (match(wildcard().nullCheck..errorId = 'PATTERN', expr('dynamic'))
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+            'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT)'
           });
         });
 
@@ -2885,7 +2897,8 @@ main() {
                 expr('num'))
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+            'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT)'
           });
         });
       });
@@ -3388,7 +3401,8 @@ main() {
           )..errorId = 'CONTEXT')
               .checkIr('match(1, >(0, matchedType: int))'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
       test('no operator', () {
