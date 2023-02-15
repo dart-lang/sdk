@@ -146,13 +146,16 @@ void matchIL$test(FlowGraph graph) {
   ]);
 }
 
-void main() {
+void main(List<String> args) {
   // Make sure all parameters are non-constant
   // and obj1 has a known type for devirtualization.
-  test(int.parse('5'),
-    int.parse('3') == 4,
-    'foo' + 3.toString(),
-    int.parse('7'),
-    B(int.parse('8'), double.parse('9')),
-    int.parse('10') == 11 ? B(1, 2) : C());
+  final intValue = args.length > 50 ? 1 << 53 : 42;
+  final doubleValue = args.length > 50 ? 42.5 : 24.5;
+
+  test(intValue,
+    intValue == 4,
+    'foo' + intValue.toString(),
+    intValue,
+    B(intValue, doubleValue),
+    intValue == 42 ? B(1, 2) : C());
 }
