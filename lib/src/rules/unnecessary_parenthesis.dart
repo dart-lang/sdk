@@ -87,6 +87,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     var parent = node.parent;
+    // case const (a + b):
+    if (parent is ConstantPattern) return;
     var expression = node.expression;
     if (expression is SimpleIdentifier || _isNullAware(expression)) {
       if (parent is PropertyAccess) {
