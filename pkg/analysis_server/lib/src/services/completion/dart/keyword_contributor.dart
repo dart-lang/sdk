@@ -159,7 +159,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitCaseClause(CaseClause node) {
     _addSuggestions(patternKeywords);
-    super.visitCaseClause(node);
   }
 
   @override
@@ -669,6 +668,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitListPattern(ListPattern node) {
+    _addSuggestions(patternKeywords);
+  }
+
+  @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    _addSuggestions(patternKeywords);
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    _addSuggestions(patternKeywords);
+  }
+
+  @override
   void visitMapPattern(MapPattern node) {
     _addConstantExpressionKeywords(node);
     super.visitMapPattern(node);
@@ -773,9 +787,19 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitParenthesizedPattern(ParenthesizedPattern node) {
+    _addSuggestions(patternKeywords);
+  }
+
+  @override
   void visitPatternField(PatternField node) {
     _addSuggestions(patternKeywords);
     super.visitPatternField(node);
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    _addExpressionKeywords(node);
   }
 
   @override
@@ -813,6 +837,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addSuggestions([Keyword.DYNAMIC, Keyword.VOID]);
     }
     super.visitRelationalPattern(node);
+  }
+
+  @override
+  void visitRestPatternElement(RestPatternElement node) {
+    _addSuggestions(patternKeywords);
   }
 
   @override

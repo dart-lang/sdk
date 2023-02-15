@@ -47,8 +47,12 @@ replacement
 suggestions
   A01
     kind: class
+  A01
+    kind: constructorInvocation
   A02
     kind: class
+  A02
+    kind: constructorInvocation
 ''');
     } else {
       assertResponse('''
@@ -57,10 +61,16 @@ replacement
 suggestions
   A01
     kind: class
+  A01
+    kind: constructorInvocation
   A02
     kind: class
+  A02
+    kind: constructorInvocation
   B01
     kind: class
+  B01
+    kind: constructorInvocation
   const
     kind: keyword
   dynamic
@@ -89,12 +99,19 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    assertResponse('''
+    if (isProtocolVersion2) {
+      assertResponse('''
 suggestions
   A01
     kind: class
+  A01
+    kind: constructorInvocation
+  A02
+    kind: constructorInvocation
   A02
     kind: class
+  B01
+    kind: constructorInvocation
   B01
     kind: class
   const
@@ -110,5 +127,34 @@ suggestions
   void
     kind: keyword
 ''');
+    } else {
+      assertResponse('''
+suggestions
+  A01
+    kind: class
+  A01
+    kind: constructorInvocation
+  A02
+    kind: class
+  A02
+    kind: constructorInvocation
+  B01
+    kind: class
+  B01
+    kind: constructorInvocation
+  const
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  void
+    kind: keyword
+''');
+    }
   }
 }

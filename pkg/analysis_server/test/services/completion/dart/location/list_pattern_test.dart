@@ -50,8 +50,20 @@ suggestions
     kind: topLevelVariable
   v11
     kind: localVariable
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   o1
     kind: parameter
+  const
+    kind: keyword
+  final
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 
@@ -77,8 +89,20 @@ suggestions
     kind: topLevelVariable
   v11
     kind: localVariable
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   o1
     kind: parameter
+  const
+    kind: keyword
+  final
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 
@@ -104,8 +128,20 @@ suggestions
     kind: topLevelVariable
   v11
     kind: localVariable
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   o1
     kind: parameter
+  const
+    kind: keyword
+  final
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 
@@ -131,8 +167,20 @@ suggestions
     kind: topLevelVariable
   v11
     kind: localVariable
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   o1
     kind: parameter
+  const
+    kind: keyword
+  final
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 }
