@@ -19,7 +19,9 @@ import '../scanner/token.dart'
         CASCADE_PRECEDENCE,
         EQUALITY_PRECEDENCE,
         Keyword,
+        MULTIPLICATIVE_PRECEDENCE,
         POSTFIX_PRECEDENCE,
+        PREFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
         SELECTOR_PRECEDENCE,
         SHIFT_PRECEDENCE,
@@ -5661,6 +5663,48 @@ class Parser {
     Token next = token.next!;
     TokenType type = next.type;
     int tokenLevel = _computePrecedence(next, forPattern: false);
+    if (constantPatternContext != ConstantPatternContext.none) {
+      // For error recovery we allow too much when parsing constant patterns,
+      // so for the cases that shouldn't be parsed as expressions in this
+      // context we return directly.
+      if (type == TokenType.BANG) {
+        if (tokenLevel == POSTFIX_PRECEDENCE) {
+          // This is a suffixed ! which is a null assert pattern.
+          return token;
+        } else if (optional('?', next.next!)) {
+          // This is a suffixed !? which is a null assert pattern in a null
+          // check pattern.
+          return token;
+        }
+      } else if (type == TokenType.AS) {
+        // This is a suffixed `as` which is a case pattern.
+        return token;
+      }
+    }
+    if (constantPatternContext != ConstantPatternContext.none &&
+        precedence <= tokenLevel &&
+        tokenLevel < SELECTOR_PRECEDENCE) {
+      // If we are parsing a constant pattern, only [SELECTOR_PRECEDENCE] is
+      // supported but we allow for parsing [EQUALITY_PRECEDENCE] and higher for
+      // better error recovery.
+      if (constantPatternContext == ConstantPatternContext.explicit) {
+        reportRecoverableError(
+            token, codes.messageInvalidConstantPatternConstPrefix);
+      } else if (tokenLevel <= MULTIPLICATIVE_PRECEDENCE) {
+        reportRecoverableError(
+            next,
+            codes.templateInvalidConstantPatternBinary
+                .withArguments(type.lexeme));
+      } else {
+        // These are prefix or postfix ++/-- and will not be constant
+        // expressions, anyway.
+        assert(
+            tokenLevel == POSTFIX_PRECEDENCE || tokenLevel == PREFIX_PRECEDENCE,
+            "Unexpected precedence level for $type: $tokenLevel");
+      }
+      // Avoid additional constant pattern errors.
+      constantPatternContext = ConstantPatternContext.none;
+    }
     bool enteredLoop = false;
     for (int level = tokenLevel; level >= precedence; --level) {
       int lastBinaryExpressionLevel = -1;
@@ -5801,6 +5845,24 @@ class Parser {
         next = token.next!;
         type = next.type;
         tokenLevel = _computePrecedence(next, forPattern: false);
+        if (constantPatternContext != ConstantPatternContext.none) {
+          // For error recovery we allow too much when parsing constant
+          // patterns, so for the cases that shouldn't be parsed as expressions
+          // in this context we break out of the parsing loop directly.
+          if (type == TokenType.BANG) {
+            if (tokenLevel == POSTFIX_PRECEDENCE) {
+              // This is a suffixed ! which is a null assert pattern.
+              return token;
+            } else if (optional('?', next.next!)) {
+              // This is a suffixed !? which is a null assert pattern in a null
+              // check pattern.
+              return token;
+            }
+          } else if (type == TokenType.AS) {
+            // This is a suffixed `as` which is a case pattern.
+            return token;
+          }
+        }
       }
       if (_recoverAtPrecedenceLevel && !_currentlyRecovering) {
         // Attempt recovery
@@ -9657,7 +9719,10 @@ class Parser {
         //                   | 'const' '(' expression ')'
         Token const_ = next;
         listener.beginConstantPattern(const_);
-        token = parsePrecedenceExpression(const_, SELECTOR_PRECEDENCE,
+        // The supported precedence is [SELECTOR_PRECEDENCE] but for better
+        // error recovery we allow for parsing [EQUALITY_PRECEDENCE] and higher,
+        // and report an error in [_parsePrecedenceExpressionLoop] instead.
+        token = parsePrecedenceExpression(const_, EQUALITY_PRECEDENCE,
             /* allowCascades = */ false, ConstantPatternContext.explicit);
         listener.endConstantPattern(const_);
         return token;
@@ -9728,7 +9793,10 @@ class Parser {
       token = beforeFirstIdentifier;
     }
     listener.beginConstantPattern(/* constKeyword = */ null);
-    token = parsePrecedenceExpression(token, SELECTOR_PRECEDENCE,
+    // The supported precedence is [SELECTOR_PRECEDENCE] but for better
+    // error recovery we allow for parsing [EQUALITY_PRECEDENCE] and higher,
+    // and report an error in [_parsePrecedenceExpressionLoop] instead.
+    token = parsePrecedenceExpression(token, EQUALITY_PRECEDENCE,
         /* allowCascades = */ false, ConstantPatternContext.implicit);
     listener.endConstantPattern(/* constKeyword = */ null);
     return token;

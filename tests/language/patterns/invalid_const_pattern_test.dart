@@ -68,32 +68,12 @@ class Class {
       case prefix.Class.named: // Ok
       case 1 + 2: // Error
       //     ^
-      // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-      // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-      // [cfe] '+' is not a prefix operator.
-      // [cfe] Expected ':' before this.
-      //       ^
-      // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-      // [cfe] Expected ';' after this.
-      //        ^
-      // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-      // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
-      // [cfe] Expected an identifier, but got ':'.
-      // [cfe] Unexpected token ':'.
+      // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
+      // [cfe] The binary operator + is not supported as a constant pattern.
       case 1 * 2: // Error
       //     ^
-      // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-      // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-      // [cfe] Expected ':' before this.
-      // [cfe] Expected an identifier, but got '*'.
-      //       ^
-      // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-      // [cfe] Expected ';' after this.
-      //        ^
-      // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-      // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
-      // [cfe] Expected an identifier, but got ':'.
-      // [cfe] Unexpected token ':'.
+      // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
+      // [cfe] The binary operator * is not supported as a constant pattern.
       case void fun() {}: // Error
       //           ^
       // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -192,19 +172,6 @@ class Class {
       //         ^
       // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
       // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
-      //           ^
-      // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-      // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-      // [cfe] '+' is not a prefix operator.
-      // [cfe] Expected ':' before this.
-      //             ^
-      // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-      // [cfe] Expected ';' after this.
-      //              ^
-      // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-      // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
-      // [cfe] Expected an identifier, but got ':'.
-      // [cfe] Unexpected token ':'.
       case const void fun() {}: // Error
       //         ^
       // [cfe] Not a constant expression.

@@ -6926,6 +6926,34 @@ const MessageCode messageInvalidCodePoint = const MessageCode(
         r"""The escape sequence starting with '\u' isn't a valid code point.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateInvalidConstantPatternBinary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The binary operator #name is not supported as a constant pattern.""",
+    correctionMessageTemplate:
+        r"""Try wrapping the expression in 'const ( ... )'.""",
+    withArguments: _withArgumentsInvalidConstantPatternBinary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInvalidConstantPatternBinary =
+    const Code<Message Function(String name)>("InvalidConstantPatternBinary",
+        index: 141);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidConstantPatternBinary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInvalidConstantPatternBinary,
+      problemMessage:
+          """The binary operator ${name} is not supported as a constant pattern.""",
+      correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidConstantPatternConstPrefix =
     messageInvalidConstantPatternConstPrefix;
 

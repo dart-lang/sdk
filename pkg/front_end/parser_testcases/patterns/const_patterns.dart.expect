@@ -16,53 +16,13 @@ parser/patterns/const_patterns:42:20: Only negation of a numeric literal is supp
       case -prefix.value: // Error
                    ^^^^^
 
-parser/patterns/const_patterns:44:14: Expected ':' before this.
+parser/patterns/const_patterns:44:14: The binary operator + is not supported as a constant pattern.
       case 1 + 2: // Error
              ^
 
-parser/patterns/const_patterns:44:14: '+' is not a prefix operator.
-      case 1 + 2: // Error
-             ^
-
-parser/patterns/const_patterns:44:16: Expected ';' after this.
-      case 1 + 2: // Error
-               ^
-
-parser/patterns/const_patterns:44:17: Expected an identifier, but got ':'.
-      case 1 + 2: // Error
-                ^
-
-parser/patterns/const_patterns:44:16: Expected ';' after this.
-      case 1 + 2: // Error
-               ^
-
-parser/patterns/const_patterns:44:17: Unexpected token ':'.
-      case 1 + 2: // Error
-                ^
-
-parser/patterns/const_patterns:45:14: Expected ':' before this.
+parser/patterns/const_patterns:45:14: The binary operator * is not supported as a constant pattern.
       case 1 * 2: // Error
              ^
-
-parser/patterns/const_patterns:45:14: Expected an identifier, but got '*'.
-      case 1 * 2: // Error
-             ^
-
-parser/patterns/const_patterns:45:16: Expected ';' after this.
-      case 1 * 2: // Error
-               ^
-
-parser/patterns/const_patterns:45:17: Expected an identifier, but got ':'.
-      case 1 * 2: // Error
-                ^
-
-parser/patterns/const_patterns:45:16: Expected ';' after this.
-      case 1 * 2: // Error
-               ^
-
-parser/patterns/const_patterns:45:17: Unexpected token ':'.
-      case 1 * 2: // Error
-                ^
 
 parser/patterns/const_patterns:46:20: Expected ':' before this.
       case void fun() {}: // Error
@@ -152,29 +112,9 @@ parser/patterns/const_patterns:66:18: The expression can't be prefixed by 'const
       case const 1 + 2: // Error
                  ^
 
-parser/patterns/const_patterns:66:20: Expected ':' before this.
+parser/patterns/const_patterns:66:18: The expression can't be prefixed by 'const' to form a constant pattern.
       case const 1 + 2: // Error
-                   ^
-
-parser/patterns/const_patterns:66:20: '+' is not a prefix operator.
-      case const 1 + 2: // Error
-                   ^
-
-parser/patterns/const_patterns:66:22: Expected ';' after this.
-      case const 1 + 2: // Error
-                     ^
-
-parser/patterns/const_patterns:66:23: Expected an identifier, but got ':'.
-      case const 1 + 2: // Error
-                      ^
-
-parser/patterns/const_patterns:66:22: Expected ';' after this.
-      case const 1 + 2: // Error
-                     ^
-
-parser/patterns/const_patterns:66:23: Unexpected token ':'.
-      case const 1 + 2: // Error
-                      ^
+                 ^
 
 parser/patterns/const_patterns:67:23: A function expression can't have a name.
       case const void fun() {}: // Error
@@ -642,64 +582,30 @@ beginCompilationUnit(import)
                   beginCaseExpression(case)
                     beginConstantPattern(null)
                       handleLiteralInt(1)
+                      handleRecoverableError(Message[InvalidConstantPatternBinary, The binary operator + is not supported as a constant pattern., Try wrapping the expression in 'const ( ... )'., {name: +}], +, +)
+                      beginBinaryExpression(+)
+                        handleLiteralInt(2)
+                      endBinaryExpression(+)
                     endConstantPattern(null)
-                    handleSwitchCaseNoWhenClause(1)
-                    handleRecoverableError(Message[ExpectedButGot, Expected ':' before this., null, {string: :}], +, +)
+                    handleSwitchCaseNoWhenClause(2)
                   endCaseExpression(case, null, :)
-                  beginSwitchCase(0, 23, case)
-                    handleRecoverableError(UnsupportedPrefixPlus, +, +)
-                    handleIdentifier(, expression)
-                    handleNoTypeArguments(+)
-                    handleNoArguments(+)
-                    handleSend(, +)
-                    beginBinaryExpression(+)
-                      handleLiteralInt(2)
-                    endBinaryExpression(+)
-                    handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 2, 2)
-                    handleExpressionStatement(;)
-                    handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ':'., Try inserting an identifier before ':'., {lexeme: :}], :, :)
-                    handleIdentifier(, expression)
-                    handleNoTypeArguments(:)
-                    handleNoArguments(:)
-                    handleSend(, :)
-                    handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 2, 2)
-                    handleExpressionStatement(;)
-                    handleRecoverableError(Message[UnexpectedToken, Unexpected token ':'., null, {lexeme: :}], :, :)
-                  endSwitchCase(0, 23, null, null, 2, case, case)
                   beginCaseExpression(case)
                     beginConstantPattern(null)
                       handleLiteralInt(1)
+                      handleRecoverableError(Message[InvalidConstantPatternBinary, The binary operator * is not supported as a constant pattern., Try wrapping the expression in 'const ( ... )'., {name: *}], *, *)
+                      beginBinaryExpression(*)
+                        handleLiteralInt(2)
+                      endBinaryExpression(*)
                     endConstantPattern(null)
-                    handleSwitchCaseNoWhenClause(1)
-                    handleRecoverableError(Message[ExpectedButGot, Expected ':' before this., null, {string: :}], *, *)
+                    handleSwitchCaseNoWhenClause(2)
                   endCaseExpression(case, null, :)
-                  beginSwitchCase(0, 1, case)
-                    handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '*'., Try inserting an identifier before '*'., {lexeme: *}], *, *)
-                    handleIdentifier(, expression)
-                    handleNoTypeArguments(*)
-                    handleNoArguments(*)
-                    handleSend(, *)
-                    beginBinaryExpression(*)
-                      handleLiteralInt(2)
-                    endBinaryExpression(*)
-                    handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 2, 2)
-                    handleExpressionStatement(;)
-                    handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ':'., Try inserting an identifier before ':'., {lexeme: :}], :, :)
-                    handleIdentifier(, expression)
-                    handleNoTypeArguments(:)
-                    handleNoArguments(:)
-                    handleSend(, :)
-                    handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 2, 2)
-                    handleExpressionStatement(;)
-                    handleRecoverableError(Message[UnexpectedToken, Unexpected token ':'., null, {lexeme: :}], :, :)
-                  endSwitchCase(0, 1, null, null, 2, case, case)
                   beginCaseExpression(case)
                     handleVoidKeyword(void)
                     handleVariablePattern(null, fun, false)
                     handleSwitchCaseNoWhenClause(fun)
                     handleRecoverableError(Message[ExpectedButGot, Expected ':' before this., null, {string: :}], (, ()
                   endCaseExpression(case, null, :)
-                  beginSwitchCase(0, 1, case)
+                  beginSwitchCase(0, 25, case)
                     handleNoTypeVariables(()
                     beginFunctionExpression(()
                       beginFormalParameters((, MemberKind.Local)
@@ -718,7 +624,7 @@ beginCompilationUnit(import)
                     handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], }, })
                     handleExpressionStatement(;)
                     handleRecoverableError(Message[UnexpectedToken, Unexpected token ':'., null, {lexeme: :}], :, :)
-                  endSwitchCase(0, 1, null, null, 2, case, case)
+                  endSwitchCase(0, 25, null, null, 2, case, case)
                   beginCaseExpression(case)
                     beginConstantPattern(null)
                       beginAssert(assert, Assert.Expression)
@@ -917,30 +823,13 @@ beginCompilationUnit(import)
                     beginConstantPattern(const)
                       handleRecoverableError(InvalidConstantPatternConstPrefix, 1, 1)
                       handleLiteralInt(1)
+                      handleRecoverableError(InvalidConstantPatternConstPrefix, 1, 1)
+                      beginBinaryExpression(+)
+                        handleLiteralInt(2)
+                      endBinaryExpression(+)
                     endConstantPattern(const)
-                    handleSwitchCaseNoWhenClause(1)
-                    handleRecoverableError(Message[ExpectedButGot, Expected ':' before this., null, {string: :}], +, +)
+                    handleSwitchCaseNoWhenClause(2)
                   endCaseExpression(case, null, :)
-                  beginSwitchCase(0, 20, case)
-                    handleRecoverableError(UnsupportedPrefixPlus, +, +)
-                    handleIdentifier(, expression)
-                    handleNoTypeArguments(+)
-                    handleNoArguments(+)
-                    handleSend(, +)
-                    beginBinaryExpression(+)
-                      handleLiteralInt(2)
-                    endBinaryExpression(+)
-                    handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 2, 2)
-                    handleExpressionStatement(;)
-                    handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ':'., Try inserting an identifier before ':'., {lexeme: :}], :, :)
-                    handleIdentifier(, expression)
-                    handleNoTypeArguments(:)
-                    handleNoArguments(:)
-                    handleSend(, :)
-                    handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 2, 2)
-                    handleExpressionStatement(;)
-                    handleRecoverableError(Message[UnexpectedToken, Unexpected token ':'., null, {lexeme: :}], :, :)
-                  endSwitchCase(0, 20, null, null, 2, case, case)
                   beginCaseExpression(case)
                     beginConstantPattern(const)
                       handleNoTypeVariables(()
@@ -1644,7 +1533,7 @@ beginCompilationUnit(import)
                     endConstantPattern(const)
                     handleSwitchCaseNoWhenClause())
                   endCaseExpression(case, null, :)
-                  beginSwitchCase(0, 48, case)
+                  beginSwitchCase(0, 68, case)
                     handleIdentifier(print, expression)
                     handleNoTypeArguments(()
                     beginArguments(()
@@ -1652,8 +1541,8 @@ beginCompilationUnit(import)
                     endArguments(1, (, ))
                     handleSend(print, ;)
                     handleExpressionStatement(;)
-                  endSwitchCase(0, 48, null, null, 1, case, })
-                endSwitchBlock(5, {, })
+                  endSwitchCase(0, 68, null, null, 1, case, })
+                endSwitchBlock(2, {, })
               endSwitchStatement(switch, })
             endBlockFunctionBody(3, {, })
           endClassMethod(null, test, (, null, })

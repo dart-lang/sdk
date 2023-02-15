@@ -155,6 +155,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL,
   ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC,
   ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -920,6 +921,13 @@ class ParserErrorCode extends ErrorCode {
     "The expression can't be prefixed by 'const' to form a constant pattern.",
     correctionMessage:
         "Try wrapping the expression in 'const ( ... )' instead.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_BINARY =
+      ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_BINARY',
+    "The binary operator {0} is not supported as a constant pattern.",
+    correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
   );
 
   static const ParserErrorCode INVALID_CONSTANT_PATTERN_DUPLICATE_CONST =

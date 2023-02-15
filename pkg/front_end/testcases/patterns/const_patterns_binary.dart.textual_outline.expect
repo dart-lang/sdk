@@ -1,0 +1,9 @@
+import 'const_patterns_binary.dart' as prefix;
+
+const value = 1;
+
+class Class {
+  static const value = 2;
+}
+
+method<T>(o) {}

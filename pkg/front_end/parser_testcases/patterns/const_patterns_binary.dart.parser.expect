@@ -1,0 +1,169 @@
+NOTICE: Stream was rewritten by parser!
+
+import 'const_patterns_binary.dart' as prefix;
+
+const value = 1;
+
+class Class {
+static const value = 2;
+}
+
+method<T>(o) {
+switch (o) {
+case 1 || 2:
+case 1 && 2:
+case 1 as T:
+case const Object():
+case 1 + 2:
+case 1 - 2:
+case 1 * 2:
+case 1 / 2:
+case 1 ~/ 2:
+case 1 % 2:
+case 1 == 2:
+case 1 != 2:
+case 1 ^ 2:
+case 1 & 2:
+case 1 | 2:
+case 1 < 2:
+case 1 <= 2:
+case 1 > 2:
+case 1 >= 2:
+case 1 << 2:
+case 1 >> 2:
+case 1 >>> 2:
+case 1 + 2 + 3:
+case prefix.value as T:
+case prefix.Class.value as T:
+case const 1 as int:
+case const 1 + 2:
+case const 1 - 2:
+case const 1 * 2:
+case const 1 / 2:
+case const 1 ~/ 2:
+case const 1 % 2:
+case const 1 == 2:
+case const 1 != 2:
+case const 1 ^ 2:
+case const 1 & 2:
+case const 1 | 2:
+case const 1 < 2:
+case const 1 <= 2:
+case const 1 > 2:
+case const 1 >= 2:
+case const 1 << 2:
+case const 1 >> 2:
+case const 1 >>> 2:
+case const 1 + 2 + 3:
+case const Object() == 2:
+case const <int>[] as List<T>:
+case const (1 + 2):
+case const (1 - 2):
+case const (1 * 2):
+case const (1 / 2):
+case const (1 ~/ 2):
+case const (1 % 2):
+case const (1 == 2):
+case const (1 != 2):
+case const (1 ^ 2):
+case const (1 & 2):
+case const (1 | 2):
+case const (1 < 2):
+case const (1 <= 2):
+case const (1 > 2):
+case const (1 >= 2):
+case const (1 << 2):
+case const (1 >> 2):
+case const (1 >>> 2):
+case const (1 + 2 + 3):
+case 1 :*synthetic*?? 2;*synthetic*;:
+case o++:
+case o--:
+case ++o:
+case --o:
+}
+}
+
+import[KeywordToken] 'const_patterns_binary.dart'[StringToken] as[KeywordToken] prefix[StringToken];[SimpleToken]
+
+const[KeywordToken] value[StringToken] =[SimpleToken] 1[StringToken];[SimpleToken]
+
+class[KeywordToken] Class[StringToken] {[BeginToken]
+static[KeywordToken] const[KeywordToken] value[StringToken] =[SimpleToken] 2[StringToken];[SimpleToken]
+}[SimpleToken]
+
+method[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]o[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]o[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] 1[StringToken] ||[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] &&[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] as[KeywordToken] T[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] Object[StringToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] +[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] -[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] *[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] /[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] ~/[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] %[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] ==[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] !=[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] ^[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] &[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] |[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] <[BeginToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] <=[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] >[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] >=[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] <<[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] >>[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] >>>[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] +[SimpleToken] 2[StringToken] +[SimpleToken] 3[StringToken]:[SimpleToken]
+case[KeywordToken] prefix[StringToken].[SimpleToken]value[StringToken] as[KeywordToken] T[StringToken]:[SimpleToken]
+case[KeywordToken] prefix[StringToken].[SimpleToken]Class[StringToken].[SimpleToken]value[StringToken] as[KeywordToken] T[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] as[KeywordToken] int[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] +[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] -[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] *[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] /[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] ~/[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] %[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] ==[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] !=[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] ^[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] &[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] |[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] <[BeginToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] <=[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] >[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] >=[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] <<[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] >>[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] >>>[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] +[SimpleToken] 2[StringToken] +[SimpleToken] 3[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] Object[StringToken]([BeginToken])[SimpleToken] ==[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] <[BeginToken]int[StringToken]>[SimpleToken][[BeginToken]][SimpleToken] as[KeywordToken] List[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] +[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] -[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] *[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] /[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] ~/[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] %[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] ==[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] !=[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] ^[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] &[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] |[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] <[BeginToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] <=[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] >[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] >=[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] <<[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] >>[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] >>>[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] +[SimpleToken] 2[StringToken] +[SimpleToken] 3[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] :[SyntheticToken][SyntheticStringToken]??[SimpleToken] 2[StringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken]:[SimpleToken]
+case[KeywordToken] o[StringToken]++[SimpleToken]:[SimpleToken]
+case[KeywordToken] o[StringToken]--[SimpleToken]:[SimpleToken]
+case[KeywordToken] ++[SimpleToken]o[StringToken]:[SimpleToken]
+case[KeywordToken] --[SimpleToken]o[StringToken]:[SimpleToken]
+}[SimpleToken]
+}[SimpleToken][SimpleToken]
