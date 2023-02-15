@@ -129,7 +129,7 @@ class TimelineStream {
 #endif
 };
 
-class RecorderLock : public AllStatic {
+class RecorderShutdownSynchronizationLock : public AllStatic {
  public:
   static void Init() {
     outstanding_event_writes_.store(0);
@@ -161,19 +161,28 @@ class RecorderLock : public AllStatic {
   static std::atomic<bool> shutdown_lock_;
   static std::atomic<intptr_t> outstanding_event_writes_;
 
-  DISALLOW_COPY_AND_ASSIGN(RecorderLock);
+  DISALLOW_COPY_AND_ASSIGN(RecorderShutdownSynchronizationLock);
 };
 
-class RecorderLockScope {
+// Any modifications to the timeline must be guarded by a
+// |RecorderShutdownSynchronizationLockScope| to prevent the timeline from being
+// cleaned up in the middle of the modifications.
+class RecorderShutdownSynchronizationLockScope {
  public:
-  RecorderLockScope() { RecorderLock::EnterLock(); }
+  RecorderShutdownSynchronizationLockScope() {
+    RecorderShutdownSynchronizationLock::EnterLock();
+  }
 
-  ~RecorderLockScope() { RecorderLock::ExitLock(); }
+  ~RecorderShutdownSynchronizationLockScope() {
+    RecorderShutdownSynchronizationLock::ExitLock();
+  }
 
-  bool IsShuttingDown() { return RecorderLock::IsShuttingDown(); }
+  bool IsShuttingDown() {
+    return RecorderShutdownSynchronizationLock::IsShuttingDown();
+  }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(RecorderLockScope);
+  DISALLOW_COPY_AND_ASSIGN(RecorderShutdownSynchronizationLockScope);
 };
 
 class Timeline : public AllStatic {
@@ -183,6 +192,10 @@ class Timeline : public AllStatic {
 
   // Cleanup timeline system. Not thread safe.
   static void Cleanup();
+
+  // Used to prevent races between reading / modifying the value of
+  // |Timeline::recorder_|.
+  static Mutex* recorder_lock() { return recorder_lock_; }
 
   // Access the global recorder. Not thread safe.
   static TimelineEventRecorder* recorder() { return recorder_; }
@@ -228,6 +241,12 @@ class Timeline : public AllStatic {
   static void ClearUnsafe();
   static void ReclaimCachedBlocksFromThreadsUnsafe();
 
+  // |recorder_lock_| is used in |OSThread|'s constructor, so it must not be
+  // destroyed until |OSThread|s can no longer be created. Therefore, there is
+  // currently no opportunity to delete this lock. If a thread only begins to
+  // run after we have started to run TLS destructors for a call to |exit()|,
+  // there will be a race involving this lock's deletion.
+  static Mutex* recorder_lock_;
   static TimelineEventRecorder* recorder_;
   static Dart_TimelineRecorderCallback callback_;
   static MallocGrowableArray<char*>* enabled_streams_;
@@ -238,7 +257,8 @@ class Timeline : public AllStatic {
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DECLARE)
 #undef TIMELINE_STREAM_DECLARE
 
-  static RecorderLock recorder_lock_;
+  static RecorderShutdownSynchronizationLock
+      recorder_shutdown_synchronization_lock_;
 
   template <class>
   friend class TimelineRecorderOverride;

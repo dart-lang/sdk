@@ -3395,6 +3395,64 @@ FunctionReference
 ''');
   }
 
+  test_recordField_explicitReceiver_named() async {
+    await assertErrorsInCode(r'''
+void f(({T Function<T>(T) f1, String f2}) r) {
+  int Function(int) v = r.f1;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+    ]);
+
+    var node = findNode.functionReference(r'.f1;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({T Function<T>(T) f1, String f2})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: f1
+      staticElement: <null>
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_recordField_explicitReceiver_positional() async {
+    await assertErrorsInCode(r'''
+void f((T Function<T>(T), String) r) {
+  int Function(int) v = r.$1;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+    ]);
+
+    var node = findNode.functionReference(r'.$1;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (T Function<T>(T), String)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $1
+      staticElement: <null>
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
   test_staticMethod() async {
     await assertNoErrorsInCode('''
 class A {

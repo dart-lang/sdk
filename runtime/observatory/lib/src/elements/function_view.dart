@@ -7,9 +7,7 @@ library function_view_element;
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/code_ref.dart';
-import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/field_ref.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
@@ -426,7 +424,8 @@ class FunctionViewElement extends CustomElement implements Renderable {
         return 'dynamic invocation forwarder';
       case M.FunctionKind.recordFieldGetter:
         return 'record field getter';
+      default:
+        throw new Exception('Unknown Functionkind ($kind)');
     }
-    throw new Exception('Unknown Functionkind ($kind)');
   }
 }

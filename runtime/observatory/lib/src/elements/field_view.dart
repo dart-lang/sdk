@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
-import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
@@ -258,7 +257,7 @@ class FieldViewElement extends CustomElement implements Renderable {
 
   List<Element> _createGuard() {
     final guard = <Element>[];
-    switch (_field.guardClassKind) {
+    switch (_field.guardClassKind!) {
       case M.GuardClassKind.unknown:
         guard.add(new SpanElement()..text = 'none');
         break;

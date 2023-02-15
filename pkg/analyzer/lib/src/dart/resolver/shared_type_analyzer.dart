@@ -175,6 +175,15 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void nonExhaustiveSwitch(
+      {required AstNode node, required DartType scrutineeType}) {
+    _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
+        node,
+        [scrutineeType, scrutineeType.toString()]);
+  }
+
+  @override
   void patternDoesNotAllowLate({required AstNode pattern}) {
     throw UnimplementedError('TODO(paulberry)');
   }

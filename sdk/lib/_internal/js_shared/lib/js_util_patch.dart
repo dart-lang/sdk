@@ -465,7 +465,7 @@ Future<T> promiseToFuture<T>(Object jsPromise) {
     // provided if the error is `null` or `undefined`.
     if (e == null) {
       return completer.completeError(
-          NullRejectionException._(JS('bool', '# === undefined', e)));
+          NullRejectionException(JS('bool', '# === undefined', e)));
     }
     return completer.completeError(e);
   }, 1);

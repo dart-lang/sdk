@@ -19,7 +19,7 @@ generator() async* {
 }
 
 testFunction() async {
-  await for (var ignored in generator());
+  await for (var _ in generator());
 }
 
 var tests = <IsolateTest>[

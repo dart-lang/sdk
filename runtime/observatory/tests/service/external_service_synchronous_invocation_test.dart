@@ -116,7 +116,7 @@ var tests = <IsolateTest>[
       });
 
       try {
-        final response = await result;
+        await result;
         expect(false, isTrue, reason: 'shouldn\'t get here');
       } on ServerRpcException catch (e) {
         expect(e.code, equals(errorCode + iteration));

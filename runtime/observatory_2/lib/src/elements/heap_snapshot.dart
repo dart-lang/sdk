@@ -12,22 +12,17 @@ import 'dart:math' as Math;
 import 'dart:typed_data';
 import 'package:observatory_2/models.dart' as M;
 import 'package:observatory_2/object_graph.dart';
-import 'package:observatory_2/src/elements/class_ref.dart';
 import 'package:observatory_2/src/elements/containers/virtual_tree.dart';
-import 'package:observatory_2/src/elements/curly_block.dart';
-import 'package:observatory_2/src/elements/helpers/any_ref.dart';
 import 'package:observatory_2/src/elements/helpers/nav_bar.dart';
 import 'package:observatory_2/src/elements/helpers/nav_menu.dart';
 import 'package:observatory_2/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory_2/src/elements/helpers/custom_element.dart';
-import 'package:observatory_2/src/elements/helpers/uris.dart';
 import 'package:observatory_2/src/elements/nav/isolate_menu.dart';
 import 'package:observatory_2/src/elements/nav/notify.dart';
 import 'package:observatory_2/src/elements/nav/refresh.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
 import 'package:observatory_2/src/elements/nav/vm_menu.dart';
 import 'package:observatory_2/src/elements/tree_map.dart';
-import 'package:observatory_2/repositories.dart';
 import 'package:observatory_2/utils.dart';
 
 enum HeapSnapshotTreeMode {

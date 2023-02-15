@@ -791,7 +791,11 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [isExhaustive] indicates whether the switch statement had a "default"
   /// case, or is based on an enumeration and all the enumeration constants
   /// were listed in cases.
-  void switchStatement_end(bool isExhaustive);
+  ///
+  /// Returns a boolean indicating whether flow analysis was able to prove the
+  /// switch statement to be exhaustive (e.g. due to the presence of a `default`
+  /// clause, or a pattern that is guaranteed to match the scrutinee type).
+  bool switchStatement_end(bool isExhaustive);
 
   /// Call this method just after visiting a `case` or `default` clause.  See
   /// [switchStatement_expressionEnd] for details.`
@@ -1667,9 +1671,10 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_end(bool isExhaustive) {
-    _wrap('switchStatement_end($isExhaustive)',
-        () => _wrapped.switchStatement_end(isExhaustive));
+  bool switchStatement_end(bool isExhaustive) {
+    return _wrap('switchStatement_end($isExhaustive)',
+        () => _wrapped.switchStatement_end(isExhaustive),
+        isQuery: true, isPure: false);
   }
 
   @override
@@ -4574,9 +4579,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_end(bool isExhaustive) {
-    _SimpleStatementContext<Type> context =
-        _stack.removeLast() as _SimpleStatementContext<Type>;
+  bool switchStatement_end(bool isExhaustive) {
+    _SwitchStatementContext<Type> context =
+        _stack.removeLast() as _SwitchStatementContext<Type>;
+    bool isProvenExhaustive = !context._unmatched.reachable.locallyReachable;
     FlowModel<Type>? breakState = context._breakModel;
 
     // If there is an implicit fall-through default, join it to any breaks.
@@ -4595,6 +4601,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
     _current = breakState.unsplit();
     _popScrutinee();
+    return isProvenExhaustive;
   }
 
   @override
@@ -5887,8 +5894,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void switchStatement_beginAlternatives() {}
 
   @override
-  void switchStatement_end(bool isExhaustive) {
+  bool switchStatement_end(bool isExhaustive) {
     _switchStatementTypeStack.removeLast();
+    return false;
   }
 
   @override

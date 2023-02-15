@@ -39,7 +39,7 @@ Future<String> invokeTest(Isolate isolate) async {
   print('resultOrError: $resultOrError');
   Instance result = resultOrError as Instance;
   expect(result.isString, isTrue);
-  return result.valueAsString as String;
+  return result.valueAsString;
 }
 
 var tests = <IsolateTest>[

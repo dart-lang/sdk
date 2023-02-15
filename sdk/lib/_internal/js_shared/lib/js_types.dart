@@ -8,6 +8,7 @@
 /// library.
 library _js_types;
 
+import 'dart:_js_annotations';
 import 'dart:_interceptors' as interceptors;
 import 'dart:_internal' show patch;
 import 'dart:typed_data';
@@ -25,7 +26,7 @@ typedef JSAny = Object;
 typedef JSObject = interceptors.JSObject;
 typedef JSFunction = Function;
 typedef JSExportedDartFunction = Function;
-typedef JSArray = List;
+typedef JSArray = List<JSAny?>;
 typedef JSExportedDartObject = Object;
 typedef JSArrayBuffer = ByteBuffer;
 typedef JSDataView = ByteData;
@@ -42,3 +43,8 @@ typedef JSFloat64Array = Float64List;
 typedef JSNumber = double;
 typedef JSBoolean = bool;
 typedef JSString = String;
+typedef JSVoid = void;
+
+@JS()
+@staticInterop
+class JSPromise {}

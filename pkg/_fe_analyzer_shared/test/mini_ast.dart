@@ -629,6 +629,8 @@ class Harness {
 
   bool? _patternsEnabled;
 
+  bool errorOnSwitchExhaustiveness = false;
+
   Type? _thisType;
 
   late final Map<String, _PropertyElement?> _members = {
@@ -640,7 +642,8 @@ class Harness {
       this,
       TypeAnalyzerOptions(
           nullSafetyEnabled: !_operations.legacy,
-          patternsEnabled: patternsEnabled));
+          patternsEnabled: patternsEnabled,
+          errorOnSwitchExhaustiveness: errorOnSwitchExhaustiveness));
 
   /// Indicates whether initializers of implicitly typed variables should be
   /// accounted for by SSA analysis.  (In an ideal world, they always would be,
@@ -861,6 +864,7 @@ class MiniAstOperations
     implements Operations<Var, Type> {
   static const Map<String, bool> _coreExhaustiveness = const {
     '()': true,
+    'bool': true,
     'dynamic': false,
     'int': false,
     'int?': false,
@@ -3114,6 +3118,12 @@ class _MiniAstErrors
   @override
   void nonBooleanCondition({required Expression node}) {
     _recordError('nonBooleanCondition', {'node': node});
+  }
+
+  @override
+  void nonExhaustiveSwitch({required Node node, required Type scrutineeType}) {
+    _recordError(
+        'nonExhaustiveSwitch', {'node': node, 'scrutineeType': scrutineeType});
   }
 
   @override

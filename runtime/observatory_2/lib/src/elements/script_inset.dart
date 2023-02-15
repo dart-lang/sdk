@@ -14,7 +14,6 @@ import 'package:observatory_2/src/elements/helpers/any_ref.dart';
 import 'package:observatory_2/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory_2/src/elements/helpers/custom_element.dart';
 import 'package:observatory_2/src/elements/helpers/uris.dart';
-import 'package:observatory_2/utils.dart';
 
 class ScriptInsetElement extends CustomElement implements Renderable {
   RenderingScheduler<ScriptInsetElement> _r;

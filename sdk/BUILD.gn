@@ -27,6 +27,7 @@ declare_args() {
   dart_precompiled_runtime_stripped_binary = "dart_precompiled_runtime_product"
   gen_snapshot_stripped_binary = "gen_snapshot_product"
   analyze_snapshot_binary = "analyze_snapshot"
+  wasm_opt_stripped_binary = "wasm-opt"
 }
 
 # The directory layout of the SDK is as follows:
@@ -518,6 +519,16 @@ copy("copy_dart2wasm_snapshot") {
       [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
 }
 
+copy("copy_wasm_opt") {
+  visibility = [ ":create_full_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../third_party/binaryen:wasm-opt",
+  ]
+  sources = [ "$root_out_dir/${wasm_opt_stripped_binary}${executable_suffix}" ]
+  outputs = [ "$root_out_dir/$dart_sdk_output/bin/utils/{{source_file_part}}" ]
+}
+
 # Copies DDC's SDK full and outline .dill files to lib/_internal.
 copy("copy_dev_compiler_dills") {
   visibility = [ ":copy_dev_compiler_sdk" ]
@@ -755,6 +766,7 @@ group("create_full_sdk") {
     public_deps += [
       ":copy_dart2wasm_platform",
       ":copy_dart2wasm_snapshot",
+      ":copy_wasm_opt",
     ]
   }
 }

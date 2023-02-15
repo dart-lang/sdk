@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:expect/expect.dart';
 import 'package:observatory_2/service_io.dart';
-import 'package:observatory_2/sample_profile.dart';
 import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';

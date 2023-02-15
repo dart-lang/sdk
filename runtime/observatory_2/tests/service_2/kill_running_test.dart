@@ -6,7 +6,6 @@ import 'package:observatory_2/service_common.dart';
 import 'package:test/test.dart';
 
 import 'test_helper.dart';
-import 'service_test_common.dart';
 
 testMain() async {
   print('1');

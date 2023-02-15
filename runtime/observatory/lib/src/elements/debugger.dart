@@ -438,7 +438,7 @@ class RewindCommand extends DebuggerCommand {
         debugger.console.print('rewind expects 0 or 1 argument');
         return;
       }
-      await debugger.rewind(count as int);
+      await debugger.rewind(count);
     } on S.ServerRpcException catch (e) {
       if (e.code == S.ServerRpcException.kCannotResume) {
         debugger.console.printRed(e.data!['details']);
@@ -3134,7 +3134,6 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
 }
 
 class DebuggerInputElement extends CustomElement implements Renderable {
-  late S.Isolate _isolate;
   late ObservatoryDebugger _debugger;
   bool _busy = false;
   final _modalPromptDiv = new DivElement()..classes = ['modalPrompt', 'hidden'];

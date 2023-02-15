@@ -5,7 +5,6 @@
 library service_html;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:html';
 import 'dart:typed_data';
 

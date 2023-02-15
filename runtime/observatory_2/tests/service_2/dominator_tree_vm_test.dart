@@ -5,7 +5,6 @@
 // VMOptions=--use_compactor
 // VMOptions=--use_compactor --force_evacuation
 
-import 'package:observatory_2/models.dart' as M;
 import 'package:observatory_2/service_io.dart';
 import 'package:test/test.dart';
 import 'test_helper.dart';

@@ -23,7 +23,7 @@ late WebSocketVM client3;
 final nameChangeTest = <IsolateTest>[
   // Remove required approvals via name change.
   (Isolate isolate) async {
-    final resumeFuture = waitForResume(isolate);
+    waitForResume(isolate);
 
     // Create two clients with the same name.
     client1 = await createClient(isolate.owner as WebSocketVM);

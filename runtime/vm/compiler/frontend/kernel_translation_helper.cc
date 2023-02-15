@@ -2890,11 +2890,6 @@ void KernelReaderHelper::SkipLibraryDependency() {
   }
 }
 
-void KernelReaderHelper::SkipLibraryPart() {
-  SkipListOfExpressions();  // Read annotations.
-  SkipStringReference();    // Read part URI index.
-}
-
 TokenPosition KernelReaderHelper::ReadPosition() {
   TokenPosition position = reader_.ReadPosition();
   RecordTokenPosition(position);

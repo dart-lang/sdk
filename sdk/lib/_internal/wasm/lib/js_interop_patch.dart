@@ -4,6 +4,8 @@
 
 import 'dart:_internal' show patch;
 import 'dart:_js_helper';
+import 'dart:async' show Completer;
+import 'dart:js_util' show NullRejectionException;
 import 'dart:typed_data';
 import 'dart:wasm';
 
@@ -35,6 +37,30 @@ extension ObjectToJSExportedDartObject on Object {
   @patch
   JSExportedDartObject get toJS =>
       _box<JSExportedDartObject>(jsObjectFromDartObject(this));
+}
+
+/// [JSPromise] -> [Future<JSAny?>].
+extension JSPromiseToFuture on JSPromise {
+  @patch
+  Future<JSAny?> get toDart {
+    final completer = Completer<JSAny>();
+    final success = (JSAny r) {
+      return completer.complete(r);
+    }.toJS;
+    final error = (JSAny e) {
+      // TODO(joshualitt): Investigate reifying `JSNull` and `JSUndefined` on
+      // all backends and if it is feasible, or feasible for some limited use
+      // cases, then we should pass [e] directly to `completeError`.
+      // TODO(joshualitt): Use helpers to avoid conflating `null` and `JSNull` /
+      // `JSUndefined`.
+      if (e == null) {
+        return completer.completeError(NullRejectionException(false));
+      }
+      return completer.completeError(e);
+    }.toJS;
+    promiseThen(_ref(this), _ref(success), _ref(error));
+    return completer.future;
+  }
 }
 
 /// [JSArrayBuffer] <-> [ByteBuffer]

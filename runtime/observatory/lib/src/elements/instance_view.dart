@@ -7,12 +7,8 @@ library instance_view_element;
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/class_ref.dart';
-import 'package:observatory/src/elements/context_ref.dart';
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/eval_box.dart';
-import 'package:observatory/src/elements/field_ref.dart';
-import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
@@ -28,7 +24,6 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/source_inset.dart';
-import 'package:observatory/src/elements/source_link.dart';
 import 'package:observatory/utils.dart';
 
 class InstanceViewElement extends CustomElement implements Renderable {

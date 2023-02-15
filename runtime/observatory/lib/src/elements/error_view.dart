@@ -79,7 +79,8 @@ class ErrorViewElement extends CustomElement implements Renderable {
         return 'Internal Error';
       case M.ErrorKind.terminationError:
         return 'Termination Error';
+      default:
+        throw new Exception('Unknown M.ErrorKind ($kind)');
     }
-    throw new Exception('Unknown M.ErrorKind ($kind)');
   }
 }

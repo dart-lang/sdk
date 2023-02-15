@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:observatory_2/models.dart' as M;
 import 'package:observatory_2/object_graph.dart';
 import 'package:observatory_2/service_io.dart';
 import 'package:test/test.dart';

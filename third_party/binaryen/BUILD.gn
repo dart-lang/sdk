@@ -4,6 +4,14 @@
 
 import("../../sdk_args.gni")
 
+config("binaryen_warnings") {
+  if (is_clang) {
+    cflags = [ "-Wno-unused-but-set-parameter" ]
+  } else if (!is_win) {
+    cflags = [ "-Wno-unused-variable" ]
+  }
+}
+
 action("generate_needed_files") {
   script = "generate_needed_files.py"
 
@@ -59,6 +67,11 @@ source_set("binaryen_sources") {
 
   # Ensure generated config.h file is include path.
   include_dirs += [ "$target_gen_dir" ]
+
+  configs += [
+    "//build/config/compiler:enable_exceptions",
+    ":binaryen_warnings",
+  ]
 }
 
 template("wasm_tool") {
@@ -72,6 +85,11 @@ template("wasm_tool") {
     include_dirs = [ "src/src" ]
     deps = [ ":binaryen_sources" ]
     forward_variables_from(invoker, "*")
+
+    configs += [
+      "//build/config/compiler:enable_exceptions",
+      ":binaryen_warnings",
+    ]
   }
 }
 

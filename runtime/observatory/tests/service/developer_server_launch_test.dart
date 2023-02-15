@@ -7,9 +7,6 @@
 
 import 'dart:async';
 import 'dart:developer';
-import 'package:expect/expect.dart';
-import 'package:observatory/service_io.dart' as S;
-import 'test_helper.dart';
 
 main() async {
   for (int i = 0; i < 32; i++) {
@@ -17,7 +14,7 @@ main() async {
   }
   // Give some time for control messages to arrive to vmservice isolate.
   await Future.delayed(Duration(seconds: 2));
-  // If the program doesn hang on shutdown, the test passes.
+  // If the program doesn't hang on shutdown, the test passes.
   // Program hanging means that more than one http server was launched,
   // but only one gets closed.
 }
