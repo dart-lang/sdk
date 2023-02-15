@@ -274,6 +274,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    var parent = node.parent;
+    if (!(parent is GuardedPattern && parent.hasWhen)) {
+      _addSuggestion(Keyword.WHEN);
+    }
+  }
+
+  @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     if (entity == node.defaultValue) {
       _addExpressionKeywords(node);
@@ -573,7 +581,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       if (caseClause == null) {
         _addSuggestion(Keyword.CASE);
         _addSuggestion(Keyword.IS);
-      } else if (caseClause.guardedPattern.whenClause == null) {
+      } else if (caseClause.guardedPattern.hasWhen) {
+        if (caseClause.guardedPattern.whenClause?.expression == null) {
+          _addExpressionKeywords(node);
+        }
+      } else {
         _addSuggestion(Keyword.WHEN);
       }
     } else if (entity == node.thenElement || entity == node.elseElement) {
@@ -597,7 +609,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       if (caseClause == null) {
         _addSuggestion(Keyword.CASE);
         _addSuggestion(Keyword.IS);
-      } else if (caseClause.guardedPattern.whenClause == null) {
+      } else if (caseClause.guardedPattern.hasWhen) {
+        if (caseClause.guardedPattern.whenClause?.expression == null) {
+          _addExpressionKeywords(node);
+        }
+      } else {
         _addSuggestion(Keyword.WHEN);
       }
     } else if (entity == node.thenStatement || entity == node.elseStatement) {
@@ -968,6 +984,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
   }
 
+  @override
+  void visitWhenClause(WhenClause node) {
+    var whenKeyword = node.whenKeyword;
+    if (!whenKeyword.isSynthetic && request.offset > whenKeyword.end) {
+      _addExpressionKeywords(node);
+    }
+  }
+
   void _addClassBodyKeywords() {
     _addSuggestions([
       Keyword.CONST,
@@ -1261,6 +1285,25 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       return previousToken != null &&
           previousToken.isSynthetic &&
           previousToken.type == type;
+    }
+    return false;
+  }
+}
+
+extension on GuardedPattern {
+  /// Return `true` if this pattern has, or might have, a `when` keyword.
+  bool get hasWhen {
+    if (whenClause != null) {
+      return true;
+    }
+    var pattern = this.pattern;
+    if (pattern is DeclaredVariablePattern) {
+      if (pattern.name.lexeme == 'when') {
+        final type = pattern.type;
+        if (type is NamedType && type.typeArguments == null) {
+          return true;
+        }
+      }
     }
     return false;
   }
