@@ -577,6 +577,46 @@ class C {
     ]);
   }
 
+  test_searchReferences_class_getter_in_objectPattern() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case A(foo: 0)) {}
+  if (x case A(: var foo)) {}
+}
+
+class A {
+  int get foo => 0;
+}
+''');
+    var element = findElement.getter('foo');
+    var f = findElement.function('f');
+    var expected = [
+      _expectIdQ(f, SearchResultKind.REFERENCE, 'foo: 0', length: 3),
+      _expectIdQ(f, SearchResultKind.REFERENCE, ': var foo', length: 0),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_class_method_in_objectPattern() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case A(foo: _)) {}
+  if (x case A(: var foo)) {}
+}
+
+class A {
+  void foo() {}
+}
+''');
+    var element = findElement.method('foo');
+    var f = findElement.function('f');
+    var expected = [
+      _expectIdQ(f, SearchResultKind.REFERENCE, 'foo: _', length: 3),
+      _expectIdQ(f, SearchResultKind.REFERENCE, ': var foo', length: 0),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_ClassElement_definedInSdk_declarationSite() async {
     await resolveTestCode('''
 import 'dart:math';

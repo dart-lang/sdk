@@ -211,8 +211,9 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
     final parent = node.parent;
     if (parent is PatternField) {
       return parent.element;
+    } else {
+      return null;
     }
-    return super.visitPatternFieldName(node);
   }
 
   @override

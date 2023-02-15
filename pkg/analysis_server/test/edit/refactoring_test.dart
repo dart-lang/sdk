@@ -1605,6 +1605,56 @@ void f() {
     );
   }
 
+  Future<void> test_class_getter_in_objectPattern() {
+    addTestFile('''
+void f(Object? x) {
+  if (x case A(test: 0)) {}
+  if (x case A(: var test)) {}
+}
+
+class A {
+  int get test => 0;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test =>', 'newName');
+    }, '''
+void f(Object? x) {
+  if (x case A(newName: 0)) {}
+  if (x case A(newName: var test)) {}
+}
+
+class A {
+  int get newName => 0;
+}
+''');
+  }
+
+  Future<void> test_class_method_in_objectPattern() {
+    addTestFile('''
+void f(Object? x) {
+  if (x case A(test: _)) {}
+  if (x case A(: var test)) {}
+}
+
+class A {
+  void test() {}
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test() {}', 'newName');
+    }, '''
+void f(Object? x) {
+  if (x case A(newName: _)) {}
+  if (x case A(newName: var test)) {}
+}
+
+class A {
+  void newName() {}
+}
+''');
+  }
+
   Future<void> test_class_options_fatalError() {
     addTestFile('''
 class Test {}
