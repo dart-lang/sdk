@@ -3,6 +3,7 @@ import 'const_patterns.dart' as prefix;
 class Class {
   call() {}
   const Class([a]);
+  const Class.named();
   test(o) async {}
 }
 

@@ -6875,7 +6875,8 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(fasta.messageNamedFunctionExpression,
                 declaration.fileOffset, noLength,
                 // Error has already been reported by the parser.
-                suppressMessage: true)));
+                suppressMessage: true))
+          ..fileOffset = declaration.fileOffset);
       } else {
         push(statement);
       }

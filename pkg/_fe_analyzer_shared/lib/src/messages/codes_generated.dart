@@ -6926,6 +6926,19 @@ const MessageCode messageInvalidCodePoint = const MessageCode(
         r"""The escape sequence starting with '\u' isn't a valid code point.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidConstantPatternConstPrefix =
+    messageInvalidConstantPatternConstPrefix;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidConstantPatternConstPrefix = const MessageCode(
+    "InvalidConstantPatternConstPrefix",
+    index: 140,
+    problemMessage:
+        r"""The expression can't be prefixed by 'const' to form a constant pattern.""",
+    correctionMessage:
+        r"""Try wrapping the expression in 'const ( ... )' instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidConstantPatternDuplicateConst =
     messageInvalidConstantPatternDuplicateConst;
 
