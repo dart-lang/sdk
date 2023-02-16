@@ -963,9 +963,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    Iterator<SourceFactoryBuilder> iterator =
-        constructorScope.filteredIterator<SourceFactoryBuilder>(
-            parent: this, includeDuplicates: true, includeAugmentations: true);
+    Iterator<SourceFactoryBuilder> iterator = constructorScope.filteredIterator(
+        parent: this, includeDuplicates: true, includeAugmentations: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }

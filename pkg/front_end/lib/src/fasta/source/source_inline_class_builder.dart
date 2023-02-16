@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../../base/common.dart';
 import '../builder/builder.dart';
@@ -18,8 +19,10 @@ import '../fasta_codes.dart'
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength;
+import '../kernel/kernel_helper.dart';
 import '../problems.dart';
 import '../scope.dart';
+import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
 import 'source_field_builder.dart';
@@ -113,6 +116,22 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 
     return _inlineClass;
+  }
+
+  @override
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    super.buildOutlineExpressions(
+        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+
+    Iterator<SourceMemberBuilder> iterator = constructorScope.filteredIterator(
+        parent: this, includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      iterator.current.buildOutlineExpressions(
+          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+    }
   }
 
   @override

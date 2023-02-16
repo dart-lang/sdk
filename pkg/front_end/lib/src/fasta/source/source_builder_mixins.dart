@@ -150,9 +150,8 @@ mixin SourceDeclarationBuilderMixin
       }
     }
 
-    Iterator<SourceMemberBuilder> iterator =
-        scope.filteredIterator<SourceMemberBuilder>(
-            parent: this, includeDuplicates: false, includeAugmentations: true);
+    Iterator<SourceMemberBuilder> iterator = scope.filteredIterator(
+        parent: this, includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
       iterator.current.buildOutlineExpressions(
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
