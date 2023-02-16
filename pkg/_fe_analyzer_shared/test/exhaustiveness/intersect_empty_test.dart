@@ -19,6 +19,11 @@ void main() {
   var b = env.createClass('B', inherits: [a]);
   var c = env.createClass('C', inherits: [a]);
 
+  var x = 'x';
+  var y = 'y';
+  var z = 'z';
+  var w = 'w';
+
   Space A({StaticType? x, StaticType? y, StaticType? z}) => ty(
       a, {if (x != null) 'x': x, if (y != null) 'y': y, if (z != null) 'z': z});
   Space B({StaticType? x, StaticType? y, StaticType? z}) => ty(
@@ -27,10 +32,12 @@ void main() {
       c, {if (x != null) 'x': x, if (y != null) 'y': y, if (z != null) 'z': z});
 
   test('records', () {
-    expectIntersectEmpty(rec(x: a, y: a), rec(x: a, y: a), isFalse);
-    expectIntersectEmpty(rec(x: a, y: a), rec(x: a), isFalse);
-    expectIntersectEmpty(rec(w: a, x: a), rec(y: a, z: a), isFalse);
-    expectIntersectEmpty(rec(w: a, x: a, y: a), rec(x: a, y: a, z: a), isFalse);
+    var r = env.createRecordType({x: a, y: a, z: a, w: a});
+    expectIntersectEmpty(ty(r, {x: a, y: a}), ty(r, {x: a, y: a}), isFalse);
+    expectIntersectEmpty(ty(r, {x: a, y: a}), ty(r, {x: a}), isFalse);
+    expectIntersectEmpty(ty(r, {w: a, x: a}), ty(r, {y: a, z: a}), isFalse);
+    expectIntersectEmpty(
+        ty(r, {w: a, x: a, y: a}), ty(r, {x: a, y: a, z: a}), isFalse);
   });
 
   test('types', () {
@@ -42,8 +49,9 @@ void main() {
   });
 
   test('field types', () {
-    expectIntersectEmpty(rec(x: a, y: b), rec(x: b, y: a), isFalse);
-    expectIntersectEmpty(rec(x: b), rec(x: c), isTrue);
+    var r = env.createRecordType({x: a, y: a});
+    expectIntersectEmpty(ty(r, {x: a, y: b}), ty(r, {x: b, y: a}), isFalse);
+    expectIntersectEmpty(ty(r, {x: b}), ty(r, {x: c}), isTrue);
   });
 
   test('types and fields', () {
@@ -74,6 +82,6 @@ void expectIntersectEmpty(Object left, Object right, Matcher expected) {
   var rightSpace = parseSpace(right);
 
   // Intersection is symmetric so try both directions.
-  expect(intersectEmpty(leftSpace, rightSpace), expected);
-  expect(intersectEmpty(rightSpace, leftSpace), expected);
+  expect(spacesHaveEmptyIntersection(leftSpace, rightSpace), expected);
+  expect(spacesHaveEmptyIntersection(rightSpace, leftSpace), expected);
 }

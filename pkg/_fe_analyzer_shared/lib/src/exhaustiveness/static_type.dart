@@ -48,6 +48,11 @@ abstract class StaticType {
   /// one of those two types*.
   bool get isSealed;
 
+  /// Returns `true` if this is a record type.
+  ///
+  /// This is only used for print the type as part of a [Space].
+  bool get isRecord;
+
   /// Returns the name of this static type.
   ///
   /// This is used for printing [Space]s.
@@ -62,6 +67,9 @@ abstract class StaticType {
 
 abstract class _BaseStaticType implements StaticType {
   const _BaseStaticType();
+
+  @override
+  bool get isRecord => false;
 
   @override
   Map<String, StaticType> get fields => const {};

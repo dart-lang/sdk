@@ -16,23 +16,24 @@ void main() {
     var a = env.createClass('A');
     var b = env.createClass('B', inherits: [a], fields: {'x': a, 'y': a});
     var c = env.createClass('C', inherits: [a]);
+    var r = env.createRecordType({'x': a});
 
     expectSubtract('∅', '∅', '∅');
 
     // Subtracting from empty stays empty.
     expectSubtract('∅', a, '∅');
     expectSubtract('∅', [b, c], '∅');
-    expectSubtract('∅', {'x': a}, '∅');
+    expectSubtract('∅', ty(r, {'x': a}), '∅');
     expectSubtract('∅', ty(b, {'x': a}), '∅');
 
     // Subtracting empty leaves unchanged.
     expectSubtract(a, '∅', 'A');
     expectSubtract([b, c], '∅', 'B|C');
-    expectSubtract({'x': a}, '∅', '(x: A)');
+    expectSubtract(ty(r, {'x': a}), '∅', '(x: A)');
     expectSubtract(ty(b, {'x': a}), '∅', 'B(x: A)');
   });
 
-  group('top and null', () {
+  group('top and null |', () {
     expectSubtract(StaticType.nullableObject, StaticType.nullableObject, '∅');
     expectSubtract(StaticType.nullableObject, StaticType.nullType, 'Object');
     expectSubtract(StaticType.nonNullableObject, StaticType.nullType, 'Object');
@@ -42,7 +43,7 @@ void main() {
         StaticType.nonNullableObject, StaticType.nullableObject, '∅');
   });
 
-  group('union with sealed types', () {
+  group('union with sealed types |', () {
     //   (A)
     //   /|\
     //  B C(D)
@@ -80,7 +81,7 @@ void main() {
     expectSubtract([b, e], d, 'B');
   });
 
-  group('unsealed subtype', () {
+  group('unsealed subtype |', () {
     //   A   B
     //  / \ /
     // C   D
@@ -124,7 +125,7 @@ void main() {
     expectSubtract(e, e, '∅');
   });
 
-  group('unsealed subtype and field', () {
+  group('unsealed subtype and field |', () {
     //  X  A
     //  |  |
     //  Y  B
@@ -167,7 +168,7 @@ void main() {
     expectSubtract(b, B(x: x), 'B');
   });
 
-  group('sealed subtype and field 1', () {
+  group('sealed subtype and field 1 |', () {
     //   (X)    (A)
     //   /|\    /|\
     //  W Y Z  B C D
@@ -218,7 +219,7 @@ void main() {
     expectSubtract(b, B(x: x), 'B');
   });
 
-  group('sealed subtype and field 2', () {
+  group('sealed subtype and field 2 |', () {
     //   (X)    (A)
     //   /|\    /|\
     //  W Y Z  B C D
@@ -261,34 +262,37 @@ void main() {
     expectSubtract(c, B(x: w, y: z), 'C');
   });
 
-  group('null and object', () {
+  group('null and object |', () {
+    // TODO(johnniwinther): Enable these tests when the test framework is
+    //  expanded to handle Object properties.
     expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
         Space.empty, 'Object?(hashCode: ())');
-    expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
-        Space.top, '∅');
-    expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
-        Space(StaticType.nullableObject, {'hashCode': Space.top}), '∅');
-    expectSubtract(
+    /*expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
+        Space.top, '∅');*/
+    /*expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
+        Space(StaticType.nullableObject, {'hashCode': Space.top}), '∅');*/
+    /*expectSubtract(
         Space(StaticType.nullableObject, {'hashCode': Space.top}),
         Space(StaticType.nonNullableObject, {'hashCode': Space.top}),
-        'Null(hashCode: ())');
-    expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
-        Space(StaticType.nullType), '(hashCode: ())');
-    expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
+        'Null(hashCode: ())');*/
+    /*expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
+        Space(StaticType.nullType), '(hashCode: ())');*/
+    /*expectSubtract(Space(StaticType.nullableObject, {'hashCode': Space.top}),
         Space(StaticType.nullType, {'hashCode': Space.top}), '(hashCode: ())');
+        */
 
     expectSubtract(Space(StaticType.nullType, {'hashCode': Space.top}),
         Space.empty, 'Null(hashCode: ())');
-    expectSubtract(
-        Space(StaticType.nullType, {'hashCode': Space.top}), Space.top, '∅');
-    expectSubtract(Space(StaticType.nullType, {'hashCode': Space.top}),
-        Space(StaticType.nullType, {'hashCode': Space.top}), '∅');
+    /*expectSubtract(
+        Space(StaticType.nullType, {'hashCode': Space.top}), Space.top, '∅');*/
+    /*expectSubtract(Space(StaticType.nullType, {'hashCode': Space.top}),
+        Space(StaticType.nullType, {'hashCode': Space.top}), '∅');*/
     expectSubtract(
         Space(StaticType.nullType, {'hashCode': Space.top}),
         Space(StaticType.neverType, {'hashCode': Space.top}),
         'Null(hashCode: ())');
-    expectSubtract(Space(StaticType.nullType, {'hashCode': Space.top}),
-        Space(StaticType.nullType), '∅');
+    /*expectSubtract(Space(StaticType.nullType, {'hashCode': Space.top}),
+        Space(StaticType.nullType), '∅');*/
   });
 }
 

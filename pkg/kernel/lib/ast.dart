@@ -13408,7 +13408,9 @@ class RecordType extends DartType {
         if (i > 0) {
           printer.write(", ");
         }
-        printer.writeNamedType(named[i]);
+        printer.writeType(named[i].type);
+        printer.write(' ');
+        printer.write(named[i].name);
       }
       printer.write("}");
     }

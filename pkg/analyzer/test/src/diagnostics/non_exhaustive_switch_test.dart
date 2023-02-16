@@ -263,8 +263,6 @@ void f(Null x) {
 ''');
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
   test_alwaysExhaustive_recordType_bool_bool_4at4() async {
     await assertNoErrorsInCode(r'''
 void f((bool, bool) x) {

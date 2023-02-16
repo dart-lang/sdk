@@ -72,6 +72,11 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
+  bool isRecordType(DartType type) {
+    return type is RecordType && !isNullable(type);
+  }
+
+  @override
   bool isSubtypeOf(DartType s, DartType t) {
     return _typeEnvironment.isSubtypeOf(
         s, t, SubtypeCheckMode.withNullabilities);
@@ -119,7 +124,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
     } else if (type is RecordType) {
       Map<String, DartType> fieldTypes = {};
       for (int index = 0; index < type.positional.length; index++) {
-        fieldTypes['\$$index'] = type.positional[index];
+        fieldTypes['\$${index + 1}'] = type.positional[index];
       }
       for (NamedType field in type.named) {
         fieldTypes[field.name] = field.type;
@@ -330,7 +335,25 @@ Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
   } else if (pattern is ConstantPattern) {
     return convertExpressionToSpace(
         cache, pattern.expression, constants, context);
+  } else if (pattern is RecordPattern) {
+    int index = 1;
+    Map<String, Space> fields = {};
+    for (Pattern field in pattern.patterns) {
+      String name;
+      Pattern subpattern;
+      if (field is NamedPattern) {
+        name = field.name;
+        subpattern = field.pattern;
+      } else {
+        name = '\$${index++}';
+        subpattern = field;
+      }
+      fields[name] =
+          convertPatternToSpace(cache, subpattern, constants, context);
+    }
+    return new Space(cache.getStaticType(pattern.type), fields);
   }
+
   // TODO(johnniwinther): Handle remaining constants.
   return new Space(cache.getUnknownStaticType());
 }
@@ -345,6 +368,17 @@ Space convertConstantToSpace(CfeExhaustivenessCache cache, Constant? constant,
     } else if (constant is InstanceConstant && constant.classNode.isEnum) {
       return new Space(
           cache.getEnumElementStaticType(constant.classNode, constant));
+    } else if (constant is RecordConstant) {
+      Map<String, Space> fields = {};
+      for (int index = 0; index < constant.positional.length; index++) {
+        fields['\$${index + 1}'] = convertConstantToSpace(
+            cache, constant.positional[index], constants, context);
+      }
+      for (MapEntry<String, Constant> entry in constant.named.entries) {
+        fields[entry.key] =
+            convertConstantToSpace(cache, entry.value, constants, context);
+      }
+      return new Space(cache.getStaticType(constant.recordType), fields);
     } else {
       return new Space(cache.getUniqueStaticType(
           constant.getType(context), constant, '${constant}'));

@@ -114,6 +114,15 @@ class TestEnvironment {
 
     return _exhaustivenessCache.getStaticType(type);
   }
+
+  StaticType createRecordType(Map<String, StaticType> named) {
+    Map<String, _Type> namedTypes = {};
+    for (MapEntry<String, StaticType> entry in named.entries) {
+      namedTypes[entry.key] = _typeFromStaticType(entry.value);
+    }
+    _Type type = new _RecordType([], namedTypes);
+    return _exhaustivenessCache.getStaticType(type);
+  }
 }
 
 class _Type {
@@ -184,6 +193,63 @@ class _NullableType implements _Type {
   String toString() => identical(this, _Type.Null) ? 'Null' : '$type?';
 }
 
+class _RecordType implements _Type {
+  final List<_Type> positional;
+  final Map<String, _Type> named;
+
+  _RecordType(this.positional, this.named);
+
+  @override
+  int get hashCode => Object.hash(
+      Object.hashAll(positional),
+      Object.hashAllUnordered(named.keys),
+      Object.hashAllUnordered(named.values));
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! _RecordType) return false;
+    if (positional.length != other.positional.length) return false;
+    if (named.length != other.named.length) return false;
+    for (int i = 0; i < positional.length; i++) {
+      if (positional[i] != other.positional[i]) {
+        return false;
+      }
+    }
+    for (MapEntry<String, _Type> entry in named.entries) {
+      if (entry.value != other.named[entry.key]) return false;
+    }
+    return true;
+  }
+
+  @override
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('(');
+    String comma = '';
+    for (_Type type in positional) {
+      sb.write(comma);
+      sb.write(type);
+      comma = ', ';
+    }
+    if (named.isNotEmpty) {
+      sb.write(comma);
+      sb.write('{');
+      comma = '';
+      for (MapEntry<String, _Type> entry in named.entries) {
+        sb.write(comma);
+        sb.write(entry.key);
+        sb.write(': ');
+        sb.write(entry.value);
+        comma = ', ';
+      }
+      sb.write('}');
+    }
+    sb.write(')');
+    return sb.toString();
+  }
+}
+
 class _TypeOperations implements TypeOperations<_Type> {
   final TestEnvironment env;
 
@@ -200,6 +266,14 @@ class _TypeOperations implements TypeOperations<_Type> {
         fields.addAll(getFieldTypes(supertype));
       }
       fields.addAll(env._getFields(type.cls));
+      return fields;
+    } else if (type is _RecordType) {
+      Map<String, _Type> fields = {};
+      fields.addAll(getFieldTypes(_Type.Object));
+      for (int i = 0; i < type.positional.length; i++) {
+        fields['\$${i + 1}'] = type.positional[i];
+      }
+      fields.addAll(type.named);
       return fields;
     } else {
       return getFieldTypes(_Type.Object);
@@ -278,6 +352,11 @@ class _TypeOperations implements TypeOperations<_Type> {
   @override
   String typeToString(_Type type) {
     return type.toString();
+  }
+
+  @override
+  bool isRecordType(_Type type) {
+    return type is _RecordType;
   }
 }
 
