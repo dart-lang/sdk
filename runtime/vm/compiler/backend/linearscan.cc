@@ -3287,6 +3287,30 @@ void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
   }
 }
 
+void FlowGraphAllocator::AllocateOutgoingArguments() {
+  const intptr_t total_spill_slot_count =
+      flow_graph_.graph_entry()->spill_slot_count();
+
+  for (auto block : flow_graph_.reverse_postorder()) {
+    for (auto instr : block->instructions()) {
+      if (auto push = instr->AsPushArgument()) {
+        Location loc;
+
+        const intptr_t spill_index =
+            (total_spill_slot_count - 1) - push->top_of_stack_relative_index();
+        const intptr_t slot_index =
+            compiler::target::frame_layout.FrameSlotForVariableIndex(
+                -spill_index);
+
+        push->locs()->set_out(0,
+                              (push->representation() == kUnboxedDouble)
+                                  ? Location::DoubleStackSlot(slot_index, FPREG)
+                                  : Location::StackSlot(slot_index, FPREG));
+      }
+    }
+  }
+}
+
 void FlowGraphAllocator::AllocateRegisters() {
   CollectRepresentations();
 
@@ -3342,9 +3366,12 @@ void FlowGraphAllocator::AllocateRegisters() {
   GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
   ASSERT(entry != NULL);
   intptr_t double_spill_slot_count = spill_slots_.length() * kDoubleSpillFactor;
-  entry->set_spill_slot_count(cpu_spill_slot_count_ + double_spill_slot_count);
+  entry->set_spill_slot_count(cpu_spill_slot_count_ + double_spill_slot_count +
+                              flow_graph_.max_argument_slot_count());
 
   RemoveFrameIfNotNeeded();
+
+  AllocateOutgoingArguments();
 
   ResolveControlFlow();
 

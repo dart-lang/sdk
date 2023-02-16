@@ -127,6 +127,7 @@ general/sealed_class_declaration: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
+inline_class/annotations: FormatterCrash
 inline_class/constructor_access: FormatterCrash
 inline_class/constructor_bodies: FormatterCrash
 inline_class/constructor_formal_parameters: FormatterCrash

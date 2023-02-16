@@ -1955,7 +1955,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var hasLabel = member.labels.isNotEmpty;
         _flowAnalysis!.switchStatement_beginAlternatives();
         _flowAnalysis!.switchStatement_beginAlternative();
-        _flowAnalysis!.switchStatement_endAlternative(null);
+        _flowAnalysis!.switchStatement_endAlternative(null, {});
         _flowAnalysis!
             .switchStatement_endAlternatives(node, hasLabels: hasLabel);
         if (member is SwitchCase) {

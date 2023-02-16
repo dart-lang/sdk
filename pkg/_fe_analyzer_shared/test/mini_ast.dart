@@ -864,6 +864,7 @@ class MiniAstOperations
     implements Operations<Var, Type> {
   static const Map<String, bool> _coreExhaustiveness = const {
     '()': true,
+    '(int, int?)': false,
     'bool': true,
     'dynamic': false,
     'int': false,

@@ -221,6 +221,7 @@ clarify
 clash
 clashes
 class's
+clause's
 clazz
 cli
 client's

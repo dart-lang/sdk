@@ -98,19 +98,14 @@ compiler::LRState ComputeInnerLRState(const FlowGraph& flow_graph) {
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
 // environment.
-void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
-    Environment* env,
-    intptr_t* stack_height) {
+void CompilerDeoptInfo::AllocateIncomingParametersRecursive(Environment* env) {
   if (env == NULL) return;
-  AllocateIncomingParametersRecursive(env->outer(), stack_height);
+  AllocateIncomingParametersRecursive(env->outer());
   for (Environment::ShallowIterator it(env); !it.Done(); it.Advance()) {
-    if (it.CurrentLocation().IsInvalid() &&
-        it.CurrentValue()->definition()->IsPushArgument()) {
-      it.SetCurrentLocation(Location::StackSlot(
-          compiler::target::frame_layout.FrameSlotForVariableIndex(
-              -*stack_height),
-          FPREG));
-      (*stack_height)++;
+    if (it.CurrentLocation().IsInvalid()) {
+      if (auto push_arg = it.CurrentValue()->definition()->AsPushArgument()) {
+        it.SetCurrentLocation(push_arg->locs()->out(0));
+      }
     }
   }
 }
@@ -1042,42 +1037,39 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
 
     auto instr = current_instruction();
     const intptr_t args_count = instr->ArgumentCount();
-    bool pushed_unboxed = false;
+    RELEASE_ASSERT(args_count == 0 || is_optimizing());
 
     for (intptr_t i = 0; i < args_count; i++) {
-      auto push_arg =
+      const auto push_arg =
           instr->ArgumentValueAt(i)->instruction()->AsPushArgument();
-      switch (push_arg->representation()) {
-        case kUnboxedInt64:
-          bitmap.SetRange(
-              bitmap.Length(),
-              bitmap.Length() + compiler::target::kIntSpillFactor - 1, false);
-          pushed_unboxed = true;
-          break;
-        case kUnboxedDouble:
-          bitmap.SetRange(
-              bitmap.Length(),
-              bitmap.Length() + compiler::target::kDoubleSpillFactor - 1,
-              false);
-          pushed_unboxed = true;
-          break;
-        case kTagged:
-          if (!pushed_unboxed) {
-            // GC considers everything to be tagged between prefix of stack
-            // frame (spill area size) and postfix of stack frame (e.g. slow
-            // path arguments, shared pushed registers).
-            // From the first unboxed argument on we will include bits in the
-            // postfix.
-            continue;
-          }
-          bitmap.Set(bitmap.Length(), true);
-          break;
-        default:
-          UNREACHABLE();
-          break;
-      }
+      const auto rep = push_arg->representation();
+
+      ASSERT(rep == kTagged || rep == kUnboxedInt64 || rep == kUnboxedDouble);
+      static_assert(compiler::target::kIntSpillFactor ==
+                        compiler::target::kDoubleSpillFactor,
+                    "int and double are of the same size");
+      const bool is_tagged = push_arg->representation() == kTagged;
+      const intptr_t num_bits =
+          is_tagged ? 1 : compiler::target::kIntSpillFactor;
+
+      // Note: bits are reversed so higher bit corresponds to lower word.
+      const intptr_t last_arg_bit =
+          (spill_area_size - 1) - push_arg->top_of_stack_relative_index();
+      bitmap.SetRange(last_arg_bit - (num_bits - 1), last_arg_bit, is_tagged);
     }
     ASSERT(slow_path_argument_count == 0 || !using_shared_stub);
+    RELEASE_ASSERT(bitmap.Length() == spill_area_size);
+
+    // Trim the fully tagged suffix. Stack walking assumes that everything
+    // not included into the stack map is tagged.
+    intptr_t spill_area_bits = bitmap.Length();
+    while (spill_area_bits > 0) {
+      if (!bitmap.Get(spill_area_bits - 1)) {
+        break;
+      }
+      spill_area_bits--;
+    }
+    bitmap.SetLength(spill_area_bits);
 
     // Mark the bits in the stack map in the same order we push registers in
     // slow path code (see FlowGraphCompiler::SaveLiveRegisters).
@@ -1139,7 +1131,7 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
     }
 
     compressed_stackmaps_builder_->AddEntry(assembler()->CodeSize(), &bitmap,
-                                            spill_area_size);
+                                            spill_area_bits);
   }
 }
 
@@ -1739,7 +1731,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   }
 
   // Allocate all unallocated input locations.
-  const bool should_pop = !instr->IsPushArgument();
+  RELEASE_ASSERT(!instr->IsPushArgument());
   Register fpu_unboxing_temp = kNoRegister;
   for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
     Location loc = locs->in(i);
@@ -1780,47 +1772,43 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
 
     // Inputs are consumed from the simulated frame (or a peephole push/pop).
     // In case of a call argument we leave it until the call instruction.
-    if (should_pop) {
-      if (top_of_stack_ != nullptr) {
-        if (!loc.IsConstant()) {
-          // Moves top of stack location of the peephole into the required
-          // input. None of the required moves needs a temp register allocator.
-          EmitMove(Location::RegisterLocation(reg),
-                   top_of_stack_->locs()->out(0), nullptr);
-        }
-        top_of_stack_ = nullptr;  // consumed!
-      } else if (loc.IsConstant()) {
-        assembler()->Drop(1);
-      } else {
-        assembler()->PopRegister(reg);
-      }
+    if (top_of_stack_ != nullptr) {
       if (!loc.IsConstant()) {
-        switch (instr->RequiredInputRepresentation(i)) {
-          case kUnboxedDouble:
-            ASSERT(fpu_reg != kNoFpuRegister);
-            ASSERT(instr->SpeculativeModeOfInput(i) ==
-                   Instruction::kNotSpeculative);
-            assembler()->LoadUnboxedDouble(
-                fpu_reg, reg,
-                compiler::target::Double::value_offset() - kHeapObjectTag);
-            break;
-          case kUnboxedFloat32x4:
-          case kUnboxedFloat64x2:
-            ASSERT(fpu_reg != kNoFpuRegister);
-            ASSERT(instr->SpeculativeModeOfInput(i) ==
-                   Instruction::kNotSpeculative);
-            assembler()->LoadUnboxedSimd128(
-                fpu_reg, reg,
-                compiler::target::Float32x4::value_offset() - kHeapObjectTag);
-            break;
-          default:
-            // No automatic unboxing for other representations.
-            ASSERT(fpu_reg == kNoFpuRegister);
-            break;
-        }
+        // Moves top of stack location of the peephole into the required
+        // input. None of the required moves needs a temp register allocator.
+        EmitMove(Location::RegisterLocation(reg), top_of_stack_->locs()->out(0),
+                 nullptr);
       }
+      top_of_stack_ = nullptr;  // consumed!
+    } else if (loc.IsConstant()) {
+      assembler()->Drop(1);
     } else {
-      ASSERT(fpu_reg == kNoFpuRegister);
+      assembler()->PopRegister(reg);
+    }
+    if (!loc.IsConstant()) {
+      switch (instr->RequiredInputRepresentation(i)) {
+        case kUnboxedDouble:
+          ASSERT(fpu_reg != kNoFpuRegister);
+          ASSERT(instr->SpeculativeModeOfInput(i) ==
+                 Instruction::kNotSpeculative);
+          assembler()->LoadUnboxedDouble(
+              fpu_reg, reg,
+              compiler::target::Double::value_offset() - kHeapObjectTag);
+          break;
+        case kUnboxedFloat32x4:
+        case kUnboxedFloat64x2:
+          ASSERT(fpu_reg != kNoFpuRegister);
+          ASSERT(instr->SpeculativeModeOfInput(i) ==
+                 Instruction::kNotSpeculative);
+          assembler()->LoadUnboxedSimd128(
+              fpu_reg, reg,
+              compiler::target::Float32x4::value_offset() - kHeapObjectTag);
+          break;
+        default:
+          // No automatic unboxing for other representations.
+          ASSERT(fpu_reg == kNoFpuRegister);
+          break;
+      }
     }
   }
 
@@ -2357,6 +2345,12 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
 
 #define __ assembler()->
 
+void FlowGraphCompiler::EmitDropArguments(intptr_t count) {
+  if (!is_optimizing()) {
+    __ Drop(count);
+  }
+}
+
 void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
                                       const GrowableArray<intptr_t>& class_ids,
                                       compiler::Label* is_equal_lbl,
@@ -2429,7 +2423,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     GenerateStaticDartCall(deopt_id, source_index,
                            UntaggedPcDescriptors::kOther, locs, function,
                            entry_kind);
-    __ Drop(args_info.size_with_type_args);
+    EmitDropArguments(args_info.size_with_type_args);
     if (match_found != NULL) {
       __ Jump(match_found);
     }
@@ -2480,7 +2474,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     GenerateStaticDartCall(deopt_id, source_index,
                            UntaggedPcDescriptors::kOther, locs, function,
                            entry_kind);
-    __ Drop(args_info.size_with_type_args);
+    EmitDropArguments(args_info.size_with_type_args);
     if (!is_last_check || add_megamorphic_call) {
       __ Jump(match_found);
     }

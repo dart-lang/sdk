@@ -1433,6 +1433,7 @@ void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void PushArgumentInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
+  f->Printf(", SP+%" Pd "", top_of_stack_relative_index());
 }
 
 void GotoInstr::PrintTo(BaseTextBuffer* f) const {

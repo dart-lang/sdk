@@ -22,7 +22,6 @@ import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
-import 'class_builder.dart';
 import 'constructor_builder.dart';
 import 'declaration_builder.dart';
 import 'library_builder.dart';
@@ -36,6 +35,7 @@ import 'variable_builder.dart';
 abstract class ParameterBuilder {
   /// List of metadata builders for the metadata declared on this parameter.
   List<MetadataBuilder>? get metadata;
+
   TypeBuilder get type;
 
   /// The kind of this parameter, i.e. if it's required, positional optional,
@@ -43,8 +43,11 @@ abstract class ParameterBuilder {
   FormalParameterKind get kind;
 
   bool get isPositional;
+
   bool get isRequiredPositional;
+
   bool get isNamed;
+
   bool get isRequiredNamed;
 
   String? get name;
@@ -256,11 +259,12 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     }
     if (needsDefaultValues) {
       if (initializerToken != null) {
-        final ClassBuilder classBuilder = parent!.parent as ClassBuilder;
-        Scope scope = classBuilder.scope;
+        final DeclarationBuilder declarationBuilder =
+            parent!.parent as DeclarationBuilder;
+        Scope scope = declarationBuilder.scope;
         BodyBuilder bodyBuilder = library.loader
             .createBodyBuilderForOutlineExpression(
-                library, classBuilder, this, scope, fileUri!);
+                library, declarationBuilder, this, scope, fileUri!);
         bodyBuilder.constantContext = ConstantContext.required;
         assert(!initializerWasInferred);
         Expression initializer =

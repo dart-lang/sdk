@@ -287,6 +287,11 @@ class FlowGraphAllocator : public ValueObject {
                                     Register base_reg,
                                     intptr_t pair_index);
 
+  // Assign locations for each outgoing argument. Outgoing argumenst are
+  // currently stored at the top of the stack in direct order (last argument
+  // at the top of the stack).
+  void AllocateOutgoingArguments();
+
   const FlowGraph& flow_graph_;
 
   ReachingDefs reaching_defs_;

@@ -1826,6 +1826,19 @@ void Assembler::StoreToOffset(Register reg,
   }
 }
 
+void Assembler::StoreToOffset(const Object& object, const Address& dst) {
+  if (target::CanEmbedAsRawPointerInGeneratedCode(object)) {
+    movl(dst, Immediate(target::ToRawPointer(object)));
+  } else {
+    DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
+    ASSERT(IsInOldSpace(object));
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitUint8(0xC7);
+    EmitOperand(0, dst);
+    buffer_.EmitObject(object);
+  }
+}
+
 void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
   sarl(reg, Immediate(shift));
 }

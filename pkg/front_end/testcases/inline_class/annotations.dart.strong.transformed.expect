@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+@#C2
+inline class A /* declaredRepresentationType = core::int */ {
+  method m = self::A|m;
+  tearoff m = self::A|get#m;
+  constructor • = self::A|;
+  tearoff • = self::A|get#;
+}
+@#C2
+static method A|(core::int i) → self::A {
+  final self::A #this = i;
+  return #this;
+}
+static method A|get#(core::int i) → self::A
+  return self::A|(i);
+@#C2
+static method A|m(lowered final self::A #this) → void {}
+static method A|get#m(lowered final self::A #this) → () → void
+  return () → void => self::A|m(#this);
+
+constants  {
+  #C1 = ""
+  #C2 = core::Deprecated {message:#C1}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///annotations.dart:
+- Deprecated. (from org-dartlang-sdk:///sdk/lib/core/annotations.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

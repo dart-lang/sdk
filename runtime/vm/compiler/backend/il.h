@@ -3165,12 +3165,19 @@ class TailCallInstr : public TemplateInstruction<1, Throws, Pure> {
 
 class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit PushArgumentInstr(Value* value, Representation representation)
-      : representation_(representation) {
+  explicit PushArgumentInstr(Value* value,
+                             Representation representation,
+                             intptr_t top_of_stack_relative_index)
+      : representation_(representation),
+        top_of_stack_relative_index_(top_of_stack_relative_index) {
     SetInputAt(0, value);
   }
 
   DECLARE_INSTRUCTION(PushArgument)
+
+  intptr_t top_of_stack_relative_index() const {
+    return top_of_stack_relative_index_;
+  }
 
   virtual CompileType ComputeType() const;
 
@@ -3193,7 +3200,9 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const Representation, representation_)
+#define FIELD_LIST(F)                                                          \
+  F(const Representation, representation_)                                     \
+  F(const intptr_t, top_of_stack_relative_index_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(PushArgumentInstr,
                                           TemplateDefinition,
@@ -5579,6 +5588,9 @@ class NativeCallInstr : public TemplateDartCall<0> {
         link_lazily_(link_lazily) {
     DEBUG_ASSERT(name.IsNotTemporaryScopedHandle());
     DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
+    // +1 for return value placeholder.
+    ASSERT(ArgumentCount() ==
+           function.NumParameters() + (function.IsGeneric() ? 1 : 0) + 1);
   }
 
   DECLARE_INSTRUCTION(NativeCall)
