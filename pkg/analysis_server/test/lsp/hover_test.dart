@@ -405,9 +405,6 @@ class Square extends Shape {
         contains('A square.'),
       );
 
-  @FailingTest(
-    reason: 'Needs a way to get type from RecordPatternField in ComputerHover',
-  )
   Future<void> test_pattern_record_fieldName() => assertStringContents(
         '''
 void f(({int foo}) x, num a) {
