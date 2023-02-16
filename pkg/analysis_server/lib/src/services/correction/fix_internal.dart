@@ -1464,6 +1464,12 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.GETTER_WITH_PARAMETERS: [
       RemoveParametersInGetterDeclaration.new,
     ],
+    ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY: [
+      AddConst.new,
+    ],
+    ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION: [
+      AddConst.new,
+    ],
     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
       AddTypeAnnotation.new,
     ],
