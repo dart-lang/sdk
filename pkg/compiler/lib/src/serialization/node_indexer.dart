@@ -105,6 +105,12 @@ class TreeNodeIndexerVisitor extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   @override
+  void visitRecordLiteral(ir.RecordLiteral node) {
+    registerNode(node);
+    super.visitRecordLiteral(node);
+  }
+
+  @override
   void visitInstanceGet(ir.InstanceGet node) {
     registerNode(node);
     super.visitInstanceGet(node);
