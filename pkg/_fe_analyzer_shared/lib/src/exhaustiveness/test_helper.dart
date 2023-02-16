@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+
 import 'space.dart';
 import 'static_type.dart';
 
 /// Tags used for id-testing of exhaustiveness.
 class Tags {
+  static const String error = 'error';
   static const String scrutineeType = 'type';
   static const String scrutineeFields = 'fields';
   static const String space = 'space';
@@ -59,4 +62,13 @@ String? subtypesToText(StaticType type) {
   }
   sb.write('}');
   return sb.toString();
+}
+
+String errorToText(ExhaustivenessError error) {
+  if (error is NonExhaustiveError) {
+    return 'non-exhaustive:${error.witness}';
+  } else {
+    assert(error is UnreachableCaseError);
+    return 'unreachable';
+  }
 }

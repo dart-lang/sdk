@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/test_helper.dart';
@@ -65,7 +66,7 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
   @override
   Features? computeNodeValue(Id id, AstNode node) {
     Features features = Features();
-    if (node is SwitchStatement) {
+    if (node is SwitchStatement || node is SwitchExpression) {
       StaticType? scrutineeType = _exhaustivenessData.switchScrutineeType[node];
       if (scrutineeType != null) {
         features[Tags.scrutineeType] = staticTypeToText(scrutineeType);
@@ -79,7 +80,11 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
       if (remainingSpace != null) {
         features[Tags.remaining] = spaceToText(remainingSpace);
       }
-    } else if (node is SwitchMember) {
+      ExhaustivenessError? error = _exhaustivenessData.errors[node];
+      if (error != null) {
+        features[Tags.error] = errorToText(error);
+      }
+    } else if (node is SwitchMember || node is SwitchExpressionCase) {
       Space? caseSpace = _exhaustivenessData.caseSpaces[node];
       if (caseSpace != null) {
         features[Tags.space] = spaceToText(caseSpace);
@@ -87,6 +92,10 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
       Space? remainingSpace = _exhaustivenessData.remainingSpaces[node];
       if (remainingSpace != null) {
         features[Tags.remaining] = spaceToText(remainingSpace);
+      }
+      ExhaustivenessError? error = _exhaustivenessData.errors[node];
+      if (error != null) {
+        features[Tags.error] = errorToText(error);
       }
     }
     return features.isNotEmpty ? features : null;

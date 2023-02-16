@@ -6597,17 +6597,28 @@ class BodyBuilder extends StackListenerImpl
     exitLocalScope(expectedScopeKinds: const [ScopeKind.ifElement]);
     Token ifToken = pop() as Token;
 
+    PatternGuard? patternGuard = condition.patternGuard;
     TreeNode node;
     if (thenEntry is MapLiteralEntry) {
       if (elseEntry is MapLiteralEntry) {
-        node = forest.createIfMapEntry(offsetForToken(ifToken),
-            condition.expression, thenEntry, elseEntry);
+        if (patternGuard == null) {
+          node = forest.createIfMapEntry(offsetForToken(ifToken),
+              condition.expression, thenEntry, elseEntry);
+        } else {
+          node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
+              condition.expression, patternGuard, thenEntry, elseEntry);
+        }
       } else if (elseEntry is ControlFlowElement) {
         MapLiteralEntry? elseMapEntry = elseEntry
             .toMapLiteralEntry(typeInferrer.assignedVariables.reassignInfo);
         if (elseMapEntry != null) {
-          node = forest.createIfMapEntry(offsetForToken(ifToken),
-              condition.expression, thenEntry, elseMapEntry);
+          if (patternGuard == null) {
+            node = forest.createIfMapEntry(offsetForToken(ifToken),
+                condition.expression, thenEntry, elseMapEntry);
+          } else {
+            node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
+                condition.expression, patternGuard, thenEntry, elseMapEntry);
+          }
         } else {
           int offset = elseEntry.fileOffset;
           node = new MapLiteralEntry(
@@ -6631,8 +6642,13 @@ class BodyBuilder extends StackListenerImpl
         MapLiteralEntry? thenMapEntry = thenEntry
             .toMapLiteralEntry(typeInferrer.assignedVariables.reassignInfo);
         if (thenMapEntry != null) {
-          node = forest.createIfMapEntry(offsetForToken(ifToken),
-              condition.expression, thenMapEntry, elseEntry);
+          if (patternGuard == null) {
+            node = forest.createIfMapEntry(offsetForToken(ifToken),
+                condition.expression, thenMapEntry, elseEntry);
+          } else {
+            node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
+                condition.expression, patternGuard, thenMapEntry, elseEntry);
+          }
         } else {
           int offset = thenEntry.fileOffset;
           node = new MapLiteralEntry(

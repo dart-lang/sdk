@@ -6540,7 +6540,8 @@ class Parser {
       } else if (count == 1 && !wasValidRecord) {
         reportRecoverableError(
             token, codes.messageRecordLiteralOnePositionalFieldNoTrailingComma);
-      } else if (constantPatternContext != ConstantPatternContext.none) {
+      } else if (count == 0 &&
+          constantPatternContext != ConstantPatternContext.none) {
         reportRecoverableError(
             begin, codes.messageInvalidConstantPatternEmptyRecordLiteral);
       }

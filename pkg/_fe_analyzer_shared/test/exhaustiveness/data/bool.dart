@@ -64,6 +64,7 @@ const f2 = false;
 
 void nonExhaustiveSwitch1(bool b) {
   /*
+   error=non-exhaustive:false,
    fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
@@ -78,6 +79,7 @@ void nonExhaustiveSwitch1(bool b) {
 
 void nonExhaustiveSwitch2(bool b) {
   /*
+   error=non-exhaustive:true,
    fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
@@ -92,6 +94,7 @@ void nonExhaustiveSwitch2(bool b) {
 
 void nonExhaustiveSwitchWithDefault(bool b) {
   /*
+   error=non-exhaustive:false,
    fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
@@ -131,6 +134,7 @@ void exhaustiveNullableSwitch(bool? b) {
 
 void nonExhaustiveNullableSwitch1(bool? b) {
   /*
+   error=non-exhaustive:Null,
    fields={},
    subtypes={bool,Null},
    type=bool?
@@ -149,6 +153,7 @@ void nonExhaustiveNullableSwitch1(bool? b) {
 
 void nonExhaustiveNullableSwitch2(bool? b) {
   /*
+   error=non-exhaustive:false,
    fields={},
    subtypes={bool,Null},
    type=bool?
@@ -166,7 +171,13 @@ void nonExhaustiveNullableSwitch2(bool? b) {
 }
 
 void unreachableCase1(bool b) {
-  /*
+  /*cfe.
+   error=unreachable,
+   fields={hashCode:int,runtimeType:Type},
+   subtypes={true,false},
+   type=bool
+  */
+  /*analyzer.
    fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
@@ -180,7 +191,11 @@ void unreachableCase1(bool b) {
     case false:
       print('false');
       break;
-    /*space=true*/
+    /*cfe.space=true*/
+    /*analyzer.
+     error=unreachable,
+     space=true
+    */
     case true: // Unreachable
       print('true2');
       break;
@@ -211,7 +226,13 @@ void unreachableCase2(bool b) {
 }
 
 void unreachableCase3(bool? b) {
-  /*
+  /*cfe.
+   error=unreachable,
+   fields={},
+   subtypes={bool,Null},
+   type=bool?
+  */
+  /*analyzer.
    fields={},
    subtypes={bool,Null},
    type=bool?
@@ -229,7 +250,11 @@ void unreachableCase3(bool? b) {
     case null:
       print('null1');
       break;
-    /*space=Null*/
+    /*cfe.space=Null*/
+    /*analyzer.
+     error=unreachable,
+     space=Null
+    */
     case null:
       print('null2');
       break;

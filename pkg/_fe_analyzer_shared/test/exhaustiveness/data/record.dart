@@ -30,6 +30,7 @@ void exhaustiveSwitch((Enum, bool) r) {
 
 void nonExhaustiveSwitch1((Enum, bool) r) {
   /*
+   error=non-exhaustive:(Enum, bool)($1: Enum.b, $2: false),
    fields={$1:Enum,$2:bool},
    type=(Enum, bool)
   */switch (r) {
@@ -47,6 +48,7 @@ void nonExhaustiveSwitch1((Enum, bool) r) {
 
 void nonExhaustiveSwitch2((Enum, bool) r) {
   /*
+   error=non-exhaustive:(Enum, bool)($1: Enum.a, $2: false),
    fields={$1:Enum,$2:bool},
    type=(Enum, bool)
   */switch (r) {
@@ -64,6 +66,7 @@ void nonExhaustiveSwitch2((Enum, bool) r) {
 
 void nonExhaustiveSwitchWithDefault((Enum, bool) r) {
   /*
+   error=non-exhaustive:(Enum, bool)($1: Enum.a, $2: true),
    fields={$1:Enum,$2:bool},
    type=(Enum, bool)
   */switch (r) {
@@ -102,6 +105,7 @@ void exhaustiveNullableSwitch((Enum, bool)? r) {
 
 void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
   /*
+   error=non-exhaustive:Null,
    fields={},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?
@@ -123,6 +127,7 @@ void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
 
 void nonExhaustiveNullableSwitch2((Enum, bool)? r) {
   /*
+   error=non-exhaustive:(Enum, bool)($1: Enum.b, $2: false),
    fields={},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?
@@ -143,7 +148,11 @@ void nonExhaustiveNullableSwitch2((Enum, bool)? r) {
 }
 
 void unreachableCase1((Enum, bool) r) {
-  /*
+  /*cfe.
+   error=unreachable,
+   fields={$1:Enum,$2:bool},
+   type=(Enum, bool)
+  *//*analyzer.
    fields={$1:Enum,$2:bool},
    type=(Enum, bool)
   */switch (r) {
@@ -159,7 +168,10 @@ void unreachableCase1((Enum, bool) r) {
     /*space=($1: Enum.b, $2: true)*/case r3:
       print('(b, true)');
       break;
-    /*space=($1: Enum.a, $2: false)*/case r0:
+    /*cfe.space=($1: Enum.a, $2: false)*//*analyzer.
+     error=unreachable,
+     space=($1: Enum.a, $2: false)
+    */case r0:
       print('(a, false) #2');
       break;
   }
@@ -190,7 +202,12 @@ void unreachableCase2((Enum, bool) r) {
 }
 
 void unreachableCase3((Enum, bool)? r) {
-  /*
+  /*cfe.
+   error=unreachable,
+   fields={},
+   subtypes={(Enum, bool),Null},
+   type=(Enum, bool)?
+  *//*analyzer.
    fields={},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?
@@ -210,7 +227,10 @@ void unreachableCase3((Enum, bool)? r) {
     /*space=Null*/case null:
       print('null1');
       break;
-    /*space=Null*/case null:
+    /*cfe.space=Null*//*analyzer.
+     error=unreachable,
+     space=Null
+    */case null:
       print('null2');
       break;
   }

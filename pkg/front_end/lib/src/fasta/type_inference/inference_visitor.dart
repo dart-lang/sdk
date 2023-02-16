@@ -2197,9 +2197,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       int? stackBase;
       assert(checkStackBase(element, stackBase = stackHeight));
 
-      CollectionElementInferenceContext context =
-          new CollectionElementInferenceContext(
-              typeContext: inferredTypeArgument,
+      ListAndSetElementInferenceContext context =
+          new ListAndSetElementInferenceContext(
+              inferredTypeArgument: inferredTypeArgument,
               inferredSpreadTypes: inferredSpreadTypes,
               inferredConditionTypes: inferredConditionTypes);
       analyzeIfCaseElement(
@@ -2972,6 +2972,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           entry, receiverType, keyType, valueType, result, body);
     } else if (entry is IfMapEntry) {
       _translateIfEntry(entry, receiverType, keyType, valueType, result, body);
+    } else if (entry is IfCaseMapEntry) {
+      _translateIfCaseEntry(
+          entry, receiverType, keyType, valueType, result, body);
     } else if (entry is ForMapEntry) {
       _translateForEntry(entry, receiverType, keyType, valueType, result, body);
     } else if (entry is ForInMapEntry) {
@@ -3013,6 +3016,35 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     IfStatement ifStatement = _createIf(
         entry.fileOffset, entry.condition, thenStatement, elseStatement);
     libraryBuilder.loader.dataForTesting?.registerAlias(entry, ifStatement);
+    body.add(ifStatement);
+  }
+
+  void _translateIfCaseEntry(
+      IfCaseMapEntry entry,
+      InterfaceType receiverType,
+      DartType keyType,
+      DartType valueType,
+      VariableDeclaration result,
+      List<Statement> body) {
+    List<Statement> thenBody = [];
+    _translateEntry(
+        entry.then, receiverType, keyType, valueType, result, thenBody);
+    List<Statement>? elseBody;
+    if (entry.otherwise != null) {
+      _translateEntry(entry.otherwise!, receiverType, keyType, valueType,
+          result, elseBody = <Statement>[]);
+    }
+    Statement thenStatement =
+        thenBody.length == 1 ? thenBody.first : _createBlock(thenBody);
+    Statement? elseStatement;
+    if (elseBody != null && elseBody.isNotEmpty) {
+      elseStatement =
+          elseBody.length == 1 ? elseBody.first : _createBlock(elseBody);
+    }
+    IfStatement ifStatement = _createIf(
+        entry.fileOffset, entry.expression, thenStatement, elseStatement);
+    libraryBuilder.loader.dataForTesting?.registerAlias(entry, ifStatement);
+    body.addAll(entry.replacement);
     body.add(ifStatement);
   }
 
@@ -3911,7 +3943,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.ifStatement_end(entry.otherwise != null);
       return entry;
     } else if (entry is IfCaseMapEntry) {
-      // TODO(cstefantsova): Pass an appropriate context message.
+      int? stackBase;
+      assert(checkStackBase(entry, stackBase = stackHeight));
+
+      MapEntryInferenceContext context = new MapEntryInferenceContext(
+          inferredKeyType: inferredKeyType,
+          inferredValueType: inferredValueType,
+          spreadContext: spreadContext,
+          actualTypes: actualTypes,
+          actualTypesForSet: actualTypesForSet,
+          offsets: offsets,
+          inferredSpreadTypes: inferredSpreadTypes,
+          inferredConditionTypes: inferredConditionTypes);
       analyzeIfCaseElement(
           node: entry,
           expression: entry.expression,
@@ -3924,9 +3967,86 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           guard: entry.patternGuard.guard,
           ifTrue: entry.then,
           ifFalse: entry.otherwise,
-          context: null);
-      // TODO(cstefantsova): Implement inference for if-case map entries.
-      throw new UnimplementedError();
+          context: context);
+      if (entry.otherwise != null) {
+        DartType actualValueType = actualTypes.removeLast();
+        DartType actualKeyType = actualTypes.removeLast();
+        int length = actualTypes.length;
+        actualTypes[length - 2] = typeSchemaEnvironment.getStandardUpperBound(
+            actualKeyType, actualTypes[length - 2],
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        actualTypes[length - 1] = typeSchemaEnvironment.getStandardUpperBound(
+            actualValueType, actualTypes[length - 1],
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        DartType actualTypeForSet = actualTypesForSet.removeLast();
+        int lengthForSet = actualTypesForSet.length;
+        actualTypesForSet[lengthForSet - 1] =
+            typeSchemaEnvironment.getStandardUpperBound(
+                actualTypeForSet, actualTypesForSet[lengthForSet - 1],
+                isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+      }
+
+      assert(checkStack(entry, stackBase, [
+        /* ifFalse = */ unionOfKinds(
+            [ValueKinds.MapLiteralEntryOrNull, ValueKinds.ExpressionOrNull]),
+        /* ifTrue = */ unionOfKinds(
+            [ValueKinds.MapLiteralEntry, ValueKinds.Expression]),
+        /* guard = */ ValueKinds.ExpressionOrNull,
+        /* pattern = */ ValueKinds.Pattern,
+        /* scrutinee = */ ValueKinds.Expression,
+      ]));
+
+      Object? rewrite = popRewrite(NullValues.Expression);
+      if (!identical(entry.otherwise, rewrite)) {
+        entry.otherwise = (rewrite as MapLiteralEntry?)?..parent = entry;
+      }
+
+      rewrite = popRewrite();
+      if (!identical(entry.then, rewrite)) {
+        entry.then = (rewrite as MapLiteralEntry)..parent = entry;
+      }
+
+      PatternGuard patternGuard = entry.patternGuard;
+      rewrite = popRewrite(NullValues.Expression);
+      if (!identical(patternGuard.guard, rewrite)) {
+        patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
+      }
+
+      rewrite = popRewrite();
+      if (!identical(patternGuard.pattern, rewrite)) {
+        patternGuard.pattern = (rewrite as Pattern)..parent = patternGuard;
+      }
+
+      rewrite = popRewrite();
+      if (!identical(entry.expression, rewrite)) {
+        entry.expression = (rewrite as Expression)..parent = patternGuard;
+      }
+
+      MatchingCache matchingCache = createMatchingCache();
+      MatchingExpressionVisitor matchingExpressionVisitor =
+          new MatchingExpressionVisitor(matchingCache);
+      // TODO(cstefantsova): Provide a more precise scrutinee type.
+      CacheableExpression matchedExpression = matchingCache
+          .createRootExpression(entry.expression, const DynamicType());
+      DelayedExpression matchingExpression = matchingExpressionVisitor
+          .visitPattern(entry.patternGuard.pattern, matchedExpression);
+
+      matchingExpression.registerUse();
+
+      Expression condition =
+          matchingExpression.createExpression(typeSchemaEnvironment);
+      Expression? guard = entry.patternGuard.guard;
+      if (guard != null) {
+        condition =
+            createAndExpression(condition, guard, fileOffset: guard.fileOffset);
+      }
+      entry.expression = condition;
+      entry.replacement = [
+        ...entry.patternGuard.pattern.declaredVariables,
+        ...matchingCache.declarations,
+      ];
+
+      return entry;
     } else if (entry is ForMapEntry) {
       // TODO(johnniwinther): Use _visitStatements instead.
       List<VariableDeclaration>? variables;
@@ -7735,6 +7855,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               messageSwitchExpressionEmpty, node.fileOffset, noLength));
     }
 
+    List<SwitchCaseInfo> previousSwitchPatternInfo = _switchCasePatternInfo;
+    _switchCasePatternInfo = [];
+
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -7842,6 +7965,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ], fileOffset: node.fileOffset),
         createVariableGet(valueVariable),
         fileOffset: node.fileOffset);
+
+    if (libraryBuilder.libraryFeatures.patterns.isEnabled) {
+      SwitchInfo info = new SwitchInfo(
+          replacement, scrutineeType, _switchCasePatternInfo,
+          mustBeExhaustive: true, fileOffset: node.expression.fileOffset);
+      libraryBuilder.loader.target.exhaustivenessInfo.registerSwitchInfo(info);
+    }
+
+    _switchCasePatternInfo = previousSwitchPatternInfo;
 
     assert(checkStack(node, stackBase, [/*empty*/]));
 
@@ -10587,17 +10719,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void dispatchCollectionElement(covariant Expression element,
+  void dispatchCollectionElement(covariant TreeNode element,
       covariant CollectionElementInferenceContext context) {
-    ExpressionInferenceResult inferenceResult = inferElement(
-        element,
-        context.typeContext,
-        context.inferredSpreadTypes,
-        context.inferredConditionTypes);
-    // TODO(cstefantsova): Should the key to the map be [element] instead?
-    context.inferredConditionTypes[inferenceResult.expression] =
-        inferenceResult.inferredType;
-    pushRewrite(inferenceResult.expression);
+    if (element is Expression) {
+      context as ListAndSetElementInferenceContext;
+      ExpressionInferenceResult inferenceResult = inferElement(
+          element,
+          context.inferredTypeArgument,
+          context.inferredSpreadTypes,
+          context.inferredConditionTypes);
+      // TODO(cstefantsova): Should the key to the map be [element] instead?
+      context.inferredConditionTypes[inferenceResult.expression] =
+          inferenceResult.inferredType;
+      pushRewrite(inferenceResult.expression);
+    } else if (element is MapLiteralEntry) {
+      context as MapEntryInferenceContext;
+      element = inferMapEntry(
+          element,
+          element.parent!,
+          context.inferredKeyType,
+          context.inferredValueType,
+          context.spreadContext,
+          context.actualTypes,
+          context.actualTypesForSet,
+          context.inferredSpreadTypes,
+          context.inferredConditionTypes,
+          context.offsets);
+      pushRewrite(element);
+    } else {
+      problems.unsupported(
+          "${element.runtimeType}", element.fileOffset, helper.uri);
+    }
   }
 
   @override
@@ -10811,13 +10963,46 @@ extension on SwitchCase {
   }
 }
 
-class CollectionElementInferenceContext {
-  DartType typeContext;
+abstract class CollectionElementInferenceContext {
   Map<TreeNode, DartType> inferredSpreadTypes;
   Map<Expression, DartType> inferredConditionTypes;
 
   CollectionElementInferenceContext(
-      {required this.typeContext,
-      required this.inferredSpreadTypes,
+      {required this.inferredSpreadTypes,
       required this.inferredConditionTypes});
+}
+
+class ListAndSetElementInferenceContext
+    extends CollectionElementInferenceContext {
+  DartType inferredTypeArgument;
+
+  ListAndSetElementInferenceContext(
+      {required this.inferredTypeArgument,
+      required Map<TreeNode, DartType> inferredSpreadTypes,
+      required Map<Expression, DartType> inferredConditionTypes})
+      : super(
+            inferredSpreadTypes: inferredSpreadTypes,
+            inferredConditionTypes: inferredConditionTypes);
+}
+
+class MapEntryInferenceContext extends CollectionElementInferenceContext {
+  DartType inferredKeyType;
+  DartType inferredValueType;
+  DartType spreadContext;
+  List<DartType> actualTypes;
+  List<DartType> actualTypesForSet;
+  _MapLiteralEntryOffsets offsets;
+
+  MapEntryInferenceContext(
+      {required this.inferredKeyType,
+      required this.inferredValueType,
+      required this.spreadContext,
+      required this.actualTypes,
+      required this.actualTypesForSet,
+      required this.offsets,
+      required Map<TreeNode, DartType> inferredSpreadTypes,
+      required Map<Expression, DartType> inferredConditionTypes})
+      : super(
+            inferredSpreadTypes: inferredSpreadTypes,
+            inferredConditionTypes: inferredConditionTypes);
 }

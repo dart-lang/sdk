@@ -398,7 +398,7 @@ class ConstantsTransformer extends RemovingTransformer {
   final bool errorOnUnevaluatedConstant;
 
   /// Cache used for checking exhaustiveness.
-  final CfeExhaustivenessCache exhaustivenessCache;
+  late final CfeExhaustivenessCache exhaustivenessCache;
 
   final ExhaustivenessInfo? exhaustivenessInfo;
   final ExhaustivenessDataForTesting? _exhaustivenessDataForTesting;
@@ -418,7 +418,6 @@ class ConstantsTransformer extends RemovingTransformer {
       this.exhaustivenessInfo,
       {ExhaustivenessDataForTesting? exhaustivenessDataForTesting})
       : this.backend = target.constantsBackend,
-        exhaustivenessCache = new CfeExhaustivenessCache(typeEnvironment),
         constantEvaluator = new ConstantEvaluator(
             target.dartLibrarySupport,
             target.constantsBackend,
@@ -430,7 +429,9 @@ class ConstantsTransformer extends RemovingTransformer {
             enableConstFunctions: enableConstFunctions,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             evaluationMode: evaluationMode),
-        _exhaustivenessDataForTesting = exhaustivenessDataForTesting;
+        _exhaustivenessDataForTesting = exhaustivenessDataForTesting {
+    exhaustivenessCache = new CfeExhaustivenessCache(constantEvaluator);
+  }
 
   /// Whether to preserve constant [Field]s. All use-sites will be rewritten.
   bool get keepFields => backend.keepFields;
@@ -802,6 +803,13 @@ class ConstantsTransformer extends RemovingTransformer {
         node, () => super.visitBlock(node, removalSentinel));
   }
 
+  @override
+  TreeNode visitBlockExpression(
+      BlockExpression node, TreeNode? removalSentinel) {
+    return _handleExhaustiveness(
+        node, () => super.visitBlockExpression(node, removalSentinel));
+  }
+
   TreeNode _handleExhaustiveness(TreeNode node, TreeNode Function() f) {
     TreeNode result;
     SwitchInfo? switchInfo = exhaustivenessInfo?.getSwitchInfo(node);
@@ -822,8 +830,9 @@ class ConstantsTransformer extends RemovingTransformer {
       if (_exhaustivenessDataForTesting != null) {
         remainingSpaces = [];
       }
-      for (ExhaustivenessError error
-          in reportErrors(type, cases, remainingSpaces)) {
+      List<ExhaustivenessError> errors =
+          reportErrors(type, cases, remainingSpaces);
+      for (ExhaustivenessError error in errors) {
         if (error is UnreachableCaseError) {
           constantEvaluator.errorReporter.report(
               constantEvaluator.createLocatedMessageWithOffset(
@@ -850,7 +859,8 @@ class ConstantsTransformer extends RemovingTransformer {
                 switchInfo.cases
                     .map((SwitchCaseInfo info) => info.fileOffset)
                     .toList(),
-                remainingSpaces!);
+                remainingSpaces!,
+                errors);
       }
 
       constantEvaluator.constantPatternValues = previousConstantPatternValues;

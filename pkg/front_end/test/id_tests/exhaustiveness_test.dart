@@ -4,6 +4,7 @@
 
 import 'dart:io' show Directory, Platform;
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/test_helper.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
@@ -77,6 +78,11 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
       if (result.remainingSpaces.isNotEmpty) {
         features[Tags.remaining] = spaceToText(result.remainingSpaces.last);
       }
+      for (ExhaustivenessError error in result.errors) {
+        if (error is NonExhaustiveError) {
+          features[Tags.error] = errorToText(error);
+        }
+      }
       Uri uri = node.location!.file;
       for (int i = 0; i < result.caseSpaces.length; i++) {
         int offset = result.caseOffsets[i];
@@ -84,6 +90,11 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
         caseFeatures[Tags.space] = spaceToText(result.caseSpaces[i]);
         if (result.remainingSpaces.isNotEmpty) {
           caseFeatures[Tags.remaining] = spaceToText(result.remainingSpaces[i]);
+        }
+        for (ExhaustivenessError error in result.errors) {
+          if (error is UnreachableCaseError && error.index == i) {
+            features[Tags.error] = errorToText(error);
+          }
         }
         registerValue(
             uri, offset, new NodeId(offset, IdKind.node), caseFeatures, node);
@@ -95,7 +106,7 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
 
   @override
   Features? computeNodeValue(Id id, TreeNode node) {
-    if (node is SwitchStatement || node is Block) {
+    if (node is SwitchStatement || node is Block || node is BlockExpression) {
       return computeExhaustivenessData(node);
     }
     return null;

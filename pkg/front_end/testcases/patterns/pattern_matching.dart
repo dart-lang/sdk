@@ -4,7 +4,7 @@
 
 import 'dart:math' as math;
 
-abstract class Shape {
+sealed class Shape {
   double calculateArea();
 }
 
