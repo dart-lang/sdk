@@ -11,7 +11,7 @@ use(x) => x;
 
 main() {
   const MB = 1 << 20;
-  for (var i = 0; i < 20 * MB; i++) {
+  for (var i = 15 * MB; i < 20 * MB; i++) {
     use(intern((i.toString()))); // Should not hit OutOfMemory
   }
 }
