@@ -199,8 +199,7 @@ class CompilerDeoptInfo : public ZoneAllocated {
  private:
   void EmitMaterializations(Environment* env, DeoptInfoBuilder* builder);
 
-  void AllocateIncomingParametersRecursive(Environment* env,
-                                           intptr_t* stack_height);
+  void AllocateIncomingParametersRecursive(Environment* env);
 
   intptr_t pc_offset_;
   const intptr_t deopt_id_;
@@ -826,6 +825,8 @@ class FlowGraphCompiler : public ValueObject {
   void EmitCallToStub(const Code& stub);
   void EmitJumpToStub(const Code& stub);
   void EmitTailCallToStub(const Code& stub);
+
+  void EmitDropArguments(intptr_t count);
 
   // Emits the following metadata for the current PC:
   //

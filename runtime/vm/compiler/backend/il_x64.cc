@@ -353,21 +353,19 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
 }
 
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
-  // where arguments are pushed by their definitions.
-  if (compiler->is_optimizing()) {
-    Location value = locs()->in(0);
-    if (value.IsRegister()) {
-      __ pushq(value.reg());
-    } else if (value.IsConstant()) {
-      __ PushObject(value.constant());
-    } else if (value.IsFpuRegister()) {
-      __ AddImmediate(RSP, compiler::Immediate(-kDoubleSize));
-      __ movsd(compiler::Address(RSP, 0), value.fpu_reg());
-    } else {
-      ASSERT(value.IsStackSlot());
-      __ pushq(LocationToStackSlotAddress(value));
-    }
+  ASSERT(compiler->is_optimizing());
+
+  const Location value = locs()->in(0);
+  const compiler::Address dst(RSP, top_of_stack_relative_index() * kWordSize);
+  if (value.IsRegister()) {
+    __ movq(dst, value.reg());
+  } else if (value.IsConstant()) {
+    __ StoreObject(dst, value.constant());
+  } else if (value.IsFpuRegister()) {
+    __ movsd(dst, value.fpu_reg());
+  } else {
+    ASSERT(value.IsStackSlot());
+    __ MoveMemoryToMemory(dst, LocationToStackSlotAddress(value));
   }
 }
 
@@ -1217,16 +1215,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
 
-  // All arguments are already @RSP due to preceding PushArgument()s.
-  ASSERT(ArgumentCount() ==
-         function().NumParameters() + (function().IsGeneric() ? 1 : 0));
-
-  // Push the result place holder initialized to NULL.
-  __ PushObject(Object::null_object());
-
   // Pass a pointer to the first argument in R13 (we avoid using RAX here to
   // simplify the stub code that will call native code).
-  __ leaq(R13, compiler::Address(RSP, ArgumentCount() * kWordSize));
+  __ leaq(R13, compiler::Address(RSP, (ArgumentCount() - 1) * kWordSize));
 
   __ LoadImmediate(R10, compiler::Immediate(argc_tag));
   const Code* stub;
@@ -1254,9 +1245,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateNonLazyDeoptableStubCall(
         source(), *stub, UntaggedPcDescriptors::kOther, locs());
   }
-  __ popq(result);
-
-  __ Drop(ArgumentCount());  // Drop the arguments.
+  __ LoadFromOffset(result, RSP, 0);
+  compiler->EmitDropArguments(ArgumentCount());  // Drop the arguments.
 }
 
 #define R(r) (1 << r)
@@ -6727,7 +6717,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ call(RCX);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),
                                  UntaggedPcDescriptors::kOther, locs(), env());
-  __ Drop(argument_count);
+  compiler->EmitDropArguments(argument_count);
 }
 
 LocationSummary* BooleanNegateInstr::MakeLocationSummary(Zone* zone,

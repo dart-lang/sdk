@@ -1890,7 +1890,10 @@ class Assembler : public AssemblerBase {
                         int64_t imm,
                         OperandSize sz = kEightBytes) override;
 
-  Address PrepareLargeOffset(Register base, int32_t offset, OperandSize sz);
+  Address PrepareLargeOffset(Register base,
+                             int32_t offset,
+                             OperandSize sz,
+                             Address::AddressType addr_type = Address::Offset);
   void LoadFromOffset(Register dest,
                       const Address& address,
                       OperandSize sz = kEightBytes) override;
@@ -1967,6 +1970,12 @@ class Assembler : public AssemblerBase {
   void StoreZero(const Address& address, Register temp = kNoRegister) {
     StoreToOffset(ZR, address);
   }
+
+  void StorePairToOffset(Register low,
+                         Register high,
+                         Register base,
+                         int32_t offset,
+                         OperandSize sz = kEightBytes);
 
   void StoreSToOffset(VRegister src, Register base, int32_t offset);
   void StoreDToOffset(VRegister src, Register base, int32_t offset);

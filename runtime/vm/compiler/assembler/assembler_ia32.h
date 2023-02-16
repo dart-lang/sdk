@@ -665,6 +665,7 @@ class Assembler : public AssemblerBase {
                      OperandSize sz = kFourBytes) {
     StoreToOffset(src, Address(base, offset), sz);
   }
+  void StoreToOffset(const Object& value, const Address& address);
   void StoreFieldToOffset(Register src,
                           Register base,
                           int32_t offset,

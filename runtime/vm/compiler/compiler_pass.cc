@@ -555,6 +555,7 @@ COMPILER_PASS(AllocateRegisters, {
 });
 
 COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
+  flow_graph->set_max_argument_slot_count(0);
   // Ensure loop hierarchy has been computed.
   flow_graph->GetLoopHierarchy();
   // Perform register allocation on the SSA graph.

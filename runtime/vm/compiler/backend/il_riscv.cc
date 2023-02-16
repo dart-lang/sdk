@@ -402,106 +402,58 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
 }
 
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
-  // where arguments are pushed by their definitions.
-  if (compiler->is_optimizing()) {
-    if (previous()->IsPushArgument()) {
-      // Already generated.
-      return;
-    }
+  ASSERT(compiler->is_optimizing());
 
-    // Count the arguments first so we can update SP once instead of using
-    // separate pushes.
-    intptr_t size = 0;
-    for (PushArgumentInstr* push_arg = this; push_arg != nullptr;
-         push_arg = push_arg->next()->AsPushArgument()) {
-      const Location value = push_arg->locs()->in(0);
-      if (value.IsRegister()) {
-        size += compiler::target::kWordSize;
+  const Location value = locs()->in(0);
+  const intptr_t offset =
+      top_of_stack_relative_index() * compiler::target::kWordSize;
+  if (value.IsRegister()) {
+    __ StoreToOffset(value.reg(), SP, offset);
 #if XLEN == 32
-      } else if (value.IsPairLocation()) {
-        size += 2 * compiler::target::kWordSize;
+  } else if (value.IsPairLocation()) {
+    __ StoreToOffset(value.AsPairLocation()->At(1).reg(), SP,
+                     offset + compiler::target::kWordSize);
+    __ StoreToOffset(value.AsPairLocation()->At(0).reg(), SP, offset);
 #endif
-      } else if (value.IsConstant()) {
-        if (push_arg->representation() == kUnboxedDouble) {
-          size += sizeof(double);
-        } else if (push_arg->representation() == kUnboxedInt64) {
-          size += sizeof(int64_t);
-        } else {
-          ASSERT(push_arg->representation() == kTagged);
-          size += compiler::target::kWordSize;
-        }
-      } else if (value.IsFpuRegister()) {
-        size += sizeof(double);
-      } else if (value.IsStackSlot()) {
-        size += compiler::target::kWordSize;
-      } else {
-        UNREACHABLE();
-      }
-    }
-    __ subi(SP, SP, size);
-
-    intptr_t offset = size;
-    for (PushArgumentInstr* push_arg = this; push_arg != nullptr;
-         push_arg = push_arg->next()->AsPushArgument()) {
-      const Location value = push_arg->locs()->in(0);
-      if (value.IsRegister()) {
-        offset -= compiler::target::kWordSize;
-        __ StoreToOffset(value.reg(), SP, offset);
+  } else if (value.IsConstant()) {
+    if (representation() == kUnboxedDouble) {
+      ASSERT(value.constant_instruction()->HasZeroRepresentation());
 #if XLEN == 32
-      } else if (value.IsPairLocation()) {
-        offset -= compiler::target::kWordSize;
-        __ StoreToOffset(value.AsPairLocation()->At(1).reg(), SP, offset);
-        offset -= compiler::target::kWordSize;
-        __ StoreToOffset(value.AsPairLocation()->At(0).reg(), SP, offset);
-#endif
-      } else if (value.IsConstant()) {
-        if (push_arg->representation() == kUnboxedDouble) {
-          ASSERT(value.constant_instruction()->HasZeroRepresentation());
-          offset -= sizeof(double);
-#if XLEN == 32
-          __ StoreToOffset(ZR, SP, offset + 4);
-          __ StoreToOffset(ZR, SP, offset);
+      __ StoreToOffset(ZR, SP, offset + compiler::target::kWordSize);
+      __ StoreToOffset(ZR, SP, offset);
 #else
-          __ StoreToOffset(ZR, SP, offset);
+      __ StoreToOffset(ZR, SP, offset);
 #endif
-        } else if (push_arg->representation() == kUnboxedInt64) {
-          ASSERT(value.constant_instruction()->HasZeroRepresentation());
-          offset -= sizeof(int64_t);
+    } else if (representation() == kUnboxedInt64) {
+      ASSERT(value.constant_instruction()->HasZeroRepresentation());
 #if XLEN == 32
-          __ StoreToOffset(ZR, SP, offset + 4);
-          __ StoreToOffset(ZR, SP, offset);
+      __ StoreToOffset(ZR, SP, offset + compiler::target::kWordSize);
+      __ StoreToOffset(ZR, SP, offset);
 #else
-          __ StoreToOffset(ZR, SP, offset);
+      __ StoreToOffset(ZR, SP, offset);
 #endif
-        } else {
-          ASSERT(push_arg->representation() == kTagged);
-          const Object& constant = value.constant();
-          Register reg;
-          if (constant.IsNull()) {
-            reg = NULL_REG;
-          } else if (constant.IsSmi() && Smi::Cast(constant).Value() == 0) {
-            reg = ZR;
-          } else {
-            reg = TMP;
-            __ LoadObject(TMP, constant);
-          }
-          offset -= compiler::target::kWordSize;
-          __ StoreToOffset(reg, SP, offset);
-        }
-      } else if (value.IsFpuRegister()) {
-        offset -= sizeof(double);
-        __ StoreDToOffset(value.fpu_reg(), SP, offset);
-      } else if (value.IsStackSlot()) {
-        const intptr_t value_offset = value.ToStackSlotOffset();
-        __ LoadFromOffset(TMP, value.base_reg(), value_offset);
-        offset -= compiler::target::kWordSize;
-        __ StoreToOffset(TMP, SP, offset);
+    } else {
+      ASSERT(representation() == kTagged);
+      const Object& constant = value.constant();
+      Register reg;
+      if (constant.IsNull()) {
+        reg = NULL_REG;
+      } else if (constant.IsSmi() && Smi::Cast(constant).Value() == 0) {
+        reg = ZR;
       } else {
-        UNREACHABLE();
+        reg = TMP;
+        __ LoadObject(TMP, constant);
       }
+      __ StoreToOffset(reg, SP, offset);
     }
-    ASSERT(offset == 0);
+  } else if (value.IsFpuRegister()) {
+    __ StoreDToOffset(value.fpu_reg(), SP, offset);
+  } else if (value.IsStackSlot()) {
+    const intptr_t value_offset = value.ToStackSlotOffset();
+    __ LoadFromOffset(TMP, value.base_reg(), value_offset);
+    __ StoreToOffset(TMP, SP, offset);
+  } else {
+    UNREACHABLE();
   }
 }
 
@@ -704,7 +656,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ jalr(A1);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),
                                  UntaggedPcDescriptors::kOther, locs(), env());
-  __ Drop(argument_count);
+  compiler->EmitDropArguments(argument_count);
 }
 
 LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
@@ -1437,15 +1389,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   SetupNative();
   const Register result = locs()->out(0).reg();
 
-  // All arguments are already @SP due to preceding PushArgument()s.
-  ASSERT(ArgumentCount() ==
-         function().NumParameters() + (function().IsGeneric() ? 1 : 0));
-
-  // Push the result place holder initialized to NULL.
-  __ PushObject(Object::null_object());
-
   // Pass a pointer to the first argument in R2.
-  __ AddImmediate(T2, SP, ArgumentCount() * kWordSize);
+  __ AddImmediate(T2, SP, (ArgumentCount() - 1) * kWordSize);
 
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
@@ -1481,8 +1426,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         source(), *stub, UntaggedPcDescriptors::kOther, locs());
   }
   __ lx(result, compiler::Address(SP, 0));
-
-  __ Drop(ArgumentCount() + 1);  // Drop the arguments and result.
+  compiler->EmitDropArguments(ArgumentCount());
 }
 
 #define R(r) (1 << r)

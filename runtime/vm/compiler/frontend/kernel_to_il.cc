@@ -569,14 +569,20 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
 Fragment FlowGraphBuilder::NativeCall(const String& name,
                                       const Function& function) {
   InlineBailout("kernel::FlowGraphBuilder::NativeCall");
+  // +1 for result placeholder.
   const intptr_t num_args =
-      function.NumParameters() + (function.IsGeneric() ? 1 : 0);
+      function.NumParameters() + (function.IsGeneric() ? 1 : 0) + 1;
+
+  Fragment instructions;
+  instructions += NullConstant();  // Placeholder for the result.
+
   InputsArray arguments = GetArguments(num_args);
   NativeCallInstr* call = new (Z) NativeCallInstr(
       name, function, FLAG_link_natives_lazily,
       InstructionSource(function.end_token_pos()), std::move(arguments));
   Push(call);
-  return Fragment(call);
+  instructions <<= call;
+  return instructions;
 }
 
 Fragment FlowGraphBuilder::Return(TokenPosition position,
