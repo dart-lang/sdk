@@ -132,8 +132,9 @@ class Page(Artifact):
 
     def __init__(self, name: str):
         self.name = name
-        super().__init__(os.path.join(OUTPUT_DIR, name + '.html'),
-                         [os.path.join(WIKI_SOURCE_DIR, name + '.md')])
+        output_name = 'index' if name == 'README' else name
+        super().__init__(os.path.join(OUTPUT_DIR, f'{output_name}.html'),
+                         [os.path.join(WIKI_SOURCE_DIR, f'{name}.md')])
 
     def __repr__(self):
         return f'Page({self.output} <- {self.inputs[0]})'
