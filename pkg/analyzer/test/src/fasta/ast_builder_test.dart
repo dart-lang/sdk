@@ -284,26 +284,6 @@ ClassDeclaration
 ''');
   }
 
-  void test_class_final_mixin() {
-    var parseResult = parseStringWithErrors(r'''
-final mixin class A {}
-''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.FINAL_MIXIN_CLASS, 0, 5),
-    ]);
-
-    var node = parseResult.findNode.classDeclaration('class A {}');
-    assertParsedNodeText(node, r'''
-ClassDeclaration
-  finalKeyword: final
-  mixinKeyword: mixin
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
   void test_class_implementsClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
 class C implements A, (int, int), B {}
@@ -361,26 +341,6 @@ interface class A {}
     assertParsedNodeText(node, r'''
 ClassDeclaration
   interfaceKeyword: interface
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
-  void test_class_interface_mixin() {
-    var parseResult = parseStringWithErrors(r'''
-interface mixin class A {}
-''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.INTERFACE_MIXIN_CLASS, 0, 9),
-    ]);
-
-    var node = parseResult.findNode.classDeclaration('class A {}');
-    assertParsedNodeText(node, r'''
-ClassDeclaration
-  interfaceKeyword: interface
-  mixinKeyword: mixin
   classKeyword: class
   name: A
   leftBracket: {
@@ -452,26 +412,6 @@ sealed abstract class A {}
 ClassDeclaration
   abstractKeyword: abstract
   sealedKeyword: sealed
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
-  void test_class_sealed_mixin() {
-    var parseResult = parseStringWithErrors(r'''
-sealed mixin class A {}
-''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.SEALED_MIXIN_CLASS, 0, 6),
-    ]);
-
-    var node = parseResult.findNode.classDeclaration('class A {}');
-    assertParsedNodeText(node, r'''
-ClassDeclaration
-  sealedKeyword: sealed
-  mixinKeyword: mixin
   classKeyword: class
   name: A
   leftBracket: {

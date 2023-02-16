@@ -568,7 +568,7 @@ class Parser {
         optional('class', next.next!)) {
       macroToken = next;
       next = next.next!;
-    } else if (next.isIdentifier && optional('sealed', next)) {
+    } else if (next.isIdentifier && next.lexeme == 'sealed') {
       sealedToken = next;
       if (optional('class', next.next!) || optional('mixin', next.next!)) {
         next = next.next!;
@@ -579,12 +579,12 @@ class Parser {
         start = next;
         next = next.next!.next!;
       }
-    } else if (next.isIdentifier && optional('base', next)) {
+    } else if (next.isIdentifier && next.lexeme == 'base') {
       baseToken = next;
       if (optional('class', next.next!) || optional('mixin', next.next!)) {
         next = next.next!;
       }
-    } else if (next.isIdentifier && optional('interface', next)) {
+    } else if (next.isIdentifier && next.lexeme == 'interface') {
       interfaceToken = next;
       if (optional('class', next.next!) || optional('mixin', next.next!)) {
         next = next.next!;
@@ -712,6 +712,8 @@ class Parser {
           return parseTypedef(keyword);
         } else if (identical(value, 'mixin')) {
           if (identical(nextValue, 'class')) {
+            // TODO(kallentu): Error handling for any class modifier here other
+            // than base. Only base mixin classes are allowed.
             return _handleModifiersForClassDeclaration(
                 start,
                 keyword.next!,
@@ -719,7 +721,7 @@ class Parser {
                 inlineToken,
                 sealedToken,
                 baseToken,
-                interfaceToken,
+                /* interfaceToken = */ null,
                 keyword,
                 directiveState);
           }
@@ -765,19 +767,6 @@ class Parser {
     ModifierContext context = new ModifierContext(this);
     if (mixinToken != null) {
       context.parseClassModifiers(start, mixinToken);
-
-      // Mixin classes can't have any modifier other than a base modifier.
-      if (context.finalToken != null) {
-        reportRecoverableError(
-            context.finalToken!, codes.messageFinalMixinClass);
-      }
-      if (interfaceToken != null) {
-        reportRecoverableError(
-            interfaceToken, codes.messageInterfaceMixinClass);
-      }
-      if (sealedToken != null) {
-        reportRecoverableError(sealedToken, codes.messageSealedMixinClass);
-      }
     } else {
       context.parseClassModifiers(start, classKeyword);
     }

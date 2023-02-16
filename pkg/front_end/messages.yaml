@@ -6068,33 +6068,6 @@ CantUseClassAsMixin:
     lib.dart:
       class A {}
 
-FinalMixinClass:
-  index: 142
-  problemMessage: "A mixin class can't be declared 'final'."
-  correctionMessage: "Try removing the 'final' keyword."
-  analyzerCode: ParserErrorCode.FINAL_MIXIN_CLASS
-  experiments: class-modifiers
-  script:
-    - "final mixin class C {}"
-
-InterfaceMixinClass:
-  index: 143
-  problemMessage: "A mixin class can't be declared 'interface'."
-  correctionMessage: "Try removing the 'interface' keyword."
-  analyzerCode: ParserErrorCode.INTERFACE_MIXIN_CLASS
-  experiments: class-modifiers
-  script:
-    - "interface mixin class C {}"
-
-SealedMixinClass:
-  index: 144
-  problemMessage: "A mixin class can't be declared 'sealed'."
-  correctionMessage: "Try removing the 'sealed' keyword."
-  analyzerCode: ParserErrorCode.SEALED_MIXIN_CLASS
-  experiments: class-modifiers,sealed-class
-  script:
-    - "sealed mixin class C {}"
-
 BaseClassImplementedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be implemented outside of its library because it's a base class."
   analyzerCode: BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY

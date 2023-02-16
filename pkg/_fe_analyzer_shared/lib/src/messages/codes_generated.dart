@@ -5297,15 +5297,6 @@ Message _withArgumentsFinalFieldWithoutInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeFinalMixinClass = messageFinalMixinClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFinalMixinClass = const MessageCode("FinalMixinClass",
-    index: 142,
-    problemMessage: r"""A mixin class can't be declared 'final'.""",
-    correctionMessage: r"""Try removing the 'final' keyword.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -6426,16 +6417,6 @@ Message _withArgumentsInterfaceClassExtendedOutsideOfLibrary(String name) {
           """The class '${name}' can't be extended outside of its library because it's an interface class.""",
       arguments: {'name': name});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeInterfaceMixinClass = messageInterfaceMixinClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInterfaceMixinClass = const MessageCode(
-    "InterfaceMixinClass",
-    index: 143,
-    problemMessage: r"""A mixin class can't be declared 'interface'.""",
-    correctionMessage: r"""Try removing the 'interface' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -11324,16 +11305,6 @@ Message _withArgumentsSealedClassSubtypeOutsideOfLibrary(String name) {
           """The class '${name}' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
       arguments: {'name': name});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeSealedMixinClass = messageSealedMixinClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSealedMixinClass = const MessageCode(
-    "SealedMixinClass",
-    index: 144,
-    problemMessage: r"""A mixin class can't be declared 'sealed'.""",
-    correctionMessage: r"""Try removing the 'sealed' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
