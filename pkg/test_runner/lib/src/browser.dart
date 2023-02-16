@@ -150,7 +150,6 @@ String ddcHtml(
     bool weakNullSafetyErrors) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
-  var isNnbd = mode != NnbdMode.legacy;
   var isNnbdStrong = mode == NnbdMode.strong;
   var sdkPath = isNnbdStrong ? 'sound/amd/dart_sdk' : 'kernel/amd/dart_sdk';
   var pkgDir = isNnbdStrong ? 'pkg_sound' : 'pkg_kernel';
@@ -231,11 +230,9 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
     }, 0);
   };
 
-  if ($isNnbd) {
-    sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $isNnbdStrong));
-    sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
-    sdk.dart.nonNullAsserts($nonNullAsserts);
-  }
+  sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $isNnbdStrong));
+  sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
+  sdk.dart.nonNullAsserts($nonNullAsserts);
 
   dartMainRunner(function testMainWrapper() {
     // Some callbacks are not scheduled with timers/microtasks, so they don't
