@@ -176,8 +176,8 @@ class DartUnitHoverComputer {
           if (staticType != null && staticType.isDynamic) {
             staticType = null;
           }
-        } else if (node is PatternField && parent is RecordPattern) {
-          // TODO(dantup): Get the type of this field.
+        } else if (node is PatternFieldName && parent is PatternField) {
+          staticType = parent.pattern.matchedValueType;
         }
         hover.staticType = _typeDisplayString(staticType);
       }

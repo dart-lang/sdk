@@ -376,40 +376,6 @@ class HintCode extends AnalyzerErrorCode {
     uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_SETTER',
   );
 
-  ///  When "strict-raw-types" is enabled, "raw types" must have type arguments.
-  ///
-  ///  A "raw type" is a type name that does not use inference to fill in missing
-  ///  type arguments; instead, each type argument is instantiated to its bound.
-  ///
-  ///  Parameters:
-  ///  0: the name of the generic type
-  static const HintCode STRICT_RAW_TYPE = HintCode(
-    'STRICT_RAW_TYPE',
-    "The generic type '{0}' should have explicit type arguments but doesn't.",
-    correctionMessage: "Use explicit type arguments for '{0}'.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the sealed class
-  static const HintCode SUBTYPE_OF_SEALED_CLASS = HintCode(
-    'SUBTYPE_OF_SEALED_CLASS',
-    "The class '{0}' shouldn't be extended, mixed in, or implemented because "
-        "it's sealed.",
-    correctionMessage:
-        "Try composing instead of inheriting, or refer to the documentation of "
-        "'{0}' for more information.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the undefined parameter
-  ///  1: the name of the targeted member
-  static const HintCode UNDEFINED_REFERENCED_PARAMETER = HintCode(
-    'UNDEFINED_REFERENCED_PARAMETER',
-    "The parameter '{0}' isn't defined by '{1}'.",
-    hasPublishedDocs: true,
-  );
-
   ///  Parameters:
   ///  0: the name of the non-diagnostic being ignored
   static const HintCode UNIGNORABLE_IGNORE = HintCode(
@@ -456,30 +422,6 @@ class HintCode extends AnalyzerErrorCode {
     "The import of '{0}' is unnecessary because all of the used elements are "
         "also provided by the import of '{1}'.",
     correctionMessage: "Try removing the import directive.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_NAN_COMPARISON_FALSE = HintCode(
-    'UNNECESSARY_NAN_COMPARISON',
-    "A double can't equal 'double.nan', so the condition is always 'false'.",
-    correctionMessage: "Try using 'double.isNan', or removing the condition.",
-    uniqueName: 'UNNECESSARY_NAN_COMPARISON_FALSE',
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_NAN_COMPARISON_TRUE = HintCode(
-    'UNNECESSARY_NAN_COMPARISON',
-    "A double can't equal 'double.nan', so the condition is always 'true'.",
-    correctionMessage: "Try using 'double.isNan', or removing the condition.",
-    uniqueName: 'UNNECESSARY_NAN_COMPARISON_TRUE',
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_NO_SUCH_METHOD = HintCode(
-    'UNNECESSARY_NO_SUCH_METHOD',
-    "Unnecessary 'noSuchMethod' declaration.",
-    correctionMessage: "Try removing the declaration of 'noSuchMethod'.",
     hasPublishedDocs: true,
   );
 

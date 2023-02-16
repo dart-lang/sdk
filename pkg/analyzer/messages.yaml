@@ -18886,108 +18886,6 @@ HintCode:
       A setter with the override annotation does not override an existing setter.
 
       No parameters.
-  STRICT_RAW_TYPE:
-    problemMessage: "The generic type '{0}' should have explicit type arguments but doesn't."
-    correctionMessage: "Use explicit type arguments for '{0}'."
-    comment: |-
-      When "strict-raw-types" is enabled, "raw types" must have type arguments.
-
-      A "raw type" is a type name that does not use inference to fill in missing
-      type arguments; instead, each type argument is instantiated to its bound.
-
-      Parameters:
-      0: the name of the generic type
-  SUBTYPE_OF_SEALED_CLASS:
-    problemMessage: "The class '{0}' shouldn't be extended, mixed in, or implemented because it's sealed."
-    correctionMessage: "Try composing instead of inheriting, or refer to the documentation of '{0}' for more information."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the sealed class
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a sealed class (one that either
-      has the `[sealed][meta-sealed]` annotation or inherits or mixes in a
-      sealed class) is referenced in either the `extends`, `implements`, or
-      `with` clause of a class or mixin declaration if the declaration isn't in
-      the same package as the sealed class.
-
-      #### Example
-
-      Given a library in a package other than the package being analyzed that
-      contains the following:
-
-      ```dart
-      %uri="package:a/a.dart"
-      import 'package:meta/meta.dart';
-
-      class A {}
-
-      @sealed
-      class B {}
-      ```
-
-      The following code produces this diagnostic because `C`, which isn't in the
-      same package as `B`, is extending the sealed class `B`:
-
-      ```dart
-      import 'package:a/a.dart';
-
-      [!class C extends B {}!]
-      ```
-
-      #### Common fixes
-
-      If the class doesn't need to be a subtype of the sealed class, then change
-      the declaration so that it isn't:
-
-      ```dart
-      import 'package:a/a.dart';
-
-      class B extends A {}
-      ```
-
-      If the class needs to be a subtype of the sealed class, then either change
-      the sealed class so that it's no longer sealed or move the subclass into
-      the same package as the sealed class.
-  UNDEFINED_REFERENCED_PARAMETER:
-    problemMessage: "The parameter '{0}' isn't defined by '{1}'."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the undefined parameter
-      1: the name of the targeted member
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an annotation of the form
-      `[UseResult][meta-UseResult].unless(parameterDefined: parameterName)`
-      specifies a parameter name that isn't defined by the annotated function.
-
-      #### Example
-
-      The following code produces this diagnostic because the function `f`
-      doesn't have a parameter named `b`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @UseResult.unless(parameterDefined: [!'b'!])
-      int f([int? a]) => a ?? 0;
-      ```
-
-      #### Common fixes
-
-      Change the argument named `parameterDefined` to match the name of one of
-      the parameters to the function:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @UseResult.unless(parameterDefined: 'a')
-      int f([int? a]) => a ?? 0;
-      ```
   UNIGNORABLE_IGNORE:
     problemMessage: "The diagnostic '{0}' can't be ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
@@ -19138,98 +19036,6 @@ HintCode:
       If some of the names imported by this import are intended to be used but
       aren't yet, and if those names aren't imported by other imports, then add
       the missing references to those names.
-  UNNECESSARY_NAN_COMPARISON_FALSE:
-    sharedName: UNNECESSARY_NAN_COMPARISON
-    problemMessage: A double can't equal 'double.nan', so the condition is always 'false'.
-    correctionMessage: Try using 'double.isNan', or removing the condition.
-    hasPublishedDocs: false
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a value is compared to
-      `double.nan` using either `==` or `!=`.
-
-      Dart follows the [IEEE 754] floating-point standard for the semantics of
-      floating point operations, which states that, for any floating point value
-      `x` (including NaN, positive infinity, and negative infinity),
-      - `NaN == x` is always false
-      - `NaN != x` is always true
-
-      As a result, comparing any value to NaN is pointless because the result is
-      already known (based on the comparison operator being used).
-
-      #### Example
-
-      The following code produces this diagnostic because `d` is being compared
-      to `double.nan`:
-
-      ```dart
-      bool isNaN(double d) => d [!== double.nan!];
-      ```
-
-      #### Common fixes
-
-      Use the getter `double.isNaN` instead:
-
-      ```dart
-      bool isNaN(double d) => d.isNaN;
-      ```
-  UNNECESSARY_NAN_COMPARISON_TRUE:
-    sharedName: UNNECESSARY_NAN_COMPARISON
-    problemMessage: A double can't equal 'double.nan', so the condition is always 'true'.
-    correctionMessage: Try using 'double.isNan', or removing the condition.
-    hasPublishedDocs: false
-    comment: No parameters.
-  UNNECESSARY_NO_SUCH_METHOD:
-    problemMessage: "Unnecessary 'noSuchMethod' declaration."
-    correctionMessage: "Try removing the declaration of 'noSuchMethod'."
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when there's a declaration of
-      `noSuchMethod`, the only thing the declaration does is invoke the
-      overridden declaration, and the overridden declaration isn't the
-      declaration in `Object`.
-
-      Overriding the implementation of `Object`'s `noSuchMethod` (no matter what
-      the implementation does) signals to the analyzer that it shouldn't flag any
-      inherited abstract methods that aren't implemented in that class. This
-      works even if the overriding implementation is inherited from a superclass,
-      so there's no value to declare it again in a subclass.
-
-      #### Example
-
-      The following code produces this diagnostic because the declaration of
-      `noSuchMethod` in `A` makes the declaration of `noSuchMethod` in `B`
-      unnecessary:
-
-      ```dart
-      class A {
-        @override
-        dynamic noSuchMethod(x) => super.noSuchMethod(x);
-      }
-      class B extends A {
-        @override
-        dynamic [!noSuchMethod!](y) {
-          return super.noSuchMethod(y);
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary declaration:
-
-      ```dart
-      class A {
-        @override
-        dynamic noSuchMethod(x) => super.noSuchMethod(x);
-      }
-      class B extends A {}
-      ```
   UNNECESSARY_NULL_COMPARISON_FALSE:
     sharedName: UNNECESSARY_NULL_COMPARISON
     problemMessage: "The operand can't be null, so the condition is always 'false'."
@@ -23305,6 +23111,71 @@ WarningCode:
       const a = [1, 2];
       var b = [...a];
       ```
+  STRICT_RAW_TYPE:
+    problemMessage: "The generic type '{0}' should have explicit type arguments but doesn't."
+    correctionMessage: "Use explicit type arguments for '{0}'."
+    comment: |-
+      When "strict-raw-types" is enabled, "raw types" must have type arguments.
+
+      A "raw type" is a type name that does not use inference to fill in missing
+      type arguments; instead, each type argument is instantiated to its bound.
+
+      Parameters:
+      0: the name of the generic type
+  SUBTYPE_OF_SEALED_CLASS:
+    problemMessage: "The class '{0}' shouldn't be extended, mixed in, or implemented because it's sealed."
+    correctionMessage: "Try composing instead of inheriting, or refer to the documentation of '{0}' for more information."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the sealed class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a sealed class (one that either
+      has the `[sealed][meta-sealed]` annotation or inherits or mixes in a
+      sealed class) is referenced in either the `extends`, `implements`, or
+      `with` clause of a class or mixin declaration if the declaration isn't in
+      the same package as the sealed class.
+
+      #### Example
+
+      Given a library in a package other than the package being analyzed that
+      contains the following:
+
+      ```dart
+      %uri="package:a/a.dart"
+      import 'package:meta/meta.dart';
+
+      class A {}
+
+      @sealed
+      class B {}
+      ```
+
+      The following code produces this diagnostic because `C`, which isn't in the
+      same package as `B`, is extending the sealed class `B`:
+
+      ```dart
+      import 'package:a/a.dart';
+
+      [!class C extends B {}!]
+      ```
+
+      #### Common fixes
+
+      If the class doesn't need to be a subtype of the sealed class, then change
+      the declaration so that it isn't:
+
+      ```dart
+      import 'package:a/a.dart';
+
+      class B extends A {}
+      ```
+
+      If the class needs to be a subtype of the sealed class, then either change
+      the sealed class so that it's no longer sealed or move the subclass into
+      the same package as the sealed class.
   TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
     problemMessage: The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.
     correctionMessage: Try removing the code point or using the Unicode escape sequence '\u{0}'.
@@ -23478,6 +23349,43 @@ WarningCode:
 
       var x = min(0, 1);
       ```
+  UNDEFINED_REFERENCED_PARAMETER:
+    problemMessage: "The parameter '{0}' isn't defined by '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the undefined parameter
+      1: the name of the targeted member
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an annotation of the form
+      `[UseResult][meta-UseResult].unless(parameterDefined: parameterName)`
+      specifies a parameter name that isn't defined by the annotated function.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f`
+      doesn't have a parameter named `b`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @UseResult.unless(parameterDefined: [!'b'!])
+      int f([int? a]) => a ?? 0;
+      ```
+
+      #### Common fixes
+
+      Change the argument named `parameterDefined` to match the name of one of
+      the parameters to the function:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @UseResult.unless(parameterDefined: 'a')
+      int f([int? a]) => a ?? 0;
+      ```
   UNDEFINED_SHOWN_NAME:
     problemMessage: "The library '{0}' doesn't export a member with the shown name '{1}'."
     correctionMessage: Try removing the name from the list of shown members.
@@ -23523,6 +23431,98 @@ WarningCode:
   UNNECESSARY_FINAL:
     aliasFor: HintCode.UNNECESSARY_FINAL
     comment: This is the new replacement for [HintCode.UNNECESSARY_FINAL].
+  UNNECESSARY_NAN_COMPARISON_FALSE:
+    sharedName: UNNECESSARY_NAN_COMPARISON
+    problemMessage: A double can't equal 'double.nan', so the condition is always 'false'.
+    correctionMessage: Try using 'double.isNan', or removing the condition.
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a value is compared to
+      `double.nan` using either `==` or `!=`.
+
+      Dart follows the [IEEE 754] floating-point standard for the semantics of
+      floating point operations, which states that, for any floating point value
+      `x` (including NaN, positive infinity, and negative infinity),
+      - `NaN == x` is always false
+      - `NaN != x` is always true
+
+      As a result, comparing any value to NaN is pointless because the result is
+      already known (based on the comparison operator being used).
+
+      #### Example
+
+      The following code produces this diagnostic because `d` is being compared
+      to `double.nan`:
+
+      ```dart
+      bool isNaN(double d) => d [!== double.nan!];
+      ```
+
+      #### Common fixes
+
+      Use the getter `double.isNaN` instead:
+
+      ```dart
+      bool isNaN(double d) => d.isNaN;
+      ```
+  UNNECESSARY_NAN_COMPARISON_TRUE:
+    sharedName: UNNECESSARY_NAN_COMPARISON
+    problemMessage: A double can't equal 'double.nan', so the condition is always 'true'.
+    correctionMessage: Try using 'double.isNan', or removing the condition.
+    hasPublishedDocs: false
+    comment: No parameters.
+  UNNECESSARY_NO_SUCH_METHOD:
+    problemMessage: "Unnecessary 'noSuchMethod' declaration."
+    correctionMessage: "Try removing the declaration of 'noSuchMethod'."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when there's a declaration of
+      `noSuchMethod`, the only thing the declaration does is invoke the
+      overridden declaration, and the overridden declaration isn't the
+      declaration in `Object`.
+
+      Overriding the implementation of `Object`'s `noSuchMethod` (no matter what
+      the implementation does) signals to the analyzer that it shouldn't flag any
+      inherited abstract methods that aren't implemented in that class. This
+      works even if the overriding implementation is inherited from a superclass,
+      so there's no value to declare it again in a subclass.
+
+      #### Example
+
+      The following code produces this diagnostic because the declaration of
+      `noSuchMethod` in `A` makes the declaration of `noSuchMethod` in `B`
+      unnecessary:
+
+      ```dart
+      class A {
+        @override
+        dynamic noSuchMethod(x) => super.noSuchMethod(x);
+      }
+      class B extends A {
+        @override
+        dynamic [!noSuchMethod!](y) {
+          return super.noSuchMethod(y);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary declaration:
+
+      ```dart
+      class A {
+        @override
+        dynamic noSuchMethod(x) => super.noSuchMethod(x);
+      }
+      class B extends A {}
+      ```
   UNNECESSARY_TYPE_CHECK_FALSE:
     aliasFor: HintCode.UNNECESSARY_TYPE_CHECK_FALSE
     comment: This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
