@@ -19,6 +19,11 @@ void main() {
   var b = env.createClass('B', inherits: [a]);
   var c = env.createClass('C', inherits: [a]);
 
+  var x = 'x';
+  var y = 'y';
+  var z = 'z';
+  var w = 'w';
+
   Space A({StaticType? x, StaticType? y, StaticType? z}) => ty(
       a, {if (x != null) 'x': x, if (y != null) 'y': y, if (z != null) 'z': z});
   Space B({StaticType? x, StaticType? y, StaticType? z}) => ty(
@@ -27,12 +32,14 @@ void main() {
       c, {if (x != null) 'x': x, if (y != null) 'y': y, if (z != null) 'z': z});
 
   test('records', () {
-    expectIntersect(rec(x: a, y: a), rec(x: a, y: a), rec(x: a, y: a));
-    expectIntersect(rec(x: a, y: a), rec(x: a), rec(x: a, y: a));
+    var r = env.createRecordType({x: a, y: a, z: a, w: a});
     expectIntersect(
-        rec(w: a, x: a), rec(y: a, z: a), rec(w: a, x: a, y: a, z: a));
-    expectIntersect(rec(w: a, x: a, y: a), rec(x: a, y: a, z: a),
-        rec(w: a, x: a, y: a, z: a));
+        ty(r, {x: a, y: a}), ty(r, {x: a, y: a}), ty(r, {x: a, y: a}));
+    expectIntersect(ty(r, {x: a, y: a}), ty(r, {x: a}), ty(r, {x: a, y: a}));
+    expectIntersect(ty(r, {w: a, x: a}), ty(r, {y: a, z: a}),
+        ty(r, {w: a, x: a, y: a, z: a}));
+    expectIntersect(ty(r, {w: a, x: a, y: a}), ty(r, {x: a, y: a, z: a}),
+        ty(r, {w: a, x: a, y: a, z: a}));
   });
 
   test('types', () {
@@ -50,8 +57,10 @@ void main() {
   });
 
   test('field types', () {
-    expectIntersect(rec(x: a, y: b), rec(x: b, y: a), rec(x: b, y: b));
-    expectIntersect(rec(x: b), rec(x: c), '∅');
+    var r = env.createRecordType({x: a, y: a});
+    expectIntersect(
+        ty(r, {x: a, y: b}), ty(r, {x: b, y: a}), ty(r, {x: b, y: b}));
+    expectIntersect(ty(r, {x: b}), ty(r, {x: c}), '∅');
   });
 
   test('types and fields', () {

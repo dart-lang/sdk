@@ -9,27 +9,28 @@ import 'static_type.dart';
 ///
 /// This is used to tell if two field spaces on a pair of spaces being
 /// subtracted have no common values.
-bool intersectEmpty(Space left, Space right) {
+bool spacesHaveEmptyIntersection(Space left, Space right) {
   // The intersection with an empty space is always empty.
   if (left == Space.empty) return true;
   if (right == Space.empty) return true;
 
   // The intersection of a union is empty if all of the arms are.
   if (left is UnionSpace) {
-    return left.arms.every((arm) => intersectEmpty(arm, right));
+    return left.arms.every((arm) => spacesHaveEmptyIntersection(arm, right));
   }
 
   if (right is UnionSpace) {
-    return right.arms.every((arm) => intersectEmpty(left, arm));
+    return right.arms.every((arm) => spacesHaveEmptyIntersection(left, arm));
   }
 
   // Otherwise, we're intersecting two [ExtractSpaces].
-  return _intersectExtracts(left as ExtractSpace, right as ExtractSpace);
+  return _extractsHaveEmptyIntersection(
+      left as ExtractSpace, right as ExtractSpace);
 }
 
 /// Returns true if the intersection of two static types [left] and [right] is
 /// empty.
-bool intersectTypes(StaticType left, StaticType right) {
+bool typesHaveEmptyIntersection(StaticType left, StaticType right) {
   // If one type is a subtype, the subtype is the intersection.
   if (left.isSubtypeOf(right)) return false;
   if (right.isSubtypeOf(left)) return false;
@@ -39,22 +40,24 @@ bool intersectTypes(StaticType left, StaticType right) {
 }
 
 /// Returns the interaction of extract spaces [left] and [right].
-bool _intersectExtracts(ExtractSpace left, ExtractSpace right) {
-  if (intersectTypes(left.type, right.type)) return true;
+bool _extractsHaveEmptyIntersection(ExtractSpace left, ExtractSpace right) {
+  if (typesHaveEmptyIntersection(left.type, right.type)) return true;
 
   // Recursively intersect the fields.
   List<String> fieldNames =
       {...left.fields.keys, ...right.fields.keys}.toList();
   for (String name in fieldNames) {
     // If the fields are disjoint, then the entire space will have no values.
-    if (_intersectFields(left.fields[name], right.fields[name])) return true;
+    if (_fieldsHaveEmptyIntersection(left.fields[name], right.fields[name])) {
+      return true;
+    }
   }
 
   return false;
 }
 
-bool _intersectFields(Space? left, Space? right) {
+bool _fieldsHaveEmptyIntersection(Space? left, Space? right) {
   if (left == null) return right! == Space.empty;
   if (right == null) return left == Space.empty;
-  return intersectEmpty(left, right);
+  return spacesHaveEmptyIntersection(left, right);
 }

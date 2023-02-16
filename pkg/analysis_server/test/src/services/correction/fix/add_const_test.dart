@@ -303,6 +303,45 @@ void f() {
   }
 ''');
   }
+
+  Future<void> test_mapKeyConst() async {
+    await resolveTestCode('''
+void f(Object x) {
+  if (x case {A(): 0}) {}
+}
+
+class A {
+  const A();
+}
+''');
+
+    await assertHasFix('''
+void f(Object x) {
+  if (x case {const A(): 0}) {}
+}
+
+class A {
+  const A();
+}
+''');
+  }
+
+  @FailingTest(reason: "TODO(keertip): Add support for local variables")
+  Future<void> test_relationalExpressionConst() async {
+    await resolveTestCode('''
+void f(int x) {
+  final a = 0;
+  if (x case > a) {}
+}
+''');
+
+    await assertHasFix('''
+void f(int x) {
+  const a = 0;
+  if (x case > a) {}
+}
+''');
+  }
 }
 
 @reflectiveTest

@@ -31,39 +31,38 @@ class ExtractSpace extends Space {
     if (isTop) return '()';
     if (this == Space.empty) return '∅';
 
-    // If there are no fields, just show the type.
-    if (fields.isEmpty) return type.name;
+    if (type.isRecord) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.write('(');
+      bool first = true;
+      type.fields.forEach((String name, StaticType staticType) {
+        if (!first) buffer.write(', ');
+        // TODO(johnniwinther): Ensure using Dart syntax for positional fields.
+        buffer.write('$name: ${fields[name] ?? staticType}');
+        first = false;
+      });
 
-    StringBuffer buffer = new StringBuffer();
+      buffer.write(')');
+      return buffer.toString();
+    } else {
+      // If there are no fields, just show the type.
+      if (fields.isEmpty) return type.name;
 
-    // We model a bare record pattern by treating it like an extractor on top.
-    if (type != StaticType.nonNullableObject) buffer.write(type.name);
+      StringBuffer buffer = new StringBuffer();
+      buffer.write(type.name);
 
-    buffer.write('(');
-    bool first = true;
+      buffer.write('(');
+      bool first = true;
 
-    // Positional fields have stringified number names.
-    for (int i = 0;; i++) {
-      Space? pattern = fields[i.toString()];
-      if (pattern == null) break;
+      fields.forEach((String name, Space space) {
+        if (!first) buffer.write(', ');
+        buffer.write('$name: $space');
+        first = false;
+      });
 
-      if (!first) buffer.write(', ');
-      buffer.write(pattern);
-      first = false;
+      buffer.write(')');
+      return buffer.toString();
     }
-
-    fields.forEach((name, pattern) {
-      // Skip positional fields.
-      if (int.tryParse(name) != null) return;
-
-      if (!first) buffer.write(', ');
-      buffer.write('$name: $pattern');
-      first = false;
-    });
-
-    buffer.write(')');
-
-    return buffer.toString();
   }
 }
 
@@ -81,9 +80,6 @@ abstract class Space {
 
   factory Space(StaticType type, [Map<String, Space> fields = const {}]) =>
       new ExtractSpace._(type, fields);
-
-  factory Space.record([Map<String, Space> fields = const {}]) =>
-      new Space(StaticType.nonNullableObject, fields);
 
   factory Space.union(List<Space> arms) {
     // Simplify the arms if possible.

@@ -8,7 +8,12 @@ import 'env.dart';
 import 'utils.dart';
 
 void main() {
-  group('nested records', () {
+  var x = 'x';
+  var y = 'y';
+  var z = 'z';
+  var w = 'w';
+
+  group('nested records |', () {
     //   (A)
     //   / \
     //  B   C
@@ -16,44 +21,75 @@ void main() {
     var a = env.createClass('A', isSealed: true);
     var b = env.createClass('B', inherits: [a]);
     var c = env.createClass('C', inherits: [a]);
-    var t = env.createClass('T', fields: {'x': a, 'y': b});
-    var u = env.createClass('U', fields: {'w': t, 'z': t});
+    var t = env.createRecordType({'x': a, 'y': b});
+    var u = env.createRecordType({'w': t, 'z': t});
 
     expectExhaustiveOnlyAll(u, [
-      rec(w: rec(x: a), z: t),
+      ty(u, {
+        w: ty(t, {x: a}),
+        z: t
+      }),
     ]);
 
     expectExhaustiveOnlyAll(u, [
-      rec(w: rec(x: a, y: a), z: rec(x: a, y: a)),
+      ty(u, {
+        w: ty(t, {x: a, y: a}),
+        z: ty(t, {x: a, y: a})
+      }),
     ]);
 
     expectExhaustiveOnlyAll(u, [
-      rec(w: rec(x: a, y: b), z: rec(x: a, y: b)),
+      ty(u, {
+        w: ty(t, {x: a, y: b}),
+        z: ty(t, {x: a, y: b})
+      }),
     ]);
 
     expectExhaustiveOnlyAll(u, [
-      rec(w: rec(x: b), z: t),
-      rec(w: rec(x: c), z: t),
+      ty(u, {
+        w: ty(t, {x: b}),
+        z: t
+      }),
+      ty(u, {
+        w: ty(t, {x: c}),
+        z: t
+      }),
     ]);
 
     expectExhaustiveOnlyAll(u, [
-      rec(w: rec(x: b, y: b), z: rec(x: b, y: b)),
-      rec(w: rec(x: b, y: b), z: rec(x: c, y: b)),
-      rec(w: rec(x: c, y: b), z: rec(x: b, y: b)),
-      rec(w: rec(x: c, y: b), z: rec(x: c, y: b)),
+      ty(u, {
+        w: ty(t, {x: b, y: b}),
+        z: ty(t, {x: b, y: b})
+      }),
+      ty(u, {
+        w: ty(t, {x: b, y: b}),
+        z: ty(t, {x: c, y: b})
+      }),
+      ty(u, {
+        w: ty(t, {x: c, y: b}),
+        z: ty(t, {x: b, y: b})
+      }),
+      ty(u, {
+        w: ty(t, {x: c, y: b}),
+        z: ty(t, {x: c, y: b})
+      }),
     ]);
   });
 
-  group('nested with different fields of same name', () {
+  group('nested with different fields of same name |', () {
     // A B C D
     var env = TestEnvironment();
     var a = env.createClass('A');
-    var b = env.createClass('B', fields: {'x': a});
-    var c = env.createClass('C', fields: {'x': b});
-    var d = env.createClass('D', fields: {'x': c});
+    var b = env.createRecordType({'x': a});
+    var c = env.createRecordType({'x': b});
+    var d = env.createRecordType({'x': c});
 
     expectExhaustiveOnlyAll(d, [
-      rec(x: rec(x: rec(x: a))),
+      ty(d, {
+        x: ty(c, {
+          x: ty(b, {x: a})
+        })
+      }),
     ]);
   });
 }

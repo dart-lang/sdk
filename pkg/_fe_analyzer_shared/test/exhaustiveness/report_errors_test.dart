@@ -10,6 +10,10 @@ import 'env.dart';
 import 'utils.dart';
 
 void main() {
+  var x = 'x';
+  var y = 'y';
+  var z = 'z';
+
   group('sealed | ', () {
     // Here, "(_)" means "sealed". A bare name is unsealed.
     //
@@ -67,64 +71,64 @@ void main() {
       expectReportErrors(f, [g, h, f]);
     });
 
-    test('covered record destructuring', () {
-      var r = env.createClass('R', fields: {'x': a, 'y': a, 'z': a});
+    test('covered record destructuring |', () {
+      var r = env.createRecordType({x: a, y: a, z: a});
 
       // Wider field is not covered.
       expectReportErrors(r, [
-        {'x': b},
-        {'x': a}
+        ty(r, {x: b}),
+        ty(r, {x: a}),
       ]);
 
       // Narrower field is covered.
       expectReportErrors(
           r,
           [
-            {'x': a},
-            {'x': b}
+            ty(r, {x: a}),
+            ty(r, {x: b}),
           ],
-          'Case #2 (x: B) is unreachable.');
+          'Case #2 (x: B, y: A, z: A) is unreachable.');
     });
-  });
 
-  test('nullable sealed', () {
-    //     (A)
-    //     / \
-    //    B  (C)
-    //       / \
-    //      D   E
-    var env = TestEnvironment();
-    var a = env.createClass('A', isSealed: true);
-    var b = env.createClass('B', inherits: [a]);
-    var c = env.createClass('C', isSealed: true, inherits: [a]);
-    var d = env.createClass('D', inherits: [c]);
-    var e = env.createClass('E', inherits: [c]);
+    test('nullable sealed |', () {
+      //     (A)
+      //     / \
+      //    B  (C)
+      //       / \
+      //      D   E
+      var env = TestEnvironment();
+      var a = env.createClass('A', isSealed: true);
+      var b = env.createClass('B', inherits: [a]);
+      var c = env.createClass('C', isSealed: true, inherits: [a]);
+      var d = env.createClass('D', inherits: [c]);
+      var e = env.createClass('E', inherits: [c]);
 
-    // Must cover null.
-    expectReportErrors(
-        a.nullable, [b, d, e], 'A? is not exhaustively matched by B|D|E.');
+      // Must cover null.
+      expectReportErrors(
+          a.nullable, [b, d, e], 'A? is not exhaustively matched by B|D|E.');
 
-    // Can cover null with any nullable subtype.
-    expectReportErrors(a.nullable, [b.nullable, c]);
-    expectReportErrors(a.nullable, [b, c.nullable]);
-    expectReportErrors(a.nullable, [b, d.nullable, e]);
-    expectReportErrors(a.nullable, [b, d, e.nullable]);
+      // Can cover null with any nullable subtype.
+      expectReportErrors(a.nullable, [b.nullable, c]);
+      expectReportErrors(a.nullable, [b, c.nullable]);
+      expectReportErrors(a.nullable, [b, d.nullable, e]);
+      expectReportErrors(a.nullable, [b, d, e.nullable]);
 
-    // Can cover null with a null space.
-    expectReportErrors(a.nullable, [b, c, StaticType.nullType]);
-    expectReportErrors(a.nullable, [b, d, e, StaticType.nullType]);
+      // Can cover null with a null space.
+      expectReportErrors(a.nullable, [b, c, StaticType.nullType]);
+      expectReportErrors(a.nullable, [b, d, e, StaticType.nullType]);
 
-    // Nullable covers the non-null.
-    expectReportErrors(
-        a.nullable, [a.nullable, a], 'Case #2 A is unreachable.');
-    expectReportErrors(
-        b.nullable, [a.nullable, b], 'Case #2 B is unreachable.');
+      // Nullable covers the non-null.
+      expectReportErrors(
+          a.nullable, [a.nullable, a], 'Case #2 A is unreachable.');
+      expectReportErrors(
+          b.nullable, [a.nullable, b], 'Case #2 B is unreachable.');
 
-    // Nullable covers null.
-    expectReportErrors(a.nullable, [a.nullable, StaticType.nullType],
-        'Case #2 Null is unreachable.');
-    expectReportErrors(b.nullable, [a.nullable, StaticType.nullType],
-        'Case #2 Null is unreachable.');
+      // Nullable covers null.
+      expectReportErrors(a.nullable, [a.nullable, StaticType.nullType],
+          'Case #2 Null is unreachable.');
+      expectReportErrors(b.nullable, [a.nullable, StaticType.nullType],
+          'Case #2 Null is unreachable.');
+    });
   });
 }
 

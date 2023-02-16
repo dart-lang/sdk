@@ -23,6 +23,17 @@ Space convertConstantValueToSpace(
       return Space.nullSpace;
     } else if (state is BoolState && state.value != null) {
       return Space(cache.getBoolValueStaticType(state.value!));
+    } else if (state is RecordState) {
+      Map<String, Space> fields = {};
+      for (int index = 0; index < state.positionalFields.length; index++) {
+        fields['\$${index + 1}'] =
+            convertConstantValueToSpace(cache, state.positionalFields[index]);
+      }
+      for (MapEntry<String, DartObjectImpl> entry
+          in state.namedFields.entries) {
+        fields[entry.key] = convertConstantValueToSpace(cache, entry.value);
+      }
+      return Space(cache.getStaticType(constantValue.type), fields);
     }
     DartType type = constantValue.type;
     if (type is InterfaceType && type.element.kind == ElementKind.ENUM) {
@@ -71,6 +82,38 @@ Space convertPatternToSpace(
       final type = typeNode.typeOrThrow;
       return Space(cache.getStaticType(type));
     }
+  } else if (pattern is RecordPattern) {
+    int index = 1;
+    Map<String, Space> fields = {};
+    List<DartType> positional = [];
+    Map<String, DartType> named = {};
+    for (PatternField field in pattern.fields) {
+      PatternFieldName? fieldName = (field as PatternFieldImpl).name;
+      String? name;
+      if (fieldName == null) {
+        name = '\$${index++}';
+        positional.add(cache.typeSystem.typeProvider.dynamicType);
+      } else {
+        if (fieldName.name != null) {
+          name = fieldName.name!.lexeme;
+        } else {
+          name = field.pattern.variablePattern?.name.lexeme;
+        }
+        if (name != null) {
+          named[name] = cache.typeSystem.typeProvider.dynamicType;
+        } else {
+          // Error case, skip field.
+          continue;
+        }
+      }
+      fields[name] =
+          convertPatternToSpace(cache, field.pattern, constantPatternValues);
+    }
+    RecordType recordType = RecordType(
+        positional: positional,
+        named: named,
+        nullabilitySuffix: NullabilitySuffix.none);
+    return Space(cache.getStaticType(recordType), fields);
   }
   // TODO(johnniwinther): Handle remaining patterns.
   DartObjectImpl? value = constantPatternValues[pattern];
@@ -117,7 +160,9 @@ class AnalyzerEnumOperations
 
 class AnalyzerExhaustivenessCache extends ExhaustivenessCache<DartType,
     ClassElement, EnumElement, FieldElement, DartObject> {
-  AnalyzerExhaustivenessCache(TypeSystemImpl typeSystem)
+  final TypeSystemImpl typeSystem;
+
+  AnalyzerExhaustivenessCache(this.typeSystem)
       : super(
             AnalyzerTypeOperations(typeSystem),
             const AnalyzerEnumOperations(),
@@ -184,7 +229,7 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
       Map<String, DartType> fieldTypes = {};
       for (int index = 0; index < type.positionalFields.length; index++) {
         RecordTypePositionalField field = type.positionalFields[index];
-        fieldTypes['\$$index'] = field.type;
+        fieldTypes['\$${index + 1}'] = field.type;
       }
       for (RecordTypeNamedField field in type.namedFields) {
         fieldTypes[field.name] = field.type;
@@ -227,6 +272,11 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   @override
   bool isNullType(DartType type) {
     return type.isDartCoreNull;
+  }
+
+  @override
+  bool isRecordType(DartType type) {
+    return type is RecordType && !isNullable(type);
   }
 
   @override

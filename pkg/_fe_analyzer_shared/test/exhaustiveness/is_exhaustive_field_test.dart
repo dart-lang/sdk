@@ -8,6 +8,11 @@ import 'env.dart';
 import 'utils.dart';
 
 void main() {
+  var x = 'x';
+  var y = 'y';
+  var z = 'z';
+  var w = 'w';
+
   group('sealed subtypes |', () {
     //   (A)
     //   / \
@@ -16,13 +21,13 @@ void main() {
     var a = env.createClass('A', isSealed: true);
     var b = env.createClass('B', inherits: [a]);
     var c = env.createClass('C', inherits: [a]);
-    var t = env.createClass('T', fields: {'x': a, 'y': a});
+    var t = env.createRecordType({x: a, y: a});
 
     expectExhaustiveOnlyAll(t, [
-      ty(t, {'x': b, 'y': b}),
-      ty(t, {'x': b, 'y': c}),
-      ty(t, {'x': c, 'y': b}),
-      ty(t, {'x': c, 'y': c}),
+      ty(t, {x: b, y: b}),
+      ty(t, {x: b, y: c}),
+      ty(t, {x: c, y: b}),
+      ty(t, {x: c, y: c}),
     ]);
   });
 
@@ -35,18 +40,18 @@ void main() {
     var b = env.createClass('B', inherits: [a]);
     var c = env.createClass('C', inherits: [a]);
     var d = env.createClass('D', inherits: [a]);
-    var t = env.createClass('T', fields: {'y': a, 'z': a});
+    var t = env.createRecordType({y: a, z: a});
 
     expectExhaustiveOnlyAll(t, [
-      ty(t, {'y': b, 'z': b}),
-      ty(t, {'y': b, 'z': c}),
-      ty(t, {'y': b, 'z': d}),
-      ty(t, {'y': c, 'z': b}),
-      ty(t, {'y': c, 'z': c}),
-      ty(t, {'y': c, 'z': d}),
-      ty(t, {'y': d, 'z': b}),
-      ty(t, {'y': d, 'z': c}),
-      ty(t, {'y': d, 'z': d}),
+      ty(t, {y: b, z: b}),
+      ty(t, {y: b, z: c}),
+      ty(t, {y: b, z: d}),
+      ty(t, {y: c, z: b}),
+      ty(t, {y: c, z: c}),
+      ty(t, {y: c, z: d}),
+      ty(t, {y: d, z: b}),
+      ty(t, {y: d, z: c}),
+      ty(t, {y: d, z: d}),
     ]);
   });
 
@@ -59,90 +64,90 @@ void main() {
     var b = env.createClass('B', inherits: [a]);
     var c = env.createClass('C', inherits: [a]);
     var d = env.createClass('D', inherits: [a]);
-    var t = env.createClass('T', fields: {'w': a, 'x': a, 'y': a, 'z': a});
+    var t = env.createRecordType({w: a, x: a, y: a, z: a});
 
     expectExhaustiveOnlyAll(t, [
-      ty(t, {'w': b, 'x': b, 'y': b, 'z': b}),
-      ty(t, {'w': b, 'x': b, 'y': b, 'z': c}),
-      ty(t, {'w': b, 'x': b, 'y': b, 'z': d}),
-      ty(t, {'w': b, 'x': b, 'y': c, 'z': b}),
-      ty(t, {'w': b, 'x': b, 'y': c, 'z': c}),
-      ty(t, {'w': b, 'x': b, 'y': c, 'z': d}),
-      ty(t, {'w': b, 'x': b, 'y': d, 'z': b}),
-      ty(t, {'w': b, 'x': b, 'y': d, 'z': c}),
-      ty(t, {'w': b, 'x': b, 'y': d, 'z': d}),
-      ty(t, {'w': b, 'x': c, 'y': b, 'z': b}),
-      ty(t, {'w': b, 'x': c, 'y': b, 'z': c}),
-      ty(t, {'w': b, 'x': c, 'y': b, 'z': d}),
-      ty(t, {'w': b, 'x': c, 'y': c, 'z': b}),
-      ty(t, {'w': b, 'x': c, 'y': c, 'z': c}),
-      ty(t, {'w': b, 'x': c, 'y': c, 'z': d}),
-      ty(t, {'w': b, 'x': c, 'y': d, 'z': b}),
-      ty(t, {'w': b, 'x': c, 'y': d, 'z': c}),
-      ty(t, {'w': b, 'x': c, 'y': d, 'z': d}),
-      ty(t, {'w': b, 'x': d, 'y': b, 'z': b}),
-      ty(t, {'w': b, 'x': d, 'y': b, 'z': c}),
-      ty(t, {'w': b, 'x': d, 'y': b, 'z': d}),
-      ty(t, {'w': b, 'x': d, 'y': c, 'z': b}),
-      ty(t, {'w': b, 'x': d, 'y': c, 'z': c}),
-      ty(t, {'w': b, 'x': d, 'y': c, 'z': d}),
-      ty(t, {'w': b, 'x': d, 'y': d, 'z': b}),
-      ty(t, {'w': b, 'x': d, 'y': d, 'z': c}),
-      ty(t, {'w': b, 'x': d, 'y': d, 'z': d}),
-      ty(t, {'w': c, 'x': b, 'y': b, 'z': b}),
-      ty(t, {'w': c, 'x': b, 'y': b, 'z': c}),
-      ty(t, {'w': c, 'x': b, 'y': b, 'z': d}),
-      ty(t, {'w': c, 'x': b, 'y': c, 'z': b}),
-      ty(t, {'w': c, 'x': b, 'y': c, 'z': c}),
-      ty(t, {'w': c, 'x': b, 'y': c, 'z': d}),
-      ty(t, {'w': c, 'x': b, 'y': d, 'z': b}),
-      ty(t, {'w': c, 'x': b, 'y': d, 'z': c}),
-      ty(t, {'w': c, 'x': b, 'y': d, 'z': d}),
-      ty(t, {'w': c, 'x': c, 'y': b, 'z': b}),
-      ty(t, {'w': c, 'x': c, 'y': b, 'z': c}),
-      ty(t, {'w': c, 'x': c, 'y': b, 'z': d}),
-      ty(t, {'w': c, 'x': c, 'y': c, 'z': b}),
-      ty(t, {'w': c, 'x': c, 'y': c, 'z': c}),
-      ty(t, {'w': c, 'x': c, 'y': c, 'z': d}),
-      ty(t, {'w': c, 'x': c, 'y': d, 'z': b}),
-      ty(t, {'w': c, 'x': c, 'y': d, 'z': c}),
-      ty(t, {'w': c, 'x': c, 'y': d, 'z': d}),
-      ty(t, {'w': c, 'x': d, 'y': b, 'z': b}),
-      ty(t, {'w': c, 'x': d, 'y': b, 'z': c}),
-      ty(t, {'w': c, 'x': d, 'y': b, 'z': d}),
-      ty(t, {'w': c, 'x': d, 'y': c, 'z': b}),
-      ty(t, {'w': c, 'x': d, 'y': c, 'z': c}),
-      ty(t, {'w': c, 'x': d, 'y': c, 'z': d}),
-      ty(t, {'w': c, 'x': d, 'y': d, 'z': b}),
-      ty(t, {'w': c, 'x': d, 'y': d, 'z': c}),
-      ty(t, {'w': c, 'x': d, 'y': d, 'z': d}),
-      ty(t, {'w': d, 'x': b, 'y': b, 'z': b}),
-      ty(t, {'w': d, 'x': b, 'y': b, 'z': c}),
-      ty(t, {'w': d, 'x': b, 'y': b, 'z': d}),
-      ty(t, {'w': d, 'x': b, 'y': c, 'z': b}),
-      ty(t, {'w': d, 'x': b, 'y': c, 'z': c}),
-      ty(t, {'w': d, 'x': b, 'y': c, 'z': d}),
-      ty(t, {'w': d, 'x': b, 'y': d, 'z': b}),
-      ty(t, {'w': d, 'x': b, 'y': d, 'z': c}),
-      ty(t, {'w': d, 'x': b, 'y': d, 'z': d}),
-      ty(t, {'w': d, 'x': c, 'y': b, 'z': b}),
-      ty(t, {'w': d, 'x': c, 'y': b, 'z': c}),
-      ty(t, {'w': d, 'x': c, 'y': b, 'z': d}),
-      ty(t, {'w': d, 'x': c, 'y': c, 'z': b}),
-      ty(t, {'w': d, 'x': c, 'y': c, 'z': c}),
-      ty(t, {'w': d, 'x': c, 'y': c, 'z': d}),
-      ty(t, {'w': d, 'x': c, 'y': d, 'z': b}),
-      ty(t, {'w': d, 'x': c, 'y': d, 'z': c}),
-      ty(t, {'w': d, 'x': c, 'y': d, 'z': d}),
-      ty(t, {'w': d, 'x': d, 'y': b, 'z': b}),
-      ty(t, {'w': d, 'x': d, 'y': b, 'z': c}),
-      ty(t, {'w': d, 'x': d, 'y': b, 'z': d}),
-      ty(t, {'w': d, 'x': d, 'y': c, 'z': b}),
-      ty(t, {'w': d, 'x': d, 'y': c, 'z': c}),
-      ty(t, {'w': d, 'x': d, 'y': c, 'z': d}),
-      ty(t, {'w': d, 'x': d, 'y': d, 'z': b}),
-      ty(t, {'w': d, 'x': d, 'y': d, 'z': c}),
-      ty(t, {'w': d, 'x': d, 'y': d, 'z': d}),
+      ty(t, {w: b, x: b, y: b, z: b}),
+      ty(t, {w: b, x: b, y: b, z: c}),
+      ty(t, {w: b, x: b, y: b, z: d}),
+      ty(t, {w: b, x: b, y: c, z: b}),
+      ty(t, {w: b, x: b, y: c, z: c}),
+      ty(t, {w: b, x: b, y: c, z: d}),
+      ty(t, {w: b, x: b, y: d, z: b}),
+      ty(t, {w: b, x: b, y: d, z: c}),
+      ty(t, {w: b, x: b, y: d, z: d}),
+      ty(t, {w: b, x: c, y: b, z: b}),
+      ty(t, {w: b, x: c, y: b, z: c}),
+      ty(t, {w: b, x: c, y: b, z: d}),
+      ty(t, {w: b, x: c, y: c, z: b}),
+      ty(t, {w: b, x: c, y: c, z: c}),
+      ty(t, {w: b, x: c, y: c, z: d}),
+      ty(t, {w: b, x: c, y: d, z: b}),
+      ty(t, {w: b, x: c, y: d, z: c}),
+      ty(t, {w: b, x: c, y: d, z: d}),
+      ty(t, {w: b, x: d, y: b, z: b}),
+      ty(t, {w: b, x: d, y: b, z: c}),
+      ty(t, {w: b, x: d, y: b, z: d}),
+      ty(t, {w: b, x: d, y: c, z: b}),
+      ty(t, {w: b, x: d, y: c, z: c}),
+      ty(t, {w: b, x: d, y: c, z: d}),
+      ty(t, {w: b, x: d, y: d, z: b}),
+      ty(t, {w: b, x: d, y: d, z: c}),
+      ty(t, {w: b, x: d, y: d, z: d}),
+      ty(t, {w: c, x: b, y: b, z: b}),
+      ty(t, {w: c, x: b, y: b, z: c}),
+      ty(t, {w: c, x: b, y: b, z: d}),
+      ty(t, {w: c, x: b, y: c, z: b}),
+      ty(t, {w: c, x: b, y: c, z: c}),
+      ty(t, {w: c, x: b, y: c, z: d}),
+      ty(t, {w: c, x: b, y: d, z: b}),
+      ty(t, {w: c, x: b, y: d, z: c}),
+      ty(t, {w: c, x: b, y: d, z: d}),
+      ty(t, {w: c, x: c, y: b, z: b}),
+      ty(t, {w: c, x: c, y: b, z: c}),
+      ty(t, {w: c, x: c, y: b, z: d}),
+      ty(t, {w: c, x: c, y: c, z: b}),
+      ty(t, {w: c, x: c, y: c, z: c}),
+      ty(t, {w: c, x: c, y: c, z: d}),
+      ty(t, {w: c, x: c, y: d, z: b}),
+      ty(t, {w: c, x: c, y: d, z: c}),
+      ty(t, {w: c, x: c, y: d, z: d}),
+      ty(t, {w: c, x: d, y: b, z: b}),
+      ty(t, {w: c, x: d, y: b, z: c}),
+      ty(t, {w: c, x: d, y: b, z: d}),
+      ty(t, {w: c, x: d, y: c, z: b}),
+      ty(t, {w: c, x: d, y: c, z: c}),
+      ty(t, {w: c, x: d, y: c, z: d}),
+      ty(t, {w: c, x: d, y: d, z: b}),
+      ty(t, {w: c, x: d, y: d, z: c}),
+      ty(t, {w: c, x: d, y: d, z: d}),
+      ty(t, {w: d, x: b, y: b, z: b}),
+      ty(t, {w: d, x: b, y: b, z: c}),
+      ty(t, {w: d, x: b, y: b, z: d}),
+      ty(t, {w: d, x: b, y: c, z: b}),
+      ty(t, {w: d, x: b, y: c, z: c}),
+      ty(t, {w: d, x: b, y: c, z: d}),
+      ty(t, {w: d, x: b, y: d, z: b}),
+      ty(t, {w: d, x: b, y: d, z: c}),
+      ty(t, {w: d, x: b, y: d, z: d}),
+      ty(t, {w: d, x: c, y: b, z: b}),
+      ty(t, {w: d, x: c, y: b, z: c}),
+      ty(t, {w: d, x: c, y: b, z: d}),
+      ty(t, {w: d, x: c, y: c, z: b}),
+      ty(t, {w: d, x: c, y: c, z: c}),
+      ty(t, {w: d, x: c, y: c, z: d}),
+      ty(t, {w: d, x: c, y: d, z: b}),
+      ty(t, {w: d, x: c, y: d, z: c}),
+      ty(t, {w: d, x: c, y: d, z: d}),
+      ty(t, {w: d, x: d, y: b, z: b}),
+      ty(t, {w: d, x: d, y: b, z: c}),
+      ty(t, {w: d, x: d, y: b, z: d}),
+      ty(t, {w: d, x: d, y: c, z: b}),
+      ty(t, {w: d, x: d, y: c, z: c}),
+      ty(t, {w: d, x: d, y: c, z: d}),
+      ty(t, {w: d, x: d, y: d, z: b}),
+      ty(t, {w: d, x: d, y: d, z: c}),
+      ty(t, {w: d, x: d, y: d, z: d}),
     ]);
   });
 
@@ -160,25 +165,25 @@ void main() {
     var e = env.createClass('E', inherits: [b]);
     var f = env.createClass('F', inherits: [c]);
 
-    var t = env.createClass('T', fields: {'x': a, 'y': a});
-    expectExhaustiveOnlyAll(t, [
-      ty(t, {'x': a, 'y': a}),
+    var r = env.createRecordType({x: a, y: a});
+    expectExhaustiveOnlyAll(r, [
+      ty(r, {x: a, y: a}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      ty(t, {'x': b, 'y': b}),
-      ty(t, {'x': b, 'y': c}),
-      ty(t, {'x': c, 'y': b}),
-      ty(t, {'x': c, 'y': c}),
+    expectExhaustiveOnlyAll(r, [
+      ty(r, {x: b, y: b}),
+      ty(r, {x: b, y: c}),
+      ty(r, {x: c, y: b}),
+      ty(r, {x: c, y: c}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      ty(t, {'x': b, 'y': d}),
-      ty(t, {'x': b, 'y': e}),
-      ty(t, {'x': b, 'y': f}),
-      ty(t, {'x': c, 'y': d}),
-      ty(t, {'x': c, 'y': e}),
-      ty(t, {'x': c, 'y': f}),
+    expectExhaustiveOnlyAll(r, [
+      ty(r, {x: b, y: d}),
+      ty(r, {x: b, y: e}),
+      ty(r, {x: b, y: f}),
+      ty(r, {x: c, y: d}),
+      ty(r, {x: c, y: e}),
+      ty(r, {x: c, y: f}),
     ]);
   });
 
@@ -192,18 +197,18 @@ void main() {
     var c = env.createClass('C', inherits: [a]);
 
     // Not exhaustive even when known subtypes covered.
-    var t = env.createClass('T', fields: {'x': a, 'y': a});
+    var t = env.createRecordType({x: a, y: a});
     expectNeverExhaustive(t, [
-      ty(t, {'x': b, 'y': b}),
-      ty(t, {'x': b, 'y': c}),
-      ty(t, {'x': c, 'y': b}),
-      ty(t, {'x': c, 'y': c}),
+      ty(t, {x: b, y: b}),
+      ty(t, {x: b, y: c}),
+      ty(t, {x: c, y: b}),
+      ty(t, {x: c, y: c}),
     ]);
 
     // Exhaustive if field static type is a covered subtype.
-    var u = env.createClass('U', fields: {'x': b, 'y': c});
+    var u = env.createRecordType({x: b, y: c});
     expectExhaustiveOnlyAll(u, [
-      ty(u, {'x': b, 'y': c}),
+      ty(u, {x: b, y: c}),
     ]);
   });
 
@@ -215,24 +220,24 @@ void main() {
     var a = env.createClass('A', isSealed: true);
     var b = env.createClass('B', inherits: [a]);
     var c = env.createClass('C', inherits: [a]);
-    var t = env.createClass('T', fields: {'x': a, 'y': a, 'z': a});
+    var r = env.createRecordType({x: a, y: a, z: a});
 
-    expectNeverExhaustive(t, [
-      ty(t, {'x': b}),
-      ty(t, {'y': b}),
-      ty(t, {'z': b}),
+    expectNeverExhaustive(r, [
+      ty(r, {x: b}),
+      ty(r, {y: b}),
+      ty(r, {z: b}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      ty(t, {'x': b, 'y': a}),
-      ty(t, {'x': c, 'z': a}),
+    expectExhaustiveOnlyAll(r, [
+      ty(r, {x: b, y: a}),
+      ty(r, {x: c, z: a}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      ty(t, {'x': b, 'y': b}),
-      ty(t, {'x': b, 'y': c}),
-      ty(t, {'x': c, 'y': b}),
-      ty(t, {'x': c, 'y': c}),
+    expectExhaustiveOnlyAll(r, [
+      ty(r, {x: b, y: b}),
+      ty(r, {x: b, y: c}),
+      ty(r, {x: c, y: b}),
+      ty(r, {x: c, y: c}),
     ]);
   });
 
@@ -244,23 +249,23 @@ void main() {
     var a = env.createClass('A', isSealed: true);
     var b = env.createClass('B', inherits: [a]);
     var c = env.createClass('C', inherits: [a]);
-    var t = env.createClass('T', fields: {'x': a, 'y': b, 'z': c});
+    var r = env.createRecordType({x: a, y: b, z: c});
 
-    expectExhaustiveOnlyAll(t, [
-      ty(t, {'x': a, 'y': b, 'z': c}),
+    expectExhaustiveOnlyAll(r, [
+      ty(r, {x: a, y: b, z: c}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      ty(t, {'x': b}),
-      ty(t, {'x': c}),
+    expectExhaustiveOnlyAll(r, [
+      ty(r, {x: b}),
+      ty(r, {x: c}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      ty(t, {'y': b}),
+    expectExhaustiveOnlyAll(r, [
+      ty(r, {y: b}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      ty(t, {'z': c}),
+    expectExhaustiveOnlyAll(r, [
+      ty(r, {z: c}),
     ]);
   });
 }
