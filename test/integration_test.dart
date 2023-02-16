@@ -21,7 +21,6 @@ import 'integration/avoid_renaming_method_parameters.dart'
     as avoid_renaming_method_parameters;
 import 'integration/avoid_web_libraries_in_flutter.dart'
     as avoid_web_libraries_in_flutter;
-import 'integration/cancel_subscriptions.dart' as cancel_subscriptions;
 import 'integration/close_sinks.dart' as close_sinks;
 import 'integration/depend_on_referenced_packages.dart'
     as depend_on_referenced_packages;
@@ -168,7 +167,6 @@ void ruleTests() {
     exhaustive_cases.main();
     avoid_web_libraries_in_flutter.main();
     close_sinks.main();
-    cancel_subscriptions.main();
     depend_on_referenced_packages.main();
     flutter_style_todos.main();
     lines_longer_than_80_chars.main();
