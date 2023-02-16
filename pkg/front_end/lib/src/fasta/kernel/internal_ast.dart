@@ -4861,6 +4861,7 @@ class IfCaseMapEntry extends TreeNode
   PatternGuard patternGuard;
   MapLiteralEntry then;
   MapLiteralEntry? otherwise;
+  late List<Statement> replacement;
 
   IfCaseMapEntry(
       this.expression, this.patternGuard, this.then, this.otherwise) {
