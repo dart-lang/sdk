@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_types.dart';
+import 'package:front_end/src/fasta/kernel/constant_evaluator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -26,9 +28,10 @@ class ExhaustivenessResult {
   final List<Space> caseSpaces;
   final List<int> caseOffsets;
   final List<Space> remainingSpaces;
+  final List<ExhaustivenessError> errors;
 
   ExhaustivenessResult(this.scrutineeType, this.caseSpaces, this.caseOffsets,
-      this.remainingSpaces);
+      this.remainingSpaces, this.errors);
 }
 
 class CfeTypeOperations implements TypeOperations<DartType> {
@@ -140,7 +143,9 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
 class CfeEnumOperations
     implements EnumOperations<DartType, Class, Field, Constant> {
-  const CfeEnumOperations();
+  final ConstantEvaluator _constantEvaluator;
+
+  CfeEnumOperations(this._constantEvaluator);
 
   @override
   Class? getEnumClass(DartType type) {
@@ -162,10 +167,15 @@ class CfeEnumOperations
 
   @override
   Constant getEnumElementValue(Field enumField) {
-    // TODO(johnniwinther): Ensure that the field initializer has been
-    // evaluated.
-    ConstantExpression expression = enumField.initializer as ConstantExpression;
-    return expression.constant;
+    // Enum field initializers might not have been replaced by
+    // [ConstantExpression]s. Either because we haven't visited them yet during
+    // normal constant evaluation or because they are from outlines that are
+    // not part of the fully compiled libraries. Therefore we perform constant
+    // evaluation here, to ensure that we have the [Constant] value for the
+    // enum element.
+    StaticTypeContext context =
+        new StaticTypeContext(enumField, _constantEvaluator.typeEnvironment);
+    return _constantEvaluator.evaluate(context, enumField.initializer!);
   }
 
   @override
@@ -245,9 +255,12 @@ class CfeSealedClassOperations
 
 class CfeExhaustivenessCache
     extends ExhaustivenessCache<DartType, Class, Class, Field, Constant> {
-  CfeExhaustivenessCache(TypeEnvironment typeEnvironment)
-      : super(new CfeTypeOperations(typeEnvironment), const CfeEnumOperations(),
-            new CfeSealedClassOperations(typeEnvironment.hierarchy));
+  CfeExhaustivenessCache(ConstantEvaluator constantEvaluator)
+      : super(
+            new CfeTypeOperations(constantEvaluator.typeEnvironment),
+            new CfeEnumOperations(constantEvaluator),
+            new CfeSealedClassOperations(
+                constantEvaluator.typeEnvironment.hierarchy));
 }
 
 abstract class SwitchCaseInfo {
@@ -352,6 +365,13 @@ Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
           convertPatternToSpace(cache, subpattern, constants, context);
     }
     return new Space(cache.getStaticType(pattern.type), fields);
+  } else if (pattern is WildcardPattern) {
+    final DartType? type = pattern.type;
+    if (type == null) {
+      return Space.top;
+    } else {
+      return new Space(cache.getStaticType(type));
+    }
   }
 
   // TODO(johnniwinther): Handle remaining constants.

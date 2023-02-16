@@ -13,6 +13,7 @@ class Class {
 
 method(Class c) {
   /*analyzer.
+   error=non-exhaustive:Class(field: (A, A)($1: C, $2: C)),
    fields={field:(A, A),hashCode:int,runtimeType:Type},
    type=Class
   */switch (c) {

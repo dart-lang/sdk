@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 import "dart:math" as math;
 
-abstract class Shape extends core::Object {
+abstract sealed class Shape extends core::Object {
   synthetic constructor •() → self::Shape
     ;
   abstract method calculateArea() → core::double;

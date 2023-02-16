@@ -1548,8 +1548,11 @@ class KernelTarget extends TargetImplementation {
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             exhaustivenessDataForTesting:
                 loader.dataForTesting?.exhaustivenessData);
-    assert(exhaustivenessInfo.isEmpty,
-        "Unhandled exhaustiveness for ${exhaustivenessInfo.nodes}.");
+    // TODO(johnniwinther): We don't handle exhaustive for switch expression
+    // occurring in constant context. These are error cases. Find a way to
+    // support this.
+    /*assert(exhaustivenessInfo.isEmpty,
+        "Unhandled exhaustiveness for ${exhaustivenessInfo.nodes}.");*/
     ticker.logMs("Evaluated constants");
 
     markLibrariesUsed(constantEvaluationData.visitedLibraries);

@@ -7855,6 +7855,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               messageSwitchExpressionEmpty, node.fileOffset, noLength));
     }
 
+    List<SwitchCaseInfo> previousSwitchPatternInfo = _switchCasePatternInfo;
+    _switchCasePatternInfo = [];
+
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -7962,6 +7965,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ], fileOffset: node.fileOffset),
         createVariableGet(valueVariable),
         fileOffset: node.fileOffset);
+
+    if (libraryBuilder.libraryFeatures.patterns.isEnabled) {
+      SwitchInfo info = new SwitchInfo(
+          replacement, scrutineeType, _switchCasePatternInfo,
+          mustBeExhaustive: true, fileOffset: node.expression.fileOffset);
+      libraryBuilder.loader.target.exhaustivenessInfo.registerSwitchInfo(info);
+    }
+
+    _switchCasePatternInfo = previousSwitchPatternInfo;
 
     assert(checkStack(node, stackBase, [/*empty*/]));
 

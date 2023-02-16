@@ -832,6 +832,14 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         exhaustivenessDataForTesting.remainingSpaces[node] =
             remainingSpaces.last;
       }
+      for (var error in errors) {
+        if (error is UnreachableCaseError) {
+          exhaustivenessDataForTesting.errors[caseNodesWithSpace[error.index]] =
+              error;
+        } else {
+          exhaustivenessDataForTesting.errors[node] = error;
+        }
+      }
     }
   }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_types.dart';
@@ -317,4 +318,8 @@ class ExhaustivenessDataForTesting {
   /// Map from switch case nodes to the remaining space before the case or
   /// from statement/expression nodes to the remaining space after all cases.
   Map<AstNode, Space> remainingSpaces = {};
+
+  /// Map from switch statement/expression/case nodes to the error reported
+  /// on the node.
+  Map<AstNode, ExhaustivenessError> errors = {};
 }
