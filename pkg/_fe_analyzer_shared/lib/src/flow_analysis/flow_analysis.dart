@@ -801,7 +801,13 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [switchStatement_expressionEnd] for details.`
   ///
   /// [guard] should be the expression following the `when` keyword, if present.
-  void switchStatement_endAlternative(Expression? guard);
+  ///
+  /// If the clause is a `case` clause, [variables] should contain an entry for
+  /// all variables defined by the clause's pattern; the key should be the
+  /// variable name and the value should be the variable itself.  If the clause
+  /// is a `default` clause, [variables] should be an empty map.
+  void switchStatement_endAlternative(
+      Expression? guard, Map<String, Variable> variables);
 
   /// Call this method just after visiting a sequence of one or more `case` or
   /// `default` clauses that share a body.  See [switchStatement_expressionEnd]
@@ -811,7 +817,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [AssignedVariables.endNode] for the switch statement.
   ///
   /// [hasLabels] indicates whether the case has any labels.
-  void switchStatement_endAlternatives(Statement? node,
+  ///
+  /// Returns a data structure describing the relationship among variables
+  /// defined by patterns in the various alternatives.
+  PatternVariableInfo<Variable> switchStatement_endAlternatives(Statement? node,
       {required bool hasLabels});
 
   /// Call this method just after visiting the expression part of a switch
@@ -1678,18 +1687,21 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_endAlternative(Expression? guard) {
-    _wrap('switchStatement_endAlternative($guard)',
-        () => _wrapped.switchStatement_endAlternative(guard));
+  void switchStatement_endAlternative(
+      Expression? guard, Map<String, Variable> variables) {
+    _wrap('switchStatement_endAlternative($guard, $variables)',
+        () => _wrapped.switchStatement_endAlternative(guard, variables));
   }
 
   @override
-  void switchStatement_endAlternatives(Statement? node,
+  PatternVariableInfo<Variable> switchStatement_endAlternatives(Statement? node,
       {required bool hasLabels}) {
-    _wrap(
+    return _wrap(
         'switchStatement_endAlternatives($node, hasLabels: $hasLabels)',
         () => _wrapped.switchStatement_endAlternatives(node,
-            hasLabels: hasLabels));
+            hasLabels: hasLabels),
+        isQuery: true,
+        isPure: false);
   }
 
   @override
@@ -2702,6 +2714,19 @@ abstract class Operations<Variable extends Object, Type extends Object>
   /// [FlowAnalysis.promotedPropertyType], [FlowAnalysis.propertyGet], or
   /// [FlowAnalysis.thisOrSuperPropertyGet].
   bool isPropertyPromotable(Object property);
+}
+
+/// Data structure describing the relationship among variables defined by
+/// patterns in the various alternatives of a set of switch cases that share a
+/// body.
+class PatternVariableInfo<Variable> {
+  /// Map from variable name to a list of the variables with this name defined
+  /// in each case.
+  final Map<String, List<Variable>> componentVariables = {};
+
+  /// Map from variable name to the promotion key used by flow analysis to track
+  /// the merged variable.
+  final Map<String, int> patternVariablePromotionKeys = {};
 }
 
 /// Non-promotion reason describing the situation where an expression was not
@@ -4565,8 +4590,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void switchStatement_beginAlternative() {
-    _SwitchAlternativesContext<Type> context =
-        _stack.last as _SwitchAlternativesContext<Type>;
+    _SwitchAlternativesContext<Variable, Type> context =
+        _stack.last as _SwitchAlternativesContext<Variable, Type>;
     _current = context._switchStatementContext._unmatched;
     _pushPattern(context._switchStatementContext._matchedValueInfo);
   }
@@ -4575,7 +4600,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void switchStatement_beginAlternatives() {
     _SwitchStatementContext<Type> context =
         _stack.last as _SwitchStatementContext<Type>;
-    _stack.add(new _SwitchAlternativesContext<Type>(context));
+    _stack.add(new _SwitchAlternativesContext<Variable, Type>(context));
   }
 
   @override
@@ -4605,22 +4630,50 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_endAlternative(Expression? guard) {
+  void switchStatement_endAlternative(
+      Expression? guard, Map<String, Variable> variables) {
     FlowModel<Type> unmatched = _popPattern(guard);
-    _SwitchAlternativesContext<Type> context =
-        _stack.last as _SwitchAlternativesContext<Type>;
+    _SwitchAlternativesContext<Variable, Type> context =
+        _stack.last as _SwitchAlternativesContext<Variable, Type>;
     // Future alternatives will be analyzed under the assumption that this
     // alternative didn't match.  This models the fact that a switch statement
     // behaves like a chain of if/else tests.
     context._switchStatementContext._unmatched = unmatched;
+
+    PatternVariableInfo<Variable> patternVariableInfo =
+        context._patternVariableInfo;
+    for (MapEntry<String, Variable> entry in variables.entries) {
+      String variableName = entry.key;
+      Variable variable = entry.value;
+      (patternVariableInfo.componentVariables[variableName] ??= [])
+          .add(variable);
+      int promotionKey = promotionKeyStore.keyForVariable(variable);
+      // See if this variable appeared in any previous patterns that share the
+      // same case body.
+      int? previousPromotionKey =
+          patternVariableInfo.patternVariablePromotionKeys[variableName];
+      if (previousPromotionKey == null) {
+        // This variable hasn't been seen in any previous patterns that share
+        // the same body.  So we can safely use the promotion key we have to
+        // store information about this variable.
+        patternVariableInfo.patternVariablePromotionKeys[variableName] =
+            promotionKey;
+      } else {
+        // This variable has been seen in previous patterns, so we have to
+        // copy promotion data into the previously-used promotion key, to
+        // ensure that the promotion information is properly joined.
+        copyPromotionData(
+            sourceKey: promotionKey, destinationKey: previousPromotionKey);
+      }
+    }
     context._combinedModel = _join(context._combinedModel, _current);
   }
 
   @override
-  void switchStatement_endAlternatives(Statement? node,
+  PatternVariableInfo<Variable> switchStatement_endAlternatives(Statement? node,
       {required bool hasLabels}) {
-    _SwitchAlternativesContext<Type> alternativesContext =
-        _stack.removeLast() as _SwitchAlternativesContext<Type>;
+    _SwitchAlternativesContext<Variable, Type> alternativesContext =
+        _stack.removeLast() as _SwitchAlternativesContext<Variable, Type>;
     _SwitchStatementContext<Type> switchContext =
         _stack.last as _SwitchStatementContext<Type>;
     if (hasLabels) {
@@ -4634,6 +4687,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // able to tell whether the end of the case body was reachable from its
     // start.
     _current = _current.split();
+    return alternativesContext._patternVariableInfo;
   }
 
   @override
@@ -5900,11 +5954,13 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_endAlternative(Expression? guard) {}
+  void switchStatement_endAlternative(
+      Expression? guard, Map<String, Variable> variables) {}
 
   @override
-  void switchStatement_endAlternatives(Statement? node,
-      {required bool hasLabels}) {}
+  PatternVariableInfo<Variable> switchStatement_endAlternatives(Statement? node,
+          {required bool hasLabels}) =>
+      new PatternVariableInfo();
 
   @override
   void switchStatement_expressionEnd(
@@ -6244,9 +6300,15 @@ class _SimpleStatementContext<Type extends Object>
   String get _debugType => '_SimpleStatementContext';
 }
 
-class _SwitchAlternativesContext<Type extends Object> extends _FlowContext {
+class _SwitchAlternativesContext<Variable extends Object, Type extends Object>
+    extends _FlowContext {
   /// The enclosing [_SwitchStatementContext].
   final _SwitchStatementContext<Type> _switchStatementContext;
+
+  /// Data structure accumulating information about the relationship among
+  /// variables defined by patterns in the various alternatives.
+  final PatternVariableInfo<Variable> _patternVariableInfo =
+      new PatternVariableInfo();
 
   FlowModel<Type>? _combinedModel;
 

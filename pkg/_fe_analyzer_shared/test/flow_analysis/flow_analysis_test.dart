@@ -8896,10 +8896,16 @@ main() {
           var x2 = Var('x', identity: 'x2');
           var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
           h.run([
-            switch_(expr('int?'), [
+            switch_(expr('(int, int?)'), [
               switchStatementMember([
-                x1.pattern(type: 'int?').nullCheck.switchCase,
-                x2.pattern(type: 'int?').switchCase
+                recordPattern([
+                  intLiteral(0).pattern.recordField(),
+                  x1.pattern(type: 'int?').nullCheck.recordField()
+                ]).switchCase,
+                recordPattern([
+                  intLiteral(1).pattern.recordField(),
+                  x2.pattern(type: 'int?').recordField()
+                ]).switchCase
               ], [
                 checkNotPromoted(x),
               ])
@@ -8912,10 +8918,16 @@ main() {
           var x2 = Var('x', identity: 'x2');
           var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
           h.run([
-            switch_(expr('int?'), [
+            switch_(expr('(int, int?)'), [
               switchStatementMember([
-                x1.pattern(type: 'int?').switchCase,
-                x2.pattern(type: 'int?').nullCheck.switchCase
+                recordPattern([
+                  intLiteral(0).pattern.recordField(),
+                  x1.pattern(type: 'int?').recordField()
+                ]).switchCase,
+                recordPattern([
+                  intLiteral(1).pattern.recordField(),
+                  x2.pattern(type: 'int?').nullCheck.recordField()
+                ]).switchCase
               ], [
                 checkNotPromoted(x),
               ])
@@ -8932,6 +8944,34 @@ main() {
               switchStatementMember([
                 x1.pattern(type: 'int?').nullCheck.switchCase,
                 x2.pattern(type: 'int?').nullCheck.switchCase
+              ], [
+                checkPromoted(x, 'int'),
+              ])
+            ]),
+          ]);
+        });
+
+        test('Promoted via when clause', () {
+          // Equivalent Dart code:
+          //     switch (... as (int, int?)) {
+          //       case (0, int? x?):
+          //       case (1, int? x) where x != null:
+          //         x; // Should be promoted to non-null
+          //     }
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            switch_(expr('(int, int?)'), [
+              switchStatementMember([
+                recordPattern([
+                  intLiteral(0).pattern.recordField(),
+                  x1.pattern(type: 'int?').nullCheck.recordField()
+                ]).switchCase,
+                recordPattern([
+                  intLiteral(1).pattern.recordField(),
+                  x2.pattern(type: 'int?').recordField()
+                ]).when(x2.expr.notEq(nullLiteral)).switchCase,
               ], [
                 checkPromoted(x, 'int'),
               ])
