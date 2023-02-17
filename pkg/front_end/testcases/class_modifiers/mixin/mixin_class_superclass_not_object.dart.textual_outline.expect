@@ -1,4 +1,6 @@
+mixin
 class NotObject {}
+mixin
 class AlsoNotObject {}
 mixin
 class A extends NotObject {}

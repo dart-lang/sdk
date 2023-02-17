@@ -2218,13 +2218,11 @@ severity: $severity
     if (mixedInTypeBuilder != null) {
       final TypeDeclarationBuilder? mixedInTypeDeclaration =
           unaliasDeclaration(mixedInTypeBuilder);
-      if (mixedInTypeDeclaration is ClassBuilder &&
-          cls.libraryBuilder.origin !=
-              mixedInTypeDeclaration.libraryBuilder.origin) {
+      if (mixedInTypeDeclaration is ClassBuilder) {
         if (isClassModifiersEnabled(mixedInTypeDeclaration)) {
           // Check for implicit class mixins.
           // Only classes declared with a 'mixin' modifier are allowed to be
-          // mixed in outside of its library.
+          // mixed in.
           if (cls.isMixinApplication &&
               !mixedInTypeDeclaration.isMixinDeclaration &&
               !mixedInTypeDeclaration.isMixinClass) {
@@ -2234,25 +2232,31 @@ severity: $severity
                 mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
                 noLength);
           }
-          if (mixedInTypeDeclaration.isInterface) {
-            cls.addProblem(
-                templateInterfaceMixinMixedInOutsideOfLibrary
-                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
-                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-                noLength);
-          } else if (mixedInTypeDeclaration.isFinal) {
-            cls.addProblem(
-                templateFinalMixinMixedInOutsideOfLibrary
-                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
-                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-                noLength);
+
+          if (cls.libraryBuilder.origin !=
+              mixedInTypeDeclaration.libraryBuilder.origin) {
+            if (mixedInTypeDeclaration.isInterface) {
+              cls.addProblem(
+                  templateInterfaceMixinMixedInOutsideOfLibrary
+                      .withArguments(mixedInTypeDeclaration.fullNameForErrors),
+                  mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
+                  noLength);
+            } else if (mixedInTypeDeclaration.isFinal) {
+              cls.addProblem(
+                  templateFinalMixinMixedInOutsideOfLibrary
+                      .withArguments(mixedInTypeDeclaration.fullNameForErrors),
+                  mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
+                  noLength);
+            }
           }
         }
 
         // Report error for mixing in a sealed mixin outside of its library.
         // Assume these are all mixin declarations and cannot be classes.
         if (isSealedClassEnabled(mixedInTypeDeclaration) &&
-            mixedInTypeDeclaration.isSealed) {
+            mixedInTypeDeclaration.isSealed &&
+            cls.libraryBuilder.origin !=
+                mixedInTypeDeclaration.libraryBuilder.origin) {
           cls.addProblem(
               templateSealedMixinSubtypeOutsideOfLibrary
                   .withArguments(mixedInTypeDeclaration.fullNameForErrors),
