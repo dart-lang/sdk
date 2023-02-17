@@ -88,6 +88,10 @@
       "third_party/pkg/",
       "third_party/requirejs/",
       "tools/",
+      "xcodebuild/ReleaseARM64/dart-sdk/",
+      "xcodebuild/ReleaseARM64/ddc_outline.dill",
+      "xcodebuild/ReleaseARM64/ddc_outline_unsound.dill",
+      "xcodebuild/ReleaseARM64/gen/utils/dartdevc/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
       "xcodebuild/ReleaseX64/dart-sdk/",
       "xcodebuild/ReleaseX64/ddc_outline.dill",
@@ -1049,6 +1053,65 @@
         "ddc-options": [
           "--canary"
         ]
+      }
+    },
+    "ddc-(linux|win)-chrome": {
+      "options": {
+        "checked": true,
+        "nnbd": "strong",
+        "use-sdk": true
+      }
+    },
+    "ddc-mac-chrome": {
+      "options": {
+        "architecture": "arm64",
+        "checked": true,
+        "nnbd": "strong",
+        "use-sdk": true
+      }
+    },
+    "ddc-linux-firefox": {
+      "options": {
+        "checked": true,
+        "nnbd": "strong",
+        "use-sdk": true
+      }
+    },
+    "ddc-linux-chrome-unsound": {
+      "options": {
+        "checked": true,
+        "nnbd": "weak",
+        "use-sdk": true
+      }
+    },
+    "ddc-linux-chrome-unsound_2": {
+      "options": {
+        "builder-tag": "legacy-test-suites",
+        "checked": true,
+        "nnbd": "weak",
+        "use-sdk": true
+      }
+    },
+    "ddc-canary-linux-chrome": {
+      "options": {
+        "builder-tag": "canary",
+        "checked": true,
+        "ddc-options": [
+          "--canary"
+        ],
+        "nnbd": "strong",
+        "use-sdk": true
+      }
+    },
+    "ddc-canary-linux-chrome-unsound": {
+      "options": {
+        "builder-tag": "canary",
+        "checked": true,
+        "ddc-options": [
+          "--canary"
+        ],
+        "nnbd": "weak",
+        "use-sdk": true
       }
     },
     "cfe-(linux|mac|win)": {
@@ -2570,6 +2633,359 @@
             "-o",
             "xcodebuild/ReleaseX64/dartdevk.js",
             "pkg/dev_compiler/bin/dartdevc.dart"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "ddc-linux-chrome",
+        "ddc-win-chrome"
+      ],
+      "meta": {
+        "description": "DDC running in Chrome on Linux and Windows."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dart2js_bot",
+            "dartdevc_test"
+          ]
+        },
+        {
+          "name": "ddc sdk tests",
+          "arguments": [
+            "-nddc-${system}-chrome",
+            "corelib",
+            "dartdevc",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc co19 tests",
+          "arguments": [
+            "-nddc-${system}-chrome",
+            "co19"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc modular tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite.dart",
+            "-nddc-${system}-chrome",
+            "--verbose",
+            "--use-sdk"
+          ]
+        },
+        {
+          "name": "ddc sourcemap tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_suite.dart",
+            "-rnone"
+          ]
+        },
+        {
+          "name": "ddc sourcemap stacktrace tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/stacktrace_suite.dart",
+            "-rnone"
+          ]
+        },
+        {
+          "name": "ddc worker tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/worker/worker_test.dart",
+            "-rnone"
+          ]
+        },
+        {
+          "name": "ddc self host test",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "--enable-asserts",
+            "pkg/dev_compiler/bin/dartdevc.dart",
+            "--sound-null-safety",
+            "-o",
+            "out/ReleaseX64/dartdevc.js",
+            "pkg/dev_compiler/bin/dartdevc.dart"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "ddc-mac-chrome"
+      ],
+      "meta": {
+        "description": "DDC running in Chrome on Mac."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=arm64",
+            "dart2js_bot",
+            "dartdevc_test"
+          ]
+        },
+        {
+          "name": "ddc sdk tests",
+          "arguments": [
+            "-nddc-mac-chrome",
+            "--arch=arm64",
+            "corelib",
+            "dartdevc",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc modular tests",
+          "script": "xcodebuild/ReleaseARM64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite.dart",
+            "-nddc-mac-chrome",
+            "--verbose",
+            "--use-sdk"
+          ]
+        },
+        {
+          "name": "ddc sourcemap tests",
+          "script": "xcodebuild/ReleaseARM64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_suite.dart",
+            "-rnone"
+          ]
+        },
+        {
+          "name": "ddc sourcemap stacktrace tests",
+          "script": "xcodebuild/ReleaseARM64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/stacktrace_suite.dart",
+            "-rnone"
+          ]
+        },
+        {
+          "name": "ddc worker tests",
+          "script": "xcodebuild/ReleaseARM64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/worker/worker_test.dart",
+            "-rnone"
+          ]
+        },
+        {
+          "name": "ddc self host test",
+          "script": "xcodebuild/ReleaseARM64/dart-sdk/bin/dart",
+          "arguments": [
+            "--enable-asserts",
+            "pkg/dev_compiler/bin/dartdevc.dart",
+            "--sound-null-safety",
+            "-o",
+            "xcodebuild/ReleaseARM64/dartdevc.js",
+            "pkg/dev_compiler/bin/dartdevc.dart"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "ddc-linux-firefox"
+      ],
+      "meta": {
+        "description": "DDC running in Firefox on Linux ."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dart2js_bot",
+            "dartdevc_test"
+          ]
+        },
+        {
+          "name": "ddc sdk tests",
+          "arguments": [
+            "-nddc-${system}-firefox",
+            "corelib",
+            "dartdevc",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc co19 tests",
+          "arguments": [
+            "-nddc-${system}-firefox",
+            "co19"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "ddc-linux-chrome-unsound"
+      ],
+      "meta": {
+        "description": "DDC without sound null safety running in Chrome on Linux."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dartdevc_test"
+          ]
+        },
+        {
+          "name": "ddc sdk tests unsound",
+          "arguments": [
+            "-nddc-linux-chrome-unsound",
+            "corelib",
+            "dartdevc",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc sdk _2 tests",
+          "arguments": [
+            "-nddc-linux-chrome-unsound_2",
+            "corelib_2",
+            "dartdevc_2",
+            "language_2",
+            "lib_2",
+            "web_2"
+          ],
+          "shards": 6,
+          "fileset": "web_platform"
+        },
+        {
+          "name": "ddc co19 tests unsound",
+          "arguments": [
+            "-nddc-linux-chrome-unsound",
+            "co19"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc co19_2 tests",
+          "arguments": [
+            "-nddc-linux-chrome-unsound_2",
+            "co19_2"
+          ],
+          "shards": 6,
+          "fileset": "web_platform"
+        },
+        {
+          "name": "ddc modular tests unsound",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite_unsound.dart",
+            "-nddc-linux-chrome-unsound",
+            "--verbose",
+            "--use-sdk"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "ddc-canary-linux-chrome"
+      ],
+      "meta": {
+        "description": "DDC in canary mode running in Chrome on Linux."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dartdevc_test",
+            "--gn-args=ddc_canary=true"
+          ]
+        },
+        {
+          "name": "ddc sdk tests",
+          "arguments": [
+            "-nddc-canary-linux-chrome",
+            "corelib",
+            "dartdevc",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc sdk tests unsound",
+          "arguments": [
+            "-nddc-canary-linux-chrome-unsound",
+            "corelib",
+            "dartdevc",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc co19 tests",
+          "arguments": [
+            "-nddc-canary-linux-chrome",
+            "co19"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc co19 tests unsound",
+          "arguments": [
+            "-nddc-canary-linux-chrome-unsound",
+            "co19"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc modular tests unsound",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite_canary_unsound.dart",
+            "-nddc-canary-linux-chrome-unsound",
+            "--verbose",
+            "--use-sdk"
           ]
         }
       ]
