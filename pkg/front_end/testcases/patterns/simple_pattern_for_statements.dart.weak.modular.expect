@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method test1(dynamic x) → dynamic {
+  {
+    core::int i;
+    {
+      final dynamic #0#0 = x;
+      late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = i = #0#6{core::int} in true))))
+        throw new _in::ReachabilityError::•();
+    }
+    for (; true; ) {
+      return i;
+    }
+  }
+}
+static method main() → dynamic {
+  self::expectEquals(self::test1(<core::int>[0]), 0);
+  self::expectThrows(() → void => self::test1(<dynamic>[]));
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected '${x}' to be equal to '${y}'.";
+  }
+}
+static method expectThrows(() → void f) → dynamic {
+  core::bool hasThrown = true;
+  try {
+    f(){() → void};
+    hasThrown = false;
+  }
+  on core::Object catch(final core::Object e) {
+  }
+  if(!hasThrown) {
+    throw "Expected function to throw.";
+  }
+}
+
+constants  {
+  #C1 = 1
+}
