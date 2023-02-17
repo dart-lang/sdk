@@ -385,8 +385,18 @@ class Types {
     w.Instructions b = codeGen.b;
     b.i32_const(encodedNullability(type));
     b.i64_const(typeParameterOffset);
+
+    // List<_Type> typeParameterBounds
     _makeTypeList(codeGen, type.typeParameters.map((p) => p.bound).toList());
+
+    // List<_Type> typeParameterDefaults
+    _makeTypeList(
+        codeGen, type.typeParameters.map((p) => p.defaultType).toList());
+
+    // _Type returnType
     makeType(codeGen, type.returnType);
+
+    // List<_Type> positionalParameters
     if (type.positionalParameters.every(_isTypeConstant)) {
       translator.constants.instantiateConstant(
           codeGen.function,
@@ -396,7 +406,11 @@ class Types {
     } else {
       _makeTypeList(codeGen, type.positionalParameters);
     }
+
+    // int requiredParameterCount
     b.i64_const(type.requiredParameterCount);
+
+    // List<_NamedParameter> namedParameters
     if (type.namedParameters.every((n) => _isTypeConstant(n.type))) {
       translator.constants.instantiateConstant(
           codeGen.function,

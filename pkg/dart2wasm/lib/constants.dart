@@ -717,6 +717,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     int typeParameterOffset = types.computeFunctionTypeParameterOffset(type);
     ListConstant typeParameterBoundsConstant = constants
         .makeTypeList(type.typeParameters.map((p) => p.bound).toList());
+    ListConstant typeParameterDefaultsConstant = constants
+        .makeTypeList(type.typeParameters.map((p) => p.defaultType).toList());
     TypeLiteralConstant returnTypeConstant =
         TypeLiteralConstant(type.returnType);
     ListConstant positionalParametersConstant =
@@ -726,6 +728,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     ListConstant namedParametersConstant =
         constants.makeNamedParametersList(type);
     ensureConstant(typeParameterBoundsConstant);
+    ensureConstant(typeParameterDefaultsConstant);
     ensureConstant(returnTypeConstant);
     ensureConstant(positionalParametersConstant);
     ensureConstant(requiredParameterCountConstant);
@@ -737,6 +740,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i64_const(typeParameterOffset);
       constants.instantiateConstant(
           function, b, typeParameterBoundsConstant, types.typeListExpectedType);
+      constants.instantiateConstant(function, b, typeParameterDefaultsConstant,
+          types.typeListExpectedType);
       constants.instantiateConstant(
           function, b, returnTypeConstant, types.nonNullableTypeType);
       constants.instantiateConstant(function, b, positionalParametersConstant,
