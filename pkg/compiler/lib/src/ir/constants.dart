@@ -85,23 +85,19 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
     if (requireConstant) {
       return super.evaluate(staticTypeContext, node, contextNode: contextNode);
     } else {
-      try {
-        ir.Constant constant =
-            super.evaluate(staticTypeContext, node, contextNode: contextNode);
-        if (constant is ir.UnevaluatedConstant &&
-            constant.expression is ir.InvalidExpression) {
-          return null;
-        }
-        if (replaceImplicitConstant) {
-          // Note: Using [replaceWith] is slow and should be avoided.
-          node.replaceWith(ir.ConstantExpression(
-              constant, node.getStaticType(staticTypeContext))
-            ..fileOffset = node.fileOffset);
-        }
-        return constant;
-      } catch (e) {
+      ir.Constant constant =
+          super.evaluate(staticTypeContext, node, contextNode: contextNode);
+      if (constant is ir.UnevaluatedConstant &&
+          constant.expression is ir.InvalidExpression) {
         return null;
       }
+      if (replaceImplicitConstant) {
+        // Note: Using [replaceWith] is slow and should be avoided.
+        node.replaceWith(ir.ConstantExpression(
+            constant, node.getStaticType(staticTypeContext))
+          ..fileOffset = node.fileOffset);
+      }
+      return constant;
     }
   }
 }
