@@ -1,0 +1,4 @@
+expectEquals(x, y) {}
+expectThrows(void Function() f) {}
+main() {}
+test1(dynamic x) {}

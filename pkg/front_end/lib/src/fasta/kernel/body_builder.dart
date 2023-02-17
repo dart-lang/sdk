@@ -4010,6 +4010,8 @@ class BodyBuilder extends StackListenerImpl
         variables.addAll(_buildForLoopVariableDeclarations(v)!);
       }
       return variables;
+    } else if (variableOrExpression is PatternVariableDeclaration) {
+      return <VariableDeclaration>[];
     } else if (variableOrExpression == null) {
       return <VariableDeclaration>[];
     }
@@ -4050,6 +4052,42 @@ class BodyBuilder extends StackListenerImpl
       // [endForControlFlow].
       typeInferrer.assignedVariables.beginNode();
     }
+  }
+
+  @override
+  void handleForInitializerPatternVariableAssignment(
+      Token keyword, Token equals) {
+    debugEvent("handleForInitializerPatternVariableAssignment");
+    assert(checkState(keyword, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern,
+      ]),
+    ]));
+
+    Object expression = pop() as Object;
+    Object pattern = pop() as Object;
+
+    if (pattern is Pattern) {
+      pop(); // Metadata.
+      for (VariableDeclaration variable in pattern.declaredVariables) {
+        declareVariable(variable, scope);
+        typeInferrer.assignedVariables.declare(variable);
+      }
+      push(new PatternVariableDeclaration(pattern, toValue(expression),
+          fileOffset: offsetForToken(keyword),
+          isFinal: keyword.lexeme == "final"));
+    }
+
+    // This is matched by the call to [deferNode] in [endForStatement].
+    typeInferrer.assignedVariables.beginNode();
   }
 
   @override
@@ -4153,6 +4191,7 @@ class BodyBuilder extends StackListenerImpl
     Statement conditionStatement = popStatement();
     // This is matched by the call to [beginNode] in
     // [handleForInitializerEmptyStatement],
+    // [handleForInitializerPatternVariableAssignment],
     // [handleForInitializerExpressionStatement], and
     // [handleForInitializerLocalVariableDeclaration].
     AssignedVariablesNodeInfo assignedVariablesNodeInfo =
@@ -4191,6 +4230,10 @@ class BodyBuilder extends StackListenerImpl
       LabeledStatement labeledStatement = forest.createLabeledStatement(result);
       breakTarget.resolveBreaks(forest, labeledStatement, forStatement);
       result = labeledStatement;
+    }
+    if (variableOrExpression is PatternVariableDeclaration) {
+      result = forest.createBlock(result.fileOffset, result.fileOffset,
+          <Statement>[variableOrExpression, result]);
     }
     if (variableOrExpression is ParserRecovery) {
       problemInLoopOrSwitch ??= buildProblemStatement(

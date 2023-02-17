@@ -34,7 +34,7 @@ class FieldIndex {
   static const instantiationContextTypeArgumentsBase = 1;
   static const typeIsDeclaredNullable = 2;
   static const interfaceTypeTypeArguments = 4;
-  static const functionTypeNamedParameters = 8;
+  static const functionTypeNamedParameters = 9;
   static const recordTypeNames = 3;
   static const recordTypeFieldTypes = 4;
   static const typedListBaseLength = 2;

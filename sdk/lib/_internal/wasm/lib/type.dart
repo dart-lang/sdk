@@ -316,6 +316,7 @@ class _FunctionType extends _Type {
   // representations that don't have this overhead in the common case.
   final int typeParameterOffset;
   final List<_Type> typeParameterBounds;
+  final List<_Type> typeParameterDefaults;
   final _Type returnType;
   final List<_Type> positionalParameters;
   final int requiredParameterCount;
@@ -325,6 +326,7 @@ class _FunctionType extends _Type {
   const _FunctionType(
       this.typeParameterOffset,
       this.typeParameterBounds,
+      this.typeParameterDefaults,
       this.returnType,
       this.positionalParameters,
       this.requiredParameterCount,
@@ -335,6 +337,7 @@ class _FunctionType extends _Type {
   _Type get _asNonNullable => _FunctionType(
       typeParameterOffset,
       typeParameterBounds,
+      typeParameterDefaults,
       returnType,
       positionalParameters,
       requiredParameterCount,
@@ -345,6 +348,7 @@ class _FunctionType extends _Type {
   _Type get _asNullable => _FunctionType(
       typeParameterOffset,
       typeParameterBounds,
+      typeParameterDefaults,
       returnType,
       positionalParameters,
       requiredParameterCount,
@@ -679,6 +683,12 @@ class _TypeUniverse {
           isRoot
               ? const []
               : functionType.typeParameterBounds
+                  .map((type) =>
+                      substituteTypeArgument(type, substitutions, rootFunction))
+                  .toList(),
+          isRoot
+              ? const []
+              : functionType.typeParameterDefaults
                   .map((type) =>
                       substituteTypeArgument(type, substitutions, rootFunction))
                   .toList(),
@@ -1032,10 +1042,9 @@ bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
     List<Object?> positionalArguments, List<dynamic> namedArguments) {
   // Check type args, add default types to the type list if its empty
   if (typeArguments.isEmpty) {
-    // TODO(50992): Default values of type parameters are not available in
-    // runtime
-    typeArguments.addAll(functionType.typeParameterBounds);
-  } else if (typeArguments.length != functionType.typeParameterBounds.length) {
+    typeArguments.addAll(functionType.typeParameterDefaults);
+  } else if (typeArguments.length !=
+      functionType.typeParameterDefaults.length) {
     return false;
   }
 
