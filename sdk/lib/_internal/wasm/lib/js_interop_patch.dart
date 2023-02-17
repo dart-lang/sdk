@@ -5,6 +5,7 @@
 import 'dart:_internal' show patch;
 import 'dart:_js_helper';
 import 'dart:async' show Completer;
+import 'dart:js_interop';
 import 'dart:js_util' show NullRejectionException;
 import 'dart:typed_data';
 import 'dart:wasm';
@@ -12,8 +13,20 @@ import 'dart:wasm';
 /// Some helpers for working with JS types internally. If we implement the JS
 /// types as inline classes then these should go away.
 /// TODO(joshualitt): Find a way to get rid of the explicit casts.
-WasmExternRef _ref<T>(T o) => (o as JSValue).toExternRef();
-T _box<T>(WasmExternRef? ref) => JSValue.box(ref) as T;
+WasmExternRef? _ref<T>(T o) => (o as JSValue).toExternRef();
+T _box<T>(WasmExternRef? ref) => JSValue(ref) as T;
+
+/// Helper for working with the [JSAny?] top type in a backend agnostic way.
+extension NullableUndefineableJSAnyExtension on JSAny? {
+  // TODO(joshualitt): To support incremental migration of existing users to
+  // reified `JSUndefined` and `JSNull`, we have to handle the case where
+  // `this == null`. However, after migration we can remove these checks.
+  @patch
+  bool get isUndefined => this == null || isJSUndefined(_ref<JSAny>(this!));
+
+  @patch
+  bool get isNull => this == null || _ref<JSAny>(this!).isNull;
+}
 
 /// [JSExportedDartFunction] <-> [Function]
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {

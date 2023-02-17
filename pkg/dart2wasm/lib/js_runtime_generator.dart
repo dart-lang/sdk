@@ -433,7 +433,7 @@ class _JSLowerer extends Transformer {
       Expression expression;
       VariableGet v = VariableGet(positionalParameters[i]);
       if (_isStaticInteropType(callbackParameterType) && boxExternRef) {
-        expression = _invokeOneArg(_jsValueBoxTarget, v);
+        expression = _createJSValue(v);
       } else {
         expression = AsExpression(
             _invokeOneArg(_dartifyRawTarget, v), callbackParameterType);
@@ -630,6 +630,9 @@ class _JSLowerer extends Transformer {
             type));
   }
 
+  Expression _createJSValue(Expression value) =>
+      ConstructorInvocation(_jsValueConstructor, Arguments([value]));
+
   /// Lowers an invocation of `<Function>.toJS` to:
   ///
   ///   JSValue(jsWrapperFunction(<Function>))
@@ -639,16 +642,11 @@ class _JSLowerer extends Transformer {
         _createFunctionTrampoline(node, type, boxExternRef: true);
     Procedure jsWrapperFunction =
         _getJSWrapperFunction(type, functionTrampolineName, node.fileUri);
-    return ConstructorInvocation(
-        _jsValueConstructor,
+    return _createJSValue(StaticInvocation(
+        jsWrapperFunction,
         Arguments([
-          StaticInvocation(
-              jsWrapperFunction,
-              Arguments([
-                StaticInvocation(
-                    _jsObjectFromDartObjectTarget, Arguments([argument]))
-              ]))
-        ]));
+          StaticInvocation(_jsObjectFromDartObjectTarget, Arguments([argument]))
+        ])));
   }
 
   InstanceInvocation _invokeMethod(
@@ -711,6 +709,9 @@ class _JSLowerer extends Transformer {
     } else {
       Expression expression;
       if (_isStaticInteropType(returnType)) {
+        // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
+        // code after migrating existing users of js interop on Dart2Wasm.
+        // expression = _createJSValue(invocation);
         expression = _invokeOneArg(_jsValueBoxTarget, invocation);
       } else {
         expression = AsExpression(

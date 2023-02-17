@@ -93,7 +93,21 @@ typedef JSBoolean = js_types.JSBoolean;
 /// The type of JS strings, [JSString] <: [JSAny].
 typedef JSString = js_types.JSString;
 
-/// TODO(joshualitt): Figure out how we want to handle JSUndefined and JSNull.
+/// `JSUndefined` and `JSNull` are actual reified types on some backends, but
+/// not others. Instead, users should use nullable types for any type that could
+/// contain `JSUndefined` or `JSNull`. However, instead of trying to determine
+/// the nullability of a JS type in Dart, i.e. using `?`, `!`, `!= null` or `==
+/// null`, users should use the provided helpers below to determine if it is
+/// safe to downcast a potentially `JSNullable` or `JSUndefineable` object to a
+/// defined and non-null JS type.
+/// TODO(joshualitt): Investigate whether or not it will be possible to reify
+/// `JSUndefined` and `JSNull` on all backends.
+extension NullableUndefineableJSAnyExtension on JSAny? {
+  external bool get isUndefined;
+  external bool get isNull;
+  bool get isUndefinedOrNull => isUndefined || isNull;
+  bool get isDefinedAndNotNull => !isUndefinedOrNull;
+}
 
 /// The type of `JSUndefined` when returned from functions. Unlike pure JS,
 /// no actual object will be returned.

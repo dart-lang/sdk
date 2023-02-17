@@ -12,11 +12,3 @@
 !/wasmer
 # but ignore a subfolder of tcmalloc (some client ignores /tcmalloc/.gitignore)
 /tcmalloc/gperftools
-# custom_options.proto needs to be checked in because it is a stub we define
-# ourselves to prevent the "all" ninja target from breaking.
-!./protobuf/
-./protobuf/*
-!./protobuf/src/
-./protobuf/src/*
-!./protobuf/src/test/
-!./protobuf/src/test/custom_options.proto
