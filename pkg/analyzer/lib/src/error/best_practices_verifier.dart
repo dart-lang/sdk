@@ -153,7 +153,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           parent is! ClassTypeAlias &&
           parent is! MixinDeclaration) {
         _errorReporter.reportErrorForNode(
-            HintCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
+            WarningCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
       }
     } else if (element.isInternal) {
       var parentElement = parent is Declaration ? parent.declaredElement : null;
@@ -162,7 +162,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           var element = variable.declaredElement as TopLevelVariableElement;
           if (Identifier.isPrivateName(element.name)) {
             _errorReporter.reportErrorForNode(
-                HintCode.INVALID_INTERNAL_ANNOTATION, variable, []);
+                WarningCode.INVALID_INTERNAL_ANNOTATION, variable, []);
           }
         }
       } else if (parent is FieldDeclaration) {
@@ -170,26 +170,26 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           var element = variable.declaredElement as FieldElement;
           if (Identifier.isPrivateName(element.name)) {
             _errorReporter.reportErrorForNode(
-                HintCode.INVALID_INTERNAL_ANNOTATION, variable, []);
+                WarningCode.INVALID_INTERNAL_ANNOTATION, variable, []);
           }
         }
       } else if (parent is ConstructorDeclaration) {
         var class_ = parent.declaredElement!.enclosingElement;
         if (class_.isPrivate || (parentElement?.isPrivate ?? false)) {
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_INTERNAL_ANNOTATION, node, []);
+              WarningCode.INVALID_INTERNAL_ANNOTATION, node, []);
         }
       } else if (parentElement?.isPrivate ?? false) {
-        _errorReporter
-            .reportErrorForNode(HintCode.INVALID_INTERNAL_ANNOTATION, node, []);
+        _errorReporter.reportErrorForNode(
+            WarningCode.INVALID_INTERNAL_ANNOTATION, node, []);
       } else if (_inPublicPackageApi) {
-        _errorReporter
-            .reportErrorForNode(HintCode.INVALID_INTERNAL_ANNOTATION, node, []);
+        _errorReporter.reportErrorForNode(
+            WarningCode.INVALID_INTERNAL_ANNOTATION, node, []);
       }
     } else if (element.isLiteral) {
       if (parent is! ConstructorDeclaration || parent.constKeyword == null) {
-        _errorReporter
-            .reportErrorForNode(HintCode.INVALID_LITERAL_ANNOTATION, node, []);
+        _errorReporter.reportErrorForNode(
+            WarningCode.INVALID_LITERAL_ANNOTATION, node, []);
       }
     } else if (element.isMustBeOverridden) {
       if ((parent is MethodDeclaration && parent.isStatic) ||
@@ -217,18 +217,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (parent is FieldDeclaration) {
         if (parent.isStatic) {
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
+              WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
         }
       } else if (parent is MethodDeclaration) {
         if (parent.parent is ExtensionDeclaration ||
             parent.isStatic ||
             parent.isAbstract) {
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
+              WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
         }
       } else {
         _errorReporter.reportErrorForNode(
-            HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
+            WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
       }
     } else if (element.isSealed) {
       if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
@@ -243,14 +243,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           // This method is only called on named elements, so it is safe to
           // assume that `declaredElement.name` is non-`null`.
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_VISIBILITY_ANNOTATION,
+              WarningCode.INVALID_VISIBILITY_ANNOTATION,
               node,
               [declaredElement.name!, node.name.name]);
         }
 
         void reportInvalidVisibleForOverriding(Element declaredElement) {
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, node);
+              WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, node);
         }
 
         if (parent is TopLevelVariableDeclaration) {
@@ -526,7 +526,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           // always named, so we can safely assume
           // `overriddenElement.enclosingElement3.name` is non-`null`.
           _errorReporter.reportErrorForToken(
-              HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, field.name, [
+              WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, field.name, [
             field.name.lexeme,
             overriddenElement.enclosingElement.displayName
           ]);
@@ -711,7 +711,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // always named, so we can safely assume
         // `overriddenElement.enclosingElement3.name` is non-`null`.
         _errorReporter.reportErrorForToken(
-            HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+            WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
             node.name,
             [node.name.lexeme, overriddenElement.enclosingElement.displayName]);
       }

@@ -18323,355 +18323,6 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
-  INVALID_IMMUTABLE_ANNOTATION:
-    problemMessage: Only classes can be annotated as being immutable.
-    comment: |-
-      This hint is generated anywhere an @immutable annotation is associated with
-      anything other than a class.
-  INVALID_INTERNAL_ANNOTATION:
-    problemMessage: "Only public elements in a package's private API can be annotated as being internal."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a declaration is annotated with
-      the `[internal][meta-internal]` annotation and that declaration is either
-      in a [public library][] or has a private name.
-
-      #### Example
-
-      The following code, when in a [public library][], produces this diagnostic
-      because the `[internal][meta-internal]` annotation can't be applied to
-      declarations in a [public library][]:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@internal!]
-      class C {}
-      ```
-
-      The following code, whether in a public or internal library, produces this
-      diagnostic because the `[internal][meta-internal]` annotation can't be
-      applied to declarations with private names:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@internal!]
-      class _C {}
-
-      void f(_C c) {}
-      ```
-
-      #### Common fixes
-
-      If the declaration has a private name, then remove the annotation:
-
-      ```dart
-      class _C {}
-
-      void f(_C c) {}
-      ```
-
-      If the declaration has a public name and is intended to be internal to the
-      package, then move the annotated declaration into an internal library (in
-      other words, a library inside the `src` directory).
-
-      Otherwise, remove the use of the annotation:
-
-      ```dart
-      class C {}
-      ```
-  INVALID_LITERAL_ANNOTATION:
-    problemMessage: Only const constructors can have the `@literal` annotation.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the `[literal][[meta-literal]]`
-      annotation is applied to anything other than a const constructor.
-
-      #### Examples
-
-      The following code produces this diagnostic because the constructor isn't
-      a `const` constructor:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        [!@literal!]
-        C();
-      }
-      ```
-
-      The following code produces this diagnostic because `x` isn't a
-      constructor:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@literal!]
-      var x;
-      ```
-
-      #### Common fixes
-
-      If the annotation is on a constructor and the constructor should always be
-      invoked with `const`, when possible, then mark the constructor with the
-      `const` keyword:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        @literal
-        const C();
-      }
-      ```
-
-      If the constructor can't be marked as `const`, then remove the annotation.
-
-      If the annotation is on anything other than a constructor, then remove the
-      annotation:
-
-      ```dart
-      var x;
-      ```
-  INVALID_NON_VIRTUAL_ANNOTATION:
-    problemMessage: "The annotation '@nonVirtual' can only be applied to a concrete instance member."
-    correctionMessage: Try removing '@nonVirtual'.
-    hasPublishedDocs: true
-    comment: |-
-      This hint is generated anywhere where `@nonVirtual` annotates something
-      other than a non-abstract instance member in a class or mixin.
-
-      No Parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the `nonVirtual` annotation is
-      found on a declaration other than a member of a class, mixin, or enum, or
-      if the member isn't a concrete instance member.
-
-      #### Examples
-
-      The following code produces this diagnostic because the annotation is on a
-      class declaration rather than a member inside the class:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@nonVirtual!]
-      class C {}
-      ```
-
-      The following code produces this diagnostic because the method `m` is an
-      abstract method:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      abstract class C {
-        [!@nonVirtual!]
-        void m();
-      }
-      ```
-
-      The following code produces this diagnostic because the method `m` is a
-      static method:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      abstract class C {
-        [!@nonVirtual!]
-        static void m() {}
-      }
-      ```
-
-      #### Common fixes
-
-      If the declaration isn't a member of a class, mixin, or enum, then remove
-      the annotation:
-
-      ```dart
-      class C {}
-      ```
-
-      If the member is intended to be a concrete instance member, then make it
-      so:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      abstract class C {
-        @nonVirtual
-        void m() {}
-      }
-      ```
-
-      If the member is not intended to be a concrete instance member, then
-      remove the annotation:
-
-      ```dart
-      abstract class C {
-        static void m() {}
-      }
-      ```
-  INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
-    problemMessage: "The member '{0}' is declared non-virtual in '{1}' and can't be overridden in subclasses."
-    hasPublishedDocs: true
-    comment: |-
-      This hint is generated anywhere where an instance member annotated with
-      `@nonVirtual` is overridden in a subclass.
-
-      Parameters:
-      0: the name of the member
-      1: the name of the defining class
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a member of a class, mixin, or
-      enum overrides a member that has the `@nonVirtual` annotation on it.
-
-      #### Example
-
-      The following code produces this diagnostic because the method `m` in `B`
-      overrides the method `m` in `A`, and the method `m` in `A` is annotated
-      with the `@nonVirtual` annotation:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @nonVirtual
-        void m() {}
-      }
-
-      class B extends A {
-        @override
-        void [!m!]() {}
-      }
-      ```
-
-      #### Common fixes
-
-      If the annotation on the method in the superclass is correct (the method
-      in the superclass is not intended to be overridden), then remove or rename
-      the overriding method:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @nonVirtual
-        void m() {}
-      }
-
-      class B extends A {}
-      ```
-
-      If the method in the superclass is intended to be overridden, then remove
-      the `@nonVirtual` annotation:
-
-      ```dart
-      class A {
-        void m() {}
-      }
-
-      class B extends A {
-        @override
-        void m() {}
-      }
-      ```
-  INVALID_VISIBILITY_ANNOTATION:
-    problemMessage: "The member '{0}' is annotated with '{1}', but this annotation is only meaningful on declarations of public members."
-    hasPublishedDocs: true
-    comment: |-
-      This hint is generated anywhere where a private declaration is annotated
-      with `@visibleForTemplate` or `@visibleForTesting`.
-
-      Parameters:
-      0: the name of the member
-      1: the name of the annotation
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when either the `visibleForTemplate`
-      or `[visibleForTesting][meta-visibleForTesting]` annotation is applied to
-      a non-public declaration.
-
-      #### Example
-
-      The following code produces this diagnostic:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@visibleForTesting!]
-      void _someFunction() {}
-
-      void f() => _someFunction();
-      ```
-
-      #### Common fixes
-
-      If the declaration doesn't need to be used by test code, then remove the
-      annotation:
-
-      ```dart
-      void _someFunction() {}
-
-      void f() => _someFunction();
-      ```
-
-      If it does, then make it public:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @visibleForTesting
-      void someFunction() {}
-
-      void f() => someFunction();
-      ```
-  INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
-    problemMessage: "The annotation 'visibleForOverriding' can only be applied to a public instance member that can be overridden."
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when anything other than a public
-      instance member of a class is annotated with
-      `[visibleForOverriding][meta-visibleForOverriding]`. Because only public
-      instance members can be overridden outside the defining library, there's
-      no value to annotating any other declarations.
-
-      #### Example
-
-      The following code produces this diagnostic because the annotation is on a
-      class, and classes can't be overridden:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@visibleForOverriding!]
-      class C {}
-      ```
-
-      #### Common fixes
-
-      Remove the annotation:
-
-      ```dart
-      class C {}
-      ```
   MIXIN_ON_SEALED_CLASS:
     problemMessage: "The class '{0}' shouldn't be used as a mixin constraint because it is sealed, and any class mixing in this mixin must have '{0}' as a superclass."
     correctionMessage: Try composing with this class, or refer to its documentation for more information.
@@ -21617,6 +21268,68 @@ WarningCode:
 
       class C {}
       ```
+  INVALID_IMMUTABLE_ANNOTATION:
+    problemMessage: Only classes can be annotated as being immutable.
+    comment: |-
+      This hint is generated anywhere an @immutable annotation is associated with
+      anything other than a class.
+  INVALID_INTERNAL_ANNOTATION:
+    problemMessage: "Only public elements in a package's private API can be annotated as being internal."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a declaration is annotated with
+      the `[internal][meta-internal]` annotation and that declaration is either
+      in a [public library][] or has a private name.
+
+      #### Example
+
+      The following code, when in a [public library][], produces this diagnostic
+      because the `[internal][meta-internal]` annotation can't be applied to
+      declarations in a [public library][]:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@internal!]
+      class C {}
+      ```
+
+      The following code, whether in a public or internal library, produces this
+      diagnostic because the `[internal][meta-internal]` annotation can't be
+      applied to declarations with private names:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@internal!]
+      class _C {}
+
+      void f(_C c) {}
+      ```
+
+      #### Common fixes
+
+      If the declaration has a private name, then remove the annotation:
+
+      ```dart
+      class _C {}
+
+      void f(_C c) {}
+      ```
+
+      If the declaration has a public name and is intended to be internal to the
+      package, then move the annotated declaration into an internal library (in
+      other words, a library inside the `src` directory).
+
+      Otherwise, remove the use of the annotation:
+
+      ```dart
+      class C {}
+      ```
   INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The language version override can't specify a version greater than the latest known language version: {0}.{1}."
@@ -21706,6 +21419,210 @@ WarningCode:
     comment: |-
       No parameters.
     hasPublishedDocs: true
+  INVALID_LITERAL_ANNOTATION:
+    problemMessage: Only const constructors can have the `@literal` annotation.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `[literal][[meta-literal]]`
+      annotation is applied to anything other than a const constructor.
+
+      #### Examples
+
+      The following code produces this diagnostic because the constructor isn't
+      a `const` constructor:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        [!@literal!]
+        C();
+      }
+      ```
+
+      The following code produces this diagnostic because `x` isn't a
+      constructor:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@literal!]
+      var x;
+      ```
+
+      #### Common fixes
+
+      If the annotation is on a constructor and the constructor should always be
+      invoked with `const`, when possible, then mark the constructor with the
+      `const` keyword:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        @literal
+        const C();
+      }
+      ```
+
+      If the constructor can't be marked as `const`, then remove the annotation.
+
+      If the annotation is on anything other than a constructor, then remove the
+      annotation:
+
+      ```dart
+      var x;
+      ```
+  INVALID_NON_VIRTUAL_ANNOTATION:
+    problemMessage: "The annotation '@nonVirtual' can only be applied to a concrete instance member."
+    correctionMessage: Try removing '@nonVirtual'.
+    hasPublishedDocs: true
+    comment: |-
+      This hint is generated anywhere where `@nonVirtual` annotates something
+      other than a non-abstract instance member in a class or mixin.
+
+      No Parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `nonVirtual` annotation is
+      found on a declaration other than a member of a class, mixin, or enum, or
+      if the member isn't a concrete instance member.
+
+      #### Examples
+
+      The following code produces this diagnostic because the annotation is on a
+      class declaration rather than a member inside the class:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@nonVirtual!]
+      class C {}
+      ```
+
+      The following code produces this diagnostic because the method `m` is an
+      abstract method:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      abstract class C {
+        [!@nonVirtual!]
+        void m();
+      }
+      ```
+
+      The following code produces this diagnostic because the method `m` is a
+      static method:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      abstract class C {
+        [!@nonVirtual!]
+        static void m() {}
+      }
+      ```
+
+      #### Common fixes
+
+      If the declaration isn't a member of a class, mixin, or enum, then remove
+      the annotation:
+
+      ```dart
+      class C {}
+      ```
+
+      If the member is intended to be a concrete instance member, then make it
+      so:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      abstract class C {
+        @nonVirtual
+        void m() {}
+      }
+      ```
+
+      If the member is not intended to be a concrete instance member, then
+      remove the annotation:
+
+      ```dart
+      abstract class C {
+        static void m() {}
+      }
+      ```
+  INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
+    problemMessage: "The member '{0}' is declared non-virtual in '{1}' and can't be overridden in subclasses."
+    hasPublishedDocs: true
+    comment: |-
+      This hint is generated anywhere where an instance member annotated with
+      `@nonVirtual` is overridden in a subclass.
+
+      Parameters:
+      0: the name of the member
+      1: the name of the defining class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a member of a class, mixin, or
+      enum overrides a member that has the `@nonVirtual` annotation on it.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `m` in `B`
+      overrides the method `m` in `A`, and the method `m` in `A` is annotated
+      with the `@nonVirtual` annotation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @nonVirtual
+        void m() {}
+      }
+
+      class B extends A {
+        @override
+        void [!m!]() {}
+      }
+      ```
+
+      #### Common fixes
+
+      If the annotation on the method in the superclass is correct (the method
+      in the superclass is not intended to be overridden), then remove or rename
+      the overriding method:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @nonVirtual
+        void m() {}
+      }
+
+      class B extends A {}
+      ```
+
+      If the method in the superclass is intended to be overridden, then remove
+      the `@nonVirtual` annotation:
+
+      ```dart
+      class A {
+        void m() {}
+      }
+
+      class B extends A {
+        @override
+        void m() {}
+      }
+      ```
   INVALID_REQUIRED_NAMED_PARAM:
     problemMessage: "The type parameter '{0}' is annotated with @required but only named parameters without a default value can be annotated with it."
     correctionMessage: Remove @required.
@@ -21895,6 +21812,89 @@ WarningCode:
       class C {
         void m() {}
       }
+      ```
+  INVALID_VISIBILITY_ANNOTATION:
+    problemMessage: "The member '{0}' is annotated with '{1}', but this annotation is only meaningful on declarations of public members."
+    hasPublishedDocs: true
+    comment: |-
+      This hint is generated anywhere where a private declaration is annotated
+      with `@visibleForTemplate` or `@visibleForTesting`.
+
+      Parameters:
+      0: the name of the member
+      1: the name of the annotation
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when either the `visibleForTemplate`
+      or `[visibleForTesting][meta-visibleForTesting]` annotation is applied to
+      a non-public declaration.
+
+      #### Example
+
+      The following code produces this diagnostic:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@visibleForTesting!]
+      void _someFunction() {}
+
+      void f() => _someFunction();
+      ```
+
+      #### Common fixes
+
+      If the declaration doesn't need to be used by test code, then remove the
+      annotation:
+
+      ```dart
+      void _someFunction() {}
+
+      void f() => _someFunction();
+      ```
+
+      If it does, then make it public:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @visibleForTesting
+      void someFunction() {}
+
+      void f() => someFunction();
+      ```
+  INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
+    problemMessage: "The annotation 'visibleForOverriding' can only be applied to a public instance member that can be overridden."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when anything other than a public
+      instance member of a class is annotated with
+      `[visibleForOverriding][meta-visibleForOverriding]`. Because only public
+      instance members can be overridden outside the defining library, there's
+      no value to annotating any other declarations.
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      class, and classes can't be overridden:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@visibleForOverriding!]
+      class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      class C {}
       ```
   RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
     sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR

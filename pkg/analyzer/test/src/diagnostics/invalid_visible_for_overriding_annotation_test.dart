@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ class InvalidVisibleForOverridingAnnotationTest
 import 'package:meta/meta.dart';
 @visibleForOverriding
 class C {}
-''', [error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21)]);
+''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21)]);
   }
 
   test_invalid_constructor() async {
@@ -38,7 +38,7 @@ class C {
   C();
 }
 ''', [
-      error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 45, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 45, 21),
     ]);
   }
 
@@ -47,7 +47,7 @@ class C {
 import 'package:meta/meta.dart';
 @visibleForOverriding
 extension on double {}
-''', [error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21)]);
+''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21)]);
   }
 
   test_invalid_extensionMember() async {
@@ -58,7 +58,7 @@ extension E on String {
   void foo() {}
 }
 ''', [
-      error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 59, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 59, 21),
     ]);
   }
 
@@ -70,7 +70,7 @@ class C {
   static void m() {}
 }
 ''', [
-      error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 45, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 45, 21),
     ]);
   }
 
@@ -79,7 +79,7 @@ class C {
 import 'package:meta/meta.dart';
 @visibleForOverriding void foo() {}
 ''', [
-      error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
     ]);
   }
 
@@ -88,7 +88,7 @@ import 'package:meta/meta.dart';
 import 'package:meta/meta.dart';
 @visibleForOverriding final a = 1;
 ''', [
-      error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
     ]);
   }
 
@@ -97,7 +97,7 @@ import 'package:meta/meta.dart';
 import 'package:meta/meta.dart';
 @visibleForOverriding var a = 1, b;
 ''', [
-      error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
     ]);
   }
 

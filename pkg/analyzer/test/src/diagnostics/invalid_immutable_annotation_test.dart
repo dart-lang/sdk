@@ -39,7 +39,7 @@ class A {
   void m() {}
 }
 ''', [
-      error(HintCode.INVALID_IMMUTABLE_ANNOTATION, 45, 10),
+      error(WarningCode.INVALID_IMMUTABLE_ANNOTATION, 45, 10),
     ]);
   }
 }

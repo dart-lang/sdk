@@ -1427,20 +1427,6 @@ HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
   status: noFix
   notes: Deprecated
-HintCode.INVALID_IMMUTABLE_ANNOTATION:
-  status: hasFix
-HintCode.INVALID_INTERNAL_ANNOTATION:
-  status: hasFix
-HintCode.INVALID_LITERAL_ANNOTATION:
-  status: hasFix
-HintCode.INVALID_NON_VIRTUAL_ANNOTATION:
-  status: hasFix
-HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
-  status: noFix
-HintCode.INVALID_VISIBILITY_ANNOTATION:
-  status: hasFix
-HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
-  status: hasFix
 HintCode.MIXIN_ON_SEALED_CLASS:
   status: noFix
   notes: |-
@@ -2671,6 +2657,12 @@ WarningCode.INVALID_FACTORY_METHOD_DECL:
   status: noFix
 WarningCode.INVALID_FACTORY_METHOD_IMPL:
   status: noFix
+WarningCode.INVALID_IMMUTABLE_ANNOTATION:
+  status: hasFix
+WarningCode.INVALID_INTERNAL_ANNOTATION:
+  status: hasFix
+WarningCode.INVALID_LITERAL_ANNOTATION:
+  status: hasFix
 WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
   status: needsFix
   notes: |-
@@ -2716,6 +2708,10 @@ WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
+WarningCode.INVALID_NON_VIRTUAL_ANNOTATION:
+  status: hasFix
+WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
+  status: noFix
 WarningCode.INVALID_REQUIRED_NAMED_PARAM:
   status: hasFix
 WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
@@ -2735,6 +2731,10 @@ WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
   status: noFix
 WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
   status: noFix
+WarningCode.INVALID_VISIBILITY_ANNOTATION:
+  status: hasFix
+WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
+  status: hasFix
 WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
   status: hasFix
 WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
