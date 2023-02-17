@@ -257,7 +257,7 @@ class ResultLogger implements Logger {
               'used when many tests need updating.\n');
         }
       }
-      if (result.outcome == Expectation.Pass) {
+      if (result.outcome == Expectation.pass) {
         String expectedString =
             expectedOutcomes.map((e) => e.toString()).join(", ");
         sb.write("\n\nThe test passed, but wasn't expected to. "

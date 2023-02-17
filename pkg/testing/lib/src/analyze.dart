@@ -32,7 +32,7 @@ class Analyze extends Suite {
       this.gitGrepPatterns)
       : super("analyze", "analyze", null);
 
-  Future<Null> run(Uri packages, List<Uri>? extraUris) {
+  Future<void> run(Uri packages, List<Uri>? extraUris) {
     List<Uri> allUris = List<Uri>.from(uris);
     if (extraUris != null) {
       allUris.addAll(extraUris);
@@ -70,6 +70,7 @@ class Analyze extends Suite {
         optionsUri, uris, exclude, gitGrepPathspecs, gitGrepPatterns);
   }
 
+  @override
   String toString() => "Analyze($uris, $exclude)";
 }
 
@@ -134,6 +135,7 @@ class AnalyzerDiagnostic {
         parts[7]);
   }
 
+  @override
   String toString() {
     return kind == null
         ? "Malformed output from dartanalyzer:\n$message"
@@ -154,7 +156,7 @@ Stream<AnalyzerDiagnostic> parseAnalyzerOutput(
 }
 
 /// Run dartanalyzer on all tests in [uris].
-Future<Null> analyzeUris(
+Future<void> analyzeUris(
     Uri? analysisOptions,
     Uri packages,
     List<Uri> uris,
@@ -184,7 +186,7 @@ Future<Null> analyzeUris(
         : path;
   }
 
-  Set<String> filesToAnalyze = Set<String>();
+  Set<String> filesToAnalyze = <String>{};
 
   for (Uri uri in uris) {
     if (await Directory.fromUri(uri).exists()) {
@@ -197,7 +199,7 @@ Future<Null> analyzeUris(
     } else if (await File.fromUri(uri).exists()) {
       filesToAnalyze.add(toFilePath(uri));
     } else {
-      throw "File not found: ${uri}";
+      throw "File not found: $uri";
     }
   }
 
@@ -241,7 +243,7 @@ Future<Null> analyzeUris(
   process.stdin.close();
 
   bool hasOutput = false;
-  Set<String> seen = Set<String>();
+  Set<String> seen = <String>{};
 
   processAnalyzerOutput(Stream<AnalyzerDiagnostic> diagnostics) async {
     await for (AnalyzerDiagnostic diagnostic in diagnostics) {
@@ -286,9 +288,10 @@ String _findSdkPath() {
 Future<String> git(String command, Iterable<String> arguments,
     {String? workingDirectory}) async {
   ProcessResult result = await Process.run(
-      Platform.isWindows ? "git.bat" : "git",
-      <String>[command]..addAll(arguments),
-      workingDirectory: workingDirectory);
+    Platform.isWindows ? "git.bat" : "git",
+    <String>[command, ...arguments],
+    workingDirectory: workingDirectory,
+  );
   if (result.exitCode != 0) {
     throw "Non-zero exit code from git $command (${result.exitCode})\n"
         "${result.stdout}\n${result.stderr}";

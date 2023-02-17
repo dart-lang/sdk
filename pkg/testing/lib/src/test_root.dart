@@ -63,6 +63,7 @@ class TestRoot {
     return List<Chain>.from(suites.whereType<Chain>());
   }
 
+  @override
   String toString() {
     return "TestRoot($suites, $urisToAnalyze)";
   }

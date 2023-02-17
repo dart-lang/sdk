@@ -27,7 +27,7 @@ bool isCheckedModeError(Set<String> expectations) {
 class MultitestTransformer
     extends StreamTransformerBase<TestDescription, TestDescription> {
   static RegExp multitestMarker = RegExp(r"//[#/]");
-  static int _multitestMarkerLength = 3;
+  static final int _multitestMarkerLength = 3;
 
   static const List<String> validOutcomesList = <String>[
     "ok",
@@ -41,6 +41,7 @@ class MultitestTransformer
 
   static final Set<String> validOutcomes = Set<String>.from(validOutcomesList);
 
+  @override
   Stream<TestDescription> bind(Stream<TestDescription> stream) async* {
     List<String> errors = <String>[];
     reportError(String error) {
@@ -69,7 +70,7 @@ class MultitestTransformer
         "none": linesWithoutAnnotations,
       };
       Map<String, Set<String>> outcomes = <String, Set<String>>{
-        "none": Set<String>(),
+        "none": <String>{},
       };
       int lineNumber = 0;
       for (String line in splitLines(contents!)) {
@@ -100,7 +101,7 @@ class MultitestTransformer
               subtestName, () => List<String>.from(linesWithoutAnnotations));
           lines.add(line);
           Set<String> subtestOutcomes =
-              outcomes.putIfAbsent(subtestName, () => Set<String>());
+              outcomes.putIfAbsent(subtestName, () => <String>{});
           if (subtestOutcomesList!.length != 1 ||
               subtestOutcomesList.single != "continued") {
             for (String outcome in subtestOutcomesList) {

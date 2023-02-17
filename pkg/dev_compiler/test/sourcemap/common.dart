@@ -24,7 +24,7 @@ abstract class ChainContextWithCleanupHelper extends ChainContext {
 
   @override
   Future<void> cleanUp(TestDescription description, Result result) {
-    if (debugging() && result.outcome != Expectation.Pass) {
+    if (debugging() && result.outcome != Expectation.pass) {
       print('Not cleaning up: Running in debug-mode for non-passing test.');
       return Future.value();
     }
