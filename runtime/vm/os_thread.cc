@@ -24,10 +24,12 @@ thread_local ThreadState* OSThread::current_vm_thread_ = NULL;
 
 #if defined(SUPPORT_TIMELINE)
 inline void UpdateTimelineTrackMetadata(const OSThread& thread) {
-  RecorderShutdownSynchronizationLockScope ls;
-  MutexLocker ml(Timeline::recorder_lock());
+  RecorderSynchronizationLockScope ls;
+  if (!ls.IsActive()) {
+    return;
+  }
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder != nullptr && !ls.IsShuttingDown()) {
+  if (recorder != nullptr) {
     recorder->AddTrackMetadataBasedOnThread(
         OS::ProcessId(), OSThread::ThreadIdToIntPtr(thread.trace_id()),
         thread.name());

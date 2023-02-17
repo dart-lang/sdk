@@ -103,9 +103,11 @@ DEFINE_FLAG(charp,
 //       |TimelineEventRecorder::lock_|
 //
 
-std::atomic<bool> RecorderShutdownSynchronizationLock::shutdown_lock_ = {false};
-std::atomic<intptr_t>
-    RecorderShutdownSynchronizationLock::outstanding_event_writes_ = {0};
+std::atomic<RecorderSynchronizationLock::RecorderState>
+    RecorderSynchronizationLock::recorder_state_ = {
+        RecorderSynchronizationLock::kUnInitialized};
+std::atomic<intptr_t> RecorderSynchronizationLock::outstanding_event_writes_ = {
+    0};
 
 static TimelineEventRecorder* CreateDefaultTimelineRecorder() {
 #if defined(PRODUCT)
@@ -233,12 +235,11 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
 }
 
 void Timeline::Init() {
-  RecorderShutdownSynchronizationLock::Init();
   ASSERT(recorder_ == NULL);
-  {
-    MutexLocker ml(Timeline::recorder_lock());
-    recorder_ = CreateTimelineRecorder();
-  }
+  recorder_ = CreateTimelineRecorder();
+
+  RecorderSynchronizationLock::Init();
+
   // The following is needed to backfill information about any |OSThread|s that
   // were initialized before this point.
   OSThreadIterator it;
@@ -274,7 +275,7 @@ void Timeline::Cleanup() {
   Timeline::stream_##name##_.set_enabled(false);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
-  RecorderShutdownSynchronizationLock::WaitForShutdown();
+  RecorderSynchronizationLock::WaitForShutdown();
   // Timeline::Clear() is guarded by the recorder lock and will return
   // immediately if we've started the shutdown sequence, leaking the recorder.
   // All outstanding work has already been completed, so we're safe to call this
@@ -289,9 +290,9 @@ void Timeline::Cleanup() {
 }
 
 void Timeline::ReclaimCachedBlocksFromThreads() {
-  RecorderShutdownSynchronizationLockScope ls;
+  RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL || ls.IsShuttingDown()) {
+  if (recorder == NULL || !ls.IsActive()) {
     return;
   }
   ReclaimCachedBlocksFromThreadsUnsafe();
@@ -328,9 +329,9 @@ void Timeline::PrintFlagsToJSONArray(JSONArray* arr) {
 void Timeline::PrintFlagsToJSON(JSONStream* js) {
   JSONObject obj(js);
   obj.AddProperty("type", "TimelineFlags");
-  RecorderShutdownSynchronizationLockScope ls;
+  RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL || ls.IsShuttingDown()) {
+  if (recorder == NULL || !ls.IsActive()) {
     obj.AddProperty("recorderName", "null");
   } else {
     obj.AddProperty("recorderName", recorder->name());
@@ -354,9 +355,9 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
 #endif
 
 void Timeline::Clear() {
-  RecorderShutdownSynchronizationLockScope ls;
+  RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == nullptr || ls.IsShuttingDown()) {
+  if (recorder == nullptr || !ls.IsActive()) {
     return;
   }
   ClearUnsafe();
@@ -450,7 +451,6 @@ void TimelineEventArguments::Free() {
   length_ = 0;
 }
 
-Mutex* Timeline::recorder_lock_ = new Mutex();
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 Dart_TimelineRecorderCallback Timeline::callback_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
@@ -631,9 +631,9 @@ void TimelineEvent::FormatArgument(intptr_t i,
 void TimelineEvent::Complete() {
   TimelineEventRecorder* recorder = Timeline::recorder();
   recorder->CompleteEvent(this);
-  // Paired with |RecorderShutdownSynchronizationLock::EnterLock()| in
+  // Paired with |RecorderSynchronizationLock::EnterLock()| in
   // |TimelineStream::StartEvent()|.
-  RecorderShutdownSynchronizationLock::ExitLock();
+  RecorderSynchronizationLock::ExitLock();
 }
 
 void TimelineEvent::Init(EventType event_type, const char* label) {
@@ -905,23 +905,23 @@ TimelineStream::TimelineStream(const char* name,
 }
 
 TimelineEvent* TimelineStream::StartEvent() {
-  // Paired with |RecorderShutdownSynchronizationLock::ExitLock()| in
+  // Paired with |RecorderSynchronizationLock::ExitLock()| in
   // |TimelineEvent::Complete()|.
   //
   // The lock must be held until the event is completed to avoid having the
   // memory backing the event being freed in the middle of processing the
   // event.
-  RecorderShutdownSynchronizationLock::EnterLock();
+  RecorderSynchronizationLock::EnterLock();
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (!enabled() || (recorder == nullptr) ||
-      RecorderShutdownSynchronizationLock::IsShuttingDown()) {
-    RecorderShutdownSynchronizationLock::ExitLock();
+      !RecorderSynchronizationLock::IsActive()) {
+    RecorderSynchronizationLock::ExitLock();
     return nullptr;
   }
   ASSERT(name_ != nullptr);
   TimelineEvent* event = recorder->StartEvent();
   if (event == nullptr) {
-    RecorderShutdownSynchronizationLock::ExitLock();
+    RecorderSynchronizationLock::ExitLock();
     return nullptr;
   }
   event->StreamInit(this);
