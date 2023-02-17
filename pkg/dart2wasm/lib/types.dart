@@ -317,10 +317,15 @@ class Types {
   }
 
   /// Allocates a `List<_Type>` from [types] and pushes it to the stack.
-  void _makeTypeList(CodeGenerator codeGen, List<DartType> types) {
-    w.ValueType listType = codeGen.makeListFromExpressions(
-        types.map((t) => TypeLiteral(t)).toList(), typeType);
-    translator.convertType(codeGen.function, listType, typeListExpectedType);
+  void _makeTypeList(CodeGenerator codeGen, Iterable<DartType> types) {
+    if (types.every(_isTypeConstant)) {
+      translator.constants.instantiateConstant(codeGen.function, codeGen.b,
+          translator.constants.makeTypeList(types), typeListExpectedType);
+    } else {
+      w.ValueType listType = codeGen.makeListFromExpressions(
+          types.map((t) => TypeLiteral(t)).toList(), typeType);
+      translator.convertType(codeGen.function, listType, typeListExpectedType);
+    }
   }
 
   void _makeInterfaceType(CodeGenerator codeGen, InterfaceType type) {
@@ -342,8 +347,8 @@ class Types {
           type.named.map((t) => StringConstant(t.name)).toList(),
         ),
         recordTypeNamesFieldExpectedType);
-    _makeTypeList(codeGen,
-        type.positional.followedBy(type.named.map((t) => t.type)).toList());
+    _makeTypeList(
+        codeGen, type.positional.followedBy(type.named.map((t) => t.type)));
   }
 
   /// Normalizes a Dart type. Many rules are already applied for us, but we
@@ -387,25 +392,16 @@ class Types {
     b.i64_const(typeParameterOffset);
 
     // List<_Type> typeParameterBounds
-    _makeTypeList(codeGen, type.typeParameters.map((p) => p.bound).toList());
+    _makeTypeList(codeGen, type.typeParameters.map((p) => p.bound));
 
     // List<_Type> typeParameterDefaults
-    _makeTypeList(
-        codeGen, type.typeParameters.map((p) => p.defaultType).toList());
+    _makeTypeList(codeGen, type.typeParameters.map((p) => p.defaultType));
 
     // _Type returnType
     makeType(codeGen, type.returnType);
 
     // List<_Type> positionalParameters
-    if (type.positionalParameters.every(_isTypeConstant)) {
-      translator.constants.instantiateConstant(
-          codeGen.function,
-          b,
-          translator.constants.makeTypeList(type.positionalParameters),
-          typeListExpectedType);
-    } else {
-      _makeTypeList(codeGen, type.positionalParameters);
-    }
+    _makeTypeList(codeGen, type.positionalParameters);
 
     // int requiredParameterCount
     b.i64_const(type.requiredParameterCount);

@@ -96,7 +96,7 @@ class Constants {
   }
 
   /// Makes a type list [ListConstant].
-  ListConstant makeTypeList(List<DartType> types) => ListConstant(
+  ListConstant makeTypeList(Iterable<DartType> types) => ListConstant(
       InterfaceType(translator.typeClass, Nullability.nonNullable),
       types.map((t) => TypeLiteralConstant(t)).toList());
 
@@ -715,10 +715,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   ConstantInfo? _makeFunctionType(
       TypeLiteralConstant constant, FunctionType type, ClassInfo info) {
     int typeParameterOffset = types.computeFunctionTypeParameterOffset(type);
-    ListConstant typeParameterBoundsConstant = constants
-        .makeTypeList(type.typeParameters.map((p) => p.bound).toList());
-    ListConstant typeParameterDefaultsConstant = constants
-        .makeTypeList(type.typeParameters.map((p) => p.defaultType).toList());
+    ListConstant typeParameterBoundsConstant =
+        constants.makeTypeList(type.typeParameters.map((p) => p.bound));
+    ListConstant typeParameterDefaultsConstant =
+        constants.makeTypeList(type.typeParameters.map((p) => p.defaultType));
     TypeLiteralConstant returnTypeConstant =
         TypeLiteralConstant(type.returnType);
     ListConstant positionalParametersConstant =
@@ -801,7 +801,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
           type.named.map((t) => StringConstant(t.name)).toList());
       ensureConstant(names);
       final fieldTypes = constants.makeTypeList(
-          type.positional.followedBy(type.named.map((n) => n.type)).toList());
+          type.positional.followedBy(type.named.map((n) => n.type)));
       ensureConstant(fieldTypes);
       return createConstant(constant, info.nonNullableType, (function, b) {
         b.i32_const(info.classId);
