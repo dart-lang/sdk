@@ -54,16 +54,9 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   ///
   /// If [requireConstant] is `true`, an error is reported if [node] is not
   /// a valid constant. Otherwise, `null` if [node] is not a valid constant.
-  ///
-  /// If [replaceImplicitConstant] is `true`, if [node] is not a constant
-  /// expression but evaluates to a constant, [node] is replaced with an
-  /// [ir.ConstantExpression] holding the constant. Otherwise the [node] is not
-  /// replaced even when it evaluated to a constant.
   ir.Constant? evaluateOrNull(
       ir.StaticTypeContext staticTypeContext, ir.Expression node,
-      {ir.TreeNode? contextNode,
-      bool requireConstant = true,
-      bool replaceImplicitConstant = true}) {
+      {ir.TreeNode? contextNode, bool requireConstant = true}) {
     errorReporter.requiresConstant = requireConstant;
     if (node is ir.ConstantExpression) {
       ir.Constant constant = node.constant;
@@ -90,12 +83,6 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
       if (constant is ir.UnevaluatedConstant &&
           constant.expression is ir.InvalidExpression) {
         return null;
-      }
-      if (replaceImplicitConstant) {
-        // Note: Using [replaceWith] is slow and should be avoided.
-        node.replaceWith(ir.ConstantExpression(
-            constant, node.getStaticType(staticTypeContext))
-          ..fileOffset = node.fileOffset);
       }
       return constant;
     }

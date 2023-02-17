@@ -158,9 +158,8 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   /// the children of the parent node, which lead to a O(n^2) complexity that
   /// is severe and observable for instance for large list literals.
   EvaluationComplexity _evaluateImplicitConstant(ir.Expression node) {
-    ir.Constant? constant = _constantEvaluator.evaluateOrNull(
-        _staticTypeContext, node,
-        requireConstant: false, replaceImplicitConstant: false);
+    ir.Constant? constant = _constantEvaluator
+        .evaluateOrNull(_staticTypeContext, node, requireConstant: false);
     if (constant != null) {
       return EvaluationComplexity.constant(constant);
     }
