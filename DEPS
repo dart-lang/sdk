@@ -102,7 +102,7 @@ vars = {
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "perfetto_rev": "b8da07095979310818f0efde2ef3c69ea70d62c5",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
-  "protobuf_gn_rev": "ac7e0cda633a58077684439111675e2d9460d5bf",
+  "protobuf_gn_rev": "5f87ef9990fc4f4ffd76b3f5b0138562178db8bc",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
