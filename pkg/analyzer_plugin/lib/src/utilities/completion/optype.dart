@@ -142,7 +142,6 @@ class OpType {
     this.completionLocation = completionLocation;
     includeReturnValueSuggestions = true;
     includeTypeNameSuggestions = true;
-    includeVarNameSuggestions = true;
     mustBeConst = true;
   }
 
@@ -1574,6 +1573,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {}
+
+  @override
+  void visitWhenClause(WhenClause node) {
+    if (identical(entity, node.expression)) {
+      optype.completionLocation = 'WhenClause_expression';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
+    }
+  }
 
   @override
   void visitWhileStatement(WhileStatement node) {
