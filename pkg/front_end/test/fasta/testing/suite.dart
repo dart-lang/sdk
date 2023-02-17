@@ -201,7 +201,8 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
+final Expectation runtimeError =
+    ExpectationSet.defaultExpectations["RuntimeError"];
 
 const String experimentalFlagOptions = '--enable-experiment=';
 const Option<String?> overwriteCurrentSdkVersion =
@@ -696,10 +697,10 @@ class FastaContext extends ChainContext with MatchContext {
       TestDescription description, Result result, bool last) {
     if (onlyCrashes) {
       Expectation outcome = result.outcome;
-      if (outcome == Expectation.Crash || outcome == verificationError) {
+      if (outcome == Expectation.crash || outcome == verificationError) {
         return result;
       }
-      return result.copyWithOutcome(Expectation.Pass);
+      return result.copyWithOutcome(Expectation.pass);
     }
     return super.processTestResult(description, result, last);
   }
@@ -734,7 +735,7 @@ class FastaContext extends ChainContext with MatchContext {
     // Changes made: No expectations left. This happens when all expected
     // outcomes are removed above.
     // We have to put in the implicit assumption that it will pass then.
-    if (result.isEmpty) return {Expectation.Pass};
+    if (result.isEmpty) return {Expectation.pass};
 
     // Changes made with at least one expectation left. That's out result!
     return result;
@@ -851,7 +852,8 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
           if (result.component.mode ==
               NonNullableByDefaultCompiledMode.Invalid) {
             // In this case we expect and want a runtime error.
-            if (runResult.outcome == ExpectationSet.Default["RuntimeError"]) {
+            if (runResult.outcome ==
+                ExpectationSet.defaultExpectations["RuntimeError"]) {
               // We convert this to pass because that's exactly what we'd
               // expect.
               return pass(result);
@@ -859,7 +861,7 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
               // Different outcome - that's a failure!
               return new Result<ComponentResult>(
                   result,
-                  ExpectationSet.Default["MissingRuntimeError"],
+                  ExpectationSet.defaultExpectations["MissingRuntimeError"],
                   runResult.error);
             }
           }

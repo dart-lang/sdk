@@ -119,7 +119,7 @@ class MessageTestSuite extends ChainContext {
   Set<Expectation> processExpectedOutcomes(
       Set<Expectation> outcomes, TestDescription description) {
     if (description.shortName.contains("/spelling")) {
-      return {Expectation.Pass};
+      return {Expectation.pass};
     }
     return outcomes;
   }

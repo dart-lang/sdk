@@ -20,7 +20,7 @@ class Path {
       : _path = source,
         isWindowsShare = false;
 
-  Path._internal(String this._path, bool this.isWindowsShare);
+  Path._internal(this._path, this.isWindowsShare);
 
   static String _clean(String source) {
     if (Platform.operatingSystem == 'windows') return _cleanWindows(source);
@@ -48,6 +48,7 @@ class Path {
     return Platform.operatingSystem == 'windows' && source.startsWith('\\\\');
   }
 
+  @override
   int get hashCode => _path.hashCode;
 
   @override
@@ -59,6 +60,7 @@ class Path {
   bool get isAbsolute => _path.startsWith('/');
   bool get hasTrailingSeparator => _path.endsWith('/');
 
+  @override
   String toString() => _path;
 
   Path relativeTo(Path base) {
@@ -138,7 +140,7 @@ class Path {
       segments.add('..');
     }
     for (int i = common; i < pathSegments.length; i++) {
-      segments.add('${pathSegments[i]}');
+      segments.add(pathSegments[i]);
     }
     if (segments.isEmpty) {
       segments.add('.');
@@ -157,10 +159,10 @@ class Path {
       return further.canonicalize();
     }
     if (hasTrailingSeparator) {
-      var joined = Path._internal('$_path${further}', isWindowsShare);
+      var joined = Path._internal('$_path$further', isWindowsShare);
       return joined.canonicalize();
     }
-    var joined = Path._internal('$_path/${further}', isWindowsShare);
+    var joined = Path._internal('$_path/$further', isWindowsShare);
     return joined.canonicalize();
   }
 

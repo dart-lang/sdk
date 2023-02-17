@@ -75,6 +75,7 @@ class TestDart extends Suite {
 """);
   }
 
+  @override
   String toString() {
     return "TestDart($name, ${json.encode(common)}, ${json.encode(processes)},"
         " ${json.encode(commandLines)})";
