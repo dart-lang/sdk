@@ -17,6 +17,19 @@ class UnnecessaryNullChecksTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_null_checks';
 
+  test_completerComplete() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+void f(int? i) => Completer<int>().complete(i!);
+''');
+  }
+
+  test_futureValue() async {
+    await assertNoDiagnostics(r'''
+void f(int? i) => Future<int>.value(i!);
+''');
+  }
+
   test_undefinedFunction() async {
     await assertDiagnostics(r'''
 f6(int? p) {

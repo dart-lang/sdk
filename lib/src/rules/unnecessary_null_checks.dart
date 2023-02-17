@@ -129,6 +129,27 @@ DartType? getExpectedType(PostfixExpression node) {
     parent = parent.parent;
   }
   if (parent is ArgumentList && realNode is Expression) {
+    var grandParent = parent.parent;
+    if (grandParent is InstanceCreationExpression) {
+      var constructor = grandParent.constructorName.staticElement;
+      if (constructor != null) {
+        if (constructor.returnType.isDartAsyncFuture &&
+            constructor.name == 'value') {
+          return null;
+        }
+      }
+    } else if (grandParent is MethodInvocation) {
+      var targetType = grandParent.realTarget?.staticType;
+      if (targetType is InterfaceType) {
+        var targetClass = targetType.element;
+
+        if (targetClass.library.isDartAsync &&
+            targetClass.name == 'Completer' &&
+            grandParent.methodName.name == 'complete') {
+          return null;
+        }
+      }
+    }
     return realNode.staticParameterElement?.type;
   }
   return null;
