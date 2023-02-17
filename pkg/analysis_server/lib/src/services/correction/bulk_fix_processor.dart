@@ -29,7 +29,6 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
-import 'package:collection/collection.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -208,40 +207,18 @@ class BulkFixProcessor {
       if (undefinedCodes.isNotEmpty) {
         var count = undefinedCodes.length;
         var diagnosticCodes = undefinedCodes.quotedAndCommaSeparatedWithAnd;
-        return BulkFixRequestResult.error(
-            "The ${'diagnostic'.pluralized(count)} $diagnosticCodes ${count.isAre} not defined by the analyzer.");
+        return BulkFixRequestResult.error('The '
+            '${'diagnostic'.pluralized(count)} $diagnosticCodes ${count.isAre} '
+            'not defined by the analyzer.');
       }
     }
 
-    var lints = codes?.where(_lintCodes.contains).toList() ?? [];
-
     for (var context in contexts) {
-      var lintCodesChecked = false;
       var pathContext = context.contextRoot.resourceProvider.pathContext;
       for (var path in context.contextRoot.analyzedFiles()) {
         if (!file_paths.isDart(pathContext, path) ||
             file_paths.isGenerated(path)) {
           continue;
-        }
-
-        // Check that defined lints are enabled.
-        if (!lintCodesChecked) {
-          var missingLints = <String>[];
-          for (var lint in lints) {
-            if (context.analysisOptions.lintRules
-                .none((rule) => rule.name == lint)) {
-              missingLints.add(lint);
-            }
-          }
-          if (missingLints.isNotEmpty) {
-            var count = missingLints.length;
-            var lintCodes = missingLints.quotedAndCommaSeparatedWithAnd;
-            return BulkFixRequestResult.error(
-                "The ${'lint'.pluralized(count)} $lintCodes ${count.isAre} not enabled; add ${count.itThem} to your analysis options and try again.");
-          }
-
-          // Only check codes once per context.
-          lintCodesChecked = true;
         }
 
         var library = await context.currentSession.getResolvedLibrary(path);
@@ -508,6 +485,4 @@ extension on String {
 
 extension on int {
   String get isAre => this == 1 ? 'is' : 'are';
-
-  String get itThem => this == 1 ? 'it' : 'them';
 }

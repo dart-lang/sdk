@@ -1716,7 +1716,7 @@ abstract class DartPattern implements AstNode, ListPatternElement {
   /// The precedence is a positive integer value that defines how the source
   /// code is parsed into an AST. For example `a | b & c` is parsed as `a | (b
   /// & c)` because the precedence of `&` is greater than the precedence of `|`.
-  Precedence get precedence;
+  PatternPrecedence get precedence;
 
   /// If this pattern is a parenthesized pattern, return the result of
   /// unwrapping the pattern inside the parentheses. Otherwise, return this

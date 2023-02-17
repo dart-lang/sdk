@@ -678,6 +678,9 @@ class AssignedVariablePatternImpl extends VariablePatternImpl
   Token get endToken => name;
 
   @override
+  PatternPrecedence get precedence => PatternPrecedence.primary;
+
+  @override
   ChildEntities get _childEntities => ChildEntities()..addToken('name', name);
 
   @override
@@ -1523,6 +1526,9 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
 
   @override
   Token get endToken => type.endToken;
+
+  @override
+  PatternPrecedence get precedence => PatternPrecedence.postfix;
 
   @override
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
@@ -2866,6 +2872,9 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   }
 
   @override
+  PatternPrecedence get precedence => PatternPrecedence.primary;
+
+  @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('const', constKeyword)
     ..addNode('expression', expression);
@@ -3442,11 +3451,6 @@ abstract class DartPatternImpl extends AstNodeImpl
   DartType? matchedValueType;
 
   @override
-  // TODO(brianwilkerson) Remove this and implement it in subclasses when we
-  //  have constants for pattern-related precedence values.
-  Precedence get precedence => throw UnimplementedError();
-
-  @override
   DartPattern get unParenthesized => this;
 
   /// The variable pattern, itself, or wrapped in a unary pattern.
@@ -3633,6 +3637,9 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
       }
     }
   }
+
+  @override
+  PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -8326,6 +8333,9 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
   Token get endToken => rightBracket;
 
   @override
+  PatternPrecedence get precedence => PatternPrecedence.primary;
+
+  @override
   ChildEntities get _childEntities => super._childEntities
     ..addNode('typeArguments', typeArguments)
     ..addToken('leftBracket', leftBracket)
@@ -8419,6 +8429,9 @@ class LogicalAndPatternImpl extends DartPatternImpl
   Token get endToken => rightOperand.endToken;
 
   @override
+  PatternPrecedence get precedence => PatternPrecedence.logicalAnd;
+
+  @override
   ChildEntities get _childEntities => super._childEntities
     ..addNode('leftOperand', leftOperand)
     ..addToken('operator', operator)
@@ -8478,6 +8491,9 @@ class LogicalOrPatternImpl extends DartPatternImpl implements LogicalOrPattern {
 
   @override
   Token get endToken => rightOperand.endToken;
+
+  @override
+  PatternPrecedence get precedence => PatternPrecedence.logicalOr;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -8677,6 +8693,9 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
 
   @override
   Token get endToken => rightBracket;
+
+  @override
+  PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -9785,6 +9804,9 @@ class NullAssertPatternImpl extends DartPatternImpl
   Token get endToken => operator;
 
   @override
+  PatternPrecedence get precedence => PatternPrecedence.postfix;
+
+  @override
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @override
@@ -9842,6 +9864,9 @@ class NullCheckPatternImpl extends DartPatternImpl implements NullCheckPattern {
 
   @override
   Token get endToken => operator;
+
+  @override
+  PatternPrecedence get precedence => PatternPrecedence.postfix;
 
   @override
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
@@ -9977,6 +10002,9 @@ class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
 
   @override
   NodeList<PatternFieldImpl> get fields => _fields;
+
+  @override
+  PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -10159,6 +10187,9 @@ class ParenthesizedPatternImpl extends DartPatternImpl
 
   @override
   Token get endToken => rightParenthesis;
+
+  @override
+  PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
   DartPattern get unParenthesized {
@@ -11071,6 +11102,9 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   NodeList<PatternFieldImpl> get fields => _fields;
 
   @override
+  PatternPrecedence get precedence => PatternPrecedence.primary;
+
+  @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNodeList('fields', fields)
@@ -11391,6 +11425,9 @@ class RelationalPatternImpl extends DartPatternImpl
   set operand(ExpressionImpl operand) {
     _operand = _becomeParentOf(operand);
   }
+
+  @override
+  PatternPrecedence get precedence => PatternPrecedence.relational;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -14246,6 +14283,9 @@ class WildcardPatternImpl extends DartPatternImpl implements WildcardPattern {
     }
     return null;
   }
+
+  @override
+  PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
   ChildEntities get _childEntities => super._childEntities
