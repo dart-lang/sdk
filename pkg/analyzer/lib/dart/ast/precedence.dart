@@ -3,6 +3,58 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+
+/// Opaque representation of pattern precedence.
+///
+/// [DartPattern] classes return an instance of this class. This allows clients
+/// to determine when parentheses are needed (by comparing precedence values).
+class PatternPrecedence {
+  static const PatternPrecedence logicalOr = PatternPrecedence._(1);
+  static const PatternPrecedence logicalAnd = PatternPrecedence._(2);
+  static const PatternPrecedence relational = PatternPrecedence._(3);
+  static const PatternPrecedence postfix = PatternPrecedence._(4);
+  static const PatternPrecedence primary = PatternPrecedence._(5);
+
+  final int _index;
+
+  const PatternPrecedence._(this._index);
+
+  @override
+  int get hashCode => _index.hashCode;
+
+  /// Returns `true` if this precedence represents a looser binding than
+  /// [other]; that is, parsing ambiguities will be resolved in favor of
+  /// nesting the pattern having precedence [other] within the pattern
+  /// having precedence `this`.
+  bool operator <(PatternPrecedence other) => _index < other._index;
+
+  /// Returns `true` if this precedence represents a looser, or equal, binding
+  /// than [other]; that is, parsing ambiguities will be resolved in favor of
+  /// nesting the pattern having precedence [other] within the pattern
+  /// having precedence `this`, or, if the precedences are equal, parsing
+  /// ambiguities will be resolved according to the associativity of the
+  /// pattern precedence.
+  bool operator <=(PatternPrecedence other) => _index <= other._index;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PatternPrecedence && _index == other._index;
+
+  /// Returns `true` if this precedence represents a tighter binding than
+  /// [other]; that is, parsing ambiguities will be resolved in favor of
+  /// nesting the pattern having precedence `this` within the pattern
+  /// having precedence [other].
+  bool operator >(PatternPrecedence other) => _index > other._index;
+
+  /// Returns `true` if this precedence represents a tighter, or equal, binding
+  /// than [other]; that is, parsing ambiguities will be resolved in favor of
+  /// nesting the pattern having precedence `this` within the pattern
+  /// having precedence [other], or, if the precedences are equal, parsing
+  /// ambiguities will be resolved according to the associativity of the
+  /// pattern precedence.
+  bool operator >=(PatternPrecedence other) => _index >= other._index;
+}
 
 /// Opaque representation of Dart expression precedence.
 ///
