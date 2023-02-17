@@ -173,6 +173,7 @@ vars = {
   "test_descriptor_rev": "1d4a967dd17874f3835af30720e9820c74977569",
   "test_process_rev": "f76d0b8fcf078d629cb57f859db79be93d6323d5",
   "test_reflective_loader_rev": "c4c2d5c3f94a96f3fc79e9e28944fba391bc544c",
+  "tools_rev": "48a544b052b7c1f60d2a70fae99c7f19705f2780",
   "typed_data_rev": "f858046fb420cf644e7d8cb86b7893f2830d8a6c",
   "usage_rev": "399770f45ed2d384d79395c0341a04fb25609a4d",
   "vector_math_rev": "920e9b6ef0da58d8867cd3dee748200dc75356e2",
@@ -450,6 +451,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       Var("dart_git") + "test_reflective_loader.git" +
       "@" + Var("test_reflective_loader_rev"),
+  Var("dart_root") + "/third_party/pkg/tools":
+      Var("dart_git") + "tools.git" + "@" + Var("tools_rev"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_rev"),
   Var("dart_root") + "/third_party/pkg/usage":

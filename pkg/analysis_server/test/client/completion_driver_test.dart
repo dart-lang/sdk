@@ -53,6 +53,9 @@ abstract class AbstractCompletionDriverTest
   /// selections. Individual tests can replace the default set.
   Set<String> allowedIdentifiers = const {};
 
+  /// Return `true` if keywords should be included in the text to be compared.
+  bool get includeKeywords => true;
+
   bool get isProtocolVersion1 {
     return protocol == TestingCompletionProtocol.version1;
   }
@@ -208,6 +211,8 @@ name: test
           var completion = suggestion.completion;
           return RegExp(r'^[a-zA-Z][0-9]+$').hasMatch(completion) ||
               allowedIdentifiers.contains(completion);
+        } else if (kind == CompletionSuggestionKind.KEYWORD) {
+          return includeKeywords;
         }
         return true;
       },

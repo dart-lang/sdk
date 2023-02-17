@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -313,7 +312,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               ? undefinedParam.value
               : undefinedParam.staticParameterElement?.name;
           _errorReporter.reportErrorForNode(
-              WarningCode.UNDEFINED_REFERENCED_PARAMETER,
+              HintCode.UNDEFINED_REFERENCED_PARAMETER,
               undefinedParam,
               [paramName ?? undefinedParam, name]);
         }
@@ -1205,10 +1204,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
                 node, [superclass.name.toString()]);
           } else {
             // This is a regular violation of the sealed class contract.
-            _errorReporter.reportErrorForNode(
-                WarningCode.SUBTYPE_OF_SEALED_CLASS,
-                node,
-                [superclass.name.toString()]);
+            _errorReporter.reportErrorForNode(HintCode.SUBTYPE_OF_SEALED_CLASS,
+                node, [superclass.name.toString()]);
           }
         }
       }
@@ -1217,7 +1214,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForInvariantNanComparison(BinaryExpression node) {
     void reportStartEnd(
-      ErrorCode errorCode,
+      HintCode errorCode,
       SyntacticEntity startEntity,
       SyntacticEntity endEntity,
     ) {
@@ -1234,7 +1231,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         expression.prefix.name == 'double' &&
         expression.identifier.name == 'nan';
 
-    void checkLeftRight(ErrorCode errorCode) {
+    void checkLeftRight(HintCode errorCode) {
       if (isDoubleNan(node.leftOperand)) {
         reportStartEnd(errorCode, node.leftOperand, node.operator);
       } else if (isDoubleNan(node.rightOperand)) {
@@ -1243,9 +1240,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (node.operator.type == TokenType.BANG_EQ) {
-      checkLeftRight(WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE);
+      checkLeftRight(HintCode.UNNECESSARY_NAN_COMPARISON_TRUE);
     } else if (node.operator.type == TokenType.EQ_EQ) {
-      checkLeftRight(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE);
+      checkLeftRight(HintCode.UNNECESSARY_NAN_COMPARISON_FALSE);
     }
   }
 
@@ -1542,7 +1539,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (body is ExpressionFunctionBody) {
       if (isNonObjectNoSuchMethodInvocation(body.expression)) {
         _errorReporter.reportErrorForToken(
-            WarningCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
+            HintCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
         return true;
       }
     } else if (body is BlockFunctionBody) {
@@ -1552,7 +1549,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         if (returnStatement is ReturnStatement &&
             isNonObjectNoSuchMethodInvocation(returnStatement.expression)) {
           _errorReporter.reportErrorForToken(
-              WarningCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
+              HintCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
           return true;
         }
       }

@@ -5,9 +5,6 @@
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk || $compiler == ddc) ]
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
 
-[ $system == linux && ($compiler == dartdevc || $compiler == dartdevk || $compiler == ddc) ]
-html/interactive_geolocation_test: Skip # Requires allowing geo location.
-
 [ $system == macos && ($compiler == dartdevc || $compiler == dartdevk || $compiler == ddc) ]
 html/interactive_media_test: Skip # Requires interactive camera, microphone permissions.
 
@@ -32,6 +29,7 @@ html/custom_element_method_clash_test: Skip # Issue 29922
 html/custom_element_name_clash_test: Skip # Issue 29922
 html/custom_elements_23127_test: Skip # Issue 29922
 html/custom_elements_test: Skip # Issue 29922
+html/interactive_geolocation_test: Skip # Requires allowing geo location.
 html/notification_permission_test: Skip # Issue 32002
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 js/js_util/js_prefix_test: SkipByDesign # JS$ prefix not implemented on ddc.

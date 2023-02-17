@@ -1008,43 +1008,40 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ldFlags.add('-Wl,-undefined,error');
       // Tell Mac linker to give up generating eh_frame from dwarf.
       ldFlags.add('-Wl,-no_compact_unwind');
-      if ({Architecture.arm64, Architecture.arm64c}
-          .contains(_configuration.architecture)) {
-        target = ['-arch', 'arm64'];
+      switch (_configuration.architecture) {
+        case Architecture.ia32:
+          target = ['-arch', 'i386'];
+          break;
+        case Architecture.x64:
+        case Architecture.x64c:
+        case Architecture.simx64:
+        case Architecture.simx64c:
+          target = ['-arch', 'x86_64'];
+          break;
+        case Architecture.simarm:
+        case Architecture.arm:
+        case Architecture.arm_x64:
+          target = ['-arch', 'armv7'];
+          break;
+        case Architecture.simarm64:
+        case Architecture.simarm64c:
+          target = ['-arch', 'arm64'];
+          break;
+        case Architecture.riscv32:
+        case Architecture.simriscv32:
+          target = ['-arch', 'riscv32'];
+          break;
+        case Architecture.riscv64:
+        case Architecture.simriscv64:
+          target = ['-arch', 'riscv64'];
+          break;
       }
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
     }
 
-    String? ccFlags;
-    switch (_configuration.architecture) {
-      case Architecture.x64:
-      case Architecture.x64c:
-      case Architecture.simx64:
-      case Architecture.simx64c:
-        ccFlags = "-m64";
-        break;
-      case Architecture.simarm64:
-      case Architecture.simarm64c:
-      case Architecture.ia32:
-      case Architecture.simarm:
-      case Architecture.arm:
-      case Architecture.arm_x64:
-      case Architecture.arm64:
-      case Architecture.arm64c:
-      case Architecture.riscv32:
-      case Architecture.riscv64:
-      case Architecture.simriscv32:
-      case Architecture.simriscv64:
-        ccFlags = null;
-        break;
-      default:
-        throw "Architecture not supported: ${_configuration.architecture.name}";
-    }
-
     var args = [
       if (target != null) ...target,
-      if (ccFlags != null) ccFlags,
       ...ldFlags,
       shared,
       '-o',
