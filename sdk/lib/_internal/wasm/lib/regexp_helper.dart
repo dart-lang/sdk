@@ -114,8 +114,8 @@ class JSSyntaxRegExp implements RegExp {
 
   RegExpMatch? firstMatch(String string) {
     JSNativeMatch? m = _nativeRegExp.exec(string);
-    if (m == null) return null;
-    return new _MatchImplementation(this, m);
+    if (m.isUndefinedOrNull) return null;
+    return new _MatchImplementation(this, m!);
   }
 
   bool hasMatch(String string) {
@@ -139,18 +139,18 @@ class JSSyntaxRegExp implements RegExp {
     JSNativeRegExp regexp = _nativeGlobalVersion;
     regexp.lastIndex = start;
     JSNativeMatch? match = regexp.exec(string);
-    if (match == null) return null;
-    return new _MatchImplementation(this, match);
+    if (match.isUndefinedOrNull) return null;
+    return new _MatchImplementation(this, match!);
   }
 
   RegExpMatch? _execAnchored(String string, int start) {
     JSNativeRegExp regexp = _nativeAnchoredVersion;
     regexp.lastIndex = start;
     JSNativeMatch? match = regexp.exec(string);
-    if (match == null) return null;
+    if (match.isUndefinedOrNull) return null;
     // If the last capture group participated, the original regexp did not
     // match at the start position.
-    if (match.pop() != null) return null;
+    if (match!.pop() != null) return null;
     return new _MatchImplementation(this, match);
   }
 
@@ -200,8 +200,8 @@ class _MatchImplementation implements RegExpMatch {
 
   String? namedGroup(String name) {
     JSObject? groups = _match.groups;
-    if (groups != null) {
-      Object? result = groups[name];
+    if (groups.isDefinedAndNotNull) {
+      Object? result = groups![name];
       if (result != null ||
           hasPropertyRaw(
               (groups as JSValue).toExternRef(), name.toExternRef())) {
@@ -213,8 +213,8 @@ class _MatchImplementation implements RegExpMatch {
 
   Iterable<String> get groupNames {
     JSObject? groups = _match.groups;
-    if (groups != null) {
-      return JSArrayIterableAdapter<String>(objectKeys(groups));
+    if (groups.isDefinedAndNotNull) {
+      return JSArrayIterableAdapter<String>(objectKeys(groups!));
     }
     return Iterable.empty();
   }

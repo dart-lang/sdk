@@ -2,11 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:_foreign_helper' show JS;
 import 'dart:_internal' show patch;
 import 'dart:_js_types';
-import 'dart:js';
+import 'dart:js_util';
 import 'dart:js_util';
 import 'dart:typed_data';
+
+/// Helper for working with the [JSAny?] top type in a backend agnostic way.
+/// TODO(joshualitt): Remove conflation of null and undefined after migration.
+extension NullableUndefineableJSAnyExtension on JSAny? {
+  @patch
+  bool get isUndefined => this == null || typeofEquals(this, 'undefined');
+
+  @patch
+  bool get isNull => this == null || JS('bool', '# === null', this);
+}
 
 /// [JSExportedDartFunction] <-> [Function]
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
