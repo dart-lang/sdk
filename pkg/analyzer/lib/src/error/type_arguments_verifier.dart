@@ -308,7 +308,7 @@ class TypeArgumentsVerifier {
         // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
         _errorReporter
-            .reportErrorForNode(WarningCode.STRICT_RAW_TYPE, node, [type]);
+            .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [type]);
       }
     }
   }
