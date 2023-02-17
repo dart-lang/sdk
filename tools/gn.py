@@ -300,7 +300,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
         gn_args['gen_snapshot_stripped_binary'] = (
             'exe.stripped/gen_snapshot_product')
         gn_args['analyze_snapshot_binary'] = ('exe.stripped/analyze_snapshot')
-        gn_args['wasm_opt_stripped_binary'] = 'exe.stripped/wasm-opt'
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):
