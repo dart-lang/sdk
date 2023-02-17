@@ -1565,6 +1565,7 @@ TimelineEventFileRecorderBase::TimelineEventFileRecorderBase(const char* path)
       tail_(nullptr),
       file_(nullptr),
       shutting_down_(false),
+      drained_(false),
       thread_id_(OSThread::kInvalidThreadJoinId) {
   Dart_FileOpenCallback file_open = Dart::file_open_callback();
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
@@ -1630,6 +1631,8 @@ void TimelineEventFileRecorderBase::Drain() {
     }
     ml.Enter();
   }
+  drained_ = true;
+  ml.Notify();
 }
 
 void TimelineEventFileRecorderBase::Write(const char* buffer,
@@ -1664,7 +1667,10 @@ void TimelineEventFileRecorderBase::CompleteEvent(TimelineEvent* event) {
 void TimelineEventFileRecorderBase::ShutDown() {
   MonitorLocker ml(&monitor_);
   shutting_down_ = true;
-  ml.Notify();
+  ml.NotifyAll();
+  while (!drained_) {
+    ml.Wait();
+  }
 }
 
 TimelineEventFileRecorder::TimelineEventFileRecorder(const char* path)

@@ -1146,6 +1146,7 @@ class TimelineEventFileRecorderBase : public TimelineEventPlatformRecorder {
   TimelineEvent* tail_;
   void* file_;
   bool shutting_down_;
+  bool drained_;
   ThreadJoinId thread_id_;
 };
 
