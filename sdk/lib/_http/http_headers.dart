@@ -1047,7 +1047,7 @@ class _Cookie implements Cookie {
           secure = true;
         } else if (name == "samesite") {
           sameSite = SameSite.values.firstWhere(
-                  (SameSite e) => e.toString() == 'SameSite.$value');
+                  (SameSite e) => e.toString().toLowerCase() == 'SameSite.$value'.toLowerCase());
         }
         if (!done()) index++; // Skip the ; character
       }
