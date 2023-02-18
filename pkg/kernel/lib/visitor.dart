@@ -1588,9 +1588,7 @@ mixin VisitorDefaultValueMixin<R> implements Visitor<R> {
 }
 
 /// Recursive visitor that doesn't return anything from its visit methods.
-// TODO(johnniwinther): Remove type parameter when all subclasses have been
-// changed to use [RecursiveVisitor] without type arguments.
-class RecursiveVisitor<T> extends Visitor<void> with VisitorVoidMixin {
+class RecursiveVisitor extends Visitor<void> with VisitorVoidMixin {
   const RecursiveVisitor();
 
   @override
