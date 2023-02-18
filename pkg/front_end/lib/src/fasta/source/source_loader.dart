@@ -2159,6 +2159,56 @@ severity: $severity
         typeBuilder.libraryBuilder.library.languageVersion >=
         ExperimentalFlag.sealedClass.experimentEnabledVersion;
 
+    /// Set when we know whether this library can ignore class modifiers.
+    ///
+    /// The same decision applies to all declarations in the library,
+    /// so the value only needs to be computed once.
+    bool? isExempt;
+
+    /// Whether the [cls] declaration can ignore (some) class modifiers.
+    ///
+    /// Checks whether the [cls] can ignore modifiers
+    /// from the [supertypeDeclaration].
+    /// This is only possible if the supertype declaration comes
+    /// from a platform library (`dart:` URI scheme),
+    /// and then only if the library is another platform library which is
+    /// exempt from restrictions on extending otherwise sealed platform types,
+    /// or if the library is a pre-class-modifiers-feature language version
+    /// library.
+    bool mayIgnoreClassModifiers(ClassBuilder supertypeDeclaration) {
+      // Only use this to ignore `final`, `base`, and `interface`.
+      // Nobody can ignore `abstract`, `sealed` or `mixin`.
+
+      // We already know the library cannot ignore modifiers.
+      if (isExempt == false) return false;
+
+      // Exception only applies to platform libraries.
+      final LibraryBuilder superLibrary = supertypeDeclaration.libraryBuilder;
+      if (!superLibrary.importUri.isScheme("dart")) return false;
+
+      // Remaining tests depend on the source library only,
+      // and the result can be cached.
+      if (isExempt == true) return true;
+
+      final LibraryBuilder subLibrary = cls.libraryBuilder;
+
+      // Some platform libraries may implement types like `int`,
+      // even if they are final.
+      if (subLibrary.mayImplementRestrictedTypes) {
+        isExempt = true;
+        return true;
+      }
+      // "Legacy" libraries may ignore `final`, `base` and `interface`
+      // from platform libraries. (But still cannot implement `int`.)
+      if (subLibrary.library.languageVersion <
+          ExperimentalFlag.classModifiers.experimentEnabledVersion) {
+        isExempt = true;
+        return true;
+      }
+      isExempt = false;
+      return false;
+    }
+
     TypeDeclarationBuilder? unaliasDeclaration(TypeBuilder typeBuilder) {
       TypeDeclarationBuilder? typeDeclarationBuilder = typeBuilder.declaration;
       if (typeDeclarationBuilder is TypeAliasBuilder) {
@@ -2181,7 +2231,9 @@ severity: $severity
           cls.libraryBuilder.origin !=
               supertypeDeclaration.libraryBuilder.origin) {
         if (isClassModifiersEnabled(supertypeDeclaration)) {
-          if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
+          if (supertypeDeclaration.isInterface &&
+              !cls.isMixinDeclaration &&
+              !mayIgnoreClassModifiers(supertypeDeclaration)) {
             cls.addProblem(
                 templateInterfaceClassExtendedOutsideOfLibrary
                     .withArguments(supertypeDeclaration.fullNameForErrors),
@@ -2190,7 +2242,8 @@ severity: $severity
           } else if (supertypeDeclaration.isFinal &&
               // TODO(kallentu): Error case where the class has a singular on
               // clause. Change with the new spec changes.
-              !cls.isMixinDeclaration) {
+              !cls.isMixinDeclaration &&
+              !mayIgnoreClassModifiers(supertypeDeclaration)) {
             cls.addProblem(
                 templateFinalClassExtendedOutsideOfLibrary
                     .withArguments(supertypeDeclaration.fullNameForErrors),
@@ -2235,13 +2288,15 @@ severity: $severity
 
           if (cls.libraryBuilder.origin !=
               mixedInTypeDeclaration.libraryBuilder.origin) {
-            if (mixedInTypeDeclaration.isInterface) {
+            if (mixedInTypeDeclaration.isInterface &&
+                !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {
               cls.addProblem(
                   templateInterfaceMixinMixedInOutsideOfLibrary
                       .withArguments(mixedInTypeDeclaration.fullNameForErrors),
                   mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
                   noLength);
-            } else if (mixedInTypeDeclaration.isFinal) {
+            } else if (mixedInTypeDeclaration.isFinal &&
+                !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {
               cls.addProblem(
                   templateFinalMixinMixedInOutsideOfLibrary
                       .withArguments(mixedInTypeDeclaration.fullNameForErrors),
@@ -2276,7 +2331,8 @@ severity: $severity
           if (isClassModifiersEnabled(interfaceDeclaration)) {
             // Report an error for a class implementing a base class outside of
             // its library.
-            if (interfaceDeclaration.isBase) {
+            if (interfaceDeclaration.isBase &&
+                !mayIgnoreClassModifiers(interfaceDeclaration)) {
               if (interfaceDeclaration.isMixinDeclaration) {
                 cls.addProblem(
                     templateBaseMixinImplementedOutsideOfLibrary
@@ -2293,7 +2349,8 @@ severity: $severity
             } else if (interfaceDeclaration.isFinal &&
                 // TODO(kallentu): Error case where the class has multiple on
                 // clauses. Change with the new spec changes.
-                !cls.cls.isAnonymousMixin) {
+                !cls.cls.isAnonymousMixin &&
+                !mayIgnoreClassModifiers(interfaceDeclaration)) {
               if (interfaceDeclaration.isMixinDeclaration) {
                 cls.addProblem(
                     templateFinalMixinImplementedOutsideOfLibrary

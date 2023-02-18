@@ -69,7 +69,7 @@ abstract class ListBase<E> extends Object with ListMixin<E> {
 /// To avoid this, override 'add' and 'addAll' to also forward directly
 /// to the growable list, or, if possible, use `DelegatingList` from
 /// "package:collection/collection.dart" instead of a `ListMixin`.
-abstract class ListMixin<E> implements List<E> {
+abstract mixin class ListMixin<E> implements List<E> {
   // Iterable interface.
   // TODO(lrn): When we get composable mixins, reuse IterableMixin instead
   // of redeclaring everything.

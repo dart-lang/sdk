@@ -829,7 +829,7 @@ mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
   }
 }
 
-abstract class _Float32x4ListMixin implements List<Float32x4> {
+mixin _Float32x4ListMixin implements List<Float32x4> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -1187,7 +1187,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
   }
 }
 
-abstract class _Int32x4ListMixin implements List<Int32x4> {
+mixin _Int32x4ListMixin implements List<Int32x4> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -1544,7 +1544,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
   }
 }
 
-abstract class _Float64x2ListMixin implements List<Float64x2> {
+mixin _Float64x2ListMixin implements List<Float64x2> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;

@@ -25,7 +25,7 @@ part of dart.core;
 /// * [num] the super class for [int].
 /// * [Numbers](https://dart.dev/guides/language/numbers) in
 /// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
-abstract class int extends num {
+abstract final class int extends num {
   /// Returns the integer value of the given environment declaration [name].
   ///
   /// The result is the same as would be returned by:

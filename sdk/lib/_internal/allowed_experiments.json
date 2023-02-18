@@ -2,7 +2,9 @@
   "version": 1,
   "experimentSets": {
     "sdkExperiments": [
-      "records"
+      "records",
+      "class-modifiers",
+      "sealed-class"
     ],
     "nullSafety": [
       "non-nullable"

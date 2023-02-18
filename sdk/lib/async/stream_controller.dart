@@ -768,7 +768,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   }
 }
 
-abstract class _SyncStreamControllerDispatch<T>
+mixin _SyncStreamControllerDispatch<T>
     implements _StreamController<T>, SynchronousStreamController<T> {
   void _sendData(T data) {
     _subscription._add(data);
@@ -783,8 +783,7 @@ abstract class _SyncStreamControllerDispatch<T>
   }
 }
 
-abstract class _AsyncStreamControllerDispatch<T>
-    implements _StreamController<T> {
+mixin _AsyncStreamControllerDispatch<T> implements _StreamController<T> {
   void _sendData(T data) {
     _subscription._addPending(_DelayedData<T>(data));
   }

@@ -15,7 +15,7 @@ part of dart.core;
 /// * [Numbers](https://dart.dev/guides/language/numbers) in
 /// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
 
-abstract class num implements Comparable<num> {
+sealed class num implements Comparable<num> {
   /// Test whether this value is numerically equal to `other`.
   ///
   /// If both operands are [double]s, they are equal if they have the same

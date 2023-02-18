@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Introduce an aliased type.
 
 typedef T = Function;
@@ -25,7 +24,7 @@ abstract class C {
   List<T> v11 = [];
   final T v12;
 
-  C(): v12 = (() {});
+  C() : v12 = (() {});
   C.name1(this.v10, this.v12);
   factory C.name2(T arg1, T arg2) = C1.name1;
 
@@ -40,14 +39,6 @@ class C1 implements C {
   C1.name1(T arg1, T arg2);
   noSuchMethod(Invocation invocation) => throw 0;
 }
-
-// Awaiting updates in front end to handle crash caused by null from
-// `ClassHierarchyBuilder.getKernelTypeAsInstanceOf`. So for now the
-// following are multi-test cases, so that the rest can be tested.
-class D1 extends T {} //# 01: ok
-abstract class D2 extends C with T {} //# 02: ok
-abstract class D3 implements T {} //# 03: ok
-abstract class D4 = C with T; //# 04: ok
 
 extension E on T {
   T foo(T t) => t;

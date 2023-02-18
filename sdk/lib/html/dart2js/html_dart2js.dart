@@ -5913,7 +5913,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   // items in the MEMBERS set if you want that functionality.
 }
 
-abstract class CssStyleDeclarationBase {
+abstract mixin class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String? value, [String? priority]);
 
@@ -37899,7 +37899,7 @@ class _Html5NodeValidator implements NodeValidator {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class ImmutableListMixin<E> implements List<E> {
+abstract mixin class ImmutableListMixin<E> implements List<E> {
   // From Iterable<$E>:
   Iterator<E> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
