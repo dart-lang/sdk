@@ -98,8 +98,7 @@ class _ConstantEvaluator extends Dart2jsConstantEvaluator {
   }
 
   Constant? _evaluate(Expression node) =>
-      evaluateOrNull(_staticTypeContext, node,
-          requireConstant: false, replaceImplicitConstant: false);
+      evaluateOrNull(_staticTypeContext, node, requireConstant: false);
 
   Constant? _evaluateFunctionInvocation(FunctionNode node) {
     if (node.typeParameters.isNotEmpty ||

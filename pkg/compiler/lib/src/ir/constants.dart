@@ -54,16 +54,9 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   ///
   /// If [requireConstant] is `true`, an error is reported if [node] is not
   /// a valid constant. Otherwise, `null` if [node] is not a valid constant.
-  ///
-  /// If [replaceImplicitConstant] is `true`, if [node] is not a constant
-  /// expression but evaluates to a constant, [node] is replaced with an
-  /// [ir.ConstantExpression] holding the constant. Otherwise the [node] is not
-  /// replaced even when it evaluated to a constant.
   ir.Constant? evaluateOrNull(
       ir.StaticTypeContext staticTypeContext, ir.Expression node,
-      {ir.TreeNode? contextNode,
-      bool requireConstant = true,
-      bool replaceImplicitConstant = true}) {
+      {ir.TreeNode? contextNode, bool requireConstant = true}) {
     errorReporter.requiresConstant = requireConstant;
     if (node is ir.ConstantExpression) {
       ir.Constant constant = node.constant;
@@ -73,7 +66,7 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
             contextNode: contextNode);
         assert(
             result is ir.UnevaluatedConstant ||
-                !result.accept(const UnevaluatedConstantFinder()),
+                !UnevaluatedConstantFinder().visitConstant(result),
             "Invalid constant result $result from ${constant.expression}.");
         if (!_supportReevaluationForTesting) {
           node.constant = result;
@@ -85,23 +78,13 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
     if (requireConstant) {
       return super.evaluate(staticTypeContext, node, contextNode: contextNode);
     } else {
-      try {
-        ir.Constant constant =
-            super.evaluate(staticTypeContext, node, contextNode: contextNode);
-        if (constant is ir.UnevaluatedConstant &&
-            constant.expression is ir.InvalidExpression) {
-          return null;
-        }
-        if (replaceImplicitConstant) {
-          // Note: Using [replaceWith] is slow and should be avoided.
-          node.replaceWith(ir.ConstantExpression(
-              constant, node.getStaticType(staticTypeContext))
-            ..fileOffset = node.fileOffset);
-        }
-        return constant;
-      } catch (e) {
+      ir.Constant constant =
+          super.evaluate(staticTypeContext, node, contextNode: contextNode);
+      if (constant is ir.UnevaluatedConstant &&
+          constant.expression is ir.InvalidExpression) {
         return null;
       }
+      return constant;
     }
   }
 }
@@ -122,8 +105,8 @@ class ErrorReporter implements ir.ErrorReporter {
 
 /// [ir.Constant] visitor that returns `true` if the visitor constant contains
 /// an [ir.UnevaluatedConstant].
-class UnevaluatedConstantFinder extends ir.ConstantVisitor<bool> {
-  const UnevaluatedConstantFinder();
+class UnevaluatedConstantFinder extends ir.ComputeOnceConstantVisitor<bool> {
+  UnevaluatedConstantFinder();
 
   @override
   bool defaultConstant(ir.Constant node) => false;
@@ -133,13 +116,13 @@ class UnevaluatedConstantFinder extends ir.ConstantVisitor<bool> {
 
   @override
   bool visitInstantiationConstant(ir.InstantiationConstant node) {
-    return node.tearOffConstant.accept(this);
+    return visitConstant(node.tearOffConstant);
   }
 
   @override
   bool visitInstanceConstant(ir.InstanceConstant node) {
     for (ir.Constant value in node.fieldValues.values) {
-      if (value.accept(this)) {
+      if (visitConstant(value)) {
         return true;
       }
     }
@@ -149,7 +132,7 @@ class UnevaluatedConstantFinder extends ir.ConstantVisitor<bool> {
   @override
   bool visitSetConstant(ir.SetConstant node) {
     for (ir.Constant value in node.entries) {
-      if (value.accept(this)) {
+      if (visitConstant(value)) {
         return true;
       }
     }
@@ -159,7 +142,7 @@ class UnevaluatedConstantFinder extends ir.ConstantVisitor<bool> {
   @override
   bool visitListConstant(ir.ListConstant node) {
     for (ir.Constant value in node.entries) {
-      if (value.accept(this)) {
+      if (visitConstant(value)) {
         return true;
       }
     }
@@ -169,10 +152,10 @@ class UnevaluatedConstantFinder extends ir.ConstantVisitor<bool> {
   @override
   bool visitMapConstant(ir.MapConstant node) {
     for (ir.ConstantMapEntry entry in node.entries) {
-      if (entry.key.accept(this)) {
+      if (visitConstant(entry.key)) {
         return true;
       }
-      if (entry.value.accept(this)) {
+      if (visitConstant(entry.value)) {
         return true;
       }
     }
