@@ -512,7 +512,7 @@ mixin FinalizableTransformer on Transformer {
 ///
 /// We cannot use the precomputed scopes for their declarations, because we
 /// could see returns in a scope before a declaration.
-class FindCaptures extends RecursiveVisitor {
+class FindCaptures extends RecursiveVisitor<void> {
   final bool Function(DartType) _isFinalizable;
 
   final bool thisIsFinalizable;
