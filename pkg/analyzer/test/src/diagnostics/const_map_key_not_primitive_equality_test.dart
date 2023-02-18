@@ -9,14 +9,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstMapKeyExpressionTypeImplementsEqualsTest);
+    defineReflectiveTests(ConstMapKeyNotPrimitiveEqualityTest);
   });
 }
 
 @reflectiveTest
-class ConstMapKeyExpressionTypeImplementsEqualsTest
-    extends PubPackageResolutionTest {
-  test_abstract() async {
+class ConstMapKeyNotPrimitiveEqualityTest extends PubPackageResolutionTest {
+  test_declaresEqEq_abstract() async {
     await assertNoErrorsInCode(r'''
 class A {
   const A();
@@ -29,20 +28,7 @@ main() {
 ''');
   }
 
-  test_constField() async {
-    await assertErrorsInCode(r'''
-main() {
-  const {double.infinity: 0};
-}
-''', [
-      error(
-          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-          18,
-          15),
-    ]);
-  }
-
-  test_direct() async {
+  test_implementsEqEq_direct() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -53,14 +39,21 @@ main() {
   const {const A() : 0};
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-          75,
-          9),
+      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 75, 9),
     ]);
   }
 
-  test_dynamic() async {
+  test_implementsEqEq_double() async {
+    await assertErrorsInCode(r'''
+main() {
+  const {double.infinity: 0};
+}
+''', [
+      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 18, 15),
+    ]);
+  }
+
+  test_implementsEqEq_dynamic() async {
     // Note: static type of B.a is "dynamic", but actual type of the const
     // object is A.  We need to make sure we examine the actual type when
     // deciding whether there is a problem with operator==.
@@ -78,14 +71,11 @@ main() {
   const {B.a : 0};
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-          118,
-          3),
+      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 118, 3),
     ]);
   }
 
-  test_factory() async {
+  test_implementsEqEq_factory() async {
     await assertErrorsInCode(r'''
 class A {
   const factory A() = B;
@@ -100,14 +90,11 @@ main() {
   const {const A(): 42};
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-          121,
-          9),
+      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 121, 9),
     ]);
   }
 
-  test_nestedIn_instanceCreation() async {
+  test_implementsEqEq_nestedIn_instanceCreation() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -123,14 +110,11 @@ main() {
   const B({A(): 0});
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-          110,
-          3),
+      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 110, 3),
     ]);
   }
 
-  test_record_notPrimitiveEqual_named() async {
+  test_implementsEqEq_record_named() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -141,14 +125,11 @@ const x = {
   (a: 0, b: const A()): 0,
 };
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-          71,
-          20),
+      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 71, 20),
     ]);
   }
 
-  test_record_notPrimitiveEqual_positional() async {
+  test_implementsEqEq_record_positional() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -159,38 +140,11 @@ const x = {
   (0, const A()): 0,
 };
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-          71,
-          14),
+      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 71, 14),
     ]);
   }
 
-  test_record_primitiveEqual_named() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  const A();
-}
-
-const x = {
-  (a: 0, b: const A()): 0,
-};
-''');
-  }
-
-  test_record_primitiveEqual_positional() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  const A();
-}
-
-const x = {
-  (0, const A()): 0,
-};
-''');
-  }
-
-  test_super() async {
+  test_implementsEqEq_super() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -205,10 +159,44 @@ main() {
   const {const B() : 0};
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-          111,
-          9),
+      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 111, 9),
     ]);
+  }
+
+  test_implementsHashCode_direct() async {
+    await assertErrorsInCode(r'''
+const v = {A(): 0};
+
+class A {
+  const A();
+  int get hashCode => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 11, 3),
+    ]);
+  }
+
+  test_implementsNone_record_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+}
+
+const x = {
+  (a: 0, b: const A()): 0,
+};
+''');
+  }
+
+  test_implementsNone_record_positional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+}
+
+const x = {
+  (0, const A()): 0,
+};
+''');
   }
 }

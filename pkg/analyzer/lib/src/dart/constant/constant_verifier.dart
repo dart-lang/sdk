@@ -22,7 +22,6 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -257,14 +256,15 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitMapPattern(MapPattern node) {
     node.typeArguments?.accept(this);
 
+    final featureSet = _currentLibrary.featureSet;
     var uniqueKeys = HashMap<DartObjectImpl, Expression>(
       hashCode: (_) => 0,
       equals: (a, b) {
         if (a.isIdentical2(_typeSystem, b).toBoolValue() == true) {
           return true;
         }
-        if (_isRecordTypeWithPrimitiveEqual(a.type) &&
-            _isRecordTypeWithPrimitiveEqual(b.type)) {
+        if (a.hasPrimitiveEquality(featureSet) &&
+            b.hasPrimitiveEquality(featureSet)) {
           return a == b;
         }
         return false;
@@ -469,39 +469,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         }
       }
     }
-  }
-
-  /// @return `true` if given [Type] implements operator <i>==</i>, and it is
-  ///         not <i>int</i> or <i>String</i>.
-  bool _implementsEqualsWhenNotAllowed(DartType type) {
-    // ignore int or String
-    if (type.isDartCoreInt || type.isDartCoreString) {
-      return false;
-    } else if (type.isDartCoreDouble) {
-      return true;
-    }
-    // prepare ClassElement
-    if (type is InterfaceType) {
-      var element = type.element;
-      // lookup for ==
-      var method = element.lookUpConcreteMethod("==", _currentLibrary);
-      if (method == null ||
-          (method.enclosingElement as ClassElement).isDartCoreObject) {
-        return false;
-      }
-      // there is == that we don't like
-      return true;
-    }
-    if (type is RecordType) {
-      return type.fields
-          .map((field) => field.type)
-          .any(_implementsEqualsWhenNotAllowed);
-    }
-    return false;
-  }
-
-  bool _isRecordTypeWithPrimitiveEqual(DartType type) {
-    return type is RecordType && !_implementsEqualsWhenNotAllowed(type);
   }
 
   /// Report any errors in the given list. Except for special cases, use the
@@ -848,6 +815,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     // compare all types with the most popular type rather than the first
     // type.
     bool foundError = false;
+    DartObjectImpl? firstValue;
     DartType? firstType;
     for (var switchMember in node.members) {
       if (switchMember is SwitchCase) {
@@ -860,6 +828,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         if (expressionValue == null) {
           continue;
         }
+        firstValue ??= expressionValue;
 
         var expressionValueType = _typeSystem.toLegacyTypeIfOptOut(
           expressionValue.type,
@@ -884,12 +853,15 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (firstType != null && _implementsEqualsWhenNotAllowed(firstType)) {
-      _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-        node.switchKeyword,
-        [firstType],
-      );
+    if (firstValue != null) {
+      final featureSet = _currentLibrary.featureSet;
+      if (!firstValue.hasPrimitiveEquality(featureSet)) {
+        _errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          node.switchKeyword,
+          [firstValue.type],
+        );
+      }
     }
   }
 
@@ -903,9 +875,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         return;
       }
 
-      if (!_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
+      final featureSet = _currentLibrary.featureSet;
+      if (!featureSet.isEnabled(Feature.patterns)) {
         var expressionType = expressionValue.type;
-        if (_implementsEqualsWhenNotAllowed(expressionType)) {
+        if (!expressionValue.hasPrimitiveEquality(featureSet)) {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
             expression,
@@ -1095,17 +1068,14 @@ class _ConstLiteralVerifier {
     }
 
     if (listValue != null) {
-      var type = value.type;
-      if (type is InterfaceType) {
-        var elementType = type.typeArguments[0];
-        if (verifier._implementsEqualsWhenNotAllowed(elementType)) {
-          verifier._errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-            element,
-            [elementType],
-          );
-          return false;
-        }
+      final featureSet = verifier._currentLibrary.featureSet;
+      if (!listValue.every((e) => e.hasPrimitiveEquality(featureSet))) {
+        verifier._errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
+          element,
+          [value.type],
+        );
+        return false;
       }
     }
 
@@ -1149,9 +1119,10 @@ class _ConstLiteralVerifier {
         );
       }
 
-      if (verifier._implementsEqualsWhenNotAllowed(keyType)) {
+      final featureSet = verifier._currentLibrary.featureSet;
+      if (!keyValue.hasPrimitiveEquality(featureSet)) {
         verifier._errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
           keyExpression,
           [keyType],
         );
@@ -1223,9 +1194,10 @@ class _ConstLiteralVerifier {
       return false;
     }
 
-    if (verifier._implementsEqualsWhenNotAllowed(value.type)) {
+    final featureSet = verifier._currentLibrary.featureSet;
+    if (!value.hasPrimitiveEquality(featureSet)) {
       verifier._errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+        CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
         expression,
         [value.type],
       );

@@ -2576,8 +2576,8 @@ CompileTimeErrorCode:
         static const int f = 3;
       }
       ```
-  CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
-    problemMessage: "The type of a key in a constant map can't override the '==' operator, but the class '{0}' does."
+  CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
+    problemMessage: "The type of a key in a constant map can't override the '==' operator, or 'hashCode', but the class '{0}' does."
     correctionMessage: "Try using a different value for the key, or removing the keyword 'const' from the map."
     hasPublishedDocs: true
     comment: |-
@@ -2660,8 +2660,8 @@ CompileTimeErrorCode:
       ```dart
       const c = 'c';
       ```
-  CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS:
-    problemMessage: "The type of an element in a constant set can't override the '==' operator, but the type '{0}' does."
+  CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
+    problemMessage: "An element in a constant set can't override the '==' operator, or 'hashCode', but the type '{0}' does."
     correctionMessage: "Try using a different value for the element, or removing the keyword 'const' from the set."
     hasPublishedDocs: true
     comment: |-

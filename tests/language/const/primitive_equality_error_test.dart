@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=records
+// SharedOptions=--enable-experiment=patterns,records
 
 // Verify that the use of a constant expression denoting an object that does
 // not have primitive equality in a constant set or as a key of a constant map
