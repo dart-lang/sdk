@@ -949,6 +949,7 @@ class _Cookie implements Cookie {
   String? _path;
   bool httpOnly = false;
   bool secure = false;
+  SameSite? sameSite;
 
   _Cookie(String name, String value)
       : _name = _validateName(name),
@@ -1044,6 +1045,9 @@ class _Cookie implements Cookie {
           httpOnly = true;
         } else if (name == "secure") {
           secure = true;
+        } else if (name == "samesite") {
+          sameSite = SameSite.values.firstWhere(
+                  (SameSite e) => e.toString() == 'SameSite.$value');
         }
         if (!done()) index++; // Skip the ; character
       }
@@ -1089,6 +1093,11 @@ class _Cookie implements Cookie {
     }
     if (secure) sb.write("; Secure");
     if (httpOnly) sb.write("; HttpOnly");
+    if (sameSite != null &&
+        (sameSite != SameSite.None || (sameSite == SameSite.None && secure))) {
+      sb.write("; ${sameSite.toString().replaceAll(".", "=")}");
+    }
+
     return sb.toString();
   }
 
