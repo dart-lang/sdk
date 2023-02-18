@@ -903,11 +903,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the type of the entry's key
-  static const CompileTimeErrorCode
-      CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS = CompileTimeErrorCode(
-    'CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
-    "The type of a key in a constant map can't override the '==' operator, but "
-        "the class '{0}' does.",
+  static const CompileTimeErrorCode CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY =
+      CompileTimeErrorCode(
+    'CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
+    "The type of a key in a constant map can't override the '==' operator, or "
+        "'hashCode', but the class '{0}' does.",
     correctionMessage:
         "Try using a different value for the key, or removing the keyword "
         "'const' from the map.",
@@ -926,11 +926,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the type of the element
-  static const CompileTimeErrorCode CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS =
+  static const CompileTimeErrorCode CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY =
       CompileTimeErrorCode(
-    'CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS',
-    "The type of an element in a constant set can't override the '==' "
-        "operator, but the type '{0}' does.",
+    'CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
+    "An element in a constant set can't override the '==' operator, or "
+        "'hashCode', but the type '{0}' does.",
     correctionMessage:
         "Try using a different value for the element, or removing the keyword "
         "'const' from the set.",

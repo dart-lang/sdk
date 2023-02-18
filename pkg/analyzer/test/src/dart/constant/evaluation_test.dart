@@ -29,6 +29,178 @@ main() {
 @reflectiveTest
 class ConstantVisitorTest extends ConstantVisitorTestSupport
     with ConstantVisitorTestCases {
+  test_hasPrimitiveEquality_bool() async {
+    await assertNoErrorsInCode('''
+const v = true;
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_class_hasEqEq() async {
+    await assertNoErrorsInCode('''
+const v = const A();
+
+class A {
+  const A();
+  bool operator ==(other) => false;
+}
+''');
+    _assertHasPrimitiveEqualityFalse('v');
+  }
+
+  test_hasPrimitiveEquality_class_hasEqEq_language219() async {
+    await assertNoErrorsInCode('''
+// @dart = 2.19
+const v = const A();
+
+class A {
+  const A();
+  bool operator ==(other) => false;
+}
+''');
+    _assertHasPrimitiveEqualityFalse('v');
+  }
+
+  test_hasPrimitiveEquality_class_hasHashCode() async {
+    await assertNoErrorsInCode('''
+const v = const A();
+
+class A {
+  const A();
+  int get hashCode => 0;
+}
+''');
+    _assertHasPrimitiveEqualityFalse('v');
+  }
+
+  test_hasPrimitiveEquality_class_hasHashCode_language219() async {
+    await assertNoErrorsInCode('''
+// @dart = 2.19
+const v = const A();
+
+class A {
+  const A();
+  int get hashCode => 0;
+}
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_class_hasNone() async {
+    await assertNoErrorsInCode('''
+const v = const A();
+
+class A {
+  const A();
+}
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_double() async {
+    await assertNoErrorsInCode('''
+const v = 1.2;
+''');
+    _assertHasPrimitiveEqualityFalse('v');
+  }
+
+  test_hasPrimitiveEquality_functionReference_staticMethod() async {
+    await assertNoErrorsInCode('''
+const v = A.foo;
+
+class A {
+  static void foo() {}
+}
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_functionReference_topLevelFunction() async {
+    await assertNoErrorsInCode('''
+const v = foo;
+
+void foo() {}
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_int() async {
+    await assertNoErrorsInCode('''
+const v = 0;
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_list() async {
+    await assertNoErrorsInCode('''
+const v = const [0];
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_map() async {
+    await assertNoErrorsInCode('''
+const v = const <int, String>{0: ''};
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_null() async {
+    await assertNoErrorsInCode('''
+const v = null;
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_record_named_false() async {
+    await assertNoErrorsInCode('''
+const v = (f1: true, f2: 1.2);
+''');
+    _assertHasPrimitiveEqualityFalse('v');
+  }
+
+  test_hasPrimitiveEquality_record_named_true() async {
+    await assertNoErrorsInCode('''
+const v = (f1: true, f2: 0);
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_record_positional_false() async {
+    await assertNoErrorsInCode('''
+const v = (true, 1.2);
+''');
+    _assertHasPrimitiveEqualityFalse('v');
+  }
+
+  test_hasPrimitiveEquality_record_positional_true() async {
+    await assertNoErrorsInCode('''
+const v = (true, 0);
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_set() async {
+    await assertNoErrorsInCode('''
+const v = const {0};
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_symbol() async {
+    await assertNoErrorsInCode('''
+const v = #foo.bar;
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
+  test_hasPrimitiveEquality_type() async {
+    await assertNoErrorsInCode('''
+const v = int;
+''');
+    _assertHasPrimitiveEqualityTrue('v');
+  }
+
   test_identical_constructorReference_aliasIsNotGeneric() async {
     await resolveTestCode('''
 class C<T> {}
@@ -919,6 +1091,20 @@ const void Function(int a) h = g;
     assertType(result.type, 'void Function(int, {int? b})');
     assertElement(result.toFunctionValue(), findElement.topFunction('f'));
     _assertTypeArguments(result, ['int']);
+  }
+
+  void _assertHasPrimitiveEqualityFalse(String name) {
+    final value = _evaluateConstant(name);
+    final featureSet = result.libraryElement.featureSet;
+    final has = value.hasPrimitiveEquality(featureSet);
+    expect(has, isFalse);
+  }
+
+  void _assertHasPrimitiveEqualityTrue(String name) {
+    final value = _evaluateConstant(name);
+    final featureSet = result.libraryElement.featureSet;
+    final has = value.hasPrimitiveEquality(featureSet);
+    expect(has, isTrue);
   }
 }
 

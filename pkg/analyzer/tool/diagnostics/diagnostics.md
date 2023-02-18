@@ -2998,10 +2998,10 @@ class C {
 }
 {% endprettify %}
 
-### const_map_key_expression_type_implements_equals
+### const_map_key_not_primitive_equality
 
-_The type of a key in a constant map can't override the '==' operator, but the
-class '{0}' does._
+_The type of a key in a constant map can't override the '==' operator, or
+'hashCode', but the class '{0}' does._
 
 #### Description
 
@@ -3077,10 +3077,10 @@ Add an initializer:
 const c = 'c';
 {% endprettify %}
 
-### const_set_element_type_implements_equals
+### const_set_element_not_primitive_equality
 
-_The type of an element in a constant set can't override the '==' operator, but
-the type '{0}' does._
+_An element in a constant set can't override the '==' operator, or 'hashCode',
+but the type '{0}' does._
 
 #### Description
 

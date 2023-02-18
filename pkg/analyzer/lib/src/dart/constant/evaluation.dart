@@ -2313,7 +2313,7 @@ class _InstanceCreationEvaluator {
     return DartObjectImpl(
       typeSystem,
       definingType,
-      GenericState(_fieldMap, invocation: _invocation),
+      GenericState(definingType, _fieldMap, invocation: _invocation),
     );
   }
 

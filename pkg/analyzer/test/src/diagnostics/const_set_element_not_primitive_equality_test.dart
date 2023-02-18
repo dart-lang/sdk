@@ -9,16 +9,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
+    defineReflectiveTests(ConstSetElementNotPrimitiveEqualityTest);
   });
 }
 
 @reflectiveTest
-class ConstSetElementTypeImplementsEqualsTest extends PubPackageResolutionTest
-    with ConstSetElementTypeImplementsEqualsTestCases {}
-
-mixin ConstSetElementTypeImplementsEqualsTestCases on PubPackageResolutionTest {
-  test_constField() async {
+class ConstSetElementNotPrimitiveEqualityTest extends PubPackageResolutionTest {
+  test_implementsEqEq_constField() async {
     await assertErrorsInCode(r'''
 class A {
   static const a = const A();
@@ -29,12 +26,12 @@ main() {
   const {A.a};
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 104,
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 104,
           3),
     ]);
   }
 
-  test_direct() async {
+  test_implementsEqEq_direct() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -45,11 +42,11 @@ main() {
 }
 ''', [
       error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 74, 9),
+          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 74, 9),
     ]);
   }
 
-  test_dynamic() async {
+  test_implementsEqEq_dynamic() async {
     // Note: static type of B.a is "dynamic", but actual type of the const
     // object is A.  We need to make sure we examine the actual type when
     // deciding whether there is a problem with operator==.
@@ -65,12 +62,12 @@ main() {
   const {B.a};
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 116,
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 116,
           3),
     ]);
   }
 
-  test_factory() async {
+  test_implementsEqEq_factory() async {
     await assertErrorsInCode(r'''
 class A { const factory A() = B; }
 
@@ -85,12 +82,12 @@ main() {
   print(m);
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 128,
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 128,
           9),
     ]);
   }
 
-  test_nestedIn_instanceCreation() async {
+  test_implementsEqEq_nestedIn_instanceCreation() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -106,12 +103,12 @@ main() {
   const B({A()});
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 110,
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 110,
           3),
     ]);
   }
 
-  test_record_notPrimitiveEqual_named() async {
+  test_implementsEqEq_record_named() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -122,12 +119,12 @@ const x = {
   (a: 0, b: const A()),
 };
 ''', [
-      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 71,
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 71,
           20),
     ]);
   }
 
-  test_record_notPrimitiveEqual_positional() async {
+  test_implementsEqEq_record_positional() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -138,49 +135,12 @@ const x = {
   (0, const A()),
 };
 ''', [
-      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 71,
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 71,
           14),
     ]);
   }
 
-  test_record_primitiveEqual_named() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  const A();
-}
-
-const x = {
-  (a: 0, b: const A()),
-};
-''');
-  }
-
-  test_record_primitiveEqual_positional() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  const A();
-}
-
-const x = {
-  (0, const A()),
-};
-''');
-  }
-
-  test_spread_intoList_list() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  const A();
-  operator ==(other) => false;
-}
-
-main() {
-  const [...[A()]];
-}
-''');
-  }
-
-  test_spread_intoList_set() async {
+  test_implementsEqEq_spread_intoList_set() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -192,11 +152,11 @@ main() {
 }
 ''', [
       error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 79, 3),
+          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 79, 3),
     ]);
   }
 
-  test_spread_intoSet_list() async {
+  test_implementsEqEq_spread_intoSet_list() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -208,11 +168,11 @@ main() {
 }
 ''', [
       error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 75, 8),
+          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 75, 8),
     ]);
   }
 
-  test_spread_intoSet_set() async {
+  test_implementsEqEq_spread_intoSet_set() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -224,11 +184,11 @@ main() {
 }
 ''', [
       error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 79, 3),
+          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 79, 3),
     ]);
   }
 
-  test_super() async {
+  test_implementsEqEq_super() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -241,8 +201,59 @@ main() {
   const {const B()};
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 109,
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 109,
           9),
     ]);
+  }
+
+  test_implementsHashCode_direct() async {
+    await assertErrorsInCode(r'''
+const v = {A()};
+
+class A {
+  const A();
+  int get hashCode => 0;
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY, 11, 3),
+    ]);
+  }
+
+  test_implementsNone_record_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+}
+
+const x = {
+  (a: 0, b: const A()),
+};
+''');
+  }
+
+  test_implementsNone_record_positional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+}
+
+const x = {
+  (0, const A()),
+};
+''');
+  }
+
+  test_listLiteral_spread() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+
+main() {
+  const [...[A()]];
+}
+''');
   }
 }

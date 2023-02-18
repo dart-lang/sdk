@@ -1045,9 +1045,6 @@ class ElementKind implements Comparable<ElementKind> {
   const ElementKind(this.name, this.ordinal, this.displayName);
 
   @override
-  int get hashCode => ordinal;
-
-  @override
   int compareTo(ElementKind other) => ordinal - other.ordinal;
 
   @override

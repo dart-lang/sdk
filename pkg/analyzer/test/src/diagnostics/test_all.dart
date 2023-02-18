@@ -116,11 +116,11 @@ import 'const_initialized_with_non_constant_value_from_deferred_library_test.dar
 import 'const_initialized_with_non_constant_value_test.dart'
     as const_initialized_with_non_constant_value;
 import 'const_instance_field_test.dart' as const_instance_field;
-import 'const_map_key_expression_type_implements_equals_test.dart'
-    as const_map_key_expression_type_implements_equals;
+import 'const_map_key_not_primitive_equality_test.dart'
+    as const_map_key_not_primitive_equality;
 import 'const_not_initialized_test.dart' as const_not_initialized;
-import 'const_set_element_type_implements_equals_test.dart'
-    as const_set_element_type_implements_equals;
+import 'const_set_element_not_primitive_equality_test.dart'
+    as const_set_element_not_primitive_equality;
 import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
@@ -944,9 +944,9 @@ main() {
     const_initialized_with_non_constant_value_from_deferred_library.main();
     const_initialized_with_non_constant_value.main();
     const_instance_field.main();
-    const_map_key_expression_type_implements_equals.main();
+    const_map_key_not_primitive_equality.main();
     const_not_initialized.main();
-    const_set_element_type_implements_equals.main();
+    const_set_element_not_primitive_equality.main();
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
     const_with_non_const.main();

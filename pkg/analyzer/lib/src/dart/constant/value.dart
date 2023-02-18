@@ -5,6 +5,7 @@
 /// The implementation of the class [DartObject].
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -68,6 +69,9 @@ class BoolState extends InstanceState {
     assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
+
+  @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) => true;
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
@@ -187,7 +191,11 @@ class DartObjectImpl implements DartObject {
     } else if (type.isDartCoreString) {
       return DartObjectImpl(typeSystem, type, StringState.UNKNOWN_VALUE);
     }
-    return DartObjectImpl(typeSystem, type, GenericState.UNKNOWN_VALUE);
+    return DartObjectImpl(
+      typeSystem,
+      type,
+      GenericState(type, {}, isUnknown: true),
+    );
   }
 
   Map<String, DartObjectImpl>? get fields => state.fields;
@@ -490,6 +498,12 @@ class DartObjectImpl implements DartObject {
       typeSystem.typeProvider.boolType,
       state.greaterThanOrEqual(rightOperand.state),
     );
+  }
+
+  /// Returns `true` if this value, inside a library with the [featureSet],
+  /// has primitive equality, so can be used at compile-time.
+  bool hasPrimitiveEquality(FeatureSet featureSet) {
+    return state.hasPrimitiveEquality(featureSet);
   }
 
   /// Return the result of testing whether this object has the given
@@ -865,7 +879,7 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  List<DartObject>? toListValue() {
+  List<DartObjectImpl>? toListValue() {
     final state = this.state;
     if (state is ListState) {
       return state._elements;
@@ -883,7 +897,7 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  Set<DartObject>? toSetValue() {
+  Set<DartObjectImpl>? toSetValue() {
     final state = this.state;
     if (state is SetState) {
       return state._elements;
@@ -1342,6 +1356,9 @@ class FunctionState extends InstanceState {
   }
 
   @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) => true;
+
+  @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (_element == null) {
       return BoolState.UNKNOWN_VALUE;
@@ -1392,9 +1409,8 @@ class GenericState extends InstanceState {
   /// Pseudo-field that we use to represent fields in the superclass.
   static String SUPERCLASS_FIELD = "(super)";
 
-  /// A state that can be used to represent an object whose state is not known.
-  static GenericState UNKNOWN_VALUE =
-      GenericState(HashMap<String, DartObjectImpl>());
+  /// The type of the object being represented.
+  final DartType _type;
 
   /// The values of the fields of this instance.
   final Map<String, DartObjectImpl> _fieldMap;
@@ -1402,9 +1418,17 @@ class GenericState extends InstanceState {
   /// Information about the constructor invoked to generate this instance.
   final ConstructorInvocation? invocation;
 
+  @override
+  final bool isUnknown;
+
   /// Initialize a newly created state to represent a newly created object. The
   /// [fieldMap] contains the values of the fields of the instance.
-  GenericState(this._fieldMap, {this.invocation});
+  GenericState(
+    this._type,
+    this._fieldMap, {
+    this.invocation,
+    this.isUnknown = false,
+  });
 
   @override
   Map<String, DartObjectImpl> get fields => _fieldMap;
@@ -1417,9 +1441,6 @@ class GenericState extends InstanceState {
     }
     return hashCode;
   }
-
-  @override
-  bool get isUnknown => identical(this, UNKNOWN_VALUE);
 
   @override
   String get typeName => "user defined type";
@@ -1452,6 +1473,36 @@ class GenericState extends InstanceState {
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
+  }
+
+  @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) {
+    final type = _type;
+    if (type is InterfaceType) {
+      bool isFromDartCoreObject(ExecutableElement? element) {
+        final enclosing = element?.enclosingElement;
+        return enclosing is ClassElement && enclosing.isDartCoreObject;
+      }
+
+      final element = type.element;
+      final library = element.library;
+
+      final eqEq = type.lookUpMethod2('==', library, concrete: true);
+      if (!isFromDartCoreObject(eqEq)) {
+        return false;
+      }
+
+      if (featureSet.isEnabled(Feature.patterns)) {
+        final hash = type.lookUpGetter2('hashCode', library, concrete: true);
+        if (!isFromDartCoreObject(hash)) {
+          return false;
+        }
+      }
+
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override
@@ -1663,6 +1714,10 @@ abstract class InstanceState {
     assertNumOrNull(rightOperand);
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
+
+  /// Returns `true` if this value, inside a library with the [featureSet],
+  /// has primitive equality, so can be used at compile-time.
+  bool hasPrimitiveEquality(FeatureSet featureSet) => false;
 
   /// Return the result of invoking the '~/' operator on this object with the
   /// [rightOperand].
@@ -2069,6 +2124,9 @@ class IntState extends NumState {
   }
 
   @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) => true;
+
+  @override
   IntState integerDivide(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
     if (value == null) {
@@ -2363,6 +2421,9 @@ class ListState extends InstanceState {
   }
 
   @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) => true;
+
+  @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(this == rightOperand);
   }
@@ -2438,6 +2499,9 @@ class MapState extends InstanceState {
   }
 
   @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) => true;
+
+  @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(this == rightOperand);
   }
@@ -2495,6 +2559,9 @@ class NullState extends InstanceState {
     assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
+
+  @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) => true;
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
@@ -2595,6 +2662,13 @@ class RecordState extends InstanceState {
   }
 
   @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) {
+    return [...positionalFields, ...namedFields.values].every(
+      (e) => e.hasPrimitiveEquality(featureSet),
+    );
+  }
+
+  @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (this != rightOperand) {
       return BoolState.FALSE_STATE;
@@ -2692,6 +2766,9 @@ class SetState extends InstanceState {
   }
 
   @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) => true;
+
+  @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(this == rightOperand);
   }
@@ -2766,6 +2843,9 @@ class StringState extends InstanceState {
   }
 
   @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) => true;
+
+  @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
@@ -2825,6 +2905,9 @@ class SymbolState extends InstanceState {
   }
 
   @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) => true;
+
+  @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
@@ -2874,6 +2957,9 @@ class TypeState extends InstanceState {
     assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
+
+  @override
+  bool hasPrimitiveEquality(FeatureSet featureSet) => true;
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
