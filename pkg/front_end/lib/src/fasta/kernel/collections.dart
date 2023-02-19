@@ -17,6 +17,8 @@ import '../problems.dart' show getFileUri, unsupported;
 
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
+import 'internal_ast.dart';
+
 /// Mixin for spread and control-flow elements.
 ///
 /// Spread and control-flow elements are not truly expressions and they cannot
@@ -849,6 +851,11 @@ bool isConvertibleToMapEntry(Expression element) {
         (element.otherwise == null ||
             isConvertibleToMapEntry(element.otherwise!));
   }
+  if (element is IfCaseElement) {
+    return isConvertibleToMapEntry(element.then) &&
+        (element.otherwise == null ||
+            isConvertibleToMapEntry(element.otherwise!));
+  }
   if (element is ForElement) {
     return isConvertibleToMapEntry(element.body);
   }
@@ -875,6 +882,18 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
   if (element is IfElement) {
     IfMapEntry result = new IfMapEntry(
         element.condition,
+        convertToMapEntry(element.then, helper, onConvertElement),
+        element.otherwise == null
+            ? null
+            : convertToMapEntry(element.otherwise!, helper, onConvertElement))
+      ..fileOffset = element.fileOffset;
+    onConvertElement(element, result);
+    return result;
+  }
+  if (element is IfCaseElement) {
+    IfCaseMapEntry result = new IfCaseMapEntry(
+        element.expression,
+        element.patternGuard,
         convertToMapEntry(element.then, helper, onConvertElement),
         element.otherwise == null
             ? null
