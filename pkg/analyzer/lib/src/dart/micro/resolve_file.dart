@@ -496,13 +496,17 @@ class FileResolver {
     );
 
     // Release the linked data, the reference count is `>= 1`.
-    byteStore.release(linkedKeysToRelease);
+    if (linkedKeysToRelease.isNotEmpty) {
+      byteStore.release(linkedKeysToRelease);
+    }
   }
 
   /// Releases from the cache and clear [removedCacheKeys].
   void releaseAndClearRemovedIds() {
-    byteStore.release(removedCacheKeys);
-    removedCacheKeys.clear();
+    if (removedCacheKeys.isNotEmpty) {
+      byteStore.release(removedCacheKeys);
+      removedCacheKeys.clear();
+    }
   }
 
   /// Remove cached [FileState]'s that were not used in the current analysis
