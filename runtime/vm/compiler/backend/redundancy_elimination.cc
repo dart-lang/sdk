@@ -4425,7 +4425,7 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
     BlockEntryInstr* block = block_it.Current();
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      ASSERT(!current->IsPushArgument());
+      ASSERT(!current->IsMoveArgument());
       // TODO(alexmarkov): take control dependencies into account and
       // eliminate dead branches/conditions.
       if (!CanEliminateInstruction(current, block)) {
@@ -4462,7 +4462,7 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
       for (Environment::DeepIterator it(current->env()); !it.Done();
            it.Advance()) {
         Definition* input = it.CurrentValue()->definition();
-        ASSERT(!input->IsPushArgument());
+        ASSERT(!input->IsMoveArgument());
         if (input->HasSSATemp() && !live.Contains(input->ssa_temp_index())) {
           worklist.Add(input);
           live.Add(input->ssa_temp_index());
@@ -4488,8 +4488,8 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
       if (!CanEliminateInstruction(current, block)) {
         continue;
       }
-      ASSERT(!current->IsPushArgument());
-      ASSERT((current->ArgumentCount() == 0) || !current->HasPushArguments());
+      ASSERT(!current->IsMoveArgument());
+      ASSERT((current->ArgumentCount() == 0) || !current->HasMoveArguments());
       if (Definition* def = current->AsDefinition()) {
         if (def->HasSSATemp() && live.Contains(def->ssa_temp_index())) {
           continue;

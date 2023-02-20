@@ -2974,7 +2974,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       writeSymbol(':');
       writeConstantReference(entry.value);
     });
-    endLine(')');
+    endLine('}');
   }
 
   @override

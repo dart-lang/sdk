@@ -1828,8 +1828,8 @@ void f(String s, int x, int/*?*/ n) {
 }
 ''';
     var expected = '''
-void f(String s, int x, int? n) {
-  s == null ? (x = n!) : (x = s.length);
+void f(String? s, int? x, int? n) {
+  s == null ? (x = n) : (x = s.length);
 }
 ''';
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
@@ -1837,13 +1837,13 @@ void f(String s, int x, int? n) {
 
   Future<void> test_conditional_expression_guard_value_ifFalse() async {
     var content = 'int f(String s, int/*?*/ n) => s != null ? s.length : n;';
-    var expected = 'int f(String s, int? n) => s != null ? s.length : n!;';
+    var expected = 'int? f(String? s, int? n) => s != null ? s.length : n;';
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
   Future<void> test_conditional_expression_guard_value_ifTrue() async {
     var content = 'int f(String s, int/*?*/ n) => s == null ? n : s.length;';
-    var expected = 'int f(String s, int? n) => s == null ? n! : s.length;';
+    var expected = 'int? f(String? s, int? n) => s == null ? n : s.length;';
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
@@ -2633,6 +2633,7 @@ String f(bool b) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  // TODO(yanok): we don't discard anymore, remove?
   Future<void> test_discard_simple_condition_keep_else() async {
     var content = '''
 int f(int i) {
@@ -2645,17 +2646,18 @@ int f(int i) {
 ''';
 
     var expected = '''
-int f(int i) {
-  /* if (i == null) {
+int? f(int? i) {
+  if (i == null) {
     return null;
   } else {
-    */ return i + 1; /*
-  } */
+    return i + 1;
+  }
 }
 ''';
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  // TODO(yanok): we don't discard anymore, remove?
   Future<void> test_discard_simple_condition_keep_then() async {
     var content = '''
 int f(int i) {
@@ -2668,12 +2670,12 @@ int f(int i) {
 ''';
 
     var expected = '''
-int f(int i) {
-  /* if (i != null) {
-    */ return i + 1; /*
+int? f(int? i) {
+  if (i != null) {
+    return i + 1;
   } else {
     return null;
-  } */
+  }
 }
 ''';
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
@@ -5474,7 +5476,8 @@ int f(int x) {
 }
 ''';
     var expected = '''
-int f(int x) {
+int f(int? x) {
+  if (x == null) return 0;
   return x;
 }
 ''';
@@ -8307,6 +8310,24 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_nullTestOnGenericType_explicitBound() async {
+    var content = '''
+void f<T extends Object>(T x, T y) {
+  if (x == null) return;
+  if (y == null) return;
+}
+g() => f(1, null);
+''';
+    var expected = '''
+void f<T extends Object>(T? x, T? y) {
+  if (x == null) return;
+  if (y == null) return;
+}
+g() => f(1, null);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_nullTestOnGenericType_implicitBound() async {
     var content = '''
 void f<T>(T x, T y) {
@@ -8316,7 +8337,7 @@ void f<T>(T x, T y) {
 g() => f(1, null);
 ''';
     var expected = '''
-void f<T>(T x, T y) {
+void f<T>(T? x, T? y) {
   if (x == null) return;
   if (y == null) return;
 }
@@ -8333,21 +8354,24 @@ void f<T extends Object/*!*/>(T x, T y) {
 }
 ''';
     var expected = '''
-void f<T extends Object>(T x, T y) {}
+void f<T extends Object>(T? x, T? y) {
+  if (x == null) return;
+  if (y == null) return;
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
 
   Future<void> test_nullTestOnGenericType_nullableBound() async {
     var content = '''
-void f<T extends Object>(T x, T y) {
+void f<T extends Object/*?*/>(T x, T y) {
   if (x == null) return;
   if (y == null) return;
 }
 g() => f(1, null);
 ''';
     var expected = '''
-void f<T extends Object?>(T x, T y) {
+void f<T extends Object?>(T? x, T? y) {
   if (x == null) return;
   if (y == null) return;
 }
@@ -8558,6 +8582,7 @@ int f(int x, int Function(int i) g) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  // TODO(yanok): cfg is no longer altered here, remove?
   Future<void> test_postdominating_usage_after_cfg_altered() async {
     // By altering the control-flow graph, we can create new postdominators,
     // which are not recognized as such. This is not a problem as we only do
@@ -8578,12 +8603,12 @@ void main() {
 }
 ''';
     var expected = '''
-int f(int a, int? b, int? c) {
-  /* if (a != null) {
-    */ b!.toDouble(); /*
+int? f(int? a, int? b, int? c) {
+  if (a != null) {
+    b!.toDouble();
   } else {
     return null;
-  } */
+  }
   c!.toDouble;
 }
 
@@ -9113,6 +9138,7 @@ bool? f(C? c) => c?.i.isEven;
     await _checkSingleFileChanges(content, expected);
   }
 
+  // TODO(yanok): element is not removed anymore, remove test?
   Future<void> test_removed_if_element_doesnt_introduce_nullability() async {
     // Failing because we don't yet remove the dead list element
     // `if (x == null) recover()`.
@@ -9126,8 +9152,8 @@ int recover() {
 }
 ''';
     var expected = '''
-f(int x) {
-  <int>[0];
+f(int? x) {
+  <int?>[if (x == null) recover(), 0];
 }
 int? recover() {
   assert(false);
@@ -10605,6 +10631,7 @@ f(int i, String s) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  // TODO(yanok): does it still make sense?
   Future<void> test_weak_if_visit_weak_subexpression() async {
     var content = '''
 int f(int x, int/*?*/ y) {
@@ -10616,7 +10643,7 @@ int f(int x, int/*?*/ y) {
 }
 ''';
     var expected = '''
-int f(int x, int? y) {
+int f(int? x, int? y) {
   if (x == null) {
     print(y!.toDouble());
   } else {

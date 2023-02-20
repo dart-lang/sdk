@@ -164,8 +164,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
-                     const String& function_name,
-                     bool clear_the_temp = true);
+                     const String& function_name);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,

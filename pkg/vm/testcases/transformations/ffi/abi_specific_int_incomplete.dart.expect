@@ -138,7 +138,7 @@ constants  {
   #C17 = "x64"
   #C18 = ffi::_Architecture {index:#C1, _name:#C17}
   #C19 = ffi::Abi {_os:#C3, _architecture:#C18}
-  #C20 = <ffi::Abi, ffi::NativeType>{#C7:#C8, #C12:#C8, #C16:#C8, #C19:#C8)
+  #C20 = <ffi::Abi, ffi::NativeType>{#C7:#C8, #C12:#C8, #C16:#C8, #C19:#C8}
   #C21 = ffi::AbiSpecificIntegerMapping {mapping:#C20}
   #C22 = "vm:ffi:abi-specific-mapping"
   #C23 = null

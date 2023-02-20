@@ -564,12 +564,12 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_NonNullableLoadStaticField) {
   RELEASE_ASSERT(cursor.TryMatch({
       kMoveGlob,
       {kMatchAndMoveLoadStaticField, &load},
-      kMatchAndMovePushArgument,
+      kMatchAndMoveMoveArgument,
       kMatchAndMoveStaticCall,
       kMatchAndMoveUnboxInt64,
       kMatchAndMoveBinaryInt64Op,
       kMatchAndMoveBoxInt64,
-      kMatchAndMovePushArgument,
+      kMatchAndMoveMoveArgument,
       kMatchAndMoveStaticCall,
       kMatchReturn,
   }));
@@ -736,10 +736,10 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RecordFieldAccess) {
       {kMatchAndMoveLoadField, &load1},
       kMatchAndMoveCheckSmi,
       kMatchAndMoveBinarySmiOp,
-      kMatchAndMovePushArgument,
+      kMatchAndMoveMoveArgument,
       kMatchAndMoveStaticCall,
       {kMatchAndMoveLoadField, &load2},
-      kMatchAndMovePushArgument,
+      kMatchAndMoveMoveArgument,
       kMatchAndMoveStaticCall,
       kMatchReturn,
   }));

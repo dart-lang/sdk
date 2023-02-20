@@ -58,7 +58,7 @@ class Class = self::Super with self::Mixin implements self::Interface {
 constants  {
   #C1 = #method1
   #C2 = <core::Type*>[]
-  #C3 = <core::Symbol*, dynamic>{)
+  #C3 = <core::Symbol*, dynamic>{}
   #C4 = #method2
   #C5 = #method3
 }

@@ -1475,18 +1475,18 @@ void Instruction::UnuseAllInputs() {
   }
 }
 
-void Instruction::RepairPushArgsInEnvironment() const {
+void Instruction::RepairArgumentUsesInEnvironment() const {
   // Some calls (e.g. closure calls) have more inputs than actual arguments.
   // Those extra inputs will be consumed from the stack before the call.
   const intptr_t after_args_input_count = env()->LazyDeoptPruneCount();
-  PushArgumentsArray* push_arguments = GetPushArguments();
-  ASSERT(push_arguments != nullptr);
+  MoveArgumentsArray* move_arguments = GetMoveArguments();
+  ASSERT(move_arguments != nullptr);
   const intptr_t arg_count = ArgumentCount();
   ASSERT((arg_count + after_args_input_count) <= env()->Length());
   const intptr_t env_base =
       env()->Length() - arg_count - after_args_input_count;
   for (intptr_t i = 0; i < arg_count; ++i) {
-    env()->ValueAt(env_base + i)->BindToEnvironment(push_arguments->At(i));
+    env()->ValueAt(env_base + i)->BindToEnvironment(move_arguments->At(i));
   }
 }
 

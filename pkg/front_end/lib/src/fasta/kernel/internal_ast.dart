@@ -4845,8 +4845,27 @@ class IfCaseElement extends InternalExpression with ControlFlowElement {
   @override
   MapLiteralEntry? toMapLiteralEntry(
       void Function(TreeNode from, TreeNode to) onConvertElement) {
-    // TODO(cstefantsova): implement toMapLiteralEntry
-    throw new UnimplementedError();
+    MapLiteralEntry? thenEntry;
+    Expression then = this.then;
+    if (then is ControlFlowElement) {
+      ControlFlowElement thenElement = then;
+      thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
+    }
+    if (thenEntry == null) return null;
+    MapLiteralEntry? otherwiseEntry;
+    Expression? otherwise = this.otherwise;
+    if (otherwise != null) {
+      if (otherwise is ControlFlowElement) {
+        ControlFlowElement otherwiseElement = otherwise;
+        otherwiseEntry = otherwiseElement.toMapLiteralEntry(onConvertElement);
+      }
+      if (otherwiseEntry == null) return null;
+    }
+    IfCaseMapEntry result =
+        new IfCaseMapEntry(expression, patternGuard, thenEntry, otherwiseEntry)
+          ..fileOffset = fileOffset;
+    onConvertElement(this, result);
+    return result;
   }
 
   @override

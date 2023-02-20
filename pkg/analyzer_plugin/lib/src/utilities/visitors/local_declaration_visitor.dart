@@ -271,7 +271,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
       if (!first && member.statements.isNotEmpty) {
         break;
       }
-      if (member is SwitchPatternCase) {
+      if (member is SwitchPatternCase && offset >= member.colon.end) {
         _visitVariablesIn(member.guardedPattern.pattern);
       } else {
         break;

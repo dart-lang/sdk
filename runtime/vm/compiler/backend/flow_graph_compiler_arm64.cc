@@ -92,7 +92,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     return TypedData::null();
   }
 
-  AllocateIncomingParametersRecursive(deopt_env_);
+  AllocateOutgoingArguments(deopt_env_);
 
   intptr_t slot_ix = 0;
   Environment* current = deopt_env_;

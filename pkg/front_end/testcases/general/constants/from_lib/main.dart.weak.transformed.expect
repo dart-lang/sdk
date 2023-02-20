@@ -20,7 +20,7 @@ static const field core::List<core::int> list = #C9;
 constants  {
   #C1 = 1
   #C2 = "a"
-  #C3 = <core::int*, core::String*>{#C1:#C2)
+  #C3 = <core::int*, core::String*>{#C1:#C2}
   #C4 = 2
   #C5 = 3
   #C6 = <core::int*>{#C4, #C5}

@@ -121,7 +121,7 @@ constants  {
   #C2 = #x
   #C3 = <core::Type*>[]
   #C4 = <dynamic>[]
-  #C5 = <core::Symbol*, dynamic>{)
+  #C5 = <core::Symbol*, dynamic>{}
   #C6 = #x=
   #C7 = #method
   #C8 = #y=

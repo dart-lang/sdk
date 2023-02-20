@@ -46,7 +46,7 @@ namespace dart {
   V(ParallelMove, -3)                                                          \
   V(TempMove, -4)                                                              \
   V(Constant, -5)                                                              \
-  V(PushArgument, -6)                                                          \
+  V(MoveArgument, -6)                                                          \
   V(ControlFlow, -7)                                                           \
   V(Context, -8)                                                               \
   V(MethodExtractor, -9)                                                       \

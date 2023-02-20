@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../kernel/internal_ast.dart';
 import '../type_inference/external_ast_helper.dart';
 import 'matching_cache.dart';
 
@@ -249,9 +250,17 @@ class VariableSetExpression implements DelayedExpression {
 
   @override
   Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createVariableSet(
-        _variable, _value.createExpression(typeEnvironment),
-        allowFinalAssignment: allowFinalAssignment, fileOffset: fileOffset);
+    VariableDeclaration variable = _variable;
+    if (variable is VariableDeclarationImpl && variable.lateSetter != null) {
+      return createLocalFunctionInvocation(variable.lateSetter!,
+          arguments: createArguments([_value.createExpression(typeEnvironment)],
+              fileOffset: fileOffset),
+          fileOffset: fileOffset);
+    } else {
+      return createVariableSet(
+          _variable, _value.createExpression(typeEnvironment),
+          allowFinalAssignment: allowFinalAssignment, fileOffset: fileOffset);
+    }
   }
 
   @override

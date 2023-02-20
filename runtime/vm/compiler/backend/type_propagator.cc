@@ -1288,7 +1288,7 @@ CompileType ParameterInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
-CompileType PushArgumentInstr::ComputeType() const {
+CompileType MoveArgumentInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 

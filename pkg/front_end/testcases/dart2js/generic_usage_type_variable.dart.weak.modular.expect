@@ -92,8 +92,8 @@ constants  {
   #C1 = <core::List<dynamic>*>[]
   #C2 = constructor-tearoff self::C::name2
   #C3 = null
-  #C4 = <core::String*, dynamic>{)
+  #C4 = <core::String*, dynamic>{}
   #C5 = <self::C*>[]
   #C6 = TypeLiteralConstant(dynamic)
-  #C7 = <core::Type*, core::Type*>{#C6:#C6)
+  #C7 = <core::Type*, core::Type*>{#C6:#C6}
 }

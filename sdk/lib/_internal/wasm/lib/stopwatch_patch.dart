@@ -4,7 +4,7 @@
 
 part of "core_patch.dart";
 
-double _performanceNow() => JS<double>("performance.now");
+double _performanceNow() => JS<double>("() => performance.now()");
 
 @patch
 class Stopwatch {
