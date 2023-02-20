@@ -31,6 +31,23 @@ mixin PatternVariableTestCases on AbstractCompletionDriverTest {
   @override
   bool get includeKeywords => false;
 
+  Future<void> test_castPattern() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 as int: ^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
   Future<void> test_ifElement_else() async {
     await computeSuggestions('''
 void f((int, int) a01) {
@@ -240,6 +257,644 @@ suggestions
     kind: localVariable
   a12
     kind: localVariable
+''');
+  }
+
+  Future<void> test_listPattern() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case [var a11, var a12, ... var a13]: ^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a13
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_logicalAnd_switchExpression_intersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  var x = switch (a01) {
+    var a11 && var a11 => ^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a01
+    kind: parameter
+  a11
+    kind: localVariable
+''');
+  }
+
+  Future<void> test_logicalAnd_switchExpression_intersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  var x = switch (a01) {
+   var a11 && var a11 => a^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a01
+    kind: parameter
+  a11
+    kind: localVariable
+''');
+  }
+
+  Future<void> test_logicalAnd_switchExpression_nonIntersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  var x = switch (a01) {
+   var a11 && var a12 => ^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a01
+    kind: parameter
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+''');
+  }
+
+  Future<void>
+      test_logicalAnd_switchExpression_nonIntersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  var x = switch (a01) {
+   var a11 && var a12 => a^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a01
+    kind: parameter
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+''');
+  }
+
+  Future<void> test_logicalAnd_switchStatement_multiple_intersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 && var a11:
+    case var a11 && var a11:
+      ^
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_logicalAnd_switchStatement_multiple_intersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 && var a11:
+    case var a11 && var a11:
+      a^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_logicalAnd_switchStatement_multiple_nonIntersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 && var a12:
+    case var a13 && var a14:
+      ^
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a13
+    kind: localVariable
+  a14
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_logicalAnd_switchStatement_multiple_nonIntersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 && var a12:
+    case var a13 && var a14:
+      a^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a13
+    kind: localVariable
+  a14
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_logicalAnd_switchStatement_single_intersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 && var a11:
+      ^
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_logicalAnd_switchStatement_single_intersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 && var a11:
+      a^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_logicalAnd_switchStatement_single_nonIntersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 && var a12:
+      ^
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_logicalAnd_switchStatement_single_nonIntersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 && var a12:
+      a^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_logicalOr_switchExpression_intersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  var x = switch (a01) {
+   var a11 || var a11 => ^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a01
+    kind: parameter
+  a11
+    kind: localVariable
+''');
+  }
+
+  Future<void> test_logicalOr_switchExpression_intersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  var x = switch (a01) {
+   var a11 || var a11 => a^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a01
+    kind: parameter
+  a11
+    kind: localVariable
+''');
+  }
+
+  Future<void> test_logicalOr_switchExpression_nonIntersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  var x = switch (a01) {
+   var a11 || var a12 => ^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a01
+    kind: parameter
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+''');
+  }
+
+  Future<void> test_logicalOr_switchExpression_nonIntersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  var x = switch (a01) {
+   var a11 || var a12 => a^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a01
+    kind: parameter
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+''');
+  }
+
+  Future<void> test_logicalOr_switchStatement_multiple_intersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 || var a11:
+    case var a11 || var a11:
+      ^
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_logicalOr_switchStatement_multiple_intersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 || var a11:
+    case var a11 || var a11:
+      a^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_logicalOr_switchStatement_multiple_nonIntersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 || var a12:
+    case var a13 || var a14:
+      ^
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a13
+    kind: localVariable
+  a14
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_logicalOr_switchStatement_multiple_nonIntersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 || var a12:
+    case var a13 || var a14:
+      a^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a13
+    kind: localVariable
+  a14
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_logicalOr_switchStatement_single_intersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 || var a11:
+      ^
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_logicalOr_switchStatement_single_intersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 || var a11:
+      a^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_logicalOr_switchStatement_single_nonIntersecting() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 || var a12:
+      ^
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_logicalOr_switchStatement_single_nonIntersecting_partial() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11 || var a12:
+      a^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_mapPattern() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case {1: var a11, 2: var a12, ... var a13}: ^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a13
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_nullAssertPattern() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11!: ^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_nullCheckPattern() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case var a11?: ^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_objectPattern() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case C(a: var a11, b: var a12): ^
+}
+class C {
+  int get a => 0;
+  int get b => 0;
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_parenthesizedPattern() async {
+    await computeSuggestions('''
+void f(Object a01) {
+  switch (a01) {
+    case (var a11): ^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -460,7 +1115,91 @@ suggestions
 ''');
   }
 
-  Future<void> test_switchStatementCase_different() async {
+  Future<void> test_switchStatementCase_different_first_explicit() async {
+    await computeSuggestions('''
+void f((int, int) a01) {
+  switch (a01) {
+    case (1, 0):
+      ^
+      break;
+    case (0, var a12):
+      break;
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_switchStatementCase_different_first_explicit_partial() async {
+    await computeSuggestions('''
+void f((int, int) a01) {
+  switch (a01) {
+    case (1, 0):
+      a^
+      break;
+    case (0, var a12):
+      break;
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_switchStatementCase_different_first_implicit() async {
+    await computeSuggestions('''
+void f((int, int) a01) {
+  switch (a01) {
+    case (1, 0):
+      ^
+    case (0, var a12):
+      break;
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_switchStatementCase_different_first_implicit_partial() async {
+    await computeSuggestions('''
+void f((int, int) a01) {
+  switch (a01) {
+    case (1, 0):
+      a^
+    case (0, var a12):
+      break;
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_switchStatementCase_different_last() async {
     await computeSuggestions('''
 void f((int, int) a01) {
   switch (a01) {
@@ -479,7 +1218,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_switchStatementCase_different_partial() async {
+  Future<void> test_switchStatementCase_different_last_partial() async {
     await computeSuggestions('''
 void f((int, int) a01) {
   switch (a01) {
@@ -500,7 +1239,54 @@ suggestions
 ''');
   }
 
-  Future<void> test_switchStatementCase_same_multiple() async {
+  Future<void> test_switchStatementCase_same_multiple_intersecting() async {
+    await computeSuggestions('''
+void f((int, int) a01) {
+  switch (a01) {
+    case (var a11, var a12):
+    case (var a11, var a12):
+      ^
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void>
+      test_switchStatementCase_same_multiple_intersecting_partial() async {
+    await computeSuggestions('''
+void f((int, int) a01) {
+  switch (a01) {
+    case (var a11, var a12):
+    case (var a11, var a12):
+      a^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a01
+    kind: parameter
+''');
+  }
+
+  Future<void> test_switchStatementCase_same_multiple_nonIntersecting() async {
     await computeSuggestions('''
 void f((int, int) a01) {
   switch (a01) {
@@ -522,7 +1308,8 @@ suggestions
 ''');
   }
 
-  Future<void> test_switchStatementCase_same_multiple_partial() async {
+  Future<void>
+      test_switchStatementCase_same_multiple_nonIntersecting_partial() async {
     await computeSuggestions('''
 void f((int, int) a01) {
   switch (a01) {
