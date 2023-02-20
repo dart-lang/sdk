@@ -2817,7 +2817,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
   Fragment instructions;
 
   intptr_t type_args_len = 0;
-  LocalVariable* type_arguments_temp = nullptr;
   {
     AlternativeReadingScope alt(&reader_);
     SkipExpression();                         // skip receiver
@@ -2828,13 +2827,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
       const TypeArguments& type_arguments =
           T.BuildTypeArguments(list_length);  // read types.
       instructions += TranslateInstantiatedTypeArguments(type_arguments);
-      if (direct_call.check_receiver_for_null_) {
-        // Don't yet push type arguments if we need to check receiver for null.
-        // In this case receiver will be duplicated so instead of pushing
-        // type arguments here we need to push it between receiver_temp
-        // and actual receiver. See the code below.
-        type_arguments_temp = MakeTemporary();
-      }
     }
     type_args_len = list_length;
   }
