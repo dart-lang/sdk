@@ -4,6 +4,7 @@
 // @dart = 2.9
 // Requirements=nnbd-weak
 
+
 // Test that a generic type alias `T` denoting `Function`
 // can give rise to the expected erros.
 
@@ -46,7 +47,11 @@ class C1 implements C {
 
 class D1<X> extends T<X> {}
 
+abstract class D2 extends C with T<int> {}
+
 abstract class D3<X, Y> implements T<T> {}
+
+abstract class D4 = C with T<void>;
 
 extension E on T<dynamic> {
   T<dynamic> foo(T<dynamic> t) => t;

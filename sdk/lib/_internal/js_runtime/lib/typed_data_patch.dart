@@ -333,7 +333,8 @@ class _UnmodifiableByteDataView implements ByteData, UnmodifiableByteDataView {
   }
 }
 
-mixin _UnmodifiableListMixin<N, L extends List<N>, TD extends TypedData> {
+abstract class _UnmodifiableListMixin<N, L extends List<N>,
+    TD extends TypedData> {
   L get _list;
   TD get _data => (_list as TD);
 

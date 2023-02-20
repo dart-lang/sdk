@@ -16,18 +16,6 @@
 
 ### Libraries
 
-#### General changes
-
-- **Breaking Change**: Non-`mixin` classes in the platform libraries
-  can no longer be mixed in, unless they are explicitly marked as `mixin class`.
-  The following existing classes have been made mixin classes:
-  * `IterableMixin`
-  * `ListMixin`
-  * `SetMixin`
-  * `MapMixin`
-  * `LinkedListEntry`
-  * `StringConversionSink`
-
 #### `dart:core`
 
 - **Breaking change** [#49529][]:
@@ -59,15 +47,6 @@
   - Removed the deprecated [`BidirectionalIterator`][] class.
     Existing bidirectional iterators can still work, they just don't have
     a shared supertype locking them to a specific name for moving backwards.
-
-- **Breaking change when migrating code to Dart 3.0**:
-  Some changes to platform libraries only affect code when it is migrated
-  to language version 3.0.
-  - The `Function` type can no longer be implemented.
-    Since Dart 2.0 writing `implements Function` has been allowed
-    for backwards compatibility, but it has not had any effect.
-    In Dart 3.0, the `Function` type is `final` and cannot be implemented
-    by class-modifier aware code.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`List.filled`]: https://api.dart.dev/stable/2.18.6/dart-core/List/List.filled.html
@@ -170,14 +149,14 @@ Updates the Linter to `1.34.0-dev`, which includes changes that
   - `prefer_equal_for_default_values`
   - `super_goes_last`
 - fix `unnecessary_parenthesis` false-positives with null-aware expressions.
-- fix `void_checks` to allow assignments of `Future<dynamic>?` to parameters
+- fix `void_checks` to allow assignments of `Future<dynamic>?` to parameters 
   typed `FutureOr<void>?`.
 - fix `use_build_context_synchronously` in if conditions.
 - fix a false positive for `avoid_private_typedef_functions` with generalized
   type aliases.
 - update `unnecessary_parenthesis` to detect some doubled parens.
 - update `void_checks` to allow returning `Never` as void.
-- update `no_adjacent_strings_in_list` to support set literals and for- and
+- update `no_adjacent_strings_in_list` to support set literals and for- and 
   if-elements.
 - update `avoid_types_as_parameter_names` to handle type variables.
 - update `avoid_positional_boolean_parameters` to handle typedefs.

@@ -142,11 +142,9 @@ features:
 
   sealed-class:
     help: "Sealed class"
-    experimentalReleaseVersion: "3.0.0"
 
   class-modifiers:
     help: "Class modifiers"
-    experimentalReleaseVersion: "3.0.0"
 
 # Experiment flag only used for testing.
   test-experiment:

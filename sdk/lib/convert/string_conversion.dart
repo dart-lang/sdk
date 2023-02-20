@@ -155,7 +155,7 @@ abstract class StringConversionSinkBase extends StringConversionSinkMixin {}
 
 /// This class provides a mixin for converters that need to accept String
 /// inputs.
-abstract mixin class StringConversionSinkMixin implements StringConversionSink {
+abstract class StringConversionSinkMixin implements StringConversionSink {
   void addSlice(String str, int start, int end, bool isLast);
   void close();
 

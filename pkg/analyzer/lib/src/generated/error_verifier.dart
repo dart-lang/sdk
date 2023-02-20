@@ -1746,10 +1746,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         final interfaceElement = interfaceType.element;
         if (interfaceElement is ClassOrMixinElementImpl &&
             interfaceElement.isBase &&
-            interfaceElement.library != _currentLibrary &&
-            !_mayIgnoreClassModifiers(interfaceElement.library)) {
-          // Should this be combined with _checkForImplementsClauseErrorCodes
-          // to avoid double errors if implementing `int`.
+            interfaceElement.library != _currentLibrary) {
           if (interfaceElement is ClassElement) {
             errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
@@ -2865,8 +2862,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         final element = type.element;
         if (element is ClassElementImpl &&
             element.isFinal &&
-            element.library != _currentLibrary &&
-            !_mayIgnoreClassModifiers(element.library)) {
+            element.library != _currentLibrary) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
               superclass,
@@ -2881,8 +2877,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           final element = type.element;
           if (element is MixinElementImpl &&
               element.isFinal &&
-              element.library != _currentLibrary &&
-              !_mayIgnoreClassModifiers(element.library)) {
+              element.library != _currentLibrary) {
             errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY,
                 namedType,
@@ -2898,8 +2893,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           final element = type.element;
           if (element is ClassOrMixinElementImpl &&
               element.isFinal &&
-              element.library != _currentLibrary &&
-              !_mayIgnoreClassModifiers(element.library)) {
+              element.library != _currentLibrary) {
             final ErrorCode errorCode;
             if (element is ClassElement) {
               errorCode = CompileTimeErrorCode
@@ -3119,8 +3113,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         final superclassElement = superclassType.element;
         if (superclassElement is ClassElementImpl &&
             superclassElement.isInterface &&
-            superclassElement.library != _currentLibrary &&
-            !_mayIgnoreClassModifiers(superclassElement.library)) {
+            superclassElement.library != _currentLibrary) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
               superclass,
@@ -3135,8 +3128,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           final withElement = withType.element;
           if (withElement is MixinElementImpl &&
               withElement.isInterface &&
-              withElement.library != _currentLibrary &&
-              !_mayIgnoreClassModifiers(withElement.library)) {
+              withElement.library != _currentLibrary) {
             errorReporter.reportErrorForNode(
                 CompileTimeErrorCode
                     .INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY,
@@ -5491,26 +5483,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return identical(parent.constructorName, identifier);
     }
     return false;
-  }
-
-  /// Checks whether a `final`, `base` or `interface` modifier can be ignored.
-  ///
-  /// Checks whether a subclass in the current library
-  /// can ignore a class modifier of a declaration in [superLibrary].
-  ///
-  /// Only true if the supertype library is a platform library, and
-  /// either the current library is also a platform library,
-  /// or the current library has a language version which predates
-  /// class modifiers
-  bool _mayIgnoreClassModifiers(LibraryElement superLibrary) {
-    // Only modifiers in platform libraries can be ignored.
-    if (!superLibrary.isInSdk) return false;
-
-    // Other platform libraries can ignore modifiers.
-    if (_currentLibrary.isInSdk) return true;
-
-    // Libraries predating class modifiers can ignore platform modifiers.
-    return !_currentLibrary.featureSet.isEnabled(Feature.class_modifiers);
   }
 
   /// Return the name of the [parameter], or `null` if the parameter does not

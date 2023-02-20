@@ -8,4 +8,4 @@ part of dart.core;
 ///
 /// The run-time type of a record object is a record type, and as such, a
 /// subtype of [Record].
-abstract final class Record {}
+abstract class Record {}

@@ -11,7 +11,7 @@ part of dart.core;
 /// Non-platform classes cannot implement, extend or
 /// mix in this class.
 @Since("2.14")
-abstract final class Enum {
+abstract class Enum {
   /// A numeric identifier for the enumerated value.
   ///
   /// The values of a single enumeration are numbered

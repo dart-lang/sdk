@@ -771,8 +771,6 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(sdkDefaultExperiments: {
   ExperimentalFlag.records,
-  ExperimentalFlag.classModifiers,
-  ExperimentalFlag.sealedClass,
 }, sdkLibraryExperiments: {}, packageExperiments: {
   "async": {
     ExperimentalFlag.nonNullable,

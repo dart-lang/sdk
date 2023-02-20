@@ -36,10 +36,10 @@ part of dart.async;
 /// `Future<Object>`.
 @pragma("vm:entry-point")
 abstract class FutureOr<T> {
-  // Private generative constructor, so that it is not subclassable, mixable,
-  // or instantiable.
+  // Private generative constructor, so that it is not subclassable, mixable, or
+  // instantiable.
   FutureOr._() {
-    throw new UnsupportedError("FutureOr cannot be instantiated");
+    throw new UnsupportedError("FutureOr can't be instantiated");
   }
 }
 
