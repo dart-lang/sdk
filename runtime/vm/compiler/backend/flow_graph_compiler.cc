@@ -95,16 +95,16 @@ compiler::LRState ComputeInnerLRState(const FlowGraph& flow_graph) {
 }
 #endif
 
-// Assign locations to incoming arguments, i.e., values pushed above spill slots
-// with PushArgument.  Recursively allocates from outermost to innermost
-// environment.
-void CompilerDeoptInfo::AllocateIncomingParametersRecursive(Environment* env) {
+// Assign locations to outgoing arguments. Note that MoveArgument
+// can only occur in the innermost environment because we insert
+// them immediately before the call instruction and right before
+// register allocation.
+void CompilerDeoptInfo::AllocateOutgoingArguments(Environment* env) {
   if (env == NULL) return;
-  AllocateIncomingParametersRecursive(env->outer());
   for (Environment::ShallowIterator it(env); !it.Done(); it.Advance()) {
     if (it.CurrentLocation().IsInvalid()) {
-      if (auto push_arg = it.CurrentValue()->definition()->AsPushArgument()) {
-        it.SetCurrentLocation(push_arg->locs()->out(0));
+      if (auto move_arg = it.CurrentValue()->definition()->AsMoveArgument()) {
+        it.SetCurrentLocation(move_arg->locs()->out(0));
       }
     }
   }
@@ -592,8 +592,7 @@ static bool IsPusher(Instruction* instr) {
 static bool IsPopper(Instruction* instr) {
   // TODO(ajcbik): even allow deopt targets by making environment aware?
   if (!instr->CanBecomeDeoptimizationTarget()) {
-    return !instr->IsPushArgument() && instr->ArgumentCount() == 0 &&
-           instr->InputCount() > 0;
+    return instr->ArgumentCount() == 0 && instr->InputCount() > 0;
   }
   return false;
 }
@@ -1040,21 +1039,21 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
     RELEASE_ASSERT(args_count == 0 || is_optimizing());
 
     for (intptr_t i = 0; i < args_count; i++) {
-      const auto push_arg =
-          instr->ArgumentValueAt(i)->instruction()->AsPushArgument();
-      const auto rep = push_arg->representation();
+      const auto move_arg =
+          instr->ArgumentValueAt(i)->instruction()->AsMoveArgument();
+      const auto rep = move_arg->representation();
 
       ASSERT(rep == kTagged || rep == kUnboxedInt64 || rep == kUnboxedDouble);
       static_assert(compiler::target::kIntSpillFactor ==
                         compiler::target::kDoubleSpillFactor,
                     "int and double are of the same size");
-      const bool is_tagged = push_arg->representation() == kTagged;
+      const bool is_tagged = move_arg->representation() == kTagged;
       const intptr_t num_bits =
           is_tagged ? 1 : compiler::target::kIntSpillFactor;
 
       // Note: bits are reversed so higher bit corresponds to lower word.
       const intptr_t last_arg_bit =
-          (spill_area_size - 1) - push_arg->top_of_stack_relative_index();
+          (spill_area_size - 1) - move_arg->sp_relative_index();
       bitmap.SetRange(last_arg_bit - (num_bits - 1), last_arg_bit, is_tagged);
     }
     ASSERT(slow_path_argument_count == 0 || !using_shared_stub);
@@ -1731,7 +1730,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   }
 
   // Allocate all unallocated input locations.
-  RELEASE_ASSERT(!instr->IsPushArgument());
+  ASSERT(!instr->IsMoveArgument());
   Register fpu_unboxing_temp = kNoRegister;
   for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
     Location loc = locs->in(i);
@@ -3292,10 +3291,6 @@ void FlowGraphCompiler::FrameStateUpdateWith(Instruction* instr) {
   ASSERT(!is_optimizing());
 
   switch (instr->tag()) {
-    case Instruction::kPushArgument:
-      // Do nothing.
-      break;
-
     case Instruction::kDropTemps:
       FrameStatePop(instr->locs()->input_count() +
                     instr->AsDropTemps()->num_temps());

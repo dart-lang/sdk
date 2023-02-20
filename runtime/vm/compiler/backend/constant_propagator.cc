@@ -432,8 +432,8 @@ void ConstantPropagator::VisitNativeParameter(NativeParameterInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitPushArgument(PushArgumentInstr* instr) {
-  UNREACHABLE();
+void ConstantPropagator::VisitMoveArgument(MoveArgumentInstr* instr) {
+  UNREACHABLE();  // Inserted right before register allocation.
 }
 
 void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
@@ -1753,7 +1753,6 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
   // Replace constant-valued instructions without observable side
   // effects.  Do this for smis and old objects only to avoid having to
   // copy other objects into the heap's old generation.
-  ASSERT((defn == nullptr) || !defn->IsPushArgument());
   if ((defn != nullptr) && IsConstant(defn->constant_value()) &&
       (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
       !defn->IsConstant() && !defn->IsStoreIndexed() && !defn->IsStoreField() &&
@@ -1770,7 +1769,7 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
       ASSERT(!constant_value_.IsNull());
     }
     if (auto call = defn->AsStaticCall()) {
-      ASSERT(!call->HasPushArguments());
+      ASSERT(!call->HasMoveArguments());
     }
     Definition* replacement =
         graph_->TryCreateConstantReplacementFor(defn, constant_value_);

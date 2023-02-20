@@ -214,7 +214,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
             // MaterializeObject instruction is not in the graph.
             // Treat its inputs as part of the environment.
             DeepLiveness(defn->AsMaterializeObject(), live_in);
-          } else if (!defn->IsPushArgument() && !defn->IsConstant()) {
+          } else if (!defn->IsMoveArgument() && !defn->IsConstant()) {
             live_in->Add(defn->vreg(0));
             if (defn->HasPairRepresentation()) {
               live_in->Add(defn->vreg(1));
@@ -1058,7 +1058,7 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
         continue;
       }
 
-      if (def->IsPushArgument()) {
+      if (def->IsMoveArgument()) {
         // Frame size is unknown until after allocation.
         locations[i] = Location::NoLocation();
         continue;
@@ -3293,19 +3293,19 @@ void FlowGraphAllocator::AllocateOutgoingArguments() {
 
   for (auto block : flow_graph_.reverse_postorder()) {
     for (auto instr : block->instructions()) {
-      if (auto push = instr->AsPushArgument()) {
+      if (auto move_arg = instr->AsMoveArgument()) {
         Location loc;
 
         const intptr_t spill_index =
-            (total_spill_slot_count - 1) - push->top_of_stack_relative_index();
+            (total_spill_slot_count - 1) - move_arg->sp_relative_index();
         const intptr_t slot_index =
             compiler::target::frame_layout.FrameSlotForVariableIndex(
                 -spill_index);
 
-        push->locs()->set_out(0,
-                              (push->representation() == kUnboxedDouble)
-                                  ? Location::DoubleStackSlot(slot_index, FPREG)
-                                  : Location::StackSlot(slot_index, FPREG));
+        move_arg->locs()->set_out(
+            0, (move_arg->representation() == kUnboxedDouble)
+                   ? Location::DoubleStackSlot(slot_index, FPREG)
+                   : Location::StackSlot(slot_index, FPREG));
       }
     }
   }
