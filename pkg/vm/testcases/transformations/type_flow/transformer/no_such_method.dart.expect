@@ -140,7 +140,7 @@ constants  {
   #C1 = #foo
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{)
+  #C4 = <core::Symbol*, dynamic>{}
   #C5 = #bar
   #C6 = #bazz
   #C7 = null

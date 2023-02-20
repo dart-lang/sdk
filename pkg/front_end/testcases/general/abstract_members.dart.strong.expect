@@ -356,7 +356,7 @@ static method main() → dynamic {}
 constants  {
   #C1 = #property1=
   #C2 = <core::Type*>[]
-  #C3 = <core::Symbol*, dynamic>{)
+  #C3 = <core::Symbol*, dynamic>{}
   #C4 = #abstractMethod
   #C5 = <dynamic>[]
   #C6 = #interfaceMethod1

@@ -161,5 +161,5 @@ constants  {
   #C1 = #org-dartlang-testcase:///enum_as_supertype_error.dart::_name
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{)
+  #C4 = <core::Symbol*, dynamic>{}
 }

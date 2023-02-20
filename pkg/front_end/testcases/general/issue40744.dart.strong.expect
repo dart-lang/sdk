@@ -14,5 +14,5 @@ static method main() → void {
 constants  {
   #C1 = "a"
   #C2 = 1
-  #C3 = <core::String, dynamic>{#C1:#C2)
+  #C3 = <core::String, dynamic>{#C1:#C2}
 }

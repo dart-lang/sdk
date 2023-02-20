@@ -405,8 +405,8 @@ constants  {
   #C19 = self::GenericClass<core::int*> {}
   #C20 = <dynamic>[]
   #C21 = <core::int*>[]
-  #C22 = <dynamic, dynamic>{)
-  #C23 = <core::int*, core::String*>{)
+  #C22 = <dynamic, dynamic>{}
+  #C23 = <core::int*, core::String*>{}
   #C24 = ()
   #C25 = 1
   #C26 = TypeLiteralConstant(self::GenericClass<core::int*>*)

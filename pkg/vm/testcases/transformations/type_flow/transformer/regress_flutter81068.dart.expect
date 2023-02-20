@@ -36,5 +36,5 @@ constants  {
   #C5 = <core::Type*>[]
   #C6 = #test
   #C7 = #whenComplete
-  #C8 = <core::Symbol*, dynamic>{)
+  #C8 = <core::Symbol*, dynamic>{}
 }

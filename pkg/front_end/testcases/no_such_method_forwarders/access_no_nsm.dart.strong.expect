@@ -151,5 +151,5 @@ constants  {
   #C1 = #org-dartlang-testcase:///access_no_nsm.dart::_inaccessibleMethod1
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{)
+  #C4 = <core::Symbol*, dynamic>{}
 }

@@ -135,7 +135,7 @@ constants  {
   #C2 = core::_Override {}
   #C3 = #org-dartlang-testcase:///nsm_covariance.dart::_method1
   #C4 = <core::Type*>[]
-  #C5 = <core::Symbol*, dynamic>{)
+  #C5 = <core::Symbol*, dynamic>{}
   #C6 = #org-dartlang-testcase:///nsm_covariance.dart::_method2
   #C7 = <dynamic>[]
   #C8 = #a

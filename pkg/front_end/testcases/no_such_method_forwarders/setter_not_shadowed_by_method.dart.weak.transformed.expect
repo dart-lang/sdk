@@ -27,5 +27,5 @@ static method main() → dynamic {}
 constants  {
   #C1 = #foo=
   #C2 = <core::Type*>[]
-  #C3 = <core::Symbol*, dynamic>{)
+  #C3 = <core::Symbol*, dynamic>{}
 }

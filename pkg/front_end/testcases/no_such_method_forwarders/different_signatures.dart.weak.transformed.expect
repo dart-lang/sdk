@@ -25,6 +25,6 @@ class SubClass extends self::Class {
 constants  {
   #C1 = #abstractMethod1
   #C2 = <core::Type*>[]
-  #C3 = <core::Symbol*, dynamic>{)
+  #C3 = <core::Symbol*, dynamic>{}
   #C4 = #abstractMethod2
 }
