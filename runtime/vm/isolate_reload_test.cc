@@ -4631,6 +4631,9 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectFunction) {
 }
 
 TEST_CASE(IsolateReload_TypedefToNotTypedef) {
+  // The CFE lowers typedefs to function types and as such the VM will not see
+  // any name collision between a class and a typedef class (which doesn't exist
+  // anymore).
   const char* kScript =
       "typedef bool Predicate(dynamic x);\n"
       "main() {\n"
@@ -4650,8 +4653,7 @@ TEST_CASE(IsolateReload_TypedefToNotTypedef) {
       "}\n";
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(result,
-               "Typedef class cannot be redefined to be a non-typedef class");
+  EXPECT_VALID(result);
 }
 
 TEST_CASE(IsolateReload_NotTypedefToTypedef) {
@@ -4667,6 +4669,9 @@ TEST_CASE(IsolateReload_NotTypedefToTypedef) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("false", SimpleInvokeStr(lib, "main"));
 
+  // The CFE lowers typedefs to function types and as such the VM will not see
+  // any name collision between a class and a typedef class (which doesn't exist
+  // anymore).
   const char* kReloadScript =
       "typedef bool Predicate(dynamic x);\n"
       "main() {\n"
@@ -4674,7 +4679,7 @@ TEST_CASE(IsolateReload_NotTypedefToTypedef) {
       "}\n";
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(result, "Class cannot be redefined to be a typedef class");
+  EXPECT_VALID(result);
 }
 
 TEST_CASE(IsolateReload_TypedefAddParameter) {

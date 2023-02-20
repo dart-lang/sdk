@@ -258,7 +258,6 @@ cc/IsolateReload_LiveStack: Fail
 cc/IsolateReload_MainLibModified: Crash
 cc/IsolateReload_NoLibsModified: Crash
 cc/IsolateReload_NotEnumToEnum: Skip
-cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_PendingSuperCall: Fail
 cc/IsolateReload_PrefixImportedLibModified: Crash
 cc/IsolateReload_RunNewFieldInitializersSuperClass: Skip
@@ -280,7 +279,6 @@ cc/IsolateReload_TopLevelParseError: Fail
 cc/IsolateReload_TypeIdentity: Fail
 cc/IsolateReload_TypeIdentityGeneric: Fail
 cc/IsolateReload_TypeIdentityParameter: Fail
-cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Fail
 cc/Parser_AllocateVariables_CapturedVar: Fail
 cc/Parser_AllocateVariables_Issue7681: Fail
