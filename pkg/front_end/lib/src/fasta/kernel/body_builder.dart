@@ -4081,6 +4081,23 @@ class BodyBuilder extends StackListenerImpl
         declareVariable(variable, scope);
         typeInferrer.assignedVariables.declare(variable);
       }
+      Scope forScope = scope.createNestedScope(
+          debugName: "pattern-for internal variables",
+          kind: ScopeKind.forStatement);
+      exitLocalScope();
+      enterLocalScope(forScope);
+      List<VariableDeclaration> internalVariables = [];
+      for (VariableDeclaration variable in pattern.declaredVariables) {
+        VariableDeclaration internalVariable = forest.createVariableDeclaration(
+            variable.fileOffset, variable.name,
+            initializer:
+                forest.createVariableGet(variable.fileOffset, variable),
+            type: variable.type);
+        internalVariables.add(internalVariable);
+        declareVariable(internalVariable, scope);
+        typeInferrer.assignedVariables.declare(internalVariable);
+      }
+      push(internalVariables);
       push(new PatternVariableDeclaration(pattern, toValue(expression),
           fileOffset: offsetForToken(keyword),
           isFinal: keyword.lexeme == "final"));
@@ -4131,10 +4148,14 @@ class BodyBuilder extends StackListenerImpl
         typeInferrer.assignedVariables.popNode();
 
     Object? variableOrExpression = pop();
+    List<VariableDeclaration>? variables;
+    if (variableOrExpression is PatternVariableDeclaration) {
+      variables = pop() as List<VariableDeclaration>; // Internal variables.
+    } else {
+      variables = _buildForLoopVariableDeclarations(variableOrExpression)!;
+    }
     exitLocalScope();
 
-    List<VariableDeclaration> variables =
-        _buildForLoopVariableDeclarations(variableOrExpression)!;
     typeInferrer.assignedVariables.pushNode(assignedVariablesNodeInfo);
     Expression? condition;
     if (conditionStatement is ExpressionStatement) {
@@ -4199,7 +4220,9 @@ class BodyBuilder extends StackListenerImpl
 
     Object? variableOrExpression = pop();
     List<VariableDeclaration>? variables =
-        _buildForLoopVariableDeclarations(variableOrExpression);
+        variableOrExpression is PatternVariableDeclaration
+            ? pop() as List<VariableDeclaration>
+            : _buildForLoopVariableDeclarations(variableOrExpression);
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget() as JumpTarget;
     JumpTarget breakTarget = exitBreakTarget() as JumpTarget;
