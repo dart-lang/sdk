@@ -4750,7 +4750,7 @@ class C {
 }
 ''');
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
-    assertNoEdge(always, decoratedTypeAnnotation('int j').node);
+    assertEdge(decoratedTypeAnnotation('int j').node, never, hard: true);
     assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
   }
 
@@ -4769,7 +4769,8 @@ class C {
 }
 ''');
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
-    assertNoEdge(always, decoratedTypeAnnotation('int j').node);
+    assertNoEdge(decoratedTypeAnnotation('int j').node, never);
+    assertEdge(always, decoratedTypeAnnotation('int j').node, hard: false);
     assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
   }
 

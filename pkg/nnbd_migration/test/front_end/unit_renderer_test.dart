@@ -36,60 +36,6 @@ class UnitRendererTest extends NnbdMigrationTestBase {
     return contents;
   }
 
-  void test_conditionFalseInStrongMode() async {
-    await buildInfoForSingleTestFile('''
-int f(String s) {
-  if (s == null) {
-    return 0;
-  } else {
-    return s.length;
-  }
-}
-''', migratedContent: '''
-int  f(String  s) {
-  if (s == null /* == false */) {
-    return 0;
-  } else {
-    return s.length;
-  }
-}
-''', warnOnWeakCode: true);
-    var output = renderUnits()[0];
-    expect(
-        _stripDataAttributes(output.regions!),
-        contains(
-            '<span class="region informative-region">/* == false */</span>'));
-    expect(output.edits.keys,
-        contains('1 condition will be false in strong checking mode'));
-  }
-
-  void test_conditionTrueInStrongMode() async {
-    await buildInfoForSingleTestFile('''
-int f(String s) {
-  if (s != null) {
-    return s.length;
-  } else {
-    return 0;
-  }
-}
-''', migratedContent: '''
-int  f(String  s) {
-  if (s != null /* == true */) {
-    return s.length;
-  } else {
-    return 0;
-  }
-}
-''', warnOnWeakCode: true);
-    var output = renderUnits()[0];
-    expect(
-        _stripDataAttributes(output.regions!),
-        contains(
-            '<span class="region informative-region">/* == true */</span>'));
-    expect(output.edits.keys,
-        contains('1 condition will be true in strong checking mode'));
-  }
-
   Future<void> test_editList_containsCount() async {
     await buildInfoForSingleTestFile('''
 int a = null;
@@ -207,7 +153,7 @@ class C {
 List<int> x = [null];
 ''', migratedContent: '''
 class C {
-  int  hash(Iterable<int >  elements) {
+  int  hash(Iterable<int >? elements) {
     if (elements == null) {
       return null.hashCode;
     }
@@ -235,7 +181,7 @@ class C {
 List<int> x = [null];
 ''', migratedContent: '''
 class C {
-  int  hash(Iterable<int >  elements) {
+  int  hash(Iterable<int >? elements) {
     if (elements == null) {
       return null.hashCode;
     }
@@ -252,7 +198,7 @@ List<int?>  x = [null];
         .replaceAll(RegExp('id="[^"]*"'), 'id="..."');
     expect(navContent, '''
 class <span id="...">C</span> {
-  <a href="..." class="nav-link">int</a>  <span id="...">hash</span>(<a href="..." class="nav-link">Iterable</a>&lt;<a href="..." class="nav-link">int</a> &gt;  <span id="...">elements</span>) {
+  <a href="..." class="nav-link">int</a>  <span id="...">hash</span>(<a href="..." class="nav-link">Iterable</a>&lt;<a href="..." class="nav-link">int</a> &gt;? <span id="...">elements</span>) {
     if (<a href="..." class="nav-link">elements</a> <a href="..." class="nav-link">==</a> null) {
       return null.<a href="..." class="nav-link">hashCode</a>;
     }

@@ -567,8 +567,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
       if (rightOperand is NullLiteral) {
         buildNullConditionInfo(rightOperand, leftOperand, leftType);
+        _graph.makeNullable(leftType.node, NullAwareAccessOrigin(source, node));
       } else if (leftOperand is NullLiteral) {
         buildNullConditionInfo(leftOperand, rightOperand, rightType);
+        _graph.makeNullable(
+            rightType.node, NullAwareAccessOrigin(source, node));
       }
 
       return _makeNonNullableBoolType(node);
