@@ -19,9 +19,11 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -127,7 +129,22 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
     );
     if (value != null) {
-      _constantPatternValues?[node] = value;
+      if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
+        _constantPatternValues?[node] = value;
+        if (value.hasPrimitiveEquality(_currentLibrary.featureSet)) {
+          final constantType = value.type;
+          final matchedValueType = node.matchedValueType;
+          if (matchedValueType != null) {
+            if (!_canBeEqual(constantType, matchedValueType)) {
+              _errorReporter.reportErrorForNode(
+                WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE,
+                node,
+                [matchedValueType, constantType],
+              );
+            }
+          }
+        }
+      }
     }
   }
 
@@ -424,6 +441,25 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _reportErrors(result.errors, null);
       }
     }
+  }
+
+  /// Returns `false` if we can prove that `constant == value` always returns
+  /// `false`, taking into account the fact that [constantType] has primitive
+  /// equality.
+  bool _canBeEqual(DartType constantType, DartType valueType) {
+    if (constantType is InterfaceType && constantType.typeArguments.isEmpty) {
+      if (valueType is InterfaceType) {
+        return valueType.typeArguments.isEmpty &&
+            _typeSystem.isSubtypeOf(constantType, valueType);
+      } else if (valueType is TypeParameterTypeImpl) {
+        final bound = valueType.promotedBound ?? valueType.element.bound;
+        if (bound != null && !hasTypeParameterReference(bound)) {
+          return _canBeEqual(constantType, bound);
+        }
+      }
+    }
+    // All other cases are not supported, so no warning.
+    return true;
   }
 
   /// Verify that the given [type] does not reference any type parameters.

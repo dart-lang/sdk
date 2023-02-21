@@ -5733,6 +5733,18 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the matched value type
+  ///  1: the constant value type
+  static const WarningCode CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE =
+      WarningCode(
+    'CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
+    "The matched value type '{0}' can never be equal to this constant of type "
+        "'{1}'.",
+    correctionMessage:
+        "Try a constant of the same type as the matched value type.",
+  );
+
   ///  This is the new replacement for [HintCode.DEAD_CODE].
   static const HintCode DEAD_CODE = HintCode.DEAD_CODE;
 
