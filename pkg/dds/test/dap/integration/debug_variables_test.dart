@@ -197,8 +197,8 @@ void main(List<String> args) {
       await client.expectVariables(
         namedRecordVariable.variablesReference,
         r'''
-            $0: 10
-            $1: 11
+            $0: 10, eval: myRecord.namedRecord.$0
+            $1: 11, eval: myRecord.namedRecord.$1
         ''',
       );
     });
@@ -276,9 +276,9 @@ void main(List<String> args) {
           expectedDisplayString: '$typeName (3 items)',
           expectedIndexedItems: 3,
           expectedVariables: '''
-            [0]: ${expectedDisplayStrings[0]}
-            [1]: ${expectedDisplayStrings[1]}
-            [2]: ${expectedDisplayStrings[2]}
+            [0]: ${expectedDisplayStrings[0]}, eval: myVariable[0]
+            [1]: ${expectedDisplayStrings[1]}, eval: myVariable[1]
+            [2]: ${expectedDisplayStrings[2]}, eval: myVariable[2]
         ''',
         );
       });
@@ -302,7 +302,7 @@ void main(List<String> args) {
           expectedDisplayString: '$typeName (3 items)',
           expectedIndexedItems: 3,
           expectedVariables: '''
-            [1]: ${expectedDisplayStrings[1]}
+            [1]: ${expectedDisplayStrings[1]}, eval: myVariable[1]
         ''',
           start: 1,
           count: 1,
@@ -690,6 +690,114 @@ void main() {
           format: ValueFormat(hex: true),
         );
       });
+    });
+
+    group('evaluateNames are correctly stored for nested variables', () {
+      /// A helper that checks evaluate names are available on nested objects
+      /// to ensure they are being stored correctly across variableRequests.
+      ///
+      /// [code] is the Dart code that should be included in the program.
+      /// [variablesPath] is a path to walk down from the Local Variables to get
+      /// to the 'myField' field on an instance of 'A'.
+      ///
+      /// This test ensures the evaluateName on that variable matches
+      /// [expectedEvaluateName].
+      void _checkEvaluateNames(
+        String testType, {
+        required String code,
+        String? definitions,
+        required List<String> variablesPath,
+        required String expectedEvaluateName,
+      }) {
+        test('in $testType', () async {
+          final client = dap.client;
+          final testFile = dap.createTestFile('''
+class A {
+  final String myField = '';
+}
+${definitions ?? ''}
+void main() {
+  $code
+  print('Done!'); $breakpointMarker
+}
+    ''');
+
+          // Hit the breakpoint ready to evaluate.
+          final breakpointLine = lineWith(testFile, breakpointMarker);
+          final stop = await client.hitBreakpoint(
+            testFile,
+            breakpointLine,
+            launch: () => client.launch(
+              testFile.path,
+              evaluateGettersInDebugViews: true,
+            ),
+          );
+
+          // Walk down the variables path to locate our `A().myField`.
+          var variable = await client.getLocalVariable(
+            stop.threadId!,
+            variablesPath.removeAt(0),
+          );
+          while (variablesPath.isNotEmpty) {
+            variable = await client.getChildVariable(
+              variable.variablesReference,
+              variablesPath.removeAt(0),
+            );
+          }
+
+          expect(variable.evaluateName, expectedEvaluateName);
+        });
+      }
+
+      _checkEvaluateNames(
+        'lists',
+        variablesPath: ['list', '[0]', 'myField'],
+        expectedEvaluateName: 'list[0].myField',
+        code: '''
+          final list = [A()];
+        ''',
+      );
+
+      _checkEvaluateNames(
+        'maps',
+        // To support expanding complex keys, maps are rendered numerically with
+        // key/value pairs grouped by index, so rather than map->key here, we
+        // have to look in the first group, then the value.
+        variablesPath: ['map', '0', 'value', 'myField'],
+        // But the evaluate name should be the normal Dart code for this.
+        expectedEvaluateName: 'map["key"].myField',
+        code: '''
+          final map = {'key': A()};
+        ''',
+      );
+
+      _checkEvaluateNames(
+        'fields',
+        variablesPath: ['a', 'b', 'myField'],
+        expectedEvaluateName: 'a.b.myField',
+        code: '''
+          final a = MyClass();
+        ''',
+        definitions: '''
+          class MyClass {
+            final b = A();
+          }
+        ''',
+      );
+
+      _checkEvaluateNames(
+        'getters',
+        variablesPath: ['a', 'b', 'myField'],
+        expectedEvaluateName: 'a.b.myField',
+        code: '''
+          final a = MyClass();
+        ''',
+        definitions: '''
+          class MyClass {
+            A get b => A();
+          }
+        ''',
+      );
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);

@@ -888,18 +888,7 @@ extension DapTestClientExtension on DapTestClient {
     bool ignorePrivate = true,
     Set<String>? ignore,
   }) async {
-    final stack = await getValidStack(
-      threadId,
-      startFrame: 0,
-      numFrames: 1,
-    );
-    final topFrame = stack.stackFrames.first;
-
-    final variablesScope = await getValidScope(topFrame.id, 'Locals');
-    final variables =
-        await getValidVariables(variablesScope.variablesReference);
-    final expectedVariable = variables.variables
-        .singleWhere((variable) => variable.name == expectedName);
+    final expectedVariable = await getLocalVariable(threadId, expectedName);
 
     // Check basic variable values.
     expect(expectedVariable.value, equals(expectedDisplayString));
@@ -913,6 +902,31 @@ extension DapTestClientExtension on DapTestClient {
       count: count,
       ignorePrivate: ignorePrivate,
       ignore: ignore,
+    );
+  }
+
+  /// A helper that finds a named variable in the Variables scope for the top
+  /// frame.
+  Future<Variable> getLocalVariable(int threadId, String name) async {
+    final stack = await getValidStack(
+      threadId,
+      startFrame: 0,
+      numFrames: 1,
+    );
+    final topFrame = stack.stackFrames.first;
+
+    final variablesScope = await getValidScope(topFrame.id, 'Locals');
+    return getChildVariable(variablesScope.variablesReference, name);
+  }
+
+  /// A helper that finds a named variable in the child variables for
+  /// [variablesReference].
+  Future<Variable> getChildVariable(int variablesReference, String name) async {
+    final variables = await getValidVariables(variablesReference);
+    return variables.variables.singleWhere(
+      (variable) => variable.name == name,
+      orElse: () =>
+          throw 'Did not find $name in ${variables.variables.map((v) => v.name).join(', ')}',
     );
   }
 
