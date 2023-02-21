@@ -1,0 +1,5 @@
+test1(dynamic x) => [for (var [;int ;i, int n] = x; i < n; i++) i];
+main() {}
+expectEquals(x, y) {}
+listToString(List list) => "[${list.map((e) => '${e}').join(',')}]";
+expectThrows(void Function() f) {}

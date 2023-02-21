@@ -310,6 +310,16 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
+  PatternForElement createPatternForElement(
+      int fileOffset,
+      PatternVariableDeclaration patternVariableDeclaration,
+      ForElement forElement) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new PatternForElement(patternVariableDeclaration, forElement)
+      ..fileOffset = fileOffset;
+  }
+
   ForMapEntry createForMapEntry(
       int fileOffset,
       List<VariableDeclaration> variables,

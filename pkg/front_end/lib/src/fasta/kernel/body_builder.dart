@@ -4118,12 +4118,33 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void endForControlFlow(Token token) {
+    assert(checkState(token, <ValueKind>[
+      /* entry = */ unionOfKinds(<ValueKind>[
+        ValueKinds.Generator,
+        ValueKinds.ExpressionOrNull,
+        ValueKinds.Statement,
+        ValueKinds.ParserRecovery,
+        ValueKinds.MapLiteralEntry,
+      ]),
+      /* update expression count = */ ValueKinds.Integer,
+      /* left separator = */ ValueKinds.Token,
+      /* left parenthesis = */ ValueKinds.Token,
+      /* for keyword = */ ValueKinds.Token,
+    ]));
     debugEvent("ForControlFlow");
     Object? entry = pop();
     int updateExpressionCount = pop() as int;
     pop(); // left separator
     pop(); // left parenthesis
     Token forToken = pop() as Token;
+
+    assert(checkState(token, <ValueKind>[
+      /* updates = */ ...repeatedKind(
+          unionOfKinds(
+              <ValueKind>[ValueKinds.Expression, ValueKinds.Generator]),
+          updateExpressionCount),
+      /* condition = */ ValueKinds.Statement,
+    ]));
     List<Expression> updates = popListForEffect(updateExpressionCount);
     Statement conditionStatement = popStatement(); // condition
 
@@ -4142,6 +4163,7 @@ class BodyBuilder extends StackListenerImpl
 
     // This is matched by the call to [beginNode] in
     // [handleForInitializerEmptyStatement],
+    // [handleForInitializerPatternVariableAssignment],
     // [handleForInitializerExpressionStatement], and
     // [handleForInitializerLocalVariableDeclaration].
     AssignedVariablesNodeInfo assignedVariablesNodeInfo =
@@ -4169,9 +4191,18 @@ class BodyBuilder extends StackListenerImpl
       typeInferrer.assignedVariables.endNode(result);
       push(result);
     } else {
-      ForElement result = forest.createForElement(offsetForToken(forToken),
-          variables, condition, updates, toValue(entry));
-      typeInferrer.assignedVariables.endNode(result);
+      TreeNode result;
+      ForElement forElement = result = forest.createForElement(
+          offsetForToken(forToken),
+          variables,
+          condition,
+          updates,
+          toValue(entry));
+      if (variableOrExpression is PatternVariableDeclaration) {
+        result = forest.createPatternForElement(
+            offsetForToken(forToken), variableOrExpression, forElement);
+      }
+      typeInferrer.assignedVariables.endNode(forElement);
       push(result);
     }
   }

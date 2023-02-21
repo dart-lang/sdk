@@ -4201,9 +4201,9 @@ class WildcardPattern extends Pattern {
 }
 
 class PatternVariableDeclaration extends InternalStatement {
-  final Pattern pattern;
-  final Expression initializer;
-  final bool isFinal;
+  Pattern pattern;
+  Expression initializer;
+  bool isFinal;
 
   PatternVariableDeclaration(this.pattern, this.initializer,
       {required int fileOffset, required this.isFinal}) {
@@ -4912,5 +4912,50 @@ class IfCaseMapEntry extends TreeNode
   @override
   String toString() {
     return "IfCaseMapEntry(${toStringInternal()})";
+  }
+}
+
+class PatternForElement extends InternalExpression with ControlFlowElement {
+  PatternVariableDeclaration patternVariableDeclaration;
+  ForElement forElement;
+  late List<Statement> replacement;
+
+  PatternForElement(this.patternVariableDeclaration, this.forElement);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    throw new UnsupportedError("PatternForElement.acceptInference");
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('for (');
+    for (int index = 0; index < forElement.variables.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(forElement.variables[index],
+          includeModifiersAndType: index == 0);
+    }
+    printer.write('; ');
+    if (forElement.condition != null) {
+      printer.writeExpression(forElement.condition!);
+    }
+    printer.write('; ');
+    printer.writeExpressions(forElement.updates);
+    printer.write(') ');
+    printer.writeExpression(forElement.body);
+  }
+
+  @override
+  MapLiteralEntry? toMapLiteralEntry(
+      void Function(TreeNode from, TreeNode to) onConvertElement) {
+    throw new UnimplementedError("toMapLiteralEntry");
+  }
+
+  @override
+  String toString() {
+    return "PatternForElement(${toStringInternal()})";
   }
 }
