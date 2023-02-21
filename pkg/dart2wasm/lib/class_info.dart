@@ -125,7 +125,8 @@ class ClassInfo {
 
   /// The class whose struct is used as the type for variables of this type.
   /// This is a type which is a superclass of all subtypes of this type.
-  late final ClassInfo repr;
+  late final ClassInfo repr = upperBound(
+      implementedBy.map((c) => identical(c, this) ? this : c.repr).toList());
 
   /// All classes which implement this class. This is used to compute `repr`.
   final List<ClassInfo> implementedBy = [];
@@ -312,10 +313,6 @@ class ClassInfoCollector {
     translator.classForHeapType.putIfAbsent(info.struct, () => info);
   }
 
-  void _computeRepresentation(ClassInfo info) {
-    info.repr = upperBound(info.implementedBy);
-  }
-
   void _generateFields(ClassInfo info) {
     ClassInfo? superInfo = info.superInfo;
     if (superInfo == null) {
@@ -414,14 +411,6 @@ class ClassInfoCollector {
           _initialize(cls);
         }
       }
-    }
-
-    // For each class, compute which Wasm struct should be used for the type of
-    // variables bearing that class as their Dart type. This is the struct
-    // corresponding to the least common (most specific) supertype of all Dart
-    // classes implementing this class.
-    for (ClassInfo info in translator.classes) {
-      _computeRepresentation(info);
     }
 
     // Now that the representation types for all classes have been computed,
