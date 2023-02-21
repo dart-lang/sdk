@@ -6608,15 +6608,29 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void handleElseControlFlow(Token elseToken) {
+    assert(checkState(elseToken, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.MapLiteralEntry,
+      ]),
+      ValueKinds.Condition,
+    ]));
     // Resolve the top of the stack so that if it's a delayed assignment it
     // happens before we go into the else block.
-    Object? node = pop();
-    if (node is! MapLiteralEntry) node = toValue(node);
+    Object then = pop() as Object;
+    if (then is! MapLiteralEntry) then = toValue(then);
+
+    Object condition = pop() as Condition;
+    exitLocalScope(expectedScopeKinds: const [ScopeKind.ifElement]);
+    push(condition);
+
     // This is matched by the call to [beginNode] in
     // [handleThenControlFlow] and by the call to [storeInfo] in
     // [endIfElseControlFlow].
     push(typeInferrer.assignedVariables.deferNode());
-    push(node);
+    push(then);
   }
 
   @override
@@ -6682,7 +6696,6 @@ class BodyBuilder extends StackListenerImpl
       ]),
       ValueKinds.AssignedVariablesNodeInfo,
       ValueKinds.Condition,
-      ValueKinds.Scope,
       ValueKinds.Token,
     ]));
 
@@ -6691,7 +6704,6 @@ class BodyBuilder extends StackListenerImpl
     AssignedVariablesNodeInfo assignedVariablesInfo =
         pop() as AssignedVariablesNodeInfo;
     Condition condition = pop() as Condition; // parenthesized expression
-    exitLocalScope(expectedScopeKinds: const [ScopeKind.ifElement]);
     Token ifToken = pop() as Token;
 
     PatternGuard? patternGuard = condition.patternGuard;
