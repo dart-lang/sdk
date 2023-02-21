@@ -48,7 +48,7 @@ class B with A {
 
   test_class_instance_final() async {
     await assertErrorsInCode('''
-class A {
+mixin A {
   final a = 0;
 }
 
@@ -63,7 +63,7 @@ class B extends Object with A {
 
   test_class_instance_getter() async {
     await assertNoErrorsInCode('''
-class A {
+mixin A {
   int get a => 7;
 }
 
@@ -75,7 +75,7 @@ class B extends Object with A {
 
   test_class_instance_setter() async {
     await assertNoErrorsInCode('''
-class A {
+mixin A {
   set a(int x) {}
 }
 
@@ -87,7 +87,7 @@ class B extends Object with A {
 
   test_class_instanceField() async {
     await assertErrorsInCode('''
-class A {
+mixin A {
   var a;
 }
 
@@ -102,7 +102,7 @@ class B extends Object with A {
 
   test_class_multipleInstanceFields() async {
     await assertErrorsInCode('''
-class A {
+mixin A {
   var a;
   var b;
 }
@@ -118,7 +118,7 @@ class B extends Object with A {
 
   test_class_noFields() async {
     await assertNoErrorsInCode('''
-class M {}
+mixin M {}
 
 class X extends Object with M {
   const X();
@@ -128,7 +128,7 @@ class X extends Object with M {
 
   test_class_static() async {
     await assertNoErrorsInCode('''
-class M {
+mixin M {
   static final a = 0;
 }
 

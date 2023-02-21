@@ -15,31 +15,31 @@ mixin Mixin {
 }
 
 abstract class A with Class {}
-//                    ^
-// [analyzer] unspecified
+//                    ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 // [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.
 
 class B with Class {}
-//           ^
-// [analyzer] unspecified
+//           ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 // [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.
 
 class C = Object with Class;
-//                    ^
-// [analyzer] unspecified
+//                    ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 // [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.
 
 abstract class D with Class, Mixin {}
-//                    ^
-// [analyzer] unspecified
+//                    ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 // [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.
 
 class E with Class, Mixin {}
-//           ^
-// [analyzer] unspecified
+//           ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 // [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.
 
 class NamedMixinClassApplication = Object with Class;
-//                                             ^
-// [analyzer] unspecified
+//                                             ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 // [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.

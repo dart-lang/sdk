@@ -1530,12 +1530,12 @@ AssignmentExpression
 
   test_propertyAccess_instance_fromMixins_compound() async {
     await assertNoErrorsInCode('''
-class M1 {
+mixin M1 {
   int get x => 0;
   set x(num _) {}
 }
 
-class M2 {
+mixin M2 {
   int get x => 0;
   set x(num _) {}
 }
@@ -1572,9 +1572,9 @@ AssignmentExpression
     literal: 2
     parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
-  readElement: self::@class::M2::@getter::x
+  readElement: self::@mixin::M2::@getter::x
   readType: int
-  writeElement: self::@class::M2::@setter::x
+  writeElement: self::@mixin::M2::@setter::x
   writeType: num
   staticElement: dart:core::@class::num::@method::+
   staticType: int
@@ -3743,12 +3743,12 @@ AssignmentExpression
 
   test_simpleIdentifier_thisGetter_thisSetter_fromMixins_compound() async {
     await assertNoErrorsInCode('''
-class M1 {
+mixin M1 {
   int get x => 0;
   set x(num _) {}
 }
 
-class M2 {
+mixin M2 {
   int get x => 0;
   set x(num _) {}
 }
@@ -3773,9 +3773,9 @@ AssignmentExpression
     literal: 2
     parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
-  readElement: self::@class::M2::@getter::x
+  readElement: self::@mixin::M2::@getter::x
   readType: int
-  writeElement: self::@class::M2::@setter::x
+  writeElement: self::@mixin::M2::@setter::x
   writeType: num
   staticElement: dart:core::@class::num::@method::+
   staticType: int

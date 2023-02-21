@@ -7236,7 +7236,7 @@ The following code produces this diagnostic because the class `A` is used
 in both the `extends` and `with` clauses for the class `B`:
 
 {% prettify dart tag=pre+code %}
-class A {}
+mixin class A {}
 
 class B extends A with [!A!] {}
 {% endprettify %}
@@ -11543,6 +11543,7 @@ The following code produces this diagnostic because the class `A`, which
 defines a constructor, is being used as a mixin:
 
 {% prettify dart tag=pre+code %}
+//@dart=2.19
 class A {
   A();
 }
@@ -11565,6 +11566,7 @@ If the class can't be a mixin and it's possible to remove the constructor,
 then do so:
 
 {% prettify dart tag=pre+code %}
+//@dart=2.19
 class A {
 }
 
@@ -11598,6 +11600,7 @@ The following code produces this diagnostic because the class `B`, which
 extends `A`, is being used as a mixin by `C`:
 
 {% prettify dart tag=pre+code %}
+//@dart=2.19
 class A {}
 
 class B extends A {}
@@ -11611,6 +11614,7 @@ If the class being used as a mixin can be changed to extend `Object`, then
 change it:
 
 {% prettify dart tag=pre+code %}
+//@dart=2.19
 class A {}
 
 class B {}

@@ -91,11 +91,11 @@ class D implements A {}
 
   test_classTypeAlias_mixin() async {
     await assertErrorsInCode(r'''
-class M1 = Object with M2;
-class M2 = Object with M1;
+mixin class M1 = Object with M2;
+mixin class M2 = Object with M1;
 ''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 2),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 33, 2),
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 12, 2),
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 45, 2),
     ]);
   }
 
@@ -105,7 +105,7 @@ class M2 = Object with M1;
     await assertErrorsInCode('''
 class C = D with M;
 class D = C with M;
-class M {}
+mixin M {}
 ''', [
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 26, 1),

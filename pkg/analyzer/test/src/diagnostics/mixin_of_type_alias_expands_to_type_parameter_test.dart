@@ -18,7 +18,7 @@ class MixinOfTypeAliasExpandsToTypeParameterTest
     extends PubPackageResolutionTest {
   test_class() async {
     await assertNoErrorsInCode(r'''
-class A {}
+mixin A {}
 typedef T = A;
 class B with A {}
 ''');
@@ -26,7 +26,7 @@ class B with A {}
 
   test_class_noTypeArguments() async {
     await assertErrorsInCode(r'''
-class A {}
+mixin A {}
 typedef T<X extends A> = X;
 class B with T {}
 ''', [
@@ -37,7 +37,7 @@ class B with T {}
 
   test_class_withTypeArguments() async {
     await assertErrorsInCode(r'''
-class A {}
+mixin A {}
 typedef T<X extends A> = X;
 class B with T<A> {}
 ''', [

@@ -222,7 +222,7 @@ abstract class B implements A {
 
   test_inMixin_getter_getter() async {
     await assertErrorsInCode(r'''
-class A {
+mixin A {
   int get foo => 0;
 }
 class B extends Object with A {
@@ -235,7 +235,7 @@ class B extends Object with A {
 
   test_inMixin_getter_method() async {
     await assertErrorsInCode(r'''
-class A {
+mixin A {
   int get foo => 0;
 }
 class B extends Object with A {
@@ -248,7 +248,7 @@ class B extends Object with A {
 
   test_inMixin_getter_setter() async {
     await assertErrorsInCode(r'''
-class A {
+mixin A {
   set foo(_) {}
 }
 class B extends Object with A {
@@ -261,7 +261,7 @@ class B extends Object with A {
 
   test_inMixin_method_getter() async {
     await assertErrorsInCode(r'''
-class A {
+mixin A {
   int get foo => 0;
 }
 class B extends Object with A {
@@ -274,7 +274,7 @@ class B extends Object with A {
 
   test_inMixin_method_method() async {
     await assertErrorsInCode(r'''
-class A {
+mixin A {
   void foo() {}
 }
 class B extends Object with A {
@@ -287,7 +287,7 @@ class B extends Object with A {
 
   test_inMixin_method_setter() async {
     await assertErrorsInCode(r'''
-class A {
+mixin A {
   set foo(_) {}
 }
 class B extends Object with A {
@@ -300,7 +300,7 @@ class B extends Object with A {
 
   test_inMixin_setter_method() async {
     await assertErrorsInCode(r'''
-class A {
+mixin A {
   void foo() {}
 }
 class B extends Object with A {
@@ -313,7 +313,7 @@ class B extends Object with A {
 
   test_inMixin_setter_setter() async {
     await assertErrorsInCode(r'''
-class A {
+mixin A {
   set foo(_) {}
 }
 class B extends Object with A {

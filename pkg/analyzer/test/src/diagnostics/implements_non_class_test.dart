@@ -67,7 +67,7 @@ class B implements A {}
   test_inClassTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
-class M {}
+mixin M {}
 int B = 7;
 class C = A with M implements B;
 ''', [

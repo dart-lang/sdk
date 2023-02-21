@@ -5847,7 +5847,7 @@ CompileTimeErrorCode:
       in both the `extends` and `with` clauses for the class `B`:
 
       ```dart
-      class A {}
+      mixin class A {}
 
       class B extends A with [!A!] {}
       ```
@@ -8834,6 +8834,7 @@ CompileTimeErrorCode:
       defines a constructor, is being used as a mixin:
 
       ```dart
+      //@dart=2.19
       class A {
         A();
       }
@@ -8856,6 +8857,7 @@ CompileTimeErrorCode:
       then do so:
 
       ```dart
+      //@dart=2.19
       class A {
       }
 
@@ -8890,6 +8892,7 @@ CompileTimeErrorCode:
       extends `A`, is being used as a mixin by `C`:
 
       ```dart
+      //@dart=2.19
       class A {}
 
       class B extends A {}
@@ -8903,6 +8906,7 @@ CompileTimeErrorCode:
       change it:
 
       ```dart
+      //@dart=2.19
       class A {}
 
       class B {}

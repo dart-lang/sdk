@@ -116,7 +116,7 @@ class B<X> implements A<X> {}
   test_class_with_function_parameterType() async {
     await assertErrorsInCode(r'''
 typedef F<X> = void Function(X);
-class A<X> {}
+mixin A<X> {}
 class B<X> extends Object with A<F<X>> {}
 ''', [
       error(
@@ -130,14 +130,14 @@ class B<X> extends Object with A<F<X>> {}
   test_class_with_function_returnType() async {
     await assertNoErrorsInCode(r'''
 typedef F<X> = X Function();
-class A<X> {}
+mixin A<X> {}
 class B<X> extends Object with A<F<X>> {}
 ''');
   }
 
   test_class_with_withoutFunction() async {
     await assertNoErrorsInCode(r'''
-class A<X> {}
+mixin A<X> {}
 class B<X> extends Object with A<X> {}
 ''');
   }
@@ -288,7 +288,7 @@ enum E<X> implements A<X> {
   test_enum_with_function_parameterType() async {
     await assertErrorsInCode(r'''
 typedef F<X> = void Function(X);
-class A<X> {}
+mixin A<X> {}
 enum E<X> with A<F<X>> {
   v
 }
@@ -304,7 +304,7 @@ enum E<X> with A<F<X>> {
   test_enum_with_function_returnType() async {
     await assertNoErrorsInCode(r'''
 typedef F<X> = X Function();
-class A<X> {}
+mixin A<X> {}
 enum E<X> with A<F<X>> {
   v
 }
@@ -313,7 +313,7 @@ enum E<X> with A<F<X>> {
 
   test_enum_with_withoutFunction() async {
     await assertNoErrorsInCode(r'''
-class A<X> {}
+mixin A<X> {}
 enum E<X> with A<X> {
   v
 }

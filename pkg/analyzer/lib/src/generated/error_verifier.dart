@@ -1836,10 +1836,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   /// Verify that if a class is being mixed in and class modifiers are enabled
-  /// in that class' library, then the mixin application must be in the same
-  /// library as that class declaration.
-  ///
-  /// No error is emitted if the class being mixed in is a mixin class.
+  /// in that class' library, then it must be a mixin class.
   ///
   /// See [CompileTimeErrorCode.CLASS_USED_AS_MIXIN].
   void _checkForClassUsedAsMixin(WithClause? withClause) {
@@ -1850,7 +1847,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           final withElement = withType.element;
           if (withElement is ClassElementImpl &&
               !withElement.isMixinClass &&
-              withElement.library != _currentLibrary &&
               withElement.library.featureSet
                   .isEnabled(Feature.class_modifiers)) {
             errorReporter.reportErrorForNode(

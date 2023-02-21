@@ -313,7 +313,7 @@ class Button extends State<Object> {
   test_mixingIn() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
-class A {
+mixin A {
   @protected
   void a(){ }
 }

@@ -268,7 +268,7 @@ class C implements A {
   test_fromMixin() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
-class Mixin {
+mixin Mixin {
   @mustCallSuper
   void a() {}
 }
@@ -284,7 +284,7 @@ class C with Mixin {
   test_fromMixin_setter() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
-class Mixin {
+mixin Mixin {
   @mustCallSuper
   void set a(int value) {}
 }
@@ -339,7 +339,7 @@ class D extends C {
   test_indirectlyInheritedFromMixin() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
-class Mixin {
+mixin Mixin {
   @mustCallSuper
   void b() {}
 }

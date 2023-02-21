@@ -54,7 +54,7 @@ class C extends B {}
   test_classAlias_withClass_nonNullable() async {
     await assertNoErrorsInCode('''
 class A {}
-class B {}
+mixin B {}
 class C = A with B;
 ''');
   }
@@ -62,7 +62,7 @@ class C = A with B;
   test_classAlias_withClass_nullable() async {
     await assertErrorsInCode('''
 class A {}
-class B {}
+mixin B {}
 class C = A? with B;
 ''', [
       error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 32, 2),
@@ -72,7 +72,7 @@ class C = A? with B;
   test_classAlias_withClass_nullable_alias() async {
     await assertErrorsInCode('''
 class A {}
-class B {}
+mixin B {}
 typedef C = A;
 class D = C? with B;
 ''', [
@@ -83,7 +83,7 @@ class D = C? with B;
   test_classAlias_withClass_nullable_alias2() async {
     await assertErrorsInCode('''
 class A {}
-class B {}
+mixin B {}
 typedef C = A?;
 class D = C with B;
 ''', [

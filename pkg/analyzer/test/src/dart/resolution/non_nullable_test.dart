@@ -21,7 +21,7 @@ main() {
 class NonNullableTest extends PubPackageResolutionTest {
   test_class_hierarchy() async {
     await assertNoErrorsInCode('''
-class A {}
+mixin class A {}
 
 class X1 extends A {} // 1
 class X2 implements A {} // 2
@@ -36,7 +36,7 @@ class X3 with A {} // 3
   test_classTypeAlias_hierarchy() async {
     await assertNoErrorsInCode('''
 class A {}
-class B {}
+mixin B {}
 class C {}
 
 class X = A with B implements C;
