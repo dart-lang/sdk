@@ -106,6 +106,14 @@ AnalysisOptionsWarningCode:
 
       Parameters:
       0: the section name
+  MULTIPLE_PLUGINS:
+    problemMessage: "Multiple plugins can't be enabled."
+    correctionMessage: "Remove all plugins following the first, '{0}'."
+    comment: |-
+      An error code indicating multiple plugins have been specified as enabled.
+
+      Parameters:
+      0: the name of the first plugin
   SPEC_MODE_REMOVED:
     problemMessage: "The option 'strong-mode: false' is no longer supported."
     correctionMessage: "It's recommended to remove the 'strong-mode:' setting (and make your code Dart 2 compliant)."

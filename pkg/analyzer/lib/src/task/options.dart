@@ -37,12 +37,17 @@ List<AnalysisError> analyzeAnalysisOptions(
   SourceSpan? initialIncludeSpan;
   AnalysisOptionsProvider optionsProvider =
       AnalysisOptionsProvider(sourceFactory);
+  String? firstPluginName;
 
-  // Validate the specified options and any included option files
-  void validate(Source source, YamlMap options) {
-    List<AnalysisError> validationErrors =
-        OptionsFileValidator(source).validate(options);
-    if (initialIncludeSpan != null && validationErrors.isNotEmpty) {
+  // TODO(srawlins): This code is getting quite complex, with multiple local
+  // functions, and should be refactored to a class maintaining state, with less
+  // variable shadowing.
+  void addDirectErrorOrIncludedError(
+      List<AnalysisError> validationErrors, Source source,
+      {required bool sourceIsOptionsForContextRoot}) {
+    if (!sourceIsOptionsForContextRoot) {
+      // [source] is an included file, and we should only report errors in
+      // [initialSource], noting that the included file has warnings.
       for (AnalysisError error in validationErrors) {
         var args = [
           source.fullName,
@@ -58,16 +63,32 @@ List<AnalysisError> analyzeAnalysisOptions(
             args));
       }
     } else {
+      // [source] is the options file for [contextRoot]. Report all errors
+      // directly.
       errors.addAll(validationErrors);
     }
+  }
 
-    var node = options.valueAt(AnalyzerOptions.include);
-    if (node == null) {
+  // Validate the specified options and any included option files.
+  void validate(Source source, YamlMap options) {
+    var sourceIsOptionsForContextRoot = initialIncludeSpan == null;
+    List<AnalysisError> validationErrors =
+        OptionsFileValidator(source).validate(options);
+    addDirectErrorOrIncludedError(validationErrors, source,
+        sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot);
+
+    var includeNode = options.valueAt(AnalyzerOptions.include);
+    if (includeNode == null) {
+      // Validate the 'plugins' option in [options], understanding that no other
+      // options are included.
+      addDirectErrorOrIncludedError(
+          _validatePluginsOption(source, options: options), source,
+          sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot);
       return;
     }
-    SourceSpan span = node.span;
-    initialIncludeSpan ??= span;
-    String includeUri = span.text;
+    var includeSpan = includeNode.span;
+    initialIncludeSpan ??= includeSpan;
+    String includeUri = includeSpan.text;
     var includedSource = sourceFactory.resolveUri(source, includeUri);
     if (includedSource == null || !includedSource.exists()) {
       errors.add(AnalysisError(
@@ -79,9 +100,18 @@ List<AnalysisError> analyzeAnalysisOptions(
       return;
     }
     try {
-      YamlMap options =
+      var includedOptions =
           optionsProvider.getOptionsFromString(includedSource.contents.data);
-      validate(includedSource, options);
+      validate(includedSource, includedOptions);
+      firstPluginName ??= _firstPluginName(includedOptions);
+      // Validate the 'plugins' option in [options], taking into account any
+      // plugins enabled by [includedOptions].
+      addDirectErrorOrIncludedError(
+        _validatePluginsOption(source,
+            options: options, firstEnabledPluginName: firstPluginName),
+        source,
+        sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+      );
     } on OptionsFormatException catch (e) {
       var args = [
         includedSource.fullName,
@@ -89,8 +119,8 @@ List<AnalysisError> analyzeAnalysisOptions(
         e.span!.end.offset.toString(),
         e.message,
       ];
-      // Report errors for included option files
-      // on the include directive located in the initial options file.
+      // Report errors for included option files on the `include` directive
+      // located in the initial options file.
       errors.add(AnalysisError(
           initialSource,
           initialIncludeSpan!.start.offset,
@@ -113,6 +143,42 @@ List<AnalysisError> analyzeAnalysisOptions(
 
 void applyToAnalysisOptions(AnalysisOptionsImpl options, YamlMap optionMap) {
   _processor.applyToAnalysisOptions(options, optionMap);
+}
+
+/// Returns the name of the first plugin, if one is specified in [options],
+/// otherwise `null`.
+String? _firstPluginName(YamlMap options) {
+  var analyzerMap = options.valueAt(AnalyzerOptions.analyzer);
+  if (analyzerMap is! YamlMap) {
+    return null;
+  }
+  var plugins = analyzerMap.valueAt(AnalyzerOptions.plugins);
+  if (plugins is YamlScalar) {
+    return plugins.value as String?;
+  } else if (plugins is YamlList) {
+    return plugins.first as String?;
+  } else if (plugins is YamlMap) {
+    return plugins.keys.first as String?;
+  } else {
+    return null;
+  }
+}
+
+/// Validates the 'plugins' options in [options], given
+/// [firstEnabledPluginName].
+List<AnalysisError> _validatePluginsOption(
+  Source source, {
+  required YamlMap options,
+  String? firstEnabledPluginName,
+}) {
+  RecordingErrorListener recorder = RecordingErrorListener();
+  ErrorReporter reporter = ErrorReporter(
+    recorder,
+    source,
+    isNonNullableByDefault: true,
+  );
+  PluginsOptionValidator(firstEnabledPluginName).validate(reporter, options);
+  return recorder.errors;
 }
 
 /// `analyzer` analysis options constants.
@@ -627,6 +693,103 @@ class OptionsFileValidator {
   }
 }
 
+/// Validates `analyzer` plugins configuration options.
+class PluginsOptionValidator extends OptionsValidator {
+  /// The name of the first included plugin, if there is one.
+  ///
+  /// If there are no included plugins, this is `null`.
+  final String? _firstIncludedPluginName;
+
+  PluginsOptionValidator(this._firstIncludedPluginName);
+
+  @override
+  void validate(ErrorReporter reporter, YamlMap options) {
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
+    if (analyzer is! YamlMap) {
+      return;
+    }
+    var plugins = analyzer.valueAt(AnalyzerOptions.plugins);
+    if (plugins is YamlScalar && plugins.value != null) {
+      if (_firstIncludedPluginName != null &&
+          _firstIncludedPluginName != plugins.value) {
+        reporter.reportErrorForSpan(
+          AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+          plugins.span,
+          [_firstIncludedPluginName!],
+        );
+      }
+    } else if (plugins is YamlList) {
+      var pluginValues = plugins.nodes.whereType<YamlNode>().toList();
+      if (_firstIncludedPluginName != null) {
+        // There is already at least one plugin specified in included options.
+        for (var plugin in pluginValues) {
+          if (plugin.value != _firstIncludedPluginName) {
+            reporter.reportErrorForSpan(
+              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+              plugin.span,
+              [_firstIncludedPluginName!],
+            );
+          }
+        }
+      } else if (plugins.length > 1) {
+        String? firstPlugin;
+        for (var plugin in pluginValues) {
+          if (firstPlugin == null) {
+            var pluginValue = plugin.value;
+            if (pluginValue is String) {
+              firstPlugin = pluginValue;
+              continue;
+            } else {
+              // This plugin is bad and should not be marked as the first one.
+              continue;
+            }
+          } else if (plugin.value != firstPlugin) {
+            reporter.reportErrorForSpan(
+              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+              plugin.span,
+              [firstPlugin],
+            );
+          }
+        }
+      }
+    } else if (plugins is YamlMap) {
+      var pluginValues = plugins.nodes.keys.cast<YamlNode?>();
+      if (_firstIncludedPluginName != null) {
+        // There is already at least one plugin specified in included options.
+        for (var plugin in pluginValues) {
+          if (plugin != null && plugin.value != _firstIncludedPluginName) {
+            reporter.reportErrorForSpan(
+              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+              plugin.span,
+              [_firstIncludedPluginName!],
+            );
+          }
+        }
+      } else if (plugins.length > 1) {
+        String? firstPlugin;
+        for (var plugin in pluginValues) {
+          if (firstPlugin == null) {
+            var pluginValue = plugin?.value;
+            if (pluginValue is String) {
+              firstPlugin = pluginValue;
+              continue;
+            } else {
+              // This plugin is bad and should not be marked as the first one.
+              continue;
+            }
+          } else if (plugin != null && plugin.value != firstPlugin) {
+            reporter.reportErrorForSpan(
+              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+              plugin.span,
+              [firstPlugin],
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
 /// Validates `analyzer` strong-mode value configuration options.
 class StrongModeOptionValueValidator extends OptionsValidator {
   final ErrorBuilder _builder = ErrorBuilder(AnalyzerOptions.strongModeOptions);
@@ -775,27 +938,8 @@ class _OptionsProcessor {
       _applyUnignorables(options, cannotIgnore);
 
       // Process plugins.
-      var names = analyzer.valueAt(AnalyzerOptions.plugins);
-      List<String> pluginNames = <String>[];
-      var pluginName = _toString(names);
-      if (pluginName != null) {
-        pluginNames.add(pluginName);
-      } else if (names is YamlList) {
-        for (var element in names.nodes) {
-          var pluginName = _toString(element);
-          if (pluginName != null) {
-            pluginNames.add(pluginName);
-          }
-        }
-      } else if (names is YamlMap) {
-        for (var key in names.nodes.keys) {
-          var pluginName = _toString(key);
-          if (pluginName != null) {
-            pluginNames.add(pluginName);
-          }
-        }
-      }
-      options.enabledPluginNames = pluginNames;
+      var plugins = analyzer.valueAt(AnalyzerOptions.plugins);
+      _applyPlugins(options, plugins);
     }
 
     // Process the 'code-style' option.
@@ -869,6 +1013,31 @@ class _OptionsProcessor {
     if (boolValue != null) {
       if (feature == AnalyzerOptions.chromeOsManifestChecks) {
         options.chromeOsManifestChecks = boolValue;
+      }
+    }
+  }
+
+  void _applyPlugins(AnalysisOptionsImpl options, YamlNode? plugins) {
+    var pluginName = _toString(plugins);
+    if (pluginName != null) {
+      options.enabledPluginNames = [pluginName];
+    } else if (plugins is YamlList) {
+      for (var element in plugins.nodes) {
+        var pluginName = _toString(element);
+        if (pluginName != null) {
+          // Only the first plugin is supported.
+          options.enabledPluginNames = [pluginName];
+          return;
+        }
+      }
+    } else if (plugins is YamlMap) {
+      for (var key in plugins.nodes.keys.cast<YamlNode?>()) {
+        var pluginName = _toString(key);
+        if (pluginName != null) {
+          // Only the first plugin is supported.
+          options.enabledPluginNames = [pluginName];
+          return;
+        }
       }
     }
   }

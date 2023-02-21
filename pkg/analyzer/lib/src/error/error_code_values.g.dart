@@ -29,6 +29,7 @@ const List<ErrorCode> errorCodeValues = [
   AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
   AnalysisOptionsWarningCode.INVALID_OPTION,
   AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+  AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
   AnalysisOptionsWarningCode.SPEC_MODE_REMOVED,
   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
