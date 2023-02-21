@@ -1029,6 +1029,11 @@ bool _isSubtype(Object? s, _Type t) {
   return _typeUniverse.isSubtype(s._runtimeType, null, t, null);
 }
 
+@pragma("wasm:entry-point")
+bool _isTypeSubtype(_Type s, _Type t) {
+  return _typeUniverse.isSubtype(s, null, t, null);
+}
+
 /// Checks that argument lists have expected number of arguments for the
 /// closure.
 ///

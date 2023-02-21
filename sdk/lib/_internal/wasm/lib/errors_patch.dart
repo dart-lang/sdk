@@ -87,6 +87,15 @@ class _TypeError extends _Error implements TypeError {
         stackTrace);
     return Error._throw(typeError, stackTrace);
   }
+
+  @pragma("wasm:entry-point")
+  static Never _throwTypeArgumentBoundCheckError(
+      _Type param, _Type bound, String paramName, StackTrace stackTrace) {
+    final typeError = _TypeError.fromMessageAndStackTrace(
+        "type '$param' is not a subtype of type '$bound' of '$paramName'",
+        stackTrace);
+    return Error._throw(typeError, stackTrace);
+  }
 }
 
 @patch

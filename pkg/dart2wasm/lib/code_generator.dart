@@ -374,9 +374,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       typeLocals[typeParameters[i]] = paramLocals[parameterOffset + i];
     }
 
-    // Local for the parameter type if any of the parameters need type checks
-    w.Local? parameterExpectedTypeLocal;
-
     void setupParamLocal(
         VariableDeclaration variable, int index, Constant? defaultValue) {
       w.Local local = paramLocals[implicitParams + index];
@@ -395,18 +392,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         wrap(variable.initializer!, local.type);
         b.local_set(local);
         b.end();
-      }
-      if (!translator.options.omitTypeChecks &&
-          (variable.isCovariantByClass || variable.isCovariantByDeclaration)) {
-        final typeLocal = parameterExpectedTypeLocal ??= addLocal(
-            translator.classInfo[translator.typeClass]!.nonNullableType);
-        _generateArgumentTypeCheck(
-          variable.name!,
-          () => b.local_get(local),
-          () => types.makeType(this, variable.type),
-          local,
-          typeLocal,
-        );
       }
     }
 
@@ -476,11 +461,63 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
   }
 
+  void generateTypeChecks(Member member) {
+    if (translator.options.omitTypeChecks) {
+      return;
+    }
+
+    final List<TypeParameter> typeParameters = member is Constructor
+        ? member.enclosingClass.typeParameters
+        : member.function!.typeParameters;
+
+    for (TypeParameter typeParameter in typeParameters) {
+      if (typeParameter.isCovariantByClass &&
+          typeParameter.bound != translator.coreTypes.objectNullableRawType) {
+        _generateTypeArgumentBoundCheck(typeParameter.name!,
+            typeLocals[typeParameter]!, typeParameter.bound);
+      }
+    }
+
+    // Local for the parameter type if any of the parameters need type checks
+    w.Local? parameterExpectedTypeLocal;
+
+    final ParameterInfo paramInfo = translator.paramInfoFor(reference);
+    final int parameterOffset = thisLocal == null ? 0 : 1;
+    final int implicitParams = parameterOffset + paramInfo.typeParamCount;
+    void generateValueParameterCheck(VariableDeclaration variable, int index) {
+      if (!variable.isCovariantByClass && !variable.isCovariantByDeclaration) {
+        return;
+      }
+      final w.Local local = paramLocals[implicitParams + index];
+      final typeLocal = parameterExpectedTypeLocal ??=
+          addLocal(translator.classInfo[translator.typeClass]!.nonNullableType);
+      _generateArgumentTypeCheck(
+        variable.name!,
+        () => b.local_get(local),
+        () => types.makeType(this, variable.type),
+        local,
+        typeLocal,
+      );
+    }
+
+    final List<VariableDeclaration> positional =
+        member.function!.positionalParameters;
+    for (int i = 0; i < positional.length; i++) {
+      generateValueParameterCheck(positional[i], i);
+    }
+
+    final List<VariableDeclaration> named = member.function!.namedParameters;
+    for (var param in named) {
+      generateValueParameterCheck(param, paramInfo.nameIndex[param.name]!);
+    }
+  }
+
   void generateBody(Member member) {
     setupParametersAndContexts(member);
     if (member is Constructor) {
       generateInitializerList(member);
     }
+    generateTypeChecks(member);
     Statement? body = member.function!.body;
     if (body != null) {
       visitStatement(body);
@@ -2863,10 +2900,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.struct_get(info.struct, fieldIndex);
       resultType = info.struct.fields[fieldIndex].type.unpacked;
     }
-    final w.ValueType nonNullableTypeType =
-        translator.classInfo[translator.typeClass]!.nonNullableType;
-    translator.convertType(function, resultType, nonNullableTypeType);
-    return nonNullableTypeType;
+    translator.convertType(function, resultType, types.nonNullableTypeType);
+    return types.nonNullableTypeType;
   }
 
   @override
@@ -3037,6 +3072,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     if (!translator.options.omitTypeChecks) {
+      // Check type parameter bounds
+      for (TypeParameter typeParameter in memberTypeParams) {
+        if (typeParameter.bound != translator.coreTypes.objectNullableRawType) {
+          _generateTypeArgumentBoundCheck(typeParameter.name!,
+              typeLocals[typeParameter]!, typeParameter.bound);
+        }
+      }
+
       // Check positional argument types
       final List<VariableDeclaration> memberPositionalParams =
           procedure.function.positionalParameters;
@@ -3187,6 +3230,31 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     _emitString(argName);
     call(translator.stackTraceCurrent.reference);
     call(translator.throwArgumentTypeCheckError.reference);
+    b.unreachable();
+    b.end();
+  }
+
+  void _generateTypeArgumentBoundCheck(
+    String argName,
+    w.Local typeLocal,
+    DartType bound,
+  ) {
+    b.local_get(typeLocal);
+    final boundLocal = function
+        .addLocal(translator.classInfo[translator.typeClass]!.nonNullableType);
+    types.makeType(this, bound);
+    b.local_tee(boundLocal);
+    b.call(
+        translator.functions.getFunction(translator.isTypeSubtype.reference));
+
+    b.i32_eqz();
+    b.if_();
+    // Type check failed
+    b.local_get(typeLocal);
+    b.local_get(boundLocal);
+    _emitString(argName);
+    call(translator.stackTraceCurrent.reference);
+    call(translator.throwTypeArgumentBoundCheckError.reference);
     b.unreachable();
     b.end();
   }
