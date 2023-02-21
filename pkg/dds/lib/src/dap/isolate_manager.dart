@@ -13,6 +13,7 @@ import 'adapters/dart.dart';
 import 'exceptions.dart';
 import 'protocol_generated.dart';
 import 'utils.dart';
+import 'variables.dart';
 
 /// Manages state of Isolates (called Threads by the DAP protocol).
 ///
@@ -177,6 +178,8 @@ class IsolateManager {
       await _handlePause(event);
     } else if (eventKind == vm.EventKind.kResume) {
       _handleResumed(event);
+    } else if (eventKind == vm.EventKind.kInspect) {
+      _handleInspect(event);
     }
   }
 
@@ -533,6 +536,23 @@ class IsolateManager {
       thread.paused = false;
       thread.pauseEvent = null;
       thread.exceptionReference = null;
+    }
+  }
+
+  /// Handles an inspect event from the VM, sending the value/variable to the
+  /// debugger.
+  void _handleInspect(vm.Event event) {
+    final isolate = event.isolate!;
+    final thread = _threadsByIsolateId[isolate.id!];
+    final inspectee = event.inspectee;
+
+    if (thread != null && inspectee != null) {
+      final ref = thread.storeData(InspectData(inspectee));
+      _adapter.sendOutput(
+        'console',
+        '', // Not shown by the client because it fetches the variable.
+        variablesReference: ref,
+      );
     }
   }
 

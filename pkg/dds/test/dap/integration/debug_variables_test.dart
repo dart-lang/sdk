@@ -648,6 +648,66 @@ void main() {
       );
     });
 
+    group('inspect()', () {
+      /// Helper to test `inspect()` with varying expressions.
+      void _checkInspect(
+        String inspectCode, {
+        required String expectedVariables,
+      }) {
+        test('sends variable in OutputEvent for inspect($inspectCode)',
+            () async {
+          final client = dap.client;
+          final testFile = dap.createTestFile('''
+import 'dart:developer';
+
+void main() {
+  inspect($inspectCode);
+  print('Done!'); $breakpointMarker
+}
+    ''');
+
+          // Capture an `OutputEvent` that has a variable reference which should
+          // be sent by the `inspect()` call.
+          final outputEventFuture = client.outputEvents.firstWhere(
+              (e) => e.variablesReference != null && e.variablesReference! > 0);
+          final breakpointLine = lineWith(testFile, breakpointMarker);
+          await client.hitBreakpoint(testFile, breakpointLine);
+          final outputEvent = await outputEventFuture;
+
+          final inspectWrapper =
+              await client.getValidVariables(outputEvent.variablesReference!);
+          // The wrapper should only have one field for expanding.
+          final variable = inspectWrapper.variables.single;
+          expect(variable.value, '<inspected variable>');
+
+          // Check the child variables are as expected.
+          await client.expectVariables(
+            variable.variablesReference,
+            expectedVariables,
+          );
+        });
+      }
+
+      _checkInspect(
+        '"My String"',
+        expectedVariables: 'String: "My String"',
+      );
+
+      _checkInspect(
+        'null',
+        expectedVariables: 'Null: null',
+      );
+
+      _checkInspect(
+        '[0, 1, 2]',
+        expectedVariables: '''
+          [0]: 0
+          [1]: 1
+          [2]: 2
+        ''',
+      );
+    });
+
     group('value formats', () {
       test('can trigger invalidation from the DAP client', () async {
         final client = dap.client;

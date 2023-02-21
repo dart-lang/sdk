@@ -1263,7 +1263,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// processing stack frames requires async calls, this function will insert
   /// output events into a queue and only send them when previous calls have
   /// been completed.
-  void sendOutput(String category, String message) async {
+  void sendOutput(
+    String category,
+    String message, {
+    int? variablesReference,
+  }) async {
     // Reserve our place in the queue be inserting a future that we can complete
     // after we have sent the output event.
     final completer = Completer<void>();
@@ -1271,7 +1275,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     _lastOutputEvent = completer.future;
 
     try {
-      final outputEvents = await _buildOutputEvents(category, message);
+      final outputEvents = await _buildOutputEvents(
+        category,
+        message,
+        variablesReference: variablesReference,
+      );
 
       // Chain our sends onto the end of the previous one, and complete our Future
       // once done so that the next one can go.
@@ -1729,6 +1737,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // Sort the variables by name.
         variables.sortBy((v) => v.name);
       }
+    } else if (data is InspectData) {
+      // When sending variables as part of an OutputEvent, VS Code will only
+      // show the first field, so we wrap the object to ensure there's always
+      // a single field.
+      final instance = data.instance;
+      variables.add(Variable(
+        name: '', // Unused.
+        value: '<inspected variable>', // Shown to user, expandable.
+        variablesReference: instance != null ? thread.storeData(instance) : 0,
+      ));
     } else if (data is vm.MapAssociation) {
       final key = data.key;
       final value = data.value;
@@ -1838,13 +1856,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// for each frame to allow location metadata to be attached.
   Future<List<OutputEventBody>> _buildOutputEvents(
     String category,
-    String message,
-  ) async {
+    String message, {
+    int? variablesReference,
+  }) async {
     try {
       if (category == 'stderr') {
         return await _buildStdErrOutputEvents(message);
       } else {
-        return [OutputEventBody(category: category, output: message)];
+        return [
+          OutputEventBody(
+            category: category,
+            output: message,
+            variablesReference: variablesReference,
+          )
+        ];
       }
     } catch (e, s) {
       // Since callers of [sendOutput] may not await it, don't allow unhandled
