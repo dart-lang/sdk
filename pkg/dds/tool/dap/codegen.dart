@@ -480,7 +480,7 @@ class CodeGenerator {
     final nullOp = isOptional ? '?' : '';
 
     if (baseType.isAny || baseType.isSimple) {
-      buffer.write('$valueCode');
+      buffer.write(valueCode);
       if (dartType != 'Object?') {
         buffer.write(' as $dartType');
       }

@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:json_rpc_2/error_code.dart' as jsonRpcErrors;
+import 'package:json_rpc_2/error_code.dart' as json_rpc_errors;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
@@ -1271,7 +1271,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // Reserve our place in the queue be inserting a future that we can complete
     // after we have sent the output event.
     final completer = Completer<void>();
-    final _previousEvent = _lastOutputEvent ?? Future.value();
+    final previousEvent = _lastOutputEvent ?? Future.value();
     _lastOutputEvent = completer.future;
 
     try {
@@ -1283,7 +1283,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
       // Chain our sends onto the end of the previous one, and complete our Future
       // once done so that the next one can go.
-      await _previousEvent;
+      await previousEvent;
       outputEvents.forEach(sendEvent);
     } finally {
       completer.complete();
@@ -1378,6 +1378,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   /// Shuts down the debug adapter, including terminating/detaching from the
   /// debugee if required.
+  @override
   @nonVirtual
   Future<void> shutdown() async {
     await shutdownDebugee();
@@ -2352,7 +2353,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         }
         // SERVER_ERROR can occur when DDS completes any outstanding requests
         // with "The client closed with pending request".
-        if (e.code == jsonRpcErrors.SERVER_ERROR) {
+        if (e.code == json_rpc_errors.SERVER_ERROR) {
           return null;
         }
       }
@@ -2380,6 +2381,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
 
   /// If noDebug is true the launch request should launch the program without
   /// enabling debugging.
+  @override
   final bool? noDebug;
 
   /// The program/Dart script to be run.

@@ -103,7 +103,7 @@ class IsolateManager {
   ///
   /// Stored data is thread-scoped but the client will not provide the thread
   /// when asking for data so it's all stored together here.
-  final _storedData = <int, _StoredData>{};
+  final _storedData = <int, StoredData>{};
 
   /// A pattern that matches an opening brace `{` that was not preceded by a
   /// dollar.
@@ -149,7 +149,7 @@ class IsolateManager {
 
   /// Retrieves some basic data indexed by an integer for use in "reference"
   /// fields that are round-tripped to the client.
-  _StoredData? getStoredData(int id) {
+  StoredData? getStoredData(int id) {
     return _storedData[id];
   }
 
@@ -329,7 +329,7 @@ class IsolateManager {
   /// that are round-tripped to the client.
   int storeData(ThreadInfo thread, Object data) {
     final id = _nextStoredDataId++;
-    _storedData[id] = _StoredData(thread, data);
+    _storedData[id] = StoredData(thread, data);
     return id;
   }
 
@@ -1055,9 +1055,9 @@ class ThreadInfo {
   }
 }
 
-class _StoredData {
+class StoredData {
   final ThreadInfo thread;
   final Object data;
 
-  _StoredData(this.thread, this.data);
+  StoredData(this.thread, this.data);
 }

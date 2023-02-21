@@ -119,8 +119,8 @@ class CpuSamplesRepository extends RingBuffer<CpuSample> {
   }
 
   @override
-  CpuSample? add(CpuSample sample) {
-    final evicted = super.add(sample);
+  CpuSample? add(CpuSample element) {
+    final evicted = super.add(element);
 
     void updateTicksForSample(CpuSample sample, int increment) {
       final stack = sample.stack!;
@@ -136,16 +136,16 @@ class CpuSamplesRepository extends RingBuffer<CpuSample> {
     if (evicted != null) {
       // If a sample is evicted from the cache, we need to decrement the tick
       // counters for each function in the sample's stack.
-      updateTicksForSample(sample, -1);
+      updateTicksForSample(element, -1);
 
       // We also need to change the first timestamp to that of the next oldest
       // sample.
       _firstSampleTimestamp = call().first.timestamp!;
     }
-    _lastSampleTimestamp = sample.timestamp!;
+    _lastSampleTimestamp = element.timestamp!;
 
     // Update function ticks to include the new sample.
-    updateTicksForSample(sample, 1);
+    updateTicksForSample(element, 1);
 
     return evicted;
   }

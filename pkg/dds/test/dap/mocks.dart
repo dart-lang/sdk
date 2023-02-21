@@ -34,19 +34,21 @@ class MockDartCliDebugAdapter extends DartCliDebugAdapter {
       this.stdin, this.stdout, ByteStreamServerChannel channel)
       : super(channel);
 
+  @override
   Future<void> launchAsProcess(
     String executable,
     List<String> processArgs, {
     required String? workingDirectory,
     required Map<String, String>? env,
   }) async {
-    this.launchedInTerminal = false;
+    launchedInTerminal = false;
     this.executable = executable;
     this.processArgs = processArgs;
     this.workingDirectory = workingDirectory;
     this.env = env;
   }
 
+  @override
   Future<void> launchInEditorTerminal(
     bool debug,
     String terminalKind,
@@ -55,7 +57,7 @@ class MockDartCliDebugAdapter extends DartCliDebugAdapter {
     required String? workingDirectory,
     required Map<String, String>? env,
   }) async {
-    this.launchedInTerminal = true;
+    launchedInTerminal = true;
     this.executable = executable;
     this.processArgs = processArgs;
     this.workingDirectory = workingDirectory;
@@ -91,6 +93,7 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
       this.stdin, this.stdout, ByteStreamServerChannel channel)
       : super(channel);
 
+  @override
   Future<void> launchAsProcess(
     String executable,
     List<String> processArgs, {

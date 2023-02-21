@@ -252,7 +252,7 @@ void main(List<String> args) {
     });
 
     /// Helper to verify variables types of list.
-    _checkList(
+    checkList(
       String typeName, {
       required String constructor,
       required List<String> expectedDisplayStrings,
@@ -310,52 +310,52 @@ void main(List<String> args) {
       });
     }
 
-    _checkList(
+    checkList(
       'Uint8ClampedList',
       constructor: 'Uint8ClampedList.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Uint8List',
       constructor: 'Uint8List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Uint16List',
       constructor: 'Uint16List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Uint32List',
       constructor: 'Uint32List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Uint64List',
       constructor: 'Uint64List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Int8List',
       constructor: 'Int8List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Int16List',
       constructor: 'Int16List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Int32List',
       constructor: 'Int32List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Int64List',
       constructor: 'Int64List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Float32List',
       constructor: 'Float32List.fromList([1.1, 2.2, 3.3])',
       expectedDisplayStrings: [
@@ -366,12 +366,12 @@ void main(List<String> args) {
         '3.299999952316284',
       ],
     );
-    _checkList(
+    checkList(
       'Float64List',
       constructor: 'Float64List.fromList([1.1, 2.2, 3.3])',
       expectedDisplayStrings: ['1.1', '2.2', '3.3'],
     );
-    _checkList(
+    checkList(
       'Int32x4List',
       constructor: 'Int32x4List.fromList(['
           'Int32x4(1, 1, 1, 1),'
@@ -385,7 +385,7 @@ void main(List<String> args) {
         '[00000003, 00000003, 00000003, 00000003]',
       ],
     );
-    _checkList(
+    checkList(
       'Float32x4List',
       constructor: 'Float32x4List.fromList(['
           'Float32x4(1.1, 1.1, 1.1, 1.1),'
@@ -399,7 +399,7 @@ void main(List<String> args) {
         '[3.300000, 3.300000, 3.300000, 3.300000]',
       ],
     );
-    _checkList(
+    checkList(
       'Float64x2List',
       constructor: 'Float64x2List.fromList(['
           'Float64x2(1.1,1.1),'
@@ -650,7 +650,7 @@ void main() {
 
     group('inspect()', () {
       /// Helper to test `inspect()` with varying expressions.
-      void _checkInspect(
+      void checkInspect(
         String inspectCode, {
         required String expectedVariables,
       }) {
@@ -688,17 +688,17 @@ void main() {
         });
       }
 
-      _checkInspect(
+      checkInspect(
         '"My String"',
         expectedVariables: 'String: "My String"',
       );
 
-      _checkInspect(
+      checkInspect(
         'null',
         expectedVariables: 'Null: null',
       );
 
-      _checkInspect(
+      checkInspect(
         '[0, 1, 2]',
         expectedVariables: '''
           [0]: 0
@@ -762,7 +762,7 @@ void main() {
       ///
       /// This test ensures the evaluateName on that variable matches
       /// [expectedEvaluateName].
-      void _checkEvaluateNames(
+      void checkEvaluateNames(
         String testType, {
         required String code,
         String? definitions,
@@ -809,7 +809,7 @@ void main() {
         });
       }
 
-      _checkEvaluateNames(
+      checkEvaluateNames(
         'lists',
         variablesPath: ['list', '[0]', 'myField'],
         expectedEvaluateName: 'list[0].myField',
@@ -818,7 +818,7 @@ void main() {
         ''',
       );
 
-      _checkEvaluateNames(
+      checkEvaluateNames(
         'maps',
         // To support expanding complex keys, maps are rendered numerically with
         // key/value pairs grouped by index, so rather than map->key here, we
@@ -831,7 +831,7 @@ void main() {
         ''',
       );
 
-      _checkEvaluateNames(
+      checkEvaluateNames(
         'fields',
         variablesPath: ['a', 'b', 'myField'],
         expectedEvaluateName: 'a.b.myField',
@@ -845,7 +845,7 @@ void main() {
         ''',
       );
 
-      _checkEvaluateNames(
+      checkEvaluateNames(
         'getters',
         variablesPath: ['a', 'b', 'myField'],
         expectedEvaluateName: 'a.b.myField',

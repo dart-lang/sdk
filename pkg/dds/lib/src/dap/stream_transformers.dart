@@ -14,27 +14,27 @@ class ByteToLineTransformer extends StreamTransformerBase<List<int>, String> {
   @override
   Stream<String> bind(Stream<List<int>> stream) {
     late StreamSubscription<int> input;
-    late StreamController<String> _output;
+    late StreamController<String> output;
     final buffer = <int>[];
-    _output = StreamController<String>(
+    output = StreamController<String>(
       onListen: () {
         input = stream.expand((b) => b).listen(
           (codeUnit) {
             buffer.add(codeUnit);
             if (_endsWithLf(buffer)) {
-              _output.add(utf8.decode(buffer));
+              output.add(utf8.decode(buffer));
               buffer.clear();
             }
           },
-          onError: _output.addError,
-          onDone: _output.close,
+          onError: output.addError,
+          onDone: output.close,
         );
       },
       onPause: () => input.pause(),
       onResume: () => input.resume(),
       onCancel: () => input.cancel(),
     );
-    return _output.stream;
+    return output.stream;
   }
 
   /// Whether [buffer] ends in '\n'.
