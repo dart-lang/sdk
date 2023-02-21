@@ -35,7 +35,8 @@ void matchIL$test(FlowGraph graph) {
       'bar' << match.Parameter(index: 3),
       'baz' << match.Parameter(index: 4),
       match.CheckStackOverflow(),
-      match.MoveArgument('x'),
+      'x_boxed' << match.BoxInt64('x'),
+      match.MoveArgument('x_boxed'),
       match.StaticCall(),
       match.MoveArgument('y'),
       match.StaticCall(),
@@ -49,7 +50,7 @@ void matchIL$test(FlowGraph graph) {
   ]);
 }
 
-void main() {
+void main(List<String> args) {
   // Make sure all parameters are non-constant.
-  test(int.parse('5'), int.parse('3') == 3, 'foo' + 3.toString(), int.parse('3') == 4, int.parse('7')!);
+  test(args.length + 5, int.parse('3') == 3, 'foo' + 3.toString(), int.parse('3') == 4, args.length + 7);
 }
