@@ -2348,6 +2348,87 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       flowAnalysis.for_end();
       return new ExpressionInferenceResult(bodyResult.inferredType, element);
+    } else if (element is PatternForElement) {
+      int? stackBase;
+      assert(checkStackBase(element, stackBase = stackHeight));
+
+      PatternVariableDeclaration patternVariableDeclaration =
+          element.patternVariableDeclaration;
+      analyzePatternVariableDeclaration(
+          patternVariableDeclaration,
+          patternVariableDeclaration.pattern,
+          patternVariableDeclaration.initializer,
+          isFinal: patternVariableDeclaration.isFinal,
+          isLate: false);
+
+      assert(checkStack(element, stackBase, [
+        /* pattern = */ ValueKinds.Pattern,
+        /* initializer = */ ValueKinds.Expression,
+      ]));
+
+      Object? rewrite = popRewrite(NullValues.Expression);
+      if (!identical(patternVariableDeclaration.pattern, rewrite)) {
+        patternVariableDeclaration.pattern = (rewrite as Pattern)
+          ..parent = patternVariableDeclaration;
+      }
+
+      rewrite = popRewrite();
+      if (!identical(patternVariableDeclaration.initializer, rewrite)) {
+        patternVariableDeclaration.initializer = (rewrite as Expression)
+          ..parent = patternVariableDeclaration;
+      }
+
+      MatchingCache matchingCache = createMatchingCache();
+      MatchingExpressionVisitor matchingExpressionVisitor =
+          new MatchingExpressionVisitor(matchingCache);
+      // TODO(cstefantsova): Do we need a more precise type for the variable?
+      DartType matchedType = const DynamicType();
+      CacheableExpression matchedExpression =
+          matchingCache.createRootExpression(
+              patternVariableDeclaration.initializer, matchedType);
+
+      DelayedExpression matchingExpression = matchingExpressionVisitor
+          .visitPattern(patternVariableDeclaration.pattern, matchedExpression);
+
+      matchingExpression.registerUse();
+
+      Expression readMatchingExpression =
+          matchingExpression.createExpression(typeSchemaEnvironment);
+
+      List<Statement> replacementStatements = [
+        ...matchingCache.declarations,
+        // TODO(cstefantsova): Figure out the right exception to throw.
+        createIfStatement(
+            createNot(readMatchingExpression),
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                coreTypes.reachabilityErrorConstructor,
+                createArguments([], fileOffset: element.fileOffset),
+                fileOffset: element.fileOffset))),
+            fileOffset: element.fileOffset),
+      ];
+      if (replacementStatements.length > 1) {
+        // If we need local declarations, create a new block to avoid naming
+        // collision with declarations in the same parent block.
+        replacementStatements = [
+          createBlock(replacementStatements, fileOffset: element.fileOffset)
+        ];
+      }
+      replacementStatements = [
+        ...patternVariableDeclaration.pattern.declaredVariables,
+        ...replacementStatements,
+      ];
+      element.replacement = replacementStatements;
+
+      ExpressionInferenceResult inferenceResult = inferElement(
+          element.forElement,
+          inferredTypeArgument,
+          inferredSpreadTypes,
+          inferredConditionTypes);
+      element.forElement = (inferenceResult.expression as ForElement)
+        ..parent = element;
+
+      return new ExpressionInferenceResult(
+          inferenceResult.inferredType, element);
     } else if (element is ForInElement) {
       ForInResult result;
       if (element.variable.name == null) {
@@ -2661,6 +2742,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (element is ForElement) {
       _translateForElement(element, receiverType, elementType, result, body,
           isSet: isSet);
+    } else if (element is PatternForElement) {
+      _translatePatternForElement(
+          element, receiverType, elementType, result, body,
+          isSet: isSet);
     } else if (element is ForInElement) {
       _translateForInElement(element, receiverType, elementType, result, body,
           isSet: isSet);
@@ -2750,6 +2835,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ForStatement loop = _createForStatement(element.fileOffset,
         element.variables, element.condition, element.updates, loopBody);
     libraryBuilder.loader.dataForTesting?.registerAlias(element, loop);
+    body.add(loop);
+  }
+
+  void _translatePatternForElement(
+      PatternForElement element,
+      InterfaceType receiverType,
+      DartType elementType,
+      VariableDeclaration result,
+      List<Statement> body,
+      {required bool isSet}) {
+    List<Statement> statements = <Statement>[];
+    _translateElement(
+        element.forElement.body, receiverType, elementType, result, statements,
+        isSet: isSet);
+    Statement loopBody =
+        statements.length == 1 ? statements.first : _createBlock(statements);
+    ForStatement loop = _createForStatement(
+        element.fileOffset,
+        element.forElement.variables,
+        element.forElement.condition,
+        element.forElement.updates,
+        loopBody);
+    libraryBuilder.loader.dataForTesting?.registerAlias(element, loop);
+    body.addAll(element.replacement);
     body.add(loop);
   }
 

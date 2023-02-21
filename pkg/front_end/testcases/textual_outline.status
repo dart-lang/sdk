@@ -167,6 +167,7 @@ patterns/pattern_matching: FormatterCrash
 patterns/pattern_types: FormatterCrash
 patterns/records/destructuring: FormatterCrash
 patterns/records/record_pattern_inside_if_case: FormatterCrash
+patterns/simple_c_style_pattern_for_in_collections: FormatterCrash
 patterns/simple_if_case_in_lists: FormatterCrash
 patterns/simple_if_case_map_entries: FormatterCrash
 patterns/switchExpression_empty: FormatterCrash
