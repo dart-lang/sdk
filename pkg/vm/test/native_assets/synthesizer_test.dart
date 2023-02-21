@@ -30,7 +30,7 @@ native-assets:
     );
     final libraryToString = kernelLibraryToString(component.libraries.single);
     final expectedKernel = '''@#C9
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 
 constants  {

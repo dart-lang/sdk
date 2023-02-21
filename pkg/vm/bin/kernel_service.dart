@@ -835,7 +835,7 @@ Future _processLoadRequest(request) async {
         } else {
           await wrapper.reject();
         }
-      } catch(e, st) {
+      } catch (e, st) {
         port.send(CompilationResult.crash(e, st).toResponse());
         return;
       }
