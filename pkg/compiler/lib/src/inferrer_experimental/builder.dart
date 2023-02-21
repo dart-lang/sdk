@@ -731,7 +731,21 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
   @override
   TypeInformation visitRecordLiteral(ir.RecordLiteral node) {
-    return defaultExpression(node);
+    final recordType = _elementMap.getDartType(node.recordType) as RecordType;
+    final fieldValues = [
+      for (final expression in node.positional) visit(expression)!,
+      for (final namedExpression in node.named) visit(namedExpression.value)!
+    ];
+    return createRecordTypeInformation(node, recordType, fieldValues,
+        isConst: node.isConst);
+  }
+
+  TypeInformation createRecordTypeInformation(
+      ir.TreeNode node, RecordType recordType, List<TypeInformation> fieldTypes,
+      {required bool isConst}) {
+    return _inferrer.concreteTypes.putIfAbsent(node, () {
+      return _types.allocateRecord(node, recordType, fieldTypes, isConst);
+    });
   }
 
   @override
@@ -1687,6 +1701,31 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     return _handlePropertyGet(node, node.receiver);
   }
 
+  TypeInformation _handleRecordFieldGet(
+      ir.Expression node, ir.Expression receiver, int indexInShape) {
+    visit(receiver)!;
+    _typeOfReceiver(node, receiver);
+    // TODO(49718): Add a new TypeInformation node for a direct Record field
+    // access.
+    // For now, use the static type.
+    // TODO(50081): Use `_types.getConcreteTypeFor(<something>)`.
+    TypeInformation type = _types.dynamicType;
+    type = _types.narrowType(type, _getStaticType(node));
+    return type;
+  }
+
+  @override
+  TypeInformation visitRecordIndexGet(ir.RecordIndexGet node) {
+    return _handleRecordFieldGet(node, node.receiver, node.index);
+  }
+
+  @override
+  TypeInformation visitRecordNameGet(ir.RecordNameGet node) {
+    int index =
+        indexOfNameInRecordShapeOfRecordType(node.receiverType, node.name);
+    return _handleRecordFieldGet(node, node.receiver, index);
+  }
+
   @override
   TypeInformation visitFunctionTearOff(ir.FunctionTearOff node) {
     return _handlePropertyGet(node, node.receiver);
@@ -2340,7 +2379,15 @@ class TypeInformationConstantVisitor
 
   @override
   TypeInformation visitRecordConstant(ir.RecordConstant node) {
-    return defaultConstant(node);
+    final recordType =
+        builder._elementMap.getDartType(node.recordType) as RecordType;
+    final fieldValues = [
+      for (final value in node.positional) visitConstant(value),
+      for (final value in node.named.values) visitConstant(value)
+    ];
+    return builder.createRecordTypeInformation(
+        ConstantReference(expression, node), recordType, fieldValues,
+        isConst: true);
   }
 
   @override

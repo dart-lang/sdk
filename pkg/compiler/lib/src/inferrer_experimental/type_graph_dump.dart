@@ -356,6 +356,11 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   @override
+  void visitFieldInRecordTypeInformation(FieldInRecordTypeInformation info) {
+    addNode(info, 'FieldInRecord(${info.indexInShape})');
+  }
+
+  @override
   void visitListTypeInformation(ListTypeInformation info) {
     addNode(info, 'List');
   }
@@ -368,6 +373,11 @@ class _GraphGenerator extends TypeInformationVisitor {
   @override
   void visitMapTypeInformation(MapTypeInformation info) {
     addNode(info, 'Map');
+  }
+
+  @override
+  void visitRecordTypeInformation(RecordTypeInformation info) {
+    addNode(info, 'Record');
   }
 
   @override
