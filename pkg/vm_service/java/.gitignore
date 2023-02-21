@@ -14,6 +14,7 @@ src/org/dartlang/vm/service/consumer/GetAllocationProfileConsumer.java
 src/org/dartlang/vm/service/consumer/GetClassListConsumer.java
 src/org/dartlang/vm/service/consumer/GetCpuSamplesConsumer.java
 src/org/dartlang/vm/service/consumer/GetInboundReferencesConsumer.java
+src/org/dartlang/vm/service/consumer/GetInstancesAsListConsumer.java
 src/org/dartlang/vm/service/consumer/GetInstancesConsumer.java
 src/org/dartlang/vm/service/consumer/GetIsolateConsumer.java
 src/org/dartlang/vm/service/consumer/GetIsolateGroupConsumer.java

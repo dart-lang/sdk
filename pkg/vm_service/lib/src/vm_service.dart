@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.1.0';
+const String vmServiceVersion = '4.2.0';
 
 /// @optional
 const String optional = 'optional';
@@ -211,6 +211,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getFlagList': const ['FlagList'],
   'getInboundReferences': const ['InboundReferences'],
   'getInstances': const ['InstanceSet'],
+  'getInstancesAsList': const ['InstanceRef'],
   'getIsolate': const ['Isolate'],
   'getIsolateGroup': const ['IsolateGroup'],
   'getMemoryUsage': const ['MemoryUsage'],
@@ -636,6 +637,42 @@ abstract class VmServiceInterface {
     String isolateId,
     String objectId,
     int limit, {
+    bool? includeSubclasses,
+    bool? includeImplementers,
+  });
+
+  /// The `getInstancesAsList` RPC is used to retrieve a set of instances which
+  /// are of a specific class. This RPC returns an `InstanceRef` corresponding
+  /// to a Dart `List` that contains the requested instances. This is what
+  /// distinguishes this RPC from `getInstances`, which returns an
+  /// `InstanceSet`.
+  ///
+  /// The order of the instances is undefined (i.e., not related to allocation
+  /// order) and unstable (i.e., multiple invocations of this method against the
+  /// same class can give different answers even if no Dart code has executed
+  /// between the invocations).
+  ///
+  /// The set of instances may include objects that are unreachable but have not
+  /// yet been garbage collected.
+  ///
+  /// `objectId` is the ID of the `Class` to retrieve instances for. `objectId`
+  /// must be the ID of a `Class`, otherwise an [RPC error] is returned.
+  ///
+  /// If `includeSubclasses` is true, instances of subclasses of the specified
+  /// class will be included in the set.
+  ///
+  /// If `includeImplementers` is true, instances of implementers of the
+  /// specified class will be included in the set. Note that subclasses of a
+  /// class are also considered implementers of that class.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<InstanceRef> getInstancesAsList(
+    String isolateId,
+    String objectId, {
     bool? includeSubclasses,
     bool? includeImplementers,
   });
@@ -1478,6 +1515,14 @@ class VmServerConnection {
             includeImplementers: params['includeImplementers'],
           );
           break;
+        case 'getInstancesAsList':
+          response = await _serviceImplementation.getInstancesAsList(
+            params!['isolateId'],
+            params['objectId'],
+            includeSubclasses: params['includeSubclasses'],
+            includeImplementers: params['includeImplementers'],
+          );
+          break;
         case 'getIsolate':
           response = await _serviceImplementation.getIsolate(
             params!['isolateId'],
@@ -2013,6 +2058,21 @@ class VmService implements VmServiceInterface {
         'isolateId': isolateId,
         'objectId': objectId,
         'limit': limit,
+        if (includeSubclasses != null) 'includeSubclasses': includeSubclasses,
+        if (includeImplementers != null)
+          'includeImplementers': includeImplementers,
+      });
+
+  @override
+  Future<InstanceRef> getInstancesAsList(
+    String isolateId,
+    String objectId, {
+    bool? includeSubclasses,
+    bool? includeImplementers,
+  }) =>
+      _call('getInstancesAsList', {
+        'isolateId': isolateId,
+        'objectId': objectId,
         if (includeSubclasses != null) 'includeSubclasses': includeSubclasses,
         if (includeImplementers != null)
           'includeImplementers': includeImplementers,

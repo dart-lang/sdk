@@ -3568,22 +3568,20 @@ static void GetInstances(Thread* thread, JSONStream* js) {
   }
 }
 
-static const MethodParameter* const get_instances_as_array_params[] = {
+static const MethodParameter* const get_instances_as_list_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
-    NULL,
+    new IdParameter("objectId", /*required=*/true),
+    new BoolParameter("includeSubclasses", /*required=*/false),
+    new BoolParameter("includeImplementers", /*required=*/false),
+    nullptr,
 };
 
-static void GetInstancesAsArray(Thread* thread, JSONStream* js) {
+static void GetInstancesAsList(Thread* thread, JSONStream* js) {
   const char* object_id = js->LookupParam("objectId");
-  if (object_id == NULL) {
-    PrintMissingParamError(js, "objectId");
-    return;
-  }
-
   bool include_subclasses =
       BoolParameter::Parse(js->LookupParam("includeSubclasses"), false);
-  bool include_implementors =
-      BoolParameter::Parse(js->LookupParam("includeImplementors"), false);
+  bool include_implementers =
+      BoolParameter::Parse(js->LookupParam("includeImplementers"), false);
 
   const Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
   if (obj.ptr() == Object::sentinel().ptr() || !obj.IsClass()) {
@@ -3592,9 +3590,10 @@ static void GetInstancesAsArray(Thread* thread, JSONStream* js) {
   }
   const Class& cls = Class::Cast(obj);
 
-  // Ensure the array and handles created below are promptly destroyed.
   Array& instances = Array::Handle();
   {
+    // Ensure the |ZoneGrowableHandlePtrArray| and handles created below are
+    // promptly destroyed.
     StackZone zone(thread);
 
     ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), 1024);
@@ -3602,7 +3601,7 @@ static void GetInstancesAsArray(Thread* thread, JSONStream* js) {
     {
       ObjectGraph graph(thread);
       HeapIterationScope iteration_scope(Thread::Current(), true);
-      MarkClasses(cls, include_subclasses, include_implementors);
+      MarkClasses(cls, include_subclasses, include_implementers);
       graph.IterateObjects(&visitor);
       UnmarkClasses();
     }
@@ -3612,7 +3611,7 @@ static void GetInstancesAsArray(Thread* thread, JSONStream* js) {
       instances.SetAt(i, storage.At(i));
     }
   }
-  instances.PrintJSON(js, /* as_ref */ true);
+  instances.PrintJSON(js, /*ref=*/true);
 }
 
 static intptr_t ParseJSONArray(Thread* thread,
@@ -5889,8 +5888,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_inbound_references_params },
   { "getInstances", GetInstances,
     get_instances_params },
-  { "_getInstancesAsArray", GetInstancesAsArray,
-    get_instances_as_array_params },
+  { "getInstancesAsList", GetInstancesAsList,
+    get_instances_as_list_params },
   { "getPorts", GetPorts,
     get_ports_params },
   { "getIsolate", GetIsolate,
