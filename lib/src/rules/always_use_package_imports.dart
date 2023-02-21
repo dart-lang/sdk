@@ -59,6 +59,9 @@ class AlwaysUsePackageImports extends LintRule {
             group: Group.errors);
 
   @override
+  List<String> get incompatibleRules => const ['prefer_relative_imports'];
+
+  @override
   LintCode get lintCode => code;
 
   @override
