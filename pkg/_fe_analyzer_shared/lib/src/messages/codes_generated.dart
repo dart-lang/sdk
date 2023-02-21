@@ -4050,8 +4050,8 @@ const Code<Null> codeExtendFunction = messageExtendFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtendFunction = const MessageCode("ExtendFunction",
-    severity: Severity.ignored,
-    problemMessage: r"""Extending 'Function' is deprecated.""",
+    problemMessage:
+        r"""Extending 'Function' is deprecated because 'Function' is final class.""",
     correctionMessage:
         r"""Try removing 'Function' from the 'extends' clause.""");
 
@@ -5659,8 +5659,8 @@ const Code<Null> codeImplementFunction = messageImplementFunction;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementFunction = const MessageCode(
     "ImplementFunction",
-    severity: Severity.ignored,
-    problemMessage: r"""Implementing 'Function' is deprecated.""",
+    problemMessage:
+        r"""Implementing 'Function' is deprecated because 'Function' is final class.""",
     correctionMessage:
         r"""Try removing 'Function' from the 'implements' clause.""");
 
@@ -8992,8 +8992,8 @@ const Code<Null> codeMixinFunction = messageMixinFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMixinFunction = const MessageCode("MixinFunction",
-    severity: Severity.ignored,
-    problemMessage: r"""Mixing in 'Function' is deprecated.""",
+    problemMessage:
+        r"""Mixing in 'Function' is deprecated because 'Function' is final class.""",
     correctionMessage: r"""Try removing 'Function' from the 'with' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

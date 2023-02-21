@@ -1,0 +1,5 @@
+class A extends Function {}
+
+class B implements Function {}
+
+class C with Function {}
