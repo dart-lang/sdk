@@ -27,7 +27,7 @@ _ARM64 = {"cpu": "arm64"}
 _MAC = {"os": "Mac"}
 _BIONIC = {"os": "Ubuntu-18"}
 _FOCAL = {"os": "Ubuntu-20"}
-_WINDOWS = {"os": "Windows"}
+_WINDOWS10 = {"os": "Windows-10"}
 
 _EXPERIMENTAL = {"host_class": "experimental"}
 
@@ -74,7 +74,8 @@ experimental = _EXPERIMENTAL
 focal = _FOCAL
 linux = _BIONIC
 mac = _MAC
-windows = _WINDOWS
+windows = _WINDOWS10
+windows10 = _WINDOWS10
 
 # Properties
 
