@@ -65,7 +65,31 @@ class Analysis {
   late final int _headerSize = _arch != _Arch.arch32 ? 8 : 4;
   late final int _wordSize = _arch == _Arch.arch64 ? 8 : 4;
 
-  Analysis(this.graph);
+  late final elementSizeForExternalTypedDataCid = (() {
+    final cidToSize = <int, int>{};
+    for (final k in graph.classes) {
+      final cid = k.classId;
+      final name = k.name;
+      if (name.startsWith('_External') && name.endsWith('Array')) {
+        if (name.contains('64x2') || name.contains('32x4')) {
+          cidToSize[cid] = 16;
+        } else if (name.contains('64')) {
+          cidToSize[cid] = 8;
+        } else if (name.contains('32')) {
+          cidToSize[cid] = 4;
+        } else if (name.contains('16')) {
+          cidToSize[cid] = 2;
+        } else if (name.contains('8')) {
+          cidToSize[cid] = 1;
+        } else {
+          throw 'dont know elementsize of $name';
+        }
+      }
+    }
+    return cidToSize;
+  })();
+
+  Analysis(this.graph) {}
 
   /// The roots from which alive data can be discovered.
   final IntSet roots = IntSet()..add(_rootObjectIdx);
@@ -155,7 +179,7 @@ class Analysis {
       final obj = graphObjects[objectId];
       final cid = obj.classId;
       counts[cid]++;
-      sizes[cid] += obj.shallowSize;
+      sizes[cid] += obj.shallowSize + externalSize(obj);
     }
 
     final classes = graph.classes.where((c) => counts[c.classId] > 0).toList();
@@ -196,7 +220,8 @@ class Analysis {
       // Should use length here instead!
       final len = variableLengthOf(obj);
       if (len == -1) continue;
-      final data = HeapData(klass, obj.data, obj.shallowSize, len);
+      final size = obj.shallowSize + externalSize(obj);
+      final data = HeapData(klass, obj.data, size, len);
       counts[data] = (counts[data] ?? 0) + 1;
     }
     counts.forEach((HeapData data, int count) {
@@ -579,6 +604,13 @@ class Analysis {
     }
 
     return -1;
+  }
+
+  int externalSize(HeapSnapshotObject object) {
+    final tdElementSize = elementSizeForExternalTypedDataCid[object.classId];
+    if (tdElementSize == null) return 0;
+
+    return tdElementSize * (object.data as HeapSnapshotObjectLengthData).length;
   }
 
   int _findClassId(String className) {
