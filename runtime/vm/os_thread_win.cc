@@ -247,6 +247,8 @@ Mutex::~Mutex() {
 }
 
 void Mutex::Lock() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   AcquireSRWLockExclusive(&data_.lock_);
 #if defined(DEBUG)
   // When running with assertions enabled we do track the owner.
@@ -255,6 +257,8 @@ void Mutex::Lock() {
 }
 
 bool Mutex::TryLock() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   if (TryAcquireSRWLockExclusive(&data_.lock_) != 0) {
 #if defined(DEBUG)
     // When running with assertions enabled we do track the owner.
@@ -291,6 +295,8 @@ Monitor::~Monitor() {
 }
 
 bool Monitor::TryEnter() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   // Attempt to pass the semaphore but return immediately.
   if (TryAcquireSRWLockExclusive(&data_.lock_) != 0) {
 #if defined(DEBUG)
@@ -304,6 +310,8 @@ bool Monitor::TryEnter() {
 }
 
 void Monitor::Enter() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   AcquireSRWLockExclusive(&data_.lock_);
 
 #if defined(DEBUG)

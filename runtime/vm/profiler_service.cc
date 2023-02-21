@@ -1486,7 +1486,6 @@ void Profile::Build(Thread* thread,
                     ProcessedSampleBufferBuilder* sample_buffer) {
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
-  ThreadInterrupter::SampleBufferReaderScope scope;
   ProfileBuilder builder(thread, filter, sample_buffer, this);
   builder.Build();
 }
@@ -1906,7 +1905,6 @@ void ProfilerService::ClearSamples() {
 
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
-  ThreadInterrupter::SampleBufferReaderScope scope;
 
   ClearProfileVisitor clear_profile(isolate);
   sample_block_buffer->VisitSamples(&clear_profile);
