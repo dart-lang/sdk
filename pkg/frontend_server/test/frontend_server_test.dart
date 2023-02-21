@@ -3254,6 +3254,12 @@ class FrontendServer {
         .codeUnits);
   }
 
+  /// Sets the native assets yaml [uri].
+  void setNativeAssets({required Uri uri}) {
+    outputParser.expectSources = true;
+    inputStreamController.add('native-assets $uri\n'.codeUnits);
+  }
+
   /// Compiles the [expression] as if it occurs in [library].
   ///
   /// If [className] is provided, [expression] is compiled as if it occurs in

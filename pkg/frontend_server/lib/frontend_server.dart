@@ -99,6 +99,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addMultiOption('source',
       help: 'List additional source files to include into compilation.',
       defaultsTo: const <String>[])
+  ..addOption('native-assets',
+      help: 'Provide the native-assets mapping for @Native external functions.')
   ..addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>[
@@ -278,6 +280,9 @@ abstract class CompilerInterface {
     IncrementalCompiler? generator,
   });
 
+  /// Sets the native assets mapping to be embedded in the kernel.
+  Future<bool> setNativeAssets(String nativeAssets);
+
   /// Assuming some Dart program was previously compiled, recompile it again
   /// taking into account some changed(invalidated) sources.
   Future<void> recompileDelta({String? entryPoint});
@@ -400,7 +405,15 @@ class FrontendCompiler implements CompilerInterface {
   late bool _printIncrementalDependencies;
   late ProcessedOptions _processedOptions;
 
-  /// Initialized in [writeJavaScriptBundle]
+  /// Initialized in [compile] from options, or (re)set in [setNativeAssets].
+  Uri? _nativeAssets;
+
+  /// Cached compilation of [_nativeAssets].
+  ///
+  /// Managed by [_compileNativeAssets] and [setNativeAssets].
+  Library? _nativeAssetsLibrary;
+
+  /// Initialized in [writeJavaScriptBundle].
   IncrementalJavaScriptBundler? _bundler;
 
   /// Nullable fields
@@ -443,6 +456,8 @@ class FrontendCompiler implements CompilerInterface {
     _mainSource = resolveInputUri(entryPoint);
     _additionalSources =
         (options['source'] as List<String>).map(resolveInputUri).toList();
+    final nativeAssets = options['native-assets'] as String?;
+    _nativeAssets = nativeAssets != null ? resolveInputUri(nativeAssets) : null;
     _kernelBinaryFilenameFull = _options['output-dill'] ?? '$entryPoint.dill';
     _kernelBinaryFilenameIncremental = _options['output-incremental-dill'] ??
         (_options['output-dill'] != null
@@ -579,12 +594,16 @@ class FrontendCompiler implements CompilerInterface {
       IncrementalCompilerResult compilerResult =
           await _runWithPrintRedirection(() => _generator.compile());
       Component component = compilerResult.component;
-      results = KernelCompilationResults(
-          component,
-          const {},
-          compilerResult.classHierarchy,
-          compilerResult.coreTypes,
-          component.uriToSource.keys);
+
+      await _compileNativeAssets();
+
+      results = KernelCompilationResults.named(
+        component: component,
+        nativeAssetsLibrary: _nativeAssetsLibrary,
+        classHierarchy: compilerResult.classHierarchy,
+        coreTypes: compilerResult.coreTypes,
+        compiledSources: component.uriToSource.keys,
+      );
 
       incrementalSerializer = _generator.incrementalSerializer;
       if (options['flutter-widget-cache']) {
@@ -601,6 +620,7 @@ class FrontendCompiler implements CompilerInterface {
       results = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
           additionalSources: _additionalSources,
+          nativeAssets: _nativeAssets,
           includePlatform: options['link-platform'],
           deleteToStringPackageUris: options['delete-tostring-package-uri'],
           aot: options['aot'],
@@ -622,9 +642,13 @@ class FrontendCompiler implements CompilerInterface {
             options['filesystem-scheme'], options['dartdevc-module-format'],
             fullComponent: true);
       }
-      await writeDillFile(results, _kernelBinaryFilename,
-          filterExternal: importDill != null || options['minimal-kernel'],
-          incrementalSerializer: incrementalSerializer);
+      await writeDillFile(
+        results,
+        _kernelBinaryFilename,
+        filterExternal: importDill != null || options['minimal-kernel'],
+        incrementalSerializer: incrementalSerializer,
+        aot: options['aot'],
+      );
 
       _outputStream.writeln(boundaryKey);
       final compiledSources = results.compiledSources!;
@@ -643,6 +667,32 @@ class FrontendCompiler implements CompilerInterface {
     }
     results = null; // Fix leak: Probably variation of http://dartbug.com/36983.
     return errors.isEmpty;
+  }
+
+  @override
+  Future<bool> setNativeAssets(String nativeAssets) async {
+    _nativeAssetsLibrary = null; // Purge compiled cache.
+    _nativeAssets = resolveInputUri(nativeAssets);
+    return true;
+  }
+
+  /// Compiles [_nativeAssets] into [_nativeAssetsLibrary].
+  ///
+  /// [compile] and [recompileDelta] invoke this, and bundles the cached
+  /// [_nativeAssetsLibrary] in the dill file.
+  Future<void> _compileNativeAssets() async {
+    final nativeAssets = _nativeAssets;
+    if (nativeAssets == null || _nativeAssetsLibrary != null) {
+      return;
+    }
+
+    final results = await _runWithPrintRedirection(() => compileToKernel(
+          null,
+          _compilerOptions,
+          nativeAssets: _nativeAssets,
+          environmentDefines: {},
+        ));
+    _nativeAssetsLibrary = results.nativeAssetsLibrary;
   }
 
   Future<void> _outputDependenciesDelta(Iterable<Uri> compiledSources) async {
@@ -744,11 +794,26 @@ class FrontendCompiler implements CompilerInterface {
     ]);
   }
 
-  writeDillFile(KernelCompilationResults results, String filename,
-      {bool filterExternal = false,
-      IncrementalSerializer? incrementalSerializer}) async {
+  writeDillFile(
+    KernelCompilationResults results,
+    String filename, {
+    bool filterExternal = false,
+    IncrementalSerializer? incrementalSerializer,
+    bool aot = false,
+  }) async {
     final Component component = results.component!;
+    final Library? nativeAssetsLibrary = results.nativeAssetsLibrary;
+
+    if (aot && nativeAssetsLibrary != null) {
+      // If Dart component in AOT, write the vm:native-assets library _inside_
+      // the Dart component.
+      // TODO(https://dartbug.com/50152): Support AOT dill concatenation.
+      component.libraries.add(nativeAssetsLibrary);
+      nativeAssetsLibrary.parent = component;
+    }
+
     final IOSink sink = File(filename).openWrite();
+
     final Set<Library> loadedLibraries = results.loadedLibraries;
     final BinaryPrinter printer = filterExternal
         ? BinaryPrinter(sink,
@@ -766,6 +831,14 @@ class FrontendCompiler implements CompilerInterface {
     }
 
     printer.writeComponentFile(component);
+
+    if (nativeAssetsLibrary != null && !aot) {
+      final BinaryPrinter printer = BinaryPrinter(sink);
+      printer.writeComponentFile(Component(
+        libraries: [nativeAssetsLibrary],
+        mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
+      ));
+    }
     await sink.close();
 
     if (_options['split-output-by-packages']) {
@@ -856,12 +929,15 @@ class FrontendCompiler implements CompilerInterface {
     Component deltaProgram = deltaProgramResult.component;
     transformer?.transform(deltaProgram);
 
-    KernelCompilationResults results = KernelCompilationResults(
-        deltaProgram,
-        const {},
-        deltaProgramResult.classHierarchy,
-        deltaProgramResult.coreTypes,
-        deltaProgram.uriToSource.keys);
+    await _compileNativeAssets();
+
+    KernelCompilationResults results = KernelCompilationResults.named(
+      component: deltaProgram,
+      classHierarchy: deltaProgramResult.classHierarchy,
+      coreTypes: deltaProgramResult.coreTypes,
+      compiledSources: deltaProgram.uriToSource.keys,
+      nativeAssetsLibrary: _nativeAssetsLibrary,
+    );
 
     if (_compilerOptions.target!.name == 'dartdevc') {
       await writeJavaScriptBundle(results, _kernelBinaryFilename,
@@ -1221,6 +1297,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
       case _State.READY_FOR_INSTRUCTION:
         const String COMPILE_INSTRUCTION_SPACE = 'compile ';
         const String RECOMPILE_INSTRUCTION_SPACE = 'recompile ';
+        const String NATIVE_ASSETS_INSTRUCTION_SPACE = 'native-assets ';
         const String COMPILE_EXPRESSION_INSTRUCTION_SPACE =
             'compile-expression ';
         const String COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE =
@@ -1242,6 +1319,10 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
             boundaryKey = remainder;
           }
           state = _State.RECOMPILE_LIST;
+        } else if (string.startsWith(NATIVE_ASSETS_INSTRUCTION_SPACE)) {
+          final String nativeAssets =
+              string.substring(NATIVE_ASSETS_INSTRUCTION_SPACE.length);
+          await compiler.setNativeAssets(nativeAssets);
         } else if (string
             .startsWith(COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE)) {
           // 'compile-expression-to-js <boundarykey>
