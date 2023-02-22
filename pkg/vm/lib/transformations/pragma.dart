@@ -14,12 +14,15 @@ const kResultTypeUsesPassedTypeArguments =
     "result-type-uses-passed-type-arguments";
 const kVmRecognizedPragmaName = "vm:recognized";
 const kVmDisableUnboxedParametersPragmaName = "vm:disable-unboxed-parameters";
+const kVmWeakTearoffReference = "vm:weak-tearoff-reference";
 
 // Pragmas recognized by dart2wasm
 const kWasmEntryPointPragmaName = "wasm:entry-point";
 const kWasmExportPragmaName = "wasm:export";
 
-abstract class ParsedPragma {}
+abstract class ParsedPragma {
+  const ParsedPragma();
+}
 
 enum PragmaEntryPointType { Default, GetterOnly, SetterOnly, CallOnly }
 
@@ -27,32 +30,36 @@ enum PragmaRecognizedType { AsmIntrinsic, GraphIntrinsic, Other }
 
 class ParsedEntryPointPragma extends ParsedPragma {
   final PragmaEntryPointType type;
-  ParsedEntryPointPragma(this.type);
+  const ParsedEntryPointPragma(this.type);
 }
 
 class ParsedResultTypeByTypePragma extends ParsedPragma {
   final DartType type;
   final bool resultTypeUsesPassedTypeArguments;
-  ParsedResultTypeByTypePragma(
+  const ParsedResultTypeByTypePragma(
       this.type, this.resultTypeUsesPassedTypeArguments);
 }
 
 class ParsedResultTypeByPathPragma extends ParsedPragma {
   final String path;
-  ParsedResultTypeByPathPragma(this.path);
+  const ParsedResultTypeByPathPragma(this.path);
 }
 
 class ParsedNonNullableResultType extends ParsedPragma {
-  ParsedNonNullableResultType();
+  const ParsedNonNullableResultType();
 }
 
 class ParsedRecognized extends ParsedPragma {
   final PragmaRecognizedType type;
-  ParsedRecognized(this.type);
+  const ParsedRecognized(this.type);
 }
 
 class ParsedDisableUnboxedParameters extends ParsedPragma {
-  ParsedDisableUnboxedParameters();
+  const ParsedDisableUnboxedParameters();
+}
+
+class ParsedWeakTearoffReference extends ParsedPragma {
+  const ParsedWeakTearoffReference();
 }
 
 abstract class PragmaAnnotationParser {
@@ -78,6 +85,8 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
       } else if (constant is UnevaluatedConstant) {
         throw 'Error: unevaluated constant $constant';
       }
+    } else if (annotation is InvalidExpression) {
+      return null;
     } else {
       throw 'Error: non-constant annotation $annotation';
     }
@@ -118,25 +127,25 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
                 "or 'get' or 'call' for procedures.";
           }
         }
-        return type != null ? new ParsedEntryPointPragma(type) : null;
+        return type != null ? ParsedEntryPointPragma(type) : null;
       case kVmExactResultTypePragmaName:
         if (options is TypeLiteralConstant) {
-          return new ParsedResultTypeByTypePragma(options.type, false);
+          return ParsedResultTypeByTypePragma(options.type, false);
         } else if (options is StringConstant) {
-          return new ParsedResultTypeByPathPragma(options.value);
+          return ParsedResultTypeByPathPragma(options.value);
         } else if (options is ListConstant &&
             options.entries.length == 2 &&
             options.entries[0] is TypeLiteralConstant &&
             options.entries[1] is StringConstant &&
             (options.entries[1] as StringConstant).value ==
                 kResultTypeUsesPassedTypeArguments) {
-          return new ParsedResultTypeByTypePragma(
+          return ParsedResultTypeByTypePragma(
               (options.entries[0] as TypeLiteralConstant).type, true);
         }
         throw "ERROR: Unsupported option to '$kVmExactResultTypePragmaName' "
             "pragma: $options";
       case kVmNonNullableResultType:
-        return new ParsedNonNullableResultType();
+        return const ParsedNonNullableResultType();
       case kVmRecognizedPragmaName:
         PragmaRecognizedType? type;
         if (options is StringConstant) {
@@ -152,9 +161,11 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
           throw "ERROR: Unsupported option to '$kVmRecognizedPragmaName' "
               "pragma: $options";
         }
-        return new ParsedRecognized(type);
+        return ParsedRecognized(type);
       case kVmDisableUnboxedParametersPragmaName:
-        return new ParsedDisableUnboxedParameters();
+        return const ParsedDisableUnboxedParameters();
+      case kVmWeakTearoffReference:
+        return const ParsedWeakTearoffReference();
       case kWasmEntryPointPragmaName:
         return ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case kWasmExportPragmaName:

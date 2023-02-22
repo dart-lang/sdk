@@ -12983,6 +12983,64 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
     correctionMessage: r"""Try removing the type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceMismatchReturnAndArgumentTypes =
+    messageWeakReferenceMismatchReturnAndArgumentTypes;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceMismatchReturnAndArgumentTypes =
+    const MessageCode("WeakReferenceMismatchReturnAndArgumentTypes",
+        problemMessage:
+            r"""Return and argument types of a weak reference should match.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceNotOneArgument =
+    messageWeakReferenceNotOneArgument;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceNotOneArgument = const MessageCode(
+    "WeakReferenceNotOneArgument",
+    problemMessage:
+        r"""Weak reference should take one required positional argument.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceNotStatic = messageWeakReferenceNotStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceNotStatic = const MessageCode(
+    "WeakReferenceNotStatic",
+    problemMessage:
+        r"""Weak reference pragma can be used on a static method only.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceReturnTypeNotNullable =
+    messageWeakReferenceReturnTypeNotNullable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceReturnTypeNotNullable = const MessageCode(
+    "WeakReferenceReturnTypeNotNullable",
+    problemMessage: r"""Return type of a weak reference should be nullable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceTargetHasParameters =
+    messageWeakReferenceTargetHasParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceTargetHasParameters = const MessageCode(
+    "WeakReferenceTargetHasParameters",
+    problemMessage:
+        r"""The target of weak reference should not take parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceTargetNotStaticTearoff =
+    messageWeakReferenceTargetNotStaticTearoff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceTargetNotStaticTearoff = const MessageCode(
+    "WeakReferenceTargetNotStaticTearoff",
+    problemMessage:
+        r"""The target of weak reference should be a tearoff of a static method.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeWeakWithStrongDillLibrary =
     messageWeakWithStrongDillLibrary;
 

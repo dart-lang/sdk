@@ -6459,3 +6459,21 @@ PatternAssignmentNotLocalVariable:
     method(x) {
       [global] = x;
     }
+
+WeakReferenceNotStatic:
+  problemMessage: "Weak reference pragma can be used on a static method only."
+
+WeakReferenceNotOneArgument:
+  problemMessage: "Weak reference should take one required positional argument."
+
+WeakReferenceReturnTypeNotNullable:
+  problemMessage: "Return type of a weak reference should be nullable."
+
+WeakReferenceMismatchReturnAndArgumentTypes:
+  problemMessage: "Return and argument types of a weak reference should match."
+
+WeakReferenceTargetNotStaticTearoff:
+  problemMessage: "The target of weak reference should be a tearoff of a static method."
+
+WeakReferenceTargetHasParameters:
+  problemMessage: "The target of weak reference should not take parameters."
