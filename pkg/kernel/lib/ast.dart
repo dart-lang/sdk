@@ -3301,6 +3301,7 @@ class Procedure extends Member {
       bool isExternal = false,
       bool isConst = false,
       bool isExtensionMember = false,
+      bool isInlineClassMember = false,
       bool isSynthetic = false,
       bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
@@ -3314,6 +3315,7 @@ class Procedure extends Member {
             isExternal: isExternal,
             isConst: isConst,
             isExtensionMember: isExtensionMember,
+            isInlineClassMember: isInlineClassMember,
             isSynthetic: isSynthetic,
             isAbstractFieldAccessor: isAbstractFieldAccessor,
             transformerFlags: transformerFlags,
@@ -3329,6 +3331,7 @@ class Procedure extends Member {
       bool isExternal = false,
       bool isConst = false,
       bool isExtensionMember = false,
+      bool isInlineClassMember = false,
       bool isSynthetic = false,
       bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
@@ -3347,6 +3350,7 @@ class Procedure extends Member {
     this.isExternal = isExternal;
     this.isConst = isConst;
     this.isExtensionMember = isExtensionMember;
+    this.isInlineClassMember = isInlineClassMember;
     this.isSynthetic = isSynthetic;
     this.isAbstractFieldAccessor = isAbstractFieldAccessor;
     setTransformerFlagsWithoutLazyLoading(transformerFlags);
