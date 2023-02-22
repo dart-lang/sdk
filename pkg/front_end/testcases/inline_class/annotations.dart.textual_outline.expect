@@ -1,6 +1,5 @@
 @Deprecated('')
-inline
-class A {
+inline class A {
   @Deprecated('')
   final int i;
   @Deprecated('')

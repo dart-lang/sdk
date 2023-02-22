@@ -2042,9 +2042,11 @@ Expected parent: (${parent.runtimeType}) $parent
       _withIndent(() {
         for (var token in tokens) {
           _writelnWithIndent(token.lexeme);
-          _withIndent(() {
-            _writeOffset('offset', token.offset);
-          });
+          if (_withOffsets) {
+            _withIndent(() {
+              _writeOffset('offset', token.offset);
+            });
+          }
         }
       });
     }

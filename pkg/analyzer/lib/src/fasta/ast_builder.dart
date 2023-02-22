@@ -4755,7 +4755,13 @@ class AstBuilder extends StackListener {
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var metadata = pop() as List<AnnotationImpl>?;
-    var comment = _findComment(metadata, mixinKeyword);
+
+    final begin = sealedKeyword ??
+        baseKeyword ??
+        interfaceKeyword ??
+        finalKeyword ??
+        mixinKeyword;
+    var comment = _findComment(metadata, begin);
 
     _classLikeBuilder = _MixinDeclarationBuilder(
       comment: comment,

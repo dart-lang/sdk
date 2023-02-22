@@ -2,8 +2,7 @@ extension on Object {
   int get setter => 42;
   void set getter(int value) {}
 }
-inline
-class InlineClass {
+inline class InlineClass {
   final int it;
   InlineClass(this.it);
   test() {}

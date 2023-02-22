@@ -1,6 +1,5 @@
 abstract class A {}
-inline
-class B {
+inline class B {
   final A a;
   external B(A a);
   external B.named(int i);

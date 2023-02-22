@@ -5,11 +5,13 @@
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/node_text_expectations.dart';
 import '../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AstBuilderTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,15 +19,19 @@ main() {
 class AstBuilderTest extends ParserDiagnosticsTest {
   void test_class_abstract_sealed() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 abstract sealed class A {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.ABSTRACT_SEALED_CLASS, 9, 6),
+      error(ParserErrorCode.ABSTRACT_SEALED_CLASS, 18, 6),
     ]);
 
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   abstractKeyword: abstract
   sealedKeyword: sealed
   classKeyword: class
@@ -37,6 +43,7 @@ ClassDeclaration
 
   void test_class_augment() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 augment class A {}
 ''');
     parseResult.assertNoErrors();
@@ -44,6 +51,9 @@ augment class A {}
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   augmentKeyword: augment
   classKeyword: class
   name: A
@@ -54,6 +64,7 @@ ClassDeclaration
 
   void test_class_base() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 base class A {}
 ''');
     parseResult.assertNoErrors();
@@ -61,6 +72,9 @@ base class A {}
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   baseKeyword: base
   classKeyword: class
   name: A
@@ -269,6 +283,7 @@ ClassDeclaration
 
   void test_class_final() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 final class A {}
 ''');
     parseResult.assertNoErrors();
@@ -276,6 +291,9 @@ final class A {}
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   finalKeyword: final
   classKeyword: class
   name: A
@@ -316,6 +334,7 @@ ClassDeclaration
 
   void test_class_inline() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 inline class A {}
 ''');
     parseResult.assertNoErrors();
@@ -323,6 +342,9 @@ inline class A {}
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   inlineKeyword: inline
   classKeyword: class
   name: A
@@ -333,6 +355,7 @@ ClassDeclaration
 
   void test_class_interface() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 interface class A {}
 ''');
     parseResult.assertNoErrors();
@@ -340,6 +363,9 @@ interface class A {}
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   interfaceKeyword: interface
   classKeyword: class
   name: A
@@ -350,6 +376,7 @@ ClassDeclaration
 
   void test_class_macro() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 macro class A {}
 ''');
     parseResult.assertNoErrors();
@@ -357,6 +384,9 @@ macro class A {}
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   macroKeyword: macro
   classKeyword: class
   name: A
@@ -367,6 +397,7 @@ ClassDeclaration
 
   void test_class_mixin() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 mixin class A {}
 ''');
     parseResult.assertNoErrors();
@@ -374,6 +405,9 @@ mixin class A {}
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   mixinKeyword: mixin
   classKeyword: class
   name: A
@@ -384,6 +418,7 @@ ClassDeclaration
 
   void test_class_sealed() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 sealed class A {}
 ''');
     parseResult.assertNoErrors();
@@ -391,6 +426,9 @@ sealed class A {}
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   sealedKeyword: sealed
   classKeyword: class
   name: A
@@ -401,10 +439,11 @@ ClassDeclaration
 
   void test_class_sealed_abstract() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 sealed abstract class A {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.ABSTRACT_SEALED_CLASS, 0, 6),
+      error(ParserErrorCode.ABSTRACT_SEALED_CLASS, 9, 6),
     ]);
 
     var node = parseResult.findNode.classDeclaration('class A {}');
@@ -449,6 +488,7 @@ ClassDeclaration
   void test_classAlias_macro() {
     var parseResult = parseStringWithErrors(r'''
 mixin M {}
+/// text
 macro class A = Object with M;
 ''');
     parseResult.assertNoErrors();
@@ -456,6 +496,9 @@ macro class A = Object with M;
     var node = parseResult.findNode.classTypeAlias('class A');
     assertParsedNodeText(node, r'''
 ClassTypeAlias
+  documentationComment: Comment
+    tokens
+      /// text
   typedefKeyword: class
   name: A
   equals: =
@@ -476,6 +519,7 @@ ClassTypeAlias
   void test_classAlias_mixin() {
     var parseResult = parseStringWithErrors(r'''
 mixin M {}
+/// text
 mixin class A = Object with M;
 ''');
     parseResult.assertNoErrors();
@@ -483,6 +527,9 @@ mixin class A = Object with M;
     var node = parseResult.findNode.classTypeAlias('class A');
     assertParsedNodeText(node, r'''
 ClassTypeAlias
+  documentationComment: Comment
+    tokens
+      /// text
   typedefKeyword: class
   name: A
   equals: =
@@ -528,6 +575,7 @@ ClassTypeAlias
   void test_classTypeAlias_base() {
     var parseResult = parseStringWithErrors(r'''
 mixin M {}
+/// text
 base class A = Object with M;
 ''');
     parseResult.assertNoErrors();
@@ -535,6 +583,9 @@ base class A = Object with M;
     var node = parseResult.findNode.classTypeAlias('class A');
     assertParsedNodeText(node, r'''
 ClassTypeAlias
+  documentationComment: Comment
+    tokens
+      /// text
   typedefKeyword: class
   name: A
   equals: =
@@ -555,6 +606,7 @@ ClassTypeAlias
   void test_classTypeAlias_final() {
     var parseResult = parseStringWithErrors(r'''
 mixin M {}
+/// text
 final class A = Object with M;
 ''');
     parseResult.assertNoErrors();
@@ -562,6 +614,9 @@ final class A = Object with M;
     var node = parseResult.findNode.classTypeAlias('class A');
     assertParsedNodeText(node, r'''
 ClassTypeAlias
+  documentationComment: Comment
+    tokens
+      /// text
   typedefKeyword: class
   name: A
   equals: =
@@ -622,6 +677,7 @@ ClassTypeAlias
   void test_classTypeAlias_interface() {
     var parseResult = parseStringWithErrors(r'''
 mixin M {}
+/// text
 interface class A = Object with M;
 ''');
     parseResult.assertNoErrors();
@@ -629,6 +685,9 @@ interface class A = Object with M;
     var node = parseResult.findNode.classTypeAlias('class A');
     assertParsedNodeText(node, r'''
 ClassTypeAlias
+  documentationComment: Comment
+    tokens
+      /// text
   typedefKeyword: class
   name: A
   equals: =
@@ -649,6 +708,7 @@ ClassTypeAlias
   void test_classTypeAlias_sealed() {
     var parseResult = parseStringWithErrors(r'''
 mixin M {}
+/// text
 sealed class A = Object with M;
 ''');
     parseResult.assertNoErrors();
@@ -656,6 +716,9 @@ sealed class A = Object with M;
     var node = parseResult.findNode.classTypeAlias('class A');
     assertParsedNodeText(node, r'''
 ClassTypeAlias
+  documentationComment: Comment
+    tokens
+      /// text
   typedefKeyword: class
   name: A
   equals: =
@@ -1088,6 +1151,7 @@ LibraryDirective
 
   void test_mixin_base() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 base mixin M {}
 ''');
     parseResult.assertNoErrors();
@@ -1095,6 +1159,9 @@ base mixin M {}
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   baseKeyword: base
   mixinKeyword: mixin
   name: M
@@ -1105,6 +1172,7 @@ MixinDeclaration
 
   void test_mixin_final() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 final mixin M {}
 ''');
     parseResult.assertNoErrors();
@@ -1112,6 +1180,9 @@ final mixin M {}
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   finalKeyword: final
   mixinKeyword: mixin
   name: M
@@ -1159,6 +1230,7 @@ MixinDeclaration
 
   void test_mixin_interface() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 interface mixin M {}
 ''');
     parseResult.assertNoErrors();
@@ -1166,6 +1238,9 @@ interface mixin M {}
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   interfaceKeyword: interface
   mixinKeyword: mixin
   name: M
@@ -1206,6 +1281,7 @@ MixinDeclaration
 
   void test_mixin_sealed() {
     var parseResult = parseStringWithErrors(r'''
+/// text
 sealed mixin M {}
 ''');
     parseResult.assertNoErrors();
@@ -1213,6 +1289,9 @@ sealed mixin M {}
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   sealedKeyword: sealed
   mixinKeyword: mixin
   name: M

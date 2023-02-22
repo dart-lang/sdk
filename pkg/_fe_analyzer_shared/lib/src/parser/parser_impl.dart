@@ -2544,7 +2544,16 @@ class Parser {
       Token? mixinToken,
       Token classKeyword) {
     assert(optional('class', classKeyword));
-    Token begin = abstractToken ?? classKeyword;
+    Token begin = abstractToken ??
+        macroToken ??
+        inlineToken ??
+        sealedToken ??
+        baseToken ??
+        interfaceToken ??
+        finalToken ??
+        augmentToken ??
+        mixinToken ??
+        classKeyword;
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(begin);
     Token name = ensureIdentifier(
         classKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
