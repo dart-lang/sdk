@@ -184,6 +184,9 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "Invocation", "genericMethod");
   late final Procedure noSuchMethodErrorThrowWithInvocation = index
       .getProcedure("dart:core", "NoSuchMethodError", "_throwWithInvocation");
+  late final Procedure noSuchMethodErrorThrowUnimplementedExternalMemberError =
+      index.getProcedure("dart:core", "NoSuchMethodError",
+          "_throwUnimplementedExternalMemberError");
   late final Procedure stackTraceCurrent =
       index.getProcedure("dart:core", "StackTrace", "get:current");
   late final Procedure throwNullCheckError =
