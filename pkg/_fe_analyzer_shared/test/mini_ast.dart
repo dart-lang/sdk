@@ -1232,6 +1232,9 @@ abstract class Pattern extends Node
   Pattern get nullCheck =>
       _NullCheckOrAssertPattern(this, false, location: computeLocation());
 
+  Pattern get parenthesized =>
+      _ParenthesizedPattern(this, location: computeLocation());
+
   @override
   GuardedPattern get _asGuardedPattern {
     return GuardedPattern._(
@@ -4171,6 +4174,29 @@ class _ParenthesizedExpression extends Expression {
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     return h.typeAnalyzer.analyzeParenthesizedExpression(this, expr, context);
   }
+}
+
+class _ParenthesizedPattern extends Pattern {
+  final Pattern _inner;
+
+  _ParenthesizedPattern(this._inner, {required super.location}) : super._();
+
+  @override
+  Type computeSchema(Harness h) => _inner.computeSchema(h);
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+          {required bool isInAssignment}) =>
+      _inner.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+
+  @override
+  void visit(Harness h, SharedMatchContext context) {
+    _inner.visit(h, context);
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) =>
+      '(${_inner._debugString(needsKeywordOrType: false)})';
 }
 
 class _PatternAssignment extends Expression {
