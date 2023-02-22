@@ -328,7 +328,7 @@ public class VmServiceTest {
   @SuppressWarnings("SameParameterValue")
   private static void vmAddBreakpoint(Isolate isolate, ScriptRef script, int lineNum) {
     final OpLatch latch = new OpLatch();
-    vmService.addBreakpoint(isolate.getId(), script.getId(), lineNum, new BreakpointConsumer() {
+    vmService.addBreakpoint(isolate.getId(), script.getId(), lineNum, new AddBreakpointConsumer() {
       @Override
       public void onError(RPCError error) {
         showRPCError(error);
@@ -339,6 +339,11 @@ public class VmServiceTest {
         System.out.println("Received Breakpoint response");
         System.out.println("  BreakpointNumber:" + response.getBreakpointNumber());
         latch.opComplete();
+      }
+
+      @Override
+      public void received(Sentinel response) {
+        showSentinel(response);
       }
     });
     latch.waitAndAssertOpComplete();
@@ -395,7 +400,7 @@ public class VmServiceTest {
     System.out.println("Getting coverage information for " + isolate.getId());
     final long startTime = System.currentTimeMillis();
     final ResultLatch<SourceReport> latch = new ResultLatch<>();
-    vmService.getSourceReport(isolate.getId(), Collections.singletonList(SourceReportKind.Coverage), new SourceReportConsumer() {
+    vmService.getSourceReport(isolate.getId(), Collections.singletonList(SourceReportKind.Coverage), new GetSourceReportConsumer() {
       @Override
       public void onError(RPCError error) {
         showRPCError(error);
@@ -407,6 +412,11 @@ public class VmServiceTest {
         System.out.println("  Script count: " + response.getScripts().size());
         System.out.println("  Range count: " + response.getRanges().size());
         latch.setValue(response);
+      }
+
+      @Override
+      public void received(Sentinel response) {
+        showSentinel(response);
       }
     });
     return latch.getValue();
@@ -496,7 +506,7 @@ public class VmServiceTest {
 
   private static void vmGetStack(Isolate isolate) {
     final ResultLatch<Stack> latch = new ResultLatch<>();
-    vmService.getStack(isolate.getId(), new StackConsumer() {
+    vmService.getStack(isolate.getId(), new GetStackConsumer() {
       @Override
       public void onError(RPCError error) {
         showRPCError(error);
@@ -505,6 +515,11 @@ public class VmServiceTest {
       @Override
       public void received(Stack stack) {
         latch.setValue(stack);
+      }
+
+      @Override
+      public void received(Sentinel response) {
+        showSentinel(response);
       }
     });
     Stack stack = latch.getValue();
@@ -576,7 +591,7 @@ public class VmServiceTest {
         System.out.println("  StartTime: " + response.getStartTime());
         for (IsolateRef isolate : response.getIsolates()) {
           System.out.println("  Isolate " + isolate.getNumber() + ", " + isolate.getId() + ", "
-                  + isolate.getName());
+              + isolate.getName());
         }
         latch.setValue(response.getIsolates());
       }
@@ -587,7 +602,7 @@ public class VmServiceTest {
   private static void vmPauseOnException(IsolateRef isolate, ExceptionPauseMode mode) {
     System.out.println("Request pause on exception: " + mode);
     final OpLatch latch = new OpLatch();
-    vmService.setIsolatePauseMode(isolate.getId(), mode, new SuccessConsumer() {
+    vmService.setIsolatePauseMode(isolate.getId(), mode, /*shouldPauseOnExit=*/true, new SetIsolatePauseModeConsumer() {
         @Override
         public void onError(RPCError error) {
             showRPCError(error);
@@ -598,13 +613,18 @@ public class VmServiceTest {
             System.out.println("Successfully set pause on exception");
             latch.opComplete();
         }
+
+        @Override
+        public void received(Sentinel response) {
+          showSentinel(response);
+        }
     });
     latch.waitAndAssertOpComplete();
   }
 
   private static void vmResume(IsolateRef isolateRef, final StepOption step) {
     final String id = isolateRef.getId();
-    vmService.resume(id, step, null, new SuccessConsumer() {
+    vmService.resume(id, step, null, new ResumeConsumer() {
       @Override
       public void onError(RPCError error) {
         showRPCError(error);
@@ -617,6 +637,11 @@ public class VmServiceTest {
         } else {
           System.out.println("Step " + step + " isolate " + id);
         }
+      }
+
+      @Override
+      public void received(Sentinel response) {
+        showSentinel(response);
       }
     });
     // Do not wait for confirmation, but display error if it occurs
