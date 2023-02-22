@@ -24,10 +24,12 @@ abstract class ByteStore {
 
   /// Associate [bytes] with [key].
   ///
-  /// If this store supports reference counting, returns the internalized
-  /// version of [bytes], the reference count is set to `1`.
-  ///
-  /// TODO(scheglov) Disable overwriting.
+  /// If this store supports reference counting:
+  /// 1. If there is already data with [key], increments the count and
+  ///    returns the existing data. This can happen when multiple isolates work
+  ///    with the same store (via native code).
+  /// 2. Otherwise, returns the internalized version of [bytes], the reference
+  ///    count is set to `1`.
   Uint8List putGet(String key, Uint8List bytes);
 
   /// If this store supports reference counting, decrements it for every key
@@ -53,6 +55,12 @@ class MemoryByteStore implements ByteStore {
 
   @override
   Uint8List putGet(String key, Uint8List bytes) {
+    final entry = map[key];
+    if (entry != null) {
+      entry.refCount++;
+      return entry.bytes;
+    }
+
     map[key] = MemoryByteStoreEntry._(bytes);
     return bytes;
   }
