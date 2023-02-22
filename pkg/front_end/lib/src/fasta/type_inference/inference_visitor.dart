@@ -988,7 +988,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.conditional_end(node, node.otherwise);
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
         thenResult.inferredType, otherwiseResult.inferredType,
-        isNonNullableByDefault: libraryBuilder.library.isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault);
     node.staticType = inferredType;
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -1795,7 +1795,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nonNullableLhsType = originalLhsType.toNonNull();
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
         nonNullableLhsType, rhsResult.inferredType,
-        isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault);
     Expression replacement;
     if (left is ThisExpression) {
       replacement = left;
@@ -1805,7 +1805,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression equalsNull = createEqualsNull(createVariableGet(variable),
           fileOffset: lhsResult.expression.fileOffset);
       VariableGet variableGet = createVariableGet(variable);
-      if (libraryBuilder.isNonNullableByDefault &&
+      if (isNonNullableByDefault &&
           !identical(nonNullableLhsType, originalLhsType)) {
         variableGet.promotedType = nonNullableLhsType;
       }
@@ -2190,8 +2190,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               ? thenResult.inferredType
               : typeSchemaEnvironment.getStandardUpperBound(
                   thenResult.inferredType, otherwiseResult.inferredType,
-                  isNonNullableByDefault:
-                      libraryBuilder.isNonNullableByDefault),
+                  isNonNullableByDefault: isNonNullableByDefault),
           element);
     } else if (element is IfCaseElement) {
       int? stackBase;
@@ -2284,8 +2283,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               ? thenType
               : typeSchemaEnvironment.getStandardUpperBound(
                   thenType, otherwiseType,
-                  isNonNullableByDefault:
-                      libraryBuilder.isNonNullableByDefault),
+                  isNonNullableByDefault: isNonNullableByDefault),
           element);
     } else if (element is ForElement) {
       // TODO(johnniwinther): Use _visitStatements instead.
@@ -2546,11 +2544,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         new Map<Expression, DartType>.identity();
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
-      gatherer = typeSchemaEnvironment.setupGenericTypeInference(listType,
-          listClass.typeParameters, typeContext, libraryBuilder.library,
+      gatherer = typeSchemaEnvironment.setupGenericTypeInference(
+          listType, listClass.typeParameters, typeContext,
+          isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
       inferredTypes = typeSchemaEnvironment.partialInfer(
-          gatherer, listClass.typeParameters, null, libraryBuilder.library);
+          gatherer, listClass.typeParameters, null,
+          isNonNullableByDefault: isNonNullableByDefault);
       inferredTypeArgument = inferredTypes[0];
     } else {
       inferredTypeArgument = node.typeArgument;
@@ -2566,8 +2566,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes, actualTypes);
-      inferredTypes = typeSchemaEnvironment.upwardsInfer(gatherer,
-          listClass.typeParameters, inferredTypes!, libraryBuilder.library);
+      inferredTypes = typeSchemaEnvironment.upwardsInfer(
+          gatherer, listClass.typeParameters, inferredTypes!,
+          isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
             inferredTypes;
@@ -4064,15 +4065,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         int length = actualTypes.length;
         actualTypes[length - 2] = typeSchemaEnvironment.getStandardUpperBound(
             actualKeyType, actualTypes[length - 2],
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: isNonNullableByDefault);
         actualTypes[length - 1] = typeSchemaEnvironment.getStandardUpperBound(
             actualValueType, actualTypes[length - 1],
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: isNonNullableByDefault);
         int lengthForSet = actualTypesForSet.length;
         actualTypesForSet[lengthForSet - 1] =
             typeSchemaEnvironment.getStandardUpperBound(
                 actualTypeForSet, actualTypesForSet[lengthForSet - 1],
-                isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+                isNonNullableByDefault: isNonNullableByDefault);
         entry.otherwise = otherwise..parent = entry;
       }
       flowAnalysis.ifStatement_end(entry.otherwise != null);
@@ -4109,16 +4110,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         int length = actualTypes.length;
         actualTypes[length - 2] = typeSchemaEnvironment.getStandardUpperBound(
             actualKeyType, actualTypes[length - 2],
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: isNonNullableByDefault);
         actualTypes[length - 1] = typeSchemaEnvironment.getStandardUpperBound(
             actualValueType, actualTypes[length - 1],
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: isNonNullableByDefault);
         DartType actualTypeForSet = actualTypesForSet.removeLast();
         int lengthForSet = actualTypesForSet.length;
         actualTypesForSet[lengthForSet - 1] =
             typeSchemaEnvironment.getStandardUpperBound(
                 actualTypeForSet, actualTypesForSet[lengthForSet - 1],
-                isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+                isNonNullableByDefault: isNonNullableByDefault);
       }
 
       assert(checkStack(entry, stackBase, [
@@ -4503,10 +4504,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
-          mapType, mapClass.typeParameters, typeContext, libraryBuilder.library,
+          mapType, mapClass.typeParameters, typeContext,
+          isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
       inferredTypes = typeSchemaEnvironment.partialInfer(
-          gatherer, mapClass.typeParameters, null, libraryBuilder.library);
+          gatherer, mapClass.typeParameters, null,
+          isNonNullableByDefault: isNonNullableByDefault);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
     } else {
@@ -4522,8 +4525,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       spreadTypeContext = typeSchemaEnvironment.getTypeAsInstanceOf(
           unfuturedTypeContext as InterfaceType,
           coreTypes.iterableClass,
-          libraryBuilder.library,
-          coreTypes)!;
+          coreTypes,
+          isNonNullableByDefault: isNonNullableByDefault)!;
     } else if (!typeContextIsIterable && typeContextIsMap) {
       spreadTypeContext = new InterfaceType(
           coreTypes.mapClass,
@@ -4574,22 +4577,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         // needs to be a set.
         TypeConstraintGatherer gatherer =
             typeSchemaEnvironment.setupGenericTypeInference(
-                setType,
-                coreTypes.setClass.typeParameters,
-                typeContext,
-                libraryBuilder.library,
+                setType, coreTypes.setClass.typeParameters, typeContext,
+                isNonNullableByDefault: isNonNullableByDefault,
                 isConst: node.isConst);
         List<DartType> inferredTypesForSet = typeSchemaEnvironment.partialInfer(
-            gatherer,
-            coreTypes.setClass.typeParameters,
-            null,
-            libraryBuilder.library);
+            gatherer, coreTypes.setClass.typeParameters, null,
+            isNonNullableByDefault: isNonNullableByDefault);
         gatherer.constrainArguments(formalTypesForSet, actualTypesForSet);
         inferredTypesForSet = typeSchemaEnvironment.upwardsInfer(
-            gatherer,
-            coreTypes.setClass.typeParameters,
-            inferredTypesForSet,
-            libraryBuilder.library);
+            gatherer, coreTypes.setClass.typeParameters, inferredTypesForSet,
+            isNonNullableByDefault: isNonNullableByDefault);
         DartType inferredTypeArgument = inferredTypesForSet[0];
         instrumentation?.record(
             uriForInstrumentation,
@@ -4627,8 +4624,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             NeverType.fromNullability(libraryBuilder.nonNullable), replacement);
       }
       gatherer!.constrainArguments(formalTypes, actualTypes);
-      inferredTypes = typeSchemaEnvironment.upwardsInfer(gatherer,
-          mapClass.typeParameters, inferredTypes!, libraryBuilder.library);
+      inferredTypes = typeSchemaEnvironment.upwardsInfer(
+          gatherer, mapClass.typeParameters, inferredTypes!,
+          isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
             inferredTypes;
@@ -5040,7 +5038,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
         nonNullableReadType, writeType,
-        isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault);
 
     Expression replacement;
     if (node.forEffect) {
@@ -5065,8 +5063,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression equalsNull = createEqualsNull(createVariableGet(readVariable),
           fileOffset: node.fileOffset);
       VariableGet variableGet = createVariableGet(readVariable);
-      if (libraryBuilder.isNonNullableByDefault &&
-          !identical(nonNullableReadType, readType)) {
+      if (isNonNullableByDefault && !identical(nonNullableReadType, readType)) {
         variableGet.promotedType = nonNullableReadType;
       }
       ConditionalExpression conditional = new ConditionalExpression(
@@ -5101,7 +5098,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nonNullableReadType = originalReadType.toNonNull();
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
         nonNullableReadType, writeResult.inferredType,
-        isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault);
 
     Expression replacement;
     if (node.forEffect) {
@@ -5126,7 +5123,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression equalsNull = createEqualsNull(createVariableGet(readVariable),
           fileOffset: node.fileOffset);
       VariableGet variableGet = createVariableGet(readVariable);
-      if (libraryBuilder.isNonNullableByDefault &&
+      if (isNonNullableByDefault &&
           !identical(nonNullableReadType, originalReadType)) {
         variableGet.promotedType = nonNullableReadType;
       }
@@ -5479,7 +5476,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
         nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault);
 
     VariableDeclaration? valueVariable;
     Expression? returnedValue;
@@ -5555,8 +5552,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
       VariableGet variableGet = createVariableGet(readVariable);
-      if (libraryBuilder.isNonNullableByDefault &&
-          !identical(nonNullableReadType, readType)) {
+      if (isNonNullableByDefault && !identical(nonNullableReadType, readType)) {
         variableGet.promotedType = nonNullableReadType;
       }
       Expression result = createLet(writeVariable, returnedValue!);
@@ -5649,7 +5645,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
         nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault);
 
     VariableDeclaration? valueVariable;
     Expression? returnedValue;
@@ -5704,8 +5700,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
       VariableGet readVariableGet = createVariableGet(readVariable);
-      if (libraryBuilder.isNonNullableByDefault &&
-          !identical(nonNullableReadType, readType)) {
+      if (isNonNullableByDefault && !identical(nonNullableReadType, readType)) {
         readVariableGet.promotedType = nonNullableReadType;
       }
       Expression result = createLet(writeVariable, returnedValue!);
@@ -5810,7 +5805,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
         nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault);
 
     VariableDeclaration? valueVariable;
     Expression? returnedValue;
@@ -5868,8 +5863,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
       VariableGet readVariableGet = createVariableGet(readVariable);
-      if (libraryBuilder.isNonNullableByDefault &&
-          !identical(nonNullableReadType, readType)) {
+      if (isNonNullableByDefault && !identical(nonNullableReadType, readType)) {
         readVariableGet.promotedType = nonNullableReadType;
       }
       Expression result = createLet(writeVariable, returnedValue!);
@@ -7528,7 +7522,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
         nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault);
 
     Expression replacement;
     if (node.forEffect) {
@@ -7560,8 +7554,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression readEqualsNull =
           createEqualsNull(read, fileOffset: receiverVariable.fileOffset);
       VariableGet variableGet = createVariableGet(readVariable!);
-      if (libraryBuilder.isNonNullableByDefault &&
-          !identical(nonNullableReadType, readType)) {
+      if (isNonNullableByDefault && !identical(nonNullableReadType, readType)) {
         variableGet.promotedType = nonNullableReadType;
       }
       ConditionalExpression condition = new ConditionalExpression(
@@ -7796,10 +7789,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
-          setType, setClass.typeParameters, typeContext, libraryBuilder.library,
+          setType, setClass.typeParameters, typeContext,
+          isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
       inferredTypes = typeSchemaEnvironment.partialInfer(
-          gatherer, setClass.typeParameters, null, libraryBuilder.library);
+          gatherer, setClass.typeParameters, null,
+          isNonNullableByDefault: isNonNullableByDefault);
       inferredTypeArgument = inferredTypes[0];
     } else {
       inferredTypeArgument = node.typeArgument;
@@ -7816,8 +7811,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes, actualTypes);
-      inferredTypes = typeSchemaEnvironment.upwardsInfer(gatherer,
-          setClass.typeParameters, inferredTypes!, libraryBuilder.library);
+      inferredTypes = typeSchemaEnvironment.upwardsInfer(
+          gatherer, setClass.typeParameters, inferredTypes!,
+          isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
             inferredTypes;

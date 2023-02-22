@@ -131,10 +131,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
           TypeConstraintGatherer gatherer,
           List<TypeParameter> typeParametersToInfer,
           List<DartType>? previouslyInferredTypes,
-          Library clientLibrary) =>
+          {required bool isNonNullableByDefault}) =>
       _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
-          clientLibrary,
-          partial: true);
+          isNonNullableByDefault: isNonNullableByDefault, partial: true);
 
   @override
   DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2,
@@ -265,8 +264,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       Map<TypeParameter, TypeConstraint> constraints,
       List<TypeParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
-      Library clientLibrary,
-      {bool partial = false}) {
+      {required bool isNonNullableByDefault,
+      bool partial = false}) {
     List<DartType> inferredTypes =
         previouslyInferredTypes?.toList(growable: false) ??
             new List.filled(typeParametersToInfer.length, const UnknownType());
@@ -285,17 +284,13 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       TypeConstraint constraint = constraints[typeParam]!;
       if (partial) {
         inferredTypes[i] = _inferTypeParameterFromContext(
-            previouslyInferredTypes?[i],
-            constraint,
-            extendsConstraint,
-            clientLibrary,
+            previouslyInferredTypes?[i], constraint, extendsConstraint,
+            isNonNullableByDefault: isNonNullableByDefault,
             isLegacyCovariant: typeParam.isLegacyCovariant);
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
-            previouslyInferredTypes![i],
-            constraint,
-            extendsConstraint,
-            clientLibrary,
+            previouslyInferredTypes![i], constraint, extendsConstraint,
+            isNonNullableByDefault: isNonNullableByDefault,
             isContravariant: typeParam.variance == Variance.contravariant,
             isLegacyCovariant: typeParam.isLegacyCovariant);
       }
@@ -329,7 +324,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         }
       }
       List<DartType> instantiatedTypes = calculateBounds(
-          helperTypeParameters, coreTypes.objectClass, clientLibrary);
+          helperTypeParameters, coreTypes.objectClass,
+          isNonNullableByDefault: isNonNullableByDefault);
       for (int i = 0; i < instantiatedTypes.length; ++i) {
         if (inferredTypes[i] is UnknownType) {
           inferredTypes[i] = instantiatedTypes[i];
@@ -405,24 +401,22 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// Prepares to infer type arguments for a generic type, function, method, or
   /// list/map literal, initializing a [TypeConstraintGatherer] using the
   /// downward context type.
-  TypeConstraintGatherer setupGenericTypeInference(
-      DartType? declaredReturnType,
-      List<TypeParameter> typeParametersToInfer,
-      DartType? returnContextType,
-      Library clientLibrary,
-      {bool isConst = false}) {
+  TypeConstraintGatherer setupGenericTypeInference(DartType? declaredReturnType,
+      List<TypeParameter> typeParametersToInfer, DartType? returnContextType,
+      {required bool isNonNullableByDefault, bool isConst = false}) {
     assert(typeParametersToInfer.isNotEmpty);
 
     // Create a TypeConstraintGatherer that will allow certain type parameters
     // to be inferred. It will optimistically assume these type parameters can
     // be subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    TypeConstraintGatherer gatherer =
-        new TypeConstraintGatherer(this, typeParametersToInfer, clientLibrary);
+    TypeConstraintGatherer gatherer = new TypeConstraintGatherer(
+        this, typeParametersToInfer,
+        isNonNullableByDefault: isNonNullableByDefault);
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
-        if (clientLibrary.isNonNullableByDefault) {
+        if (isNonNullableByDefault) {
           returnContextType = new NullabilityAwareFreeTypeVariableEliminator(
                   bottomType: const NeverType.nonNullable(),
                   topType: objectNullableRawType,
@@ -507,10 +501,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
           TypeConstraintGatherer gatherer,
           List<TypeParameter> typeParametersToInfer,
           List<DartType> previouslyInferredTypes,
-          Library clientLibrary) =>
+          {required bool isNonNullableByDefault}) =>
       _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
-          clientLibrary,
-          partial: false);
+          isNonNullableByDefault: isNonNullableByDefault, partial: false);
 
   /// Computes (or recomputes) a set of [inferredTypes] based on the constraints
   /// that have been recorded so far.
@@ -518,27 +511,27 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       TypeConstraintGatherer gatherer,
       List<TypeParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
-      Library clientLibrary,
-      {required bool partial}) {
+      {required bool isNonNullableByDefault,
+      required bool partial}) {
     List<DartType> inferredTypes = inferTypeFromConstraints(
-        gatherer.computeConstraints(clientLibrary),
+        gatherer.computeConstraints(
+            isNonNullableByDefault: isNonNullableByDefault),
         typeParametersToInfer,
         previouslyInferredTypes,
-        clientLibrary,
+        isNonNullableByDefault: isNonNullableByDefault,
         partial: partial);
 
     for (int i = 0; i < inferredTypes.length; i++) {
-      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i], clientLibrary);
+      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i],
+          isNonNullableByDefault: isNonNullableByDefault);
     }
     return inferredTypes;
   }
 
-  DartType _inferTypeParameterFromAll(
-      DartType typeFromPreviousInference,
-      TypeConstraint constraint,
-      DartType? extendsConstraint,
-      Library clientLibrary,
-      {bool isContravariant = false,
+  DartType _inferTypeParameterFromAll(DartType typeFromPreviousInference,
+      TypeConstraint constraint, DartType? extendsConstraint,
+      {required bool isNonNullableByDefault,
+      bool isContravariant = false,
       bool isLegacyCovariant = true}) {
     // See if we already fixed this type in a previous inference step.
     // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
@@ -550,27 +543,24 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     if (extendsConstraint != null) {
       constraint = constraint.clone();
       addUpperBound(constraint, extendsConstraint,
-          isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
+          isNonNullableByDefault: isNonNullableByDefault);
     }
 
     return solveTypeConstraint(
         constraint,
-        clientLibrary.isNonNullableByDefault
+        isNonNullableByDefault
             ? coreTypes.objectNullableRawType
             : const DynamicType(),
-        clientLibrary.isNonNullableByDefault
+        isNonNullableByDefault
             ? const NeverType.nonNullable()
             : const NullType(),
         grounded: true,
         isContravariant: isContravariant);
   }
 
-  DartType _inferTypeParameterFromContext(
-      DartType? typeFromPreviousInference,
-      TypeConstraint constraint,
-      DartType? extendsConstraint,
-      Library clientLibrary,
-      {bool isLegacyCovariant = true}) {
+  DartType _inferTypeParameterFromContext(DartType? typeFromPreviousInference,
+      TypeConstraint constraint, DartType? extendsConstraint,
+      {required bool isNonNullableByDefault, bool isLegacyCovariant = true}) {
     // See if we already fixed this type in a previous inference step.
     // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
     // false.
@@ -582,10 +572,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
     DartType t = solveTypeConstraint(
         constraint,
-        clientLibrary.isNonNullableByDefault
+        isNonNullableByDefault
             ? coreTypes.objectNullableRawType
             : const DynamicType(),
-        clientLibrary.isNonNullableByDefault
+        isNonNullableByDefault
             ? const NeverType.nonNullable()
             : const NullType());
     if (!isKnown(t)) {
@@ -602,13 +592,13 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     if (extendsConstraint != null) {
       constraint = constraint.clone();
       addUpperBound(constraint, extendsConstraint,
-          isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
+          isNonNullableByDefault: isNonNullableByDefault);
       return solveTypeConstraint(
           constraint,
-          clientLibrary.isNonNullableByDefault
+          isNonNullableByDefault
               ? coreTypes.objectNullableRawType
               : const DynamicType(),
-          clientLibrary.isNonNullableByDefault
+          isNonNullableByDefault
               ? const NeverType.nonNullable()
               : const NullType());
     }

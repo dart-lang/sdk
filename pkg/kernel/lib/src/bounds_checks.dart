@@ -160,8 +160,8 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   void defaultDartType(DartType node) {}
 }
 
-DartType instantiateToBounds(
-    DartType type, Class objectClass, Library contextLibrary) {
+DartType instantiateToBounds(DartType type, Class objectClass,
+    {required bool isNonNullableByDefault}) {
   if (type is InterfaceType) {
     if (type.typeArguments.isEmpty) return type;
     for (DartType typeArgument in type.typeArguments) {
@@ -175,8 +175,8 @@ DartType instantiateToBounds(
     return new InterfaceType.byReference(
         type.className,
         type.nullability,
-        calculateBounds(
-            type.classNode.typeParameters, objectClass, contextLibrary));
+        calculateBounds(type.classNode.typeParameters, objectClass,
+            isNonNullableByDefault: isNonNullableByDefault));
   }
   if (type is TypedefType) {
     if (type.typeArguments.isEmpty) return type;
@@ -188,8 +188,8 @@ DartType instantiateToBounds(
     return new TypedefType.byReference(
         type.typedefReference,
         type.nullability,
-        calculateBounds(
-            type.typedefNode.typeParameters, objectClass, contextLibrary));
+        calculateBounds(type.typedefNode.typeParameters, objectClass,
+            isNonNullableByDefault: isNonNullableByDefault));
   }
   return type;
 }
@@ -200,10 +200,11 @@ DartType instantiateToBounds(
 /// See the [description]
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
-List<DartType> calculateBounds(List<TypeParameter> typeParameters,
-    Class objectClass, Library contextLibrary) {
+List<DartType> calculateBounds(
+    List<TypeParameter> typeParameters, Class objectClass,
+    {required bool isNonNullableByDefault}) {
   return calculateBoundsInternal(typeParameters, objectClass,
-      isNonNullableByDefault: contextLibrary.isNonNullableByDefault);
+      isNonNullableByDefault: isNonNullableByDefault);
 }
 
 List<DartType> calculateBoundsInternal(
