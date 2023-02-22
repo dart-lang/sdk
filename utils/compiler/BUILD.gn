@@ -60,8 +60,7 @@ application_snapshot("dart2js") {
     "$root_out_dir/dart2js_outline.dill",
     "$root_out_dir/dart2js_outline_unsound.dill",
   ]
-  gen_kernel_args = [ "--no-sound-null-safety" ]
-  vm_args = [ "--no-sound-null-safety" ]
+  vm_args = []
   main_dart = "$target_gen_dir/dart2js.dart"
   training_args = [
     "--packages=" + rebase_path("../../.dart_tool/package_config.json"),
@@ -71,8 +70,6 @@ application_snapshot("dart2js") {
     # sources.
     "--platform-binaries=" + rebase_path("$root_out_dir/"),
 
-    # TODO(48820): remove once dart2js is migrated.
-    "--no-sound-null-safety",
     rebase_path("../../pkg/compiler/lib/src/util/memory_compiler.dart"),
   ]
 }

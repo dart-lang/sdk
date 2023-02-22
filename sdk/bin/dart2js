@@ -37,7 +37,6 @@ fi
 unset EXTRA_VM_OPTIONS
 declare -a EXTRA_VM_OPTIONS
 
-EXTRA_VM_OPTIONS+=('--no_sound_null_safety')
 case $0 in
   *_developer)
     EXTRA_VM_OPTIONS+=('--enable-asserts')
