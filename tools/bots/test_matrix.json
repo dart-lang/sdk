@@ -424,17 +424,17 @@
         "builder-tag": "ffi"
       }
     },
-    "vm-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "nnbd": "strong"
       }
     },
-    "vm-aot-(linux|mac)-(debug|product|release)-(x64|arm64)": {
+    "vm-aot-(linux|mac)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
         "nnbd": "strong"
       }
     },
-    "vm-aot-win-(debug|product|release)-(x64|arm64)": {
+    "vm-aot-win-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
         "nnbd": "strong",
         "use-elf": true
@@ -1608,11 +1608,49 @@
     },
     {
       "builders": [
+        "vm-linux-debug-x64c",
+        "vm-win-debug-x64c"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM JIT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        },
+        {
+          "name": "co19 tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-linux-debug-x64c",
         "vm-aot-linux-product-x64",
+        "vm-aot-win-debug-x64c",
         "vm-aot-win-product-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm AOT builders."
+        "description": "This configuration is used by the VM AOT builders."
       },
       "steps": [
         {
