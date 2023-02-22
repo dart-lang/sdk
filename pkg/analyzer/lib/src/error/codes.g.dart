@@ -6634,6 +6634,18 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the sealed class
+  static const WarningCode SUBTYPE_OF_SEALED_CLASS = WarningCode(
+    'SUBTYPE_OF_SEALED_CLASS',
+    "The class '{0}' shouldn't be extended, mixed in, or implemented because "
+        "it's sealed.",
+    correctionMessage:
+        "Try composing instead of inheriting, or refer to the documentation of "
+        "'{0}' for more information.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
   ///  0: the unicode sequence of the code point.
   static const WarningCode TEXT_DIRECTION_CODE_POINT_IN_COMMENT = WarningCode(
     'TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
@@ -6686,6 +6698,15 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the undefined parameter
+  ///  1: the name of the targeted member
+  static const WarningCode UNDEFINED_REFERENCED_PARAMETER = WarningCode(
+    'UNDEFINED_REFERENCED_PARAMETER',
+    "The parameter '{0}' isn't defined by '{1}'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
   ///  0: the name of the library being imported
   ///  1: the name in the show clause that isn't defined in the library
   static const WarningCode UNDEFINED_SHOWN_NAME = WarningCode(
@@ -6707,6 +6728,30 @@ class WarningCode extends AnalyzerErrorCode {
 
   ///  This is the new replacement for [HintCode.UNNECESSARY_FINAL].
   static const HintCode UNNECESSARY_FINAL = HintCode.UNNECESSARY_FINAL;
+
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_NAN_COMPARISON_FALSE = WarningCode(
+    'UNNECESSARY_NAN_COMPARISON',
+    "A double can't equal 'double.nan', so the condition is always 'false'.",
+    correctionMessage: "Try using 'double.isNan', or removing the condition.",
+    uniqueName: 'UNNECESSARY_NAN_COMPARISON_FALSE',
+  );
+
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_NAN_COMPARISON_TRUE = WarningCode(
+    'UNNECESSARY_NAN_COMPARISON',
+    "A double can't equal 'double.nan', so the condition is always 'true'.",
+    correctionMessage: "Try using 'double.isNan', or removing the condition.",
+    uniqueName: 'UNNECESSARY_NAN_COMPARISON_TRUE',
+  );
+
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_NO_SUCH_METHOD = WarningCode(
+    'UNNECESSARY_NO_SUCH_METHOD',
+    "Unnecessary 'noSuchMethod' declaration.",
+    correctionMessage: "Try removing the declaration of 'noSuchMethod'.",
+    hasPublishedDocs: true,
+  );
 
   ///  This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
   static const HintCode UNNECESSARY_TYPE_CHECK_FALSE =

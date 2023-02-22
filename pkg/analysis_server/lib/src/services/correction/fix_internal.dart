@@ -1394,17 +1394,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_IMPORT: [
       RemoveUnusedImport.new,
     ],
-//    HintCode.UNNECESSARY_NO_SUCH_METHOD: [
-// TODO(brianwilkerson) Add a fix to remove the method.
-//    ],
-    HintCode.UNNECESSARY_NAN_COMPARISON_FALSE: [
-      RemoveComparison.new,
-      ReplaceWithIsNan.new,
-    ],
-    HintCode.UNNECESSARY_NAN_COMPARISON_TRUE: [
-      RemoveComparison.new,
-      ReplaceWithIsNan.new,
-    ],
     HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
       RemoveComparison.new,
     ],
@@ -1622,6 +1611,14 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.UNDEFINED_SHOWN_NAME: [
       RemoveNameFromCombinator.new,
+    ],
+    WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE: [
+      RemoveComparison.new,
+      ReplaceWithIsNan.new,
+    ],
+    WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE: [
+      RemoveComparison.new,
+      ReplaceWithIsNan.new,
     ],
     WarningCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.new,
