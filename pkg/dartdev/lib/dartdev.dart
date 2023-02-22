@@ -17,8 +17,8 @@ import 'package:usage/usage.dart';
 
 import 'src/analytics.dart';
 import 'src/commands/analyze.dart';
+import 'src/commands/compilation_server.dart';
 import 'src/commands/compile.dart';
-import 'src/commands/compile_server_shutdown.dart';
 import 'src/commands/create.dart';
 import 'src/commands/debug_adapter.dart';
 import 'src/commands/devtools.dart';
@@ -121,6 +121,7 @@ class DartdevRunner extends CommandRunner<int> {
     );
 
     addCommand(AnalyzeCommand(verbose: verbose));
+    addCommand(CompilationServerCommand(verbose: verbose));
     addCommand(CompileCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
     addCommand(DebugAdapterCommand(verbose: verbose));
@@ -141,7 +142,6 @@ class DartdevRunner extends CommandRunner<int> {
     );
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
-    addCommand(CompileServerShutdownCommand(verbose: verbose));
   }
 
   @visibleForTesting

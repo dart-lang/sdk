@@ -10,6 +10,7 @@ import 'package:path/path.dart' as p;
 import 'package:pub/pub.dart';
 
 import 'analytics.dart';
+import 'core.dart';
 import 'resident_frontend_constants.dart';
 import 'resident_frontend_utils.dart';
 import 'sdk.dart';
@@ -53,7 +54,7 @@ Future<DartExecutableWithPackageConfig> generateKernel(
         'resident mode is only supported for Dart packages.',
         CompilationIssue.standaloneProgramError);
   }
-  await _ensureCompileServerIsRunning(args, serverInfoFile);
+  await ensureCompilationServerIsRunning(serverInfoFile);
   // TODO: allow custom package paths with a --packages flag
   final packageConfig = await _resolvePackageConfig(executable, packageRoot);
   final cachedKernel = _cachedKernelPath(executable.executable, packageRoot);
@@ -126,8 +127,7 @@ String _cachedKernelPath(String executable, String packageRoot) {
 /// Ensures that the Resident Frontend Compiler is running, starting it if
 /// necessary. Throws a [FrontendCompilerException] if starting the server
 /// fails.
-Future<void> _ensureCompileServerIsRunning(
-  ArgResults args,
+Future<void> ensureCompilationServerIsRunning(
   File serverInfoFile,
 ) async {
   if (serverInfoFile.existsSync()) {
@@ -147,11 +147,15 @@ Future<void> _ensureCompileServerIsRunning(
     );
 
     final serverOutput =
-        String.fromCharCodes(await frontendServerProcess.stdout.first);
+        String.fromCharCodes(await frontendServerProcess.stdout.first).trim();
     if (serverOutput.startsWith('Error')) {
       throw StateError(serverOutput);
     }
-    print(serverOutput); // Prints the server's address and port information
+    // Prints the server's address and port information
+    log.stdout(serverOutput);
+    log.stdout('');
+    log.stdout(
+        'Run dart compilation-server shutdown to terminate the process.');
   } catch (e) {
     throw FrontendCompilerException._(
       e.toString(),
