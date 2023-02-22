@@ -387,17 +387,17 @@ class PowersetDomain with AbstractValueDomain {
   }
 
   @override
-  AbstractValue unionOfMany(covariant Iterable<PowersetValue> values) {
+  AbstractValue unionOfMany(Iterable<AbstractValue> values) {
     PowersetValue result = PowersetValue(
         _abstractValueDomain.emptyType, _powersetBitsDomain.powersetBottom);
     for (final value in values) {
-      result = union(result, value) as PowersetValue;
+      result = union(result, value as PowersetValue);
     }
     return result;
   }
 
   @override
-  AbstractValue union(covariant PowersetValue a, covariant PowersetValue b) {
+  PowersetValue union(covariant PowersetValue a, covariant PowersetValue b) {
     int powersetBits =
         _powersetBitsDomain.union(a._powersetBits, b._powersetBits);
     AbstractValue abstractValue =
@@ -805,7 +805,8 @@ class PowersetDomain with AbstractValueDomain {
       _abstractValueDomain.functionType, _powersetBitsDomain.functionType);
 
   @override
-  AbstractValue get recordType => throw UnimplementedError();
+  AbstractValue get recordType => PowersetValue(
+      _abstractValueDomain.recordType, _powersetBitsDomain.recordType);
 
   @override
   AbstractValue get typeType => PowersetValue(

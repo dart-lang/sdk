@@ -5480,23 +5480,23 @@ ExportOptOutFromOptIn:
       class A {}
 
 ExtendFunction:
-  problemMessage: "Extending 'Function' is deprecated."
+  problemMessage: "Extending 'Function' is deprecated because 'Function' is final class."
   correctionMessage: "Try removing 'Function' from the 'extends' clause."
-  severity: IGNORED
+  experiments: class-modifiers
   script: |
     class A extends Function {}
 
 ImplementFunction:
-  problemMessage: "Implementing 'Function' is deprecated."
+  problemMessage: "Implementing 'Function' is deprecated because 'Function' is final class."
   correctionMessage: "Try removing 'Function' from the 'implements' clause."
-  severity: IGNORED
+  experiments: class-modifiers
   script: |
     class A implements Function {}
 
 MixinFunction:
-  problemMessage: "Mixing in 'Function' is deprecated."
+  problemMessage: "Mixing in 'Function' is deprecated because 'Function' is final class."
   correctionMessage: "Try removing 'Function' from the 'with' clause."
-  severity: IGNORED
+  experiments: class-modifiers
   script: |
     class A extends Object with Function {}
 
@@ -6459,3 +6459,21 @@ PatternAssignmentNotLocalVariable:
     method(x) {
       [global] = x;
     }
+
+WeakReferenceNotStatic:
+  problemMessage: "Weak reference pragma can be used on a static method only."
+
+WeakReferenceNotOneArgument:
+  problemMessage: "Weak reference should take one required positional argument."
+
+WeakReferenceReturnTypeNotNullable:
+  problemMessage: "Return type of a weak reference should be nullable."
+
+WeakReferenceMismatchReturnAndArgumentTypes:
+  problemMessage: "Return and argument types of a weak reference should match."
+
+WeakReferenceTargetNotStaticTearoff:
+  problemMessage: "The target of weak reference should be a tearoff of a static method."
+
+WeakReferenceTargetHasParameters:
+  problemMessage: "The target of weak reference should not take parameters."

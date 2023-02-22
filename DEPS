@@ -94,7 +94,7 @@ vars = {
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "devtools_rev": "a7c581e3923357c9768c9d8ead62327dbbcc3a50",
+  "devtools_rev": "a6657896603234b1dfbb597636ba4df09d4f01ea",
   "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -146,7 +146,7 @@ vars = {
   "http_parser_rev": "b3b283b9f139640b932d604e8815460bbd3ecab5",
   "intl_rev": "fca552f2ec5d682b5fa36f02bdd72a5a4e2edcee",
   "json_rpc_2_rev": "0280ac6cb4f3905d81c47ba927123ba2b95f7940",
-  "linter_rev": "85d62c18e2a353abd4905aaf86e05dd1fc9d7b9a", # 1.34.0-dev
+  "linter_rev": "dcf3a079c573487b6ab64518604e5686be899601", # 1.34.0-dev
   "lints_rev": "dfded5e265015f21ce154577fe8488dc244e33c2",
   "logging_rev": "abef3717d958158eb8b0ddb2871f4b15a9804cd4",
   "markdown_rev": "4befe66d779a84a7a5b386d927284b93ebb169cd",

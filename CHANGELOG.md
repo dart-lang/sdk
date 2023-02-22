@@ -170,6 +170,8 @@ Updates the Linter to `1.34.0-dev`, which includes changes that
 - update `unnecessary_parenthesis` to allow parentheses in more null-aware
   cascade contexts.
 - update `unreachable_from_main` to track static elements.
+- update `unnecessary_null_checks` to not report on arguments passed to
+  `Future.value` or `Completer.complete`.
 
 #### Migration tool removal
 

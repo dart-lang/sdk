@@ -6440,6 +6440,14 @@ class WarningCode extends AnalyzerErrorCode {
         "Try checking for throw expressions or type errors in the receiver",
   );
 
+  static const WarningCode RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA =
+      WarningCode(
+    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+    "A record literal with exactly one positional field requires a trailing "
+        "comma.",
+    correctionMessage: "Try adding a trailing comma.",
+  );
+
   ///  An error code indicating use of a removed lint rule.
   ///
   ///  Parameters:

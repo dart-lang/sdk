@@ -4050,8 +4050,8 @@ const Code<Null> codeExtendFunction = messageExtendFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtendFunction = const MessageCode("ExtendFunction",
-    severity: Severity.ignored,
-    problemMessage: r"""Extending 'Function' is deprecated.""",
+    problemMessage:
+        r"""Extending 'Function' is deprecated because 'Function' is final class.""",
     correctionMessage:
         r"""Try removing 'Function' from the 'extends' clause.""");
 
@@ -5659,8 +5659,8 @@ const Code<Null> codeImplementFunction = messageImplementFunction;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementFunction = const MessageCode(
     "ImplementFunction",
-    severity: Severity.ignored,
-    problemMessage: r"""Implementing 'Function' is deprecated.""",
+    problemMessage:
+        r"""Implementing 'Function' is deprecated because 'Function' is final class.""",
     correctionMessage:
         r"""Try removing 'Function' from the 'implements' clause.""");
 
@@ -8992,8 +8992,8 @@ const Code<Null> codeMixinFunction = messageMixinFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMixinFunction = const MessageCode("MixinFunction",
-    severity: Severity.ignored,
-    problemMessage: r"""Mixing in 'Function' is deprecated.""",
+    problemMessage:
+        r"""Mixing in 'Function' is deprecated because 'Function' is final class.""",
     correctionMessage: r"""Try removing 'Function' from the 'with' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12981,6 +12981,64 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
     index: 100,
     problemMessage: r"""Type 'void' can't have type arguments.""",
     correctionMessage: r"""Try removing the type arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceMismatchReturnAndArgumentTypes =
+    messageWeakReferenceMismatchReturnAndArgumentTypes;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceMismatchReturnAndArgumentTypes =
+    const MessageCode("WeakReferenceMismatchReturnAndArgumentTypes",
+        problemMessage:
+            r"""Return and argument types of a weak reference should match.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceNotOneArgument =
+    messageWeakReferenceNotOneArgument;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceNotOneArgument = const MessageCode(
+    "WeakReferenceNotOneArgument",
+    problemMessage:
+        r"""Weak reference should take one required positional argument.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceNotStatic = messageWeakReferenceNotStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceNotStatic = const MessageCode(
+    "WeakReferenceNotStatic",
+    problemMessage:
+        r"""Weak reference pragma can be used on a static method only.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceReturnTypeNotNullable =
+    messageWeakReferenceReturnTypeNotNullable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceReturnTypeNotNullable = const MessageCode(
+    "WeakReferenceReturnTypeNotNullable",
+    problemMessage: r"""Return type of a weak reference should be nullable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceTargetHasParameters =
+    messageWeakReferenceTargetHasParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceTargetHasParameters = const MessageCode(
+    "WeakReferenceTargetHasParameters",
+    problemMessage:
+        r"""The target of weak reference should not take parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceTargetNotStaticTearoff =
+    messageWeakReferenceTargetNotStaticTearoff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceTargetNotStaticTearoff = const MessageCode(
+    "WeakReferenceTargetNotStaticTearoff",
+    problemMessage:
+        r"""The target of weak reference should be a tearoff of a static method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeWeakWithStrongDillLibrary =

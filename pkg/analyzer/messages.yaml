@@ -22599,6 +22599,9 @@ WarningCode:
       the call are unreachable.
 
       Parameters: none
+  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+    problemMessage: "A record literal with exactly one positional field requires a trailing comma."
+    correctionMessage: Try adding a trailing comma.
   REMOVED_LINT_USE:
     problemMessage: "'{0}' was removed in Dart '{1}'"
     correctionMessage: "Remove the reference to '{0}'."

@@ -79,6 +79,7 @@ part(s)
 patch(es)
 patterns
 placing
+pragma
 preexisting
 pubspec.yaml
 r
@@ -98,6 +99,7 @@ superinterface
 supermixin
 t
 team
+tearoff
 this.namedconstructor
 this.x
 trusttypes

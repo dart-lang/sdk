@@ -301,8 +301,7 @@ ExportOptOutFromOptIn/analyzerCode: Fail
 ExportOptOutFromOptIn/part_wrapped_script: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
-ExtendFunction/part_wrapped_script: Fail
-ExtendFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
+ExtendFunction/analyzerCode: Fail
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
 ExtendsDynamic/analyzerCode: Fail # Feature not yet in analyzer.
@@ -447,8 +446,7 @@ IllegalRecursiveType/analyzerCode: Fail
 IllegalRecursiveType/part_wrapped_script: Fail
 IllegalRecursiveType/script: Fail
 IllegalSyncGeneratorVoidReturnType/analyzerCode: Fail # The analyzer doesn't report this error.
-ImplementFunction/part_wrapped_script: Fail
-ImplementFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
+ImplementFunction/analyzerCode: Fail
 ImplementsBeforeExtends/part_wrapped_script: Fail
 ImplementsBeforeExtends/script: Fail
 ImplementsBeforeOn/part_wrapped_script: Fail
@@ -676,8 +674,9 @@ MissingMain/example: Fail
 MissingPartOf/part_wrapped_script: Fail # Using 'part' in the (now) part.
 MissingPrefixInDeferredImport/example: Fail
 MixinDeclaresConstructor/example: Fail
+MixinFunction/analyzerCode: Fail
 MixinFunction/part_wrapped_script: Fail
-MixinFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
+MixinFunction/script: Fail
 MixinInferenceNoMatchingClass/example: Fail
 ModifierOutOfOrder/part_wrapped_script1: Fail
 ModifierOutOfOrder/script1: Fail
@@ -996,6 +995,18 @@ VariableCouldBeNullDueToWrite/example: Fail
 VariablePatternTypeMismatchInSwitchHeads/analyzerCode: Fail
 WeakWithStrongDillLibrary/analyzerCode: Fail
 WeakWithStrongDillLibrary/example: Fail
+WeakReferenceNotStatic/analyzerCode: Fail
+WeakReferenceNotStatic/example: Fail
+WeakReferenceNotOneArgument/analyzerCode: Fail
+WeakReferenceNotOneArgument/example: Fail
+WeakReferenceReturnTypeNotNullable/analyzerCode: Fail
+WeakReferenceReturnTypeNotNullable/example: Fail
+WeakReferenceMismatchReturnAndArgumentTypes/analyzerCode: Fail
+WeakReferenceMismatchReturnAndArgumentTypes/example: Fail
+WeakReferenceTargetNotStaticTearoff/analyzerCode: Fail
+WeakReferenceTargetNotStaticTearoff/example: Fail
+WeakReferenceTargetHasParameters/analyzerCode: Fail
+WeakReferenceTargetHasParameters/example: Fail
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail
 WebLiteralCannotBeRepresentedExactly/example: Fail
 YieldAsIdentifier/example: Fail

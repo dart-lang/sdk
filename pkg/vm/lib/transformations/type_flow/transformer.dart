@@ -15,15 +15,17 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:vm/metadata/direct_call.dart';
+import 'package:vm/metadata/inferred_type.dart';
+import 'package:vm/metadata/procedure_attributes.dart';
+import 'package:vm/metadata/table_selector.dart';
+import 'package:vm/metadata/unboxing_info.dart';
+import 'package:vm/metadata/unreachable.dart';
+import 'package:vm/transformations/devirtualization.dart' show Devirtualization;
+import 'package:vm/transformations/pragma.dart';
+import 'package:vm/transformations/static_weak_references.dart'
+    show StaticWeakReferences;
 
-import '../../metadata/direct_call.dart';
-import '../../metadata/inferred_type.dart';
-import '../../metadata/procedure_attributes.dart';
-import '../../metadata/table_selector.dart';
-import '../../metadata/unboxing_info.dart';
-import '../../metadata/unreachable.dart';
-import '../devirtualization.dart' show Devirtualization;
-import '../pragma.dart';
 import 'analysis.dart';
 import 'calls.dart';
 import 'finalizable_types.dart';
@@ -710,6 +712,7 @@ class TreeShaker {
   final Set<Extension> _usedExtensions = new Set<Extension>();
   final Set<Typedef> _usedTypedefs = new Set<Typedef>();
   final FinalizableTypes _finalizableTypes;
+  final StaticWeakReferences _staticWeakReferences;
   late final FieldMorpher fieldMorpher;
   late final _TreeShakerTypeVisitor typeVisitor;
   late final _TreeShakerConstantVisitor constantVisitor;
@@ -722,8 +725,9 @@ class TreeShaker {
     CoreTypes coreTypes,
     ClassHierarchy hierarchy, {
     this.treeShakeWriteOnlyFields = true,
-  }) : _finalizableTypes = new FinalizableTypes(
-            coreTypes, typeFlowAnalysis.libraryIndex, hierarchy) {
+  })  : _finalizableTypes = new FinalizableTypes(
+            coreTypes, typeFlowAnalysis.libraryIndex, hierarchy),
+        _staticWeakReferences = typeFlowAnalysis.staticWeakReferences {
     fieldMorpher = new FieldMorpher(this);
     typeVisitor = new _TreeShakerTypeVisitor(this);
     constantVisitor = new _TreeShakerConstantVisitor(this, typeVisitor);
@@ -1375,6 +1379,14 @@ class _TreeShakerPass1 extends RemovingTransformer {
   @override
   TreeNode visitStaticInvocation(
       StaticInvocation node, TreeNode? removalSentinel) {
+    if (shaker._staticWeakReferences.isWeakReference(node)) {
+      final target = shaker._staticWeakReferences.getWeakReferenceTarget(node);
+      if (shaker.isMemberBodyReachable(target)) {
+        return transform(
+            shaker._staticWeakReferences.getWeakReferenceArgument(node));
+      }
+      return NullLiteral()..fileOffset = node.fileOffset;
+    }
     node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall(_flattenArguments(node.arguments));

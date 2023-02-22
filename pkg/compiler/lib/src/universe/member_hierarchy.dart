@@ -251,6 +251,7 @@ class MemberHierarchyBuilder {
       void Function(MemberEntity parent, MemberEntity override) join) {
     final elementEnv = closedWorld.elementEnvironment;
     final name = selector.memberName;
+    bool foundSuperclass = false;
 
     void addParent(MemberEntity child, ClassEntity childCls,
         MemberEntity parent, ClassEntity parentCls) {
@@ -266,6 +267,7 @@ class MemberHierarchyBuilder {
       final match = elementEnv.lookupLocalClassMember(current, name);
       if (match != null && !MemberHierarchyBuilder._skipMemberInternal(match)) {
         addParent(member, cls, match, current);
+        foundSuperclass = true;
         break;
       }
       current = elementEnv.getSuperClass(current);
@@ -277,6 +279,10 @@ class MemberHierarchyBuilder {
       addParent(override, subtype, member, cls);
       return IterationStep.CONTINUE;
     }, ClassHierarchyNode.INSTANTIATED, strict: true);
+
+    if (!foundSuperclass) {
+      (_dynamicRoots[selector] ??= {}).add(member);
+    }
   }
 
   void _processMember(MemberEntity member,
@@ -286,9 +292,6 @@ class MemberHierarchyBuilder {
     final mixinUses = closedWorld.mixinUsesOf(cls);
     // Process each selector matching member separately.
     for (final selector in _selectorsForMember(member)) {
-      if (!member.isAbstract) {
-        (_dynamicRoots[selector] ??= {}).add(member);
-      }
       for (final mixinUse in mixinUses) {
         _handleMember(member, mixinUse, selector, join);
       }
