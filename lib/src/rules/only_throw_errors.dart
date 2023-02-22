@@ -56,6 +56,7 @@ bool _isThrowable(DartType? type) {
   var typeForInterfaceCheck = type?.typeForInterfaceCheck;
   return typeForInterfaceCheck == null ||
       typeForInterfaceCheck.isDynamic ||
+      type is NeverType ||
       typeForInterfaceCheck.implementsAnyInterface(_interfaceDefinitions);
 }
 
