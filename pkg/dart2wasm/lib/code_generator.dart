@@ -179,10 +179,19 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     if (member.isExternal) {
-      final text =
-          "Unimplemented external member $member at ${member.location}";
-      print(text);
-      b.comment(text);
+      b.comment("Unimplemented external member $member at ${member.location}");
+      if (member.isInstanceMember) {
+        b.local_get(paramLocals[0]);
+      } else {
+        b.ref_null(w.HeapType.none);
+      }
+      translator.constants.instantiateConstant(
+          function,
+          b,
+          SymbolConstant(member.name.text, null),
+          translator.classInfo[translator.symbolClass]!.nonNullableType);
+      b.call(translator.functions.getFunction(translator
+          .noSuchMethodErrorThrowUnimplementedExternalMemberError.reference));
       b.unreachable();
       b.end();
       return;

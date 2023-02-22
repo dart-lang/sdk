@@ -127,6 +127,12 @@ class NoSuchMethodError {
     throw NoSuchMethodError.withInvocation(receiver, invocation);
   }
 
+  @pragma("wasm:entry-point")
+  static Never _throwUnimplementedExternalMemberError(
+      Object? receiver, Symbol memberName) {
+    throw NoSuchMethodError(receiver, memberName, null, null);
+  }
+
   @patch
   String toString() {
     StringBuffer sb = StringBuffer('');

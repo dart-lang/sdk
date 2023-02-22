@@ -23,6 +23,20 @@ void main() {
 
 @reflectiveTest
 class ParameterNameInlayHintTest extends _AbstractInlayHintTest {
+  Future<void> test_beforeTypes() async {
+    final content = '''
+void f(Object a) {
+  f([1, 2]);
+}
+''';
+    final expected = '''
+void f(Object a) {
+  f((Parameter:a:) (Type:<int>)[1, 2]);
+}
+''';
+    await _testHints(content, expected);
+  }
+
   Future<void> test_location() async {
     final code = TestCode.parse('''
 void f(int /*[0*/a/*0]*/) {}

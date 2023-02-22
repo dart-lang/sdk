@@ -154,8 +154,6 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    super.visitArgumentList(node);
-
     for (final argument in node.arguments) {
       if (argument is! NamedExpression) {
         final parameter = argument.staticParameterElement;
@@ -164,6 +162,10 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
         }
       }
     }
+
+    // Call super last, to ensure parameter names are always added before
+    // any other hints that may be produced (such as list literal Type hints).
+    super.visitArgumentList(node);
   }
 
   @override

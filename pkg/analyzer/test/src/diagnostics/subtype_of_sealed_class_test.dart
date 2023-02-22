@@ -37,7 +37,7 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 class Bar extends Foo {}
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 24),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 31, 24),
     ]);
   }
 
@@ -57,7 +57,7 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 class Bar implements Foo {}
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 27),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 31, 27),
     ]);
   }
 
@@ -79,7 +79,7 @@ import 'package:foo/foo.dart';
 class Bar1 {}
 class Bar2 = Bar1 with Foo;
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 45, 27),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 45, 27),
     ]);
   }
 
@@ -100,7 +100,7 @@ import 'package:foo/foo.dart';
 class Bar1 {}
 class Bar2 = Bar1 with Foo;
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 45, 27),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 45, 27),
     ]);
   }
 
@@ -120,7 +120,7 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 class Bar extends Object with Foo {}
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 36),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 31, 36),
     ]);
   }
 
@@ -140,7 +140,7 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 mixin Bar implements Foo {}
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 27),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 31, 27),
     ]);
   }
 
