@@ -655,6 +655,8 @@ import 'private_collision_in_mixin_application_test.dart'
 import 'private_optional_parameter_test.dart' as private_optional_parameter;
 import 'private_setter_test.dart' as private_setter;
 import 'receiver_of_type_never_test.dart' as receiver_of_type_never;
+import 'record_literal_one_positional_no_trailing_comma_test.dart'
+    as record_literal_one_positional_no_trailing_comma;
 import 'recursive_compile_time_constant_test.dart'
     as recursive_compile_time_constant;
 import 'recursive_constructor_redirect_test.dart'
@@ -1298,6 +1300,7 @@ main() {
     private_optional_parameter.main();
     private_setter.main();
     receiver_of_type_never.main();
+    record_literal_one_positional_no_trailing_comma.main();
     recursive_compile_time_constant.main();
     recursive_constructor_redirect.main();
     recursive_factory_redirect.main();

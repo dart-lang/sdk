@@ -338,6 +338,20 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `S` is not `void`,
       // and `S` is not assignable to `T`.
       if (!S.isVoid) {
+        if (T is RecordType) {
+          if (S is! RecordType && T.positionalFields.length == 1) {
+            var field = T.positionalFields.first;
+            if (_typeSystem.isAssignableTo(field.type, S)) {
+              _errorReporter.reportErrorForNode(
+                WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+                expression,
+                [],
+              );
+              return;
+            }
+          }
+        }
+
         if (!_typeSystem.isAssignableTo(S, T)) {
           reportTypeError();
           return;
