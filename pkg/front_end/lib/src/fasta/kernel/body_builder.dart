@@ -4012,6 +4012,8 @@ class BodyBuilder extends StackListenerImpl
       return variables;
     } else if (variableOrExpression is PatternVariableDeclaration) {
       return <VariableDeclaration>[];
+    } else if (variableOrExpression is ParserRecovery) {
+      return <VariableDeclaration>[];
     } else if (variableOrExpression == null) {
       return <VariableDeclaration>[];
     }
@@ -4186,9 +4188,14 @@ class BodyBuilder extends StackListenerImpl
       assert(conditionStatement is EmptyStatement);
     }
     if (entry is MapLiteralEntry) {
-      ForMapEntry result = forest.createForMapEntry(
+      TreeNode result;
+      ForMapEntry forMapEntry = result = forest.createForMapEntry(
           offsetForToken(forToken), variables, condition, updates, entry);
-      typeInferrer.assignedVariables.endNode(result);
+      if (variableOrExpression is PatternVariableDeclaration) {
+        result = forest.createPatternForMapEntry(
+            offsetForToken(forToken), variableOrExpression, forMapEntry);
+      }
+      typeInferrer.assignedVariables.endNode(forMapEntry);
       push(result);
     } else {
       TreeNode result;

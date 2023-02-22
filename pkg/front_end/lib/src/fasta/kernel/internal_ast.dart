@@ -4959,3 +4959,44 @@ class PatternForElement extends InternalExpression with ControlFlowElement {
     return "PatternForElement(${toStringInternal()})";
   }
 }
+
+class PatternForMapEntry extends TreeNode
+    with InternalTreeNode, ControlFlowMapEntry {
+  PatternVariableDeclaration patternVariableDeclaration;
+  ForMapEntry forMapEntry;
+  late List<Statement> replacement;
+
+  PatternForMapEntry(this.patternVariableDeclaration, this.forMapEntry);
+
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    throw new UnsupportedError("PatternForElement.acceptInference");
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('for (');
+    for (int index = 0; index < forMapEntry.variables.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(forMapEntry.variables[index],
+          includeModifiersAndType: index == 0);
+    }
+    printer.write('; ');
+    if (forMapEntry.condition != null) {
+      printer.writeExpression(forMapEntry.condition!);
+    }
+    printer.write('; ');
+    printer.writeExpressions(forMapEntry.updates);
+    printer.write(') ');
+    printer.writeExpression(forMapEntry.body.key);
+    printer.write(': ');
+    printer.writeExpression(forMapEntry.body.value);
+  }
+
+  @override
+  String toString() {
+    return "PatternForMapEntry(${toStringInternal()})";
+  }
+}

@@ -3086,6 +3086,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           entry, receiverType, keyType, valueType, result, body);
     } else if (entry is ForMapEntry) {
       _translateForEntry(entry, receiverType, keyType, valueType, result, body);
+    } else if (entry is PatternForMapEntry) {
+      _translatePatternForEntry(
+          entry, receiverType, keyType, valueType, result, body);
     } else if (entry is ForInMapEntry) {
       _translateForInEntry(
           entry, receiverType, keyType, valueType, result, body);
@@ -3172,6 +3175,29 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ForStatement loop = _createForStatement(entry.fileOffset, entry.variables,
         entry.condition, entry.updates, loopBody);
     libraryBuilder.loader.dataForTesting?.registerAlias(entry, loop);
+    body.add(loop);
+  }
+
+  void _translatePatternForEntry(
+      PatternForMapEntry entry,
+      InterfaceType receiverType,
+      DartType keyType,
+      DartType valueType,
+      VariableDeclaration result,
+      List<Statement> body) {
+    List<Statement> statements = <Statement>[];
+    _translateEntry(entry.forMapEntry.body, receiverType, keyType, valueType,
+        result, statements);
+    Statement loopBody =
+        statements.length == 1 ? statements.first : _createBlock(statements);
+    ForStatement loop = _createForStatement(
+        entry.fileOffset,
+        entry.forMapEntry.variables,
+        entry.forMapEntry.condition,
+        entry.forMapEntry.updates,
+        loopBody);
+    libraryBuilder.loader.dataForTesting?.registerAlias(entry, loop);
+    body.addAll(entry.replacement);
     body.add(loop);
   }
 
@@ -4224,6 +4250,91 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         entry.updates[index] = updateResult.expression..parent = entry;
       }
       flowAnalysis.for_end();
+      return entry;
+    } else if (entry is PatternForMapEntry) {
+      int? stackBase;
+      assert(checkStackBase(entry, stackBase = stackHeight));
+
+      PatternVariableDeclaration patternVariableDeclaration =
+          entry.patternVariableDeclaration;
+      analyzePatternVariableDeclaration(
+          patternVariableDeclaration,
+          patternVariableDeclaration.pattern,
+          patternVariableDeclaration.initializer,
+          isFinal: patternVariableDeclaration.isFinal,
+          isLate: false);
+
+      assert(checkStack(entry, stackBase, [
+        /* pattern = */ ValueKinds.Pattern,
+        /* initializer = */ ValueKinds.Expression,
+      ]));
+
+      Object? rewrite = popRewrite(NullValues.Expression);
+      if (!identical(patternVariableDeclaration.pattern, rewrite)) {
+        patternVariableDeclaration.pattern = (rewrite as Pattern)
+          ..parent = patternVariableDeclaration;
+      }
+
+      rewrite = popRewrite();
+      if (!identical(patternVariableDeclaration.initializer, rewrite)) {
+        patternVariableDeclaration.initializer = (rewrite as Expression)
+          ..parent = patternVariableDeclaration;
+      }
+
+      MatchingCache matchingCache = createMatchingCache();
+      MatchingExpressionVisitor matchingExpressionVisitor =
+          new MatchingExpressionVisitor(matchingCache);
+      // TODO(cstefantsova): Do we need a more precise type for the variable?
+      DartType matchedType = const DynamicType();
+      CacheableExpression matchedExpression =
+          matchingCache.createRootExpression(
+              patternVariableDeclaration.initializer, matchedType);
+
+      DelayedExpression matchingExpression = matchingExpressionVisitor
+          .visitPattern(patternVariableDeclaration.pattern, matchedExpression);
+
+      matchingExpression.registerUse();
+
+      Expression readMatchingExpression =
+          matchingExpression.createExpression(typeSchemaEnvironment);
+
+      List<Statement> replacementStatements = [
+        ...matchingCache.declarations,
+        // TODO(cstefantsova): Figure out the right exception to throw.
+        createIfStatement(
+            createNot(readMatchingExpression),
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                coreTypes.reachabilityErrorConstructor,
+                createArguments([], fileOffset: entry.fileOffset),
+                fileOffset: entry.fileOffset))),
+            fileOffset: entry.fileOffset),
+      ];
+      if (replacementStatements.length > 1) {
+        // If we need local declarations, create a new block to avoid naming
+        // collision with declarations in the same parent block.
+        replacementStatements = [
+          createBlock(replacementStatements, fileOffset: entry.fileOffset)
+        ];
+      }
+      replacementStatements = [
+        ...patternVariableDeclaration.pattern.declaredVariables,
+        ...replacementStatements,
+      ];
+      entry.replacement = replacementStatements;
+
+      MapLiteralEntry body = inferMapEntry(
+          entry.forMapEntry,
+          entry,
+          inferredKeyType,
+          inferredValueType,
+          spreadContext,
+          actualTypes,
+          actualTypesForSet,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets);
+      entry.forMapEntry = (body as ForMapEntry)..parent = entry;
+
       return entry;
     } else if (entry is ForInMapEntry) {
       ForInResult result;

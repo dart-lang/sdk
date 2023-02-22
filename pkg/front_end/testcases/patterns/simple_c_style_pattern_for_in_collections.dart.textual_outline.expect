@@ -1,5 +1,7 @@
 test1(dynamic x) => [for (var [;int ;i, int n] = x; i < n; i++) i];
+test2(dynamic x) => { -1: -1, for (var [;int ;i, int n] = x; i < n; i++) i : i, -2: -2, };
 main() {}
 expectEquals(x, y) {}
 listToString(List list) => "[${list.map((e) => '${e}').join(',')}]";
 expectThrows(void Function() f) {}
+mapToString(Map map) {}
