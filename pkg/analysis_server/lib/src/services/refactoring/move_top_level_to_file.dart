@@ -319,11 +319,12 @@ class _MemberGroup {
     var start = firstMember.offset;
     if (includePreceedingLine) {
       var startLine = lineInfo.getLocation(start).lineNumber;
-      var previousLine = lineInfo
-          .getLocation(firstMember.beginToken.previous!.offset)
-          .lineNumber;
-      if (previousLine + 1 < startLine) {
-        start = lineInfo.getOffsetOfLine(previousLine);
+      var previous = firstMember.beginToken.previous;
+      if (previous != null) {
+        var previousLine = lineInfo.getLocation(previous.offset).lineNumber;
+        if (previousLine + 1 < startLine) {
+          start = lineInfo.getOffsetOfLine(previousLine);
+        }
       }
     }
 
