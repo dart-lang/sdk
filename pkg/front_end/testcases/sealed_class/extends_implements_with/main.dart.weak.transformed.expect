@@ -34,7 +34,7 @@ class Class2 extends core::Object implements mai::Sealed {
     : super core::Object::•()
     ;
 }
-abstract class _Class3&Object&Sealed extends core::Object implements mai::Sealed /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+abstract sealed class _Class3&Object&Sealed extends core::Object implements mai::Sealed /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class3&Object&Sealed
     : super core::Object::•()
     ;

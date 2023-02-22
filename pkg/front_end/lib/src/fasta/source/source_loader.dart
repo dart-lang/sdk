@@ -2187,10 +2187,8 @@ severity: $severity
                     .withArguments(supertypeDeclaration.fullNameForErrors),
                 supertypeBuilder.charOffset ?? TreeNode.noOffset,
                 noLength);
-          } else if (supertypeDeclaration.isFinal &&
-              // TODO(kallentu): Error case where the class has a singular on
-              // clause. Change with the new spec changes.
-              !cls.isMixinDeclaration) {
+          } else if (supertypeDeclaration.isFinal && !cls.isMixinDeclaration) {
+            // Error case where the class has a singular on-clause.
             cls.addProblem(
                 templateFinalClassExtendedOutsideOfLibrary
                     .withArguments(supertypeDeclaration.fullNameForErrors),
@@ -2202,8 +2200,7 @@ severity: $severity
         // Report error for extending a sealed class outside of its library.
         if (isSealedClassEnabled(supertypeDeclaration) &&
             supertypeDeclaration.isSealed &&
-            // TODO(kallentu): Error case where the class has a singular on
-            // clause. Remove with the new spec changes.
+            // Error case where the class has a singular on-clause.
             !cls.isMixinDeclaration) {
           cls.addProblem(
               templateSealedClassSubtypeOutsideOfLibrary
@@ -2276,7 +2273,7 @@ severity: $severity
           if (isClassModifiersEnabled(interfaceDeclaration)) {
             // Report an error for a class implementing a base class outside of
             // its library.
-            if (interfaceDeclaration.isBase) {
+            if (interfaceDeclaration.isBase && !cls.cls.isAnonymousMixin) {
               if (interfaceDeclaration.isMixinDeclaration) {
                 cls.addProblem(
                     templateBaseMixinImplementedOutsideOfLibrary
@@ -2291,8 +2288,6 @@ severity: $severity
                     noLength);
               }
             } else if (interfaceDeclaration.isFinal &&
-                // TODO(kallentu): Error case where the class has multiple on
-                // clauses. Change with the new spec changes.
                 !cls.cls.isAnonymousMixin) {
               if (interfaceDeclaration.isMixinDeclaration) {
                 cls.addProblem(

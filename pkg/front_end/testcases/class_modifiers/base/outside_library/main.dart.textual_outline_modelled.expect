@@ -3,3 +3,9 @@ import 'main_lib.dart';
 class ImplementsBaseClass implements A {}
 
 class ImplementsBaseMixin implements M {}
+
+enum EnumImplementsBaseMixin implements M { x }
+
+mixin MixinOnA on A {}
+mixin MixinOnAM on A, M {}
+mixin MixinOnM on M {}

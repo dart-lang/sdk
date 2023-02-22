@@ -160,7 +160,7 @@ class EnumImplementsFinalMixinTypeDef2 extends core::_Enum implements mai::M /*i
   method _enumToString() → core::String
     return "EnumImplementsFinalMixinTypeDef2.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class _MixInFinalMixinTypeDef&Object&MTypeDef = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _MixInFinalMixinTypeDef&Object&MTypeDef = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MixInFinalMixinTypeDef&Object&MTypeDef
     : super core::Object::•()
     ;
@@ -170,7 +170,7 @@ class MixInFinalMixinTypeDef extends self::_MixInFinalMixinTypeDef&Object&MTypeD
     : super self::_MixInFinalMixinTypeDef&Object&MTypeDef::•()
     ;
 }
-abstract class _MixInFinalMixinTypeDef2&Object&MTypeDef2 = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _MixInFinalMixinTypeDef2&Object&MTypeDef2 = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MixInFinalMixinTypeDef2&Object&MTypeDef2
     : super core::Object::•()
     ;
@@ -180,7 +180,7 @@ class MixInFinalMixinTypeDef2 extends self::_MixInFinalMixinTypeDef2&Object&MTyp
     : super self::_MixInFinalMixinTypeDef2&Object&MTypeDef2::•()
     ;
 }
-abstract class _EnumMixInFinalMixinTypeDef&_Enum&MTypeDef = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _EnumMixInFinalMixinTypeDef&_Enum&MTypeDef = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_EnumMixInFinalMixinTypeDef&_Enum&MTypeDef
     : super core::_Enum::•(index, _name)
     ;
@@ -194,7 +194,7 @@ class EnumMixInFinalMixinTypeDef extends self::_EnumMixInFinalMixinTypeDef&_Enum
   method _enumToString() → core::String
     return "EnumMixInFinalMixinTypeDef.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class _EnumMixInFinalMixinTypeDef2&_Enum&MTypeDef2 = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _EnumMixInFinalMixinTypeDef2&_Enum&MTypeDef2 = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_EnumMixInFinalMixinTypeDef2&_Enum&MTypeDef2
     : super core::_Enum::•(index, _name)
     ;
@@ -241,7 +241,7 @@ class EnumImplementsFinalMixinTypeDefOutside extends core::_Enum implements mai:
   method _enumToString() → core::String
     return "EnumImplementsFinalMixinTypeDefOutside.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class _MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef
     : super core::Object::•()
     ;
@@ -251,7 +251,7 @@ class MixInFinalMixinTypeDefOutside extends self::_MixInFinalMixinTypeDefOutside
     : super self::_MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef::•()
     ;
 }
-abstract class _EnumMixInFinalMixinTypeDefOutside&_Enum&MOutsideTypedef = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _EnumMixInFinalMixinTypeDefOutside&_Enum&MOutsideTypedef = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_EnumMixInFinalMixinTypeDefOutside&_Enum&MOutsideTypedef
     : super core::_Enum::•(index, _name)
     ;
