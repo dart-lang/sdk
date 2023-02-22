@@ -197,8 +197,8 @@ void main(List<String> args) {
       await client.expectVariables(
         namedRecordVariable.variablesReference,
         r'''
-            $0: 10
-            $1: 11
+            $0: 10, eval: myRecord.namedRecord.$0
+            $1: 11, eval: myRecord.namedRecord.$1
         ''',
       );
     });
@@ -252,7 +252,7 @@ void main(List<String> args) {
     });
 
     /// Helper to verify variables types of list.
-    _checkList(
+    checkList(
       String typeName, {
       required String constructor,
       required List<String> expectedDisplayStrings,
@@ -276,9 +276,9 @@ void main(List<String> args) {
           expectedDisplayString: '$typeName (3 items)',
           expectedIndexedItems: 3,
           expectedVariables: '''
-            [0]: ${expectedDisplayStrings[0]}
-            [1]: ${expectedDisplayStrings[1]}
-            [2]: ${expectedDisplayStrings[2]}
+            [0]: ${expectedDisplayStrings[0]}, eval: myVariable[0]
+            [1]: ${expectedDisplayStrings[1]}, eval: myVariable[1]
+            [2]: ${expectedDisplayStrings[2]}, eval: myVariable[2]
         ''',
         );
       });
@@ -302,7 +302,7 @@ void main(List<String> args) {
           expectedDisplayString: '$typeName (3 items)',
           expectedIndexedItems: 3,
           expectedVariables: '''
-            [1]: ${expectedDisplayStrings[1]}
+            [1]: ${expectedDisplayStrings[1]}, eval: myVariable[1]
         ''',
           start: 1,
           count: 1,
@@ -310,52 +310,52 @@ void main(List<String> args) {
       });
     }
 
-    _checkList(
+    checkList(
       'Uint8ClampedList',
       constructor: 'Uint8ClampedList.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Uint8List',
       constructor: 'Uint8List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Uint16List',
       constructor: 'Uint16List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Uint32List',
       constructor: 'Uint32List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Uint64List',
       constructor: 'Uint64List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Int8List',
       constructor: 'Int8List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Int16List',
       constructor: 'Int16List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Int32List',
       constructor: 'Int32List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Int64List',
       constructor: 'Int64List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
     );
-    _checkList(
+    checkList(
       'Float32List',
       constructor: 'Float32List.fromList([1.1, 2.2, 3.3])',
       expectedDisplayStrings: [
@@ -366,12 +366,12 @@ void main(List<String> args) {
         '3.299999952316284',
       ],
     );
-    _checkList(
+    checkList(
       'Float64List',
       constructor: 'Float64List.fromList([1.1, 2.2, 3.3])',
       expectedDisplayStrings: ['1.1', '2.2', '3.3'],
     );
-    _checkList(
+    checkList(
       'Int32x4List',
       constructor: 'Int32x4List.fromList(['
           'Int32x4(1, 1, 1, 1),'
@@ -385,7 +385,7 @@ void main(List<String> args) {
         '[00000003, 00000003, 00000003, 00000003]',
       ],
     );
-    _checkList(
+    checkList(
       'Float32x4List',
       constructor: 'Float32x4List.fromList(['
           'Float32x4(1.1, 1.1, 1.1, 1.1),'
@@ -399,7 +399,7 @@ void main(List<String> args) {
         '[3.300000, 3.300000, 3.300000, 3.300000]',
       ],
     );
-    _checkList(
+    checkList(
       'Float64x2List',
       constructor: 'Float64x2List.fromList(['
           'Float64x2(1.1,1.1),'
@@ -648,6 +648,66 @@ void main() {
       );
     });
 
+    group('inspect()', () {
+      /// Helper to test `inspect()` with varying expressions.
+      void checkInspect(
+        String inspectCode, {
+        required String expectedVariables,
+      }) {
+        test('sends variable in OutputEvent for inspect($inspectCode)',
+            () async {
+          final client = dap.client;
+          final testFile = dap.createTestFile('''
+import 'dart:developer';
+
+void main() {
+  inspect($inspectCode);
+  print('Done!'); $breakpointMarker
+}
+    ''');
+
+          // Capture an `OutputEvent` that has a variable reference which should
+          // be sent by the `inspect()` call.
+          final outputEventFuture = client.outputEvents.firstWhere(
+              (e) => e.variablesReference != null && e.variablesReference! > 0);
+          final breakpointLine = lineWith(testFile, breakpointMarker);
+          await client.hitBreakpoint(testFile, breakpointLine);
+          final outputEvent = await outputEventFuture;
+
+          final inspectWrapper =
+              await client.getValidVariables(outputEvent.variablesReference!);
+          // The wrapper should only have one field for expanding.
+          final variable = inspectWrapper.variables.single;
+          expect(variable.value, '<inspected variable>');
+
+          // Check the child variables are as expected.
+          await client.expectVariables(
+            variable.variablesReference,
+            expectedVariables,
+          );
+        });
+      }
+
+      checkInspect(
+        '"My String"',
+        expectedVariables: 'String: "My String"',
+      );
+
+      checkInspect(
+        'null',
+        expectedVariables: 'Null: null',
+      );
+
+      checkInspect(
+        '[0, 1, 2]',
+        expectedVariables: '''
+          [0]: 0
+          [1]: 1
+          [2]: 2
+        ''',
+      );
+    });
+
     group('value formats', () {
       test('can trigger invalidation from the DAP client', () async {
         final client = dap.client;
@@ -690,6 +750,114 @@ void main() {
           format: ValueFormat(hex: true),
         );
       });
+    });
+
+    group('evaluateNames are correctly stored for nested variables', () {
+      /// A helper that checks evaluate names are available on nested objects
+      /// to ensure they are being stored correctly across variableRequests.
+      ///
+      /// [code] is the Dart code that should be included in the program.
+      /// [variablesPath] is a path to walk down from the Local Variables to get
+      /// to the 'myField' field on an instance of 'A'.
+      ///
+      /// This test ensures the evaluateName on that variable matches
+      /// [expectedEvaluateName].
+      void checkEvaluateNames(
+        String testType, {
+        required String code,
+        String? definitions,
+        required List<String> variablesPath,
+        required String expectedEvaluateName,
+      }) {
+        test('in $testType', () async {
+          final client = dap.client;
+          final testFile = dap.createTestFile('''
+class A {
+  final String myField = '';
+}
+${definitions ?? ''}
+void main() {
+  $code
+  print('Done!'); $breakpointMarker
+}
+    ''');
+
+          // Hit the breakpoint ready to evaluate.
+          final breakpointLine = lineWith(testFile, breakpointMarker);
+          final stop = await client.hitBreakpoint(
+            testFile,
+            breakpointLine,
+            launch: () => client.launch(
+              testFile.path,
+              evaluateGettersInDebugViews: true,
+            ),
+          );
+
+          // Walk down the variables path to locate our `A().myField`.
+          var variable = await client.getLocalVariable(
+            stop.threadId!,
+            variablesPath.removeAt(0),
+          );
+          while (variablesPath.isNotEmpty) {
+            variable = await client.getChildVariable(
+              variable.variablesReference,
+              variablesPath.removeAt(0),
+            );
+          }
+
+          expect(variable.evaluateName, expectedEvaluateName);
+        });
+      }
+
+      checkEvaluateNames(
+        'lists',
+        variablesPath: ['list', '[0]', 'myField'],
+        expectedEvaluateName: 'list[0].myField',
+        code: '''
+          final list = [A()];
+        ''',
+      );
+
+      checkEvaluateNames(
+        'maps',
+        // To support expanding complex keys, maps are rendered numerically with
+        // key/value pairs grouped by index, so rather than map->key here, we
+        // have to look in the first group, then the value.
+        variablesPath: ['map', '0', 'value', 'myField'],
+        // But the evaluate name should be the normal Dart code for this.
+        expectedEvaluateName: 'map["key"].myField',
+        code: '''
+          final map = {'key': A()};
+        ''',
+      );
+
+      checkEvaluateNames(
+        'fields',
+        variablesPath: ['a', 'b', 'myField'],
+        expectedEvaluateName: 'a.b.myField',
+        code: '''
+          final a = MyClass();
+        ''',
+        definitions: '''
+          class MyClass {
+            final b = A();
+          }
+        ''',
+      );
+
+      checkEvaluateNames(
+        'getters',
+        variablesPath: ['a', 'b', 'myField'],
+        expectedEvaluateName: 'a.b.myField',
+        code: '''
+          final a = MyClass();
+        ''',
+        definitions: '''
+          class MyClass {
+            A get b => A();
+          }
+        ''',
+      );
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);

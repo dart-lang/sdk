@@ -2614,6 +2614,8 @@ WarningCode.CAST_FROM_NULL_ALWAYS_FAILS:
   status: noFix
 WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS:
   status: noFix
+WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE:
+  status: needsEvaluation
 WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
   status: hasFix
 WarningCode.DEPRECATED_EXTENDS_FUNCTION:

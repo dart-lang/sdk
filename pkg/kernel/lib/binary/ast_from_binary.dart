@@ -2153,9 +2153,9 @@ class BinaryBuilder {
 
   Expression readExpression() {
     int tagByte = readByte();
-    int tag = tagByte & Tag.SpecializedTagHighBit == 0
-        ? tagByte
-        : (tagByte & Tag.SpecializedTagMask);
+    int tag = tagByte & Tag.SpecializedTagHighBits == Tag.SpecializedTagHighBits
+        ? (tagByte & Tag.SpecializedTagMask)
+        : tagByte;
     switch (tag) {
       // 18.57% (13.56% - 23.28%).
       case Tag.SpecializedVariableGet:

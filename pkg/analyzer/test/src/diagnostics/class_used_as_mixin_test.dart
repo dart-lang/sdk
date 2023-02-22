@@ -16,10 +16,12 @@ main() {
 @reflectiveTest
 class ClassUsedAsMixinTest extends PubPackageResolutionTest {
   test_inside() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class Foo {}
 class Bar with Foo {}
-''');
+''', [
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 28, 3),
+    ]);
   }
 
   test_inside_language219() async {

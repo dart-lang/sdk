@@ -48,7 +48,7 @@ List<String> _removeDevToolsBuildOption(List<String> args) {
 
   // serve_local.dart --devtools-build=foo
   // serve_local.dart --devtools-build="foo"
-  args.removeWhere((arg) => arg.startsWith('${option}='));
+  args.removeWhere((arg) => arg.startsWith('$option='));
 
   return args;
 }

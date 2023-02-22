@@ -198,20 +198,20 @@ static constexpr dart::compiler::target::word ICData_entries_offset = 12;
 static constexpr dart::compiler::target::word ICData_owner_offset = 20;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 28;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 8;
-static constexpr dart::compiler::target::word Isolate_current_tag_offset = 24;
-static constexpr dart::compiler::target::word Isolate_default_tag_offset = 28;
-static constexpr dart::compiler::target::word Isolate_finalizers_offset = 40;
+static constexpr dart::compiler::target::word Isolate_current_tag_offset = 20;
+static constexpr dart::compiler::target::word Isolate_default_tag_offset = 24;
+static constexpr dart::compiler::target::word Isolate_finalizers_offset = 36;
 static constexpr dart::compiler::target::word
-    Isolate_has_resumption_breakpoints_offset = 45;
-static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 32;
+    Isolate_has_resumption_breakpoints_offset = 41;
+static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 28;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
     16;
 static constexpr dart::compiler::target::word IsolateGroup_class_table_offset =
     8;
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 12;
-static constexpr dart::compiler::target::word Isolate_single_step_offset = 44;
-static constexpr dart::compiler::target::word Isolate_user_tag_offset = 20;
+static constexpr dart::compiler::target::word Isolate_single_step_offset = 40;
+static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
     ImmutableLinkedHashBase_data_offset = 12;
@@ -877,20 +877,20 @@ static constexpr dart::compiler::target::word ICData_entries_offset = 24;
 static constexpr dart::compiler::target::word ICData_owner_offset = 40;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 52;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 8;
-static constexpr dart::compiler::target::word Isolate_current_tag_offset = 48;
-static constexpr dart::compiler::target::word Isolate_default_tag_offset = 56;
-static constexpr dart::compiler::target::word Isolate_finalizers_offset = 80;
+static constexpr dart::compiler::target::word Isolate_current_tag_offset = 40;
+static constexpr dart::compiler::target::word Isolate_default_tag_offset = 48;
+static constexpr dart::compiler::target::word Isolate_finalizers_offset = 72;
 static constexpr dart::compiler::target::word
-    Isolate_has_resumption_breakpoints_offset = 89;
-static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 64;
+    Isolate_has_resumption_breakpoints_offset = 81;
+static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 56;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
     32;
 static constexpr dart::compiler::target::word IsolateGroup_class_table_offset =
     16;
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 24;
-static constexpr dart::compiler::target::word Isolate_single_step_offset = 88;
-static constexpr dart::compiler::target::word Isolate_user_tag_offset = 40;
+static constexpr dart::compiler::target::word Isolate_single_step_offset = 80;
+static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
     ImmutableLinkedHashBase_data_offset = 24;
@@ -1561,20 +1561,20 @@ static constexpr dart::compiler::target::word ICData_entries_offset = 12;
 static constexpr dart::compiler::target::word ICData_owner_offset = 20;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 28;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 8;
-static constexpr dart::compiler::target::word Isolate_current_tag_offset = 24;
-static constexpr dart::compiler::target::word Isolate_default_tag_offset = 28;
-static constexpr dart::compiler::target::word Isolate_finalizers_offset = 40;
+static constexpr dart::compiler::target::word Isolate_current_tag_offset = 20;
+static constexpr dart::compiler::target::word Isolate_default_tag_offset = 24;
+static constexpr dart::compiler::target::word Isolate_finalizers_offset = 36;
 static constexpr dart::compiler::target::word
-    Isolate_has_resumption_breakpoints_offset = 45;
-static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 32;
+    Isolate_has_resumption_breakpoints_offset = 41;
+static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 28;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
     16;
 static constexpr dart::compiler::target::word IsolateGroup_class_table_offset =
     8;
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 12;
-static constexpr dart::compiler::target::word Isolate_single_step_offset = 44;
-static constexpr dart::compiler::target::word Isolate_user_tag_offset = 20;
+static constexpr dart::compiler::target::word Isolate_single_step_offset = 40;
+static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
     ImmutableLinkedHashBase_data_offset = 12;
@@ -2240,20 +2240,20 @@ static constexpr dart::compiler::target::word ICData_entries_offset = 24;
 static constexpr dart::compiler::target::word ICData_owner_offset = 40;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 52;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 8;
-static constexpr dart::compiler::target::word Isolate_current_tag_offset = 48;
-static constexpr dart::compiler::target::word Isolate_default_tag_offset = 56;
-static constexpr dart::compiler::target::word Isolate_finalizers_offset = 80;
+static constexpr dart::compiler::target::word Isolate_current_tag_offset = 40;
+static constexpr dart::compiler::target::word Isolate_default_tag_offset = 48;
+static constexpr dart::compiler::target::word Isolate_finalizers_offset = 72;
 static constexpr dart::compiler::target::word
-    Isolate_has_resumption_breakpoints_offset = 89;
-static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 64;
+    Isolate_has_resumption_breakpoints_offset = 81;
+static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 56;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
     32;
 static constexpr dart::compiler::target::word IsolateGroup_class_table_offset =
     16;
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 24;
-static constexpr dart::compiler::target::word Isolate_single_step_offset = 88;
-static constexpr dart::compiler::target::word Isolate_user_tag_offset = 40;
+static constexpr dart::compiler::target::word Isolate_single_step_offset = 80;
+static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
     ImmutableLinkedHashBase_data_offset = 24;
@@ -2925,20 +2925,20 @@ static constexpr dart::compiler::target::word ICData_entries_offset = 24;
 static constexpr dart::compiler::target::word ICData_owner_offset = 40;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 52;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 8;
-static constexpr dart::compiler::target::word Isolate_current_tag_offset = 48;
-static constexpr dart::compiler::target::word Isolate_default_tag_offset = 56;
-static constexpr dart::compiler::target::word Isolate_finalizers_offset = 80;
+static constexpr dart::compiler::target::word Isolate_current_tag_offset = 40;
+static constexpr dart::compiler::target::word Isolate_default_tag_offset = 48;
+static constexpr dart::compiler::target::word Isolate_finalizers_offset = 72;
 static constexpr dart::compiler::target::word
-    Isolate_has_resumption_breakpoints_offset = 89;
-static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 64;
+    Isolate_has_resumption_breakpoints_offset = 81;
+static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 56;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
     32;
 static constexpr dart::compiler::target::word IsolateGroup_class_table_offset =
     16;
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 24;
-static constexpr dart::compiler::target::word Isolate_single_step_offset = 88;
-static constexpr dart::compiler::target::word Isolate_user_tag_offset = 40;
+static constexpr dart::compiler::target::word Isolate_single_step_offset = 80;
+static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
     ImmutableLinkedHashBase_data_offset = 16;
@@ -3610,20 +3610,20 @@ static constexpr dart::compiler::target::word ICData_entries_offset = 24;
 static constexpr dart::compiler::target::word ICData_owner_offset = 40;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 52;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 8;
-static constexpr dart::compiler::target::word Isolate_current_tag_offset = 48;
-static constexpr dart::compiler::target::word Isolate_default_tag_offset = 56;
-static constexpr dart::compiler::target::word Isolate_finalizers_offset = 80;
+static constexpr dart::compiler::target::word Isolate_current_tag_offset = 40;
+static constexpr dart::compiler::target::word Isolate_default_tag_offset = 48;
+static constexpr dart::compiler::target::word Isolate_finalizers_offset = 72;
 static constexpr dart::compiler::target::word
-    Isolate_has_resumption_breakpoints_offset = 89;
-static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 64;
+    Isolate_has_resumption_breakpoints_offset = 81;
+static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 56;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
     32;
 static constexpr dart::compiler::target::word IsolateGroup_class_table_offset =
     16;
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 24;
-static constexpr dart::compiler::target::word Isolate_single_step_offset = 88;
-static constexpr dart::compiler::target::word Isolate_user_tag_offset = 40;
+static constexpr dart::compiler::target::word Isolate_single_step_offset = 80;
+static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
     ImmutableLinkedHashBase_data_offset = 16;
@@ -4296,20 +4296,20 @@ static constexpr dart::compiler::target::word ICData_entries_offset = 12;
 static constexpr dart::compiler::target::word ICData_owner_offset = 20;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 28;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 8;
-static constexpr dart::compiler::target::word Isolate_current_tag_offset = 24;
-static constexpr dart::compiler::target::word Isolate_default_tag_offset = 28;
-static constexpr dart::compiler::target::word Isolate_finalizers_offset = 40;
+static constexpr dart::compiler::target::word Isolate_current_tag_offset = 20;
+static constexpr dart::compiler::target::word Isolate_default_tag_offset = 24;
+static constexpr dart::compiler::target::word Isolate_finalizers_offset = 36;
 static constexpr dart::compiler::target::word
-    Isolate_has_resumption_breakpoints_offset = 45;
-static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 32;
+    Isolate_has_resumption_breakpoints_offset = 41;
+static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 28;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
     16;
 static constexpr dart::compiler::target::word IsolateGroup_class_table_offset =
     8;
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 12;
-static constexpr dart::compiler::target::word Isolate_single_step_offset = 44;
-static constexpr dart::compiler::target::word Isolate_user_tag_offset = 20;
+static constexpr dart::compiler::target::word Isolate_single_step_offset = 40;
+static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
     ImmutableLinkedHashBase_data_offset = 12;
@@ -4977,20 +4977,20 @@ static constexpr dart::compiler::target::word ICData_entries_offset = 24;
 static constexpr dart::compiler::target::word ICData_owner_offset = 40;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 52;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 8;
-static constexpr dart::compiler::target::word Isolate_current_tag_offset = 48;
-static constexpr dart::compiler::target::word Isolate_default_tag_offset = 56;
-static constexpr dart::compiler::target::word Isolate_finalizers_offset = 80;
+static constexpr dart::compiler::target::word Isolate_current_tag_offset = 40;
+static constexpr dart::compiler::target::word Isolate_default_tag_offset = 48;
+static constexpr dart::compiler::target::word Isolate_finalizers_offset = 72;
 static constexpr dart::compiler::target::word
-    Isolate_has_resumption_breakpoints_offset = 89;
-static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 64;
+    Isolate_has_resumption_breakpoints_offset = 81;
+static constexpr dart::compiler::target::word Isolate_ic_miss_code_offset = 56;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
     32;
 static constexpr dart::compiler::target::word IsolateGroup_class_table_offset =
     16;
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 24;
-static constexpr dart::compiler::target::word Isolate_single_step_offset = 88;
-static constexpr dart::compiler::target::word Isolate_user_tag_offset = 40;
+static constexpr dart::compiler::target::word Isolate_single_step_offset = 80;
+static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
     ImmutableLinkedHashBase_data_offset = 24;
@@ -11078,15 +11078,15 @@ static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 16;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 20;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Isolate_current_tag_offset =
-    24;
+    20;
 static constexpr dart::compiler::target::word AOT_Isolate_default_tag_offset =
-    28;
+    24;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
-    40;
+    36;
 static constexpr dart::compiler::target::word
-    AOT_Isolate_has_resumption_breakpoints_offset = 45;
+    AOT_Isolate_has_resumption_breakpoints_offset = 41;
 static constexpr dart::compiler::target::word AOT_Isolate_ic_miss_code_offset =
-    32;
+    28;
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_object_store_offset = 16;
 static constexpr dart::compiler::target::word
@@ -11094,8 +11094,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 12;
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
-    44;
-static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 20;
+    40;
+static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 16;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -11831,15 +11831,15 @@ static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 32;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 40;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Isolate_current_tag_offset =
-    48;
+    40;
 static constexpr dart::compiler::target::word AOT_Isolate_default_tag_offset =
-    56;
+    48;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
-    80;
+    72;
 static constexpr dart::compiler::target::word
-    AOT_Isolate_has_resumption_breakpoints_offset = 89;
+    AOT_Isolate_has_resumption_breakpoints_offset = 81;
 static constexpr dart::compiler::target::word AOT_Isolate_ic_miss_code_offset =
-    64;
+    56;
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_object_store_offset = 32;
 static constexpr dart::compiler::target::word
@@ -11847,8 +11847,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 24;
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
-    88;
-static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 40;
+    80;
+static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     24;
 static constexpr dart::compiler::target::word
@@ -12591,15 +12591,15 @@ static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 32;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 40;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Isolate_current_tag_offset =
-    48;
+    40;
 static constexpr dart::compiler::target::word AOT_Isolate_default_tag_offset =
-    56;
+    48;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
-    80;
+    72;
 static constexpr dart::compiler::target::word
-    AOT_Isolate_has_resumption_breakpoints_offset = 89;
+    AOT_Isolate_has_resumption_breakpoints_offset = 81;
 static constexpr dart::compiler::target::word AOT_Isolate_ic_miss_code_offset =
-    64;
+    56;
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_object_store_offset = 32;
 static constexpr dart::compiler::target::word
@@ -12607,8 +12607,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 24;
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
-    88;
-static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 40;
+    80;
+static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     24;
 static constexpr dart::compiler::target::word
@@ -13349,15 +13349,15 @@ static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 32;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 40;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Isolate_current_tag_offset =
-    48;
+    40;
 static constexpr dart::compiler::target::word AOT_Isolate_default_tag_offset =
-    56;
+    48;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
-    80;
+    72;
 static constexpr dart::compiler::target::word
-    AOT_Isolate_has_resumption_breakpoints_offset = 89;
+    AOT_Isolate_has_resumption_breakpoints_offset = 81;
 static constexpr dart::compiler::target::word AOT_Isolate_ic_miss_code_offset =
-    64;
+    56;
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_object_store_offset = 32;
 static constexpr dart::compiler::target::word
@@ -13365,8 +13365,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 24;
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
-    88;
-static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 40;
+    80;
+static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -14107,15 +14107,15 @@ static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 32;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 40;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Isolate_current_tag_offset =
-    48;
+    40;
 static constexpr dart::compiler::target::word AOT_Isolate_default_tag_offset =
-    56;
+    48;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
-    80;
+    72;
 static constexpr dart::compiler::target::word
-    AOT_Isolate_has_resumption_breakpoints_offset = 89;
+    AOT_Isolate_has_resumption_breakpoints_offset = 81;
 static constexpr dart::compiler::target::word AOT_Isolate_ic_miss_code_offset =
-    64;
+    56;
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_object_store_offset = 32;
 static constexpr dart::compiler::target::word
@@ -14123,8 +14123,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 24;
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
-    88;
-static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 40;
+    80;
+static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -14865,15 +14865,15 @@ static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 16;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 20;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Isolate_current_tag_offset =
-    24;
+    20;
 static constexpr dart::compiler::target::word AOT_Isolate_default_tag_offset =
-    28;
+    24;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
-    40;
+    36;
 static constexpr dart::compiler::target::word
-    AOT_Isolate_has_resumption_breakpoints_offset = 45;
+    AOT_Isolate_has_resumption_breakpoints_offset = 41;
 static constexpr dart::compiler::target::word AOT_Isolate_ic_miss_code_offset =
-    32;
+    28;
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_object_store_offset = 16;
 static constexpr dart::compiler::target::word
@@ -14881,8 +14881,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 12;
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
-    44;
-static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 20;
+    40;
+static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 16;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -15620,15 +15620,15 @@ static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 32;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 40;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Isolate_current_tag_offset =
-    48;
+    40;
 static constexpr dart::compiler::target::word AOT_Isolate_default_tag_offset =
-    56;
+    48;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
-    80;
+    72;
 static constexpr dart::compiler::target::word
-    AOT_Isolate_has_resumption_breakpoints_offset = 89;
+    AOT_Isolate_has_resumption_breakpoints_offset = 81;
 static constexpr dart::compiler::target::word AOT_Isolate_ic_miss_code_offset =
-    64;
+    56;
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_object_store_offset = 32;
 static constexpr dart::compiler::target::word
@@ -15636,8 +15636,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 24;
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
-    88;
-static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 40;
+    80;
+static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     24;
 static constexpr dart::compiler::target::word

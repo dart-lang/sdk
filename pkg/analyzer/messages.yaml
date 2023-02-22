@@ -5847,7 +5847,7 @@ CompileTimeErrorCode:
       in both the `extends` and `with` clauses for the class `B`:
 
       ```dart
-      class A {}
+      mixin class A {}
 
       class B extends A with [!A!] {}
       ```
@@ -8834,6 +8834,7 @@ CompileTimeErrorCode:
       defines a constructor, is being used as a mixin:
 
       ```dart
+      //@dart=2.19
       class A {
         A();
       }
@@ -8856,6 +8857,7 @@ CompileTimeErrorCode:
       then do so:
 
       ```dart
+      //@dart=2.19
       class A {
       }
 
@@ -8890,6 +8892,7 @@ CompileTimeErrorCode:
       extends `A`, is being used as a mixin by `C`:
 
       ```dart
+      //@dart=2.19
       class A {}
 
       class B extends A {}
@@ -8903,6 +8906,7 @@ CompileTimeErrorCode:
       change it:
 
       ```dart
+      //@dart=2.19
       class A {}
 
       class B {}
@@ -20795,6 +20799,13 @@ WarningCode:
         print(x);
       }
       ```
+  CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE:
+    problemMessage: "The matched value type '{0}' can never be equal to this constant of type '{1}'."
+    correctionMessage: "Try a constant of the same type as the matched value type."
+    comment: |-
+      Parameters:
+      0: the matched value type
+      1: the constant value type
   DEAD_CODE:
     aliasFor: HintCode.DEAD_CODE
     comment: This is the new replacement for [HintCode.DEAD_CODE].

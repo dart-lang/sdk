@@ -22,10 +22,10 @@ class StronglyReachableInstancesRepository
     S.Class cls = c as S.Class;
     assert(isolate != null);
     assert(cls != null);
-    final response = await isolate.invokeRpc('_getInstancesAsArray', {
+    final response = await isolate.invokeRpc('getInstancesAsList', {
       'objectId': cls.id,
       'includeSubclasses': includeSubclasses == true,
-      'includeImplementors': includeImplementors == true,
+      'includeImplementers': includeImplementors == true,
     });
     return new S.Guarded<S.Instance>(response);
   }

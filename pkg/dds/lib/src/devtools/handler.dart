@@ -51,7 +51,7 @@ FutureOr<Handler> defaultHandler({
   /// A wrapper around [devtoolsStaticAssetHandler] that handles serving
   /// index.html up for / and non-file requests like /memory, /inspector, etc.
   /// with the correct base href for the DevTools root.
-  final devtoolsAssetHandler = (Request request) {
+  FutureOr<Response> devtoolsAssetHandler(Request request) {
     // To avoid hard-coding a set of page names here (or needing access to one
     // from DevTools, assume any single-segment path with no extension is a
     // DevTools page that needs to serve up index.html).
@@ -68,7 +68,7 @@ FutureOr<Handler> defaultHandler({
     }
 
     return devtoolsStaticAssetHandler(request);
-  };
+  }
 
   // Support DevTools client-server interface via SSE.
   // Note: the handler path needs to match the full *original* path, not the
@@ -89,7 +89,7 @@ FutureOr<Handler> defaultHandler({
     ),
   );
 
-  final devtoolsHandler = (Request request) {
+  FutureOr<Response> devtoolsHandler(Request request) {
     // If the request isn't of the form api/<method> assume it's a request for
     // DevTools assets.
     if (request.url.pathSegments.length < 2 ||
@@ -109,7 +109,7 @@ FutureOr<Handler> defaultHandler({
       return Response.notFound('$method is not a valid API');
     }
     return ServerApi.handle(request);
-  };
+  }
 
   return (Request request) {
     if (notFoundHandler != null) {

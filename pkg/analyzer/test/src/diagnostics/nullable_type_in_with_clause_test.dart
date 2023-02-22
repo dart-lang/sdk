@@ -17,14 +17,14 @@ main() {
 class NullableTypeInWithClauseTest extends PubPackageResolutionTest {
   test_class_nonNullable() async {
     await assertNoErrorsInCode('''
-class A {}
+mixin A {}
 class B with A {}
 ''');
   }
 
   test_class_nullable() async {
     await assertErrorsInCode('''
-class A {}
+mixin A {}
 class B with A? {}
 ''', [
       error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 24, 2),
@@ -33,7 +33,7 @@ class B with A? {}
 
   test_class_nullable_alias() async {
     await assertErrorsInCode('''
-class A {}
+mixin A {}
 typedef B = A;
 class C with B? {}
 ''', [
@@ -43,7 +43,7 @@ class C with B? {}
 
   test_class_nullable_alias2() async {
     await assertErrorsInCode('''
-class A {}
+mixin A {}
 typedef B = A?;
 class C with B {}
 ''', [
@@ -54,7 +54,7 @@ class C with B {}
   test_classAlias_withClass_nonNullable() async {
     await assertNoErrorsInCode('''
 class A {}
-class B {}
+mixin B {}
 class C = A with B;
 ''');
   }
@@ -62,7 +62,7 @@ class C = A with B;
   test_classAlias_withClass_nullable() async {
     await assertErrorsInCode('''
 class A {}
-class B {}
+mixin B {}
 class C = A with B?;
 ''', [
       error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 39, 2),
@@ -72,7 +72,7 @@ class C = A with B?;
   test_classAlias_withClass_nullable_alias() async {
     await assertErrorsInCode('''
 class A {}
-class B {}
+mixin B {}
 typedef C = B;
 class D = A with C?;
 ''', [
@@ -83,7 +83,7 @@ class D = A with C?;
   test_classAlias_withClass_nullable_alias2() async {
     await assertErrorsInCode('''
 class A {}
-class B {}
+mixin B {}
 typedef C = B?;
 class D = A with C;
 ''', [

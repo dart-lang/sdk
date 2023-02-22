@@ -93,8 +93,8 @@ class Profiler : public AllStatic {
   // SampleThread is called from inside the signal handler and hence it is very
   // critical that the implementation of SampleThread does not do any of the
   // following:
-  //   * Accessing TLS -- Because on Windows and Fuchsia the callback will be
-  //                      running in a different thread.
+  //   * Accessing TLS -- Because on Fuchsia, Mac and Windows the callback will
+  //                      be running in a different thread.
   //   * Allocating memory -- Because this takes locks which may already be
   //                          held, resulting in a dead lock.
   //   * Taking a lock -- See above.
@@ -105,6 +105,9 @@ class Profiler : public AllStatic {
     return counters_;
   }
   inline static intptr_t Size();
+
+  static void ProcessCompletedBlocks(Thread* thread);
+  static void IsolateShutdown(Thread* thread);
 
  private:
   static void DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash);
@@ -157,11 +160,13 @@ class SampleFilter : public ValueObject {
   SampleFilter(Dart_Port port,
                intptr_t thread_task_mask,
                int64_t time_origin_micros,
-               int64_t time_extent_micros)
+               int64_t time_extent_micros,
+               bool take_samples = false)
       : port_(port),
         thread_task_mask_(thread_task_mask),
         time_origin_micros_(time_origin_micros),
-        time_extent_micros_(time_extent_micros) {
+        time_extent_micros_(time_extent_micros),
+        take_samples_(take_samples) {
     ASSERT(thread_task_mask != 0);
     ASSERT(time_origin_micros_ >= -1);
     ASSERT(time_extent_micros_ >= -1);
@@ -180,6 +185,8 @@ class SampleFilter : public ValueObject {
   // Returns |true| if |sample| passes the thread task filter.
   bool TaskFilterSample(Sample* sample);
 
+  bool take_samples() const { return take_samples_; }
+
   static const intptr_t kNoTaskFilter = -1;
 
  private:
@@ -187,6 +194,7 @@ class SampleFilter : public ValueObject {
   intptr_t thread_task_mask_;
   int64_t time_origin_micros_;
   int64_t time_extent_micros_;
+  bool take_samples_;
 };
 
 class ClearProfileVisitor : public SampleVisitor {
@@ -718,60 +726,88 @@ class SampleBlock : public SampleBuffer {
   SampleBlock() = default;
   virtual ~SampleBlock() = default;
 
-  void Clear() {
-    allocation_block_ = false;
-    cursor_ = 0;
-    full_ = false;
-    evictable_ = false;
-    next_free_ = nullptr;
-  }
-
   // Returns the number of samples contained within this block.
   intptr_t capacity() const { return capacity_; }
-
-  // Specify whether or not this block is used for assigning allocation
-  // samples.
-  void set_is_allocation_block(bool is_allocation_block) {
-    allocation_block_ = is_allocation_block;
-  }
 
   Isolate* owner() const { return owner_; }
   void set_owner(Isolate* isolate) { owner_ = isolate; }
 
-  // Manually marks the block as full so it can be processed and added back to
-  // the pool of available blocks.
-  void release_block() { full_.store(true); }
-
-  // When true, this sample block is considered complete and will no longer be
-  // used to assign new Samples. This block is **not** available for
-  // re-allocation simply because it's full. It must be processed by
-  // SampleBlockBuffer::ProcessCompletedBlocks before it can be considered
-  // evictable and available for re-allocation.
-  bool is_full() const { return full_.load(); }
-
-  // When true, this sample block is available for re-allocation.
-  bool evictable() const { return evictable_.load(); }
-
   virtual Sample* ReserveSample();
   virtual Sample* ReserveSampleAndLink(Sample* previous);
+
+  bool TryAllocateFree() {
+    State expected = kFree;
+    State desired = kSampling;
+    std::memory_order success_order = std::memory_order_acquire;
+    std::memory_order failure_order = std::memory_order_relaxed;
+    return state_.compare_exchange_strong(expected, desired, success_order,
+                                          failure_order);
+  }
+  bool TryAllocateCompleted() {
+    State expected = kCompleted;
+    State desired = kSampling;
+    std::memory_order success_order = std::memory_order_acquire;
+    std::memory_order failure_order = std::memory_order_relaxed;
+    if (state_.compare_exchange_strong(expected, desired, success_order,
+                                       failure_order)) {
+      owner_ = nullptr;
+      cursor_ = 0;
+      return true;
+    }
+    return false;
+  }
+  void MarkCompleted() {
+    ASSERT(state_.load(std::memory_order_relaxed) == kSampling);
+    state_.store(kCompleted, std::memory_order_release);
+  }
+  bool TryAcquireStreaming(Isolate* isolate) {
+    if (state_.load(std::memory_order_relaxed) != kCompleted) return false;
+    if (owner_ != isolate) return false;
+
+    State expected = kCompleted;
+    State desired = kStreaming;
+    std::memory_order success_order = std::memory_order_acquire;
+    std::memory_order failure_order = std::memory_order_relaxed;
+    return state_.compare_exchange_strong(expected, desired, success_order,
+                                          failure_order);
+  }
+  void StreamingToCompleted() {
+    ASSERT(state_.load(std::memory_order_relaxed) == kStreaming);
+    state_.store(kCompleted, std::memory_order_relaxed);
+  }
+  void StreamingToFree() {
+    ASSERT(state_.load(std::memory_order_relaxed) == kStreaming);
+    owner_ = nullptr;
+    cursor_ = 0;
+    state_.store(kFree, std::memory_order_release);
+  }
+  void FreeCompleted() {
+    State expected = kCompleted;
+    State desired = kStreaming;
+    std::memory_order success_order = std::memory_order_acquire;
+    std::memory_order failure_order = std::memory_order_relaxed;
+    if (state_.compare_exchange_strong(expected, desired, success_order,
+                                       failure_order)) {
+      StreamingToFree();
+    }
+  }
 
  protected:
   bool HasStreamableSamples(const GrowableObjectArray& tag_table, UserTag* tag);
 
+  enum State : uint32_t {
+    kFree,
+    kSampling,  // I.e., writing.
+    kCompleted,
+    kStreaming,  // I.e., reading.
+  };
+  std::atomic<State> state_ = kFree;
+  RelaxedAtomic<uint32_t> cursor_ = 0;
   Isolate* owner_ = nullptr;
-  bool allocation_block_ = false;
-
-  intptr_t index_;
-  RelaxedAtomic<int> cursor_ = 0;
-  RelaxedAtomic<bool> full_ = false;
-  RelaxedAtomic<bool> evictable_ = false;
-
-  SampleBlock* next_free_ = nullptr;
 
  private:
   friend class SampleBlockListProcessor;
   friend class SampleBlockBuffer;
-  friend class Isolate;
 
   DISALLOW_COPY_AND_ASSIGN(SampleBlock);
 };
@@ -792,23 +828,12 @@ class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
 
   void VisitSamples(SampleVisitor* visitor) {
     ASSERT(visitor != NULL);
-    for (intptr_t i = 0; i < cursor_.load(); ++i) {
-      (&blocks_[i])->VisitSamples(visitor);
+    for (intptr_t i = 0; i < capacity_; ++i) {
+      blocks_[i].VisitSamples(visitor);
     }
   }
 
-  // Returns true when there is at least a single block that needs to be
-  // processed.
-  //
-  // NOTE: this should only be called from the interrupt handler as
-  // invocation will have the side effect of clearing the underlying flag.
-  bool process_blocks() { return can_process_block_.exchange(false); }
-
-  // Iterates over the blocks in the buffer and processes blocks marked as
-  // full. Processing consists of sending a service event with the samples from
-  // completed, unprocessed blocks and marking these blocks are evictable
-  // (i.e., safe to be re-allocated and re-used).
-  void ProcessCompletedBlocks();
+  void FreeCompletedBlocks();
 
   // Reserves a sample for a CPU profile.
   //
@@ -832,41 +857,10 @@ class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
   // Returns nullptr if there are no available blocks.
   SampleBlock* ReserveSampleBlock();
 
-  void FreeBlock(SampleBlock* block) {
-    ASSERT(block->next_free_ == nullptr);
-    MutexLocker ml(&free_block_lock_);
-    if (free_list_head_ == nullptr) {
-      free_list_head_ = block;
-      free_list_tail_ = block;
-      return;
-    }
-    free_list_tail_->next_free_ = block;
-    free_list_tail_ = block;
-  }
-
-  SampleBlock* GetFreeBlock() {
-    MutexLocker ml(&free_block_lock_);
-    if (free_list_head_ == nullptr) {
-      return nullptr;
-    }
-    SampleBlock* block = free_list_head_;
-    free_list_head_ = block->next_free_;
-    if (free_list_head_ == nullptr) {
-      free_list_tail_ = nullptr;
-    }
-    block->next_free_ = nullptr;
-    return block;
-  }
-
-  Mutex free_block_lock_;
-  RelaxedAtomic<bool> can_process_block_ = false;
-
   // Sample block management.
   RelaxedAtomic<int> cursor_;
   SampleBlock* blocks_;
   intptr_t capacity_;
-  SampleBlock* free_list_head_;
-  SampleBlock* free_list_tail_;
 
   // Sample buffer management.
   VirtualMemory* memory_;
@@ -876,9 +870,9 @@ class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
   DISALLOW_COPY_AND_ASSIGN(SampleBlockBuffer);
 };
 
-class SampleBlockListProcessor : public ProcessedSampleBufferBuilder {
+class StreamingSampleBufferBuilder : public ProcessedSampleBufferBuilder {
  public:
-  explicit SampleBlockListProcessor(SampleBlock* head) : head_(head) {}
+  explicit StreamingSampleBufferBuilder(Isolate* isolate) : isolate_(isolate) {}
 
   virtual ProcessedSampleBuffer* BuildProcessedSampleBuffer(
       SampleFilter* filter,
@@ -889,9 +883,9 @@ class SampleBlockListProcessor : public ProcessedSampleBufferBuilder {
   bool HasStreamableSamples(Thread* thread);
 
  private:
-  SampleBlock* head_;
+  Isolate* isolate_;
 
-  DISALLOW_COPY_AND_ASSIGN(SampleBlockListProcessor);
+  DISALLOW_COPY_AND_ASSIGN(StreamingSampleBufferBuilder);
 };
 
 class AllocationSampleBuffer : public SampleBuffer {

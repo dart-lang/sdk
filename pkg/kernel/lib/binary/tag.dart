@@ -180,13 +180,14 @@ class Tag {
   // 126 is occupied by [FunctionTearOff] (expression).
   // 127 is occupied by [LocalFunctionInvocation] (expression).
 
-  static const int SpecializedTagHighBit = 0x80; // 10000000
-  static const int SpecializedTagMask = 0xF8; // 11111000
-  static const int SpecializedPayloadMask = 0x7; // 00000111
+  static const int SpecializedTagHighBits = 0xE0; // 0b11100000
+  static const int SpecializedTagMask = 0xF8; //    0b11111000
+  static const int SpecializedPayloadMask = 0x7; // 0b00000111
 
-  static const int SpecializedVariableGet = 128;
-  static const int SpecializedVariableSet = 136;
-  static const int SpecializedIntLiteral = 144;
+  static const int SpecializedVariableGet = 224; // 0b11100000
+  static const int SpecializedVariableSet = 232; // 0b11101000
+  static const int SpecializedIntLiteral = 240; //  0b11110000
+  // TODO: There's space for another special here (248, 0b11111000)
 
   static const int SpecializedIntLiteralBias = 3;
 
@@ -195,7 +196,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 93;
+  static const int BinaryFormatVersion = 94;
 }
 
 abstract class ConstantTag {

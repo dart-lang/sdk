@@ -13,7 +13,7 @@ import 'protocol_stream.dart';
 
 typedef _FromJsonHandler<T> = T Function(Map<String, Object?>);
 typedef _NullableFromJsonHandler<T> = T? Function(Map<String, Object?>?);
-typedef _RequestHandler<TArg, TResp> = Future<void> Function(
+typedef RequestHandler<TArg, TResp> = Future<void> Function(
     Request, TArg, void Function(TResp));
 typedef _VoidArgRequestHandler<TArg> = Future<void> Function(
     Request, TArg, void Function(void));
@@ -105,7 +105,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   /// If [handler] throws, its exception will be sent as an error response.
   Future<void> handle<TArg, TResp>(
     Request request,
-    _RequestHandler<TArg, TResp> handler,
+    RequestHandler<TArg, TResp> handler,
     TArg Function(Map<String, Object?>) fromJson,
   ) async {
     try {

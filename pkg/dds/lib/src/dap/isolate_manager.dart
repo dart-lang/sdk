@@ -13,6 +13,7 @@ import 'adapters/dart.dart';
 import 'exceptions.dart';
 import 'protocol_generated.dart';
 import 'utils.dart';
+import 'variables.dart';
 
 /// Manages state of Isolates (called Threads by the DAP protocol).
 ///
@@ -102,7 +103,7 @@ class IsolateManager {
   ///
   /// Stored data is thread-scoped but the client will not provide the thread
   /// when asking for data so it's all stored together here.
-  final _storedData = <int, _StoredData>{};
+  final _storedData = <int, StoredData>{};
 
   /// A pattern that matches an opening brace `{` that was not preceded by a
   /// dollar.
@@ -148,7 +149,7 @@ class IsolateManager {
 
   /// Retrieves some basic data indexed by an integer for use in "reference"
   /// fields that are round-tripped to the client.
-  _StoredData? getStoredData(int id) {
+  StoredData? getStoredData(int id) {
     return _storedData[id];
   }
 
@@ -177,6 +178,8 @@ class IsolateManager {
       await _handlePause(event);
     } else if (eventKind == vm.EventKind.kResume) {
       _handleResumed(event);
+    } else if (eventKind == vm.EventKind.kInspect) {
+      _handleInspect(event);
     }
   }
 
@@ -326,7 +329,7 @@ class IsolateManager {
   /// that are round-tripped to the client.
   int storeData(ThreadInfo thread, Object data) {
     final id = _nextStoredDataId++;
-    _storedData[id] = _StoredData(thread, data);
+    _storedData[id] = StoredData(thread, data);
     return id;
   }
 
@@ -533,6 +536,23 @@ class IsolateManager {
       thread.paused = false;
       thread.pauseEvent = null;
       thread.exceptionReference = null;
+    }
+  }
+
+  /// Handles an inspect event from the VM, sending the value/variable to the
+  /// debugger.
+  void _handleInspect(vm.Event event) {
+    final isolate = event.isolate!;
+    final thread = _threadsByIsolateId[isolate.id!];
+    final inspectee = event.inspectee;
+
+    if (thread != null && inspectee != null) {
+      final ref = thread.storeData(InspectData(inspectee));
+      _adapter.sendOutput(
+        'console',
+        '', // Not shown by the client because it fetches the variable.
+        variablesReference: ref,
+      );
     }
   }
 
@@ -1035,9 +1055,9 @@ class ThreadInfo {
   }
 }
 
-class _StoredData {
+class StoredData {
   final ThreadInfo thread;
   final Object data;
 
-  _StoredData(this.thread, this.data);
+  StoredData(this.thread, this.data);
 }

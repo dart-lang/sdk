@@ -131,6 +131,8 @@ import 'const_with_non_type_test.dart' as const_with_non_type;
 import 'const_with_type_parameters_test.dart' as const_with_type_parameters;
 import 'const_with_undefined_constructor_test.dart'
     as const_with_undefined_constructor;
+import 'constant_pattern_never_matches_value_type_test.dart'
+    as constant_pattern_never_matches_value_type;
 import 'constant_pattern_with_non_constant_expression_test.dart'
     as constant_pattern_with_non_constant_expression;
 import 'continue_label_invalid_test.dart' as continue_label_invalid;
@@ -954,6 +956,7 @@ main() {
     const_with_non_type.main();
     const_with_type_parameters.main();
     const_with_undefined_constructor.main();
+    constant_pattern_never_matches_value_type.main();
     constant_pattern_with_non_constant_expression.main();
     continue_label_invalid.main();
     could_not_infer.main();

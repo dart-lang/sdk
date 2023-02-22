@@ -332,6 +332,7 @@ class C extends B {}
   test_classTypeAlias_interface() async {
     // issue 15979
     await assertNoErrorsInCode(r'''
+//@dart=2.19
 abstract class M {}
 abstract class A {}
 abstract class I {
@@ -344,6 +345,7 @@ abstract class B = A with M implements I;
   test_classTypeAlias_mixin() async {
     // issue 15979
     await assertNoErrorsInCode(r'''
+//@dart=2.19
 abstract class M {
   m();
 }
@@ -355,6 +357,7 @@ abstract class B = A with M;
   test_classTypeAlias_superclass() async {
     // issue 15979
     await assertNoErrorsInCode(r'''
+//@dart=2.19
 class M {}
 abstract class A {
   m();
@@ -404,6 +407,7 @@ class C extends A {
   test_mixin_concreteGetter() async {
     // issue 17034
     await assertNoErrorsInCode(r'''
+//@dart=2.19
 class A {
   var a;
 }
@@ -417,6 +421,7 @@ class C extends B {}
 
   test_mixin_concreteMethod() async {
     await assertNoErrorsInCode(r'''
+//@dart=2.19
 class A {
   m() {}
 }
@@ -430,6 +435,7 @@ class C extends B {}
 
   test_mixin_concreteSetter() async {
     await assertNoErrorsInCode(r'''
+//@dart=2.19
 class A {
   var a;
 }
@@ -465,6 +471,7 @@ class B extends A {
 
   test_noSuchMethod_mixin() async {
     await assertNoErrorsInCode(r'''
+//@dart=2.19
 class A {
   noSuchMethod(v) => '';
 }
@@ -488,6 +495,7 @@ class B extends A {
   test_one_classTypeAlias_interface() async {
     // issue 15979
     await assertErrorsInCode('''
+//@dart=2.19
 abstract class M {}
 abstract class A {}
 abstract class I {
@@ -497,7 +505,7 @@ class B = A with M implements I;
 ''', [
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          74,
+          87,
           1),
     ]);
   }
@@ -505,6 +513,7 @@ class B = A with M implements I;
   test_one_classTypeAlias_mixin() async {
     // issue 15979
     await assertErrorsInCode('''
+//@dart=2.19
 abstract class M {
   m();
 }
@@ -513,7 +522,7 @@ class B = A with M;
 ''', [
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          54,
+          67,
           1),
     ]);
   }
@@ -521,6 +530,7 @@ class B = A with M;
   test_one_classTypeAlias_superclass() async {
     // issue 15979
     await assertErrorsInCode('''
+//@dart=2.19
 class M {}
 abstract class A {
   m();
@@ -529,7 +539,7 @@ class B = A with M;
 ''', [
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          45,
+          58,
           1),
     ]);
   }
@@ -662,13 +672,14 @@ class C implements A, B {
   test_one_mixinInherits_getter() async {
     // issue 15001
     await assertErrorsInCode('''
+//@dart=2.19
 abstract class A { get g1; get g2; }
 abstract class B implements A { get g1 => 1; }
 class C extends Object with B {}
 ''', [
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          90,
+          103,
           1),
     ]);
   }
@@ -676,13 +687,14 @@ class C extends Object with B {}
   test_one_mixinInherits_method() async {
     // issue 15001
     await assertErrorsInCode('''
+//@dart=2.19
 abstract class A { m1(); m2(); }
 abstract class B implements A { m1() => 1; }
 class C extends Object with B {}
 ''', [
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          84,
+          97,
           1),
     ]);
   }
@@ -690,13 +702,14 @@ class C extends Object with B {}
   test_one_mixinInherits_setter() async {
     // issue 15001
     await assertErrorsInCode('''
+//@dart=2.19
 abstract class A { set s1(v); set s2(v); }
 abstract class B implements A { set s1(v) {} }
 class C extends Object with B {}
 ''', [
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          96,
+          109,
           1),
     ]);
   }
@@ -825,6 +838,7 @@ class C implements I {
 
   test_overridesConcreteMethodInObject() async {
     await assertNoErrorsInCode(r'''
+//@dart=2.19
 class A {
   String toString([String prefix = '']) => '${prefix}Hello';
 }

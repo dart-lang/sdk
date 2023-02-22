@@ -25,7 +25,7 @@ class A extends Object with Function {}
 
   test_local() async {
     await assertErrorsInCode('''
-class Function {}
+mixin Function {}
 class A extends Object with Function {}
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8),

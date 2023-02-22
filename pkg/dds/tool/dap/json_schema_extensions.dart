@@ -103,7 +103,7 @@ extension JsonTypeExtensions on JsonType {
   /// Whether this type is a simple type that needs no special handling for
   /// deserialization (such as `String`, `bool`, `int`, `Map<String, Object?>`).
   bool get isSimple {
-    const _dartSimpleTypes = {
+    const dartSimpleTypes = {
       'bool',
       'int',
       'num',
@@ -112,7 +112,7 @@ extension JsonTypeExtensions on JsonType {
       'Null',
     };
     return type != null &&
-        _dartSimpleTypes.contains(type!.map(_toDartType, _toDartUnionType));
+        dartSimpleTypes.contains(type!.map(_toDartType, _toDartUnionType));
   }
 
   /// Whether this type is a Union type using JSON schema's "oneOf" of where its

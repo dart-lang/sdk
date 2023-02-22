@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:vm_service/vm_service.dart';
+
 import 'protocol_generated.dart';
 
 /// A wrapper around variables for use in `variablesRequest` that can hold
@@ -12,6 +14,14 @@ class VariableData {
   final VariableFormat? format;
 
   VariableData(this.data, this.format);
+}
+
+/// A wrapper around a variable for use in `variablesRequest` that holds
+/// an instance sent for inspection.
+class InspectData {
+  final InstanceRef? instance;
+
+  InspectData(this.instance);
 }
 
 /// Formatting preferences for a variable.

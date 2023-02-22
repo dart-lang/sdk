@@ -52,7 +52,7 @@ class S {
   int get foo => 0;
 }
 
-class M {
+mixin M {
   int foo() => 0;
 }
 
@@ -69,11 +69,11 @@ class S {
   int get foo => 0;
 }
 
-class M1 {
+mixin M1 {
   int foo() => 0;
 }
 
-class M2 {
+mixin M2 {
   int get foo => 0;
 }
 

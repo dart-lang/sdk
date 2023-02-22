@@ -148,17 +148,25 @@ class ProtocolConverter {
       // For lists, map each item (in the requested subset) to a variable.
       final start = startItem ?? 0;
       return Future.wait(elements.cast<vm.Response>().mapIndexed(
-            (index, response) => convertVmResponseToVariable(
-              thread,
-              response,
-              name: '[${start + index}]',
-              evaluateName: _adapter.combineEvaluateName(
-                  evaluateName, '[${start + index}]'),
-              allowCallingToString:
-                  allowCallingToString && index <= maxToStringsPerEvaluation,
-              format: format,
-            ),
-          ));
+        (index, response) {
+          final name = '[${start + index}]';
+          final itemEvaluateName =
+              _adapter.combineEvaluateName(evaluateName, name);
+          if (response is vm.InstanceRef) {
+            _adapter.storeEvaluateName(response, itemEvaluateName);
+          }
+
+          return convertVmResponseToVariable(
+            thread,
+            response,
+            name: name,
+            evaluateName: itemEvaluateName,
+            allowCallingToString:
+                allowCallingToString && index <= maxToStringsPerEvaluation,
+            format: format,
+          );
+        },
+      ));
     } else if (associations != null) {
       // For maps, create a variable for each entry (in the requested subset).
       // Use the keys and values to create a display string in the form
@@ -206,15 +214,17 @@ class ProtocolConverter {
       final elements = _decodeList(instance);
 
       final start = startItem ?? 0;
-      return elements
-          .mapIndexed(
-            (index, element) => dap.Variable(
-              name: '[${start + index}]',
-              value: element.toString(),
-              variablesReference: 0,
-            ),
-          )
-          .toList();
+      return elements.mapIndexed(
+        (index, element) {
+          final name = '[${start + index}]';
+          return dap.Variable(
+            name: name,
+            evaluateName: _adapter.combineEvaluateName(evaluateName, name),
+            value: element.toString(),
+            variablesReference: 0,
+          );
+        },
+      ).toList();
     } else if (fields != null) {
       // Otherwise, show the fields from the instance.
       final variables = await Future.wait(fields.mapIndexed(
@@ -227,13 +237,17 @@ class ProtocolConverter {
           } else {
             name ??= field.name;
           }
+          final fieldEvaluateName = name != null
+              ? _adapter.combineEvaluateName(evaluateName, '.$name')
+              : null;
+          if (fieldEvaluateName != null) {
+            _adapter.storeEvaluateName(field.value, fieldEvaluateName);
+          }
           return convertVmResponseToVariable(
             thread,
             field.value,
             name: name ?? '<unnamed field>',
-            evaluateName: name != null
-                ? _adapter.combineEvaluateName(evaluateName, '.$name')
-                : null,
+            evaluateName: fieldEvaluateName,
             allowCallingToString:
                 allowCallingToString && index <= maxToStringsPerEvaluation,
             format: format,
@@ -258,6 +272,11 @@ class ProtocolConverter {
               instance.id!,
               getterName,
             );
+            final fieldEvaluateName =
+                _adapter.combineEvaluateName(evaluateName, '.$getterName');
+            if (response is vm.InstanceRef) {
+              _adapter.storeEvaluateName(response, fieldEvaluateName);
+            }
             // Convert results to variables.
             return convertVmResponseToVariable(
               thread,

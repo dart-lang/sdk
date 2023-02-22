@@ -200,6 +200,9 @@ abstract class DartCodeActionKind {
   //   LSP protocol code and swap this code CodeActionKind.SourceFixAll
   //   https://github.com/microsoft/language-server-protocol/pull/1308
   static const FixAll = CodeActionKind('source.fixAll');
+  // TODO(dantup): Remove this in favour of CodeActionKind.RefactorMove once it
+  //   has been added to a published LSP version.
+  static const RefactorMove = CodeActionKind('refactor.move');
 }
 
 abstract class ServerErrorCodes {

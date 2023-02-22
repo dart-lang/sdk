@@ -10235,6 +10235,7 @@ class OneByteString : public AllStatic {
   friend class Utf8;
   friend class OneByteStringMessageSerializationCluster;
   friend class Deserializer;
+  friend class JSONWriter;
 };
 
 class TwoByteString : public AllStatic {
@@ -10353,6 +10354,7 @@ class TwoByteString : public AllStatic {
   friend class StringHasher;
   friend class Symbols;
   friend class TwoByteStringMessageSerializationCluster;
+  friend class JSONWriter;
 };
 
 class ExternalOneByteString : public AllStatic {
@@ -10445,6 +10447,7 @@ class ExternalOneByteString : public AllStatic {
   friend class StringHasher;
   friend class Symbols;
   friend class Utf8;
+  friend class JSONWriter;
 };
 
 class ExternalTwoByteString : public AllStatic {
@@ -10532,6 +10535,7 @@ class ExternalTwoByteString : public AllStatic {
   friend class String;
   friend class StringHasher;
   friend class Symbols;
+  friend class JSONWriter;
 };
 
 // Matches null_patch.dart / bool_patch.dart.

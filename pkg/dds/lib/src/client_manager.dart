@@ -14,7 +14,7 @@ import 'stream_manager.dart';
 /// [DartDevelopmentServiceClient]s, all of the same client name, with a
 /// permissions mask used to determine which pause event types require approval
 /// from one of the listed clients before resuming an isolate.
-class _ClientResumePermissions {
+class ClientResumePermissions {
   final List<DartDevelopmentServiceClient> clients = [];
   int permissionsMask = 0;
 }
@@ -110,7 +110,7 @@ class ClientManager {
     client.name = name.isEmpty ? client.defaultClientName : name;
     clientResumePermissions.putIfAbsent(
       client.name!,
-      () => _ClientResumePermissions(),
+      () => ClientResumePermissions(),
     );
     clientResumePermissions[client.name!]!.clients.add(client);
   }
@@ -171,7 +171,7 @@ class ClientManager {
 
   /// Mapping of client names to all clients of that name and their resume
   /// permissions.
-  final Map<String?, _ClientResumePermissions> clientResumePermissions = {};
+  final Map<String?, ClientResumePermissions> clientResumePermissions = {};
 
   final DartDevelopmentServiceImpl dds;
 }

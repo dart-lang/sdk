@@ -22,7 +22,7 @@ class RingBuffer<T> {
   ///
   /// Returns the element evicted as a result of adding the new element if the
   /// buffer is as max capacity, null otherwise.
-  T? add(T e) {
+  T? add(T element) {
     if (_buffer.isEmpty) {
       return null;
     }
@@ -31,7 +31,7 @@ class RingBuffer<T> {
     if (index < _count) {
       evicted = _buffer[index];
     }
-    _buffer[index] = e;
+    _buffer[index] = element;
     _count++;
     return evicted;
   }

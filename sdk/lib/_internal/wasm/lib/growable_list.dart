@@ -239,6 +239,9 @@ class _GrowableList<E> extends _ModifiableList<E> {
       WasmObjectArray<Object?>(0);
 
   static WasmObjectArray<Object?> _allocateData(int capacity) {
+    if (capacity < 0) {
+      throw new RangeError.range(capacity, 0, _maxWasmArrayLength);
+    }
     if (capacity == 0) {
       // Use shared empty list as backing.
       return _emptyData;

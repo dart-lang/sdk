@@ -80,9 +80,7 @@ class ProfileSampleBufferTestHelper : public SampleVisitor {
   intptr_t sum_ = 0;
 };
 
-void VisitSamples(SampleBlockBuffer* buffer, SampleVisitor* visitor) {
-  // Mark the completed blocks as free so they can be re-used.
-  buffer->ProcessCompletedBlocks();
+static void VisitSamples(SampleBlockBuffer* buffer, SampleVisitor* visitor) {
   visitor->Reset();
   buffer->VisitSamples(visitor);
 }
@@ -119,35 +117,38 @@ TEST_CASE(Profiler_SampleBufferWrapTest) {
   Sample* s;
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 2);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(2, visitor.sum());
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 4);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(6, visitor.sum());
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 6);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(12, visitor.sum());
 
   // Mark the completed blocks as free so they can be re-used.
-  sample_buffer->ProcessCompletedBlocks();
+  sample_buffer->FreeCompletedBlocks();
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 8);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(18, visitor.sum());
-  {
-    MutexLocker ml(isolate->current_sample_block_lock());
-    isolate->set_current_sample_block(nullptr);
-  }
+
+  // The overridden sample buffer will be freed before isolate shutdown.
+  isolate->set_current_sample_block(nullptr);
 }
 
 TEST_CASE(Profiler_SampleBufferIterateTest) {
@@ -163,33 +164,35 @@ TEST_CASE(Profiler_SampleBufferIterateTest) {
   EXPECT_EQ(0, visitor.visited());
   Sample* s;
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, kValidPc);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(1, visitor.visited());
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, kValidPc);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(2, visitor.visited());
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, kValidPc);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(3, visitor.visited());
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, kValidPc);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(3, visitor.visited());
 
-  {
-    MutexLocker ml(isolate->current_sample_block_lock());
-    isolate->set_current_sample_block(nullptr);
-  }
+  // The overridden sample buffer will be freed before isolate shutdown.
+  isolate->set_current_sample_block(nullptr);
 }
 
 TEST_CASE(Profiler_AllocationSampleTest) {

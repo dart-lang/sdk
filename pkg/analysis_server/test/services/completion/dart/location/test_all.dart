@@ -8,6 +8,7 @@ import 'block_test.dart' as block;
 import 'case_clause_test.dart' as case_clause;
 import 'cast_pattern_test.dart' as cast_pattern;
 import 'class_body_test.dart' as class_body;
+import 'compilation_unit_member_test.dart' as compilation_unit_member;
 import 'compilation_unit_test.dart' as compilation_unit;
 import 'directive_uri_test.dart' as directive_uri;
 import 'enum_constant_test.dart' as enum_constant;
@@ -43,6 +44,7 @@ void main() {
     case_clause.main();
     cast_pattern.main();
     class_body.main();
+    compilation_unit_member.main();
     compilation_unit.main();
     directive_uri.main();
     enum_constant.main();

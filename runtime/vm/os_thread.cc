@@ -21,6 +21,9 @@ Mutex* OSThread::thread_list_lock_ = NULL;
 bool OSThread::creation_enabled_ = false;
 
 thread_local ThreadState* OSThread::current_vm_thread_ = NULL;
+#if defined(DEBUG)
+thread_local bool ThreadInterruptScope::in_thread_interrupt_scope_ = false;
+#endif
 
 #if defined(SUPPORT_TIMELINE)
 inline void UpdateTimelineTrackMetadata(const OSThread& thread) {

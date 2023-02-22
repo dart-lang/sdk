@@ -76,7 +76,7 @@ abstract class C implements A, B2 {}
 
   test_class_parameterType_inheritedInInterface_andMixin() async {
     await assertErrorsInCode(r'''
-abstract class A {
+mixin A {
   void m(int i);
 }
 abstract class B {
@@ -85,13 +85,13 @@ abstract class B {
 abstract class B2 extends B {}
 abstract class C extends Object with A implements B2 {}
 ''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 125, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 116, 1),
     ]);
   }
 
   test_class_parameterType_inheritedInInterface_andMixinApplication() async {
     await assertErrorsInCode(r'''
-abstract class A {
+mixin A {
   void m(int i);
 }
 abstract class B {
@@ -100,7 +100,7 @@ abstract class B {
 abstract class B2 extends B {}
 abstract class C = Object with A implements B2;
 ''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 125, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 116, 1),
     ]);
   }
 
@@ -109,28 +109,28 @@ abstract class C = Object with A implements B2;
 abstract class A {
   void m(int i);
 }
-abstract class B {
+mixin B {
   void m(String s);
 }
 abstract class B2 extends Object with B {}
 abstract class C implements A, B2 {}
 ''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 137, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 128, 1),
     ]);
   }
 
   test_class_parameterType_mixedIntoInterface_andMixin() async {
     await assertErrorsInCode(r'''
-abstract class A {
+mixin A {
   void m(int i);
 }
-abstract class B {
+mixin B {
   void m(String s);
 }
 abstract class B2 extends Object with B {}
 abstract class C extends Object with A implements B2 {}
 ''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 137, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 119, 1),
     ]);
   }
 
@@ -281,7 +281,7 @@ class C extends B implements I {
 
   test_overrideWithDynamicParameterType_mixinAndInterface() async {
     await assertNoErrorsInCode('''
-class B {
+mixin B {
   void m(int i) {}
 }
 

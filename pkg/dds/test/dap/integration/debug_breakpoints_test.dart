@@ -108,7 +108,7 @@ void main(List<String> args) async {
     });
 
     /// Tests hitting a simple breakpoint and resuming.
-    Future<void> _testHitBreakpointAndResume() async {
+    Future<void> testHitBreakpointAndResume() async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -124,7 +124,7 @@ void main(List<String> args) async {
     }
 
     test('stops at a line breakpoint and can be resumed', () async {
-      await _testHitBreakpointAndResume();
+      await testHitBreakpointAndResume();
     });
 
     test(
@@ -134,7 +134,7 @@ void main(List<String> args) async {
       final client = dap.client;
       client.forceDriveLetterCasingUpper = true;
       client.forceBreakpointDriveLetterCasingLower = true;
-      await _testHitBreakpointAndResume();
+      await testHitBreakpointAndResume();
     }, skip: !Platform.isWindows);
 
     test(
@@ -144,7 +144,7 @@ void main(List<String> args) async {
       final client = dap.client;
       client.forceDriveLetterCasingLower = true;
       client.forceBreakpointDriveLetterCasingUpper = true;
-      await _testHitBreakpointAndResume();
+      await testHitBreakpointAndResume();
     }, skip: !Platform.isWindows);
 
     test('stops at a line breakpoint and can step over (next)', () async {
@@ -545,7 +545,7 @@ void main(List<String> args) async {
   group('debug mode logpoints', () {
     /// A helper that tests a LogPoint using [logMessage] and expecting the
     /// script not to pause and [expectedMessage] to show up in the output.
-    Future<void> _testLogPoint(
+    Future<void> testLogPoint(
       DapTestSession dap,
       String logMessage,
       String expectedMessage,
@@ -572,7 +572,7 @@ void main(List<String> args) async {
     }
 
     test('print simple messages', () async {
-      await _testLogPoint(
+      await testLogPoint(
         dap,
         r'This is a test message',
         'This is a test message',
@@ -580,7 +580,7 @@ void main(List<String> args) async {
     });
 
     test('print messages with Dart interpolation', () async {
-      await _testLogPoint(
+      await testLogPoint(
         dap,
         r'This is a test message in ${DateTime(2000, 1, 1).year}',
         'This is a test message in ${DateTime(2000, 1, 1).year}',
@@ -588,7 +588,7 @@ void main(List<String> args) async {
     });
 
     test('print messages with just {braces}', () async {
-      await _testLogPoint(
+      await testLogPoint(
         dap,
         // The DAP spec says "Expressions within {} are interpolated" so in the DA
         // we just prefix them with $ and treat them like other Dart interpolation
@@ -599,7 +599,7 @@ void main(List<String> args) async {
     });
 
     test('allows \\{escaped braces}', () async {
-      await _testLogPoint(
+      await testLogPoint(
         dap,
         // Since we treat things in {braces} as expressions, we need to support
         // escaping them.

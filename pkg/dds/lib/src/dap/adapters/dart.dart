@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:json_rpc_2/error_code.dart' as jsonRpcErrors;
+import 'package:json_rpc_2/error_code.dart' as json_rpc_errors;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
@@ -1263,19 +1263,27 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// processing stack frames requires async calls, this function will insert
   /// output events into a queue and only send them when previous calls have
   /// been completed.
-  void sendOutput(String category, String message) async {
+  void sendOutput(
+    String category,
+    String message, {
+    int? variablesReference,
+  }) async {
     // Reserve our place in the queue be inserting a future that we can complete
     // after we have sent the output event.
     final completer = Completer<void>();
-    final _previousEvent = _lastOutputEvent ?? Future.value();
+    final previousEvent = _lastOutputEvent ?? Future.value();
     _lastOutputEvent = completer.future;
 
     try {
-      final outputEvents = await _buildOutputEvents(category, message);
+      final outputEvents = await _buildOutputEvents(
+        category,
+        message,
+        variablesReference: variablesReference,
+      );
 
       // Chain our sends onto the end of the previous one, and complete our Future
       // once done so that the next one can go.
-      await _previousEvent;
+      await previousEvent;
       outputEvents.forEach(sendEvent);
     } finally {
       completer.complete();
@@ -1370,6 +1378,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   /// Shuts down the debug adapter, including terminating/detaching from the
   /// debugee if required.
+  @override
   @nonVirtual
   Future<void> shutdown() async {
     await shutdownDebugee();
@@ -1729,6 +1738,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // Sort the variables by name.
         variables.sortBy((v) => v.name);
       }
+    } else if (data is InspectData) {
+      // When sending variables as part of an OutputEvent, VS Code will only
+      // show the first field, so we wrap the object to ensure there's always
+      // a single field.
+      final instance = data.instance;
+      variables.add(Variable(
+        name: '', // Unused.
+        value: '<inspected variable>', // Shown to user, expandable.
+        variablesReference: instance != null ? thread.storeData(instance) : 0,
+      ));
     } else if (data is vm.MapAssociation) {
       final key = data.key;
       final value = data.value;
@@ -1838,13 +1857,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// for each frame to allow location metadata to be attached.
   Future<List<OutputEventBody>> _buildOutputEvents(
     String category,
-    String message,
-  ) async {
+    String message, {
+    int? variablesReference,
+  }) async {
     try {
       if (category == 'stderr') {
         return await _buildStdErrOutputEvents(message);
       } else {
-        return [OutputEventBody(category: category, output: message)];
+        return [
+          OutputEventBody(
+            category: category,
+            output: message,
+            variablesReference: variablesReference,
+          )
+        ];
       }
     } catch (e, s) {
       // Since callers of [sendOutput] may not await it, don't allow unhandled
@@ -2327,7 +2353,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         }
         // SERVER_ERROR can occur when DDS completes any outstanding requests
         // with "The client closed with pending request".
-        if (e.code == jsonRpcErrors.SERVER_ERROR) {
+        if (e.code == json_rpc_errors.SERVER_ERROR) {
           return null;
         }
       }
@@ -2355,6 +2381,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
 
   /// If noDebug is true the launch request should launch the program without
   /// enabling debugging.
+  @override
   final bool? noDebug;
 
   /// The program/Dart script to be run.

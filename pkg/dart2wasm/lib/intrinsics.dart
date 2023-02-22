@@ -1738,8 +1738,13 @@ class Intrinsifier {
       b.end(); // errorBlock
 
       b.local_get(errorLocal);
+      b.struct_get(errorClassInfo.struct, stackTraceFieldIndex);
+      b.ref_is_null();
+      b.if_();
+      b.local_get(errorLocal);
       b.local_get(stackTraceLocal);
       b.struct_set(errorClassInfo.struct, stackTraceFieldIndex);
+      b.end();
 
       b.local_get(objectLocal);
       b.end(); // notErrorBlock

@@ -343,7 +343,7 @@ class C extends B {}
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
-class A {
+mixin A {
   @mustBeOverridden
   void m() {}
 }

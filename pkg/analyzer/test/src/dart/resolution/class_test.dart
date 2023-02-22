@@ -18,8 +18,8 @@ class ClassDriverResolutionTest extends PubPackageResolutionTest {
   test_element_allSupertypes() async {
     await assertNoErrorsInCode(r'''
 class A {}
-class B {}
-class C {}
+mixin B {}
+mixin C {}
 class D {}
 class E {}
 
@@ -108,8 +108,8 @@ class A extends Function {}
 
   test_element_typeFunction_with() async {
     await assertErrorsInCode(r'''
-class A {}
-class B {}
+mixin A {}
+mixin B {}
 class C extends Object with A, Function, B {}
 ''', [
       error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 53, 8),

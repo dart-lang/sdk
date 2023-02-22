@@ -30,11 +30,11 @@ class PacketTransformer extends StreamTransformerBase<List<int>, String> {
   @override
   Stream<String> bind(Stream<List<int>> stream) {
     late StreamSubscription<int> input;
-    late StreamController<String> _output;
+    late StreamController<String> output;
     final buffer = <int>[];
     var isParsingHeaders = true;
     ProtocolHeaders? headers;
-    _output = StreamController<String>(
+    output = StreamController<String>(
       onListen: () {
         input = stream.expand((b) => b).listen(
           (codeUnit) {
@@ -51,9 +51,9 @@ class PacketTransformer extends StreamTransformerBase<List<int>, String> {
                 // Any other encodings should be rejected with an error.
                 if ([null, 'utf-8', 'utf8']
                     .contains(headers?.encoding?.toLowerCase())) {
-                  _output.add(utf8.decode(buffer));
+                  output.add(utf8.decode(buffer));
                 } else {
-                  _output.addError(
+                  output.addError(
                     InvalidEncodingException(headers!.rawHeaders),
                   );
                 }
@@ -61,19 +61,19 @@ class PacketTransformer extends StreamTransformerBase<List<int>, String> {
                 isParsingHeaders = true;
               }
             } on DebugAdapterException catch (e) {
-              _output.addError(e);
-              _output.close();
+              output.addError(e);
+              output.close();
             }
           },
-          onError: _output.addError,
-          onDone: _output.close,
+          onError: output.addError,
+          onDone: output.close,
         );
       },
       onPause: () => input.pause(),
       onResume: () => input.resume(),
       onCancel: () => input.cancel(),
     );
-    return _output.stream;
+    return output.stream;
   }
 
   /// Whether [buffer] ends in '\r\n\r\n'.

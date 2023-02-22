@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
@@ -58,6 +59,39 @@ class DartInlayHintComputer {
     ));
   }
 
+  /// Adds a type hint before [node] showing a label for type arguments [types].
+  ///
+  /// If [types] is null or empty, no hints are added.
+  void _addTypeArgumentsPrefix(
+      SyntacticEntity nodeOrToken, List<DartType>? types) {
+    if (types == null || types.isEmpty) {
+      return;
+    }
+
+    final offset = nodeOrToken.offset;
+    final position = toPosition(_lineInfo.getLocation(offset));
+    final labelParts = <InlayHintLabelPart>[];
+    labelParts.add(InlayHintLabelPart(value: '<'));
+    for (int i = 0; i < types.length; i++) {
+      final type = types[i];
+      labelParts.add(InlayHintLabelPart(
+        value: type.getDisplayString(withNullability: _isNonNullableByDefault),
+        location: _locationForElement(type.element),
+      ));
+      final isLast = i == types.length - 1;
+      if (!isLast) {
+        labelParts.add(InlayHintLabelPart(value: ', '));
+      }
+    }
+    labelParts.add(InlayHintLabelPart(value: '>'));
+
+    _hints.add(InlayHint(
+      label: Either2<List<InlayHintLabelPart>, String>.t1(labelParts.toList()),
+      position: position,
+      kind: InlayHintKind.Type,
+    ));
+  }
+
   /// Adds a type hint before [node] showing a label for the type [type].
   ///
   /// Padding will be added between the hint and [node] automatically.
@@ -95,6 +129,20 @@ class DartInlayHintComputer {
       uri: Uri.file(path),
       range: toRange(lineInfo, element.nameOffset, element.nameLength),
     );
+  }
+
+  /// Adds a Type hint for type arguments of [type] (if it has type arguments).
+  void _maybeAddTypeArguments(Token token, DartType? type) {
+    if (type is! ParameterizedType) {
+      return;
+    }
+
+    final typeArgumentTypes = type.typeArguments;
+    if (typeArgumentTypes.isEmpty) {
+      return;
+    }
+
+    _addTypeArgumentsPrefix(token, typeArgumentTypes);
   }
 }
 
@@ -142,6 +190,47 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    super.visitInstanceCreationExpression(node);
+
+    // Has explicit type arguments.
+    if (node.constructorName.type.typeArguments != null) {
+      return;
+    }
+
+    final token = node.argumentList.leftParenthesis;
+    final type = node.staticType;
+    _computer._maybeAddTypeArguments(token, type);
+  }
+
+  @override
+  void visitInvocationExpression(InvocationExpression node) {
+    super.visitInvocationExpression(node);
+
+    // Has explicit type arguments.
+    if (node.typeArguments != null) {
+      return;
+    }
+
+    _computer._addTypeArgumentsPrefix(
+        node.argumentList.leftParenthesis, node.typeArgumentTypes);
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    super.visitListLiteral(node);
+
+    // Has explicit type arguments.
+    if (node.typeArguments != null) {
+      return;
+    }
+
+    final token = node.leftBracket;
+    final type = node.staticType;
+    _computer._maybeAddTypeArguments(token, type);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
 
@@ -154,6 +243,20 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
     if (declaration != null) {
       _computer._addTypePrefix(node.name, declaration.returnType);
     }
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    super.visitSetOrMapLiteral(node);
+
+    // Has explicit type arguments.
+    if (node.typeArguments != null) {
+      return;
+    }
+
+    final token = node.leftBracket;
+    final type = node.staticType;
+    _computer._maybeAddTypeArguments(token, type);
   }
 
   @override
