@@ -156,6 +156,9 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC,
   ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX,
   ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY,
+  ParserErrorCode.FINAL_MIXIN_CLASS,
+  ParserErrorCode.INTERFACE_MIXIN_CLASS,
+  ParserErrorCode.SEALED_MIXIN_CLASS,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -820,6 +823,12 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try removing the keyword 'final'.",
   );
 
+  static const ParserErrorCode FINAL_MIXIN_CLASS = ParserErrorCode(
+    'FINAL_MIXIN_CLASS',
+    "A mixin class can't be declared 'final'.",
+    correctionMessage: "Try removing the 'final' keyword.",
+  );
+
   static const ParserErrorCode FINAL_TYPEDEF = ParserErrorCode(
     'FINAL_TYPEDEF',
     "Typedefs can't be declared to be 'final'.",
@@ -895,6 +904,12 @@ class ParserErrorCode extends ErrorCode {
     "The loop variable in a for-each loop can't be initialized.",
     correctionMessage:
         "Try removing the initializer, or using a different kind of loop.",
+  );
+
+  static const ParserErrorCode INTERFACE_MIXIN_CLASS = ParserErrorCode(
+    'INTERFACE_MIXIN_CLASS',
+    "A mixin class can't be declared 'interface'.",
+    correctionMessage: "Try removing the 'interface' keyword.",
   );
 
   static const ParserErrorCode INVALID_AWAIT_IN_FOR = ParserErrorCode(
@@ -1542,6 +1557,12 @@ class ParserErrorCode extends ErrorCode {
     "Only factory constructor can specify '=' redirection.",
     correctionMessage:
         "Try making this a factory constructor, or remove the redirection.",
+  );
+
+  static const ParserErrorCode SEALED_MIXIN_CLASS = ParserErrorCode(
+    'SEALED_MIXIN_CLASS',
+    "A mixin class can't be declared 'sealed'.",
+    correctionMessage: "Try removing the 'sealed' keyword.",
   );
 
   static const ParserErrorCode SETTER_CONSTRUCTOR = ParserErrorCode(

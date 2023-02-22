@@ -2240,6 +2240,8 @@ ParserErrorCode.FINAL_ENUM:
   status: needsEvaluation
 ParserErrorCode.FINAL_METHOD:
   status: needsEvaluation
+ParserErrorCode.FINAL_MIXIN_CLASS:
+  status: needsEvaluation
 ParserErrorCode.FINAL_TYPEDEF:
   status: needsEvaluation
 ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR:
@@ -2261,6 +2263,8 @@ ParserErrorCode.IMPLEMENTS_BEFORE_WITH:
 ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
   status: needsEvaluation
 ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH:
+  status: needsEvaluation
+ParserErrorCode.INTERFACE_MIXIN_CLASS:
   status: needsEvaluation
 ParserErrorCode.INVALID_AWAIT_IN_FOR:
   status: needsEvaluation
@@ -2447,6 +2451,8 @@ ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
 ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY:
   status: needsEvaluation
 ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.SEALED_MIXIN_CLASS:
   status: needsEvaluation
 ParserErrorCode.SETTER_CONSTRUCTOR:
   status: needsEvaluation
