@@ -460,7 +460,6 @@ mixin TypeAnalyzer<
         flow.declaredVariablePattern(
             matchedType: matchedType,
             staticType: staticType,
-            initializerExpression: context.initializer,
             isFinal: context.isFinal || isVariableFinal(variable),
             isLate: context.isLate,
             isImplicitlyTyped: isImplicitlyTyped);
@@ -1188,7 +1187,6 @@ mixin TypeAnalyzer<
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: false,
-        initializer: rhs,
         irrefutableContext: node,
         assignedVariables: <Variable, Pattern>{},
         componentVariables: componentVariables,
@@ -1308,7 +1306,6 @@ mixin TypeAnalyzer<
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: isFinal,
         isLate: isLate,
-        initializer: initializer,
         irrefutableContext: node,
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,

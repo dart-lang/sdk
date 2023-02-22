@@ -241,8 +241,6 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///
   /// [matchedType] should be the static type of the value being matched.
   /// [staticType] should be the static type of the variable pattern itself.
-  /// [initializerExpression] should be the initializer expression being matched
-  /// (or `null` if there is no expression being matched to this variable).
   /// [isFinal] indicates whether the variable is final, and [isImplicitlyTyped]
   /// indicates whether the variable has an explicit type annotation.
   ///
@@ -257,7 +255,6 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   int declaredVariablePattern(
       {required Type matchedType,
       required Type staticType,
-      Expression? initializerExpression,
       bool isFinal = false,
       bool isLate = false,
       required bool isImplicitlyTyped});
@@ -1185,19 +1182,16 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   int declaredVariablePattern(
       {required Type matchedType,
       required Type staticType,
-      Expression? initializerExpression,
       bool isFinal = false,
       bool isLate = false,
       required bool isImplicitlyTyped}) {
     return _wrap(
         'declaredVariablePattern(matchedType: $matchedType, '
-        'staticType: $staticType, '
-        'initializerExpression: $initializerExpression, isFinal: $isFinal, '
+        'staticType: $staticType, isFinal: $isFinal, '
         'isLate: $isLate, isImplicitlyTyped: $isImplicitlyTyped)',
         () => _wrapped.declaredVariablePattern(
             matchedType: matchedType,
             staticType: staticType,
-            initializerExpression: initializerExpression,
             isFinal: isFinal,
             isLate: isLate,
             isImplicitlyTyped: isImplicitlyTyped),
@@ -3891,7 +3885,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   int declaredVariablePattern(
       {required Type matchedType,
       required Type staticType,
-      Expression? initializerExpression,
       bool isFinal = false,
       bool isLate = false,
       required bool isImplicitlyTyped}) {
@@ -5577,7 +5570,6 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   int declaredVariablePattern(
           {required Type matchedType,
           required Type staticType,
-          Expression? initializerExpression,
           bool isFinal = false,
           bool isLate = false,
           required bool isImplicitlyTyped}) =>
