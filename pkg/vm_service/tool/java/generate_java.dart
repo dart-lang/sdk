@@ -53,7 +53,7 @@ from within any {@link Consumer} method.
 late Api api;
 
 /// Convert documentation references
-/// from spec style of [className] to javadoc style {@link className}
+/// from spec style of `className` to javadoc style {@link className}
 String? convertDocLinks(String? doc) {
   if (doc == null) return null;
   var sb = StringBuffer();

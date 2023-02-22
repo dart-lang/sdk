@@ -283,7 +283,7 @@ abstract class VmServiceInterface {
   /// breakpoints.
   ///
   /// If no breakpoint is possible at that line, the `102` (Cannot add
-  /// breakpoint) [RPC error] code is returned.
+  /// breakpoint) RPC error code is returned.
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   ///
@@ -320,7 +320,7 @@ abstract class VmServiceInterface {
   /// breakpoints.
   ///
   /// If no breakpoint is possible at that line, the `102` (Cannot add
-  /// breakpoint) [RPC error] code is returned.
+  /// breakpoint) RPC error code is returned.
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   ///
@@ -342,7 +342,7 @@ abstract class VmServiceInterface {
   /// entrypoint of some function.
   ///
   /// If no breakpoint is possible at the function entry, the `102` (Cannot add
-  /// breakpoint) [RPC error] code is returned.
+  /// breakpoint) RPC error code is returned.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
@@ -394,7 +394,7 @@ abstract class VmServiceInterface {
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
-  /// If invocation triggers a failed compilation then [RPC error] 113
+  /// If invocation triggers a failed compilation then [RPCError] 113
   /// "Expression compilation error" is returned.
   ///
   /// If a runtime error occurs while evaluating the invocation, an [ErrorRef]
@@ -440,7 +440,7 @@ abstract class VmServiceInterface {
   /// as a result of this evaluation are ignored. Defaults to false if not
   /// provided.
   ///
-  /// If the expression fails to parse and compile, then [RPC error] 113
+  /// If the expression fails to parse and compile, then [RPCError] 113
   /// "Expression compilation error" is returned.
   ///
   /// If an error occurs while evaluating the expression, an [ErrorRef]
@@ -475,7 +475,7 @@ abstract class VmServiceInterface {
   /// as a result of this evaluation are ignored. Defaults to false if not
   /// provided.
   ///
-  /// If the expression fails to parse and compile, then [RPC error] 113
+  /// If the expression fails to parse and compile, then [RPCError] 113
   /// "Expression compilation error" is returned.
   ///
   /// If an error occurs while evaluating the expression, an [ErrorRef]
@@ -519,9 +519,9 @@ abstract class VmServiceInterface {
 
   /// The `getAllocationTraces` RPC allows for the retrieval of allocation
   /// traces for objects of a specific set of types (see
-  /// [setTraceClassAllocation]). Only samples collected in the time range
-  /// `[timeOriginMicros, timeOriginMicros + timeExtentMicros]` will be
-  /// reported.
+  /// [VmServiceInterface.setTraceClassAllocation]). Only samples collected in
+  /// the time range `[timeOriginMicros, timeOriginMicros + timeExtentMicros]`
+  /// will be reported.
   ///
   /// If `classId` is provided, only traces for allocations with the matching
   /// `classId` will be reported.
@@ -555,7 +555,7 @@ abstract class VmServiceInterface {
   /// profiler. Only samples collected in the time range `[timeOriginMicros,
   /// timeOriginMicros + timeExtentMicros]` will be reported.
   ///
-  /// If the profiler is disabled, an [RPC error] response will be returned.
+  /// If the profiler is disabled, an [RPCError] response will be returned.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
@@ -615,7 +615,7 @@ abstract class VmServiceInterface {
   /// yet been garbage collected.
   ///
   /// `objectId` is the ID of the `Class` to retrieve instances for. `objectId`
-  /// must be the ID of a `Class`, otherwise an [RPC error] is returned.
+  /// must be the ID of a `Class`, otherwise an [RPCError] is returned.
   ///
   /// `limit` is the maximum number of instances to be returned.
   ///
@@ -656,7 +656,7 @@ abstract class VmServiceInterface {
   /// yet been garbage collected.
   ///
   /// `objectId` is the ID of the `Class` to retrieve instances for. `objectId`
-  /// must be the ID of a `Class`, otherwise an [RPC error] is returned.
+  /// must be the ID of a `Class`, otherwise an [RPCError] is returned.
   ///
   /// If `includeSubclasses` is true, instances of subclasses of the specified
   /// class will be included in the set.
@@ -921,8 +921,8 @@ abstract class VmServiceInterface {
   /// The `timeOriginMicros` parameter is the beginning of the time range used
   /// to filter timeline events. It uses the same monotonic clock as
   /// dart:developer's `Timeline.now` and the VM embedding API's
-  /// `Dart_TimelineGetMicros`. See [getVMTimelineMicros] for access to this
-  /// clock through the service protocol.
+  /// `Dart_TimelineGetMicros`. See [VmServiceInterface.getVMTimelineMicros] for
+  /// access to this clock through the service protocol.
   ///
   /// The `timeExtentMicros` parameter specifies how large the time range used
   /// to filter timeline events should be.
@@ -932,18 +932,18 @@ abstract class VmServiceInterface {
   /// `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
   ///
   /// If `getVMTimeline` is invoked while the current recorder is Callback, an
-  /// [RPC error] with error code `114`, `invalid timeline request`, will be
+  /// [RPCError] with error code `114`, `invalid timeline request`, will be
   /// returned as timeline events are handled by the embedder in this mode.
   ///
   /// If `getVMTimeline` is invoked while the current recorder is one of Fuchsia
-  /// or Macos or Systrace, an [RPC error] with error code `114`, `invalid
+  /// or Macos or Systrace, an [RPCError] with error code `114`, `invalid
   /// timeline request`, will be returned as timeline events are handled by the
   /// OS in these modes.
   ///
-  /// If `getVMTimeline` is invoked while the current recorder is File, an [RPC
-  /// error] with error code `114`, `invalid timeline request`, will be returned
-  /// as timeline events are written directly to a file, and thus cannot be
-  /// retrieved through the VM Service, in this mode.
+  /// If `getVMTimeline` is invoked while the current recorder is File, an
+  /// [RPCError] with error code `114`, `invalid timeline request`, will be
+  /// returned as timeline events are written directly to a file, and thus
+  /// cannot be retrieved through the VM Service, in this mode.
   Future<Timeline> getVMTimeline(
       {int? timeOriginMicros, int? timeExtentMicros});
 
@@ -951,7 +951,7 @@ abstract class VmServiceInterface {
   /// timeline configuration.
   ///
   /// To change which timeline streams are currently enabled, see
-  /// [setVMTimelineFlags].
+  /// [VmServiceInterface.setVMTimelineFlags].
   ///
   /// See [TimelineFlags].
   Future<TimelineFlags> getVMTimelineFlags();
@@ -960,7 +960,7 @@ abstract class VmServiceInterface {
   /// clock used by the timeline, similar to `Timeline.now` in `dart:developer`
   /// and `Dart_TimelineGetMicros` in the VM embedding API.
   ///
-  /// See [Timestamp] and [getVMTimeline].
+  /// See [Timestamp] and [VmServiceInterface.getVMTimeline].
   Future<Timestamp> getVMTimelineMicros();
 
   /// The `pause` RPC is used to interrupt a running isolate. The RPC enqueues
@@ -1259,7 +1259,7 @@ abstract class VmServiceInterface {
   /// stream as a result of invoking this RPC.
   ///
   /// To get the list of currently enabled timeline streams, see
-  /// [getVMTimelineFlags].
+  /// [VmServiceInterface.getVMTimelineFlags].
   ///
   /// See [Success].
   Future<Success> setVMTimelineFlags(List<String> recordedStreams);
@@ -1267,7 +1267,7 @@ abstract class VmServiceInterface {
   /// The `streamCancel` RPC cancels a stream subscription in the VM.
   ///
   /// If the client is not subscribed to the stream, the `104` (Stream not
-  /// subscribed) [RPC error] code is returned.
+  /// subscribed) RPC error code is returned.
   ///
   /// See [Success].
   Future<Success> streamCancel(String streamId);
@@ -1285,7 +1285,7 @@ abstract class VmServiceInterface {
   /// the client will begin receiving events from the stream.
   ///
   /// If the client is already subscribed to the stream, the `103` (Stream
-  /// already subscribed) [RPC error] code is returned.
+  /// already subscribed) RPC error code is returned.
   ///
   /// The `streamId` parameter may have the following published values:
   ///
@@ -3765,7 +3765,7 @@ class ContextElement {
   String toString() => '[ContextElement value: $value]';
 }
 
-/// See [getCpuSamples] and [CpuSample].
+/// See [VmServiceInterface.getCpuSamples] and [CpuSample].
 class CpuSamples extends Response {
   static CpuSamples? parse(Map<String, dynamic>? json) =>
       json == null ? null : CpuSamples._fromJson(json);
@@ -3930,7 +3930,7 @@ class CpuSamplesEvent {
       'sampleCount: $sampleCount, timeOriginMicros: $timeOriginMicros, timeExtentMicros: $timeExtentMicros, pid: $pid, functions: $functions, samples: $samples]';
 }
 
-/// See [getCpuSamples] and [CpuSamples].
+/// See [VmServiceInterface.getCpuSamples] and [CpuSamples].
 class CpuSample {
   static CpuSample? parse(Map<String, dynamic>? json) =>
       json == null ? null : CpuSample._fromJson(json);
@@ -4069,7 +4069,7 @@ class ErrorRef extends ObjRef {
 }
 
 /// An `Error` represents a Dart language level error. This is distinct from an
-/// [RPC error].
+/// [RPCError].
 class Error extends Obj implements ErrorRef {
   static Error? parse(Map<String, dynamic>? json) =>
       json == null ? null : Error._fromJson(json);
@@ -6213,7 +6213,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
       'isolates: $isolates]';
 }
 
-/// See [getInboundReferences].
+/// See [VmServiceInterface.getInboundReferences].
 class InboundReferences extends Response {
   static InboundReferences? parse(Map<String, dynamic>? json) =>
       json == null ? null : InboundReferences._fromJson(json);
@@ -6250,7 +6250,7 @@ class InboundReferences extends Response {
   String toString() => '[InboundReferences references: $references]';
 }
 
-/// See [getInboundReferences].
+/// See [VmServiceInterface.getInboundReferences].
 class InboundReference {
   static InboundReference? parse(Map<String, dynamic>? json) =>
       json == null ? null : InboundReference._fromJson(json);
@@ -6309,7 +6309,7 @@ class InboundReference {
   String toString() => '[InboundReference source: $source]';
 }
 
-/// See [getInstances].
+/// See [VmServiceInterface.getInstances].
 class InstanceSet extends Response {
   static InstanceSet? parse(Map<String, dynamic>? json) =>
       json == null ? null : InstanceSet._fromJson(json);
@@ -6401,7 +6401,7 @@ class LibraryRef extends ObjRef {
 
 /// A `Library` provides information about a Dart language library.
 ///
-/// See [setLibraryDebuggable].
+/// See [VmServiceInterface.setLibraryDebuggable].
 class Library extends Obj implements LibraryRef {
   static Library? parse(Map<String, dynamic>? json) =>
       json == null ? null : Library._fromJson(json);
@@ -7130,7 +7130,7 @@ class Parameter {
 
 /// A `PortList` contains a list of ports associated with some isolate.
 ///
-/// See [getPort].
+/// See [VmServiceInterface.getPorts].
 class PortList extends Response {
   static PortList? parse(Map<String, dynamic>? json) =>
       json == null ? null : PortList._fromJson(json);
@@ -7226,7 +7226,7 @@ class ProfileFunction {
 /// A `ProtocolList` contains a list of all protocols supported by the service
 /// instance.
 ///
-/// See [Protocol] and [getSupportedProtocols].
+/// See [Protocol] and [VmServiceInterface.getSupportedProtocols].
 class ProtocolList extends Response {
   static ProtocolList? parse(Map<String, dynamic>? json) =>
       json == null ? null : ProtocolList._fromJson(json);
@@ -7261,7 +7261,7 @@ class ProtocolList extends Response {
   String toString() => '[ProtocolList protocols: $protocols]';
 }
 
-/// See [getSupportedProtocols].
+/// See [VmServiceInterface.getSupportedProtocols].
 class Protocol {
   static Protocol? parse(Map<String, dynamic>? json) =>
       json == null ? null : Protocol._fromJson(json);
@@ -7302,7 +7302,7 @@ class Protocol {
       '[Protocol protocolName: $protocolName, major: $major, minor: $minor]';
 }
 
-/// Set [getProcessMemoryUsage].
+/// See [VmServiceInterface.getProcessMemoryUsage].
 class ProcessMemoryUsage extends Response {
   static ProcessMemoryUsage? parse(Map<String, dynamic>? json) =>
       json == null ? null : ProcessMemoryUsage._fromJson(json);
@@ -7477,7 +7477,7 @@ class RetainingObject {
   String toString() => '[RetainingObject value: $value]';
 }
 
-/// See [getRetainingPath].
+/// See [VmServiceInterface.getRetainingPath].
 class RetainingPath extends Response {
   static RetainingPath? parse(Map<String, dynamic>? json) =>
       json == null ? null : RetainingPath._fromJson(json);
@@ -8063,7 +8063,7 @@ class SourceReportRange {
 /// The `Stack` class represents the various components of a Dart stack trace
 /// for a given isolate.
 ///
-/// See [getStack].
+/// See [VmServiceInterface.getStack].
 class Stack extends Response {
   static Stack? parse(Map<String, dynamic>? json) =>
       json == null ? null : Stack._fromJson(json);

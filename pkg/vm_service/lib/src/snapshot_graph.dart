@@ -291,7 +291,7 @@ class HeapSnapshotGraph {
   /// The list of classes found in this snapshot.
   List<HeapSnapshotClass> get classes => _classes;
 
-  /// At least as big as the sum of all [HeapSnapshotObject.referenceCount].
+  /// At least as big as the sum of all [HeapSnapshotObject.references].
   int get referenceCount => _referenceCount;
 
   /// The list of objects found in this snapshot.
