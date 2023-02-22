@@ -2776,7 +2776,7 @@ WarningCode.RECEIVER_OF_TYPE_NEVER:
   notes: |-
     We _could_ remove the thing being received (method invocation, etc.)
 WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
-  status: needsFix
+  status: hasFix
 WarningCode.REMOVED_LINT_USE:
   status: needsFix
 WarningCode.REPLACED_LINT_USE:

@@ -34,6 +34,8 @@ class AddTrailingComma extends CorrectionProducer {
       await _insertComma(builder, node.elements.last);
     } else if (node is SetOrMapLiteral) {
       await _insertComma(builder, node.elements.last);
+    } else if (node is ParenthesizedExpression) {
+      await _insertComma(builder, node.expression);
     }
   }
 
