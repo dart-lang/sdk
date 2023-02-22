@@ -1,3 +1,7 @@
+## 0.6.8
+
+- Remove dependency on `dart:js`.
+
 ## 0.6.7
 
 - Remove `example` link to discontinued example.
