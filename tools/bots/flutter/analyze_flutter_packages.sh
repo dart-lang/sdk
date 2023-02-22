@@ -4,7 +4,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Analyze Dart code in the flutter/plugins repo.
+# Analyze Dart code in the flutter/packages repo.
 
 set -e
 
@@ -26,15 +26,15 @@ git clone --single-branch -vv https://github.com/flutter/flutter
 export PATH="$PATH":"$tmpdir/flutter/bin"
 flutter --version
 
-# get the flutter/plugins repo
-git clone --single-branch -vv https://github.com/flutter/plugins
-cd plugins
+# get the flutter/packages repo
+git clone --single-branch -vv https://github.com/flutter/packages
+cd packages
 
 # validate the tool's source
 (cd script/tool; dart pub get)
 (cd script/tool; dart analyze --fatal-infos)
 
 # Invoke the repo's analysis script.
-./script/tool_runner.sh analyze \
+dart run script/tool/bin/flutter_plugin_tools.dart analyze \
   --analysis-sdk $sdk \
   --custom-analysis=script/configs/custom_analysis.yaml
