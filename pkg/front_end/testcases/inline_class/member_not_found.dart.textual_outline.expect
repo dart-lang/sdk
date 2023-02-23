@@ -1,5 +1,4 @@
-inline
-class A {
+inline class A {
   int value;
   A.name1(this.value);
 }

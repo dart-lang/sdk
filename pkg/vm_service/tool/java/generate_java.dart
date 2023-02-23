@@ -53,7 +53,7 @@ from within any {@link Consumer} method.
 late Api api;
 
 /// Convert documentation references
-/// from spec style of [className] to javadoc style {@link className}
+/// from spec style of `className` to javadoc style {@link className}
 String? convertDocLinks(String? doc) {
   if (doc == null) return null;
   var sb = StringBuffer();
@@ -947,8 +947,13 @@ class TypeField extends Member {
           if (refName.endsWith('Ref')) {
             refName = '@${refName.substring(0, refName.length - 3)}';
           }
-          w.addLine('if (elem.get("type").getAsString().equals("$refName")) '
-              'return new ${t.name}(elem);');
+          if (t.isSimple) {
+            w.addLine('if (elem.get("type").getAsString().equals("$refName")) '
+                'return elem.getAs${t.name == 'int' ? 'Int' : t.name}();');
+          } else {
+            w.addLine('if (elem.get("type").getAsString().equals("$refName")) '
+                'return new ${t.name}(elem);');
+          }
         }
         w.addLine('return null;');
       }, javadoc: docs, returnType: 'Object');

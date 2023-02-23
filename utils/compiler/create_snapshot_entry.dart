@@ -24,7 +24,6 @@ Future<String> getVersion(var rootPath) {
 Future<String> getDart2jsSnapshotGenerationFile(var rootPath) {
   return getVersion(rootPath).then((version) {
     var snapshotGenerationText = """
-// @dart = 2.9
 import 'package:compiler/src/dart2js.dart' as dart2jsMain;
 
 void main(List<String> arguments) {

@@ -318,12 +318,16 @@ class JsInteropChecks extends RecursiveVisitor {
       }
 
       // Check JS Interop positional and named parameters.
-      var isAnonymousFactory = _classHasAnonymousAnnotation && node.isFactory;
-      if (isAnonymousFactory) {
-        // ignore: unnecessary_null_comparison
-        if (node.function != null &&
-            node.function.positionalParameters.isNotEmpty) {
-          var firstPositionalParam = node.function.positionalParameters[0];
+      var isObjectLiteralFactory =
+          _classHasAnonymousAnnotation && node.isFactory ||
+              node.isInlineClassMember && hasObjectLiteralAnnotation(node);
+      if (isObjectLiteralFactory) {
+        var positionalParams = node.function.positionalParameters;
+        if (node.isInlineClassMember) {
+          positionalParams = positionalParams.skip(1).toList();
+        }
+        if (node.function.positionalParameters.isNotEmpty) {
+          var firstPositionalParam = positionalParams[0];
           _diagnosticsReporter.report(
               messageJsInteropAnonymousFactoryPositionalParameters,
               firstPositionalParam.fileOffset,

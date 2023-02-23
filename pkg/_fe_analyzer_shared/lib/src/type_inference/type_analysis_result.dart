@@ -51,12 +51,6 @@ class MatchContext<Node extends Object, Expression extends Node,
   /// Indicates whether variables declared in the pattern should be `late`.
   final bool isLate;
 
-  /// The initializer being assigned to this pattern via a variable declaration
-  /// statement, or `null` if this pattern does not occur in a variable
-  /// declaration statement, or this pattern is not the top-level pattern in
-  /// the declaration.
-  final Expression? initializer;
-
   /// The switch scrutinee, or `null` if this pattern does not occur in a switch
   /// statement or switch expression, or this pattern is not the top-level
   /// pattern.
@@ -79,7 +73,6 @@ class MatchContext<Node extends Object, Expression extends Node,
   final UnnecessaryWildcardKind? unnecessaryWildcardKind;
 
   MatchContext({
-    this.initializer,
     this.irrefutableContext,
     required this.isFinal,
     this.isLate = false,
@@ -97,7 +90,6 @@ class MatchContext<Node extends Object, Expression extends Node,
       irrefutableContext == null
           ? this
           : new MatchContext(
-              initializer: initializer,
               isFinal: isFinal,
               isLate: isLate,
               switchScrutinee: switchScrutinee,
@@ -111,7 +103,6 @@ class MatchContext<Node extends Object, Expression extends Node,
   MatchContext<Node, Expression, Pattern, Type, Variable> withPromotionKeys(
           Map<String, int> patternVariablePromotionKeys) =>
       new MatchContext(
-        initializer: null,
         irrefutableContext: irrefutableContext,
         isFinal: isFinal,
         isLate: isLate,
@@ -129,7 +120,6 @@ class MatchContext<Node extends Object, Expression extends Node,
       withUnnecessaryWildcardKind(
           UnnecessaryWildcardKind? unnecessaryWildcardKind) {
     return new MatchContext(
-      initializer: null,
       irrefutableContext: irrefutableContext,
       isFinal: isFinal,
       isLate: isLate,

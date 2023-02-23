@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/test_helper.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -71,9 +72,16 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
       if (scrutineeType != null) {
         features[Tags.scrutineeType] = staticTypeToText(scrutineeType);
         features[Tags.scrutineeFields] = fieldsToText(scrutineeType.fields);
-        String? subtypes = subtypesToText(scrutineeType);
+        String? subtypes = typesToText(scrutineeType.subtypes);
         if (subtypes != null) {
           features[Tags.subtypes] = subtypes;
+        }
+        if (scrutineeType.isSealed) {
+          String? expandedSubtypes =
+              typesToText(expandSealedSubtypes(scrutineeType));
+          if (subtypes != expandedSubtypes && expandedSubtypes != null) {
+            features[Tags.expandedSubtypes] = expandedSubtypes;
+          }
         }
       }
       Space? remainingSpace = _exhaustivenessData.remainingSpaces[node];

@@ -79,7 +79,6 @@ class CompileJSCommand extends CompileSubcommandCommand {
         ...argResults!.arguments,
       ],
       packageConfigOverride: null,
-      forceNoSoundNullSafety: true,
     );
 
     return 0;

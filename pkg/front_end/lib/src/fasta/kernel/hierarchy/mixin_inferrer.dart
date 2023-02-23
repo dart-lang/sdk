@@ -46,9 +46,11 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   @override
   final ClassHierarchyBuilder hierarchy;
 
-  TypeBuilderConstraintGatherer(this.hierarchy,
-      Iterable<TypeParameter> typeParameters, Library currentLibrary)
-      : super.subclassing(typeParameters, currentLibrary);
+  TypeBuilderConstraintGatherer(
+      this.hierarchy, Iterable<TypeParameter> typeParameters,
+      {required bool isNonNullableByDefault})
+      : super.subclassing(typeParameters,
+            isNonNullableByDefault: isNonNullableByDefault);
 
   @override
   CoreTypes get coreTypes => hierarchy.coreTypes;
@@ -73,10 +75,11 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes) {
+  InterfaceType getTypeAsInstanceOf(
+      InterfaceType type, Class superclass, CoreTypes coreTypes,
+      {required bool isNonNullableByDefault}) {
     return hierarchy.getTypeAsInstanceOf(type, superclass,
-        isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override

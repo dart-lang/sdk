@@ -625,6 +625,31 @@ int variableToMove = 3;
         newFileContent: newFileContent);
   }
 
+  Future<void> test_single_variable_firstDartDoc() async {
+    var originalSource = '''
+///
+class ^A {}
+
+class B {}
+''';
+    var modifiedSource = '''
+
+class B {}
+''';
+    var declarationName = 'A';
+    var newFileName = 'a.dart';
+    var newFileContent = '''
+///
+class A {}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
   Future<void> _multipleDeclarations(
       {required String originalSource,
       required String modifiedSource,

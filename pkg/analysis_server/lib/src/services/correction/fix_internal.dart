@@ -1565,6 +1565,9 @@ class FixProcessor extends BaseProcessor {
     WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
       RemoveQuestionMark.new,
     ],
+    WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
+      AddTrailingComma.new,
+    ],
     WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
       UpdateSdkConstraints.version_2_2_2,
     ],

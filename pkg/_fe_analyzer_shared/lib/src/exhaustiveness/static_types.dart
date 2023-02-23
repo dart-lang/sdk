@@ -13,6 +13,10 @@ abstract class TypeOperations<Type extends Object> {
   /// Returns `true` if [s] is a subtype of [t].
   bool isSubtypeOf(Type s, Type t);
 
+  /// Returns a type that overapproximates the possible values of [type] by
+  /// replacing all type variables with the default types.
+  Type overapproximate(Type type);
+
   /// Returns `true` if [type] is a potentially nullable type.
   bool isNullable(Type type);
 
@@ -41,6 +45,9 @@ abstract class TypeOperations<Type extends Object> {
 
   /// Returns `true` if [type] is a record type.
   bool isRecordType(Type type);
+
+  /// Returns `true` if [type] is a generic interface type.
+  bool isGeneric(Type type);
 
   /// Returns a map of the field names and corresponding types available on
   /// [type]. For an interface type, these are the fields and getters, and for
@@ -100,7 +107,6 @@ abstract class SealedClassOperations<Type extends Object,
   /// [sealedClassType] and that [subClass] is in `getDirectSubclasses` for
   /// `getSealedClass` of [sealedClassType].
   ///
-  // TODO(johnniwinther): What should this return for generic types?
   Type? getSubclassAsInstanceOf(Class subClass, Type sealedClassType);
 }
 
@@ -365,7 +371,7 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
 class EnumStaticType<Type extends Object, EnumElement extends Object>
     extends TypeBasedStaticType<Type> {
   final EnumInfo<Type, Object, EnumElement, Object> _enumInfo;
-  List<EnumElementStaticType<Type, EnumElement>>? _enumElements;
+  List<StaticType>? _enumElements;
 
   EnumStaticType(
       super.typeOperations, super.fieldLookup, super.type, this._enumInfo);
@@ -376,15 +382,50 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
   @override
   Iterable<StaticType> get subtypes => enumElements;
 
-  List<EnumElementStaticType<Type, EnumElement>> get enumElements =>
-      _enumElements ??= _createEnumElements();
+  List<StaticType> get enumElements => _enumElements ??= _createEnumElements();
 
-  List<EnumElementStaticType<Type, EnumElement>> _createEnumElements() {
-    List<EnumElementStaticType<Type, EnumElement>> elements = [];
+  List<StaticType> _createEnumElements() {
+    List<StaticType> elements = [];
     for (EnumElementStaticType<Type, EnumElement> enumElement
         in _enumInfo.enumElements.values) {
-      if (_typeOperations.isSubtypeOf(enumElement._type, _type)) {
-        elements.add(enumElement);
+      // For generic enums, the individual enum elements might not be subtypes
+      // of the concrete enum type. For instance
+      //
+      //    enum E<T> {
+      //      a<int>(),
+      //      b<String>(),
+      //      c<bool>(),
+      //    }
+      //
+      //    method<T extends num>(E<T> e) {
+      //      switch (e) { ... }
+      //    }
+      //
+      // Here the enum elements `E.b` and `E.c` cannot be actual values of `e`
+      // because of the bound `num` on `T`.
+      //
+      // We detect this by checking whether the enum element type is a subtype
+      // of the overapproximation of [_type], in this case whether the element
+      // types are subtypes of `E<num>`.
+      //
+      // Since all type arguments on enum values are fixed, we don't have to
+      // avoid the trivial subtype instantiation `E<Never>`.
+      if (_typeOperations.isSubtypeOf(
+          enumElement._type, _typeOperations.overapproximate(_type))) {
+        // Since the type of the enum element might not itself be a subtype of
+        // [_type], for instance in the example above the type of `Enum.a`,
+        // `Enum<int>`, is not a subtype of `Enum<T>`, we wrap the static type
+        // to establish the subtype relation between the [StaticType] for the
+        // enum element and this [StaticType].
+        StaticType staticType = enumElement;
+        if (!_typeOperations.isSubtypeOf(enumElement._type, _type)) {
+          // TODO(johnniwinther): The old exhaustiveness algorithm relies on
+          // equality of [StaticType]s which isn't supported for
+          // [WrappedStaticType] so we create it conditionally while the old
+          // algorithm and its test are still in place.
+          staticType = new WrappedStaticType(staticType, this);
+        }
+        elements.add(staticType);
       }
     }
     return elements;
@@ -396,17 +437,9 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
 /// In the [StaticType] model, individual enum elements are represented as
 /// unique subtypes of the enum type, modelled using [EnumStaticType].
 class EnumElementStaticType<Type extends Object, EnumElement extends Object>
-    extends TypeBasedStaticType<Type> {
-  final EnumElement enumElement;
-
-  @override
-  final String name;
-
+    extends UniqueStaticType<Type> {
   EnumElementStaticType(super.typeOperations, super.fieldLookup, super.type,
-      this.enumElement, this.name);
-
-  @override
-  Object? get identity => enumElement;
+      EnumElement super.enumElement, super.name);
 }
 
 /// [StaticType] for a sealed class type.
@@ -432,8 +465,42 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
       Type? subtype =
           _sealedClassOperations.getSubclassAsInstanceOf(subClass, _type);
       if (subtype != null) {
-        assert(_typeOperations.isSubtypeOf(subtype, _type));
-        subtypes.add(_cache.getStaticType(subtype));
+        if (!_typeOperations.isGeneric(subtype)) {
+          // If the subtype is not generic, we can test whether it can be an
+          // actual value of [_type] by testing whether it is a subtype of the
+          // overapproximation of [_type].
+          //
+          // For instance
+          //
+          //     sealed class A<T> {}
+          //     class B extends A<num> {}
+          //     class C<T extends num> A<T> {}
+          //
+          //     method<T extends String>(A<T> a) {
+          //       switch (a) {
+          //         case B: // Not needed, B cannot inhabit A<T>.
+          //         case C: // Needed, C<Never> inhabits A<T>.
+          //       }
+          //     }
+          if (!_typeOperations.isSubtypeOf(
+              subtype, _typeOperations.overapproximate(_type))) {
+            continue;
+          }
+        }
+        StaticType staticType = _cache.getStaticType(subtype);
+        // Since the type of the [subtype] might not itself be a subtype of
+        // [_type], for instance in the example above the type of `case C:`,
+        // `C<num>`, is not a subtype of `A<T>`, we wrap the static type
+        // to establish the subtype relation between the [StaticType] for the
+        // enum element and this [StaticType].
+        if (!_typeOperations.isSubtypeOf(subtype, _type)) {
+          // TODO(johnniwinther): The old exhaustiveness algorithm relies on
+          // equality of [StaticType]s which isn't supported for
+          // [WrappedStaticType] so we create it conditionally while the old
+          // algorithm and its test are still in place.
+          staticType = new WrappedStaticType(staticType, this);
+        }
+        subtypes.add(staticType);
       }
     }
     return subtypes;

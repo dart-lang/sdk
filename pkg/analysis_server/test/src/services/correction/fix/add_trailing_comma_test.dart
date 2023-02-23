@@ -15,6 +15,7 @@ void main() {
     defineReflectiveTests(AddTrailingCommaBulkTest);
     defineReflectiveTests(AddTrailingCommaInFileTest);
     defineReflectiveTests(AddTrailingCommaTest);
+    defineReflectiveTests(AddTrailingCommaRecordTest);
   });
 }
 
@@ -60,6 +61,34 @@ Object f(a, b) {
       'b',), 'b',);
   return a;
 }
+''');
+  }
+}
+
+@reflectiveTest
+class AddTrailingCommaRecordTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_TRAILING_COMMA;
+
+  Future<void> test_assignment() async {
+    await resolveTestCode('''
+void f((int,) r) {
+  r = (1);
+}
+''');
+    await assertHasFix('''
+void f((int,) r) {
+  r = (1,);
+}
+''');
+  }
+
+  Future<void> test_return() async {
+    await resolveTestCode('''
+(int,) f() { return (1); }
+''');
+    await assertHasFix('''
+(int,) f() { return (1,); }
 ''');
   }
 }

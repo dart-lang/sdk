@@ -1,45 +1,36 @@
-mixin
-class ErrorMixinClass {
+mixin class ErrorMixinClass {
   final int foo;
   ErrorMixinClass(this.foo);
 }
-mixin
-class ErrorMixinClassNamed {
+mixin class ErrorMixinClassNamed {
   final int foo;
   ErrorMixinClassNamed.named(this.foo);
 }
-mixin
-class ErrorMixinClassRedirect {
+mixin class ErrorMixinClassRedirect {
   int foo = 0;
   ErrorMixinClassRedirect.named(int f) {}
   ErrorMixinClassRedirect.x(int f) : this.named(f);
 }
-mixin
-class ErrorMixinClassExternal {
+mixin class ErrorMixinClassExternal {
   external ErrorMixinClassExternal();
 }
-mixin
-class ErrorMixinClassSuper {
+mixin class ErrorMixinClassSuper {
   ErrorMixinClassSuper(): super();
 }
-mixin
-class ErrorMixinClassBody {
+mixin class ErrorMixinClassBody {
   ErrorMixinClassBody() {}
 }
-mixin
-class MixinClassConstructor {
+mixin class MixinClassConstructor {
   int foo = 0;
   MixinClassConstructor();
   MixinClassConstructor.named();
 }
-mixin
-class ConstMixinClassConstructor {
+mixin class ConstMixinClassConstructor {
   final int foo = 0;
   const ConstMixinClassConstructor();
   const ConstMixinClassConstructor.named();
 }
-mixin
-class MixinClassFactory {
+mixin class MixinClassFactory {
   int foo = 0;
   MixinClassFactory();
   MixinClassFactory.named();

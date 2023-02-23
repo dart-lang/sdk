@@ -369,6 +369,11 @@ class ProtocolConverter {
         allowCallingToString: allowCallingToString,
         format: format,
       );
+    } else if (response is vm.ErrorRef) {
+      final errorMessage = response.message;
+      return errorMessage != null
+          ? _adapter.extractUnhandledExceptionMessage(errorMessage)
+          : response.kind ?? '<unknown error>';
     } else if (response is vm.Sentinel) {
       return '<sentinel>';
     } else {

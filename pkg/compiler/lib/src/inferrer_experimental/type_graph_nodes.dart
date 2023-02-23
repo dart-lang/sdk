@@ -1139,15 +1139,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   Iterable<DynamicCallTarget> get concreteTargets => _concreteTargets!;
 
   @override
-  Iterable<MemberEntity> get callees =>
-      _callees ??= concreteTargets.map((e) => e.member).toSet();
-
-  Iterable<MemberEntity>? _callees;
-
-  void updateTargets(Iterable<DynamicCallTarget> targets) {
-    _concreteTargets = targets;
-    _callees = null;
-  }
+  Iterable<MemberEntity> get callees => concreteTargets.map((e) => e.member);
 
   AbstractValue? computeTypedSelector(InferrerEngine inferrer) {
     AbstractValue receiverType = receiver.type;

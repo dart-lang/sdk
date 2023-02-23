@@ -6501,6 +6501,20 @@ main() {
           ]);
         });
 
+        test('As parenthesized pattern', () {
+          var b = Var('b');
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            declare(b, type: 'bool'),
+            b.pattern().parenthesized.assign(x.expr.notEq(nullLiteral)).stmt,
+            if_(b.expr, [
+              // `x` is promoted because `b` is known to equal `x != null`.
+              checkPromoted(x, 'int'),
+            ]),
+          ]);
+        });
+
         test('As subpattern', () {
           h.addMember('bool', 'foo', 'bool');
           var b = Var('b');

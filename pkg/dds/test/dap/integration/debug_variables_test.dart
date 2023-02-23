@@ -577,6 +577,38 @@ void main() {
       );
     });
 
+    test('handles errors in toString() on custom classes', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+class Foo {
+  toString() => throw UnimplementedError('NYI!');
+}
+
+void main() {
+  final myVariable = Foo();
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          evaluateToStringInDebugViews: true,
+        ),
+      );
+
+      await client.expectScopeVariables(
+        await client.getTopFrameId(stop.threadId!),
+        'Locals',
+        r'''
+            myVariable: Foo (UnimplementedError: NYI!), eval: myVariable
+        ''',
+      );
+    });
+
     test('does not use toString() result if "Instance of Foo"', () async {
       // When evaluateToStringInDebugViews=true, we should discard the result of
       // calling toString() when it's just 'Instance of Foo' because we're already

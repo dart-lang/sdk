@@ -1,4 +1,4 @@
-# Changelog
+## 11.1.1-dev
 
 ## 11.1.0
 - Reduce number of type checks in `toJson()` methods.

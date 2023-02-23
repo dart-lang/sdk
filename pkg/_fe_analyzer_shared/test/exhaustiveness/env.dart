@@ -358,6 +358,18 @@ class _TypeOperations implements TypeOperations<_Type> {
   bool isRecordType(_Type type) {
     return type is _RecordType;
   }
+
+  @override
+  _Type overapproximate(_Type type) {
+    // TODO(johnniwinther): Support generic types in testing.
+    return type;
+  }
+
+  @override
+  bool isGeneric(_Type type) {
+    // TODO(johnniwinther): Support generic types in testing.
+    return false;
+  }
 }
 
 class _EnumOperations

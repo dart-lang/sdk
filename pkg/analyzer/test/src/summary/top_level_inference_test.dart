@@ -1920,6 +1920,7 @@ library
       f @2
         typeParameters
           covariant T @4
+            defaultType: dynamic
         returnType: T
 ''');
   }

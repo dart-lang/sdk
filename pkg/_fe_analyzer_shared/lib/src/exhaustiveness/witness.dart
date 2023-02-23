@@ -109,7 +109,7 @@ String? _unmatched(List<List<Pattern>> caseRows, List<Pattern> valuePatterns,
   // expand subtypes that are actually tested.
   // Split the type into its sealed subtypes and consider each one separately.
   // This enables it to filter rows more effectively.
-  List<StaticType> subtypes = _expandSealedSubtypes(valuePattern.type);
+  List<StaticType> subtypes = expandSealedSubtypes(valuePattern.type);
   for (StaticType subtype in subtypes) {
     String? result =
         _filterByType(subtype, caseRows, valuePatterns, witnessPredicates);
@@ -214,11 +214,11 @@ List<Pattern> _expandFields(
 /// Recursively expands [type] with its subtypes if its sealed.
 ///
 /// Otherwise, just returns [type].
-List<StaticType> _expandSealedSubtypes(StaticType type) {
+List<StaticType> expandSealedSubtypes(StaticType type) {
   if (!type.isSealed) return [type];
 
   return {
-    for (StaticType subtype in type.subtypes) ..._expandSealedSubtypes(subtype)
+    for (StaticType subtype in type.subtypes) ...expandSealedSubtypes(subtype)
   }.toList();
 }
 
@@ -307,7 +307,7 @@ class Witness {
   final Map<String, Witness> fields = {};
 
   void buildString(StringBuffer buffer) {
-    if (type != StaticType.nullableObject) {
+    if (!type.isRecord) {
       buffer.write(type);
     }
 

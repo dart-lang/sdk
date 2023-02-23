@@ -293,6 +293,29 @@ class SourceClassBuilder extends ClassBuilderImpl
     cls.isBase = isBase;
     cls.isInterface = isInterface;
     cls.isFinal = isFinal;
+
+    // Anonymous mixins have to propagate certain class modifiers.
+    if (cls.isAnonymousMixin) {
+      Class? superclass = cls.superclass;
+      Class? mixedInClass = cls.mixedInClass;
+      // If either [superclass] or [mixedInClass] is sealed, the current
+      // anonymous mixin is sealed.
+      if (superclass != null && superclass.isSealed ||
+          mixedInClass != null && mixedInClass.isSealed) {
+        cls.isSealed = true;
+      } else {
+        // Otherwise, if either [superclass] or [mixedInClass] is base or final,
+        // then the current anonymous mixin is final.
+        bool superclassIsBaseOrFinal =
+            superclass != null && (superclass.isBase || superclass.isFinal);
+        bool mixedInClassIsBaseOrFinal = mixedInClass != null &&
+            (mixedInClass.isBase || mixedInClass.isFinal);
+        if (superclassIsBaseOrFinal || mixedInClassIsBaseOrFinal) {
+          cls.isFinal = true;
+        }
+      }
+    }
+
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);

@@ -414,10 +414,11 @@ class Types with StandardBounds {
 
   static List<Object>? typeChecksForTesting;
 
-  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes) {
+  InterfaceType? getTypeAsInstanceOf(
+      InterfaceType type, Class superclass, CoreTypes coreTypes,
+      {required bool isNonNullableByDefault}) {
     return hierarchy.getTypeAsInstanceOf(type, superclass,
-        isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   List<DartType>? getTypeArgumentsAsInstanceOf(

@@ -3724,7 +3724,7 @@ class PortList extends Response {
 
 A _PortList_ contains a list of ports associated with some isolate.
 
-See [getPort](#getPort).
+See [getPorts](#getPorts).
 
 ### ProfileFunction
 
@@ -3792,7 +3792,7 @@ class ProcessMemoryUsage extends Response {
 }
 ```
 
-Set [getProcessMemoryUsage](#getprocessmemoryusage).
+See [getProcessMemoryUsage](#getprocessmemoryusage).
 
 ### ProcessMemoryItem
 

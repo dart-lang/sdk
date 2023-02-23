@@ -47,7 +47,7 @@ class ImplementsFinalMixin extends core::Object implements mai::M {
     : super core::Object::•()
     ;
 }
-abstract class _MixInFinalMixin&Object&M = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _MixInFinalMixin&Object&M = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MixInFinalMixin&Object&M
     : super core::Object::•()
     ;
@@ -66,7 +66,7 @@ class EnumImplementsFinalMixin extends core::_Enum implements mai::M /*isEnum*/ 
   method _enumToString() → core::String
     return "EnumImplementsFinalMixin.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class _EnumMixInFinalMixin&_Enum&M = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _EnumMixInFinalMixin&_Enum&M = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_EnumMixInFinalMixin&_Enum&M
     : super core::_Enum::•(index, _name)
     ;

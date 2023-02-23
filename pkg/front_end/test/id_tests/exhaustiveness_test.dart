@@ -6,6 +6,7 @@ import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/test_helper.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, Id, IdKind, NodeId;
@@ -69,9 +70,16 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
     if (result != null) {
       Features features = new Features();
       features[Tags.scrutineeType] = staticTypeToText(result.scrutineeType);
-      String? subtypes = subtypesToText(result.scrutineeType);
+      String? subtypes = typesToText(result.scrutineeType.subtypes);
       if (subtypes != null) {
         features[Tags.subtypes] = subtypes;
+      }
+      if (result.scrutineeType.isSealed) {
+        String? expandedSubtypes =
+            typesToText(expandSealedSubtypes(result.scrutineeType));
+        if (subtypes != expandedSubtypes && expandedSubtypes != null) {
+          features[Tags.expandedSubtypes] = expandedSubtypes;
+        }
       }
       features[Tags.scrutineeFields] =
           fieldsToText(result.scrutineeType.fields);
@@ -93,7 +101,7 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
         }
         for (ExhaustivenessError error in result.errors) {
           if (error is UnreachableCaseError && error.index == i) {
-            features[Tags.error] = errorToText(error);
+            caseFeatures[Tags.error] = errorToText(error);
           }
         }
         registerValue(

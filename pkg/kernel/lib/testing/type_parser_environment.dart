@@ -526,9 +526,8 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
           ..defaultType = type;
       }
     }
-    Uri uri = new Uri.file("test.lib");
     List<DartType> defaultTypes = calculateBounds(typeParameters, objectClass,
-        new Library(uri, fileUri: uri)..isNonNullableByDefault = true);
+        isNonNullableByDefault: true);
     for (int i = 0; i < typeParameters.length; i++) {
       typeParameters[i].defaultType = defaultTypes[i];
     }
