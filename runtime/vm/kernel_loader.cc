@@ -1121,6 +1121,7 @@ void KernelLoader::FinishTopLevelClassLoading(
     helper_.SkipTypeParametersList();      // skip type parameter list.
     helper_.SkipDartType();                // skip declared representation type.
     helper_.SkipStringReference();         // skip representation name.
+    helper_.SkipListOfDartTypes();         // skip implements types.
 
     const intptr_t inline_class_member_count = helper_.ReadListLength();
     for (intptr_t j = 0; j < inline_class_member_count; ++j) {

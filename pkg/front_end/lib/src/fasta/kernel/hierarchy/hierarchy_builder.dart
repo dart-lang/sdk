@@ -5,7 +5,8 @@
 library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchyBase;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchyBase, ClassHierarchyInlineClassMixin;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart' show Substitution, uniteNullabilities;
@@ -16,7 +17,9 @@ import '../../loader.dart' show Loader;
 import '../../source/source_loader.dart' show SourceLoader;
 import 'hierarchy_node.dart';
 
-class ClassHierarchyBuilder implements ClassHierarchyBase {
+class ClassHierarchyBuilder
+    with ClassHierarchyInlineClassMixin
+    implements ClassHierarchyBase {
   final Map<Class, ClassHierarchyNode> nodes = <Class, ClassHierarchyNode>{};
 
   final Map<ClassBuilder, Map<Class, Substitution>> substitutions =

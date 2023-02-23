@@ -1376,8 +1376,8 @@ class OutlineBuilder extends StackListenerImpl {
           name as String,
           typeVariables,
           /*supertype,
-            mixinApplication,
-            interfaces,*/
+            mixinApplication,*/
+          interfaces,
           startCharOffset,
           nameOffset,
           endToken.charOffset,

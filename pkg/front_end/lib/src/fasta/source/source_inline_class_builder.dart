@@ -42,6 +42,8 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
   @override
   final List<TypeVariableBuilder>? typeParameters;
 
+  List<TypeBuilder>? interfaceBuilders;
+
   final SourceFieldBuilder? representationFieldBuilder;
 
   SourceInlineClassBuilder(
@@ -49,6 +51,7 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       int modifiers,
       String name,
       this.typeParameters,
+      this.interfaceBuilders,
       Scope scope,
       ConstructorScope constructorScope,
       SourceLibraryBuilder parent,
@@ -95,6 +98,16 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
   /// the library.
   InlineClass build(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
+    if (interfaceBuilders != null) {
+      for (int i = 0; i < interfaceBuilders!.length; ++i) {
+        DartType? interface =
+            interfaceBuilders![i].build(libraryBuilder, TypeUse.superType);
+        if (interface is InlineType) {
+          inlineClass.implements.add(interface);
+        }
+      }
+    }
+
     DartType representationType;
     String representationName;
     if (representationFieldBuilder != null) {

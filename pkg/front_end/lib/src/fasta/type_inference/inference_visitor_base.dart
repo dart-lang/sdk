@@ -888,11 +888,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {required ObjectAccessTarget defaultTarget,
       required bool isSetter,
       required bool isReceiverTypePotentiallyNullable}) {
+    ObjectAccessTarget? target = _findDirectInlineTypeMemberInternal(
+        receiverType, inlineType, name, fileOffset,
+        isSetter: isSetter,
+        isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
+    return target ?? defaultTarget;
+  }
+
+  ObjectAccessTarget? _findDirectInlineTypeMemberInternal(
+      DartType receiverType, InlineType inlineType, Name name, int fileOffset,
+      {required bool isSetter,
+      required bool isReceiverTypePotentiallyNullable}) {
     if (name.text == inlineType.inlineClass.representationName) {
       if (isSetter ||
           name.isPrivate &&
               name.library != inlineType.inlineClass.enclosingLibrary) {
-        return defaultTarget;
+        return null;
       }
       return new ObjectAccessTarget.inlineClassRepresentation(
           receiverType, inlineType,
@@ -952,7 +963,20 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           targetMember, targetTearoff, targetKind!, inlineType.typeArguments,
           isPotentiallyNullable: isReceiverTypePotentiallyNullable);
     } else {
-      return defaultTarget;
+      for (InlineType implement in inlineType.inlineClass.implements) {
+        InlineType supertype = hierarchyBuilder.getInlineTypeAsInstanceOf(
+            inlineType, implement.inlineClass,
+            isNonNullableByDefault: isNonNullableByDefault)!;
+        ObjectAccessTarget? target = _findDirectInlineTypeMemberInternal(
+            receiverType, supertype, name, fileOffset,
+            isSetter: isSetter,
+            isReceiverTypePotentiallyNullable:
+                isReceiverTypePotentiallyNullable);
+        if (target != null) {
+          return target;
+        }
+      }
+      return null;
     }
   }
 
