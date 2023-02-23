@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
@@ -15,6 +16,7 @@ import 'package:test/test.dart';
 
 class AnalyzerStatePrinter {
   final MemoryByteStore byteStore;
+  final UnlinkedUnitStoreImpl unlinkedUnitStore;
   final IdProvider idProvider;
   final LibraryContext libraryContext;
   final bool omitSdkFiles;
@@ -27,6 +29,7 @@ class AnalyzerStatePrinter {
 
   AnalyzerStatePrinter({
     required this.byteStore,
+    required this.unlinkedUnitStore,
     required this.idProvider,
     required this.libraryContext,
     required this.omitSdkFiles,
@@ -47,6 +50,7 @@ class AnalyzerStatePrinter {
     _writeFiles(testData.fileSystem);
     _writeLibraryContext(testData.libraryContext);
     _writeElementFactory();
+    _writeUnlinkedUnitStore();
     _writeByteStore();
   }
 
@@ -593,6 +597,21 @@ class AnalyzerStatePrinter {
           .join(' ');
       _writelnWithIndent('referencingFiles: $fileIds');
     }
+  }
+
+  void _writeUnlinkedUnitStore() {
+    _writelnWithIndent('unlinkedUnitStore');
+    _withIndent(() {
+      final groups = unlinkedUnitStore.map.entries.groupListsBy((element) {
+        return element.value.usageCount;
+      });
+
+      for (final groupEntry in groups.entries) {
+        final keys = groupEntry.value.map((e) => e.key).toList();
+        final shortKeys = idProvider.shortKeys(keys)..sort();
+        _writelnWithIndent('${groupEntry.key}: $shortKeys');
+      }
+    });
   }
 
   void _writeUriList(String name, Iterable<Uri> uriIterable) {

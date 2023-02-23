@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
+import 'package:meta/meta.dart';
 
 abstract class UnlinkedUnitStore {
   void clear();
@@ -14,16 +15,17 @@ abstract class UnlinkedUnitStore {
 class UnlinkedUnitStoreImpl implements UnlinkedUnitStore {
   // TODO(jensj): Could we use finalizers and automatically clean up
   // this map?
-  final Map<String, _UnlinkedUnitStoreData> _deserializedUnlinked = {};
+  @visibleForTesting
+  final Map<String, _UnlinkedUnitStoreData> map = {};
 
   @override
   void clear() {
-    _deserializedUnlinked.clear();
+    map.clear();
   }
 
   @override
   AnalysisDriverUnlinkedUnit? get(String key) {
-    var lookup = _deserializedUnlinked[key];
+    var lookup = map[key];
     if (lookup != null) {
       lookup.usageCount++;
       return lookup.value.target;
@@ -33,16 +35,16 @@ class UnlinkedUnitStoreImpl implements UnlinkedUnitStore {
 
   @override
   void put(String key, AnalysisDriverUnlinkedUnit value) {
-    _deserializedUnlinked[key] = _UnlinkedUnitStoreData(WeakReference(value));
+    map[key] = _UnlinkedUnitStoreData(WeakReference(value));
   }
 
   @override
   void release(String key) {
-    var lookup = _deserializedUnlinked[key];
+    var lookup = map[key];
     if (lookup != null) {
       lookup.usageCount--;
       if (lookup.usageCount <= 0) {
-        _deserializedUnlinked.remove(key);
+        map.remove(key);
       }
     }
   }

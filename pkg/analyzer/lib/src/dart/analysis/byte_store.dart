@@ -42,6 +42,10 @@ class MemoryByteStore implements ByteStore {
   @visibleForTesting
   final Map<String, MemoryByteStoreEntry> map = {};
 
+  /// Throws [StateError] if [release] invoked when there is no entry.
+  @visibleForTesting
+  bool throwIfReleaseWithoutEntry = false;
+
   @override
   Uint8List? get(String key) {
     final entry = map[key];
@@ -74,6 +78,8 @@ class MemoryByteStore implements ByteStore {
         if (entry.refCount == 0) {
           map.remove(key);
         }
+      } else if (throwIfReleaseWithoutEntry) {
+        throw StateError('No entry: $key');
       }
     }
   }

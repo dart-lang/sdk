@@ -690,6 +690,7 @@ class FileState {
       var bytes = driverUnlinkedUnit.toBytes();
       _fsState._byteStore.putGet(_unlinkedKey!, bytes);
       testData?.unlinkedKeyPut.add(unlinkedKey);
+      _fsState.unlinkedUnitStore.put(_unlinkedKey!, driverUnlinkedUnit);
       return driverUnlinkedUnit;
     });
   }
@@ -1195,6 +1196,9 @@ class FileSystemState {
 
     // The removed file does not reference other files anymore.
     file._kind?.dispose();
+
+    // Release this unlinked data.
+    unlinkedUnitStore.release(file.unlinkedKey);
 
     // Recursively remove files that reference the removed file.
     for (var reference in file.referencingFiles.toList()) {

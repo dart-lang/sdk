@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
@@ -69,6 +70,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     final buffer = StringBuffer();
     printer.AnalyzerStatePrinter(
       byteStore: byteStore,
+      unlinkedUnitStore: fsState.unlinkedUnitStore as UnlinkedUnitStoreImpl,
       idProvider: _idProvider,
       libraryContext: libraryContext,
       omitSdkFiles: omitSdkFiles,
