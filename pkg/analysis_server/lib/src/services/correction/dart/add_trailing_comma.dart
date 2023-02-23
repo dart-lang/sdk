@@ -38,6 +38,8 @@ class AddTrailingComma extends CorrectionProducer {
       await _insertComma(builder, node.expression);
     } else if (node is RecordLiteral) {
       await _insertComma(builder, node.fields.last);
+    } else if (node is RecordTypeAnnotation) {
+      await _insertComma(builder, node.positionalFields.last);
     }
   }
 
