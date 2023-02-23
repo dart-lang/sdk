@@ -17,6 +17,8 @@ class FlutterStyleTodosTest extends LintRuleTest {
   @override
   String get lintRule => 'flutter_style_todos';
 
+  // TODO(srawlins): This test is called, "bad patterns", contains 10 TODO-like
+  // comment lines, but then only expects 9 lints. Why?
   test_badPatterns() async {
     await assertDiagnostics(
       r'''
@@ -45,12 +47,118 @@ class FlutterStyleTodosTest extends LintRuleTest {
     );
   }
 
+  test_badUsername1() async {
+    await assertDiagnostics(
+      r'// TODO(#12357): bla',
+      [
+        lint(0, 20),
+      ],
+    );
+  }
+
+  test_badUsername2() async {
+    await assertDiagnostics(
+      r'// TODO(user1,user2): bla',
+      [
+        lint(0, 25),
+      ],
+    );
+  }
+
+  test_docComment() async {
+    await assertDiagnostics(
+      r'/// TODO(user): bla',
+      [
+        lint(0, 19),
+      ],
+    );
+  }
+
+  test_extraColon() async {
+    await assertDiagnostics(
+      r'// TODO:(user): bla',
+      [
+        lint(0, 19),
+      ],
+    );
+  }
+
   test_goodPatterns() async {
     await assertNoDiagnostics(
       r'''
 // TODO(somebody): something
 // TODO(somebody): something, https://github.com/flutter/flutter
 ''',
+    );
+  }
+
+  test_justTodo() async {
+    await assertDiagnostics(
+      r'// TODO',
+      [
+        lint(0, 7),
+      ],
+    );
+  }
+
+  test_justTodo_noLeadingSpace() async {
+    await assertDiagnostics(
+      r'//TODO',
+      [
+        lint(0, 6),
+      ],
+    );
+  }
+
+  test_leadingText() async {
+    await assertDiagnostics(
+      r'// comment TODO(user): bla',
+      [
+        lint(0, 26),
+      ],
+    );
+  }
+
+  test_missingColon() async {
+    await assertDiagnostics(
+      r'// TODO(user) bla',
+      [
+        lint(0, 17),
+      ],
+    );
+  }
+
+  test_missingParens() async {
+    await assertDiagnostics(
+      r'// TODO: bla',
+      [
+        lint(0, 12),
+      ],
+    );
+  }
+
+  test_properFormat_hyphenatedUsername() async {
+    await assertNoDiagnostics(r'// TODO(user-name): bla');
+  }
+
+  test_properFormat_simpleUsername() async {
+    await assertNoDiagnostics(r'// TODO(username): bla');
+  }
+
+  test_slashStar() async {
+    await assertNoDiagnostics(r'/* TODO bla */');
+  }
+
+  test_slashStarStar() async {
+    await assertNoDiagnostics(r'/** TODO bla **/');
+  }
+
+  test_spaceBeforeColon() async {
+    await assertDiagnostics(
+      r'// TODO(user) : bla',
+      [
+        lint(0, 19),
+      ],
     );
   }
 }
