@@ -1,3 +1,17 @@
+# 1.34.0
+
+- update `only_throw_errors` to not report on values of type `Never`
+- update `prefer_mixin` to handle class mixins
+- update `unnecessary_null_checks` to ignore `Future.value` and 
+  `Completer.complete`
+- fix `unnecessary_parenthesis` false positives on constant patterns
+- new lint: `invalid_case_patterns`
+- update `unnecessary_const` to handle case patterns
+- improve handling of null-aware cascades in `unnecessary_parenthesis`
+- update `unreachable_from_main` to report unreachable public static fields,
+  getters, setters, and methods, that are declared on public classes, mixins,
+  enums, and extensions
+
 # 1.33.0
 
 - fix `unnecessary_parenthesis` false-positive with null-aware expressions
