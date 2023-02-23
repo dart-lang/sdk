@@ -2356,7 +2356,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ...patternVariableDeclaration.pattern.declaredVariables,
           ...replacementStatements,
         ];
-        element.replacement = replacementStatements;
+
+        for (Statement preludeStatement in element.prelude) {
+          StatementInferenceResult inferenceResult =
+              inferStatement(preludeStatement);
+          if (!inferenceResult.hasChanged) {
+            replacementStatements.add(preludeStatement);
+          } else {
+            if (inferenceResult.statementCount == 1) {
+              replacementStatements.add(inferenceResult.statement);
+            } else {
+              replacementStatements.addAll(inferenceResult.statements);
+            }
+          }
+        }
+
+        element.prelude = replacementStatements;
       }
       // TODO(johnniwinther): Use _visitStatements instead.
       List<VariableDeclaration>? variables;
@@ -2849,7 +2864,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ForStatement loop = _createForStatement(element.fileOffset,
         element.variables, element.condition, element.updates, loopBody);
     libraryBuilder.loader.dataForTesting?.registerAlias(element, loop);
-    body.addAll(element.replacement);
+    body.addAll(element.prelude);
     body.add(loop);
   }
 
@@ -3187,7 +3202,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ForStatement loop = _createForStatement(entry.fileOffset, entry.variables,
         entry.condition, entry.updates, loopBody);
     libraryBuilder.loader.dataForTesting?.registerAlias(entry, loop);
-    body.addAll(entry.replacement);
+    body.addAll(entry.prelude);
     body.add(loop);
   }
 
@@ -4243,7 +4258,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ...patternVariableDeclaration.pattern.declaredVariables,
           ...replacementStatements,
         ];
-        entry.replacement = replacementStatements;
+
+        for (Statement preludeStatement in entry.prelude) {
+          StatementInferenceResult inferenceResult =
+              inferStatement(preludeStatement);
+          if (!inferenceResult.hasChanged) {
+            replacementStatements.add(preludeStatement);
+          } else {
+            if (inferenceResult.statementCount == 1) {
+              replacementStatements.add(inferenceResult.statement);
+            } else {
+              replacementStatements.addAll(inferenceResult.statements);
+            }
+          }
+        }
+
+        entry.prelude = replacementStatements;
       }
       // TODO(johnniwinther): Use _visitStatements instead.
       List<VariableDeclaration>? variables;

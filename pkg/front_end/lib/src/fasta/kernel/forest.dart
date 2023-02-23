@@ -310,17 +310,22 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
-  PatternForElement createPatternForElement(
-      int fileOffset,
-      PatternVariableDeclaration patternVariableDeclaration,
-      List<VariableDeclaration> variables,
-      Expression? condition,
-      List<Expression> updates,
-      Expression body) {
+  PatternForElement createPatternForElement(int fileOffset,
+      {required PatternVariableDeclaration patternVariableDeclaration,
+      required List<Statement> prelude,
+      required List<VariableDeclaration> variables,
+      required Expression? condition,
+      required List<Expression> updates,
+      required Expression body}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new PatternForElement(
-        patternVariableDeclaration, variables, condition, updates, body)
+        patternVariableDeclaration: patternVariableDeclaration,
+        prelude: prelude,
+        variables: variables,
+        condition: condition,
+        updates: updates,
+        body: body)
       ..fileOffset = fileOffset;
   }
 
@@ -336,17 +341,22 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
-  PatternForMapEntry createPatternForMapEntry(
-      int fileOffset,
-      PatternVariableDeclaration patternVariableDeclaration,
-      List<VariableDeclaration> variables,
-      Expression? condition,
-      List<Expression> updates,
-      MapLiteralEntry body) {
+  PatternForMapEntry createPatternForMapEntry(int fileOffset,
+      {required PatternVariableDeclaration patternVariableDeclaration,
+      required List<Statement> prelude,
+      required List<VariableDeclaration> variables,
+      required Expression? condition,
+      required List<Expression> updates,
+      required MapLiteralEntry body}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new PatternForMapEntry(
-        patternVariableDeclaration, variables, condition, updates, body)
+        patternVariableDeclaration: patternVariableDeclaration,
+        prelude: prelude,
+        variables: variables,
+        condition: condition,
+        updates: updates,
+        body: body)
       ..fileOffset = fileOffset;
   }
 

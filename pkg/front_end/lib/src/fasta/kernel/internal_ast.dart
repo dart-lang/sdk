@@ -4919,7 +4919,7 @@ class PatternForElement extends InternalExpression
     with ControlFlowElement
     implements ForElement {
   PatternVariableDeclaration patternVariableDeclaration;
-  late List<Statement> replacement;
+  List<Statement> prelude;
 
   @override
   final List<VariableDeclaration> variables; // May be empty, but not null.
@@ -4933,8 +4933,13 @@ class PatternForElement extends InternalExpression
   @override
   Expression body;
 
-  PatternForElement(this.patternVariableDeclaration, this.variables,
-      this.condition, this.updates, this.body);
+  PatternForElement(
+      {required this.patternVariableDeclaration,
+      required this.prelude,
+      required this.variables,
+      required this.condition,
+      required this.updates,
+      required this.body});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4979,7 +4984,7 @@ class PatternForMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntry
     implements ForMapEntry {
   PatternVariableDeclaration patternVariableDeclaration;
-  late List<Statement> replacement;
+  List<Statement> prelude;
 
   @override
   final List<VariableDeclaration> variables;
@@ -4993,8 +4998,13 @@ class PatternForMapEntry extends TreeNode
   @override
   MapLiteralEntry body;
 
-  PatternForMapEntry(this.patternVariableDeclaration, this.variables,
-      this.condition, this.updates, this.body);
+  PatternForMapEntry(
+      {required this.patternVariableDeclaration,
+      required this.prelude,
+      required this.variables,
+      required this.condition,
+      required this.updates,
+      required this.body});
 
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {

@@ -4088,17 +4088,27 @@ class BodyBuilder extends StackListenerImpl
           kind: ScopeKind.forStatement);
       exitLocalScope();
       enterLocalScope(forScope);
+      // We use intermediate variables to transfer values between the pattern
+      // variables and the replacement internal variables. It allows to avoid
+      // using the variables with the same name within the same block.
+      List<VariableDeclaration> intermediateVariables = [];
       List<VariableDeclaration> internalVariables = [];
       for (VariableDeclaration variable in pattern.declaredVariables) {
+        VariableDeclaration intermediateVariable =
+            forest.createVariableDeclarationForValue(
+                forest.createVariableGet(variable.fileOffset, variable));
+        intermediateVariables.add(intermediateVariable);
+
         VariableDeclaration internalVariable = forest.createVariableDeclaration(
             variable.fileOffset, variable.name,
-            initializer:
-                forest.createVariableGet(variable.fileOffset, variable),
-            type: variable.type);
+            initializer: forest.createVariableGet(
+                variable.fileOffset, intermediateVariable));
         internalVariables.add(internalVariable);
+
         declareVariable(internalVariable, scope);
         typeInferrer.assignedVariables.declare(internalVariable);
       }
+      push(intermediateVariables);
       push(internalVariables);
       push(new PatternVariableDeclaration(pattern, toValue(expression),
           fileOffset: offsetForToken(keyword),
@@ -4173,8 +4183,10 @@ class BodyBuilder extends StackListenerImpl
 
     Object? variableOrExpression = pop();
     List<VariableDeclaration>? variables;
+    List<VariableDeclaration>? intermediateVariables;
     if (variableOrExpression is PatternVariableDeclaration) {
       variables = pop() as List<VariableDeclaration>; // Internal variables.
+      intermediateVariables = pop() as List<VariableDeclaration>;
     } else {
       variables = _buildForLoopVariableDeclarations(variableOrExpression)!;
     }
@@ -4191,7 +4203,12 @@ class BodyBuilder extends StackListenerImpl
       ForMapEntry result;
       if (variableOrExpression is PatternVariableDeclaration) {
         result = forest.createPatternForMapEntry(offsetForToken(forToken),
-            variableOrExpression, variables, condition, updates, entry);
+            patternVariableDeclaration: variableOrExpression,
+            prelude: intermediateVariables!,
+            variables: variables,
+            condition: condition,
+            updates: updates,
+            body: entry);
       } else {
         result = forest.createForMapEntry(
             offsetForToken(forToken), variables, condition, updates, entry);
@@ -4201,13 +4218,13 @@ class BodyBuilder extends StackListenerImpl
     } else {
       ForElement result;
       if (variableOrExpression is PatternVariableDeclaration) {
-        result = forest.createPatternForElement(
-            offsetForToken(forToken),
-            variableOrExpression,
-            variables,
-            condition,
-            updates,
-            toValue(entry));
+        result = forest.createPatternForElement(offsetForToken(forToken),
+            patternVariableDeclaration: variableOrExpression,
+            prelude: intermediateVariables!,
+            variables: variables,
+            condition: condition,
+            updates: updates,
+            body: toValue(entry));
       } else {
         result = forest.createForElement(offsetForToken(forToken), variables,
             condition, updates, toValue(entry));
@@ -4260,10 +4277,14 @@ class BodyBuilder extends StackListenerImpl
         typeInferrer.assignedVariables.deferNode();
 
     Object? variableOrExpression = pop();
-    List<VariableDeclaration>? variables =
-        variableOrExpression is PatternVariableDeclaration
-            ? pop() as List<VariableDeclaration>
-            : _buildForLoopVariableDeclarations(variableOrExpression);
+    List<VariableDeclaration>? variables;
+    List<VariableDeclaration>? intermediateVariables;
+    if (variableOrExpression is PatternVariableDeclaration) {
+      variables = pop() as List<VariableDeclaration>;
+      intermediateVariables = pop() as List<VariableDeclaration>;
+    } else {
+      variables = _buildForLoopVariableDeclarations(variableOrExpression);
+    }
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget() as JumpTarget;
     JumpTarget breakTarget = exitBreakTarget() as JumpTarget;
@@ -4297,7 +4318,7 @@ class BodyBuilder extends StackListenerImpl
     }
     if (variableOrExpression is PatternVariableDeclaration) {
       result = forest.createBlock(result.fileOffset, result.fileOffset,
-          <Statement>[variableOrExpression, result]);
+          <Statement>[variableOrExpression, ...intermediateVariables!, result]);
     }
     if (variableOrExpression is ParserRecovery) {
       problemInLoopOrSwitch ??= buildProblemStatement(

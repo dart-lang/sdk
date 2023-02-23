@@ -938,11 +938,12 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
   if (element is ForElement) {
     if (element is PatternForElement) {
       PatternForMapEntry result = new PatternForMapEntry(
-          element.patternVariableDeclaration,
-          element.variables,
-          element.condition,
-          element.updates,
-          convertToMapEntry(element.body, helper, onConvertElement))
+          patternVariableDeclaration: element.patternVariableDeclaration,
+          prelude: element.prelude,
+          variables: element.variables,
+          condition: element.condition,
+          updates: element.updates,
+          body: convertToMapEntry(element.body, helper, onConvertElement))
         ..fileOffset = element.fileOffset;
       onConvertElement(element, result);
       return result;
