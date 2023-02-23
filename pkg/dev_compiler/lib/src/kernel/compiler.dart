@@ -6088,6 +6088,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         }
       }
     }
+    if (target.isExternal &&
+        target.isInlineClassMember &&
+        hasObjectLiteralAnnotation(target)) {
+      // Only JS interop inline class object literal constructors have the
+      // `@ObjectLiteral(...)` annotation.
+      assert(node.arguments.positional.isEmpty);
+      return _emitObjectLiteral(
+          Arguments(node.arguments.positional,
+              types: node.arguments.types, named: node.arguments.named),
+          target);
+    }
     if (target == _coreTypes.identicalProcedure) {
       return _emitCoreIdenticalCall(node.arguments.positional);
     }

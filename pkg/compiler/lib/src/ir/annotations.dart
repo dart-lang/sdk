@@ -18,6 +18,7 @@ class IrAnnotationData {
   final Map<ir.Class, String> _jsInteropClassNames = {};
   final Set<ir.Class> _anonymousJsInteropClasses = {};
   final Map<ir.Member, String> _jsInteropMemberNames = {};
+  final Set<ir.Member> _jsInteropObjectLiterals = {};
 
   final Map<ir.Member, List<PragmaAnnotationData>> _memberPragmaAnnotations =
       {};
@@ -52,6 +53,10 @@ class IrAnnotationData {
   bool isAnonymousJsInteropClass(ir.Class node) =>
       _anonymousJsInteropClasses.contains(node);
 
+  // Returns `true` if [node] is annotated with `@ObjectLiteral`.
+  bool isJsInteropObjectLiteral(ir.Member node) =>
+      _jsInteropObjectLiterals.contains(node);
+
   // Returns the text from the `@JS(<text>)` annotation of [node], if any.
   String? getJsInteropMemberName(ir.Member node) => _jsInteropMemberNames[node];
 
@@ -74,11 +79,15 @@ class IrAnnotationData {
     });
   }
 
-  void forEachJsInteropMember(void Function(ir.Member, String?) f) {
+  void forEachJsInteropMember(
+      void Function(ir.Member, String?,
+              {required bool isJsInteropObjectLiteral})
+          f) {
     _jsInteropLibraryNames.forEach((ir.Library library, _) {
       for (ir.Member member in library.members) {
         if (member.isExternal) {
-          f(member, _jsInteropMemberNames[member] ?? member.name.text);
+          f(member, _jsInteropMemberNames[member] ?? member.name.text,
+              isJsInteropObjectLiteral: isJsInteropObjectLiteral(member));
         }
       }
     });
@@ -89,7 +98,7 @@ class IrAnnotationData {
         if (member.isExternal) {
           name ??= member.name.text;
         }
-        f(member, name);
+        f(member, name, isJsInteropObjectLiteral: false);
       }
     });
   }
@@ -140,6 +149,12 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
         String? jsName = _getJsInteropName(constant);
         if (jsName != null) {
           data._jsInteropMemberNames[member] = jsName;
+        }
+
+        bool isJsInteropObjectLiteralMember =
+            _isJsInteropObjectLiteral(constant);
+        if (isJsInteropObjectLiteralMember) {
+          data._jsInteropObjectLiterals.add(member);
         }
 
         bool isNativeMember = _isNativeMember(constant);
@@ -316,6 +331,12 @@ bool _isAnonymousJsInterop(ir.Constant constant) {
       (constant.classNode.enclosingLibrary.importUri == Uris.package_js ||
           constant.classNode.enclosingLibrary.importUri ==
               Uris.dart__js_annotations);
+}
+
+bool _isJsInteropObjectLiteral(ir.Constant constant) {
+  return constant is ir.InstanceConstant &&
+      constant.classNode.name == 'ObjectLiteral' &&
+      constant.classNode.enclosingLibrary.importUri == Uris.dart__js_interop;
 }
 
 class PragmaAnnotationData {

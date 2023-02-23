@@ -35,6 +35,9 @@ class NativeBasicDataBuilder {
   /// The JavaScript members implemented via typed JavaScript interop.
   final Map<MemberEntity, String> _jsInteropMembers = {};
 
+  /// The JavaScript interop members annotated with `@ObjectLiteral`.
+  final Set<MemberEntity> _jsInteropObjectLiterals = {};
+
   /// Sets the native tag info for [cls].
   ///
   /// The tag info string contains comma-separated 'words' which are either
@@ -99,7 +102,8 @@ class NativeBasicDataBuilder {
 
   /// Marks [element] as an explicit part of js interop and sets the explicit js
   /// interop [name] for the member [element].
-  void markAsJsInteropMember(MemberEntity element, String name) {
+  void markAsJsInteropMember(MemberEntity element, String name,
+      {required bool isJsInteropObjectLiteral}) {
     assert(
         !_closed,
         failedAt(
@@ -107,6 +111,7 @@ class NativeBasicDataBuilder {
             "NativeBasicDataBuilder is closed. "
             "Trying to mark $element as a js-interop member."));
     _jsInteropMembers[element] = name;
+    if (isJsInteropObjectLiteral) _jsInteropObjectLiterals.add(element);
   }
 
   /// Creates the [NativeBasicData] object for the data collected in this
@@ -120,7 +125,8 @@ class NativeBasicDataBuilder {
         _jsInteropLibraries,
         _jsInteropClasses,
         _anonymousJsInteropClasses,
-        _jsInteropMembers);
+        _jsInteropMembers,
+        _jsInteropObjectLiterals);
   }
 
   void reopenForTesting() {
@@ -156,6 +162,9 @@ class NativeBasicData {
   /// The JavaScript members implemented via typed JavaScript interop.
   final Map<MemberEntity, String?> _jsInteropMembers;
 
+  /// JavaScript interop constructors annotated with `@ObjectLiteral`.
+  final Set<MemberEntity> _jsInteropObjectLiterals;
+
   NativeBasicData(
       this._env,
       this._isAllowInteropUsed,
@@ -163,7 +172,8 @@ class NativeBasicData {
       this._jsInteropLibraries,
       this._jsInteropClasses,
       this._anonymousJsInteropClasses,
-      this._jsInteropMembers);
+      this._jsInteropMembers,
+      this._jsInteropObjectLiterals);
 
   factory NativeBasicData.fromIr(
       KernelToElementMap map, IrAnnotationData data) {
@@ -173,6 +183,7 @@ class NativeBasicData {
     Map<ClassEntity, String> jsInteropClasses = {};
     Set<ClassEntity> anonymousJsInteropClasses = {};
     Map<MemberEntity, String?> jsInteropMembers = {};
+    Set<MemberEntity> jsInteropObjectLiterals = {};
 
     data.forEachNativeClass((ir.Class node, String text) {
       nativeClassTagInfo[map.getClass(node)] = NativeClassTag(text);
@@ -189,17 +200,27 @@ class NativeBasicData {
         anonymousJsInteropClasses.add(cls);
       }
     });
-    data.forEachJsInteropMember((ir.Member node, String? name) {
+    data.forEachJsInteropMember((ir.Member node, String? name,
+        {required bool isJsInteropObjectLiteral}) {
       // TODO(49428): Are there other members that we should ignore here?
       //  There are non-external and unannotated members because the source code
       //  doesn't contain them. (e.g. default constructor) Does it make sense to
       //  consider these valid JS members?
       if (memberIsIgnorable(node)) return;
       jsInteropMembers[map.getMember(node)] = name;
+      if (isJsInteropObjectLiteral)
+        jsInteropObjectLiterals.add(map.getMember(node));
     });
 
-    return NativeBasicData(env, false, nativeClassTagInfo, jsInteropLibraries,
-        jsInteropClasses, anonymousJsInteropClasses, jsInteropMembers);
+    return NativeBasicData(
+        env,
+        false,
+        nativeClassTagInfo,
+        jsInteropLibraries,
+        jsInteropClasses,
+        anonymousJsInteropClasses,
+        jsInteropMembers,
+        jsInteropObjectLiterals);
   }
 
   /// Deserializes a [NativeBasicData] object from [source].
@@ -220,6 +241,7 @@ class NativeBasicData {
     Set<ClassEntity> anonymousJsInteropClasses = source.readClasses().toSet();
     Map<MemberEntity, String?> jsInteropMembers = source
         .readMemberMap((MemberEntity member) => source.readStringOrNull());
+    Set<MemberEntity> jsInteropObjectLiterals = source.readMembers().toSet();
     source.end(tag);
     return NativeBasicData(
         elementEnvironment,
@@ -228,7 +250,8 @@ class NativeBasicData {
         jsInteropLibraries,
         jsInteropClasses,
         anonymousJsInteropClasses,
-        jsInteropMembers);
+        jsInteropMembers,
+        jsInteropObjectLiterals);
   }
 
   /// Serializes this [NativeBasicData] to [sink].
@@ -244,6 +267,7 @@ class NativeBasicData {
     sink.writeClasses(_anonymousJsInteropClasses);
     sink.writeMemberMap(_jsInteropMembers,
         (MemberEntity member, String? name) => sink.writeStringOrNull(name));
+    sink.writeMembers(_jsInteropObjectLiterals);
     sink.end(tag);
   }
 
@@ -348,6 +372,8 @@ class NativeBasicData {
         map.toBackendClassSet(_anonymousJsInteropClasses);
     Map<MemberEntity, String?> jsInteropMembers =
         map.toBackendMemberMap(_jsInteropMembers, identity);
+    Set<MemberEntity> jsInteropObjectLiterals =
+        map.toBackendMemberSet(_jsInteropObjectLiterals);
     return NativeBasicData(
         environment,
         isAllowInteropUsed,
@@ -355,7 +381,8 @@ class NativeBasicData {
         jsInteropLibraries,
         jsInteropClasses,
         anonymousJsInteropClasses,
-        jsInteropMembers);
+        jsInteropMembers,
+        jsInteropObjectLiterals);
   }
 }
 
@@ -569,9 +596,18 @@ class NativeData implements NativeBasicData {
   Map<MemberEntity, String?> get _jsInteropMembers =>
       _nativeBasicData._jsInteropMembers;
 
+  @override
+  Set<MemberEntity> get _jsInteropObjectLiterals =>
+      _nativeBasicData._jsInteropObjectLiterals;
+
   /// Returns `true` if [element] has an `@Anonymous` annotation.
   bool isAnonymousJsInteropClass(ClassEntity element) {
     return _anonymousJsInteropClasses.contains(element);
+  }
+
+  /// Returns `true` if [element] has an `@ObjectLiteral` annotation.
+  bool isJsInteropObjectLiteral(MemberEntity element) {
+    return _jsInteropObjectLiterals.contains(element);
   }
 
   @override
