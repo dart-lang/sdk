@@ -39,10 +39,6 @@ bool VMTag::IsNativeEntryTag(uword tag) {
   return (tag > kLastTagId) && !IsRuntimeEntryTag(tag);
 }
 
-bool VMTag::IsDartTag(uword id) {
-  return (id == kDartTagId);
-}
-
 bool VMTag::IsExitFrameTag(uword id) {
   return (id != 0) && !IsDartTag(id) && (id != kIdleTagId) &&
          (id != kVMTagId) && (id != kEmbedderTagId);
@@ -106,17 +102,15 @@ VMTagCounters::VMTagCounters() {
 }
 
 void VMTagCounters::Increment(uword tag) {
-  if (VMTag::IsRuntimeEntryTag(tag)) {
+  ASSERT(tag != VMTag::kInvalidTagId);
+  if (tag < VMTag::kNumVMTags) {
+    counters_[tag]++;
+  } else if (VMTag::IsRuntimeEntryTag(tag)) {
     counters_[VMTag::kRuntimeTagId]++;
-    return;
-  } else if (tag > VMTag::kNumVMTags) {
+  } else {
     // Assume native entry.
     counters_[VMTag::kNativeTagId]++;
-    return;
   }
-  ASSERT(tag != VMTag::kInvalidTagId);
-  ASSERT(tag < VMTag::kNumVMTags);
-  counters_[tag]++;
 }
 
 int64_t VMTagCounters::count(uword tag) {
