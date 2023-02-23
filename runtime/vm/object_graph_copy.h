@@ -7,8 +7,10 @@
 
 namespace dart {
 
+class Isolate;
 class Object;
 class ObjectPtr;
+class Zone;
 
 // Whether the object can safely be shared across isolates due to it being
 // deeply immutable.
@@ -28,6 +30,21 @@ bool CanShareObjectAcrossIsolates(ObjectPtr obj);
 // If the array of objects to rehash is not `null` the receiver should re-hash
 // those objects.
 ObjectPtr CopyMutableObjectGraph(const Object& root);
+
+typedef enum {
+  kInternalToIsolateGroup,
+  kExternalBetweenIsolateGroups,
+} TraversalRules;
+
+// Returns a string representation of a retaining path from `from` to `to`,
+// blank string if `to` is not reachable from `from`.
+// Traversal doesn't follow all the object graph links, only those
+// that makes sense isolate message passing.
+const char* FindRetainingPath(Zone* zone,
+                              Isolate* isolate,
+                              const Object& from,
+                              const Object& to,
+                              TraversalRules traversal_rules);
 
 }  // namespace dart
 

@@ -310,13 +310,22 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
-  PatternForElement createPatternForElement(
-      int fileOffset,
-      PatternVariableDeclaration patternVariableDeclaration,
-      ForElement forElement) {
+  PatternForElement createPatternForElement(int fileOffset,
+      {required PatternVariableDeclaration patternVariableDeclaration,
+      required List<Statement> prelude,
+      required List<VariableDeclaration> variables,
+      required Expression? condition,
+      required List<Expression> updates,
+      required Expression body}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    return new PatternForElement(patternVariableDeclaration, forElement)
+    return new PatternForElement(
+        patternVariableDeclaration: patternVariableDeclaration,
+        prelude: prelude,
+        variables: variables,
+        condition: condition,
+        updates: updates,
+        body: body)
       ..fileOffset = fileOffset;
   }
 
@@ -332,13 +341,22 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
-  PatternForMapEntry createPatternForMapEntry(
-      int fileOffset,
-      PatternVariableDeclaration patternVariableDeclaration,
-      ForMapEntry forMapEntry) {
+  PatternForMapEntry createPatternForMapEntry(int fileOffset,
+      {required PatternVariableDeclaration patternVariableDeclaration,
+      required List<Statement> prelude,
+      required List<VariableDeclaration> variables,
+      required Expression? condition,
+      required List<Expression> updates,
+      required MapLiteralEntry body}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    return new PatternForMapEntry(patternVariableDeclaration, forMapEntry)
+    return new PatternForMapEntry(
+        patternVariableDeclaration: patternVariableDeclaration,
+        prelude: prelude,
+        variables: variables,
+        condition: condition,
+        updates: updates,
+        body: body)
       ..fileOffset = fileOffset;
   }
 

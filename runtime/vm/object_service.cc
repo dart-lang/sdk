@@ -1445,7 +1445,7 @@ void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
     for (intptr_t index = 0; index < num_fields; ++index) {
       JSONObject jsfield(&jsarr);
       if (index < num_positional_fields) {
-        jsfield.AddProperty("name", index);
+        jsfield.AddProperty("name", index + 1);
       } else {
         name ^= field_names.At(index - num_positional_fields);
         jsfield.AddProperty("name", name.ToCString());
@@ -1931,7 +1931,7 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
     for (intptr_t index = 0; index < num_fields; ++index) {
       JSONObject jsfield(&jsarr);
       if (index < num_positional_fields) {
-        jsfield.AddProperty("name", index);
+        jsfield.AddProperty("name", index + 1);
       } else {
         name ^= field_names.At(index - num_positional_fields);
         jsfield.AddProperty("name", name.ToCString());

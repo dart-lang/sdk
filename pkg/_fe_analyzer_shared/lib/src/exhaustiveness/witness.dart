@@ -1,13 +1,15 @@
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'exhaustive.dart';
+import 'profile.dart' as profile;
 import 'space.dart';
 import 'static_type.dart';
 
 /// Returns `true` if [caseSpaces] exhaustively covers all possible values of
 /// [valueSpace].
-bool isExhaustiveNew(Space valueSpace, List<Space> caseSpaces) {
+bool isExhaustive(Space valueSpace, List<Space> caseSpaces) {
   return checkExhaustiveness(valueSpace, caseSpaces) == null;
 }
 
@@ -19,7 +21,7 @@ bool isExhaustiveNew(Space valueSpace, List<Space> caseSpaces) {
 /// Returns a list of any unreachable case or non-exhaustive match errors.
 /// Returns an empty list if all cases are reachable and the cases are
 /// exhaustive.
-List<ExhaustivenessError> reportErrorsNew(
+List<ExhaustivenessError> reportErrors(
     StaticType valueType, List<Space> caseSpaces) {
   List<ExhaustivenessError> errors = <ExhaustivenessError>[];
 
@@ -30,13 +32,13 @@ List<ExhaustivenessError> reportErrorsNew(
   for (int i = 1; i < cases.length; i++) {
     // See if this case is covered by previous ones.
     if (_unmatched(cases.sublist(0, i), cases[i]) == null) {
-      errors.add(new UnreachableCaseErrorNew(valueType, caseSpaces, i));
+      errors.add(new UnreachableCaseError(valueType, caseSpaces, i));
     }
   }
 
   String? witness = _unmatched(cases, [valuePattern]);
   if (witness != null) {
-    errors.add(new NonExhaustiveErrorNew(valueType, caseSpaces, witness));
+    errors.add(new NonExhaustiveError(valueType, caseSpaces, witness));
   }
 
   return errors;
@@ -45,8 +47,8 @@ List<ExhaustivenessError> reportErrorsNew(
 /// Determines if [caseSpaces] is exhaustive over all values contained by
 /// [valueSpace]. If so, returns `null`. Otherwise, returns a string describing
 /// an example of one value that isn't matched by anything in [caseSpaces].
-// TODO(johnniwinther): Remove this method?
 String? checkExhaustiveness(Space valueSpace, List<Space> caseSpaces) {
+  // TODO(johnniwinther): Perform reachability checking.
   Pattern value = _spaceToPattern(valueSpace);
   List<List<Pattern>> cases =
       caseSpaces.map((space) => [_spaceToPattern(space)]).toList();
@@ -87,6 +89,7 @@ Pattern _spaceToPattern(Space space, [List<String> path = const []]) {
 /// then [caseRows] exhaustively covers [valuePatterns].
 String? _unmatched(List<List<Pattern>> caseRows, List<Pattern> valuePatterns,
     [List<Predicate> witnessPredicates = const []]) {
+  profile.count('_unmatched');
   // If there are no more columns, then we've tested all the predicates we have
   // to test.
   if (valuePatterns.isEmpty) {
@@ -126,6 +129,7 @@ String? _unmatched(List<List<Pattern>> caseRows, List<Pattern> valuePatterns,
 
 String? _filterByType(StaticType type, List<List<Pattern>> caseRows,
     List<Pattern> valuePatterns, List<Predicate> witnessPredicates) {
+  profile.count('_filterByType');
   // Extend the witness with the type we're matching.
   List<Predicate> extendedWitness = [
     ...witnessPredicates,
@@ -190,6 +194,7 @@ String? _filterByType(StaticType type, List<List<Pattern>> caseRows,
 /// add them to the worklist.
 List<Pattern> _expandFields(
     List<String> fieldNames, Pattern pattern, StaticType type) {
+  profile.count('_expandFields');
   List<Pattern> result = <Pattern>[];
   for (String fieldName in fieldNames) {
     Pattern? field = pattern.fields[fieldName];
@@ -215,6 +220,7 @@ List<Pattern> _expandFields(
 ///
 /// Otherwise, just returns [type].
 List<StaticType> expandSealedSubtypes(StaticType type) {
+  profile.count('expandSealedSubtypes');
   if (!type.isSealed) return [type];
 
   return {

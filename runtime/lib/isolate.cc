@@ -278,7 +278,13 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
 
     const Array& args = Array::Handle(zone, Array::New(3));
     args.SetAt(0, illegal_object);
-    args.SetAt(2, String::Handle(zone, String::New(exception_message)));
+    args.SetAt(2, String::Handle(
+                      zone, String::NewFormatted(
+                                "%s%s",
+                                FindRetainingPath(
+                                    zone, isolate, obj, illegal_object,
+                                    TraversalRules::kInternalToIsolateGroup),
+                                exception_message)));
     const Object& exception = Object::Handle(
         zone, Exceptions::Create(Exceptions::kArgumentValue, args));
     return UnhandledException::New(Instance::Cast(exception),

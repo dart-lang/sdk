@@ -1474,13 +1474,14 @@ class IsInlineTypeSubtypeOf implements TypeRelation<InlineType> {
 
   @override
   IsSubtypeOf isInlineTypeRelated(InlineType s, InlineType t, Types types) {
-    if (s.inlineClass != t.inlineClass) {
-      // TODO(johnniwinther): Support inline class interfaces.
+    List<DartType>? typeArguments =
+        types.hierarchy.getInlineTypeArgumentsAsInstanceOf(s, t.inlineClass);
+    if (typeArguments == null) {
       return const IsSubtypeOf.never();
     }
     return types
         .areTypeArgumentsOfSubtypeKernel(
-            s.typeArguments, t.typeArguments, t.inlineClass.typeParameters)
+            typeArguments, t.typeArguments, t.inlineClass.typeParameters)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 }

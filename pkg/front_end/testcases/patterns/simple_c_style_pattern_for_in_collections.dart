@@ -10,6 +10,14 @@ test2(dynamic x) => {
   -2: -2,
 };
 
+test3(dynamic x, dynamic another) => {
+  -1: -1,
+  for (var [int i1, n1, ...] = x; i1 < n1; i1++)
+    for (var [_, _, int i2, n2, ...] = x; i2 < n2; i2++)
+      ...another,
+  -2: -2,
+};
+
 main() {
   expectEquals(
     listToString(test1([0, 3])),
@@ -30,6 +38,16 @@ main() {
     mapToString({-2: -2, -1: -1}),
   );
   expectThrows(() => test1([]));
+
+  expectEquals(
+    mapToString(test3([0, 0, 0, 0], {0: 0})),
+    mapToString({-1: -1, -2: -2}),
+  );
+  expectEquals(
+    mapToString(test3([0, 1, 0, 1], {0: 0})),
+    mapToString({-1: -1, -2: -2, 0: 0}),
+  );
+  expectThrows(() => test3([], {}));
 }
 
 expectEquals(x, y) {

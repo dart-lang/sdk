@@ -4,6 +4,8 @@
 
 #include "vm/object_graph_copy.h"
 
+#include <memory>
+
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/heap/weak_table.h"
@@ -758,7 +760,8 @@ class ObjectCopyBase {
         tmp_(Object::Handle(thread->zone())),
         to_(Object::Handle(thread->zone())),
         expando_cid_(Class::GetClassId(
-            thread->isolate_group()->object_store()->expando_class())) {}
+            thread->isolate_group()->object_store()->expando_class())),
+        exception_unexpected_object_(Object::Handle(thread->zone())) {}
   ~ObjectCopyBase() {}
 
  protected:
@@ -832,6 +835,7 @@ class ObjectCopyBase {
                         "Illegal argument in isolate message: (object extends "
                         "NativeWrapper - %s)",
                         Class::Handle(class_table_->At(cid)).ToCString());
+        exception_unexpected_object_ = object;
         return false;
       }
       const bool implements_finalizable =
@@ -842,6 +846,7 @@ class ObjectCopyBase {
             "Illegal argument in isolate message: (object implements "
             "Finalizable - %s)",
             Class::Handle(class_table_->At(cid)).ToCString());
+        exception_unexpected_object_ = object;
         return false;
       }
       return true;
@@ -851,6 +856,7 @@ class ObjectCopyBase {
     exception_msg_ =                                                           \
         "Illegal argument in isolate message: "                                \
         "(object is a " #Type ")";                                             \
+    exception_unexpected_object_ = object;                                     \
     return false;                                                              \
   }
 
@@ -882,7 +888,270 @@ class ObjectCopyBase {
   intptr_t expando_cid_;
 
   const char* exception_msg_ = nullptr;
+  Object& exception_unexpected_object_;
 };
+
+class RetainingPath {
+  class Visitor : public ObjectPointerVisitor {
+   public:
+    Visitor(IsolateGroup* isolate_group,
+            RetainingPath* retaining_path,
+            MallocGrowableArray<ObjectPtr>* const working_list,
+            TraversalRules traversal_rules)
+        : ObjectPointerVisitor(isolate_group),
+          retaining_path_(retaining_path),
+          working_list_(working_list),
+          traversal_rules_(traversal_rules) {}
+
+    void VisitObject(ObjectPtr obj) {
+      if (!obj->IsHeapObject()) {
+        return;
+      }
+      // Skip canonical objects when rules are for messages internal to
+      // an isolate group. Otherwise, need to inspect canonical objects
+      // as well.
+      if (traversal_rules_ == TraversalRules::kInternalToIsolateGroup &&
+          obj->untag()->IsCanonical()) {
+        return;
+      }
+      if (retaining_path_->WasVisited(obj)) {
+        return;
+      }
+      retaining_path_->MarkVisited(obj);
+      working_list_->Add(obj);
+    }
+
+    void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
+      for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
+        VisitObject(*ptr);
+      }
+    }
+
+    void VisitCompressedPointers(uword heap_base,
+                                 CompressedObjectPtr* from,
+                                 CompressedObjectPtr* to) override {
+      for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
+        VisitObject(ptr->Decompress(heap_base));
+      }
+    }
+
+    RetainingPath* retaining_path_;
+    MallocGrowableArray<ObjectPtr>* const working_list_;
+    TraversalRules traversal_rules_;
+  };
+
+ public:
+  RetainingPath(Zone* zone,
+                Isolate* isolate,
+                const Object& from,
+                const Object& to,
+                TraversalRules traversal_rules)
+      : zone_(zone),
+        isolate_(isolate),
+        from_(from),
+        to_(to),
+        traversal_rules_(traversal_rules) {
+    isolate_->set_forward_table_new(new WeakTable());
+    isolate_->set_forward_table_old(new WeakTable());
+  }
+
+  ~RetainingPath() {
+    isolate_->set_forward_table_new(nullptr);
+    isolate_->set_forward_table_old(nullptr);
+  }
+
+  bool WasVisited(ObjectPtr object) {
+    if (object->IsNewObject()) {
+      return isolate_->forward_table_new()->GetValueExclusive(object) != 0;
+    } else {
+      return isolate_->forward_table_old()->GetValueExclusive(object) != 0;
+    }
+  }
+
+  void MarkVisited(ObjectPtr object) {
+    if (object->IsNewObject()) {
+      isolate_->forward_table_new()->SetValueExclusive(object, 1);
+    } else {
+      isolate_->forward_table_old()->SetValueExclusive(object, 1);
+    }
+  }
+
+  const char* FindPath() {
+    MallocGrowableArray<ObjectPtr>* const working_list =
+        isolate_->pointers_to_verify_at_exit();
+    ASSERT(working_list->length() == 0);
+
+    Visitor visitor(isolate_->group(), this, working_list, traversal_rules_);
+
+    MarkVisited(from_.ptr());
+    working_list->Add(from_.ptr());
+
+    Thread* thread = Thread::Current();
+    ClassTable* class_table = isolate_->group()->class_table();
+    Closure& closure = Closure::Handle(zone_);
+    Array& array = Array::Handle(zone_);
+    Class& klass = Class::Handle(zone_);
+
+    while (!working_list->is_empty()) {
+      thread->CheckForSafepoint();
+
+      // Keep node in the list, separated by null value so that
+      // if we are to add children, children can find it in case
+      // they are on retaining path.
+      ObjectPtr raw = working_list->Last();
+      if (raw == Object::null()) {
+        // If all children of a node were processed, then skip the separator,
+        working_list->RemoveLast();
+        // then skip the parent since it has already been processed too.
+        working_list->RemoveLast();
+        continue;
+      }
+
+      if (raw == to_.ptr()) {
+        return CollectPath(working_list);
+      }
+
+      // Separator null object indicates children goes next in the working_list
+      working_list->Add(Object::null());
+      int length = working_list->length();
+
+      do {  // This loop is here so that we can skip children processing
+        const intptr_t cid = raw->GetClassId();
+
+        if (traversal_rules_ == TraversalRules::kInternalToIsolateGroup) {
+          if (CanShareObjectAcrossIsolates(raw)) {
+            break;
+          }
+          if (cid == kClosureCid) {
+            closure ^= raw;
+            // Only context has to be checked.
+            working_list->Add(closure.context());
+            break;
+          }
+          // These we are not expected to drill into as they can't be on
+          // retaining path, they are illegal to send.
+          if (cid >= kNumPredefinedCids) {
+            klass = class_table->At(cid);
+            if ((klass.num_native_fields() != 0) ||
+                (klass.implements_finalizable())) {
+              break;
+            }
+          }
+        } else {
+          ASSERT(traversal_rules_ ==
+                 TraversalRules::kExternalBetweenIsolateGroups);
+          // Skip classes that are illegal to send across isolate groups.
+          // (keep the list in sync with message_snapshot.cc)
+          bool skip = false;
+          switch (cid) {
+            case kClosureCid:
+            case kFinalizerCid:
+            case kFinalizerEntryCid:
+            case kFunctionTypeCid:
+            case kMirrorReferenceCid:
+            case kNativeFinalizerCid:
+            case kReceivePortCid:
+            case kRecordCid:
+            case kRecordTypeCid:
+            case kRegExpCid:
+            case kStackTraceCid:
+            case kSuspendStateCid:
+            case kUserTagCid:
+            case kWeakPropertyCid:
+            case kWeakReferenceCid:
+            case kWeakArrayCid:
+            case kDynamicLibraryCid:
+            case kPointerCid:
+            case kInstanceCid:
+              skip = true;
+              break;
+            default:
+              if (cid >= kNumPredefinedCids) {
+                skip = true;
+              }
+          }
+          if (skip) {
+            break;
+          }
+        }
+        if (cid == kArrayCid) {
+          array ^= Array::RawCast(raw);
+          visitor.VisitObject(array.GetTypeArguments());
+          const intptr_t batch_size = (2 << 14) - 1;
+          for (intptr_t i = 0; i < array.Length(); ++i) {
+            ObjectPtr ptr = array.At(i);
+            visitor.VisitObject(ptr);
+            if ((i & batch_size) == batch_size) {
+              thread->CheckForSafepoint();
+            }
+          }
+          break;
+        } else {
+          raw->untag()->VisitPointers(&visitor);
+        }
+      } while (false);
+
+      // If no children were added, remove null separator and the node.
+      // If children were added, the node will be removed once last child
+      // is processed, only separator null remains.
+      if (working_list->length() == length) {
+        RELEASE_ASSERT(working_list->RemoveLast() == Object::null());
+        RELEASE_ASSERT(working_list->RemoveLast() == raw);
+      }
+    }
+    // `to` was not found in the graph rooted in `from`, empty retaining path
+    return "";
+  }
+
+ private:
+  Zone* zone_;
+  Isolate* isolate_;
+  const Object& from_;
+  const Object& to_;
+  TraversalRules traversal_rules_;
+
+  const char* CollectPath(MallocGrowableArray<ObjectPtr>* const working_list) {
+    Object& object = Object::Handle(zone_);
+    Class& klass = Class::Handle(zone_);
+    Library& library = Library::Handle(zone_);
+    String& library_url = String::Handle(zone_);
+    const char* retaining_path = "";
+
+    ObjectPtr raw = to_.ptr();
+    // Skip all remaining children until null-separator, so we get the parent
+    do {
+      do {
+        raw = working_list->RemoveLast();
+      } while (raw != Object::null() && raw != from_.ptr());
+      if (raw == Object::null()) {
+        raw = working_list->RemoveLast();
+        object = raw;
+        klass = object.clazz();
+        library = klass.library();
+        if (library.IsNull()) {
+          retaining_path = OS::SCreate(zone_, "%s <- %s\n", retaining_path,
+                                       object.ToCString());
+        } else {
+          library_url = library.url();
+          retaining_path =
+              OS::SCreate(zone_, "%s <- %s (from %s)\n", retaining_path,
+                          object.ToCString(), library_url.ToCString());
+        }
+      }
+    } while (raw != from_.ptr());
+    ASSERT(working_list->is_empty());
+    return retaining_path;
+  }
+};
+
+const char* FindRetainingPath(Zone* zone_,
+                              Isolate* isolate,
+                              const Object& from,
+                              const Object& to,
+                              TraversalRules traversal_rules) {
+  RetainingPath rr(zone_, isolate, from, to, traversal_rules);
+  return rr.FindPath();
+}
 
 class FastObjectCopyBase : public ObjectCopyBase {
  public:
@@ -1642,6 +1911,8 @@ class ObjectCopy : public Base {
       Base::exception_msg_ =
           "Illegal argument in isolate message"
           " : (TransferableTypedData has been transferred already)";
+      Base::exception_unexpected_object_ =
+          Types::GetTransferableTypedDataPtr(from);
       return;
     }
     Base::EnqueueTransferable(from, to);
@@ -2045,8 +2316,18 @@ class ObjectGraphCopier : public StackResource {
       Exceptions::PropagateError(Error::Cast(result));
       UNREACHABLE();
     }
-    if (result.ptr() == Marker()) {
+    ASSERT(result.IsArray());
+    auto& result_array = Array::Cast(result);
+    if (result_array.At(0) == Marker()) {
       ASSERT(exception_msg != nullptr);
+      auto& unexpected_object_ = Object::Handle(zone_, result_array.At(1));
+      if (!unexpected_object_.IsNull()) {
+        exception_msg =
+            OS::SCreate(zone_, "%s\n%s", exception_msg,
+                        FindRetainingPath(
+                            zone_, thread_->isolate(), root, unexpected_object_,
+                            TraversalRules::kInternalToIsolateGroup));
+      }
       ThrowException(exception_msg);
       UNREACHABLE();
     }
@@ -2077,7 +2358,9 @@ class ObjectGraphCopier : public StackResource {
     if (!fast_object_copy_.CanCopyObject(tags, root.ptr())) {
       ASSERT(fast_object_copy_.exception_msg_ != nullptr);
       *exception_msg = fast_object_copy_.exception_msg_;
-      return Marker();
+      result_array.SetAt(0, Object::Handle(zone_, Marker()));
+      result_array.SetAt(1, fast_object_copy_.exception_unexpected_object_);
+      return result_array.ptr();
     }
 
     // We try a fast new-space only copy first that will not use any barriers.
@@ -2128,7 +2411,9 @@ class ObjectGraphCopier : public StackResource {
       ASSERT(fast_object_copy_.exception_msg_ != nullptr);
       if (fast_object_copy_.exception_msg_ != kFastAllocationFailed) {
         *exception_msg = fast_object_copy_.exception_msg_;
-        return Marker();
+        result_array.SetAt(0, Object::Handle(zone_, Marker()));
+        result_array.SetAt(1, fast_object_copy_.exception_unexpected_object_);
+        return result_array.ptr();
       }
       ASSERT(fast_object_copy_.exception_msg_ == kFastAllocationFailed);
     }
@@ -2139,7 +2424,9 @@ class ObjectGraphCopier : public StackResource {
            (slow_object_copy_.exception_msg_ != nullptr));
     if (result.ptr() == Marker()) {
       *exception_msg = slow_object_copy_.exception_msg_;
-      return Marker();
+      result_array.SetAt(0, Object::Handle(zone_, Marker()));
+      result_array.SetAt(1, slow_object_copy_.exception_unexpected_object_);
+      return result_array.ptr();
     }
 
     result_array.SetAt(0, result);

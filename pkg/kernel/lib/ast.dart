@@ -2032,6 +2032,8 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
   @override
   List<Expression> annotations = const <Expression>[];
 
+  List<InlineType> implements;
+
   int flags = 0;
 
   @override
@@ -2048,6 +2050,7 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
       List<TypeParameter>? typeParameters,
       DartType? declaredRepresentationType,
       List<InlineClassMemberDescriptor>? members,
+      List<InlineType>? implements,
       required this.fileUri,
       Reference? reference})
       // ignore: unnecessary_null_comparison
@@ -2056,6 +2059,7 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
         assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <InlineClassMemberDescriptor>[],
+        this.implements = implements ?? <InlineType>[],
         super(reference) {
     setParents(this.typeParameters, this);
     if (declaredRepresentationType != null) {
@@ -15690,6 +15694,11 @@ final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
 final List<InlineClassMemberDescriptor> emptyListOfInlineClassMemberDescriptor =
     List.filled(0, dummyInlineClassMemberDescriptor, growable: false);
 
+/// Almost const <InlineType>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<InlineType> emptyListOfInlineType =
+    List.filled(0, dummyInlineType, growable: false);
+
 /// Almost const <Constructor>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Constructor> emptyListOfConstructor =
@@ -15823,6 +15832,14 @@ final InlineClassMemberDescriptor dummyInlineClassMemberDescriptor =
         name: dummyName,
         kind: InlineClassMemberKind.Getter,
         member: dummyReference);
+
+/// Non-nullable [InlineType] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final InlineType dummyInlineType =
+    new InlineType(dummyInlineClass, Nullability.nonNullable);
 
 /// Non-nullable [Member] dummy value.
 ///

@@ -2210,6 +2210,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int modifiers,
       String name,
       List<TypeVariableBuilder>? typeVariables,
+      List<TypeBuilder>? interfaces,
       int startOffset,
       int nameOffset,
       int endOffset) {
@@ -2253,6 +2254,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         modifiers,
         declaration.name,
         typeVariables,
+        interfaces,
         memberScope,
         constructorScope,
         this,
