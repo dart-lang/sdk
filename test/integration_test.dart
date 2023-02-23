@@ -34,7 +34,6 @@ import 'integration/prefer_relative_imports.dart' as prefer_relative_imports;
 import 'integration/public_member_api_docs.dart' as public_member_api_docs;
 import 'integration/secure_pubspec_urls.dart' as secure_pubspec_urls;
 import 'integration/sort_pub_dependencies.dart' as sort_pub_dependencies;
-import 'integration/unnecessary_lambdas.dart' as unnecessary_lambdas;
 import 'integration/unnecessary_string_escapes.dart'
     as unnecessary_string_escapes;
 import 'integration/use_build_context_synchronously.dart'
@@ -162,7 +161,6 @@ void coreTests() {
 
 void ruleTests() {
   group('rule', () {
-    unnecessary_lambdas.main();
     exhaustive_cases.main();
     avoid_web_libraries_in_flutter.main();
     close_sinks.main();

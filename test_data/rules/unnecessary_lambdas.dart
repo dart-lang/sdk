@@ -4,124 +4,11 @@
 
 // test w/ `dart test -N unnecessary_lambdas`
 
-// ignore_for_file: always_declare_return_types
-// ignore_for_file: omit_local_variable_types
-// ignore_for_file: prefer_expression_function_bodies
-// ignore_for_file: unused_local_variable
-
-class CC {
-  const CC();
-}
-
-var ccs = [ () => const CC()]; // OK
-
-typedef Maker = Object Function();
-
-class C {
-  int c;
-  C([this.c = 3, int y = 0]);
-}
-
-var l = <Maker>[
-  C.new, // OK
-  () => C(), // LINT
-  () => C(3), // OK
-];
-
-void constructorTearOffs() {
-  var listOfInts = [1, 2, 3];
-  for (var c in listOfInts.map((x) => C(x))) { // LINT
-    print(c.c);
-  }
-  for (var c in listOfInts.map((x) => C(3))) { // OK
-    print(c.c);
-  }
-  for (var c in listOfInts.map((x) => C(x, 3))) { // OK
-    print(c.c);
-  }
-}
-
-int count(String s) => s.length;
-final strings = ['a', 'bb', 'ccc', 'dddd'];
-
 // ignore: avoid_annotating_with_dynamic
 typedef F = int Function(dynamic s);
 
-F f  = (s) => count(s); //OK
-
-final map = Map<String, int>.fromIterable(strings, value: (s) => count(s)); //OK
-
-Function stateList<T>(int finder) {
-  return (int element) => _stateOf<T>(element, finder); // OK
-}
-
-_stateOf<T>(int a, int b) {
-
-}
-
-class GettersTest {
-  final a = 1;
-  get b => 2;
-  get c => a;
-  Function finalVar() {
-    return () { // LINT
-      a.toString();
-    };
-  }
-  Function getter1() {
-    return () { // OK
-      b.toString();
-    };
-  }
-  Function getter2() {
-    return () { // OK
-      c.toString();
-    };
-  }
-}
-
-class MyClass {
-  final m1 = 0;
-
-  int m2(int p) {
-    return p;
-  }
-}
-
 void main() {
-
   final List<String> finalList = [];
-  List<String> nonFinalList = [];
-
-  final array = <MyClass>[];
-  final x = MyClass();
-
-  final notRelevantQuestionPeriod = (p) => array[x?.m1 ?? 0].m2(p); // OK
-  final correctNotRelevantQuestionPeriod = array[x?.m1 ?? 0].m2; // OK
-
-  finalList.forEach((name) { // LINT
-    print(name);
-  });
-  finalList.forEach(print); // OK
-
-  // Lambdas as parameters.
-  finalList.where((e) => finalList.contains(e)); // LINT
-  finalList.where((e) => nonFinalList.contains(e)); // OK
-  finalList.where((e) => finalList?.contains(e) ?? false); // OK
-  finalList.where(finalList.contains); // OK
-
-  // Lambdas assigned to variables.
-  var a = (() => finalList.removeLast()); // LINT
-  var b = (() => nonFinalList.removeLast()); // OK
-  var c = (() => finalList?.removeLast()); // OK
-  var d = finalList.removeLast; // OK
-
-  var asyncLambda = (() async => finalList.removeLast()); // OK
-
-  finalList.where((e) => e.contains(e)); // OK
-
-  // ignore: undefined_getter
-  finalList.where((e) => e.a.contains(e)); // OK
 
   // Linted because parameter is final.
   finalList.where((final e) =>
@@ -133,15 +20,6 @@ void main() {
 
   finalList.where((e) => // OK
       ((a) => e?.contains(a) ?? false)(e)); // OK
-
-  var noStatementLambda = () { // OK
-    // Empty lambda
-  };
-
-  finalList.forEach((name) { // OK
-    print(name); // More than one statement
-    print(name); // More than one statement
-  });
 
   var deeplyNestedVariable = (a, b) { // OK
     foo(foo(b)).foo(a, b);
@@ -164,31 +42,4 @@ void method() {
       return e.contains(e);
     })(e);
   });
-}
-
-void reportedFalsePositive() {
-  Function makeCallable(void f()) => f;
-
-  var f = () => print('a');
-
-  // r1 was linted (r2 is the result to remove the lint)
-  var r1 = makeCallable((){ // OK
-    f();
-  });
-  var r2 = makeCallable(f); // OK
-
-  f = () => print('b');
-
-  r1(); // prints b
-  r2(); // prints a
-
-  // a lambda must be used to specify generics
-  void genFun<T>() => null;
-  Function aGenFun = () => genFun<int>(); // OK
-}
-
-void reportedTruePositive () {
-  final f = (){ };
-  final lambda = () { f(); }; // LINT
-  final equivalent = f; // OK
 }
