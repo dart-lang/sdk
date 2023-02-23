@@ -4188,28 +4188,31 @@ class BodyBuilder extends StackListenerImpl
       assert(conditionStatement is EmptyStatement);
     }
     if (entry is MapLiteralEntry) {
-      TreeNode result;
-      ForMapEntry forMapEntry = result = forest.createForMapEntry(
-          offsetForToken(forToken), variables, condition, updates, entry);
+      ForMapEntry result;
       if (variableOrExpression is PatternVariableDeclaration) {
-        result = forest.createPatternForMapEntry(
-            offsetForToken(forToken), variableOrExpression, forMapEntry);
+        result = forest.createPatternForMapEntry(offsetForToken(forToken),
+            variableOrExpression, variables, condition, updates, entry);
+      } else {
+        result = forest.createForMapEntry(
+            offsetForToken(forToken), variables, condition, updates, entry);
       }
-      typeInferrer.assignedVariables.endNode(forMapEntry);
+      typeInferrer.assignedVariables.endNode(result);
       push(result);
     } else {
-      TreeNode result;
-      ForElement forElement = result = forest.createForElement(
-          offsetForToken(forToken),
-          variables,
-          condition,
-          updates,
-          toValue(entry));
+      ForElement result;
       if (variableOrExpression is PatternVariableDeclaration) {
         result = forest.createPatternForElement(
-            offsetForToken(forToken), variableOrExpression, forElement);
+            offsetForToken(forToken),
+            variableOrExpression,
+            variables,
+            condition,
+            updates,
+            toValue(entry));
+      } else {
+        result = forest.createForElement(offsetForToken(forToken), variables,
+            condition, updates, toValue(entry));
       }
-      typeInferrer.assignedVariables.endNode(forElement);
+      typeInferrer.assignedVariables.endNode(result);
       push(result);
     }
   }

@@ -2286,6 +2286,78 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                   isNonNullableByDefault: isNonNullableByDefault),
           element);
     } else if (element is ForElement) {
+      if (element is PatternForElement) {
+        int? stackBase;
+        assert(checkStackBase(element, stackBase = stackHeight));
+
+        PatternVariableDeclaration patternVariableDeclaration =
+            element.patternVariableDeclaration;
+        analyzePatternVariableDeclaration(
+            patternVariableDeclaration,
+            patternVariableDeclaration.pattern,
+            patternVariableDeclaration.initializer,
+            isFinal: patternVariableDeclaration.isFinal,
+            isLate: false);
+
+        assert(checkStack(element, stackBase, [
+          /* pattern = */ ValueKinds.Pattern,
+          /* initializer = */ ValueKinds.Expression,
+        ]));
+
+        Object? rewrite = popRewrite(NullValues.Expression);
+        if (!identical(patternVariableDeclaration.pattern, rewrite)) {
+          patternVariableDeclaration.pattern = (rewrite as Pattern)
+            ..parent = patternVariableDeclaration;
+        }
+
+        rewrite = popRewrite();
+        if (!identical(patternVariableDeclaration.initializer, rewrite)) {
+          patternVariableDeclaration.initializer = (rewrite as Expression)
+            ..parent = patternVariableDeclaration;
+        }
+
+        MatchingCache matchingCache = createMatchingCache();
+        MatchingExpressionVisitor matchingExpressionVisitor =
+            new MatchingExpressionVisitor(matchingCache);
+        // TODO(cstefantsova): Do we need a more precise type for the variable?
+        DartType matchedType = const DynamicType();
+        CacheableExpression matchedExpression =
+            matchingCache.createRootExpression(
+                patternVariableDeclaration.initializer, matchedType);
+
+        DelayedExpression matchingExpression =
+            matchingExpressionVisitor.visitPattern(
+                patternVariableDeclaration.pattern, matchedExpression);
+
+        matchingExpression.registerUse();
+
+        Expression readMatchingExpression =
+            matchingExpression.createExpression(typeSchemaEnvironment);
+
+        List<Statement> replacementStatements = [
+          ...matchingCache.declarations,
+          // TODO(cstefantsova): Figure out the right exception to throw.
+          createIfStatement(
+              createNot(readMatchingExpression),
+              createExpressionStatement(createThrow(createConstructorInvocation(
+                  coreTypes.reachabilityErrorConstructor,
+                  createArguments([], fileOffset: element.fileOffset),
+                  fileOffset: element.fileOffset))),
+              fileOffset: element.fileOffset),
+        ];
+        if (replacementStatements.length > 1) {
+          // If we need local declarations, create a new block to avoid naming
+          // collision with declarations in the same parent block.
+          replacementStatements = [
+            createBlock(replacementStatements, fileOffset: element.fileOffset)
+          ];
+        }
+        replacementStatements = [
+          ...patternVariableDeclaration.pattern.declaredVariables,
+          ...replacementStatements,
+        ];
+        element.replacement = replacementStatements;
+      }
       // TODO(johnniwinther): Use _visitStatements instead.
       List<VariableDeclaration>? variables;
       for (int index = 0; index < element.variables.length; index++) {
@@ -2323,6 +2395,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         element.variables.addAll(variables);
         setParents(variables, element);
       }
+
       flowAnalysis.for_conditionBegin(element);
       if (element.condition != null) {
         ExpressionInferenceResult conditionResult = inferExpression(
@@ -2346,87 +2419,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       flowAnalysis.for_end();
       return new ExpressionInferenceResult(bodyResult.inferredType, element);
-    } else if (element is PatternForElement) {
-      int? stackBase;
-      assert(checkStackBase(element, stackBase = stackHeight));
-
-      PatternVariableDeclaration patternVariableDeclaration =
-          element.patternVariableDeclaration;
-      analyzePatternVariableDeclaration(
-          patternVariableDeclaration,
-          patternVariableDeclaration.pattern,
-          patternVariableDeclaration.initializer,
-          isFinal: patternVariableDeclaration.isFinal,
-          isLate: false);
-
-      assert(checkStack(element, stackBase, [
-        /* pattern = */ ValueKinds.Pattern,
-        /* initializer = */ ValueKinds.Expression,
-      ]));
-
-      Object? rewrite = popRewrite(NullValues.Expression);
-      if (!identical(patternVariableDeclaration.pattern, rewrite)) {
-        patternVariableDeclaration.pattern = (rewrite as Pattern)
-          ..parent = patternVariableDeclaration;
-      }
-
-      rewrite = popRewrite();
-      if (!identical(patternVariableDeclaration.initializer, rewrite)) {
-        patternVariableDeclaration.initializer = (rewrite as Expression)
-          ..parent = patternVariableDeclaration;
-      }
-
-      MatchingCache matchingCache = createMatchingCache();
-      MatchingExpressionVisitor matchingExpressionVisitor =
-          new MatchingExpressionVisitor(matchingCache);
-      // TODO(cstefantsova): Do we need a more precise type for the variable?
-      DartType matchedType = const DynamicType();
-      CacheableExpression matchedExpression =
-          matchingCache.createRootExpression(
-              patternVariableDeclaration.initializer, matchedType);
-
-      DelayedExpression matchingExpression = matchingExpressionVisitor
-          .visitPattern(patternVariableDeclaration.pattern, matchedExpression);
-
-      matchingExpression.registerUse();
-
-      Expression readMatchingExpression =
-          matchingExpression.createExpression(typeSchemaEnvironment);
-
-      List<Statement> replacementStatements = [
-        ...matchingCache.declarations,
-        // TODO(cstefantsova): Figure out the right exception to throw.
-        createIfStatement(
-            createNot(readMatchingExpression),
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                coreTypes.reachabilityErrorConstructor,
-                createArguments([], fileOffset: element.fileOffset),
-                fileOffset: element.fileOffset))),
-            fileOffset: element.fileOffset),
-      ];
-      if (replacementStatements.length > 1) {
-        // If we need local declarations, create a new block to avoid naming
-        // collision with declarations in the same parent block.
-        replacementStatements = [
-          createBlock(replacementStatements, fileOffset: element.fileOffset)
-        ];
-      }
-      replacementStatements = [
-        ...patternVariableDeclaration.pattern.declaredVariables,
-        ...replacementStatements,
-      ];
-      element.replacement = replacementStatements;
-
-      ExpressionInferenceResult inferenceResult = inferElement(
-          element.forElement,
-          inferredTypeArgument,
-          inferredSpreadTypes,
-          inferredConditionTypes);
-      element.forElement = (inferenceResult.expression as ForElement)
-        ..parent = element;
-
-      return new ExpressionInferenceResult(
-          inferenceResult.inferredType, element);
     } else if (element is ForInElement) {
       ForInResult result;
       if (element.variable.name == null) {
@@ -2741,12 +2733,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _translateIfCaseElement(element, receiverType, elementType, result, body,
           isSet: isSet);
     } else if (element is ForElement) {
-      _translateForElement(element, receiverType, elementType, result, body,
-          isSet: isSet);
-    } else if (element is PatternForElement) {
-      _translatePatternForElement(
-          element, receiverType, elementType, result, body,
-          isSet: isSet);
+      if (element is PatternForElement) {
+        _translatePatternForElement(
+            element, receiverType, elementType, result, body,
+            isSet: isSet);
+      } else {
+        _translateForElement(element, receiverType, elementType, result, body,
+            isSet: isSet);
+      }
     } else if (element is ForInElement) {
       _translateForInElement(element, receiverType, elementType, result, body,
           isSet: isSet);
@@ -2848,16 +2842,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       {required bool isSet}) {
     List<Statement> statements = <Statement>[];
     _translateElement(
-        element.forElement.body, receiverType, elementType, result, statements,
+        element.body, receiverType, elementType, result, statements,
         isSet: isSet);
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
-    ForStatement loop = _createForStatement(
-        element.fileOffset,
-        element.forElement.variables,
-        element.forElement.condition,
-        element.forElement.updates,
-        loopBody);
+    ForStatement loop = _createForStatement(element.fileOffset,
+        element.variables, element.condition, element.updates, loopBody);
     libraryBuilder.loader.dataForTesting?.registerAlias(element, loop);
     body.addAll(element.replacement);
     body.add(loop);
@@ -3086,10 +3076,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _translateIfCaseEntry(
           entry, receiverType, keyType, valueType, result, body);
     } else if (entry is ForMapEntry) {
-      _translateForEntry(entry, receiverType, keyType, valueType, result, body);
-    } else if (entry is PatternForMapEntry) {
-      _translatePatternForEntry(
-          entry, receiverType, keyType, valueType, result, body);
+      if (entry is PatternForMapEntry) {
+        _translatePatternForEntry(
+            entry, receiverType, keyType, valueType, result, body);
+      } else {
+        _translateForEntry(
+            entry, receiverType, keyType, valueType, result, body);
+      }
     } else if (entry is ForInMapEntry) {
       _translateForInEntry(
           entry, receiverType, keyType, valueType, result, body);
@@ -3187,16 +3180,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       VariableDeclaration result,
       List<Statement> body) {
     List<Statement> statements = <Statement>[];
-    _translateEntry(entry.forMapEntry.body, receiverType, keyType, valueType,
-        result, statements);
+    _translateEntry(
+        entry.body, receiverType, keyType, valueType, result, statements);
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
-    ForStatement loop = _createForStatement(
-        entry.fileOffset,
-        entry.forMapEntry.variables,
-        entry.forMapEntry.condition,
-        entry.forMapEntry.updates,
-        loopBody);
+    ForStatement loop = _createForStatement(entry.fileOffset, entry.variables,
+        entry.condition, entry.updates, loopBody);
     libraryBuilder.loader.dataForTesting?.registerAlias(entry, loop);
     body.addAll(entry.replacement);
     body.add(loop);
@@ -4184,6 +4173,78 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       return entry;
     } else if (entry is ForMapEntry) {
+      if (entry is PatternForMapEntry) {
+        int? stackBase;
+        assert(checkStackBase(entry, stackBase = stackHeight));
+
+        PatternVariableDeclaration patternVariableDeclaration =
+            entry.patternVariableDeclaration;
+        analyzePatternVariableDeclaration(
+            patternVariableDeclaration,
+            patternVariableDeclaration.pattern,
+            patternVariableDeclaration.initializer,
+            isFinal: patternVariableDeclaration.isFinal,
+            isLate: false);
+
+        assert(checkStack(entry, stackBase, [
+          /* pattern = */ ValueKinds.Pattern,
+          /* initializer = */ ValueKinds.Expression,
+        ]));
+
+        Object? rewrite = popRewrite(NullValues.Expression);
+        if (!identical(patternVariableDeclaration.pattern, rewrite)) {
+          patternVariableDeclaration.pattern = (rewrite as Pattern)
+            ..parent = patternVariableDeclaration;
+        }
+
+        rewrite = popRewrite();
+        if (!identical(patternVariableDeclaration.initializer, rewrite)) {
+          patternVariableDeclaration.initializer = (rewrite as Expression)
+            ..parent = patternVariableDeclaration;
+        }
+
+        MatchingCache matchingCache = createMatchingCache();
+        MatchingExpressionVisitor matchingExpressionVisitor =
+            new MatchingExpressionVisitor(matchingCache);
+        // TODO(cstefantsova): Do we need a more precise type for the variable?
+        DartType matchedType = const DynamicType();
+        CacheableExpression matchedExpression =
+            matchingCache.createRootExpression(
+                patternVariableDeclaration.initializer, matchedType);
+
+        DelayedExpression matchingExpression =
+            matchingExpressionVisitor.visitPattern(
+                patternVariableDeclaration.pattern, matchedExpression);
+
+        matchingExpression.registerUse();
+
+        Expression readMatchingExpression =
+            matchingExpression.createExpression(typeSchemaEnvironment);
+
+        List<Statement> replacementStatements = [
+          ...matchingCache.declarations,
+          // TODO(cstefantsova): Figure out the right exception to throw.
+          createIfStatement(
+              createNot(readMatchingExpression),
+              createExpressionStatement(createThrow(createConstructorInvocation(
+                  coreTypes.reachabilityErrorConstructor,
+                  createArguments([], fileOffset: entry.fileOffset),
+                  fileOffset: entry.fileOffset))),
+              fileOffset: entry.fileOffset),
+        ];
+        if (replacementStatements.length > 1) {
+          // If we need local declarations, create a new block to avoid naming
+          // collision with declarations in the same parent block.
+          replacementStatements = [
+            createBlock(replacementStatements, fileOffset: entry.fileOffset)
+          ];
+        }
+        replacementStatements = [
+          ...patternVariableDeclaration.pattern.declaredVariables,
+          ...replacementStatements,
+        ];
+        entry.replacement = replacementStatements;
+      }
       // TODO(johnniwinther): Use _visitStatements instead.
       List<VariableDeclaration>? variables;
       for (int index = 0; index < entry.variables.length; index++) {
@@ -4220,6 +4281,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         entry.variables.addAll(variables);
         setParents(variables, entry);
       }
+
       flowAnalysis.for_conditionBegin(entry);
       if (entry.condition != null) {
         ExpressionInferenceResult conditionResult = inferExpression(
@@ -4251,91 +4313,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         entry.updates[index] = updateResult.expression..parent = entry;
       }
       flowAnalysis.for_end();
-      return entry;
-    } else if (entry is PatternForMapEntry) {
-      int? stackBase;
-      assert(checkStackBase(entry, stackBase = stackHeight));
-
-      PatternVariableDeclaration patternVariableDeclaration =
-          entry.patternVariableDeclaration;
-      analyzePatternVariableDeclaration(
-          patternVariableDeclaration,
-          patternVariableDeclaration.pattern,
-          patternVariableDeclaration.initializer,
-          isFinal: patternVariableDeclaration.isFinal,
-          isLate: false);
-
-      assert(checkStack(entry, stackBase, [
-        /* pattern = */ ValueKinds.Pattern,
-        /* initializer = */ ValueKinds.Expression,
-      ]));
-
-      Object? rewrite = popRewrite(NullValues.Expression);
-      if (!identical(patternVariableDeclaration.pattern, rewrite)) {
-        patternVariableDeclaration.pattern = (rewrite as Pattern)
-          ..parent = patternVariableDeclaration;
-      }
-
-      rewrite = popRewrite();
-      if (!identical(patternVariableDeclaration.initializer, rewrite)) {
-        patternVariableDeclaration.initializer = (rewrite as Expression)
-          ..parent = patternVariableDeclaration;
-      }
-
-      MatchingCache matchingCache = createMatchingCache();
-      MatchingExpressionVisitor matchingExpressionVisitor =
-          new MatchingExpressionVisitor(matchingCache);
-      // TODO(cstefantsova): Do we need a more precise type for the variable?
-      DartType matchedType = const DynamicType();
-      CacheableExpression matchedExpression =
-          matchingCache.createRootExpression(
-              patternVariableDeclaration.initializer, matchedType);
-
-      DelayedExpression matchingExpression = matchingExpressionVisitor
-          .visitPattern(patternVariableDeclaration.pattern, matchedExpression);
-
-      matchingExpression.registerUse();
-
-      Expression readMatchingExpression =
-          matchingExpression.createExpression(typeSchemaEnvironment);
-
-      List<Statement> replacementStatements = [
-        ...matchingCache.declarations,
-        // TODO(cstefantsova): Figure out the right exception to throw.
-        createIfStatement(
-            createNot(readMatchingExpression),
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                coreTypes.reachabilityErrorConstructor,
-                createArguments([], fileOffset: entry.fileOffset),
-                fileOffset: entry.fileOffset))),
-            fileOffset: entry.fileOffset),
-      ];
-      if (replacementStatements.length > 1) {
-        // If we need local declarations, create a new block to avoid naming
-        // collision with declarations in the same parent block.
-        replacementStatements = [
-          createBlock(replacementStatements, fileOffset: entry.fileOffset)
-        ];
-      }
-      replacementStatements = [
-        ...patternVariableDeclaration.pattern.declaredVariables,
-        ...replacementStatements,
-      ];
-      entry.replacement = replacementStatements;
-
-      MapLiteralEntry body = inferMapEntry(
-          entry.forMapEntry,
-          entry,
-          inferredKeyType,
-          inferredValueType,
-          spreadContext,
-          actualTypes,
-          actualTypesForSet,
-          inferredSpreadTypes,
-          inferredConditionTypes,
-          offsets);
-      entry.forMapEntry = (body as ForMapEntry)..parent = entry;
-
       return entry;
     } else if (entry is ForInMapEntry) {
       ForInResult result;

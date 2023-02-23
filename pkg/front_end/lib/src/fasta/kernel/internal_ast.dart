@@ -4915,12 +4915,26 @@ class IfCaseMapEntry extends TreeNode
   }
 }
 
-class PatternForElement extends InternalExpression with ControlFlowElement {
+class PatternForElement extends InternalExpression
+    with ControlFlowElement
+    implements ForElement {
   PatternVariableDeclaration patternVariableDeclaration;
-  ForElement forElement;
   late List<Statement> replacement;
 
-  PatternForElement(this.patternVariableDeclaration, this.forElement);
+  @override
+  final List<VariableDeclaration> variables; // May be empty, but not null.
+
+  @override
+  Expression? condition; // May be null.
+
+  @override
+  final List<Expression> updates; // May be empty, but not null.
+
+  @override
+  Expression body;
+
+  PatternForElement(this.patternVariableDeclaration, this.variables,
+      this.condition, this.updates, this.body);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4930,22 +4944,23 @@ class PatternForElement extends InternalExpression with ControlFlowElement {
 
   @override
   void toTextInternal(AstPrinter printer) {
+    patternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
-    for (int index = 0; index < forElement.variables.length; index++) {
+    for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableDeclaration(forElement.variables[index],
+      printer.writeVariableDeclaration(variables[index],
           includeModifiersAndType: index == 0);
     }
     printer.write('; ');
-    if (forElement.condition != null) {
-      printer.writeExpression(forElement.condition!);
+    if (condition != null) {
+      printer.writeExpression(condition!);
     }
     printer.write('; ');
-    printer.writeExpressions(forElement.updates);
+    printer.writeExpressions(updates);
     printer.write(') ');
-    printer.writeExpression(forElement.body);
+    printer.writeExpression(body);
   }
 
   @override
@@ -4961,12 +4976,25 @@ class PatternForElement extends InternalExpression with ControlFlowElement {
 }
 
 class PatternForMapEntry extends TreeNode
-    with InternalTreeNode, ControlFlowMapEntry {
+    with InternalTreeNode, ControlFlowMapEntry
+    implements ForMapEntry {
   PatternVariableDeclaration patternVariableDeclaration;
-  ForMapEntry forMapEntry;
   late List<Statement> replacement;
 
-  PatternForMapEntry(this.patternVariableDeclaration, this.forMapEntry);
+  @override
+  final List<VariableDeclaration> variables;
+
+  @override
+  Expression? condition;
+
+  @override
+  final List<Expression> updates;
+
+  @override
+  MapLiteralEntry body;
+
+  PatternForMapEntry(this.patternVariableDeclaration, this.variables,
+      this.condition, this.updates, this.body);
 
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
@@ -4975,24 +5003,23 @@ class PatternForMapEntry extends TreeNode
 
   @override
   void toTextInternal(AstPrinter printer) {
+    patternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
-    for (int index = 0; index < forMapEntry.variables.length; index++) {
+    for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableDeclaration(forMapEntry.variables[index],
+      printer.writeVariableDeclaration(variables[index],
           includeModifiersAndType: index == 0);
     }
     printer.write('; ');
-    if (forMapEntry.condition != null) {
-      printer.writeExpression(forMapEntry.condition!);
+    if (condition != null) {
+      printer.writeExpression(condition!);
     }
     printer.write('; ');
-    printer.writeExpressions(forMapEntry.updates);
+    printer.writeExpressions(updates);
     printer.write(') ');
-    printer.writeExpression(forMapEntry.body.key);
-    printer.write(': ');
-    printer.writeExpression(forMapEntry.body.value);
+    body.toTextInternal(printer);
   }
 
   @override

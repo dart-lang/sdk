@@ -299,8 +299,23 @@ class ForElement extends Expression with ControlFlowElement {
   }
 
   @override
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('for (');
+    for (int index = 0; index < variables.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(variables[index],
+          includeModifiersAndType: index == 0);
+    }
+    printer.write('; ');
+    if (condition != null) {
+      printer.writeExpression(condition!);
+    }
+    printer.write('; ');
+    printer.writeExpressions(updates);
+    printer.write(') ');
+    printer.writeExpression(body);
   }
 }
 
@@ -658,8 +673,23 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('for (');
+    for (int index = 0; index < variables.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(variables[index],
+          includeModifiersAndType: index == 0);
+    }
+    printer.write('; ');
+    if (condition != null) {
+      printer.writeExpression(condition!);
+    }
+    printer.write('; ');
+    printer.writeExpressions(updates);
+    printer.write(') ');
+    body.toTextInternal(printer);
   }
 }
 
@@ -859,6 +889,9 @@ bool isConvertibleToMapEntry(Expression element) {
   if (element is ForElement) {
     return isConvertibleToMapEntry(element.body);
   }
+  if (element is PatternForElement) {
+    return isConvertibleToMapEntry(element.body);
+  }
   if (element is ForInElement) {
     return isConvertibleToMapEntry(element.body);
   }
@@ -903,6 +936,17 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
     return result;
   }
   if (element is ForElement) {
+    if (element is PatternForElement) {
+      PatternForMapEntry result = new PatternForMapEntry(
+          element.patternVariableDeclaration,
+          element.variables,
+          element.condition,
+          element.updates,
+          convertToMapEntry(element.body, helper, onConvertElement))
+        ..fileOffset = element.fileOffset;
+      onConvertElement(element, result);
+      return result;
+    }
     ForMapEntry result = new ForMapEntry(
         element.variables,
         element.condition,
