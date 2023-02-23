@@ -4448,6 +4448,7 @@ class BodyBuilder extends StackListenerImpl
               ValueKinds.Expression,
               ValueKinds.ProblemBuilder,
               ValueKinds.NamedExpression,
+              ValueKinds.ParserRecovery,
             ]),
             count)));
 
@@ -9307,7 +9308,12 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
       ]),
-      ValueKinds.Pattern,
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern
+      ]),
       ValueKinds.AnnotationListOrNull,
     ]));
     Expression initializer = popForValue();
