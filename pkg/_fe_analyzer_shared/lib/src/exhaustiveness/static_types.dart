@@ -417,15 +417,7 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
         // `Enum<int>`, is not a subtype of `Enum<T>`, we wrap the static type
         // to establish the subtype relation between the [StaticType] for the
         // enum element and this [StaticType].
-        StaticType staticType = enumElement;
-        if (!_typeOperations.isSubtypeOf(enumElement._type, _type)) {
-          // TODO(johnniwinther): The old exhaustiveness algorithm relies on
-          // equality of [StaticType]s which isn't supported for
-          // [WrappedStaticType] so we create it conditionally while the old
-          // algorithm and its test are still in place.
-          staticType = new WrappedStaticType(staticType, this);
-        }
-        elements.add(staticType);
+        elements.add(new WrappedStaticType(enumElement, this));
       }
     }
     return elements;
@@ -493,14 +485,7 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
         // `C<num>`, is not a subtype of `A<T>`, we wrap the static type
         // to establish the subtype relation between the [StaticType] for the
         // enum element and this [StaticType].
-        if (!_typeOperations.isSubtypeOf(subtype, _type)) {
-          // TODO(johnniwinther): The old exhaustiveness algorithm relies on
-          // equality of [StaticType]s which isn't supported for
-          // [WrappedStaticType] so we create it conditionally while the old
-          // algorithm and its test are still in place.
-          staticType = new WrappedStaticType(staticType, this);
-        }
-        subtypes.add(staticType);
+        subtypes.add(new WrappedStaticType(staticType, this));
       }
     }
     return subtypes;

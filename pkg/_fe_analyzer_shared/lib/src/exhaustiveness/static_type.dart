@@ -237,4 +237,15 @@ class WrappedStaticType extends NonNullableStaticType {
   bool isSubtypeOfInternal(StaticType other) {
     return wrappedType.isSubtypeOf(other) || impliedType.isSubtypeOf(other);
   }
+
+  @override
+  int get hashCode => Object.hash(wrappedType, impliedType);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    return other is WrappedStaticType &&
+        wrappedType == other.wrappedType &&
+        impliedType == other.impliedType;
+  }
 }

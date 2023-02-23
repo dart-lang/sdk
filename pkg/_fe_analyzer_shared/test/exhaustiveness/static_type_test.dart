@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 import 'env.dart';
 
 void main() {
-  group('isSubtypeOf()', () {
+  group('isSubtypeOf() |', () {
     var env = TestEnvironment();
     var a = env.createClass('A');
     var b = env.createClass('B', inherits: [a]);
@@ -171,7 +171,13 @@ void main() {
 
     // Gets subtypes for sealed type.
     var aSubtypes = a.subtypes.toList();
-    expect(aSubtypes, unorderedEquals([b, c, e]));
+    expect(
+        aSubtypes,
+        unorderedEquals([
+          WrappedStaticType(b, a),
+          WrappedStaticType(c, a),
+          WrappedStaticType(e, a)
+        ]));
 
     // Unsealed subtype.
     var cSubtypes = c.subtypes.toList();
@@ -179,6 +185,6 @@ void main() {
 
     // Sealed subtype.
     var eSubtypes = e.subtypes.toList();
-    expect(eSubtypes, unorderedEquals([f]));
+    expect(eSubtypes, unorderedEquals([WrappedStaticType(f, e)]));
   });
 }
