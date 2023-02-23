@@ -183,8 +183,8 @@ void main(List<String> args) {
         expectedName: 'myRecord',
         expectedDisplayString: 'Record',
         expectedVariables: r'''
-            $0: "", eval: myRecord.$0
-            $1: 2, eval: myRecord.$1
+            $1: "", eval: myRecord.$1
+            $2: 2, eval: myRecord.$2
             namedRecord: Record, eval: myRecord.namedRecord
             namedString: "", eval: myRecord.namedString
         ''',
@@ -197,8 +197,8 @@ void main(List<String> args) {
       await client.expectVariables(
         namedRecordVariable.variablesReference,
         r'''
-            $0: 10, eval: myRecord.namedRecord.$0
-            $1: 11, eval: myRecord.namedRecord.$1
+            $1: 10, eval: myRecord.namedRecord.$1
+            $2: 11, eval: myRecord.namedRecord.$2
         ''',
       );
     });
