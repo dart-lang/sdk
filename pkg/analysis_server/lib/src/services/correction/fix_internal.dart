@@ -1458,6 +1458,9 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.MISSING_FUNCTION_BODY: [
       ConvertIntoBlockBody.new,
     ],
+    ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
+      AddTrailingComma.new,
+    ],
     ParserErrorCode.VAR_AS_TYPE_NAME: [
       ReplaceVarWithDynamic.new,
     ],

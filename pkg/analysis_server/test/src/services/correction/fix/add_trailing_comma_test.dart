@@ -70,7 +70,18 @@ class AddTrailingCommaRecordTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_TRAILING_COMMA;
 
-  Future<void> test_assignment() async {
+  Future<void> test_parse_initialization() async {
+    // ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
+    await resolveTestCode('''
+var r = const (1);
+''');
+    await assertHasFix('''
+var r = const (1,);
+''');
+  }
+
+  Future<void> test_warning_assignment() async {
+    // WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
     await resolveTestCode('''
 void f((int,) r) {
   r = (1);
@@ -83,7 +94,18 @@ void f((int,) r) {
 ''');
   }
 
-  Future<void> test_return() async {
+  Future<void> test_warning_initialization() async {
+    // WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
+    await resolveTestCode('''
+(int,) r = (1);
+''');
+    await assertHasFix('''
+(int,) r = (1,);
+''');
+  }
+
+  Future<void> test_warning_return() async {
+    // WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
     await resolveTestCode('''
 (int,) f() { return (1); }
 ''');
