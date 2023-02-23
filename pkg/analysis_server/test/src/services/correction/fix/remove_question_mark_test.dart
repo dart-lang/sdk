@@ -133,11 +133,11 @@ dynamic a;
 
   Future<void> test_withClause_class() async {
     await resolveTestCode('''
-class A {}
+mixin class A {}
 class B with A? {}
 ''');
     await assertHasFix('''
-class A {}
+mixin class A {}
 class B with A {}
 ''');
   }

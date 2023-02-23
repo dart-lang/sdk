@@ -8,6 +8,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -47,6 +48,17 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   @override
   void visitClassElement(ClassElement element) {
+    AstNode node = request.target.containingNode;
+    if (node is ExtendsClause &&
+        !element.isExtendableIn(request.libraryElement)) {
+      return;
+    } else if (node is ImplementsClause &&
+        !element.isImplementableIn(request.libraryElement)) {
+      return;
+    } else if (node is WithClause &&
+        !element.isMixableIn(request.libraryElement)) {
+      return;
+    }
     _visitInterfaceElement(element);
   }
 
@@ -102,6 +114,14 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   @override
   visitMixinElement(MixinElement element) {
+    AstNode node = request.target.containingNode;
+    if (node is ImplementsClause &&
+        !element.isImplementableIn(request.libraryElement)) {
+      return;
+    } else if (node is WithClause &&
+        !element.isMixableIn(request.libraryElement)) {
+      return;
+    }
     _visitInterfaceElement(element);
   }
 
@@ -147,7 +167,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
       if (constructor.isPrivate) {
         continue;
       }
-      if (element.isAbstract && !constructor.isFactory) {
+      if (!element.isConstructable && !constructor.isFactory) {
         continue;
       }
       if (onlyConst && !constructor.isConst) {

@@ -426,14 +426,14 @@ String source;
     await _prepareCompletion(
         'Sample',
         '''
-class M {}
+mixin class M {}
 class Sample extends Object with M
 ''',
         atEnd: true);
     _assertHasChange(
         'Complete class declaration',
         '''
-class M {}
+mixin class M {}
 class Sample extends Object with M {
   ////
 }

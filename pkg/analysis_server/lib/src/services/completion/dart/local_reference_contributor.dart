@@ -433,7 +433,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           includeConstructors &&
           element is ClassElement) {
         for (final constructor in element.constructors) {
-          if (element.isAbstract && !constructor.isFactory) {
+          if (!element.isConstructable && !constructor.isFactory) {
             continue;
           }
           if (includeOnlyConstConstructors && !constructor.isConst) {

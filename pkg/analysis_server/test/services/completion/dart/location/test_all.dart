@@ -13,10 +13,12 @@ import 'compilation_unit_test.dart' as compilation_unit;
 import 'directive_uri_test.dart' as directive_uri;
 import 'enum_constant_test.dart' as enum_constant;
 import 'enum_test.dart' as enum_;
+import 'extends_clause_test.dart' as extends_clause;
 import 'field_formal_parameter_test.dart' as field_formal_parameter;
 import 'for_statement_test.dart' as for_statement;
 import 'if_element_test.dart' as if_element;
 import 'if_statement_test.dart' as if_statement;
+import 'implements_clause_test.dart' as implements_clause;
 import 'list_pattern_test.dart' as list_pattern;
 import 'logical_and_pattern_test.dart' as logical_and_pattern;
 import 'logical_or_pattern_test.dart' as logical_or_pattern;
@@ -36,6 +38,7 @@ import 'switch_expression_test.dart' as switch_expression;
 import 'switch_pattern_case_test.dart' as switch_pattern_case;
 import 'type_argument_list_test.dart' as type_argument_list;
 import 'variable_declaration_list_test.dart' as variable_declaration_list;
+import 'with_clause_test.dart' as with_clause;
 
 /// Tests suggestions produced at specific locations.
 void main() {
@@ -49,10 +52,12 @@ void main() {
     directive_uri.main();
     enum_constant.main();
     enum_.main();
+    extends_clause.main();
     field_formal_parameter.main();
     for_statement.main();
     if_element.main();
     if_statement.main();
+    implements_clause.main();
     list_pattern.main();
     logical_and_pattern.main();
     logical_or_pattern.main();
@@ -72,5 +77,6 @@ void main() {
     switch_pattern_case.main();
     type_argument_list.main();
     variable_declaration_list.main();
+    with_clause.main();
   });
 }
