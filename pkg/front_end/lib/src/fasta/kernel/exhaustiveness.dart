@@ -11,9 +11,14 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/printer.dart';
+import 'package:kernel/src/replacement_visitor.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 import 'internal_ast.dart';
+
+/// AST printer strategy used by default in `CfeTypeOperations.typeToString`.
+const AstTextStrategy textStrategy = const AstTextStrategy(
+    showNullableOnly: true, useQualifiedTypeParameterNames: false);
 
 /// Data gathered by the exhaustiveness computation, retained for testing
 /// purposes.
@@ -138,7 +143,17 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
-  String typeToString(DartType type) => type.toText(defaultAstTextStrategy);
+  String typeToString(DartType type) => type.toText(textStrategy);
+
+  @override
+  DartType overapproximate(DartType type) {
+    return TypeParameterReplacer.replaceTypeVariables(type);
+  }
+
+  @override
+  bool isGeneric(DartType type) {
+    return type is InterfaceType && type.typeArguments.isNotEmpty;
+  }
 }
 
 class CfeEnumOperations
@@ -190,9 +205,9 @@ class CfeEnumOperations
 
 class CfeSealedClassOperations
     implements SealedClassOperations<DartType, Class> {
-  final ClassHierarchy classHierarchy;
+  final TypeEnvironment _typeEnvironment;
 
-  CfeSealedClassOperations(this.classHierarchy);
+  CfeSealedClassOperations(this._typeEnvironment);
 
   @override
   List<Class> getDirectSubclasses(Class sealedClass) {
@@ -245,11 +260,46 @@ class CfeSealedClassOperations
   }
 
   @override
-  InterfaceType? getSubclassAsInstanceOf(
-      Class subClass, DartType sealedClassType) {
-    // TODO(johnniwinther): Handle generic types.
-    return subClass.getThisType(
-        classHierarchy.coreTypes, Nullability.nonNullable);
+  DartType? getSubclassAsInstanceOf(
+      Class subClass, covariant InterfaceType sealedClassType) {
+    InterfaceType thisType = subClass.getThisType(
+        _typeEnvironment.coreTypes, Nullability.nonNullable);
+    InterfaceType asSealedType = _typeEnvironment.hierarchy.getTypeAsInstanceOf(
+        thisType, sealedClassType.classNode,
+        isNonNullableByDefault: true)!;
+    if (thisType.typeArguments.isEmpty) {
+      return thisType;
+    }
+    bool trivialSubstitution = true;
+    if (thisType.typeArguments.length == asSealedType.typeArguments.length) {
+      for (int i = 0; i < thisType.typeArguments.length; i++) {
+        if (thisType.typeArguments[i] != asSealedType.typeArguments[i]) {
+          trivialSubstitution = false;
+          break;
+        }
+      }
+      if (trivialSubstitution) {
+        Substitution substitution = Substitution.fromPairs(
+            subClass.typeParameters, sealedClassType.typeArguments);
+        for (int i = 0; i < subClass.typeParameters.length; i++) {
+          DartType bound =
+              substitution.substituteType(subClass.typeParameters[i].bound);
+          if (!_typeEnvironment.isSubtypeOf(sealedClassType.typeArguments[i],
+              bound, SubtypeCheckMode.withNullabilities)) {
+            trivialSubstitution = false;
+            break;
+          }
+        }
+      }
+    } else {
+      trivialSubstitution = false;
+    }
+    if (trivialSubstitution) {
+      return new InterfaceType(
+          subClass, Nullability.nonNullable, sealedClassType.typeArguments);
+    } else {
+      return TypeParameterReplacer.replaceTypeVariables(thisType);
+    }
   }
 }
 
@@ -259,8 +309,7 @@ class CfeExhaustivenessCache
       : super(
             new CfeTypeOperations(constantEvaluator.typeEnvironment),
             new CfeEnumOperations(constantEvaluator),
-            new CfeSealedClassOperations(
-                constantEvaluator.typeEnvironment.hierarchy));
+            new CfeSealedClassOperations(constantEvaluator.typeEnvironment));
 }
 
 abstract class SwitchCaseInfo {
@@ -336,7 +385,7 @@ Space convertExpressionToSpace(
 Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
     Map<Node, Constant?> constants, StaticTypeContext context) {
   if (pattern is ObjectPattern) {
-    DartType type = pattern.type;
+    DartType type = pattern.objectType;
     Map<String, Space> fields = {};
     for (NamedPattern field in pattern.fields) {
       fields[field.name] =
@@ -511,5 +560,33 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
   @override
   bool visitVoidType(VoidType type, CoreTypes coreTypes) {
     return false;
+  }
+}
+
+class TypeParameterReplacer extends ReplacementVisitor {
+  const TypeParameterReplacer();
+
+  @override
+  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
+    DartType replacement = super.visitTypeParameterType(node, variance) ?? node;
+    if (replacement is TypeParameterType) {
+      if (variance == Variance.contravariant) {
+        return _replaceTypeParameterTypes(
+            const NeverType.nonNullable(), variance);
+      } else {
+        return _replaceTypeParameterTypes(
+            replacement.parameter.defaultType, variance);
+      }
+    }
+    return replacement;
+  }
+
+  DartType _replaceTypeParameterTypes(DartType type, int variance) {
+    return type.accept1(this, variance) ?? type;
+  }
+
+  static DartType replaceTypeVariables(DartType type) {
+    return const TypeParameterReplacer()
+        ._replaceTypeParameterTypes(type, Variance.covariant);
   }
 }

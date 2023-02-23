@@ -11946,7 +11946,7 @@ class NeverType extends DartType {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write("Never");
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12096,7 +12096,7 @@ class InterfaceType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeClassName(className, forType: true);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12303,7 +12303,7 @@ class FunctionType extends DartType {
       printer.write("}");
     }
     printer.write(")");
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12412,7 +12412,7 @@ class TypedefType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeTypedefName(typedefReference);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12489,7 +12489,7 @@ class FutureOrType extends DartType {
     printer.write("FutureOr<");
     printer.writeType(typeArgument);
     printer.write(">");
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12611,7 +12611,7 @@ class ExtensionType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeExtensionName(extensionReference);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12735,7 +12735,7 @@ class InlineType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeInlineClassName(inlineClassReference);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -13130,7 +13130,7 @@ class IntersectionType extends DartType {
     printer.write(" & ");
     printer.writeType(right);
     printer.write(')');
-    printer.write(nullabilityToString(nullability));
+    printer.writeNullability(nullability);
   }
 }
 
@@ -13299,7 +13299,7 @@ class TypeParameterType extends DartType {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeTypeParameterName(parameter);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 

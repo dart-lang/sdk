@@ -14,6 +14,7 @@ class Tags {
   static const String scrutineeFields = 'fields';
   static const String space = 'space';
   static const String subtypes = 'subtypes';
+  static const String expandedSubtypes = 'expandedSubtypes';
   static const String remaining = 'remaining';
 }
 
@@ -48,14 +49,13 @@ String fieldsToText(Map<String, StaticType> fields) {
 String staticTypeToText(StaticType type) => type.toString();
 
 /// Returns a textual representation of the subtypes of [type] used for testing.
-String? subtypesToText(StaticType type) {
-  List<StaticType> subtypes = type.subtypes.toList();
-  if (subtypes.isEmpty) return null;
-  // TODO(johnniwinther): Sort subtypes.
+String? typesToText(Iterable<StaticType> types) {
+  if (types.isEmpty) return null;
+  // TODO(johnniwinther): Sort types.
   StringBuffer sb = new StringBuffer();
   String comma = '';
   sb.write('{');
-  for (StaticType subtype in subtypes) {
+  for (StaticType subtype in types) {
     sb.write(comma);
     sb.write(staticTypeToText(subtype));
     comma = ',';

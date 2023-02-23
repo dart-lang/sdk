@@ -192,11 +192,49 @@ abstract class NonNullableStaticType extends _BaseStaticType {
       return isSubtypeOf(other.underlying);
     }
 
-    return isSubtypeOfInternal(other);
+    if (isSubtypeOfInternal(other)) {
+      return true;
+    }
+
+    if (other is WrappedStaticType) {
+      return isSubtypeOf(other.wrappedType) && isSubtypeOf(other.impliedType);
+    }
+
+    return false;
   }
 
   bool isSubtypeOfInternal(StaticType other);
 
   @override
   String toString() => name;
+}
+
+/// Static type the behaves like [wrappedType] but is also a subtype of
+/// [impliedType].
+class WrappedStaticType extends NonNullableStaticType {
+  final StaticType wrappedType;
+  final StaticType impliedType;
+
+  WrappedStaticType(this.wrappedType, this.impliedType);
+
+  @override
+  Map<String, StaticType> get fields => wrappedType.fields;
+
+  @override
+  bool get isRecord => wrappedType.isRecord;
+
+  @override
+  bool get isSealed => wrappedType.isSealed;
+
+  @override
+  String get name => wrappedType.name;
+
+  @override
+  Iterable<StaticType> get subtypes =>
+      wrappedType.subtypes.map((e) => new WrappedStaticType(e, impliedType));
+
+  @override
+  bool isSubtypeOfInternal(StaticType other) {
+    return wrappedType.isSubtypeOf(other) || impliedType.isSubtypeOf(other);
+  }
 }

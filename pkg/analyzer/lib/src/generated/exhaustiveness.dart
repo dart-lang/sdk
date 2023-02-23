@@ -13,7 +13,10 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/replacement_visitor.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart';
 
 Space convertConstantValueToSpace(
@@ -167,23 +170,41 @@ class AnalyzerExhaustivenessCache extends ExhaustivenessCache<DartType,
       : super(
             AnalyzerTypeOperations(typeSystem),
             const AnalyzerEnumOperations(),
-            const AnalyzerSealedClassOperations());
+            AnalyzerSealedClassOperations(typeSystem));
 }
 
 class AnalyzerSealedClassOperations
     implements SealedClassOperations<DartType, ClassElement> {
-  const AnalyzerSealedClassOperations();
+  final TypeSystemImpl _typeSystem;
+
+  AnalyzerSealedClassOperations(this._typeSystem);
 
   @override
   List<ClassElement> getDirectSubclasses(ClassElement sealedClass) {
     List<ClassElement> subclasses = [];
     LibraryElement library = sealedClass.library;
+    outer:
     for (Element declaration in library.topLevelElements) {
       if (declaration != sealedClass && declaration is ClassElement) {
-        for (InterfaceType supertype in declaration.allSupertypes) {
-          if (supertype.element == sealedClass) {
+        bool checkType(InterfaceType? type) {
+          if (type?.element == sealedClass) {
             subclasses.add(declaration);
-            break;
+            return true;
+          }
+          return false;
+        }
+
+        if (checkType(declaration.supertype)) {
+          continue outer;
+        }
+        for (InterfaceType mixin in declaration.mixins) {
+          if (checkType(mixin)) {
+            continue outer;
+          }
+        }
+        for (InterfaceType interface in declaration.interfaces) {
+          if (checkType(interface)) {
+            continue outer;
           }
         }
       }
@@ -202,9 +223,44 @@ class AnalyzerSealedClassOperations
 
   @override
   DartType? getSubclassAsInstanceOf(
-      ClassElement subClass, DartType sealedClassType) {
-    // TODO(johnniwinther): Handle generic types.
-    return subClass.thisType;
+      ClassElement subClass, covariant InterfaceType sealedClassType) {
+    InterfaceType thisType = subClass.thisType;
+    InterfaceType asSealedClass =
+        thisType.asInstanceOf(sealedClassType.element)!;
+    if (thisType.typeArguments.isEmpty) {
+      return thisType;
+    }
+    bool trivialSubstitution = true;
+    if (thisType.typeArguments.length == asSealedClass.typeArguments.length) {
+      for (int i = 0; i < thisType.typeArguments.length; i++) {
+        if (thisType.typeArguments[i] != asSealedClass.typeArguments[i]) {
+          trivialSubstitution = false;
+          break;
+        }
+      }
+      if (trivialSubstitution) {
+        Substitution substitution = Substitution.fromPairs(
+            subClass.typeParameters, sealedClassType.typeArguments);
+        for (int i = 0; i < subClass.typeParameters.length; i++) {
+          DartType? bound = subClass.typeParameters[i].bound;
+          if (bound != null &&
+              !_typeSystem.isSubtypeOf(sealedClassType.typeArguments[i],
+                  substitution.substituteType(bound))) {
+            trivialSubstitution = false;
+            break;
+          }
+        }
+      }
+    } else {
+      trivialSubstitution = false;
+    }
+    if (trivialSubstitution) {
+      return subClass.instantiate(
+          typeArguments: sealedClassType.typeArguments,
+          nullabilitySuffix: NullabilitySuffix.none);
+    } else {
+      return TypeParameterReplacer.replaceTypeVariables(_typeSystem, thisType);
+    }
   }
 }
 
@@ -251,6 +307,11 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
+  bool isGeneric(DartType type) {
+    return type is InterfaceType && type.typeArguments.isNotEmpty;
+  }
+
+  @override
   bool isNeverType(DartType type) {
     return type is NeverType;
   }
@@ -283,6 +344,11 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   @override
   bool isSubtypeOf(DartType s, DartType t) {
     return _typeSystem.isSubtypeOf(s, t);
+  }
+
+  @override
+  DartType overapproximate(DartType type) {
+    return TypeParameterReplacer.replaceTypeVariables(_typeSystem, type);
   }
 
   @override
@@ -322,4 +388,48 @@ class ExhaustivenessDataForTesting {
   /// Map from switch statement/expression/case nodes to the error reported
   /// on the node.
   Map<AstNode, ExhaustivenessError> errors = {};
+}
+
+class TypeParameterReplacer extends ReplacementVisitor {
+  final TypeSystemImpl _typeSystem;
+  Variance _variance = Variance.covariant;
+
+  TypeParameterReplacer(this._typeSystem);
+
+  @override
+  void changeVariance() {
+    if (_variance == Variance.covariant) {
+      _variance = Variance.contravariant;
+    } else if (_variance == Variance.contravariant) {
+      _variance = Variance.covariant;
+    }
+  }
+
+  @override
+  DartType? visitTypeParameterBound(DartType type) {
+    Variance savedVariance = _variance;
+    _variance = Variance.invariant;
+    DartType? result = type.accept(this);
+    _variance = savedVariance;
+    return result;
+  }
+
+  @override
+  DartType? visitTypeParameterType(TypeParameterType node) {
+    if (_variance == Variance.contravariant) {
+      return _replaceTypeParameterTypes(_typeSystem.typeProvider.neverType);
+    } else {
+      return _replaceTypeParameterTypes(
+          (node.element as TypeParameterElementImpl).defaultType!);
+    }
+  }
+
+  DartType _replaceTypeParameterTypes(DartType type) {
+    return type.accept(this) ?? type;
+  }
+
+  static DartType replaceTypeVariables(
+      TypeSystemImpl typeSystem, DartType type) {
+    return TypeParameterReplacer(typeSystem)._replaceTypeParameterTypes(type);
+  }
 }

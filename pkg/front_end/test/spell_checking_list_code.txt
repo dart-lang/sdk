@@ -718,6 +718,8 @@ inferable
 influence
 informative
 infos
+inhabit
+inhabits
 inhibit
 init
 initializations
@@ -999,6 +1001,9 @@ outlined
 outputs
 outputting
 ovar
+overapproximate
+overapproximates
+overapproximation
 overestimate
 overhead
 overlap
