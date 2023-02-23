@@ -643,8 +643,9 @@ abstract class VmServiceInterface {
 
   /// The `getInstancesAsList` RPC is used to retrieve a set of instances which
   /// are of a specific class. This RPC returns an `InstanceRef` corresponding
-  /// to a Dart `List` that contains the requested instances. This is what
-  /// distinguishes this RPC from `getInstances`, which returns an
+  /// to a Dart `List<dynamic>` that contains the requested instances. This
+  /// `List` is not growable, but it is otherwise mutable. The response type is
+  /// what distinguishes this RPC from `getInstances`, which returns an
   /// `InstanceSet`.
   ///
   /// The order of the instances is undefined (i.e., not related to allocation

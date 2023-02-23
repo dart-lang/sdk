@@ -882,9 +882,10 @@ See [InstanceSet](#instanceset).
 ```
 
 The _getInstancesAsList_ RPC is used to retrieve a set of instances which are of
-a specific class. This RPC returns an `@Instance` corresponding to a Dart `List`
-that contains the requested instances. This is what distinguishes this RPC from
-`getInstances`, which returns an `InstanceSet`.
+a specific class. This RPC returns an `@Instance` corresponding to a Dart
+`List<dynamic>` that contains the requested instances. This `List` is not
+growable, but it is otherwise mutable. The response type is what distinguishes
+this RPC from `getInstances`, which returns an `InstanceSet`.
 
 The order of the instances is undefined (i.e., not related to allocation order)
 and unstable (i.e., multiple invocations of this method against the same class
