@@ -708,13 +708,12 @@ var tests = <IsolateTest>[
     // broken [toJson()] in the past. So, we make the following call just to
     // ensure that it doesn't throw.
     result.fields!.first.toJson();
-    expect(fieldsMap.containsKey(0), false);
-    expect(fieldsMap.containsKey(1), true);
-    expect(fieldsMap[1].valueAsString, '1');
+    expect(fieldsMap.containsKey(0), true);
+    expect(fieldsMap[0].valueAsString, '1');
     expect(fieldsMap.containsKey("x"), true);
     expect(fieldsMap["x"].valueAsString, '2');
-    expect(fieldsMap.containsKey(2), true);
-    expect(fieldsMap[2].valueAsString, '3.0');
+    expect(fieldsMap.containsKey(1), true);
+    expect(fieldsMap[1].valueAsString, '3.0');
     expect(fieldsMap.containsKey("y"), true);
     expect(fieldsMap["y"].valueAsString, '4.0');
   },
