@@ -12933,7 +12933,6 @@ ClassPtr Object::clazz() const {
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
-  ASSERT(!IsolateGroup::Current()->compaction_in_progress());
   return IsolateGroup::Current()->class_table()->At(ptr()->GetClassId());
 }
 

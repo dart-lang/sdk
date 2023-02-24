@@ -1533,11 +1533,6 @@ void Profiler::SampleThread(Thread* thread,
       SampleThreadSingleFrame(thread, sample, pc);
       return;
     }
-    if (isolate->group()->compaction_in_progress()) {
-      // The Dart stack isn't fully walkable.
-      SampleThreadSingleFrame(thread, sample, pc);
-      return;
-    }
   }
 
   uword stack_lower = 0;

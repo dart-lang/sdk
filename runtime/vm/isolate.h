@@ -753,14 +753,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void VisitObjectIdRingPointers(ObjectPointerVisitor* visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
-  bool compaction_in_progress() const {
-    return CompactionInProgressBit::decode(isolate_group_flags_);
-  }
-  void set_compaction_in_progress(bool value) {
-    isolate_group_flags_ =
-        CompactionInProgressBit::update(value, isolate_group_flags_);
-  }
-
   // In precompilation we finalize all regular classes before compiling.
   bool all_classes_finalized() const {
     return AllClassesFinalizedBit::decode(isolate_group_flags_);
@@ -807,7 +799,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
 #define ISOLATE_GROUP_FLAG_BITS(V)                                             \
   V(AllClassesFinalized)                                                       \
-  V(CompactionInProgress)                                                      \
   V(EnableAsserts)                                                             \
   V(HasAttemptedReload)                                                        \
   V(NullSafety)                                                                \
