@@ -4611,9 +4611,6 @@ class Field : public Object {
 
 class Script : public Object {
  public:
-  LibraryPtr library() const { return untag()->library(); }
-  void set_library(const Library& value) const;
-
   StringPtr url() const { return untag()->url(); }
   void set_url(const String& value) const;
 
@@ -4661,6 +4658,7 @@ class Script : public Object {
 
   void set_debug_positions(const Array& value) const;
 
+  LibraryPtr FindLibrary() const;
   StringPtr GetLine(intptr_t line_number, Heap::Space space = Heap::kNew) const;
   StringPtr GetSnippet(intptr_t from_line,
                        intptr_t from_column,

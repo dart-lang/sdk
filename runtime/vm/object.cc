@@ -12651,10 +12651,6 @@ TokenPosition Script::MaxPosition() const {
   return TokenPosition::kNoSource;
 }
 
-void Script::set_library(const Library& value) const {
-  untag()->set_library(value.ptr());
-}
-
 void Script::set_url(const String& value) const {
   untag()->set_url(value.ptr());
 }
@@ -12965,6 +12961,26 @@ ScriptPtr Script::New(const String& url,
 const char* Script::ToCString() const {
   const String& name = String::Handle(url());
   return OS::SCreate(Thread::Current()->zone(), "Script(%s)", name.ToCString());
+}
+
+LibraryPtr Script::FindLibrary() const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  auto isolate_group = thread->isolate_group();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, isolate_group->object_store()->libraries());
+  Library& lib = Library::Handle(zone);
+  Array& scripts = Array::Handle(zone);
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    scripts = lib.LoadedScripts();
+    for (intptr_t j = 0; j < scripts.Length(); j++) {
+      if (scripts.At(j) == ptr()) {
+        return lib.ptr();
+      }
+    }
+  }
+  return Library::null();
 }
 
 DictionaryIterator::DictionaryIterator(const Library& library)

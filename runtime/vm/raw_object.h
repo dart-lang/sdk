@@ -1510,7 +1510,6 @@ class alignas(8) UntaggedScript : public UntaggedObject {
 
   COMPRESSED_POINTER_FIELD(StringPtr, url)
   VISIT_FROM(url)
-  COMPRESSED_POINTER_FIELD(LibraryPtr, library)
   COMPRESSED_POINTER_FIELD(StringPtr, resolved_url)
   COMPRESSED_POINTER_FIELD(TypedDataPtr, line_starts)
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
