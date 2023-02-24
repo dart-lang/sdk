@@ -72,11 +72,15 @@ class _FinalExpressionChecker {
 
   _FinalExpressionChecker(this.parameters);
 
+  /// Returns whether [element] is a `final` variable or property and not
+  /// `late`.
   bool isFinalElement(Element? element) {
     if (element is PropertyAccessorElement) {
-      return element.isSynthetic && element.variable.isFinal;
+      return element.isSynthetic &&
+          element.variable.isFinal &&
+          !element.variable.isLate;
     } else if (element is VariableElement) {
-      return element.isFinal;
+      return element.isFinal && !element.isLate;
     }
     return true;
   }

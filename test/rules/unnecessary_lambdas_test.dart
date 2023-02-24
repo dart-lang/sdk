@@ -156,6 +156,16 @@ void f() {
     ]);
   }
 
+  test_methodCallOnLateFinalLocal_matchingArg() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  late final List<int> l;
+  if (1 == 2) l = [];
+  [].where((e) => l.contains(e));
+}
+''');
+  }
+
   test_methodCallOnFinalLocal_closureParameterIsTarget() async {
     await assertNoDiagnostics(r'''
 void f() {
