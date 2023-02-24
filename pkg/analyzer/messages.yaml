@@ -18983,57 +18983,6 @@ HintCode:
 
       If some of the imported names are intended to be used, then add the missing
       code.
-  UNUSED_LABEL:
-    problemMessage: "The label '{0}' isn't used."
-    correctionMessage: "Try removing the label, or using it in either a 'break' or 'continue' statement."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the label that isn't used
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a label that isn't used is
-      found.
-
-      #### Example
-
-      The following code produces this diagnostic because the label `loop` isn't
-      referenced anywhere in the method:
-
-      ```dart
-      void f(int limit) {
-        [!loop:!] for (int i = 0; i < limit; i++) {
-          print(i);
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      If the label isn't needed, then remove it:
-
-      ```dart
-      void f(int limit) {
-        for (int i = 0; i < limit; i++) {
-          print(i);
-        }
-      }
-      ```
-
-      If the label is needed, then use it:
-
-      ```dart
-      void f(int limit) {
-        loop: for (int i = 0; i < limit; i++) {
-          print(i);
-          if (i != 0) {
-            break loop;
-          }
-        }
-      }
-      ```
-      TODO(brianwilkerson) Highlight the identifier without the colon.
   UNUSED_LOCAL_VARIABLE:
     problemMessage: "The value of the local variable '{0}' isn't used."
     correctionMessage: Try removing the variable or using it.
@@ -19063,93 +19012,6 @@ HintCode:
       If the variable isn't needed, then remove it.
 
       If the variable was intended to be used, then add the missing code.
-  UNUSED_RESULT:
-    problemMessage: "The value of '{0}' should be used."
-    correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the annotated method, property or function
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a function annotated with
-      `[useResult][meta-useResult]` is invoked, and the value returned by that
-      function isn't used. The value is considered to be used if a member of the
-      value is invoked, if the value is passed to another function, or if the
-      value is assigned to a variable or field.
-
-      #### Example
-
-      The following code produces this diagnostic because the invocation of
-      `c.a()` isn't used, even though the method `a` is annotated with
-      `[useResult][meta-useResult]`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        @useResult
-        int a() => 0;
-
-        int b() => 0;
-      }
-
-      void f(C c) {
-        c.[!a!]();
-      }
-      ```
-
-      #### Common fixes
-
-      If you intended to invoke the annotated function, then use the value that
-      was returned:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        @useResult
-        int a() => 0;
-
-        int b() => 0;
-      }
-
-      void f(C c) {
-        print(c.a());
-      }
-      ```
-
-      If you intended to invoke a different function, then correct the name of
-      the function being invoked:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        @useResult
-        int a() => 0;
-
-        int b() => 0;
-      }
-
-      void f(C c) {
-        c.b();
-      }
-      ```
-  UNUSED_RESULT_WITH_MESSAGE:
-    sharedName: UNUSED_RESULT
-    problemMessage: "'{0}' should be used. {1}."
-    correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
-    hasPublishedDocs: true
-    comment: |-
-      The result of invoking a method, property, or function annotated with
-      `@useResult` must be used (assigned, passed to a function as an argument,
-      or returned by a function).
-
-      Parameters:
-      0: the name of the annotated method, property or function
-      1: message details
   UNUSED_SHOWN_NAME:
     problemMessage: "The name {0} is shown, but isn't used."
     correctionMessage: Try removing the name from the list of shown members.
@@ -23642,6 +23504,144 @@ WarningCode:
   UNUSED_IMPORT:
     aliasFor: HintCode.UNUSED_IMPORT
     comment: This is the new replacement for [HintCode.UNUSED_IMPORT].
+  UNUSED_LABEL:
+    problemMessage: "The label '{0}' isn't used."
+    correctionMessage: "Try removing the label, or using it in either a 'break' or 'continue' statement."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the label that isn't used
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a label that isn't used is
+      found.
+
+      #### Example
+
+      The following code produces this diagnostic because the label `loop` isn't
+      referenced anywhere in the method:
+
+      ```dart
+      void f(int limit) {
+        [!loop:!] for (int i = 0; i < limit; i++) {
+          print(i);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the label isn't needed, then remove it:
+
+      ```dart
+      void f(int limit) {
+        for (int i = 0; i < limit; i++) {
+          print(i);
+        }
+      }
+      ```
+
+      If the label is needed, then use it:
+
+      ```dart
+      void f(int limit) {
+        loop: for (int i = 0; i < limit; i++) {
+          print(i);
+          if (i != 0) {
+            break loop;
+          }
+        }
+      }
+      ```
+      TODO(brianwilkerson) Highlight the identifier without the colon.
   UNUSED_LOCAL_VARIABLE:
     aliasFor: HintCode.UNUSED_LOCAL_VARIABLE
     comment: This is the new replacement for [HintCode.UNUSED_LOCAL_VARIABLE].
+  UNUSED_RESULT:
+    problemMessage: "The value of '{0}' should be used."
+    correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the annotated method, property or function
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a function annotated with
+      `[useResult][meta-useResult]` is invoked, and the value returned by that
+      function isn't used. The value is considered to be used if a member of the
+      value is invoked, if the value is passed to another function, or if the
+      value is assigned to a variable or field.
+
+      #### Example
+
+      The following code produces this diagnostic because the invocation of
+      `c.a()` isn't used, even though the method `a` is annotated with
+      `[useResult][meta-useResult]`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        @useResult
+        int a() => 0;
+
+        int b() => 0;
+      }
+
+      void f(C c) {
+        c.[!a!]();
+      }
+      ```
+
+      #### Common fixes
+
+      If you intended to invoke the annotated function, then use the value that
+      was returned:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        @useResult
+        int a() => 0;
+
+        int b() => 0;
+      }
+
+      void f(C c) {
+        print(c.a());
+      }
+      ```
+
+      If you intended to invoke a different function, then correct the name of
+      the function being invoked:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        @useResult
+        int a() => 0;
+
+        int b() => 0;
+      }
+
+      void f(C c) {
+        c.b();
+      }
+      ```
+  UNUSED_RESULT_WITH_MESSAGE:
+    sharedName: UNUSED_RESULT
+    problemMessage: "'{0}' should be used. {1}."
+    correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
+    hasPublishedDocs: true
+    comment: |-
+      The result of invoking a method, property, or function annotated with
+      `@useResult` must be used (assigned, passed to a function as an argument,
+      or returned by a function).
+
+      Parameters:
+      0: the name of the annotated method, property or function
+      1: message details

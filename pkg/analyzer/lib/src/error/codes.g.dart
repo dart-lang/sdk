@@ -6800,8 +6800,47 @@ class WarningCode extends AnalyzerErrorCode {
   ///  This is the new replacement for [HintCode.UNUSED_IMPORT].
   static const HintCode UNUSED_IMPORT = HintCode.UNUSED_IMPORT;
 
+  ///  Parameters:
+  ///  0: the label that isn't used
+  static const WarningCode UNUSED_LABEL = WarningCode(
+    'UNUSED_LABEL',
+    "The label '{0}' isn't used.",
+    correctionMessage:
+        "Try removing the label, or using it in either a 'break' or 'continue' "
+        "statement.",
+    hasPublishedDocs: true,
+  );
+
   ///  This is the new replacement for [HintCode.UNUSED_LOCAL_VARIABLE].
   static const HintCode UNUSED_LOCAL_VARIABLE = HintCode.UNUSED_LOCAL_VARIABLE;
+
+  ///  Parameters:
+  ///  0: the name of the annotated method, property or function
+  static const WarningCode UNUSED_RESULT = WarningCode(
+    'UNUSED_RESULT',
+    "The value of '{0}' should be used.",
+    correctionMessage:
+        "Try using the result by invoking a member, passing it to a function, "
+        "or returning it from this function.",
+    hasPublishedDocs: true,
+  );
+
+  ///  The result of invoking a method, property, or function annotated with
+  ///  `@useResult` must be used (assigned, passed to a function as an argument,
+  ///  or returned by a function).
+  ///
+  ///  Parameters:
+  ///  0: the name of the annotated method, property or function
+  ///  1: message details
+  static const WarningCode UNUSED_RESULT_WITH_MESSAGE = WarningCode(
+    'UNUSED_RESULT',
+    "'{0}' should be used. {1}.",
+    correctionMessage:
+        "Try using the result by invoking a member, passing it to a function, "
+        "or returning it from this function.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNUSED_RESULT_WITH_MESSAGE',
+  );
 
   /// Initialize a newly created error code to have the given [name].
   const WarningCode(

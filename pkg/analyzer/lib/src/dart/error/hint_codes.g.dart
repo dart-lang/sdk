@@ -469,51 +469,12 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the label that isn't used
-  static const HintCode UNUSED_LABEL = HintCode(
-    'UNUSED_LABEL',
-    "The label '{0}' isn't used.",
-    correctionMessage:
-        "Try removing the label, or using it in either a 'break' or 'continue' "
-        "statement.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
   ///  0: the name of the unused variable
   static const HintCode UNUSED_LOCAL_VARIABLE = HintCode(
     'UNUSED_LOCAL_VARIABLE',
     "The value of the local variable '{0}' isn't used.",
     correctionMessage: "Try removing the variable or using it.",
     hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the annotated method, property or function
-  static const HintCode UNUSED_RESULT = HintCode(
-    'UNUSED_RESULT',
-    "The value of '{0}' should be used.",
-    correctionMessage:
-        "Try using the result by invoking a member, passing it to a function, "
-        "or returning it from this function.",
-    hasPublishedDocs: true,
-  );
-
-  ///  The result of invoking a method, property, or function annotated with
-  ///  `@useResult` must be used (assigned, passed to a function as an argument,
-  ///  or returned by a function).
-  ///
-  ///  Parameters:
-  ///  0: the name of the annotated method, property or function
-  ///  1: message details
-  static const HintCode UNUSED_RESULT_WITH_MESSAGE = HintCode(
-    'UNUSED_RESULT',
-    "'{0}' should be used. {1}.",
-    correctionMessage:
-        "Try using the result by invoking a member, passing it to a function, "
-        "or returning it from this function.",
-    hasPublishedDocs: true,
-    uniqueName: 'UNUSED_RESULT_WITH_MESSAGE',
   );
 
   ///  Parameters:
