@@ -20,7 +20,6 @@ _CHROME = {"custom_vars": {"download_chrome": True}}
 _EMSCRIPTEN = {"custom_vars": {"download_emscripten": True}}
 _FIREFOX = {"custom_vars": {"download_firefox": True}}
 _JS_ENGINES = {"custom_vars": {"checkout_javascript_engines": True}}
-_PINNED_XCODE = {"$depot_tools/osx_sdk": {"sdk_version": "12d4e"}}
 _SLOW_SHARDS = {"shard_timeout": (90 * time.minute) // time.second}
 
 _ARM64 = {"cpu": "arm64"}
@@ -84,5 +83,4 @@ emscripten = _EMSCRIPTEN
 firefox = _FIREFOX
 js_engines = _JS_ENGINES
 no_android = _NO_ANDROID
-pinned_xcode = _PINNED_XCODE
 slow_shards = _SLOW_SHARDS

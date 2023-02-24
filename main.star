@@ -24,7 +24,6 @@ load(
     "js_engines",
     "mac",
     "no_android",
-    "pinned_xcode",
     "windows",
 )
 load("//lib/paths.star", "paths")
@@ -229,7 +228,6 @@ dart.ci_sandbox_builder(
     "front-end-mac-release-x64",
     category = "cfe|m",
     dimensions = mac,
-    properties = pinned_xcode,
 )
 dart.ci_sandbox_builder(
     "front-end-win-release-x64",
@@ -246,7 +244,6 @@ cron.nightly_builder(
     category = "cfe|nnbd|m",
     channels = ["try"],
     dimensions = mac,
-    properties = pinned_xcode,
 )
 cron.nightly_builder(
     "front-end-nnbd-win-release-x64",
@@ -321,20 +318,20 @@ dart.ci_sandbox_builder(
     "pkg-linux-release",
     category = "pkg|l",
     on_cq = True,
-    properties = [chrome, pinned_xcode],
+    properties = chrome,
 )
 dart.ci_sandbox_builder(
     "pkg-mac-release",
     category = "pkg|m",
     dimensions = mac,
-    properties = [chrome, pinned_xcode],
+    properties = chrome,
 )
 dart.ci_sandbox_builder(
     "pkg-mac-release-arm64",
     category = "pkg|m1",
     channels = ["try"],
     dimensions = [mac, arm64],
-    properties = [chrome, no_android, pinned_xcode],
+    properties = [chrome, no_android],
     experiments = {"dart.use_update_script": 100},
 )
 dart.ci_sandbox_builder(
@@ -390,7 +387,7 @@ dart.ci_sandbox_builder(
     "dart2js-strong-mac-x64-chrome",
     category = "dart2js|chrome|m",
     dimensions = mac,
-    properties = [chrome, pinned_xcode, no_android],
+    properties = [chrome, no_android],
 )
 dart.ci_sandbox_builder(
     "dart2js-strong-win-x64-chrome",
@@ -419,7 +416,7 @@ dart.ci_sandbox_builder(
     "dart2js-strong-mac-x64-safari",
     category = "dart2js|safari|m",
     dimensions = mac,
-    properties = [pinned_xcode, no_android],
+    properties = no_android,
 )
 
 # analyzer
@@ -446,7 +443,6 @@ dart.ci_sandbox_builder(
     category = "analyzer|m",
     channels = dart.channels,
     dimensions = mac,
-    properties = pinned_xcode,
 )
 dart.ci_sandbox_builder(
     "analyzer-win-release",
@@ -501,7 +497,7 @@ dart.try_builder(
 dart.try_builder(
     "dart-sdk-mac",
     dimensions = mac,
-    properties = [pinned_xcode, {"archs": ["x64"], "disable_bcid": True}],
+    properties = [{"archs": ["x64"], "disable_bcid": True}],
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
 )
@@ -511,7 +507,6 @@ dart.try_builder(
     dimensions = [mac, arm64],
     properties = [
         no_android,
-        pinned_xcode,
         {"archs": ["arm64"], "disable_bcid": True},
     ],
     location_filters = paths.to_location_filters(paths.release),

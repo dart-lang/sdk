@@ -13,7 +13,6 @@ load(
     "focal",
     "mac",
     "no_android",
-    "pinned_xcode",
     "slow_shards",
     "windows",
 )
@@ -117,25 +116,24 @@ _nightly_builder(
     category = "vm|nnbd|jit|m1d",
     channels = ["try"],
     dimensions = [mac, arm64],
-    properties = [no_android, pinned_xcode, slow_shards],
+    properties = [no_android, slow_shards],
 )
 _builder(
     "vm-kernel-nnbd-mac-debug-x64",
     category = "vm|nnbd|jit|md",
     dimensions = mac,
-    properties = [pinned_xcode, slow_shards],
+    properties = slow_shards,
 )
 _builder(
     "vm-kernel-nnbd-mac-release-arm64",
     category = "vm|nnbd|jit|m1r",
     dimensions = [mac, arm64],
-    properties = [no_android, pinned_xcode],
+    properties = no_android,
 )
 _builder(
     "vm-kernel-nnbd-mac-release-x64",
     category = "vm|nnbd|jit|mr",
     dimensions = mac,
-    properties = pinned_xcode,
 )
 _nightly_builder(
     "vm-kernel-nnbd-win-release-ia32",
@@ -183,13 +181,13 @@ _extra_builder(
     category = "vm|nnbd|aot|m1",
     channels = ["try"],
     dimensions = [mac, arm64],
-    properties = [no_android, pinned_xcode, slow_shards],
+    properties = [no_android, slow_shards],
 )
 _extra_builder(
     "vm-kernel-precomp-nnbd-mac-release-simarm64",
     category = "vm|nnbd|aot|ma6",
     dimensions = mac,
-    properties = [pinned_xcode, slow_shards],
+    properties = slow_shards,
 )
 _extra_builder(
     "vm-kernel-precomp-nnbd-win-release-x64",
@@ -292,7 +290,6 @@ _nightly_builder(
     category = "vm|product|m",
     channels = ["try"],
     dimensions = mac,
-    properties = pinned_xcode,
 )
 _nightly_builder(
     "vm-aot-win-product-x64",
