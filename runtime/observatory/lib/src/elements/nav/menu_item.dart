@@ -29,7 +29,6 @@ class NavMenuItemElement extends CustomElement implements Renderable {
 
   factory NavMenuItemElement(String label,
       {String link = '', RenderingQueue? queue}) {
-    assert(label != null);
     NavMenuItemElement e = new NavMenuItemElement.created();
     e._r = new RenderingScheduler<NavMenuItemElement>(e, queue: queue);
     e._label = label;

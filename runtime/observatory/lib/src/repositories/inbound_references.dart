@@ -7,7 +7,6 @@ part of repositories;
 class InboundReferencesRepository implements M.InboundReferencesRepository {
   Future<M.InboundReferences> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     final response = await isolate
         .invokeRpc('getInboundReferences', {'targetId': id, 'limit': 100});
     return new S.InboundReferences(response as S.ServiceMap);

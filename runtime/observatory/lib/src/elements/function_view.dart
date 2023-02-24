@@ -66,19 +66,6 @@ class FunctionViewElement extends CustomElement implements Renderable {
       M.ScriptRepository scripts,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(function != null);
-    assert(functions != null);
-    assert(classes != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(scripts != null);
-    assert(objects != null);
     FunctionViewElement e = new FunctionViewElement.created();
     e._r = new RenderingScheduler<FunctionViewElement>(e, queue: queue);
     e._vm = vm;

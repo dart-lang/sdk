@@ -10,9 +10,6 @@ class StronglyReachableInstancesRepository
       {int limit = 100}) async {
     S.Isolate isolate = i as S.Isolate;
     S.Class cls = c as S.Class;
-    assert(isolate != null);
-    assert(cls != null);
-    assert(limit != null);
     return (await isolate.getInstances(cls, limit)) as S.InstanceSet;
   }
 

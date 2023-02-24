@@ -307,24 +307,23 @@ class AnonymousJSClass {
 
 extension AnonymousJSClassExtension on AnonymousJSClass {
   external String? get foo;
-  external String? get bar;
+  external String get bar;
   external String? get bleep;
   external int? get goo;
-  external int? get ooo;
+  external int get ooo;
   external List<double>? saz;
-  external List<double>? zoo;
+  external List<double> zoo;
 }
 
 void anonymousTest() {
-  final anonymousJSClass = AnonymousJSClass.factory(
-      foo: 'boo', bleep: 'bleep', saz: const [1.0, 2.0], goo: 0);
+  final anonymousJSClass = AnonymousJSClass.factory(foo: 'boo');
   Expect.equals('boo', anonymousJSClass.foo);
-  Expect.equals(null, anonymousJSClass.bar);
-  Expect.equals('bleep', anonymousJSClass.bleep);
-  Expect.equals(0, anonymousJSClass.goo);
-  Expect.equals(null, anonymousJSClass.ooo);
-  Expect.listEquals(const [1.0, 2.0], anonymousJSClass.saz!);
-  Expect.equals(null, anonymousJSClass.zoo);
+  Expect.equals('baz', anonymousJSClass.bar);
+  Expect.equals(null, anonymousJSClass.bleep);
+  Expect.equals(null, anonymousJSClass.goo);
+  Expect.equals(1, anonymousJSClass.ooo);
+  Expect.equals(null, anonymousJSClass.saz);
+  Expect.listEquals(const [1.0, 2.0], anonymousJSClass.zoo);
 }
 
 @JS()

@@ -1097,11 +1097,6 @@ class IsolateListCommand extends DebuggerCommand {
   IsolateListCommand(Debugger debugger) : super(debugger, 'list', <Command>[]);
 
   Future run(List<String> args) async {
-    if (debugger.vm == null) {
-      debugger.console.print("Internal error: vm has not been set");
-      return;
-    }
-
     // Refresh all isolates first.
     var pending = <Future>[];
     for (var isolate in debugger.vm.isolates) {
@@ -1218,10 +1213,6 @@ class VmListCommand extends DebuggerCommand {
       debugger.console.print('vm list expects no arguments');
       return;
     }
-    if (debugger.vm == null) {
-      debugger.console.print("No connected VMs");
-      return;
-    }
     // TODO(turnidge): Right now there is only one vm listed.
     var vmList = [debugger.vm];
 
@@ -1258,10 +1249,6 @@ class VmNameCommand extends DebuggerCommand {
   Future run(List<String> args) async {
     if (args.length != 1) {
       debugger.console.print('vm name expects one argument');
-      return;
-    }
-    if (debugger.vm == null) {
-      debugger.console.print('There is no current vm');
       return;
     }
     await debugger.vm.setName(args[0]);
@@ -1385,9 +1372,7 @@ class ObservatoryDebugger extends Debugger {
       throw new RangeError.range(value, 0, stackDepth);
     }
     _currentFrame = value;
-    if (stackElement != null) {
-      stackElement.setCurrentFrame(value);
-    }
+    stackElement.setCurrentFrame(value);
   }
 
   int? _currentFrame = null;
@@ -1513,13 +1498,6 @@ class ObservatoryDebugger extends Debugger {
     console.printBold('Debugging isolate ${isolate.number} '
         '\'${isolate.name}\' ');
     console.printBold('Type \'h\' for help');
-    // Wait a bit and if polymer still hasn't set up the isolate,
-    // report this to the user.
-    new Timer(const Duration(seconds: 1), () {
-      if (isolate == null) {
-        reportStatus();
-      }
-    });
 
     if ((breakOnException != isolate.exceptionsPauseInfo) &&
         (isolate.exceptionsPauseInfo != null)) {
@@ -1552,9 +1530,7 @@ class ObservatoryDebugger extends Debugger {
 
   Future refreshStack() async {
     try {
-      if (isolate != null) {
-        await _refreshStack(isolate.pauseEvent);
-      }
+      await _refreshStack(isolate.pauseEvent);
       flushStdio();
       reportStatus();
     } catch (e, st) {
@@ -1599,9 +1575,7 @@ class ObservatoryDebugger extends Debugger {
 
   void reportStatus() {
     flushStdio();
-    if (isolate == null) {
-      console.print('No current isolate');
-    } else if (isolate.idle) {
+    if (isolate.idle) {
       console.print('Isolate is idle');
     } else if (isolate.running) {
       console.print("Isolate is running (type 'pause' to interrupt)");
@@ -1668,8 +1642,7 @@ class ObservatoryDebugger extends Debugger {
           var bpId = event.breakpoint!.number;
           console.print('Paused at breakpoint ${bpId} at '
               '${script.name}:${line}:${col}');
-        } else if ((event is M.PauseExceptionEvent) &&
-            (event.exception != null)) {
+        } else if (event is M.PauseExceptionEvent) {
           console.print('Paused due to exception at '
               '${script.name}:${line}:${col}');
           // This seems to be missing if we are paused-at-exception after
@@ -1778,9 +1751,7 @@ class ObservatoryDebugger extends Debugger {
           var e = createEventFromServiceEvent(event) as M.DebugEvent;
           _refreshStack(e).then((_) async {
             flushStdio();
-            if (isolate != null) {
-              await isolate.reload();
-            }
+            await isolate.reload();
             _reportPause(e);
           });
         }
@@ -2030,10 +2001,6 @@ class DebuggerPageElement extends CustomElement implements Renderable {
 
   factory DebuggerPageElement(S.Isolate isolate, M.ObjectRepository objects,
       M.ScriptRepository scripts, M.EventRepository events) {
-    assert(isolate != null);
-    assert(objects != null);
-    assert(scripts != null);
-    assert(events != null);
     final DebuggerPageElement e = new DebuggerPageElement.created();
     final debugger = new ObservatoryDebugger(isolate);
     debugger.page = e;
@@ -2219,12 +2186,6 @@ class DebuggerStackElement extends CustomElement implements Renderable {
       M.ObjectRepository objects,
       M.ScriptRepository scripts,
       M.EventRepository events) {
-    assert(isolate != null);
-    assert(debugger != null);
-    assert(scroller != null);
-    assert(objects != null);
-    assert(scripts != null);
-    assert(events != null);
     final DebuggerStackElement e = new DebuggerStackElement.created();
     e._isolate = isolate;
     e._debugger = debugger;
@@ -2490,12 +2451,6 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
       M.ScriptRepository scripts,
       M.EventRepository events,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(frame != null);
-    assert(scroller != null);
-    assert(objects != null);
-    assert(scripts != null);
-    assert(events != null);
     final DebuggerFrameElement e = new DebuggerFrameElement.created();
     e._r = new RenderingScheduler<DebuggerFrameElement>(e, queue: queue);
     e._isolate = isolate;
@@ -2716,9 +2671,6 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
 
   int _varsTop(DivElement varsDiv) {
     const minTop = 0;
-    if (varsDiv == null) {
-      return minTop;
-    }
     final num paddingTop = document.body!.contentEdge.top;
     final Rectangle parent = varsDiv.parent!.getBoundingClientRect();
     final int varsHeight = varsDiv.clientHeight;
@@ -2728,7 +2680,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
   }
 
   void _onScroll(event) {
-    if (!_expanded || _varsDiv == null) {
+    if (!_expanded) {
       return;
     }
     String currentTop = _varsDiv.style.top;
@@ -2754,13 +2706,11 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
   StreamSubscription? _resizeSubscription;
 
   void _subscribeToScroll() {
-    if (_scroller != null) {
-      if (_scrollSubscription == null) {
-        _scrollSubscription = _scroller.onScroll.listen(_onScroll);
-      }
-      if (_resizeSubscription == null) {
-        _resizeSubscription = window.onResize.listen(_onScroll);
-      }
+    if (_scrollSubscription == null) {
+      _scrollSubscription = _scroller.onScroll.listen(_onScroll);
+    }
+    if (_resizeSubscription == null) {
+      _resizeSubscription = window.onResize.listen(_onScroll);
     }
   }
 
@@ -2828,10 +2778,6 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
       M.ScriptRepository scripts,
       M.EventRepository events,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(message != null);
-    assert(objects != null);
-    assert(events != null);
     final DebuggerMessageElement e = new DebuggerMessageElement.created();
     e._r = new RenderingScheduler<DebuggerMessageElement>(e, queue: queue);
     e._isolate = isolate;
@@ -2908,12 +2854,10 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
                               ..onClick.listen((_) {
                                 previewButton.disabled = true;
                               })
-                          ]..addAll(_preview == null
-                              ? const []
-                              : [
-                                  anyRef(_isolate, _preview, _objects,
-                                      queue: _r.queue)
-                                ]))
+                          ]..addAll([
+                              anyRef(_isolate, _preview, _objects,
+                                  queue: _r.queue)
+                            ]))
                       ]
                   ]
               ],
@@ -2935,7 +2879,6 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
   }
 
   void updateMessage(S.ServiceMessage message) {
-    assert(_message != null);
     _message = message;
     _r.dirty();
   }

@@ -18,7 +18,7 @@ testFunction() {
   try {
     var b;
     try {
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < 10;) {
         var x = () => i + a + b;
         return x; // LINE_A
       }
@@ -48,7 +48,6 @@ var tests = <IsolateTest>[
     // Add 3 breakpoints.
     {
       var result = await isolate.addBreakpoint(script, LINE_A);
-      expect(result is Breakpoint, isTrue);
       Breakpoint bpt = result;
       expect(bpt.type, equals('Breakpoint'));
       expect(bpt.location!.script!.id, equals(script.id));
@@ -59,7 +58,6 @@ var tests = <IsolateTest>[
 
     {
       var result = await isolate.addBreakpoint(script, LINE_B);
-      expect(result is Breakpoint, isTrue);
       Breakpoint bpt = result;
       expect(bpt.type, equals('Breakpoint'));
       expect(bpt.location!.script!.id, equals(script.id));
@@ -70,7 +68,6 @@ var tests = <IsolateTest>[
 
     {
       var result = await isolate.addBreakpoint(script, LINE_C);
-      expect(result is Breakpoint, isTrue);
       Breakpoint bpt = result;
       expect(bpt.type, equals('Breakpoint'));
       expect(bpt.location!.script!.id, equals(script.id));

@@ -10,10 +10,7 @@ class AllocationProfileRepository implements M.AllocationProfileRepository {
 
   Future<M.AllocationProfile> get(M.IsolateRef i,
       {bool gc = false, bool reset = false, bool combine = false}) async {
-    assert(gc != null);
-    assert(reset != null);
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     var params = {};
     if (gc) {
       params['gc'] = 'true';
@@ -30,9 +27,6 @@ class AllocationProfileRepository implements M.AllocationProfileRepository {
     isolate.updateHeapsFromMap(response['_heaps']);
     for (S.ServiceMap clsAllocations in response['members']) {
       S.Class cls = clsAllocations['class'];
-      if (cls == null) {
-        continue;
-      }
       cls.newSpace.update(clsAllocations['_new']);
       cls.oldSpace.update(clsAllocations['_old']);
     }

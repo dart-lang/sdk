@@ -53,17 +53,6 @@ class UnlinkedCallViewElement extends CustomElement implements Renderable {
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(unlinkedcall != null);
-    assert(unlinkedcalls != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(objects != null);
     UnlinkedCallViewElement e = new UnlinkedCallViewElement.created();
     e._r = new RenderingScheduler<UnlinkedCallViewElement>(e, queue: queue);
     e._vm = vm;

@@ -9,8 +9,6 @@ class ObjectRepository extends M.ObjectRepository {
   Future<M.Object> get(M.IsolateRef i, String id,
       {int count = S.kDefaultFieldLimit}) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
-    assert(count != null);
     return (await isolate.getObject(id, count: count)) as S.HeapObject;
   }
 }

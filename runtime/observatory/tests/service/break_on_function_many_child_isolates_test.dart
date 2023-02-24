@@ -68,9 +68,7 @@ final tests = <IsolateTest>[
             if (lib.uri!
                 .endsWith('break_on_function_many_child_isolates_test.dart')) {
               final foo = lib.functions.singleWhere((f) => f.name == 'foo');
-              final bpt = await childIsolate.addBreakpointAtEntry(foo);
-
-              expect(bpt is Breakpoint, isTrue);
+              await childIsolate.addBreakpointAtEntry(foo);
               break;
             }
           }

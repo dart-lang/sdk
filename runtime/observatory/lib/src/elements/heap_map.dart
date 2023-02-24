@@ -35,10 +35,6 @@ class HeapMapElement extends CustomElement implements Renderable {
   factory HeapMapElement(M.VM vm, M.IsolateRef isolate,
       M.EventRepository events, M.NotificationRepository notifications,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
     HeapMapElement e = new HeapMapElement.created();
     e._r = new RenderingScheduler<HeapMapElement>(e, queue: queue);
     e._vm = vm;

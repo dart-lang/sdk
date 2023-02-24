@@ -34,8 +34,6 @@ class NavRefreshElement extends CustomElement implements Renderable {
       {String label = 'Refresh',
       bool disabled = false,
       RenderingQueue? queue}) {
-    assert(label != null);
-    assert(disabled != null);
     NavRefreshElement e = new NavRefreshElement.created();
     e._r = new RenderingScheduler<NavRefreshElement>(e, queue: queue);
     e._label = label;

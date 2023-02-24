@@ -43,10 +43,6 @@ class MetricsPageElement extends CustomElement implements Renderable {
       M.NotificationRepository notifications,
       M.MetricRepository metrics,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
     MetricsPageElement e = new MetricsPageElement.created();
     e._r = new RenderingScheduler<MetricsPageElement>(e, queue: queue);
     e._vm = vm;

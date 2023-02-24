@@ -18,7 +18,6 @@ class SentinelValueElement extends CustomElement implements Renderable {
   M.Sentinel get sentinel => _sentinel;
 
   factory SentinelValueElement(M.Sentinel sentinel, {RenderingQueue? queue}) {
-    assert(sentinel != null);
     SentinelValueElement e = new SentinelValueElement.created();
     e._r = new RenderingScheduler<SentinelValueElement>(e, queue: queue);
     e._sentinel = sentinel;
@@ -64,6 +63,5 @@ class SentinelValueElement extends CustomElement implements Renderable {
       case M.SentinelKind.free:
         return '';
     }
-    throw new Exception('Unknown SentinelKind: $kind');
   }
 }

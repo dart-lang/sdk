@@ -202,7 +202,6 @@ class ObservatoryApplication {
 
   /// Set the Observatory application page.
   void _installPage(Page page) {
-    assert(page != null);
     if (currentPage == page) {
       // Already installed.
       return;

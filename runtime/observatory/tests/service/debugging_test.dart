@@ -11,7 +11,7 @@ int counter = 0;
 
 void periodicTask(_) {
   counter++;
-  counter++; // Line 15.  We set our breakpoint here.
+  counter++; // Line 14.  We set our breakpoint here.
   counter++;
   if (counter % 300 == 0) {
     print('counter = $counter');
@@ -73,19 +73,17 @@ var tests = <IsolateTest>[
     await script.load();
 
     // Add the breakpoint.
-    var result = await isolate.addBreakpoint(script, 15);
-    expect(result is Breakpoint, isTrue);
-    Breakpoint bpt = result;
+    Breakpoint bpt = await isolate.addBreakpoint(script, 14);
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.location!.script!.id, equals(script.id));
     expect(
-        bpt.location!.script!.tokenToLine(bpt.location!.tokenPos), equals(15));
+        bpt.location!.script!.tokenToLine(bpt.location!.tokenPos), equals(14));
     expect(isolate.breakpoints.length, equals(1));
 
     await completer.future; // Wait for breakpoint events.
   },
 
-// We are at the breakpoint on line 15.
+// We are at the breakpoint on line 14.
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
     expect(stack.type, equals('Stack'));
@@ -94,7 +92,7 @@ var tests = <IsolateTest>[
     Script script = stack['frames'][0].location.script;
     expect(script.name, endsWith('debugging_test.dart'));
     expect(
-        script.tokenToLine(stack['frames'][0].location.tokenPos), equals(15));
+        script.tokenToLine(stack['frames'][0].location.tokenPos), equals(14));
   },
 
 // Stepping
@@ -115,7 +113,7 @@ var tests = <IsolateTest>[
     await completer.future; // Wait for breakpoint events.
   },
 
-// We are now at line 16.
+// We are now at line 15.
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
     expect(stack.type, equals('Stack'));
@@ -124,7 +122,7 @@ var tests = <IsolateTest>[
     Script script = stack['frames'][0].location.script;
     expect(script.name, endsWith('debugging_test.dart'));
     expect(
-        script.tokenToLine(stack['frames'][0].location.tokenPos), equals(16));
+        script.tokenToLine(stack['frames'][0].location.tokenPos), equals(15));
   },
 
 // Remove breakpoint
@@ -184,7 +182,6 @@ var tests = <IsolateTest>[
 
     // Add the breakpoint at function entry
     var result = await isolate.addBreakpointAtEntry(function);
-    expect(result is Breakpoint, isTrue);
     Breakpoint bpt = result;
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.location!.script!.name, equals('debugging_test.dart'));

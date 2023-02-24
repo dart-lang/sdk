@@ -37,7 +37,6 @@ var tests = <IsolateTest>[
         rootLib.functions.singleWhere((f) => f.name == 'testFunction');
 
     var bpt = await isolate.addBreakpointAtEntry(function);
-    expect(bpt is Breakpoint, isTrue);
     print(bpt);
   },
 

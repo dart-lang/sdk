@@ -29,8 +29,6 @@ class SourceLinkElement extends CustomElement implements Renderable {
   factory SourceLinkElement(
       IsolateRef isolate, SourceLocation location, ScriptRepository repository,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(location != null);
     SourceLinkElement e = new SourceLinkElement.created();
     e._r = new RenderingScheduler<SourceLinkElement>(e, queue: queue);
     e._isolate = isolate;

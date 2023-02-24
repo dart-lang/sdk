@@ -31,7 +31,6 @@ class MetricRepository implements M.MetricRepository {
 
   Future<Iterable<Metric>> list(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     if (_samples.containsKey(isolate)) {
       return _samples[isolate]!.keys;
     }
@@ -40,7 +39,6 @@ class MetricRepository implements M.MetricRepository {
 
   Future startSampling(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     if (!_samples.containsKey(isolate)) {
       await isolate.refreshMetrics();
       final samples = _samples[isolate] = <Metric, List<M.MetricSample>>{};
@@ -153,7 +151,6 @@ class MetricRepository implements M.MetricRepository {
       case M.MetricSamplingRate.e8s:
         return 80;
     }
-    throw new Exception('Unknown MetricSamplingRate ($r)');
   }
 
   static int _sizeToInteger(M.MetricBufferSize s) {
@@ -165,7 +162,6 @@ class MetricRepository implements M.MetricRepository {
       case M.MetricBufferSize.n1000samples:
         return 1000;
     }
-    throw new Exception('Unknown MetricBufferSize ($s)');
   }
 
   Iterable<M.MetricSample>? getSamples(M.IsolateRef i, M.Metric m) {
@@ -180,13 +176,11 @@ class MetricRepository implements M.MetricRepository {
 
   double getMinValue(M.IsolateRef i, M.Metric m) {
     Metric metric = m as Metric;
-    assert(metric != null);
     return metric.internal.min;
   }
 
   double getMaxValue(M.IsolateRef i, M.Metric m) {
     Metric metric = m as Metric;
-    assert(metric != null);
     return metric.internal.max;
   }
 

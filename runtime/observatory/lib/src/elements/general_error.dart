@@ -27,8 +27,6 @@ class GeneralErrorElement extends CustomElement implements Renderable {
 
   factory GeneralErrorElement(M.NotificationRepository notifications,
       {String message = '', RenderingQueue? queue}) {
-    assert(notifications != null);
-    assert(message != null);
     GeneralErrorElement e = new GeneralErrorElement.created();
     e._r = new RenderingScheduler<GeneralErrorElement>(e, queue: queue);
     e._message = message;

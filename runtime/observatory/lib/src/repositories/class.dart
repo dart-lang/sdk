@@ -7,13 +7,11 @@ part of repositories;
 class ClassRepository extends M.ClassRepository {
   Future<M.Class> getObject(M.IsolateRef i) {
     final isolate = i as S.Isolate;
-    assert(isolate != null);
     return isolate.getClassHierarchy();
   }
 
   Future<M.Class> get(M.IsolateRef i, String id) async {
     final isolate = i as S.Isolate;
-    assert(isolate != null);
     return (await isolate.getObject(id)) as S.Class;
   }
 }

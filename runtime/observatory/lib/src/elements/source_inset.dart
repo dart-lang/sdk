@@ -38,13 +38,6 @@ class SourceInsetElement extends CustomElement implements Renderable {
       bool inDebuggerContext = false,
       Iterable variables = const [],
       RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(location != null);
-    assert(scripts != null);
-    assert(objects != null);
-    assert(events != null);
-    assert(inDebuggerContext != null);
-    assert(variables != null);
     SourceInsetElement e = new SourceInsetElement.created();
     e._r = new RenderingScheduler<SourceInsetElement>(e, queue: queue);
     e._isolate = isolate;

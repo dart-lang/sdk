@@ -16,13 +16,13 @@ void printSync() {
   print('sync');
   if (testing) {
     // We'll never reach this code, but setting a breakpoint here will result in
-    // the breakpoint being resolved below at line 25.
-    print('unreachable'); // line 18, bp1
+    // the breakpoint being resolved below at line 27.
+    print('unreachable'); // line 20, bp1
   }
 }
 
 printSyncStar() sync* {
-  // We'll end up resolving breakpoint 1 to this location instead of at line 15
+  // We'll end up resolving breakpoint 1 to this location instead of at line 17
   // if #46419 regresses.
   print('sync*');
 }
@@ -31,7 +31,7 @@ testeeDo() {
   printSync();
   final iterator = printSyncStar();
 
-  print('middle'); // Line 32, bp2
+  print('middle'); // Line 34, bp2
 
   iterator.toList();
 }
@@ -46,11 +46,10 @@ final tests = <IsolateTest>[
     await isolate.rootLibrary.load();
     final script = isolate.rootLibrary.scripts[0];
 
-    bp1 = await isolate.addBreakpoint(script, 18);
+    bp1 = await isolate.addBreakpoint(script, 20);
     print("BP1 - $bp1");
     expect(bp1, isNotNull);
-    expect(bp1 is Breakpoint, isTrue);
-    bp2 = await isolate.addBreakpoint(script, 32);
+    bp2 = await isolate.addBreakpoint(script, 34);
     print("BP2 - $bp2");
     expect(bp2, isNotNull);
   },

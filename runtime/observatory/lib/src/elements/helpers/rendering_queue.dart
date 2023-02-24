@@ -30,9 +30,8 @@ class RenderingBarrierMock implements RenderingBarrier {
 
   Future<num> get next => _stream.stream.first;
 
-  /// Trigger the next barrier with an optional numer of ms elapsed.
+  /// Trigger the next barrier with an optional number of ms elapsed.
   void triggerRenderingBarrier({num step = 20}) {
-    assert(step != null);
     _stream.add(_ms += step);
   }
 }
@@ -49,15 +48,12 @@ class RenderingQueue {
   RenderingQueue() : this.fromBarrier(new NextAnimationFrameBarrier());
 
   /// Creates a RenderingQueue with a custom synchronization barrier.
-  RenderingQueue.fromBarrier(this._barrier) {
-    assert(this._barrier != null);
-  }
+  RenderingQueue.fromBarrier(this._barrier);
 
   /// Add a task to the queue.
   /// If the current rendering phase is running it will be executed during this
   /// rendering cycle, otherwise it will be queued for the next one.
   void enqueue(RenderingTask r, {bool waitForBarrier = true}) {
-    assert(r != null);
     final wasEmpty = _queue.isEmpty;
     _queue.addLast(r);
     // If no task are in the queue there is no rendering phase scheduled.

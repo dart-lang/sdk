@@ -7,7 +7,6 @@ part of repositories;
 class RetainingPathRepository implements M.RetainingPathRepository {
   Future<M.RetainingPath> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     final response = await isolate
         .invokeRpc('getRetainingPath', {'targetId': id, 'limit': 100});
     return new S.RetainingPath(response as S.ServiceMap);

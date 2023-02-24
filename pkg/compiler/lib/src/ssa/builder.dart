@@ -3908,16 +3908,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         List.from(_visitPositionalArguments(arguments));
 
     if (target.namedParameters.isNotEmpty) {
-      // Only anonymous factory or inline class literal constructors involving
-      // JS interop are allowed to have named parameters. Otherwise, throw an
-      // error.
+      // Only anonymous factory constructors involving JS interop are allowed to
+      // have named parameters. Otherwise, throw an error.
       final function =
           _elementMap.getMember(target.parent as ir.Member) as FunctionEntity;
-      if (function is ConstructorEntity &&
-              function.isFactoryConstructor &&
-              _nativeData.isAnonymousJsInteropClass(function.enclosingClass) ||
-          function.isTopLevel &&
-              _nativeData.isJsInteropObjectLiteral(function)) {
+      if (function is ConstructorEntity && function.isFactoryConstructor) {
         // TODO(sra): Have a "CompiledArguments" structure to just update with
         // what values we have rather than creating a map and de-populating it.
         Map<String, HInstruction> namedValues = _visitNamedArguments(arguments);
@@ -5424,11 +5419,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     assert(closedWorld.nativeData.isJsInteropMember(element));
 
     if (element is ConstructorEntity &&
-            element.isFactoryConstructor &&
-            _nativeData.isAnonymousJsInteropClass(element.enclosingClass) ||
-        element.isTopLevel && _nativeData.isJsInteropObjectLiteral(element)) {
-      // Constructor that is syntactic sugar for creating a JavaScript object
-      // literal.
+        element.isFactoryConstructor &&
+        _nativeData.isAnonymousJsInteropClass(element.enclosingClass)) {
+      // Factory constructor that is syntactic sugar for creating a JavaScript
+      // object literal.
+      ConstructorEntity constructor = element;
       int i = 0;
       int positions = 0;
       List<HInstruction> filteredArguments = [];
@@ -5440,7 +5435,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // TODO(johnniwinther): can we elide those parameters? This should be
       // consistent with what we do with instance methods.
       final node =
-          _elementMap.getMemberDefinition(element).node as ir.Procedure;
+          _elementMap.getMemberDefinition(constructor).node as ir.Procedure;
       List<ir.VariableDeclaration> namedParameters =
           node.function.namedParameters.toList();
       namedParameters.sort(nativeOrdering);

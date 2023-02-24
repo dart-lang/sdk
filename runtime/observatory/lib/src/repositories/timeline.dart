@@ -18,7 +18,6 @@ class TimelineRepository extends TimelineRepositoryBase
 
   Future setRecordedStreams(M.VMRef ref, Iterable<M.TimelineStream> streams) {
     S.VM vm = ref as S.VM;
-    assert(vm != null);
     return vm.invokeRpc('setVMTimelineFlags', {
       'recordedStreams': '[${streams.map((s) => s.name).join(', ')}]',
     });
@@ -31,7 +30,6 @@ class TimelineRepository extends TimelineRepositoryBase
 
   Future<Map<String, dynamic>> getIFrameParams(M.VMRef ref) async {
     S.VM vm = ref as S.VM;
-    assert(vm != null);
     await vm.reload();
     await vm.reloadIsolates();
     return <String, dynamic>{

@@ -7,7 +7,6 @@ part of repositories;
 class HeapSnapshotRepository implements M.HeapSnapshotRepository {
   SnapshotReader get(M.IsolateRef i) {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     return isolate.fetchHeapSnapshot();
   }
 }

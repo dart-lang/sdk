@@ -33,10 +33,6 @@ class StronglyReachableInstancesElement extends CustomElement
       M.StronglyReachableInstancesRepository stronglyReachable,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(cls != null);
-    assert(stronglyReachable != null);
-    assert(objects != null);
     StronglyReachableInstancesElement e =
         new StronglyReachableInstancesElement.created();
     e._r = new RenderingScheduler<StronglyReachableInstancesElement>(e,

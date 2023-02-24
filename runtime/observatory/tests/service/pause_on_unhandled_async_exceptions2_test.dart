@@ -11,13 +11,12 @@ import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
-const LINE_A = 36;
+const LINE_A = 35;
 
 class Foo {}
 
 doThrow() {
   throw "TheException";
-  return "end of doThrow";
 }
 
 asyncThrower() async {

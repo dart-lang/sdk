@@ -64,19 +64,6 @@ class FieldViewElement extends CustomElement implements Renderable {
       M.ScriptRepository scripts,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(field != null);
-    assert(fields != null);
-    assert(classes != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(scripts != null);
-    assert(objects != null);
     FieldViewElement e = new FieldViewElement.created();
     e._r = new RenderingScheduler<FieldViewElement>(e, queue: queue);
     e._vm = vm;

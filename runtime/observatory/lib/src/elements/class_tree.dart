@@ -39,11 +39,6 @@ class ClassTreeElement extends CustomElement implements Renderable {
       M.NotificationRepository notifications,
       M.ClassRepository classes,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(classes != null);
     ClassTreeElement e = new ClassTreeElement.created();
     e._r = new RenderingScheduler<ClassTreeElement>(e, queue: queue);
     e._vm = vm;
@@ -128,10 +123,10 @@ class ClassTreeElement extends CustomElement implements Renderable {
     }
     return (await Future.wait(cls.subclasses!.map(_getActualChildren)))
         .expand((f) => f)
-          ..forEach((subcls) {
-            _mixins[subcls.id!] = (_mixins[subcls.id!] ?? [])
-              ..add(cls.mixin as M.Instance);
-          });
+      ..forEach((subcls) {
+        _mixins[subcls.id!] = (_mixins[subcls.id!] ?? [])
+          ..add(cls.mixin as M.Instance);
+      });
   }
 
   static HtmlElement _create(toggle) {

@@ -57,17 +57,6 @@ class ScriptViewElement extends CustomElement implements Renderable {
       M.ObjectRepository objects,
       {int? pos,
       RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(script != null);
-    assert(scripts != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(objects != null);
     ScriptViewElement e = new ScriptViewElement.created();
     e._r = new RenderingScheduler<ScriptViewElement>(e, queue: queue);
     e._vm = vm;
