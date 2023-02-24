@@ -7,11 +7,10 @@ part of repositories;
 class IsolateGroupRepository extends M.IsolateGroupRepository {
   final S.VM _vm;
 
-  IsolateGroupRepository(this._vm) : assert(_vm != null);
+  IsolateGroupRepository(this._vm);
 
   Future<M.IsolateGroup> get(M.IsolateGroupRef i) async {
     S.IsolateGroup isolateGroup = i as S.IsolateGroup;
-    assert(isolateGroup != null);
     try {
       await isolateGroup.reload();
     } on SC.NetworkRpcException catch (_) {

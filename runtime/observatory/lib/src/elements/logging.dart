@@ -37,10 +37,6 @@ class LoggingPageElement extends CustomElement implements Renderable {
   factory LoggingPageElement(M.VM vm, M.IsolateRef isolate,
       M.EventRepository events, M.NotificationRepository notifications,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
     LoggingPageElement e = new LoggingPageElement.created();
     e._r = new RenderingScheduler<LoggingPageElement>(e, queue: queue);
     e._vm = vm;

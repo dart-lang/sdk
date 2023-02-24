@@ -28,8 +28,6 @@ class LoggingListElement extends CustomElement implements Renderable {
 
   factory LoggingListElement(M.IsolateRef isolate, M.EventRepository events,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(events != null);
     LoggingListElement e = new LoggingListElement.created();
     e._r = new RenderingScheduler<LoggingListElement>(e, queue: queue);
     e._isolate = isolate;

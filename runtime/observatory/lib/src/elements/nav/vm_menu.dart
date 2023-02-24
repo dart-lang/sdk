@@ -31,8 +31,6 @@ class NavVMMenuElement extends CustomElement implements Renderable {
 
   factory NavVMMenuElement(M.VM vm, M.EventRepository events,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(events != null);
     NavVMMenuElement e = new NavVMMenuElement.created();
     e._r = new RenderingScheduler<NavVMMenuElement>(e, queue: queue);
     e._vm = vm;

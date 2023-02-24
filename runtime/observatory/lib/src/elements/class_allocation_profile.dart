@@ -34,10 +34,6 @@ class ClassAllocationProfileElement extends CustomElement
   factory ClassAllocationProfileElement(M.VM vm, M.IsolateRef isolate,
       M.Class cls, M.ClassSampleProfileRepository profiles,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(cls != null);
-    assert(profiles != null);
     ClassAllocationProfileElement e =
         new ClassAllocationProfileElement.created();
     e._r =

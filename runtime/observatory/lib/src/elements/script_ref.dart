@@ -24,8 +24,6 @@ class ScriptRefElement extends CustomElement implements Renderable {
 
   factory ScriptRefElement(M.IsolateRef isolate, M.ScriptRef script,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(script != null);
     ScriptRefElement e = new ScriptRefElement.created();
     e._r = new RenderingScheduler<ScriptRefElement>(e, queue: queue);
     e._isolate = isolate;

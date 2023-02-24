@@ -22,8 +22,6 @@ class ObjectPoolRefElement extends CustomElement implements Renderable {
 
   factory ObjectPoolRefElement(M.IsolateRef isolate, M.ObjectPoolRef pool,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(pool != null);
     ObjectPoolRefElement e = new ObjectPoolRefElement.created();
     e._r = new RenderingScheduler<ObjectPoolRefElement>(e, queue: queue);
     e._isolate = isolate;

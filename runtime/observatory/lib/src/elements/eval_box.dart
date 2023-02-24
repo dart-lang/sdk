@@ -33,12 +33,6 @@ class EvalBoxElement extends CustomElement implements Renderable {
       {bool multiline = false,
       Iterable<String> quickExpressions = const [],
       RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(context != null);
-    assert(objects != null);
-    assert(eval != null);
-    assert(multiline != null);
-    assert(quickExpressions != null);
     EvalBoxElement e = new EvalBoxElement.created();
     e._r = new RenderingScheduler<EvalBoxElement>(e, queue: queue);
     e._isolate = isolate;

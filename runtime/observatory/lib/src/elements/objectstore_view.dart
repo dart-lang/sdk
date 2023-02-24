@@ -42,12 +42,6 @@ class ObjectStoreViewElement extends CustomElement implements Renderable {
       M.ObjectStoreRepository stores,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(stores != null);
-    assert(objects != null);
     ObjectStoreViewElement e = new ObjectStoreViewElement.created();
     e._r = new RenderingScheduler<ObjectStoreViewElement>(e, queue: queue);
     e._vm = vm;

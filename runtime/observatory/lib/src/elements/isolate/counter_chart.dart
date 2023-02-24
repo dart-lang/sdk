@@ -17,7 +17,6 @@ class IsolateCounterChartElement extends CustomElement implements Renderable {
   late StreamSubscription _subscription;
 
   factory IsolateCounterChartElement(Map counters, {RenderingQueue? queue}) {
-    assert(counters != null);
     IsolateCounterChartElement e = new IsolateCounterChartElement.created();
     e._r = new RenderingScheduler<IsolateCounterChartElement>(e, queue: queue);
     e._counters = counters;

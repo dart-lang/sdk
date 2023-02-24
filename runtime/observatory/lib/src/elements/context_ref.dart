@@ -29,9 +29,6 @@ class ContextRefElement extends CustomElement implements Renderable {
   factory ContextRefElement(
       M.IsolateRef isolate, M.ContextRef context, M.ObjectRepository objects,
       {RenderingQueue? queue, bool expandable = true}) {
-    assert(isolate != null);
-    assert(context != null);
-    assert(objects != null);
     ContextRefElement e = new ContextRefElement.created();
     e._r = new RenderingScheduler<ContextRefElement>(e, queue: queue);
     e._isolate = isolate;

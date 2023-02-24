@@ -6,31 +6,23 @@ import 'test_helper.dart';
 import 'service_test_common.dart';
 
 const int LINE_A = 15;
-const int LINE_B = 20;
-const int LINE_C = 24;
-const int LINE_D = 28;
+const int LINE_B = 18;
+const int LINE_C = 20;
+const int LINE_D = 22;
 
 testMain() {
   bool foo = false;
-  if (foo) { // LINE_A
-    print('1');
-  }
+  if (foo) {} // LINE_A
 
   const bar = false;
-  if (bar) { // LINE_B
-    print('2');
-  }
+  if (bar) {} // LINE_B
 
-  while (foo) { // LINE_C
-    print('3');
-  }
+  while (foo) {} // LINE_C
 
-  while (bar) { // LINE_D
-    print('4');
-  }
+  while (bar) {} // LINE_D
 }
 
-var tests = <IsolateTest>[
+var tests = [
   hasPausedAtStart,
   setBreakpointAtLine(LINE_A),
   setBreakpointAtLine(LINE_B),

@@ -23,8 +23,6 @@ class TypeArgumentsRefElement extends CustomElement implements Renderable {
 
   factory TypeArgumentsRefElement(M.IsolateRef isolate, M.TypeArgumentsRef args,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(args != null);
     TypeArgumentsRefElement e = new TypeArgumentsRefElement.created();
     e._r = new RenderingScheduler<TypeArgumentsRefElement>(e, queue: queue);
     e._isolate = isolate;

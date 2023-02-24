@@ -77,22 +77,6 @@ class ClassViewElement extends CustomElement implements Renderable {
       M.StronglyReachableInstancesRepository stronglyReachable,
       M.ClassSampleProfileRepository profiles,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(cls != null);
-    assert(classes != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(fields != null);
-    assert(scripts != null);
-    assert(objects != null);
-    assert(eval != null);
-    assert(stronglyReachable != null);
-    assert(profiles != null);
     ClassViewElement e = new ClassViewElement.created();
     e._r = new RenderingScheduler<ClassViewElement>(e, queue: queue);
     e._vm = vm;
@@ -359,7 +343,7 @@ class ClassViewElement extends CustomElement implements Renderable {
                       new SpanElement()..text = ', '
                     ])
                 .toList()
-                  ..removeLast())
+              ..removeLast())
         ]);
     }
 
@@ -382,7 +366,7 @@ class ClassViewElement extends CustomElement implements Renderable {
                       new SpanElement()..text = ', '
                     ])
                 .toList()
-                  ..removeLast())
+              ..removeLast())
         ]);
     }
     if (_cls.name != _cls.vmName) {

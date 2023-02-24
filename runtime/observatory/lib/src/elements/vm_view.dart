@@ -46,12 +46,6 @@ class VMViewElement extends CustomElement implements Renderable {
       M.IsolateGroupRepository isolateGroups,
       M.ScriptRepository scripts,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(vms != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(isolates != null);
-    assert(scripts != null);
     VMViewElement e = new VMViewElement.created();
     e._r = new RenderingScheduler<VMViewElement>(e, queue: queue);
     e._vm = vm;
@@ -149,9 +143,7 @@ class VMViewElement extends CustomElement implements Renderable {
                       'current value of the resident set size of the process running this VM',
                 new DivElement()
                   ..classes = ['memberValue']
-                  ..text = _vm.currentRSS != null
-                      ? Utils.formatSize(_vm.currentRSS)
-                      : "unavailable"
+                  ..text = Utils.formatSize(_vm.currentRSS)
               ],
             new DivElement()
               ..classes = ['memberItem']
@@ -163,9 +155,7 @@ class VMViewElement extends CustomElement implements Renderable {
                       'highest value of the resident set size of the process running this VM',
                 new DivElement()
                   ..classes = ['memberValue']
-                  ..text = _vm.maxRSS != null
-                      ? Utils.formatSize(_vm.maxRSS)
-                      : "unavailable"
+                  ..text = Utils.formatSize(_vm.maxRSS)
               ],
             new DivElement()
               ..classes = ['memberItem']
@@ -175,11 +165,8 @@ class VMViewElement extends CustomElement implements Renderable {
                   ..text = 'malloc used memory',
                 new DivElement()
                   ..classes = ['memberValue']
-                  ..text = _vm.mallocUsed != null
-                      ? Utils.formatSize(_vm.mallocUsed)
-                      : 'unavailable'
-                  ..title =
-                      _vm.mallocUsed != null ? '${_vm.mallocUsed} bytes' : null
+                  ..text = Utils.formatSize(_vm.mallocUsed)
+                  ..title = '${_vm.mallocUsed} bytes'
               ],
             new DivElement()
               ..classes = ['memberItem']
@@ -189,12 +176,8 @@ class VMViewElement extends CustomElement implements Renderable {
                   ..text = 'malloc capacity memory',
                 new DivElement()
                   ..classes = ['memberValue']
-                  ..text = _vm.mallocCapacity != null
-                      ? Utils.formatSize(_vm.mallocCapacity)
-                      : 'unavailable'
-                  ..title = _vm.mallocCapacity != null
-                      ? '${_vm.mallocCapacity} bytes'
-                      : null
+                  ..text = Utils.formatSize(_vm.mallocCapacity)
+                  ..title = '${_vm.mallocCapacity} bytes'
               ],
             new DivElement()
               ..classes = ['memberItem']
@@ -287,9 +270,7 @@ class VMViewElement extends CustomElement implements Renderable {
                   ..title = 'current amount of memory consumed by the Dart VM',
                 new DivElement()
                   ..classes = ['memberValue']
-                  ..text = _vm.currentMemory != null
-                      ? Utils.formatSize(_vm.currentMemory)
-                      : "unavailable"
+                  ..text = Utils.formatSize(_vm.currentMemory)
               ],
             new DivElement()
               ..classes = ['memberItem']

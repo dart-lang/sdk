@@ -53,17 +53,6 @@ class SingleTargetCacheViewElement extends CustomElement implements Renderable {
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(singleTargetCache != null);
-    assert(singleTargetCaches != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(objects != null);
     SingleTargetCacheViewElement e = new SingleTargetCacheViewElement.created();
     e._r =
         new RenderingScheduler<SingleTargetCacheViewElement>(e, queue: queue);

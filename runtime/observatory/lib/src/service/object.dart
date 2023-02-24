@@ -12,12 +12,8 @@ const int kDefaultFieldLimit = 100;
 /// Helper function for canceling a Future<StreamSubscription>.
 Future cancelFutureSubscription(
     Future<StreamSubscription> subscriptionFuture) async {
-  if (subscriptionFuture != null) {
-    var subscription = await subscriptionFuture;
-    return subscription.cancel();
-  } else {
-    return null;
-  }
+  var subscription = await subscriptionFuture;
+  return subscription.cancel();
 }
 
 /// An RpcException represents an exceptional event that happened
@@ -482,8 +478,6 @@ class SourceLocation extends ServiceObject
     script = map['script'];
     tokenPos = map['tokenPos'];
     endTokenPos = map['endTokenPos'];
-
-    assert(script != null && tokenPos != null);
   }
 
   Future<String> toUserString() async {
@@ -905,7 +899,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     return invokeRpcNoUpgrade(method, params)
         .then<ServiceObject>((Map response) {
       var obj = ServiceObject._fromMap(this, response);
-      if ((obj != null) && obj.canCache) {
+      if (obj.canCache) {
         String objId = obj.id!;
         _cache.putIfAbsent(objId, () => obj);
       }
@@ -1334,14 +1328,14 @@ class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
       return vm.getFromMap(map);
     }
     String mapId = map['id'];
-    var obj = (mapId != null) ? _cache[mapId] : null;
+    var obj = _cache[mapId];
     if (obj != null) {
       obj.updateFromServiceMap(map);
       return obj;
     }
     // Build the object from the map directly.
     obj = ServiceObject._fromMap(this, map);
-    if ((obj != null) && obj.canCache) {
+    if (obj.canCache) {
       _cache[mapId] = obj;
     }
     return obj;
@@ -1555,7 +1549,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
     // Build the object from the map directly.
     obj = ServiceObject._fromMap(this, map);
-    if ((obj != null) && obj.canCache) {
+    if (obj.canCache) {
       _cache[mapId!] = obj;
     }
     return obj;
@@ -1574,7 +1568,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   Future<ServiceObject> getObject(String objectId,
       {bool reload = true, int count = kDefaultFieldLimit}) {
-    assert(objectId != null && objectId != '');
+    assert(objectId != '');
     var obj = _cache[objectId];
     if (obj != null) {
       if (reload) {
@@ -3646,9 +3640,6 @@ class Script extends HeapObject implements M.Script {
   }
 
   void _parseTokenPosTable(List table) {
-    if (table == null) {
-      return;
-    }
     _tokenToLine.clear();
     _tokenToCol.clear();
     firstTokenPos = null;
@@ -4303,14 +4294,10 @@ class Code extends HeapObject implements M.Code {
     if (function == null) {
       return null;
     }
-    if ((function!.location == null) || (function!.location!.script == null)) {
+    if (function!.location == null) {
       // Attempt to load the function.
       return function!.load().then((func) {
         var script = function!.location!.script;
-        if (script == null) {
-          // Function doesn't have an associated script.
-          return null;
-        }
         // Load the script and then update descriptors.
         return script.load().then((_) => _updateDescriptors(script));
       });
@@ -4416,7 +4403,6 @@ class Code extends HeapObject implements M.Code {
   bool hasDisassembly = false;
 
   void _processDisassembly(List disassembly) {
-    assert(disassembly != null);
     instructions.clear();
     instructionsByAddressOffset =
         new List<CodeInstruction?>.filled(endAddress - startAddress, null);
@@ -4648,9 +4634,6 @@ class Frame extends ServiceObject implements M.Frame {
   }
 
   M.FrameKind _fromString(String frameKind) {
-    if (frameKind == null) {
-      return M.FrameKind.regular;
-    }
     switch (frameKind) {
       case 'Regular':
         return M.FrameKind.regular;
@@ -4755,7 +4738,7 @@ Set<int> getPossibleBreakpointLines(ServiceMap report, Script script) {
 // Returns true if [map] is a service map. i.e. it has the following keys:
 // 'id' and a 'type'.
 bool _isServiceMap(Map m) {
-  return (m != null) && (m['type'] != null);
+  return m['type'] != null;
 }
 
 bool _hasRef(String type) => type.startsWith('@');
@@ -4812,11 +4795,7 @@ class Service implements M.Service {
   final String method;
   final String service;
 
-  Service(this.alias, this.method, this.service) {
-    assert(this.alias != null);
-    assert(this.method != null);
-    assert(this.service != null);
-  }
+  Service(this.alias, this.method, this.service);
 }
 
 class TimelineRecorder implements M.TimelineRecorder {

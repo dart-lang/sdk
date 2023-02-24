@@ -52,9 +52,6 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
       M.SampleProfileType type = M.SampleProfileType.cpu,
       M.ProfileTreeDirection direction = M.ProfileTreeDirection.exclusive,
       RenderingQueue? queue}) {
-    assert(profile != null);
-    assert(mode != null);
-    assert(direction != null);
     CpuProfileVirtualTreeElement e = new CpuProfileVirtualTreeElement.created();
     e._r =
         new RenderingScheduler<CpuProfileVirtualTreeElement>(e, queue: queue);

@@ -31,8 +31,6 @@ class NavIsolateMenuElement extends CustomElement implements Renderable {
 
   factory NavIsolateMenuElement(M.IsolateRef isolate, M.EventRepository events,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(events != null);
     NavIsolateMenuElement e = new NavIsolateMenuElement.created();
     e._r = new RenderingScheduler<NavIsolateMenuElement>(e, queue: queue);
     e._isolate = isolate;

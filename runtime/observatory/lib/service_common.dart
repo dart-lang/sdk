@@ -37,11 +37,8 @@ class WebSocketVMTarget implements M.Target {
   WebSocketVMTarget.fromMap(Map json) {
     lastConnectionTime = json['lastConnectionTime'];
     chrome = json['chrome'];
-    name = json['name'];
     networkAddress = json['networkAddress'];
-    if (name == null) {
-      name = networkAddress;
-    }
+    name = json['name'] ?? networkAddress;
   }
 
   Map toJson() {
@@ -91,9 +88,7 @@ abstract class CommonWebSocketVM extends VM {
 
   CommonWebSocket? _webSocket;
 
-  CommonWebSocketVM(this.target, this._webSocket) {
-    assert(target != null);
-  }
+  CommonWebSocketVM(this.target, this._webSocket);
 
   void _notifyConnect() {
     if (!_connected.isCompleted) {

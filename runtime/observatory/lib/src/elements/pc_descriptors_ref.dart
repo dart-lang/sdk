@@ -24,8 +24,6 @@ class PcDescriptorsRefElement extends CustomElement implements Renderable {
   factory PcDescriptorsRefElement(
       M.IsolateRef isolate, M.PcDescriptorsRef descriptors,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(descriptors != null);
     PcDescriptorsRefElement e = new PcDescriptorsRefElement.created();
     e._r = new RenderingScheduler<PcDescriptorsRefElement>(e, queue: queue);
     e._isolate = isolate;

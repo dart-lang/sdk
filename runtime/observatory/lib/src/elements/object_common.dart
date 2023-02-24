@@ -42,13 +42,6 @@ class ObjectCommonElement extends CustomElement implements Renderable {
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(object != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(objects != null);
     ObjectCommonElement e = new ObjectCommonElement.created();
     e._r = new RenderingScheduler<ObjectCommonElement>(e, queue: queue);
     e._isolate = isolate;

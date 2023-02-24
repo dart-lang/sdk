@@ -28,10 +28,6 @@ class RetainingPathElement extends CustomElement implements Renderable {
   factory RetainingPathElement(M.IsolateRef isolate, M.ObjectRef object,
       M.RetainingPathRepository retainingPaths, M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(object != null);
-    assert(retainingPaths != null);
-    assert(objects != null);
     RetainingPathElement e = new RetainingPathElement.created();
     e._r = new RenderingScheduler<RetainingPathElement>(e, queue: queue);
     e._isolate = isolate;

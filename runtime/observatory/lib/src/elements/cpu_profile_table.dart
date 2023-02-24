@@ -65,11 +65,6 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
       M.NotificationRepository notifications,
       M.IsolateSampleProfileRepository profiles,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(profiles != null);
     CpuProfileTableElement e = new CpuProfileTableElement.created();
     e._r = new RenderingScheduler<CpuProfileTableElement>(e, queue: queue);
     e._vm = vm;
