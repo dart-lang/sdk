@@ -81,117 +81,80 @@ def add_postponed_alt_console_entries():
     for entry in _postponed_alt_console_entries:
         luci.console_view_entry(console_view = "alt", **entry)
 
-# vm|nnbd|jit
+# vm|jit
 _extra_builder(
     "vm-kernel-nnbd-linux-debug-x64",
-    category = "vm|nnbd|jit|d",
+    category = "vm|jit|d",
     on_cq = True,
 )
 _extra_builder(
     "vm-kernel-nnbd-linux-release-x64",
-    category = "vm|nnbd|jit|r",
+    category = "vm|jit|r",
     on_cq = True,
 )
 _nightly_builder(
     "vm-kernel-nnbd-linux-debug-ia32",
-    category = "vm|nnbd|jit|d3",
+    category = "vm|jit|d3",
     channels = ["try"],
     properties = slow_shards,
 )
 _nightly_builder(
     "vm-kernel-nnbd-linux-release-ia32",
-    category = "vm|nnbd|jit|r3",
+    category = "vm|jit|r3",
     channels = ["try"],
 )
 _extra_builder(
     "vm-kernel-nnbd-linux-release-simarm",
-    category = "vm|nnbd|jit|ra",
+    category = "vm|jit|ra",
 )
 _extra_builder(
     "vm-kernel-nnbd-linux-release-simarm64",
-    category = "vm|nnbd|jit|ra6",
+    category = "vm|jit|ra6",
+)
+_nightly_builder(
+    "vm-kernel-nnbd-linux-debug-simriscv64",
+    category = "vm|jit|rv",
+    channels = ["try"],
 )
 _nightly_builder(
     "vm-kernel-nnbd-mac-debug-arm64",
-    category = "vm|nnbd|jit|m1d",
+    category = "vm|jit|m1d",
     channels = ["try"],
     dimensions = [mac, arm64],
     properties = [no_android, slow_shards],
 )
 _builder(
     "vm-kernel-nnbd-mac-debug-x64",
-    category = "vm|nnbd|jit|md",
+    category = "vm|jit|md",
     dimensions = mac,
     properties = slow_shards,
 )
 _builder(
     "vm-kernel-nnbd-mac-release-arm64",
-    category = "vm|nnbd|jit|m1r",
+    category = "vm|jit|m1r",
     dimensions = [mac, arm64],
     properties = no_android,
 )
 _builder(
     "vm-kernel-nnbd-mac-release-x64",
-    category = "vm|nnbd|jit|mr",
+    category = "vm|jit|mr",
     dimensions = mac,
 )
 _nightly_builder(
     "vm-kernel-nnbd-win-release-ia32",
-    category = "vm|nnbd|jit|wr3",
+    category = "vm|jit|wr3",
     channels = ["try"],
     dimensions = windows,
 )
 _builder(
     "vm-kernel-nnbd-win-debug-x64",
-    category = "vm|nnbd|jit|wd",
+    category = "vm|jit|wd",
     properties = slow_shards,
     dimensions = windows,
 )
 _builder(
     "vm-kernel-nnbd-win-release-x64",
-    category = "vm|nnbd|jit|wr",
-    dimensions = windows,
-)
-
-# vm|nnbd|aot
-_extra_builder(
-    "vm-kernel-precomp-nnbd-linux-release-x64",
-    category = "vm|nnbd|aot|r",
-)
-_extra_builder(
-    "vm-kernel-precomp-nnbd-linux-debug-simarm_x64",
-    category = "vm|nnbd|aot|da",
-)
-_extra_builder(
-    "vm-kernel-precomp-nnbd-linux-release-simarm_x64",
-    category = "vm|nnbd|aot|ra",
-)
-_nightly_builder(
-    "vm-kernel-precomp-nnbd-linux-debug-x64",
-    category = "vm|nnbd|aot|d",
-    channels = ["try"],
-    properties = slow_shards,
-)
-_extra_builder(
-    "vm-kernel-precomp-nnbd-linux-release-simarm64",
-    category = "vm|nnbd|aot|ra6",
-)
-_extra_builder(
-    "vm-kernel-precomp-nnbd-mac-release-arm64",
-    category = "vm|nnbd|aot|m1",
-    channels = ["try"],
-    dimensions = [mac, arm64],
-    properties = [no_android, slow_shards],
-)
-_extra_builder(
-    "vm-kernel-precomp-nnbd-mac-release-simarm64",
-    category = "vm|nnbd|aot|ma6",
-    dimensions = mac,
-    properties = slow_shards,
-)
-_extra_builder(
-    "vm-kernel-precomp-nnbd-win-release-x64",
-    category = "vm|nnbd|aot|wr",
+    category = "vm|jit|wr",
     dimensions = windows,
 )
 
@@ -211,89 +174,81 @@ _nightly_builder(
     channels = ["try"],
 )
 
-#vm|kernel
-_builder("vm-kernel-linux-debug-x64", category = "vm|kernel|d")
-_builder(
-    "vm-kernel-linux-release-x64",
-    category = "vm|kernel|r",
-    on_cq = True,
+# vm|aot
+_extra_builder(
+    "vm-kernel-precomp-nnbd-linux-release-x64",
+    category = "vm|aot|r",
 )
 _extra_builder(
-    "vm-kernel-checked-linux-release-x64",
-    category = "vm|kernel|rc",
-    experiments = {"dart.use_update_script": 100},
+    "vm-kernel-precomp-nnbd-linux-debug-simarm_x64",
+    category = "vm|aot|da",
+)
+_extra_builder(
+    "vm-kernel-precomp-nnbd-linux-release-simarm_x64",
+    category = "vm|aot|ra",
 )
 _nightly_builder(
-    "vm-kernel-win-debug-ia32",
-    category = "vm|kernel|wd3",
+    "vm-kernel-precomp-nnbd-linux-debug-x64",
+    category = "vm|aot|d",
     channels = ["try"],
-    dimensions = windows,
+    properties = slow_shards,
+)
+_extra_builder(
+    "vm-kernel-precomp-nnbd-linux-release-simarm64",
+    category = "vm|aot|ra6",
+)
+_nightly_builder(
+    "vm-kernel-precomp-nnbd-linux-debug-simriscv64",
+    category = "vm|aot|rv",
+    channels = ["try"],
     properties = [slow_shards],
 )
 _extra_builder(
-    "cross-vm-linux-release-arm64",
-    category = "vm|kernel|cra",
-    channels = [],
-    execution_timeout = 4 * time.hour,
-    properties = {"shard_timeout": (120 * time.minute) // time.second},
-)
-
-# vm|kernel-precomp
-_extra_builder(
-    "vm-kernel-precomp-linux-debug-x64",
-    category = "vm|kernel-precomp|d",
+    "vm-kernel-precomp-nnbd-mac-release-arm64",
+    category = "vm|aot|m1",
+    channels = ["try"],
+    dimensions = [mac, arm64],
+    properties = [no_android, slow_shards],
 )
 _extra_builder(
-    "vm-kernel-precomp-linux-release-simarm",
-    category = "vm|kernel-precomp|a32",
-)
-_extra_builder(
-    "vm-kernel-precomp-linux-release-x64",
-    category = "vm|kernel-precomp|r",
-)
-_extra_builder(
-    "vm-kernel-precomp-obfuscate-linux-release-x64",
-    category = "vm|kernel-precomp|o",
-)
-_nightly_builder(
-    "cross-vm-precomp-linux-release-arm64",
-    category = "vm|kernel-precomp|cra",
-    channels = [],
+    "vm-kernel-precomp-nnbd-mac-release-simarm64",
+    category = "vm|aot|ma6",
+    dimensions = mac,
     properties = slow_shards,
 )
-_nightly_builder(
-    "vm-kernel-precomp-dwarf-linux-product-x64",
-    category = "vm|kernel-precomp|dw",
-    channels = ["try"],
+_extra_builder(
+    "vm-kernel-precomp-nnbd-win-release-x64",
+    category = "vm|aot|wr",
+    dimensions = windows,
 )
 
-# vm|android
+# vm|aot|android
 _extra_builder(
     "vm-aot-android-release-arm_x64",
-    category = "vm|android|a32",
+    category = "vm|aot|android|a32",
     properties = slow_shards,
 )
 _extra_builder(
     "vm-aot-android-release-arm64c",
-    category = "vm|android|a64",
+    category = "vm|aot|android|a64",
     properties = slow_shards,
 )
 
-# vm|product
+# vm|aot|product
 _nightly_builder(
     "vm-aot-linux-product-x64",
-    category = "vm|product|l",
+    category = "vm|aot|product|l",
     channels = ["try"],
 )
 _nightly_builder(
     "vm-aot-mac-product-x64",
-    category = "vm|product|m",
+    category = "vm|aot|product|m",
     channels = ["try"],
     dimensions = mac,
 )
 _nightly_builder(
     "vm-aot-win-product-x64",
-    category = "vm|product|w",
+    category = "vm|aot|product|w",
     channels = ["try"],
     dimensions = windows,
 )
@@ -417,18 +372,6 @@ _nightly_builder(
     goma = False,
 )
 
-_nightly_builder(
-    "vm-kernel-nnbd-linux-debug-simriscv64",
-    category = "vm|misc|rv64",
-    channels = ["try"],
-)
-_nightly_builder(
-    "vm-kernel-precomp-nnbd-linux-debug-simriscv64",
-    category = "vm|misc|rv64",
-    channels = ["try"],
-    properties = [slow_shards],
-)
-
 # vm|ffi
 _extra_builder("vm-ffi-android-debug-arm", category = "vm|ffi|d32")
 _extra_builder("vm-ffi-android-release-arm", category = "vm|ffi|r32")
@@ -445,6 +388,62 @@ _extra_builder(
     "vm-precomp-ffi-qemu-linux-release-riscv64",
     category = "vm|ffi|qr",
     dimensions = focal,
+)
+
+#vm|legacy|jit
+_builder("vm-kernel-linux-debug-x64", category = "vm|legacy|jit|d")
+_builder(
+    "vm-kernel-linux-release-x64",
+    category = "vm|legacy|jit|r",
+    on_cq = True,
+)
+_extra_builder(
+    "vm-kernel-checked-linux-release-x64",
+    category = "vm|legacy|jit|rc",
+    experiments = {"dart.use_update_script": 100},
+)
+_nightly_builder(
+    "vm-kernel-win-debug-ia32",
+    category = "vm|legacy|jit|wd3",
+    channels = ["try"],
+    dimensions = windows,
+    properties = [slow_shards],
+)
+_extra_builder(
+    "cross-vm-linux-release-arm64",
+    category = "vm|legacy|jit|cra",
+    channels = [],
+    execution_timeout = 4 * time.hour,
+    properties = {"shard_timeout": (120 * time.minute) // time.second},
+)
+
+# vm|legacy|aot
+_extra_builder(
+    "vm-kernel-precomp-linux-debug-x64",
+    category = "vm|legacy|aot|d",
+)
+_extra_builder(
+    "vm-kernel-precomp-linux-release-simarm",
+    category = "vm|legacy|aot|a32",
+)
+_extra_builder(
+    "vm-kernel-precomp-linux-release-x64",
+    category = "vm|legacy|aot|r",
+)
+_extra_builder(
+    "vm-kernel-precomp-obfuscate-linux-release-x64",
+    category = "vm|legacy|aot|o",
+)
+_nightly_builder(
+    "cross-vm-precomp-linux-release-arm64",
+    category = "vm|legacy|aot|cra",
+    channels = [],
+    properties = slow_shards,
+)
+_nightly_builder(
+    "vm-kernel-precomp-dwarf-linux-product-x64",
+    category = "vm|legacy|aot|dw",
+    channels = ["try"],
 )
 
 # Isolate stress test builder
