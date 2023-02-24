@@ -55,7 +55,7 @@ A createA() {
   return B();
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 83, 7),
+      error(WarningCode.UNUSED_RESULT, 83, 7),
     ]);
   }
 
@@ -73,7 +73,7 @@ void f(A a) {
   a();
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 96, 1,
+      error(WarningCode.UNUSED_RESULT, 96, 1,
           text: "The value of 'a' should be used."),
     ]);
   }
@@ -94,7 +94,7 @@ void f(A a) {
   a.b()(5);
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 130, 1,
+      error(WarningCode.UNUSED_RESULT, 130, 1,
           text: "The value of 'b' should be used."),
     ]);
   }
@@ -115,7 +115,7 @@ void f(A a) {
   a.b();
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 127, 1,
+      error(WarningCode.UNUSED_RESULT, 127, 1,
           text: "The value of 'b' should be used."),
     ]);
   }
@@ -138,7 +138,7 @@ void f(A a) {
   a([])()('');
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 170, 1,
+      error(WarningCode.UNUSED_RESULT, 170, 1,
           text: "The value of 'a' should be used."),
     ]);
   }
@@ -236,7 +236,7 @@ void main() {
   A().foo;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 104, 3),
+      error(WarningCode.UNUSED_RESULT, 104, 3),
     ]);
   }
 
@@ -329,7 +329,7 @@ void main() {
   A().foo;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 95, 3),
+      error(WarningCode.UNUSED_RESULT, 95, 3),
     ]);
   }
 
@@ -346,7 +346,7 @@ void f(bool b) {
   b ? A().foo : 0;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 102, 3),
+      error(WarningCode.UNUSED_RESULT, 102, 3),
     ]);
   }
 
@@ -363,7 +363,7 @@ void f(bool b) {
   b ? (A().foo) : 0;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 103, 3),
+      error(WarningCode.UNUSED_RESULT, 103, 3),
     ]);
   }
 
@@ -384,7 +384,7 @@ void main() {
   });
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 130, 3),
+      error(WarningCode.UNUSED_RESULT, 130, 3),
     ]);
   }
 
@@ -481,7 +481,7 @@ void main() {
   A.foo;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 100, 3),
+      error(WarningCode.UNUSED_RESULT, 100, 3),
     ]);
   }
 
@@ -511,7 +511,7 @@ void f() {
   foo;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 77, 3),
+      error(WarningCode.UNUSED_RESULT, 77, 3),
     ]);
   }
 
@@ -615,7 +615,7 @@ void main() {
   A().foo;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 100, 3),
+      error(WarningCode.UNUSED_RESULT, 100, 3),
     ]);
   }
 
@@ -811,7 +811,7 @@ void f(A a) {
   for (var i = 1; i < 7; a.foo()) {}
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 119, 3),
+      error(WarningCode.UNUSED_RESULT, 119, 3),
     ]);
   }
 
@@ -926,7 +926,7 @@ void f(A a) {
   a.foo()!;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 97, 3),
+      error(WarningCode.UNUSED_RESULT, 97, 3),
     ]);
   }
 
@@ -1086,7 +1086,7 @@ void main() {
   A().foo();
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 98, 3,
+      error(WarningCode.UNUSED_RESULT, 98, 3,
           text: "The value of 'foo' should be used."),
     ]);
   }
@@ -1106,7 +1106,7 @@ class C {
   }
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 127, 2,
+      error(WarningCode.UNUSED_RESULT, 127, 2,
           text: "The value of 'm1' should be used."),
     ]);
   }
@@ -1412,7 +1412,7 @@ void main() {
   baz(); // OK
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 108, 3),
+      error(WarningCode.UNUSED_RESULT, 108, 3),
     ]);
   }
 
@@ -1440,7 +1440,7 @@ void main() {
   foo();
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 133, 3),
+      error(WarningCode.UNUSED_RESULT, 133, 3),
     ]);
   }
 
@@ -1455,7 +1455,7 @@ void main() {
   foo('none');
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 146, 3),
+      error(WarningCode.UNUSED_RESULT, 146, 3),
     ]);
   }
 
@@ -1537,7 +1537,7 @@ void main() {
   foo;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 75, 3),
+      error(WarningCode.UNUSED_RESULT, 75, 3),
     ]);
   }
 }

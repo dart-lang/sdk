@@ -617,10 +617,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.UNUSED_ELEMENT_PARAMETER,
   HintCode.UNUSED_FIELD,
   HintCode.UNUSED_IMPORT,
-  HintCode.UNUSED_LABEL,
   HintCode.UNUSED_LOCAL_VARIABLE,
-  HintCode.UNUSED_RESULT,
-  HintCode.UNUSED_RESULT_WITH_MESSAGE,
   HintCode.UNUSED_SHOWN_NAME,
   LanguageCode.IMPLICIT_DYNAMIC_FIELD,
   LanguageCode.IMPLICIT_DYNAMIC_FUNCTION,
@@ -1010,4 +1007,7 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.UNNECESSARY_WILDCARD_PATTERN,
   WarningCode.UNUSED_CATCH_CLAUSE,
   WarningCode.UNUSED_CATCH_STACK,
+  WarningCode.UNUSED_LABEL,
+  WarningCode.UNUSED_RESULT,
+  WarningCode.UNUSED_RESULT_WITH_MESSAGE,
 ];

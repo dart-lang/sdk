@@ -1427,9 +1427,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNUSED_IMPORT: [
       RemoveUnusedImport.new,
     ],
-    HintCode.UNUSED_LABEL: [
-      RemoveUnusedLabel.new,
-    ],
     HintCode.UNUSED_LOCAL_VARIABLE: [
       RemoveUnusedLocalVariable.new,
     ],
@@ -1634,6 +1631,9 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.UNUSED_CATCH_STACK: [
       RemoveUnusedCatchStack.new,
+    ],
+    WarningCode.UNUSED_LABEL: [
+      RemoveUnusedLabel.new,
     ],
   };
 

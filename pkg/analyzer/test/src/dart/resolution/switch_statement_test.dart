@@ -1173,7 +1173,7 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LABEL, 39, 8),
+      error(WarningCode.UNUSED_LABEL, 39, 8),
       error(
           CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
           81,

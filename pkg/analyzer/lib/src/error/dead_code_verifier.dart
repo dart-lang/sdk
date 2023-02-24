@@ -129,7 +129,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     } finally {
       for (Label label in labelTracker.unusedLabels()) {
         _errorReporter.reportErrorForNode(
-            HintCode.UNUSED_LABEL, label, [label.label.name]);
+            WarningCode.UNUSED_LABEL, label, [label.label.name]);
       }
       _labelTracker = labelTracker.outerTracker;
     }
