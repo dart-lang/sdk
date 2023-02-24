@@ -312,6 +312,7 @@ dart.ci_builder(
 )
 
 exec("//dart2wasm.star")
+exec("//ddc.star")
 
 vm = exec("//vm.star")
 
@@ -531,44 +532,6 @@ dart.try_builder(
     properties = {"archs": ["arm64"], "disable_bcid": True},
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
-)
-
-# ddc
-cron.nightly_builder(
-    "ddc-canary-linux-release-chrome",
-    category = "ddc|c",
-    channels = ["try"],
-    properties = chrome,
-)
-dart.ci_sandbox_builder(
-    "ddc-linux-release-chrome",
-    category = "ddc|l",
-    location_filters = paths.to_location_filters(paths.ddc),
-    properties = chrome,
-)
-dart.ci_sandbox_builder(
-    "ddc-nnbd-linux-release-chrome",
-    category = "ddc|nn",
-    channels = ["try"],
-    location_filters = paths.to_location_filters(paths.ddc),
-    properties = chrome,
-)
-dart.ci_sandbox_builder(
-    "ddc-mac-release-chrome",
-    category = "ddc|m",
-    dimensions = mac,
-    properties = [chrome, pinned_xcode],
-)
-dart.ci_sandbox_builder(
-    "ddc-win-release-chrome",
-    category = "ddc|w",
-    dimensions = windows,
-    properties = chrome,
-)
-dart.ci_sandbox_builder(
-    "ddk-linux-release-firefox",
-    category = "ddc|fl",
-    properties = firefox,
 )
 
 # misc
