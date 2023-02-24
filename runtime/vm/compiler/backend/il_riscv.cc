@@ -151,8 +151,8 @@ DEFINE_BACKEND(StoreIndexedUnsafe,
                (NoLocation, Register index, Register value)) {
   ASSERT(instr->RequiredInputRepresentation(
              StoreIndexedUnsafeInstr::kIndexPos) == kTagged);  // It is a Smi.
-  __ slli(TMP, index, compiler::target::kWordSizeLog2 - kSmiTagSize);
-  __ add(TMP, TMP, instr->base_reg());
+  __ AddShifted(TMP, instr->base_reg(), index,
+                compiler::target::kWordSizeLog2 - kSmiTagSize);
   __ sx(value, compiler::Address(TMP, instr->offset()));
 
   ASSERT(kSmiTag == 0);
@@ -365,15 +365,7 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   __ AddImmediate(array_reg, offset);
   const Register start_reg = start_loc.reg();
   intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) - 1;
-  if (shift < 0) {
-    __ srai(TMP, start_reg, -shift);
-    __ add(array_reg, array_reg, TMP);
-  } else if (shift == 0) {
-    __ add(array_reg, array_reg, start_reg);
-  } else {
-    __ slli(TMP, start_reg, shift);
-    __ add(array_reg, array_reg, TMP);
-  }
+  __ AddShifted(array_reg, array_reg, start_reg, shift);
 }
 
 LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,
@@ -1909,10 +1901,9 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
   const Register result = locs()->out(0).reg();
   __ lx(result,
         compiler::Address(THR, Thread::predefined_symbols_address_offset()));
-  __ slli(TMP, char_code, kWordSizeLog2 - kSmiTagSize);
-  __ add(result, result, TMP);
-  __ lx(result, compiler::Address(
-                    result, Symbols::kNullCharCodeSymbolOffset * kWordSize));
+  __ AddShifted(TMP, result, char_code, kWordSizeLog2 - kSmiTagSize);
+  __ lx(result,
+        compiler::Address(TMP, Symbols::kNullCharCodeSymbolOffset * kWordSize));
 }
 
 LocationSummary* StringToCharCodeInstr::MakeLocationSummary(Zone* zone,
