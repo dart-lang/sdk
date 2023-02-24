@@ -8,6 +8,13 @@ Defines the monorepo builders.
 load("//lib/dart.star", "dart")
 load("//lib/priority.star", "priority")
 
+luci.gitiles_poller(
+    name = "dart-gitiles-trigger-monorepo",
+    bucket = "ci",
+    repo = "https://dart.googlesource.com/monorepo/",
+    refs = ["refs/heads/main"],
+)
+
 luci.console_view(
     name = "monorepo",
     repo = "https://dart.googlesource.com/monorepo",
@@ -30,6 +37,13 @@ luci.console_view(
     title = "Dart/Flutter Web Console",
     refs = ["refs/heads/main"],
     header = "console-header.textpb",
+)
+
+dart.try_builder(
+    "monorepo-roller",
+    experiments = {"luci.non_production": 100},
+    recipe = "roller/monorepo",
+    execution_timeout = 30 * time.minute,
 )
 
 dart.ci_sandbox_builder(

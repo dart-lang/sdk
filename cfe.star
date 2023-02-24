@@ -1,0 +1,74 @@
+# Copyright (c) 2023 The Dart project authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+"""
+Defines the CFE builders.
+"""
+
+load("//lib/cron.star", "cron")
+load("//lib/dart.star", "dart")
+load(
+    "//lib/defaults.star",
+    "mac",
+    "windows",
+)
+load("//lib/paths.star", "paths")
+
+luci.notifier(
+    name = "frontend-team",
+    on_failure = True,
+    notify_emails = ["jensj@google.com"],
+)
+
+dart.ci_sandbox_builder(
+    "front-end-linux-release-x64",
+    category = "cfe|l",
+    on_cq = True,
+)
+dart.ci_sandbox_builder(
+    "front-end-mac-release-x64",
+    category = "cfe|m",
+    dimensions = mac,
+)
+dart.ci_sandbox_builder(
+    "front-end-win-release-x64",
+    category = "cfe|w",
+    dimensions = windows,
+)
+dart.ci_sandbox_builder(
+    "front-end-nnbd-linux-release-x64",
+    category = "cfe|nnbd|l",
+    location_filters = paths.to_location_filters(paths.cfe),
+)
+cron.nightly_builder(
+    "front-end-nnbd-mac-release-x64",
+    category = "cfe|nnbd|m",
+    channels = ["try"],
+    dimensions = mac,
+)
+cron.nightly_builder(
+    "front-end-nnbd-win-release-x64",
+    category = "cfe|nnbd|w",
+    channels = ["try"],
+    dimensions = windows,
+)
+dart.ci_sandbox_builder(
+    "flutter-frontend",
+    category = "cfe|fl",
+    channels = ["try"],
+    notifies = "frontend-team",
+    location_filters = paths.to_location_filters(paths.cfe_only),
+)
+cron.weekly_builder(
+    "frontend-weekly",
+    notifies = "frontend-team",
+    channels = [],
+    execution_timeout = 12 * time.hour,
+)
+
+luci.console_view_entry(
+    builder = "flutter-frontend",
+    short_name = "fl",
+    category = "fasta",
+    console_view = "flutter",
+)
