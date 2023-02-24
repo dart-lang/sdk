@@ -47,7 +47,6 @@ mixin class MixinClassExternal {
   external MixinClassExternal();
 //         ^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
-// [web] Only JS interop members may be 'external'.
 }
 
 mixin class MixinClassSuper {
