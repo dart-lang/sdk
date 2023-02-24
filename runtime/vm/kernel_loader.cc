@@ -974,7 +974,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   }
 
   library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
-  const Script& script =
+  Script& script =
       Script::Handle(Z, ScriptAt(library_helper.source_uri_index_));
 
   library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
@@ -1042,14 +1042,17 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   }
 
   if (register_class) {
+    const GrowableObjectArray& used_scripts =
+        GrowableObjectArray::Handle(Z, library.used_scripts());
+    script.set_library(library);
+    used_scripts.Add(script);
+
     helper_.SetOffset(library_index.SourceReferencesOffset());
     intptr_t count = helper_.ReadUInt();
-    const GrowableObjectArray& used_scripts =
-        GrowableObjectArray::Handle(library.used_scripts());
-    Script& script = Script::Handle(Z);
     for (intptr_t i = 0; i < count; i++) {
       intptr_t uri_index = helper_.ReadUInt();
       script = ScriptAt(uri_index);
+      script.set_library(library);
       used_scripts.Add(script);
     }
   }

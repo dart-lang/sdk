@@ -499,7 +499,7 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& uri = String::Handle(url());
   ASSERT(!uri.IsNull());
   const char* encoded_uri = String::EncodeIRI(uri);
-  const Library& lib = Library::Handle(FindLibrary());
+  const Library& lib = Library::Handle(library());
   if (lib.IsNull()) {
     jsobj.AddServiceId(*this);
   } else {
