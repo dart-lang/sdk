@@ -377,33 +377,6 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
   return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper);
 }
 
-// Some simple sanity checking of |fp|, and |sp|.
-static bool InitialStackRegistersCheck(uintptr_t fp, uintptr_t sp) {
-  if ((sp == 0) || (fp == 0)) {
-    // None of these registers should be zero.
-    return false;
-  }
-
-  if (sp > fp) {
-    // Assuming the stack grows down, we should never have a stack pointer above
-    // the frame pointer.
-    return false;
-  }
-
-  return true;
-}
-
-#if !defined(PRODUCT)
-// Some simple sanity checking of |pc|, |fp|, and |sp|.
-static bool InitialRegisterCheck(uintptr_t pc, uintptr_t fp, uintptr_t sp) {
-  if (pc == 0) {
-    return false;
-  }
-
-  return InitialStackRegistersCheck(fp, sp);
-}
-#endif  // !defined(PRODUCT)
-
 void Profiler::DumpStackTrace(void* context) {
   if (context == NULL) {
     DumpStackTrace(/*for_crash=*/true);
@@ -517,16 +490,6 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
                    ? 0
                    : reinterpret_cast<uword>(vm_source->snapshot_instructions));
   OS::PrintErr("fp=%" Px ", sp=%" Px ", pc=%" Px "\n", fp, sp, pc);
-
-  if (!InitialStackRegistersCheck(fp, sp)) {
-    OS::PrintErr(
-        "Stack dump aborted because InitialStackRegistersCheck failed.\n");
-    if (pc != 0) {  // At the very least dump the top frame.
-      DumpStackFrame(0, pc, fp);
-    }
-    DumpCompilerState(thread);
-    return;
-  }
 
   uword stack_lower = 0;
   uword stack_upper = 0;
@@ -1395,10 +1358,6 @@ void Profiler::SampleAllocation(Thread* thread,
   uword stack_lower = 0;
   uword stack_upper = 0;
 
-  if (!InitialRegisterCheck(pc, fp, sp)) {
-    return;
-  }
-
   if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
                                        &stack_upper)) {
     // Could not get stack boundary.
@@ -1449,11 +1408,6 @@ Sample* Profiler::SampleNativeAllocation(intptr_t skip_count,
 
   uword stack_lower = 0;
   uword stack_upper = 0;
-  if (!InitialRegisterCheck(pc, fp, sp)) {
-    counters_.failure_native_allocation_sample.fetch_add(1);
-    return NULL;
-  }
-
   if (!(OSThread::GetCurrentStackBounds(&stack_lower, &stack_upper) &&
         ValidateThreadStackBounds(fp, sp, stack_lower, stack_upper))) {
     // Could not get stack boundary.
@@ -1584,12 +1538,6 @@ void Profiler::SampleThread(Thread* thread,
       SampleThreadSingleFrame(thread, sample, pc);
       return;
     }
-  }
-
-  if (!InitialRegisterCheck(pc, fp, sp)) {
-    counters_.single_frame_sample_register_check.fetch_add(1);
-    SampleThreadSingleFrame(thread, sample, pc);
-    return;
   }
 
   uword stack_lower = 0;

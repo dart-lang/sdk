@@ -1575,8 +1575,6 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
                          counters.bail_out_check_isolate);
     counts.AddProperty64("single_frame_sample_deoptimizing",
                          counters.single_frame_sample_deoptimizing);
-    counts.AddProperty64("single_frame_sample_register_check",
-                         counters.single_frame_sample_register_check);
     counts.AddProperty64(
         "single_frame_sample_get_and_validate_stack_bounds",
         counters.single_frame_sample_get_and_validate_stack_bounds);
