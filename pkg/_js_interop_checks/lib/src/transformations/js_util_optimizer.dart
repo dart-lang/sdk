@@ -14,7 +14,6 @@ import '../js_interop.dart'
         hasInternalJSInteropAnnotation,
         hasJSInteropAnnotation,
         hasNativeAnnotation,
-        hasObjectLiteralAnnotation,
         hasStaticInteropAnnotation,
         hasTrustTypesAnnotation;
 
@@ -175,9 +174,8 @@ class JsUtilOptimizer extends Transformer {
     if (node.isInlineClassMember) {
       var kind =
           _inlineExtensionIndex.getInlineDescriptor(node.reference)?.kind;
-      return (kind == InlineClassMemberKind.Constructor ||
-              kind == InlineClassMemberKind.Factory) &&
-          !hasObjectLiteralAnnotation(node);
+      return kind == InlineClassMemberKind.Constructor ||
+          kind == InlineClassMemberKind.Factory;
     } else {
       return node.kind == ProcedureKind.Factory &&
           node.enclosingClass != null &&
