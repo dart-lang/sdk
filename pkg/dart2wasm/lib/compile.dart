@@ -58,7 +58,8 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
     handleDiagnosticMessage(message);
   }
 
-  Target target = WasmTarget();
+  Target target =
+      WasmTarget(constantBranchPruning: options.constantBranchPruning);
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
     ..sdkRoot = options.sdkPath

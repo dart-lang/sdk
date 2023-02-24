@@ -23,11 +23,18 @@ import 'package:vm/transformations/ffi/definitions.dart'
     as transformFfiDefinitions show transformLibraries;
 import 'package:vm/transformations/ffi/use_sites.dart' as transformFfiUseSites
     show transformLibraries;
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    as constantEvaluator show EvaluationMode;
+import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
+    show ConstConditionalSimplifier;
 
 import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 class WasmTarget extends Target {
+  WasmTarget({this.constantBranchPruning = true});
+
+  bool constantBranchPruning;
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmDefaultMap;
@@ -149,6 +156,31 @@ class WasmTarget extends Target {
       _performJSInteropTransformations(component, coreTypes, hierarchy,
           transitiveImportingJSInterop, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed JS interop classes");
+    }
+
+    if (constantBranchPruning) {
+      final reportError =
+          (LocatedMessage message, [List<LocatedMessage>? context]) {
+        diagnosticReporter.report(message.messageObject, message.charOffset,
+            message.length, message.uri);
+        if (context != null) {
+          for (final m in context) {
+            diagnosticReporter.report(
+                m.messageObject, m.charOffset, m.length, m.uri);
+          }
+        }
+      };
+
+      ConstConditionalSimplifier(
+        dartLibrarySupport,
+        constantsBackend,
+        component,
+        reportError,
+        environmentDefines: environmentDefines ?? {},
+        evaluationMode: constantEvaluator.EvaluationMode.strong,
+        coreTypes: coreTypes,
+        classHierarchy: hierarchy,
+      ).run();
     }
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);

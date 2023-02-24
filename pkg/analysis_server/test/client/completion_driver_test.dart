@@ -869,7 +869,7 @@ void f(List<String> args) {
   Future<void> test_project_suggestMixins() async {
     newFile('$testPackageLibPath/a.dart', r'''
 mixin M { }
-class A { }
+mixin class A { }
 ''');
 
     if (isProtocolVersion1) {

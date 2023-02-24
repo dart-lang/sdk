@@ -205,6 +205,10 @@ abstract class ClassElement
   @experimental
   bool get isBase;
 
+  /// Return `true` if this class can be instantiated.
+  @experimental
+  bool get isConstructable;
+
   /// Return `true` if this class represents the class 'Enum' defined in the
   /// dart:core library.
   bool get isDartCoreEnum;

@@ -2,47 +2,45 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_prototype/constant_evaluator.dart';
-import 'package:front_end/src/api_unstable/dart2js.dart' show LocatedMessage;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../diagnostics/diagnostic_listener.dart';
-import '../../environment.dart';
-import '../../ir/annotations.dart';
-import '../../ir/constants.dart';
-import '../../kernel/element_map.dart';
-import '../../options.dart';
-
-bool _shouldNotInline(Annotatable node) =>
-    computePragmaAnnotationDataFromIr(node).any((pragma) =>
-        pragma == const PragmaAnnotationData('noInline') ||
-        pragma == const PragmaAnnotationData('never-inline'));
+import 'constant_evaluator.dart';
+import 'try_constant_evaluator.dart';
 
 class ConstConditionalSimplifier extends RemovingTransformer {
   final Component _component;
-  final Environment _environment;
-  final DiagnosticReporter _reporter;
-  final CompilerOptions _options;
 
   late final TypeEnvironment _typeEnvironment;
   late final _ConstantEvaluator _constantEvaluator;
 
   ConstConditionalSimplifier(
-      this._component, this._environment, this._reporter, this._options) {
-    final coreTypes = CoreTypes(_component);
-    final classHierarchy = ClassHierarchy(_component, coreTypes);
-    _typeEnvironment = TypeEnvironment(coreTypes, classHierarchy);
-    _constantEvaluator = _ConstantEvaluator(_component, _typeEnvironment,
-        (LocatedMessage message, List<LocatedMessage>? context) {
-      reportLocatedMessage(_reporter, message, context);
-    },
-        environment: _environment,
-        evaluationMode: _options.useLegacySubtyping
-            ? EvaluationMode.weak
-            : EvaluationMode.strong);
+    DartLibrarySupport librarySupport,
+    ConstantsBackend constantsBackend,
+    this._component,
+    ReportErrorFunction _reportError, {
+    Map<String, String>? environmentDefines,
+    EvaluationMode evaluationMode = EvaluationMode.weak,
+    bool Function(TreeNode)? shouldNotInline,
+    CoreTypes? coreTypes,
+    ClassHierarchy? classHierarchy,
+  }) {
+    coreTypes ??= new CoreTypes(_component);
+    classHierarchy ??= new ClassHierarchy(_component, coreTypes);
+    _typeEnvironment = new TypeEnvironment(coreTypes, classHierarchy);
+    _constantEvaluator = new _ConstantEvaluator(
+      librarySupport,
+      constantsBackend,
+      _component,
+      _typeEnvironment,
+      _reportError,
+      environmentDefines: environmentDefines,
+      evaluationMode: evaluationMode,
+      shouldNotInline: shouldNotInline,
+    );
   }
 
   Constant? _evaluate(Expression node) => _constantEvaluator._evaluate(node);
@@ -52,7 +50,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   @override
   TreeNode defaultMember(Member node, TreeNode? removalSentinel) {
     _constantEvaluator._staticTypeContext =
-        StaticTypeContext(node, _typeEnvironment);
+        new StaticTypeContext(node, _typeEnvironment);
     _constantEvaluator._clearLocalCaches();
     return super.defaultMember(node, removalSentinel);
   }
@@ -61,7 +59,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   TreeNode visitConditionalExpression(
       ConditionalExpression node, TreeNode? removalSentinel) {
     super.visitConditionalExpression(node, removalSentinel);
-    final condition = _evaluate(node.condition);
+    Constant? condition = _evaluate(node.condition);
     if (condition is! BoolConstant) return node;
     return condition.value ? node.then : node.otherwise;
   }
@@ -69,17 +67,17 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   @override
   TreeNode visitIfStatement(IfStatement node, TreeNode? removalSentinel) {
     super.visitIfStatement(node, removalSentinel);
-    final condition = _evaluate(node.condition);
+    Constant? condition = _evaluate(node.condition);
     if (condition is! BoolConstant) return node;
     if (condition.value) {
       return node.then;
     } else {
-      return node.otherwise ?? removalSentinel ?? EmptyStatement();
+      return node.otherwise ?? removalSentinel ?? new EmptyStatement();
     }
   }
 }
 
-class _ConstantEvaluator extends Dart2jsConstantEvaluator {
+class _ConstantEvaluator extends TryConstantEvaluator {
   late StaticTypeContext _staticTypeContext;
 
   // TODO(fishythefish): Do caches need to be invalidated when the static type
@@ -88,9 +86,15 @@ class _ConstantEvaluator extends Dart2jsConstantEvaluator {
   final Map<Field, Constant?> _staticFieldCache = {};
   final Map<FunctionNode, Constant?> _functionCache = {};
   final Map<FunctionNode, Constant?> _localFunctionCache = {};
+  // TODO(fishythefish): Make this more granular than [TreeNode].
+  final bool Function(TreeNode) _shouldNotInline;
 
-  _ConstantEvaluator(super.component, super.typeEnvironment, super.reportError,
-      {super.environment, required super.evaluationMode});
+  _ConstantEvaluator(super.librarySupport, super.constantsBackend,
+      super.component, super.typeEnvironment, super.reportError,
+      {super.environmentDefines,
+      super.evaluationMode,
+      bool Function(TreeNode)? shouldNotInline})
+      : _shouldNotInline = shouldNotInline ?? ((_) => false);
 
   void _clearLocalCaches() {
     _variableCache.clear();
@@ -105,9 +109,9 @@ class _ConstantEvaluator extends Dart2jsConstantEvaluator {
         node.requiredParameterCount != 0 ||
         node.positionalParameters.isNotEmpty ||
         node.namedParameters.isNotEmpty) return null;
-    final body = node.body;
+    Statement? body = node.body;
     if (body is! ReturnStatement) return null;
-    final expression = body.expression;
+    Expression? expression = body.expression;
     if (expression == null) return null;
     return _evaluate(expression);
   }
@@ -118,7 +122,7 @@ class _ConstantEvaluator extends Dart2jsConstantEvaluator {
     if (variable.parent is FunctionNode) return null;
     if (_shouldNotInline(variable)) return null;
     if (!variable.isFinal) return null;
-    final initializer = variable.initializer;
+    Expression? initializer = variable.initializer;
     if (initializer == null) return null;
     return _evaluate(initializer);
   }
@@ -133,7 +137,7 @@ class _ConstantEvaluator extends Dart2jsConstantEvaluator {
   Constant? _evaluateStaticFieldGet(Field field) {
     if (_shouldNotInline(field)) return null;
     if (!field.isFinal) return null;
-    final initializer = field.initializer;
+    Expression? initializer = field.initializer;
     if (initializer == null) return null;
     return _evaluate(initializer);
   }

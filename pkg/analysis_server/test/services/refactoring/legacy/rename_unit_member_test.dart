@@ -601,7 +601,7 @@ void f(g(NewName p)) {}
 
   Future<void> test_createChange_ClassElement_typeAlias() async {
     await indexTestUnit('''
-class A {}
+mixin A {}
 class Test = Object with A;
 void f(Test t) {}
 ''');
@@ -613,7 +613,7 @@ void f(Test t) {}
     refactoring.newName = 'NewName';
     // validate change
     return assertSuccessfulRefactoring('''
-class A {}
+mixin A {}
 class NewName = Object with A;
 void f(NewName t) {}
 ''');

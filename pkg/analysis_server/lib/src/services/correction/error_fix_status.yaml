@@ -2445,9 +2445,9 @@ ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP:
 ParserErrorCode.PREFIX_AFTER_COMBINATOR:
   status: needsEvaluation
 ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY:
   status: needsEvaluation
 ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:

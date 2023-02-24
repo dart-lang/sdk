@@ -690,6 +690,9 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   }
 
   @override
+  bool get isConstructable => !isSealed && !isAbstract;
+
+  @override
   bool get isDartCoreEnum {
     return name == 'Enum' && library.isDartCore;
   }
