@@ -136,10 +136,10 @@ exec("//sdk.star")
 exec("//cfe.star")
 exec("//flutter.star")
 exec("//dart2wasm.star")
-exec("//ddc.star")
 vm = exec("//vm.star")
 exec("//pkg.star")
 exec("//dart2js.star")
+exec("//ddc.star")
 exec("//analyzer.star")
 
 # misc
