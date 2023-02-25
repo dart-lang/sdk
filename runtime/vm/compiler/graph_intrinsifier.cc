@@ -52,16 +52,22 @@ static void EmitCodeFor(FlowGraphCompiler* compiler, FlowGraph* graph) {
     if (block->IsGraphEntry()) continue;  // No code for graph entry needed.
 
     if (block->HasParallelMove()) {
-      block->parallel_move()->EmitNativeCode(compiler);
+      compiler->parallel_move_resolver()->EmitNativeCode(
+          block->parallel_move());
     }
 
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
       if (FLAG_code_comments) compiler->EmitComment(instr);
-      // Calls are not supported in intrinsics code.
-      ASSERT(instr->IsParallelMove() ||
-             (instr->locs() != nullptr && !instr->locs()->always_calls()));
-      instr->EmitNativeCode(compiler);
+      if (instr->IsParallelMove()) {
+        compiler->parallel_move_resolver()->EmitNativeCode(
+            instr->AsParallelMove());
+      } else {
+        ASSERT(instr->locs() != NULL);
+        // Calls are not supported in intrinsics code.
+        ASSERT(!instr->locs()->always_calls());
+        instr->EmitNativeCode(compiler);
+      }
     }
   }
   compiler->assembler()->Comment("Graph intrinsic end");
