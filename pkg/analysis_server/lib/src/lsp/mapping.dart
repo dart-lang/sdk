@@ -786,6 +786,18 @@ lsp.CompletionItem snippetToCompletionItem(
   );
 }
 
+/// Sorts a list of [server.SourceEdit]s for mapping to LSP types.
+///
+/// Server works with edits that can be applied sequentially to a [String]. This
+/// means inserts at the same offset are in the reverse order. For LSP, all
+/// offsets relate to the original document and inserts with the same offset
+/// appear in the order they will appear in the final document.
+List<server.SourceEdit> sortSourceEditsForLsp(List<server.SourceEdit> edits) {
+  // Since for LSP the ordering of items without the same offset do not matter,
+  // we can simply reverse the entire list.
+  return edits.reversed.toList();
+}
+
 lsp.CompletionItemKind? suggestionKindToCompletionItemKind(
   Set<lsp.CompletionItemKind> supportedCompletionKinds,
   server.CompletionSuggestionKind kind,
@@ -1305,7 +1317,7 @@ lsp.TextDocumentEdit toTextDocumentEdit(
     LspClientCapabilities capabilities, FileEditInformation edit) {
   return lsp.TextDocumentEdit(
       textDocument: edit.doc,
-      edits: edit.edits
+      edits: sortSourceEditsForLsp(edit.edits)
           .map((e) => toTextDocumentEditEdit(capabilities, edit.lineInfo, e,
               selectionOffsetRelative: edit.selectionOffsetRelative,
               selectionLength: edit.selectionLength))
@@ -1375,8 +1387,9 @@ lsp.WorkspaceEdit toWorkspaceEdit(
 Map<Uri, List<lsp.TextEdit>> toWorkspaceEditChanges(
     List<FileEditInformation> edits) {
   MapEntry<Uri, List<lsp.TextEdit>> createEdit(FileEditInformation file) {
-    final edits =
-        file.edits.map((edit) => toTextEdit(file.lineInfo, edit)).toList();
+    final edits = sortSourceEditsForLsp(file.edits)
+        .map((edit) => toTextEdit(file.lineInfo, edit))
+        .toList();
     return MapEntry(file.doc.uri, edits);
   }
 

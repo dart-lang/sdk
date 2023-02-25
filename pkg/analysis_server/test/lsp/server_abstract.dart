@@ -811,7 +811,17 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   String applyTextDocumentEdit(String content, TextDocumentEdit edit) {
-    return edit.edits.fold(content, applyTextEdit);
+    // To simulate the behaviour we'll get from an LSP client, apply edits from
+    // the latest offset to the earliest, but with items at the same offset
+    // being reversed so that when applied sequentially they appear in the
+    // document in-order.
+    //
+    // This is essentially a stable sort over the offset (descending), but since
+    // List.sort() is not stable so we additionally sort by index).
+    final indexedEdits =
+        edit.edits.mapIndexed(_TextEditWithIndex.fromUnion).toList();
+    indexedEdits.sort(_TextEditWithIndex.compare);
+    return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
   }
 
   void applyTextDocumentEdits(
@@ -826,10 +836,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
   }
 
-  String applyTextEdit(String content,
-      Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> change) {
-    // Both sites of the union can cast to TextEdit.
-    final edit = change.map((e) => e, (e) => e, (e) => e);
+  String applyTextEdit(String content, TextEdit edit) {
     final startPos = edit.range.start;
     final endPos = edit.range.end;
     final lineInfo = LineInfo.fromContent(content);
@@ -838,8 +845,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return content.replaceRange(start, end, edit.newText);
   }
 
-  String applyTextEdits(String oldContent, List<TextEdit> changes) {
-    var newContent = oldContent;
+  String applyTextEdits(String content, List<TextEdit> changes) {
     // Complex text manipulations are described with an array of TextEdit's,
     // representing a single change to the document.
     //
@@ -883,18 +889,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
 
     validateChangesCanBeApplied();
-    final sortedChanges = changes.toList() // Don't mutate the original list.
-      ..sort(
-        // Multiply by -1 to get descending sort.
-        (c1, c2) => positionCompare(c1.range.start, c2.range.start) * -1,
-      );
 
-    for (final change in sortedChanges) {
-      newContent = applyTextEdit(newContent,
-          Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>.t3(change));
-    }
-
-    return newContent;
+    final indexedEdits = changes.mapIndexed(_TextEditWithIndex.new).toList();
+    indexedEdits.sort(_TextEditWithIndex.compare);
+    return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
   }
 
   Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
@@ -2206,5 +2204,32 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       }
       throw '$input was not one of ($T1, $T2)';
     };
+  }
+}
+
+class _TextEditWithIndex {
+  final int index;
+  final TextEdit edit;
+
+  _TextEditWithIndex(this.index, this.edit);
+
+  _TextEditWithIndex.fromUnion(
+      this.index, Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> edit)
+      : edit = edit.map((e) => e, (e) => e, (e) => e);
+
+  /// Compares two [_TextEditWithIndex] to sort them by the order in which they
+  /// can be sequentially applied to a String to match the behaviour of an LSP
+  /// client.
+  static int compare(_TextEditWithIndex edit1, _TextEditWithIndex edit2) {
+    final start1 = edit1.edit.range.start;
+    final start2 = edit2.edit.range.start;
+
+    if (start1.line != start2.line) {
+      return start1.line.compareTo(start2.line) * -1;
+    } else if (start1.character != start2.character) {
+      return start1.character.compareTo(start2.character) * -1;
+    } else {
+      return edit1.index.compareTo(edit2.index) * -1;
+    }
   }
 }
