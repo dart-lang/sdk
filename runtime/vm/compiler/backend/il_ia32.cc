@@ -2474,7 +2474,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
   if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 
   // Restore ESP from EBP as we are coming from a throw and the code for
@@ -6264,7 +6264,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    InstructionSource());
   }
   if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 
   // We can fall through if the successor is the next block in the list.

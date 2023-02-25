@@ -4040,9 +4040,11 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     // interpret them).
     final updated = applyTextEdits(
       withoutMarkers(content),
-      [toTextEdit(snippet.textEdit!)]
-          .followedBy(snippet.additionalTextEdits!)
-          .toList(),
+      // Additional TextEdits come first, because if they have the same offset
+      // as edits in the normal edit, they will be inserted first.
+      // https://github.com/microsoft/vscode/issues/143888.
+      snippet.additionalTextEdits!
+          .followedBy([toTextEdit(snippet.textEdit!)]).toList(),
     );
     return updated;
   }

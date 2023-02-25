@@ -3,8 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
+import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
 import 'package:analysis_server/src/lsp/mapping.dart' as lsp;
+import 'package:analysis_server/src/lsp/source_edits.dart' as server;
 import 'package:analysis_server/src/protocol_server.dart' as server;
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as server;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,6 +17,7 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MappingTest);
+    defineReflectiveTests(SourceEditMappingTest);
   });
 }
 
@@ -126,5 +131,60 @@ class MappingTest extends AbstractLspAnalysisServerTest {
   }) {
     final result = lsp.elementKindToCompletionItemKind(supportedKinds, kind);
     expect(result, equals(expectedKind));
+  }
+}
+
+@reflectiveTest
+class SourceEditMappingTest extends AbstractLspAnalysisServerTest {
+  /// A simple edit that inserts 'FIRSTSECOND' into a document.
+  late server.FileEditInformation simpleFirstSecondEdit;
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    simpleFirstSecondEdit = server.FileEditInformation(
+      lsp.OptionalVersionedTextDocumentIdentifier(uri: mainFileUri),
+      LineInfo.fromContent(''),
+      [
+        // Server works with edits that can be applied sequentially to a
+        // [String]. This means inserts at the same offset are in the reverse
+        // order.
+        server.SourceEdit(0, 0, 'SECOND'),
+        server.SourceEdit(0, 0, 'FIRST'),
+      ],
+      newFile: false,
+    );
+  }
+
+  void test_toTextDocumentEdit_multipleInsertsSameOffset() {
+    final edit = lsp.toTextDocumentEdit(
+      lsp.LspClientCapabilities(lsp.ClientCapabilities()),
+      simpleFirstSecondEdit,
+    );
+
+    /// For LSP, offsets relate to the original document and inserts with the
+    /// same offset appear in the order they will appear in the final document.
+    final edit0 = _unwrapEdit(edit.edits[0]);
+    final edit1 = _unwrapEdit(edit.edits[1]);
+    expect(edit0.newText, 'FIRST');
+    expect(edit1.newText, 'SECOND');
+  }
+
+  void test_toWorkspaceEditChanges_multipleInsertsSameOffset() {
+    final changes = lsp.toWorkspaceEditChanges([simpleFirstSecondEdit]);
+    final edit = changes[mainFileUri]!;
+
+    /// For LSP, offsets relate to the original document and inserts with the
+    /// same offset appear in the order they will appear in the final document.
+    expect(edit[0].newText, 'FIRST');
+    expect(edit[1].newText, 'SECOND');
+  }
+
+  lsp.TextEdit _unwrapEdit(
+    lsp.Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit> edit,
+  ) {
+    // All types extend from TextEdit.
+    return edit.map((e) => e, (e) => e, (e) => e);
   }
 }
