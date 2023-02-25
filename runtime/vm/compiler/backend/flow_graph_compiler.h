@@ -857,6 +857,14 @@ class FlowGraphCompiler : public ValueObject {
   // and expression stack values, are already on the stack).
   intptr_t ExtraStackSlotsOnOsrEntry() const;
 
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  // Changes the base register of this Location if this allows us to utilize
+  // a better addressing mode. For RISC-V, this is the wider range of compressed
+  // instructions available for SP-relative load compared to FP-relative loads.
+  // Assumes `StackSize` accounts for everything at the point of use.
+  Location RebaseIfImprovesAddressing(Location loc) const;
+#endif  // defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+
   // Returns assembler label associated with the given block entry.
   compiler::Label* GetJumpLabel(BlockEntryInstr* block_entry) const;
   bool WasCompacted(BlockEntryInstr* block_entry) const;

@@ -3935,6 +3935,19 @@ void Assembler::ExitFullSafepoint(Register state,
   Bind(&done);
 }
 
+void Assembler::CheckFpSpDist(intptr_t fp_sp_dist) {
+  ASSERT(fp_sp_dist <= 0);
+#if defined(DEBUG)
+  Label ok;
+  Comment("CheckFpSpDist");
+  sub(TMP, SP, FP);
+  CompareImmediate(TMP, fp_sp_dist);
+  BranchIf(EQ, &ok, compiler::Assembler::kNearJump);
+  ebreak();
+  Bind(&ok);
+#endif
+}
+
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
   if (!FLAG_check_code_pointer) {

@@ -396,7 +396,7 @@ LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,
 void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
 
-  const Location value = locs()->in(0);
+  const Location value = compiler->RebaseIfImprovesAddressing(locs()->in(0));
   const intptr_t offset = sp_relative_index() * compiler::target::kWordSize;
   if (value.IsRegister()) {
     __ StoreToOffset(value.reg(), SP, offset);
@@ -523,16 +523,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       (compiler::target::frame_layout.first_local_from_fp + 1 -
        compiler->StackSize()) *
       kWordSize;
-  ASSERT(fp_sp_dist <= 0);
-#if defined(DEBUG)
-  compiler::Label stack_ok;
-  __ Comment("Stack Check");
-  __ sub(TMP, SP, FP);
-  __ CompareImmediate(TMP, fp_sp_dist);
-  __ BranchIf(EQ, &stack_ok, compiler::Assembler::kNearJump);
-  __ ebreak();
-  __ Bind(&stack_ok);
-#endif
+  __ CheckFpSpDist(fp_sp_dist);
   ASSERT(__ constant_pool_allowed());
   __ LeaveDartFrame(fp_sp_dist);  // Disallows constant pool use.
   __ ret();

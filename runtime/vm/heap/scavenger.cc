@@ -1738,10 +1738,17 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
     ReverseScavenge(&from);
     bytes_promoted = 0;
   } else {
-    if (heap_->stats_.state_ == Heap::kInitial) {
-      heap_->stats_.state_ = Heap::kFirstScavenge;
-    } else if (heap_->stats_.state_ == Heap::kFirstScavenge) {
-      heap_->stats_.state_ = Heap::kSecondScavenge;
+    if (type == GCType::kEvacuate) {
+      if (heap_->stats_.state_ == Heap::kInitial ||
+          heap_->stats_.state_ == Heap::kFirstScavenge) {
+        heap_->stats_.state_ = Heap::kSecondScavenge;
+      }
+    } else {
+      if (heap_->stats_.state_ == Heap::kInitial) {
+        heap_->stats_.state_ = Heap::kFirstScavenge;
+      } else if (heap_->stats_.state_ == Heap::kFirstScavenge) {
+        heap_->stats_.state_ = Heap::kSecondScavenge;
+      }
     }
     if ((CapacityInWords() - UsedInWords()) < KBInWords) {
       // Don't scavenge again until the next old-space GC has occurred. Prevents

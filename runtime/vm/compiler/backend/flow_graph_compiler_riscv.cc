@@ -339,7 +339,9 @@ void FlowGraphCompiler::EmitPrologue() {
     const intptr_t slot_index =
         compiler::target::frame_layout.FrameSlotForVariable(
             parsed_function().suspend_state_var());
-    __ StoreToOffset(NULL_REG, FP, slot_index * kWordSize);
+    const intptr_t fp_to_sp_delta =
+        StackSize() + compiler::target::frame_layout.dart_fixed_frame_size;
+    __ StoreToOffset(NULL_REG, SP, (slot_index + fp_to_sp_delta) * kWordSize);
   }
 
   EndCodeSourceRange(PrologueSource());
@@ -771,10 +773,29 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
   __ LoadClassId(class_id_reg, A0);
 }
 
+Location FlowGraphCompiler::RebaseIfImprovesAddressing(Location loc) const {
+  if (loc.IsStackSlot() && (loc.base_reg() == FP)) {
+    intptr_t fp_sp_dist =
+        (compiler::target::frame_layout.first_local_from_fp + 1 - StackSize());
+    __ CheckFpSpDist(fp_sp_dist * compiler::target::kWordSize);
+    return Location::StackSlot(loc.stack_index() - fp_sp_dist, SP);
+  }
+  if (loc.IsDoubleStackSlot() && (loc.base_reg() == FP)) {
+    intptr_t fp_sp_dist =
+        (compiler::target::frame_layout.first_local_from_fp + 1 - StackSize());
+    __ CheckFpSpDist(fp_sp_dist * compiler::target::kWordSize);
+    return Location::DoubleStackSlot(loc.stack_index() - fp_sp_dist, SP);
+  }
+  return loc;
+}
+
 void FlowGraphCompiler::EmitMove(Location destination,
                                  Location source,
                                  TemporaryRegisterAllocator* allocator) {
   if (destination.Equals(source)) return;
+
+  destination = RebaseIfImprovesAddressing(destination);
+  source = RebaseIfImprovesAddressing(source);
 
   if (source.IsRegister()) {
     if (destination.IsRegister()) {
@@ -796,10 +817,8 @@ void FlowGraphCompiler::EmitMove(Location destination,
       ASSERT(destination.IsStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      Register tmp = allocator->AllocateTemporary();
-      __ LoadFromOffset(tmp, source.base_reg(), source_offset);
-      __ StoreToOffset(tmp, destination.base_reg(), dest_offset);
-      allocator->ReleaseTemporary();
+      __ LoadFromOffset(TMP, source.base_reg(), source_offset);
+      __ StoreToOffset(TMP, destination.base_reg(), dest_offset);
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
@@ -841,15 +860,8 @@ void FlowGraphCompiler::EmitMove(Location destination,
 #endif
   } else {
     ASSERT(source.IsConstant());
-    if (destination.IsStackSlot()) {
-      Register tmp = allocator->AllocateTemporary();
-      source.constant_instruction()->EmitMoveToLocation(this, destination, tmp,
-                                                        source.pair_index());
-      allocator->ReleaseTemporary();
-    } else {
-      source.constant_instruction()->EmitMoveToLocation(
-          this, destination, kNoRegister, source.pair_index());
-    }
+    source.constant_instruction()->EmitMoveToLocation(this, destination, TMP,
+                                                      source.pair_index());
   }
 }
 
@@ -1150,10 +1162,9 @@ void ParallelMoveResolver::Exchange(const compiler::Address& mem1,
 void ParallelMoveResolver::Exchange(Register reg,
                                     Register base_reg,
                                     intptr_t stack_offset) {
-  ScratchRegisterScope tmp(this, reg);
-  __ mv(tmp.reg(), reg);
+  __ mv(TMP, reg);
   __ LoadFromOffset(reg, base_reg, stack_offset);
-  __ StoreToOffset(tmp.reg(), base_reg, stack_offset);
+  __ StoreToOffset(TMP, base_reg, stack_offset);
 }
 
 void ParallelMoveResolver::Exchange(Register base_reg1,
