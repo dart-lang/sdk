@@ -78,6 +78,8 @@ compiler_sources = [
   "backend/locations_helpers_arm.h",
   "backend/loops.cc",
   "backend/loops.h",
+  "backend/parallel_move_resolver.cc",
+  "backend/parallel_move_resolver.h",
   "backend/range_analysis.cc",
   "backend/range_analysis.h",
   "backend/redundancy_elimination.cc",
