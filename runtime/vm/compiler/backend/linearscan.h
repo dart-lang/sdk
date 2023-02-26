@@ -181,8 +181,6 @@ class FlowGraphAllocator : public ValueObject {
   // Connect split siblings over non-linear control flow edges.
   void ResolveControlFlow();
 
-  void ScheduleParallelMoves();
-
   // Returns true if the target location is the spill slot for the given range.
   bool TargetLocationIsSpillSlot(LiveRange* range, Location target);
 

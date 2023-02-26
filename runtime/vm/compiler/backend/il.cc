@@ -16,7 +16,6 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/loops.h"
-#include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/marshaller.h"
@@ -4036,7 +4035,7 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    InstructionSource());
   }
   if (HasParallelMove()) {
-    parallel_move()->EmitNativeCode(compiler);
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
 }
 
@@ -4066,7 +4065,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    parallel_move()->EmitNativeCode(compiler);
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
 }
 
@@ -4140,7 +4139,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    parallel_move()->EmitNativeCode(compiler);
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
 }
 
@@ -4236,7 +4235,7 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    parallel_move()->EmitNativeCode(compiler);
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
 }
 
@@ -4681,7 +4680,7 @@ LocationSummary* ParallelMoveInstr::MakeLocationSummary(Zone* zone,
 }
 
 void ParallelMoveInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ParallelMoveEmitter(compiler, this).EmitNativeCode();
+  UNREACHABLE();
 }
 
 LocationSummary* ConstraintInstr::MakeLocationSummary(Zone* zone,

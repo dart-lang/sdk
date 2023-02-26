@@ -3187,7 +3187,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
   if (HasParallelMove()) {
-    parallel_move()->EmitNativeCode(compiler);
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
 
   // Restore SP from FP as we are coming from a throw and the code for
@@ -7126,7 +7126,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    InstructionSource());
   }
   if (HasParallelMove()) {
-    parallel_move()->EmitNativeCode(compiler);
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
 
   // We can fall through if the successor is the next block in the list.

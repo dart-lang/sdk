@@ -4348,7 +4348,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ForInResult result;
       if (entry.variable.name == null) {
         result = handleForInWithoutVariable(entry, entry.variable,
-            entry.iterable, entry.syntheticAssignment!, entry.expressionEffects,
+            entry.iterable, entry.syntheticAssignment, entry.expressionEffects,
             isAsync: entry.isAsync, hasProblem: entry.problem != null);
       } else {
         result = handleForInDeclaringVariable(

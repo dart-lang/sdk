@@ -63,6 +63,107 @@ class NoTemporaryAllocator : public TemporaryRegisterAllocator {
   void ReleaseTemporary() override { UNREACHABLE(); }
 };
 
+class ParallelMoveResolver : public ValueObject {
+ public:
+  explicit ParallelMoveResolver(FlowGraphCompiler* compiler);
+
+  // Resolve a set of parallel moves, emitting assembler instructions.
+  void EmitNativeCode(ParallelMoveInstr* parallel_move);
+
+ private:
+  class ScratchFpuRegisterScope : public ValueObject {
+   public:
+    ScratchFpuRegisterScope(ParallelMoveResolver* resolver,
+                            FpuRegister blocked);
+    ~ScratchFpuRegisterScope();
+
+    FpuRegister reg() const { return reg_; }
+
+   private:
+    ParallelMoveResolver* resolver_;
+    FpuRegister reg_;
+    bool spilled_;
+  };
+
+  class TemporaryAllocator : public TemporaryRegisterAllocator {
+   public:
+    TemporaryAllocator(ParallelMoveResolver* resolver, Register blocked);
+
+    Register AllocateTemporary() override;
+    void ReleaseTemporary() override;
+    DEBUG_ONLY(bool DidAllocateTemporary() { return allocated_; })
+
+    virtual ~TemporaryAllocator() { ASSERT(reg_ == kNoRegister); }
+
+   private:
+    ParallelMoveResolver* const resolver_;
+    const Register blocked_;
+    Register reg_;
+    bool spilled_;
+    DEBUG_ONLY(bool allocated_ = false);
+  };
+
+  class ScratchRegisterScope : public ValueObject {
+   public:
+    ScratchRegisterScope(ParallelMoveResolver* resolver, Register blocked);
+    ~ScratchRegisterScope();
+
+    Register reg() const { return reg_; }
+
+   private:
+    TemporaryAllocator allocator_;
+    Register reg_;
+  };
+
+  bool IsScratchLocation(Location loc);
+  intptr_t AllocateScratchRegister(Location::Kind kind,
+                                   uword blocked_mask,
+                                   intptr_t first_free_register,
+                                   intptr_t last_free_register,
+                                   bool* spilled);
+
+  void SpillScratch(Register reg);
+  void RestoreScratch(Register reg);
+  void SpillFpuScratch(FpuRegister reg);
+  void RestoreFpuScratch(FpuRegister reg);
+
+  // friend class ScratchXmmRegisterScope;
+
+  // Build the initial list of moves.
+  void BuildInitialMoveList(ParallelMoveInstr* parallel_move);
+
+  // Perform the move at the moves_ index in question (possibly requiring
+  // other moves to satisfy dependencies).
+  void PerformMove(const InstructionSource& source, int index);
+
+  // Emit a move and remove it from the move graph.
+  void EmitMove(int index);
+
+  // Execute a move by emitting a swap of two operands.  The move from
+  // source to destination is removed from the move graph.
+  void EmitSwap(int index);
+
+  // Verify the move list before performing moves.
+  void Verify();
+
+  // Helpers for non-trivial source-destination combinations that cannot
+  // be handled by a single instruction.
+  void MoveMemoryToMemory(const compiler::Address& dst,
+                          const compiler::Address& src);
+  void Exchange(Register reg, const compiler::Address& mem);
+  void Exchange(const compiler::Address& mem1, const compiler::Address& mem2);
+  void Exchange(Register reg, Register base_reg, intptr_t stack_offset);
+  void Exchange(Register base_reg1,
+                intptr_t stack_offset1,
+                Register base_reg2,
+                intptr_t stack_offset2);
+
+  FlowGraphCompiler* compiler_;
+
+  // List of moves not yet resolved.
+  GrowableArray<MoveOperands*> moves_;
+};
+
 // Used for describing a deoptimization point after call (lazy deoptimization).
 // For deoptimization before instruction use class CompilerDeoptInfoWithStub.
 class CompilerDeoptInfo : public ZoneAllocated {
@@ -444,6 +545,9 @@ class FlowGraphCompiler : public ValueObject {
   bool ForceSlowPathForStackOverflow() const;
 
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
+  ParallelMoveResolver* parallel_move_resolver() {
+    return &parallel_move_resolver_;
+  }
 
   void StatsBegin(Instruction* instr) {
     if (stats_ != NULL) stats_->Begin(instr);
@@ -1185,6 +1289,8 @@ class FlowGraphCompiler : public ValueObject {
   const Class& float64x2_class_;
   const Class& int32x4_class_;
   const Class& list_class_;
+
+  ParallelMoveResolver parallel_move_resolver_;
 
   // Currently instructions generate deopt stubs internally by
   // calling AddDeoptStub.  To communicate deoptimization environment

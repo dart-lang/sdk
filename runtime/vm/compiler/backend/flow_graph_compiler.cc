@@ -166,6 +166,7 @@ FlowGraphCompiler::FlowGraphCompiler(
           Class::ZoneHandle(isolate_group()->object_store()->int32x4_class())),
       list_class_(Class::ZoneHandle(Library::Handle(Library::CoreLibrary())
                                         .LookupClass(Symbols::List()))),
+      parallel_move_resolver_(this),
       pending_deoptimization_env_(NULL),
       deopt_id_to_ic_data_(deopt_id_to_ic_data),
       edge_counters_array_(Array::ZoneHandle()) {
@@ -736,22 +737,25 @@ void FlowGraphCompiler::VisitBlocks() {
         }
         EmitComment(instr);
       }
-
-      BeginCodeSourceRange(instr->source());
-      EmitInstructionPrologue(instr);
-      ASSERT(pending_deoptimization_env_ == NULL);
-      pending_deoptimization_env_ = instr->env();
-      DEBUG_ONLY(current_instruction_ = instr);
-      instr->EmitNativeCode(this);
-      DEBUG_ONLY(current_instruction_ = nullptr);
-      pending_deoptimization_env_ = NULL;
-      if (IsPeephole(instr)) {
-        ASSERT(top_of_stack_ == nullptr);
-        top_of_stack_ = instr->AsDefinition();
+      if (instr->IsParallelMove()) {
+        parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
       } else {
-        EmitInstructionEpilogue(instr);
+        BeginCodeSourceRange(instr->source());
+        EmitInstructionPrologue(instr);
+        ASSERT(pending_deoptimization_env_ == NULL);
+        pending_deoptimization_env_ = instr->env();
+        DEBUG_ONLY(current_instruction_ = instr);
+        instr->EmitNativeCode(this);
+        DEBUG_ONLY(current_instruction_ = nullptr);
+        pending_deoptimization_env_ = NULL;
+        if (IsPeephole(instr)) {
+          ASSERT(top_of_stack_ == nullptr);
+          top_of_stack_ = instr->AsDefinition();
+        } else {
+          EmitInstructionEpilogue(instr);
+        }
+        EndCodeSourceRange(instr->source());
       }
-      EndCodeSourceRange(instr->source());
 
 #if defined(DEBUG)
       if (!is_optimizing()) {
@@ -1850,6 +1854,270 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   }
 }
 
+static uword RegMaskBit(Register reg) {
+  return ((reg) != kNoRegister) ? (1 << (reg)) : 0;
+}
+
+ParallelMoveResolver::ParallelMoveResolver(FlowGraphCompiler* compiler)
+    : compiler_(compiler), moves_(32) {}
+
+void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
+  ASSERT(moves_.is_empty());
+
+  // Build up a worklist of moves.
+  BuildInitialMoveList(parallel_move);
+
+  const InstructionSource& move_source = InstructionSource(
+      TokenPosition::kParallelMove, parallel_move->inlining_id());
+  for (int i = 0; i < moves_.length(); ++i) {
+    const MoveOperands& move = *moves_[i];
+    // Skip constants to perform them last.  They don't block other moves
+    // and skipping such moves with register destinations keeps those
+    // registers free for the whole algorithm.
+    if (!move.IsEliminated() && !move.src().IsConstant()) {
+      PerformMove(move_source, i);
+    }
+  }
+
+  // Perform the moves with constant sources.
+  for (int i = 0; i < moves_.length(); ++i) {
+    const MoveOperands& move = *moves_[i];
+    if (!move.IsEliminated()) {
+      ASSERT(move.src().IsConstant());
+      compiler_->BeginCodeSourceRange(move_source);
+      EmitMove(i);
+      compiler_->EndCodeSourceRange(move_source);
+    }
+  }
+
+  moves_.Clear();
+}
+
+void ParallelMoveResolver::BuildInitialMoveList(
+    ParallelMoveInstr* parallel_move) {
+  // Perform a linear sweep of the moves to add them to the initial list of
+  // moves to perform, ignoring any move that is redundant (the source is
+  // the same as the destination, the destination is ignored and
+  // unallocated, or the move was already eliminated).
+  for (int i = 0; i < parallel_move->NumMoves(); i++) {
+    MoveOperands* move = parallel_move->MoveOperandsAt(i);
+    if (!move->IsRedundant()) moves_.Add(move);
+  }
+}
+
+void ParallelMoveResolver::PerformMove(const InstructionSource& source,
+                                       int index) {
+  // Each call to this function performs a move and deletes it from the move
+  // graph.  We first recursively perform any move blocking this one.  We
+  // mark a move as "pending" on entry to PerformMove in order to detect
+  // cycles in the move graph.  We use operand swaps to resolve cycles,
+  // which means that a call to PerformMove could change any source operand
+  // in the move graph.
+
+  ASSERT(!moves_[index]->IsPending());
+  ASSERT(!moves_[index]->IsRedundant());
+
+  // Clear this move's destination to indicate a pending move.  The actual
+  // destination is saved in a stack-allocated local.  Recursion may allow
+  // multiple moves to be pending.
+  ASSERT(!moves_[index]->src().IsInvalid());
+  Location destination = moves_[index]->MarkPending();
+
+  // Perform a depth-first traversal of the move graph to resolve
+  // dependencies.  Any unperformed, unpending move with a source the same
+  // as this one's destination blocks this one so recursively perform all
+  // such moves.
+  for (int i = 0; i < moves_.length(); ++i) {
+    const MoveOperands& other_move = *moves_[i];
+    if (other_move.Blocks(destination) && !other_move.IsPending()) {
+      // Though PerformMove can change any source operand in the move graph,
+      // this call cannot create a blocking move via a swap (this loop does
+      // not miss any).  Assume there is a non-blocking move with source A
+      // and this move is blocked on source B and there is a swap of A and
+      // B.  Then A and B must be involved in the same cycle (or they would
+      // not be swapped).  Since this move's destination is B and there is
+      // only a single incoming edge to an operand, this move must also be
+      // involved in the same cycle.  In that case, the blocking move will
+      // be created but will be "pending" when we return from PerformMove.
+      PerformMove(source, i);
+    }
+  }
+
+  // We are about to resolve this move and don't need it marked as
+  // pending, so restore its destination.
+  moves_[index]->ClearPending(destination);
+
+  // This move's source may have changed due to swaps to resolve cycles and
+  // so it may now be the last move in the cycle.  If so remove it.
+  if (moves_[index]->src().Equals(destination)) {
+    moves_[index]->Eliminate();
+    return;
+  }
+
+  // The move may be blocked on a (at most one) pending move, in which case
+  // we have a cycle.  Search for such a blocking move and perform a swap to
+  // resolve it.
+  for (int i = 0; i < moves_.length(); ++i) {
+    const MoveOperands& other_move = *moves_[i];
+    if (other_move.Blocks(destination)) {
+      ASSERT(other_move.IsPending());
+      compiler_->BeginCodeSourceRange(source);
+      EmitSwap(index);
+      compiler_->EndCodeSourceRange(source);
+      return;
+    }
+  }
+
+  // This move is not blocked.
+  compiler_->BeginCodeSourceRange(source);
+  EmitMove(index);
+  compiler_->EndCodeSourceRange(source);
+}
+
+void ParallelMoveResolver::EmitMove(int index) {
+  MoveOperands* const move = moves_[index];
+  const Location dst = move->dest();
+  if (dst.IsStackSlot() || dst.IsDoubleStackSlot()) {
+    ASSERT((dst.base_reg() != FPREG) ||
+           ((-compiler::target::frame_layout.VariableIndexForFrameSlot(
+                dst.stack_index())) < compiler_->StackSize()));
+  }
+  const Location src = move->src();
+  ParallelMoveResolver::TemporaryAllocator temp(this, /*blocked=*/kNoRegister);
+  compiler_->EmitMove(dst, src, &temp);
+#if defined(DEBUG)
+  // Allocating a scratch register here may cause stack spilling. Neither the
+  // source nor destination register should be SP-relative in that case.
+  for (const Location& loc : {dst, src}) {
+    ASSERT(!temp.DidAllocateTemporary() || !loc.HasStackIndex() ||
+           loc.base_reg() != SPREG);
+  }
+#endif
+  move->Eliminate();
+}
+
+bool ParallelMoveResolver::IsScratchLocation(Location loc) {
+  for (int i = 0; i < moves_.length(); ++i) {
+    if (moves_[i]->Blocks(loc)) {
+      return false;
+    }
+  }
+
+  for (int i = 0; i < moves_.length(); ++i) {
+    if (moves_[i]->dest().Equals(loc)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+intptr_t ParallelMoveResolver::AllocateScratchRegister(
+    Location::Kind kind,
+    uword blocked_mask,
+    intptr_t first_free_register,
+    intptr_t last_free_register,
+    bool* spilled) {
+  COMPILE_ASSERT(static_cast<intptr_t>(sizeof(blocked_mask)) * kBitsPerByte >=
+                 kNumberOfFpuRegisters);
+  COMPILE_ASSERT(static_cast<intptr_t>(sizeof(blocked_mask)) * kBitsPerByte >=
+                 kNumberOfCpuRegisters);
+  intptr_t scratch = -1;
+  for (intptr_t reg = first_free_register; reg <= last_free_register; reg++) {
+    if ((((1 << reg) & blocked_mask) == 0) &&
+        IsScratchLocation(Location::MachineRegisterLocation(kind, reg))) {
+      scratch = reg;
+      break;
+    }
+  }
+
+  if (scratch == -1) {
+    *spilled = true;
+    for (intptr_t reg = first_free_register; reg <= last_free_register; reg++) {
+      if (((1 << reg) & blocked_mask) == 0) {
+        scratch = reg;
+        break;
+      }
+    }
+  } else {
+    *spilled = false;
+  }
+
+  return scratch;
+}
+
+ParallelMoveResolver::ScratchFpuRegisterScope::ScratchFpuRegisterScope(
+    ParallelMoveResolver* resolver,
+    FpuRegister blocked)
+    : resolver_(resolver), reg_(kNoFpuRegister), spilled_(false) {
+  COMPILE_ASSERT(FpuTMP != kNoFpuRegister);
+  uword blocked_mask =
+      ((blocked != kNoFpuRegister) ? 1 << blocked : 0) | 1 << FpuTMP;
+  reg_ = static_cast<FpuRegister>(resolver_->AllocateScratchRegister(
+      Location::kFpuRegister, blocked_mask, 0, kNumberOfFpuRegisters - 1,
+      &spilled_));
+
+  if (spilled_) {
+    resolver->SpillFpuScratch(reg_);
+  }
+}
+
+ParallelMoveResolver::ScratchFpuRegisterScope::~ScratchFpuRegisterScope() {
+  if (spilled_) {
+    resolver_->RestoreFpuScratch(reg_);
+  }
+}
+
+ParallelMoveResolver::TemporaryAllocator::TemporaryAllocator(
+    ParallelMoveResolver* resolver,
+    Register blocked)
+    : resolver_(resolver),
+      blocked_(blocked),
+      reg_(kNoRegister),
+      spilled_(false) {}
+
+Register ParallelMoveResolver::TemporaryAllocator::AllocateTemporary() {
+  ASSERT(reg_ == kNoRegister);
+
+  uword blocked_mask = RegMaskBit(blocked_) | kReservedCpuRegisters;
+  if (resolver_->compiler_->intrinsic_mode()) {
+    // Block additional registers that must be preserved for intrinsics.
+    blocked_mask |= RegMaskBit(ARGS_DESC_REG);
+#if !defined(TARGET_ARCH_IA32)
+    // Need to preserve CODE_REG to be able to store the PC marker
+    // and load the pool pointer.
+    blocked_mask |= RegMaskBit(CODE_REG);
+#endif
+  }
+  reg_ = static_cast<Register>(
+      resolver_->AllocateScratchRegister(Location::kRegister, blocked_mask, 0,
+                                         kNumberOfCpuRegisters - 1, &spilled_));
+
+  if (spilled_) {
+    resolver_->SpillScratch(reg_);
+  }
+
+  DEBUG_ONLY(allocated_ = true;)
+  return reg_;
+}
+
+void ParallelMoveResolver::TemporaryAllocator::ReleaseTemporary() {
+  if (spilled_) {
+    resolver_->RestoreScratch(reg_);
+  }
+  reg_ = kNoRegister;
+}
+
+ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
+    ParallelMoveResolver* resolver,
+    Register blocked)
+    : allocator_(resolver, blocked) {
+  reg_ = allocator_.AllocateTemporary();
+}
+
+ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
+  allocator_.ReleaseTemporary();
+}
 
 const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     intptr_t deopt_id,
