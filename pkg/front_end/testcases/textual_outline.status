@@ -167,6 +167,7 @@ nnbd_mixed/issue41597: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
 nonfunction_type_aliases/old_version: FormatterCrash
 patterns/if_else_in_collections_errors: FormatterCrash
+patterns/issue51489: FormatterCrash
 patterns/pattern_matching: FormatterCrash
 patterns/pattern_types: FormatterCrash
 patterns/records/destructuring: FormatterCrash
