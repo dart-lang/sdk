@@ -6692,8 +6692,11 @@ class BodyBuilder extends StackListenerImpl
         node = forest.createIfMapEntry(
             offsetForToken(ifToken), condition.expression, entry);
       } else {
-        node = forest.createIfCaseMapEntry(
-            offsetForToken(ifToken), condition.expression, patternGuard, entry);
+        node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
+            prelude: [],
+            expression: condition.expression,
+            patternGuard: patternGuard,
+            then: entry);
       }
     } else {
       if (patternGuard == null) {
@@ -6701,7 +6704,10 @@ class BodyBuilder extends StackListenerImpl
             offsetForToken(ifToken), condition.expression, toValue(entry));
       } else {
         node = forest.createIfCaseElement(offsetForToken(ifToken),
-            condition.expression, patternGuard, toValue(entry));
+            prelude: [],
+            expression: condition.expression,
+            patternGuard: patternGuard,
+            then: toValue(entry));
       }
     }
     push(node);
@@ -6747,7 +6753,11 @@ class BodyBuilder extends StackListenerImpl
               condition.expression, thenEntry, elseEntry);
         } else {
           node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
-              condition.expression, patternGuard, thenEntry, elseEntry);
+              prelude: [],
+              expression: condition.expression,
+              patternGuard: patternGuard,
+              then: thenEntry,
+              otherwise: elseEntry);
         }
       } else if (elseEntry is ControlFlowElement) {
         MapLiteralEntry? elseMapEntry = elseEntry
@@ -6758,7 +6768,11 @@ class BodyBuilder extends StackListenerImpl
                 condition.expression, thenEntry, elseMapEntry);
           } else {
             node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
-                condition.expression, patternGuard, thenEntry, elseMapEntry);
+                prelude: [],
+                expression: condition.expression,
+                patternGuard: patternGuard,
+                then: thenEntry,
+                otherwise: elseMapEntry);
           }
         } else {
           int offset = elseEntry.fileOffset;
@@ -6788,7 +6802,11 @@ class BodyBuilder extends StackListenerImpl
                 condition.expression, thenMapEntry, elseEntry);
           } else {
             node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
-                condition.expression, patternGuard, thenMapEntry, elseEntry);
+                prelude: [],
+                expression: condition.expression,
+                patternGuard: patternGuard,
+                then: thenMapEntry,
+                otherwise: elseEntry);
           }
         } else {
           int offset = thenEntry.fileOffset;
@@ -6813,12 +6831,12 @@ class BodyBuilder extends StackListenerImpl
         node = forest.createIfElement(offsetForToken(ifToken),
             condition.expression, toValue(thenEntry), toValue(elseEntry));
       } else {
-        node = forest.createIfCaseElement(
-            offsetForToken(ifToken),
-            condition.expression,
-            condition.patternGuard!,
-            toValue(thenEntry),
-            toValue(elseEntry));
+        node = forest.createIfCaseElement(offsetForToken(ifToken),
+            prelude: [],
+            expression: condition.expression,
+            patternGuard: condition.patternGuard!,
+            then: toValue(thenEntry),
+            otherwise: toValue(elseEntry));
       }
     }
     push(node);

@@ -2273,7 +2273,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             createAndExpression(condition, guard, fileOffset: guard.fileOffset);
       }
       element.expression = condition;
-      element.replacement = [
+      element.prelude = [
         ...element.patternGuard.pattern.declaredVariables,
         ...matchingCache.declarations,
       ];
@@ -2829,7 +2829,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     IfStatement ifStatement =
         _createIf(element.fileOffset, element.expression, thenBody, elseBody);
     libraryBuilder.loader.dataForTesting?.registerAlias(element, ifStatement);
-    body.addAll(element.replacement);
+    body.addAll(element.prelude);
     body.add(ifStatement);
   }
 
@@ -3165,7 +3165,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     IfStatement ifStatement = _createIf(
         entry.fileOffset, entry.expression, thenStatement, elseStatement);
     libraryBuilder.loader.dataForTesting?.registerAlias(entry, ifStatement);
-    body.addAll(entry.replacement);
+    body.addAll(entry.prelude);
     body.add(ifStatement);
   }
 
@@ -4181,7 +4181,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             createAndExpression(condition, guard, fileOffset: guard.fileOffset);
       }
       entry.expression = condition;
-      entry.replacement = [
+      entry.prelude = [
         ...entry.patternGuard.pattern.declaredVariables,
         ...matchingCache.declarations,
       ];

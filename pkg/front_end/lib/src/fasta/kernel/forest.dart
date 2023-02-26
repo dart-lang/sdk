@@ -272,12 +272,20 @@ class Forest {
     return new IfElement(condition, then, otherwise)..fileOffset = fileOffset;
   }
 
-  Expression createIfCaseElement(int fileOffset, Expression expression,
-      PatternGuard patternGuard, Expression then,
-      [Expression? otherwise]) {
+  Expression createIfCaseElement(int fileOffset,
+      {required List<Statement> prelude,
+      required Expression expression,
+      required PatternGuard patternGuard,
+      required Expression then,
+      Expression? otherwise}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    return new IfCaseElement(expression, patternGuard, then, otherwise)
+    return new IfCaseElement(
+        prelude: prelude,
+        expression: expression,
+        patternGuard: patternGuard,
+        then: then,
+        otherwise: otherwise)
       ..fileOffset = fileOffset;
   }
 
@@ -289,12 +297,20 @@ class Forest {
     return new IfMapEntry(condition, then, otherwise)..fileOffset = fileOffset;
   }
 
-  MapLiteralEntry createIfCaseMapEntry(int fileOffset, Expression expression,
-      PatternGuard patternGuard, MapLiteralEntry then,
-      [MapLiteralEntry? otherwise]) {
+  MapLiteralEntry createIfCaseMapEntry(int fileOffset,
+      {required List<Statement> prelude,
+      required Expression expression,
+      required PatternGuard patternGuard,
+      required MapLiteralEntry then,
+      MapLiteralEntry? otherwise}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    return new IfCaseMapEntry(expression, patternGuard, then, otherwise)
+    return new IfCaseMapEntry(
+        prelude: prelude,
+        expression: expression,
+        patternGuard: patternGuard,
+        then: then,
+        otherwise: otherwise)
       ..fileOffset = fileOffset;
   }
 
