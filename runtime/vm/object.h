@@ -1643,6 +1643,23 @@ class Class : public Object {
   }
   void set_is_transformed_mixin_application() const;
 
+  bool is_sealed() const { return SealedBit::decode(state_bits()); }
+  void set_is_sealed() const;
+
+  bool is_mixin_class() const { return MixinClassBit::decode(state_bits()); }
+  void set_is_mixin_class() const;
+
+  bool is_base_class() const { return BaseClassBit::decode(state_bits()); }
+  void set_is_base_class() const;
+
+  bool is_interface_class() const {
+    return InterfaceClassBit::decode(state_bits());
+  }
+  void set_is_interface_class() const;
+
+  bool is_final() const { return FinalBit::decode(state_bits()); }
+  void set_is_final() const;
+
   bool is_fields_marked_nullable() const {
     return FieldsMarkedNullableBit::decode(state_bits());
   }
@@ -1904,6 +1921,11 @@ class Class : public Object {
     kIsLoadedBit,
     kHasPragmaBit,
     kImplementsFinalizableBit,
+    kSealedBit,
+    kMixinClassBit,
+    kBaseClassBit,
+    kInterfaceClassBit,
+    kFinalBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -1928,6 +1950,12 @@ class Class : public Object {
   class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
   class ImplementsFinalizableBit
       : public BitField<uint32_t, bool, kImplementsFinalizableBit, 1> {};
+  class SealedBit : public BitField<uint32_t, bool, kSealedBit, 1> {};
+  class MixinClassBit : public BitField<uint32_t, bool, kMixinClassBit, 1> {};
+  class BaseClassBit : public BitField<uint32_t, bool, kBaseClassBit, 1> {};
+  class InterfaceClassBit
+      : public BitField<uint32_t, bool, kInterfaceClassBit, 1> {};
+  class FinalBit : public BitField<uint32_t, bool, kFinalBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;

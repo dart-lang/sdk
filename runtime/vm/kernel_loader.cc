@@ -1401,13 +1401,29 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   }
   class_helper->SetJustRead(ClassHelper::kImplementedClasses);
 
-  if (class_helper->is_abstract()) klass->set_is_abstract();
-
+  if (class_helper->is_abstract()) {
+    klass->set_is_abstract();
+  }
   if (class_helper->is_transformed_mixin_application()) {
     klass->set_is_transformed_mixin_application();
   }
   if (class_helper->has_const_constructor()) {
     klass->set_is_const();
+  }
+  if (class_helper->is_sealed()) {
+    klass->set_is_sealed();
+  }
+  if (class_helper->is_mixin_class()) {
+    klass->set_is_mixin_class();
+  }
+  if (class_helper->is_base()) {
+    klass->set_is_base_class();
+  }
+  if (class_helper->is_interface()) {
+    klass->set_is_interface_class();
+  }
+  if (class_helper->is_final()) {
+    klass->set_is_final();
   }
 }
 

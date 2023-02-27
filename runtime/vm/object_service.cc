@@ -127,6 +127,11 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("abstract", is_abstract());
   jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("isSealed", is_sealed());
+  jsobj.AddProperty("isMixinClass", is_mixin_class());
+  jsobj.AddProperty("isBaseClass", is_base_class());
+  jsobj.AddProperty("isInterfaceClass", is_interface_class());
+  jsobj.AddProperty("isFinal", is_final());
   jsobj.AddProperty("_finalized", is_finalized());
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", false);

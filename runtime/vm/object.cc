@@ -5455,6 +5455,31 @@ void Class::set_is_transformed_mixin_application() const {
   set_state_bits(TransformedMixinApplicationBit::update(true, state_bits()));
 }
 
+void Class::set_is_sealed() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(SealedBit::update(true, state_bits()));
+}
+
+void Class::set_is_mixin_class() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(MixinClassBit::update(true, state_bits()));
+}
+
+void Class::set_is_base_class() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(BaseClassBit::update(true, state_bits()));
+}
+
+void Class::set_is_interface_class() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(InterfaceClassBit::update(true, state_bits()));
+}
+
+void Class::set_is_final() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(FinalBit::update(true, state_bits()));
+}
+
 void Class::set_is_fields_marked_nullable() const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(FieldsMarkedNullableBit::update(true, state_bits()));

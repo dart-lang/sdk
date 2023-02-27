@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.2.0';
+const String vmServiceVersion = '4.3.0';
 
 /// @optional
 const String optional = 'optional';
@@ -3314,6 +3314,21 @@ class Class extends Obj implements ClassRef {
   /// Is this a const class?
   bool? isConst;
 
+  /// Is this a sealed class?
+  bool? isSealed;
+
+  /// Is this a mixin class?
+  bool? isMixinClass;
+
+  /// Is this a base class?
+  bool? isBaseClass;
+
+  /// Is this an interface class?
+  bool? isInterfaceClass;
+
+  /// Is this a final class?
+  bool? isFinal;
+
   /// Are allocations of this class being traced?
   bool? traceAllocations;
 
@@ -3353,6 +3368,11 @@ class Class extends Obj implements ClassRef {
     this.library,
     this.isAbstract,
     this.isConst,
+    this.isSealed,
+    this.isMixinClass,
+    this.isBaseClass,
+    this.isInterfaceClass,
+    this.isFinal,
     this.traceAllocations,
     this.interfaces,
     this.fields,
@@ -3383,6 +3403,11 @@ class Class extends Obj implements ClassRef {
     error = createServiceObject(json['error'], const ['ErrorRef']) as ErrorRef?;
     isAbstract = json['abstract'] ?? false;
     isConst = json['const'] ?? false;
+    isSealed = json['isSealed'] ?? false;
+    isMixinClass = json['isMixinClass'] ?? false;
+    isBaseClass = json['isBaseClass'] ?? false;
+    isInterfaceClass = json['isInterfaceClass'] ?? false;
+    isFinal = json['isFinal'] ?? false;
     traceAllocations = json['traceAllocations'] ?? false;
     superClass =
         createServiceObject(json['super'], const ['ClassRef']) as ClassRef?;
@@ -3416,6 +3441,11 @@ class Class extends Obj implements ClassRef {
       'library': library?.toJson(),
       'abstract': isAbstract ?? false,
       'const': isConst ?? false,
+      'isSealed': isSealed ?? false,
+      'isMixinClass': isMixinClass ?? false,
+      'isBaseClass': isBaseClass ?? false,
+      'isInterfaceClass': isInterfaceClass ?? false,
+      'isFinal': isFinal ?? false,
       'traceAllocations': traceAllocations ?? false,
       'interfaces': interfaces?.map((f) => f.toJson()).toList(),
       'fields': fields?.map((f) => f.toJson()).toList(),
