@@ -165,7 +165,6 @@ Space convertPatternToSpace(
     if (value != null) {
       return convertConstantValueToSpace(cache, value);
     }
-    assert(false, "No constant value for $pattern");
     return Space(cache.getUnknownStaticType());
   }
   assert(false, "Unexpected pattern $pattern (${pattern.runtimeType})");
