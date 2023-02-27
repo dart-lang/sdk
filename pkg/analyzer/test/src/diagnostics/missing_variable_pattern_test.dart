@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../fallback_exhaustiveness.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -617,7 +618,7 @@ LogicalOrPattern
   }
 
   test_switchStatement_case2_both() async {
-    await assertErrorsInCode(r'''
+    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case /*1*/ final a:
@@ -626,11 +627,11 @@ void f(int x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-      error(HintCode.DEAD_CODE, 59, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 59, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
-    ]);
+          error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+          error(HintCode.DEAD_CODE, 59, 4),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 59, 4),
+          error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+        ]));
 
     final node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;
     assertResolvedNodeText(node1, r'''

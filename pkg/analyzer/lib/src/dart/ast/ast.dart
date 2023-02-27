@@ -12911,10 +12911,12 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+    var previousExhaustiveness = resolver.legacySwitchExhaustiveness;
     staticType = resolver
         .analyzeSwitchExpression(this, expression, cases.length, contextType)
         .type;
     resolver.popRewrite();
+    resolver.legacySwitchExhaustiveness = previousExhaustiveness;
   }
 
   @override

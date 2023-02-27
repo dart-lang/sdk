@@ -8,6 +8,8 @@ import 'dart:convert' show jsonDecode, utf8;
 import 'dart:io' show Directory, File, Platform;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart'
+    as shared_exhaustive;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show LanguageVersionToken, Token;
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
@@ -2350,6 +2352,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       });
     }
 
+    var oldUseFallback = shared_exhaustive.useFallbackExhaustivenessAlgorithm;
+    shared_exhaustive.useFallbackExhaustivenessAlgorithm = false;
     try {
       return await CompilerContext.runWithOptions(compilationSetup.options,
           (_) async {
@@ -2405,6 +2409,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       });
     } catch (e, s) {
       return reportCrash(e, s);
+    } finally {
+      shared_exhaustive.useFallbackExhaustivenessAlgorithm = oldUseFallback;
     }
   }
 

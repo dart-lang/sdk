@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart'
+    as shared_exhaustive;
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -8078,6 +8080,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               messageSwitchExpressionEmpty, node.fileOffset, noLength));
     }
 
+    Set<Field?>? previousEnumFields = _enumFields;
     List<SwitchCaseInfo> previousSwitchPatternInfo = _switchCasePatternInfo;
     _switchCasePatternInfo = [];
 
@@ -8197,6 +8200,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     _switchCasePatternInfo = previousSwitchPatternInfo;
+    _enumFields = previousEnumFields;
 
     assert(checkStack(node, stackBase, [/*empty*/]));
 
@@ -9790,6 +9794,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node as TreeNode, stackBase = stackHeight - 2));
 
+    void handleConstantPattern(Expression expression) {
+      Set<Field?>? enumFields = _enumFields;
+      if (enumFields != null) {
+        if (expression is StaticGet) {
+          enumFields.remove(expression.target);
+        } else if (expression is NullLiteral) {
+          enumFields.remove(null);
+        }
+      }
+    }
+
     if (node is SwitchStatement) {
       assert(checkStack(node, stackBase, [
         /* guard = */ ValueKinds.ExpressionOrNull,
@@ -9815,14 +9830,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           expression = rewrite as Expression;
           case_.expressions[subIndex] = expression..parent = case_;
         }
-        Set<Field?>? enumFields = _enumFields;
-        if (enumFields != null) {
-          if (expression is StaticGet) {
-            enumFields.remove(expression.target);
-          } else if (expression is NullLiteral) {
-            enumFields.remove(null);
-          }
-        }
+        handleConstantPattern(expression);
 
         pushRewrite(case_);
         _switchCasePatternInfo.add(new ExpressionCaseInfo(expression,
@@ -9838,6 +9846,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         Object? rewrite = popRewrite();
         if (!identical(rewrite, patternGuard.pattern)) {
           patternGuard.pattern = (rewrite as Pattern)..parent = patternGuard;
+        }
+        if (patternGuard.guard == null) {
+          Pattern pattern = patternGuard.pattern;
+          if (pattern is ConstantPattern) {
+            handleConstantPattern(pattern.expression);
+          }
         }
 
         pushRewrite(case_);
@@ -9869,6 +9883,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       if (pattern != null && !identical(patternGuard.pattern, pattern)) {
         patternGuard.pattern = (pattern as Pattern)..parent = patternGuard;
+      }
+      if (patternGuard.guard == null) {
+        Pattern pattern = patternGuard.pattern;
+        if (pattern is ConstantPattern) {
+          handleConstantPattern(pattern.expression);
+        }
       }
       _switchCasePatternInfo.add(new PatternCaseInfo(patternGuard.pattern,
           fileOffset: switchExpressionCase.fileOffset));
@@ -9919,7 +9939,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void handleSwitchScrutinee(DartType type) {
-    if (!options.patternsEnabled &&
+    if ((!options.patternsEnabled ||
+            shared_exhaustive.useFallbackExhaustivenessAlgorithm) &&
         type is InterfaceType &&
         type.classNode.isEnum) {
       _enumFields = <Field?>{

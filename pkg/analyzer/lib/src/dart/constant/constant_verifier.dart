@@ -793,29 +793,31 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
     // Compute and report errors.
     final errors = reportErrors(scrutineeTypeEx, caseSpaces, remainingSpaces);
-    for (final error in errors) {
-      if (error is UnreachableCaseError) {
-        final caseNode = caseNodesWithSpace[error.index];
-        final Token errorToken;
-        if (caseNode is SwitchExpressionCase) {
-          errorToken = caseNode.arrow;
-        } else if (caseNode is SwitchPatternCase) {
-          errorToken = caseNode.keyword;
-        } else {
-          throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
+    if (!useFallbackExhaustivenessAlgorithm) {
+      for (final error in errors) {
+        if (error is UnreachableCaseError) {
+          final caseNode = caseNodesWithSpace[error.index];
+          final Token errorToken;
+          if (caseNode is SwitchExpressionCase) {
+            errorToken = caseNode.arrow;
+          } else if (caseNode is SwitchPatternCase) {
+            errorToken = caseNode.keyword;
+          } else {
+            throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
+          }
+          _errorReporter.reportErrorForToken(
+            HintCode.UNREACHABLE_SWITCH_CASE,
+            errorToken,
+          );
+        } else if (error is NonExhaustiveError &&
+            _typeSystem.isAlwaysExhaustive(scrutineeType) &&
+            !hasDefault) {
+          _errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
+            switchKeyword,
+            [scrutineeType, error.witness],
+          );
         }
-        _errorReporter.reportErrorForToken(
-          HintCode.UNREACHABLE_SWITCH_CASE,
-          errorToken,
-        );
-      } else if (error is NonExhaustiveError &&
-          _typeSystem.isAlwaysExhaustive(scrutineeType) &&
-          !hasDefault) {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
-          switchKeyword,
-          [scrutineeType, error.witness],
-        );
       }
     }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../exhaustiveness/exhaustive.dart';
 import '../flow_analysis/flow_analysis.dart';
 import 'type_analysis_result.dart';
 import 'type_operations.dart';
@@ -1592,7 +1593,9 @@ mixin TypeAnalyzer<
     lubType ??= dynamicType;
     // Stack: (Expression, numCases * ExpressionCase)
     bool isProvenExhaustive = flow.switchStatement_end(true);
-    if (options.errorOnSwitchExhaustiveness && !isProvenExhaustive) {
+    if (options.errorOnSwitchExhaustiveness &&
+        !isProvenExhaustive &&
+        !isLegacySwitchExhaustive(node, expressionType)) {
       errors?.nonExhaustiveSwitch(node: node, scrutineeType: expressionType);
     }
     return new SimpleTypeAnalysisResult<Type>(type: lubType);
@@ -1714,7 +1717,8 @@ mixin TypeAnalyzer<
     bool isProvenExhaustive = flow.switchStatement_end(isExhaustive);
     if (options.errorOnSwitchExhaustiveness &&
         requiresExhaustivenessValidation &&
-        !isProvenExhaustive) {
+        !isProvenExhaustive &&
+        !isLegacySwitchExhaustive(node, scrutineeType)) {
       errors?.nonExhaustiveSwitch(node: node, scrutineeType: scrutineeType);
     }
     return new SwitchStatementTypeAnalysisResult<Type>(
@@ -2484,5 +2488,7 @@ class TypeAnalyzerOptions {
   TypeAnalyzerOptions(
       {required this.nullSafetyEnabled,
       required this.patternsEnabled,
-      this.errorOnSwitchExhaustiveness = false});
+      bool? errorOnSwitchExhaustiveness})
+      : errorOnSwitchExhaustiveness =
+            errorOnSwitchExhaustiveness ?? useFallbackExhaustivenessAlgorithm;
 }

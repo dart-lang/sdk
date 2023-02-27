@@ -16,9 +16,11 @@ main() {
 @reflectiveTest
 class SwitchExpressionResolutionTest extends PubPackageResolutionTest {
   test_cases_empty() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 final a = switch (0) {};
-''');
+''', [
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 10, 6),
+    ]);
 
     final node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
