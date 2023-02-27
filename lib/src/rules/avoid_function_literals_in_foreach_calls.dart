@@ -54,7 +54,7 @@ bool _hasMethodChaining(MethodInvocation node) {
 
 bool _isNonNullableIterable(DartType? type) =>
     type != null &&
-    type.nullabilitySuffix != NullabilitySuffix.question &&
+    type.nullabilitySuffix == NullabilitySuffix.none &&
     type.implementsInterface('Iterable', 'dart.core');
 
 class AvoidFunctionLiteralInForeachMethod extends LintRule {
