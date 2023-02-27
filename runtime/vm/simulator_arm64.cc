@@ -2340,8 +2340,70 @@ void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
   }
 }
 
+void Simulator::DecodeAtomicMemory(Instr* instr) {
+  const int32_t size = instr->Bits(30, 2);
+  std::memory_order order;
+  switch (instr->Bits(22, 2)) {
+    case 3:
+      order = std::memory_order_acq_rel;
+      break;
+    case 2:
+      order = std::memory_order_acquire;
+      break;
+    case 1:
+      order = std::memory_order_release;
+      break;
+    case 0:
+      order = std::memory_order_relaxed;
+      break;
+  }
+  const Register rs = instr->RsField();
+  const Register rn = instr->RnField();
+  const Register rt = instr->RtField();
+  const int32_t opc = instr->Bits(12, 3);
+
+  if (size == 3) {
+    uint64_t in = get_register(rs, R31IsZR);
+    auto addr =
+        reinterpret_cast<std::atomic<uint64_t>*>(get_register(rn, R31IsSP));
+    uint64_t out;
+    switch (opc) {
+      case 1:
+        out = addr->fetch_and(~in, order);
+        break;
+      case 3:
+        out = addr->fetch_or(in, order);
+        break;
+      default:
+        UNIMPLEMENTED();
+    }
+    set_register(instr, rt, out, R31IsZR);
+  } else if (size == 2) {
+    ASSERT(size == 2);
+    uint32_t in = get_wregister(rs, R31IsZR);
+    auto addr =
+        reinterpret_cast<std::atomic<uint32_t>*>(get_register(rn, R31IsSP));
+    uint32_t out;
+    switch (opc) {
+      case 1:
+        out = addr->fetch_and(~in, order);
+        break;
+      case 3:
+        out = addr->fetch_or(in, order);
+        break;
+      default:
+        UNIMPLEMENTED();
+    }
+    set_wregister(rt, out, R31IsZR);
+  } else {
+    UNIMPLEMENTED();
+  }
+}
+
 void Simulator::DecodeLoadStore(Instr* instr) {
-  if (instr->IsLoadStoreRegOp()) {
+  if (instr->IsAtomicMemoryOp()) {
+    DecodeAtomicMemory(instr);
+  } else if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
   } else if (instr->IsLoadStoreRegPairOp()) {
     DecodeLoadStoreRegPair(instr);
@@ -2679,7 +2741,8 @@ void Simulator::DecodeMiscDP2Source(Instr* instr) {
       // Format(instr, "sdiv'sf 'rd, 'rn, 'rm");
       const bool is_signed = instr->Bit(10) == 1;
       if (instr->SFField() == 1) {
-        set_register(instr, rd, divide64(rn_val64, rm_val64, is_signed), R31IsZR);
+        set_register(instr, rd, divide64(rn_val64, rm_val64, is_signed),
+                     R31IsZR);
       } else {
         set_wregister(rd, divide32(rn_val32, rm_val32, is_signed), R31IsZR);
       }

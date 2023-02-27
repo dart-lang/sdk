@@ -816,6 +816,20 @@ void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
   }
 }
 
+void ARM64Decoder::DecodeAtomicMemory(Instr* instr) {
+  switch (instr->Bits(12, 3)) {
+    case 1:
+      Format(instr, "ldclr'sz 'rs, 'rt, ['rn]");
+      break;
+    case 3:
+      Format(instr, "ldset'sz 'rs, 'rt, ['rn]");
+      break;
+    default:
+      Unknown(instr);
+      break;
+  }
+}
+
 void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   switch (instr->Bit(30)) {
     case 0: {
@@ -1069,7 +1083,9 @@ void ARM64Decoder::DecodeCompareBranch(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeLoadStore(Instr* instr) {
-  if (instr->IsLoadStoreRegOp()) {
+  if (instr->IsAtomicMemoryOp()) {
+    DecodeAtomicMemory(instr);
+  } else if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
   } else if (instr->IsLoadStoreRegPairOp()) {
     DecodeLoadStoreRegPair(instr);
