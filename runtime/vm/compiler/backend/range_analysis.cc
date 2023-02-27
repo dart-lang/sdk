@@ -2792,6 +2792,8 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       Definition::InferRange(analysis, range);
       break;
 
+    case Slot::Kind::kReceivePort_send_port:
+    case Slot::Kind::kReceivePort_handler:
     case Slot::Kind::kLinkedHashBase_index:
     case Slot::Kind::kImmutableLinkedHashBase_index:
     case Slot::Kind::kLinkedHashBase_data:

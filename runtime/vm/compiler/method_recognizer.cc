@@ -292,6 +292,7 @@ void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
   libs->Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   libs->Add(&Library::ZoneHandle(Library::ConvertLibrary()));
   libs->Add(&Library::ZoneHandle(Library::InternalLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::IsolateLibrary()));
   libs->Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   libs->Add(&Library::ZoneHandle(Library::AsyncLibrary()));
   libs->Add(&Library::ZoneHandle(Library::FfiLibrary()));

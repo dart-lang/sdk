@@ -12143,10 +12143,18 @@ class Capability : public Instance {
 class ReceivePort : public Instance {
  public:
   SendPortPtr send_port() const { return untag()->send_port(); }
+  static intptr_t send_port_offset() {
+    return OFFSET_OF(UntaggedReceivePort, send_port_);
+  }
   Dart_Port Id() const { return send_port()->untag()->id_; }
 
   InstancePtr handler() const { return untag()->handler(); }
-  void set_handler(const Instance& value) const;
+  void set_handler(const Instance& value) const {
+    untag()->set_handler(value.ptr());
+  }
+  static intptr_t handler_offset() {
+    return OFFSET_OF(UntaggedReceivePort, handler_);
+  }
 
 #if !defined(PRODUCT)
   StackTracePtr allocation_location() const {

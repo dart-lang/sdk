@@ -15192,6 +15192,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::ConvertLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::IsolateLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::NativeWrappersLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));

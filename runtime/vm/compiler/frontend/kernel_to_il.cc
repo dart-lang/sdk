@@ -876,6 +876,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(FinalizerEntry_getValue, FinalizerEntry_value)                             \
   V(NativeFinalizer_getCallback, NativeFinalizer_callback)                     \
   V(GrowableArrayLength, GrowableObjectArray_length)                           \
+  V(ReceivePort_getSendPort, ReceivePort_send_port)                            \
+  V(ReceivePort_getHandler, ReceivePort_handler)                               \
   V(ImmutableLinkedHashBase_getData, ImmutableLinkedHashBase_data)             \
   V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)           \
   V(LinkedHashBase_getData, LinkedHashBase_data)                               \
@@ -901,6 +903,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(FinalizerBase_setDetachments, FinalizerBase_detachments)                   \
   V(FinalizerEntry_setToken, FinalizerEntry_token)                             \
   V(NativeFinalizer_setCallback, NativeFinalizer_callback)                     \
+  V(ReceivePort_setHandler, ReceivePort_handler)                               \
   V(LinkedHashBase_setData, LinkedHashBase_data)                               \
   V(LinkedHashBase_setIndex, LinkedHashBase_index)                             \
   V(SuspendState_setFunctionData, SuspendState_function_data)                  \

@@ -272,6 +272,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 4;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 8;
 static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -952,6 +954,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 16;
 static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
@@ -1635,6 +1639,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 4;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 8;
 static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -2315,6 +2321,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 16;
 static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
@@ -3000,6 +3008,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 12;
 static constexpr dart::compiler::target::word Record_shape_offset = 12;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
@@ -3685,6 +3695,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 12;
 static constexpr dart::compiler::target::word Record_shape_offset = 12;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
@@ -4370,6 +4382,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 4;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 8;
 static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -5052,6 +5066,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 16;
 static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
@@ -5730,6 +5746,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 4;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 8;
 static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -6402,6 +6420,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 16;
 static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
@@ -7077,6 +7097,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 4;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 8;
 static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -7749,6 +7771,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 16;
 static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
@@ -8426,6 +8450,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 12;
 static constexpr dart::compiler::target::word Record_shape_offset = 12;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
@@ -9103,6 +9129,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 12;
 static constexpr dart::compiler::target::word Record_shape_offset = 12;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
@@ -9780,6 +9808,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 4;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 8;
 static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -10454,6 +10484,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word ReceivePort_send_port_offset = 8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 16;
 static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
@@ -11165,6 +11197,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    4;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    8;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
@@ -11918,6 +11954,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    16;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
@@ -12678,6 +12718,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    16;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
@@ -13436,6 +13480,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    12;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
@@ -14194,6 +14242,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    12;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
@@ -14952,6 +15004,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    4;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    8;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
@@ -15707,6 +15763,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    16;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
@@ -16457,6 +16517,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    4;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    8;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
@@ -17201,6 +17265,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    16;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
@@ -17952,6 +18020,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    16;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
@@ -18701,6 +18773,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    12;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
@@ -19450,6 +19526,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    12;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
@@ -20199,6 +20279,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    4;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    8;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
@@ -20945,6 +21029,10 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
+    16;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
