@@ -80,6 +80,11 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
+  bool isDynamic(DartType type) {
+    return type is DynamicType;
+  }
+
+  @override
   bool isRecordType(DartType type) {
     return type is RecordType && !isNullable(type);
   }
@@ -344,7 +349,8 @@ class PatternCaseInfo extends SwitchCaseInfo {
   @override
   Space createSpace(CfeExhaustivenessCache cache,
       Map<Node, Constant?> constants, StaticTypeContext context) {
-    return convertPatternToSpace(cache, pattern, constants, context);
+    return convertPatternToSpace(cache, pattern, constants, context,
+        nonNull: false);
   }
 }
 
@@ -383,17 +389,27 @@ Space convertExpressionToSpace(
 }
 
 Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
-    Map<Node, Constant?> constants, StaticTypeContext context) {
+    Map<Node, Constant?> constants, StaticTypeContext context,
+    {required bool nonNull}) {
   if (pattern is ObjectPattern) {
     DartType type = pattern.objectType;
     Map<String, Space> fields = {};
     for (NamedPattern field in pattern.fields) {
-      fields[field.name] =
-          convertPatternToSpace(cache, field.pattern, constants, context);
+      fields[field.name] = convertPatternToSpace(
+          cache, field.pattern, constants, context,
+          nonNull: false);
     }
-    return new Space(cache.getStaticType(type), fields);
+    StaticType staticType = cache.getStaticType(type);
+    if (nonNull) {
+      staticType = staticType.nonNullable;
+    }
+    return new Space(staticType, fields);
   } else if (pattern is VariablePattern) {
-    return new Space(cache.getStaticType(pattern.variable.type));
+    StaticType staticType = cache.getStaticType(pattern.variable.type);
+    if (nonNull) {
+      staticType = staticType.nonNullable;
+    }
+    return new Space(staticType);
   } else if (pattern is ConstantPattern) {
     return convertExpressionToSpace(
         cache, pattern.expression, constants, context);
@@ -410,17 +426,36 @@ Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
         name = '\$${index++}';
         subpattern = field;
       }
-      fields[name] =
-          convertPatternToSpace(cache, subpattern, constants, context);
+      fields[name] = convertPatternToSpace(
+          cache, subpattern, constants, context,
+          nonNull: false);
     }
     return new Space(cache.getStaticType(pattern.type), fields);
   } else if (pattern is WildcardPattern) {
     final DartType? type = pattern.type;
     if (type == null) {
-      return Space.top;
+      if (nonNull) {
+        return new Space(StaticType.nonNullableObject);
+      } else {
+        return Space.top;
+      }
     } else {
-      return new Space(cache.getStaticType(type));
+      StaticType staticType = cache.getStaticType(type);
+      if (nonNull) {
+        staticType = staticType.nonNullable;
+      }
+      return new Space(staticType);
     }
+  } else if (pattern is OrPattern) {
+    return new Space.union([
+      convertPatternToSpace(cache, pattern.left, constants, context,
+          nonNull: nonNull),
+      convertPatternToSpace(cache, pattern.right, constants, context,
+          nonNull: nonNull)
+    ]);
+  } else if (pattern is NullCheckPattern) {
+    return convertPatternToSpace(cache, pattern.pattern, constants, context,
+        nonNull: true);
   }
 
   // TODO(johnniwinther): Handle remaining constants.

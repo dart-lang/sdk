@@ -55,10 +55,15 @@ Space convertConstantValueToSpace(
 Space convertPatternToSpace(
     AnalyzerExhaustivenessCache cache,
     DartPattern pattern,
-    Map<ConstantPattern, DartObjectImpl> constantPatternValues) {
+    Map<ConstantPattern, DartObjectImpl> constantPatternValues,
+    {required bool nonNull}) {
   if (pattern is DeclaredVariablePatternImpl) {
     DartType type = pattern.declaredElement!.type;
-    return Space(cache.getStaticType(type));
+    StaticType staticType = cache.getStaticType(type);
+    if (nonNull) {
+      staticType = staticType.nonNullable;
+    }
+    return Space(staticType);
   } else if (pattern is ObjectPattern) {
     Map<String, Space> fields = {};
     for (PatternField field in pattern.fields) {
@@ -73,18 +78,31 @@ Space convertPatternToSpace(
         // TODO(johnniwinther): How do we handle error cases?
         continue;
       }
-      fields[name] =
-          convertPatternToSpace(cache, field.pattern, constantPatternValues);
+      fields[name] = convertPatternToSpace(
+          cache, field.pattern, constantPatternValues,
+          nonNull: false);
     }
     final type = pattern.type.typeOrThrow;
-    return Space(cache.getStaticType(type), fields);
+    StaticType staticType = cache.getStaticType(type);
+    if (nonNull) {
+      staticType = staticType.nonNullable;
+    }
+    return Space(staticType, fields);
   } else if (pattern is WildcardPattern) {
     final typeNode = pattern.type;
     if (typeNode == null) {
-      return Space.top;
+      if (nonNull) {
+        return Space(StaticType.nonNullableObject);
+      } else {
+        return Space.top;
+      }
     } else {
       final type = typeNode.typeOrThrow;
-      return Space(cache.getStaticType(type));
+      StaticType staticType = cache.getStaticType(type);
+      if (nonNull) {
+        staticType = staticType.nonNullable;
+      }
+      return Space(staticType);
     }
   } else if (pattern is RecordPattern) {
     int index = 1;
@@ -110,14 +128,28 @@ Space convertPatternToSpace(
           continue;
         }
       }
-      fields[name] =
-          convertPatternToSpace(cache, field.pattern, constantPatternValues);
+      fields[name] = convertPatternToSpace(
+          cache, field.pattern, constantPatternValues,
+          nonNull: false);
     }
     RecordType recordType = RecordType(
         positional: positional,
         named: named,
         nullabilitySuffix: NullabilitySuffix.none);
     return Space(cache.getStaticType(recordType), fields);
+  } else if (pattern is LogicalOrPattern) {
+    return Space.union([
+      convertPatternToSpace(cache, pattern.leftOperand, constantPatternValues,
+          nonNull: nonNull),
+      convertPatternToSpace(cache, pattern.rightOperand, constantPatternValues,
+          nonNull: nonNull)
+    ]);
+  } else if (pattern is NullCheckPattern) {
+    return convertPatternToSpace(cache, pattern.pattern, constantPatternValues,
+        nonNull: true);
+  } else if (pattern is ParenthesizedPattern) {
+    return convertPatternToSpace(cache, pattern.pattern, constantPatternValues,
+        nonNull: nonNull);
   }
   // TODO(johnniwinther): Handle remaining patterns.
   DartObjectImpl? value = constantPatternValues[pattern];
@@ -304,6 +336,11 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   @override
   bool isBoolType(DartType type) {
     return type.isDartCoreBool && !isNullable(type);
+  }
+
+  @override
+  bool isDynamic(DartType type) {
+    return type is DynamicType;
   }
 
   @override

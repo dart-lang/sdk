@@ -223,8 +223,6 @@ void f(E x) {
     ]);
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
   test_alwaysExhaustive_enum_2at2_logicalOr() async {
     await assertNoErrorsInCode(
       r'''

@@ -37,6 +37,9 @@ abstract class TypeOperations<Type extends Object> {
   /// Returns `true` if [type] is the `Object` type.
   bool isNonNullableObject(Type type);
 
+  /// Returns `true` if [type] is the `dynamic` type.
+  bool isDynamic(Type type);
+
   /// Returns `true` if [type] is the `bool` type.
   bool isBoolType(Type type);
 
@@ -106,7 +109,6 @@ abstract class SealedClassOperations<Type extends Object,
   /// It is assumed that `TypeOperations.isSealedClass` is `true` for
   /// [sealedClassType] and that [subClass] is in `getDirectSubclasses` for
   /// `getSealedClass` of [sealedClassType].
-  ///
   Type? getSubclassAsInstanceOf(Class subClass, Type sealedClassType);
 }
 
@@ -181,7 +183,8 @@ class ExhaustivenessCache<
       return StaticType.nullType;
     } else if (_typeOperations.isNonNullableObject(type)) {
       return StaticType.nonNullableObject;
-    } else if (_typeOperations.isNullableObject(type)) {
+    } else if (_typeOperations.isNullableObject(type) ||
+        _typeOperations.isDynamic(type)) {
       return StaticType.nullableObject;
     }
 

@@ -10641,8 +10641,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.lengthTarget = lengthTarget.member!;
 
     // In map patterns the rest pattern can appear only in the end.
-    node.hasRestPattern = node.entries.isNotEmpty &&
-        identical(node.entries.last, restMapPatternEntry);
+    node.hasRestPattern =
+        node.entries.isNotEmpty && node.entries.last is MapPatternRestEntry;
 
     if (node.hasRestPattern) {
       ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
@@ -11017,16 +11017,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   bool isRestPatternElement(Node node) {
-    if (node is MapPatternEntry) {
-      return identical(node, restMapPatternEntry);
-    } else {
-      return node is RestPattern;
-    }
+    return node is RestPattern || node is MapPatternRestEntry;
   }
 
   @override
   Pattern? getRestPatternElementPattern(TreeNode node) {
-    if (identical(node, restMapPatternEntry)) {
+    if (node is MapPatternRestEntry) {
       return null;
     } else {
       return (node as RestPattern).subPattern;
@@ -11068,7 +11064,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   shared.MapPatternEntry<Expression, Pattern>? getMapPatternEntry(
       TreeNode element) {
     element as MapPatternEntry;
-    if (identical(element, restMapPatternEntry)) {
+    if (element is MapPatternRestEntry) {
       return null;
     } else {
       return new shared.MapPatternEntry<Expression, Pattern>(

@@ -21,7 +21,7 @@ switchADynamic(A<dynamic> o) {
   };
 }
 
-switchAInt(A<num> o) {
+switchANum(A<num> o) {
   var a = /*
    fields={hashCode:int,runtimeType:Type},
    type=A<num>
