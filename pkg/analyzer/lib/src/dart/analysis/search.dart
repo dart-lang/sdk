@@ -738,6 +738,11 @@ class Search {
     PatternVariableElementImpl element,
     SearchedFiles searchedFiles,
   ) async {
+    String path = element.source.fullName;
+    if (!searchedFiles.add(path, this)) {
+      return const <SearchResult>[];
+    }
+
     var rootVariable = element.rootVariable;
     var transitiveVariables = rootVariable is JoinPatternVariableElementImpl
         ? rootVariable.transitiveVariables
