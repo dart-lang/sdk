@@ -2253,6 +2253,58 @@
     },
     {
       "builders": [
+        "vm-linux-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is for the ARM64 JIT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 1
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-linux-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is for the ARM64 AOT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dart_precompiled_runtime",
+            "gen_snapshot",
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 1
+        }
+      ]
+    },
+    {
+      "builders": [
         "cross-vm-linux-release-arm64"
       ],
       "meta": {
