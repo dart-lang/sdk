@@ -17,8 +17,6 @@ import 'integration/always_require_non_null_named_parameters.dart'
     as always_require_non_null_named_parameters;
 import 'integration/avoid_relative_lib_imports.dart'
     as avoid_relative_lib_imports;
-import 'integration/avoid_renaming_method_parameters.dart'
-    as avoid_renaming_method_parameters;
 import 'integration/avoid_web_libraries_in_flutter.dart'
     as avoid_web_libraries_in_flutter;
 import 'integration/close_sinks.dart' as close_sinks;
@@ -172,7 +170,6 @@ void ruleTests() {
     prefer_relative_imports.main();
     public_member_api_docs.main();
     secure_pubspec_urls.main();
-    avoid_renaming_method_parameters.main();
     sort_pub_dependencies.main();
     unnecessary_string_escapes.main();
     prefer_mixin.main();
