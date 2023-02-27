@@ -61,6 +61,9 @@ abstract class StaticType {
   /// Returns the nullable static type corresponding to this type.
   StaticType get nullable;
 
+  /// Returns the non-nullable static type corresponding to this type.
+  StaticType get nonNullable;
+
   /// The immediate subtypes of this type.
   Iterable<StaticType> get subtypes;
 }
@@ -98,6 +101,9 @@ class _NonNullableObject extends _BaseStaticType {
 
   @override
   StaticType get nullable => StaticType.nullableObject;
+
+  @override
+  StaticType get nonNullable => this;
 }
 
 class _NeverType extends _BaseStaticType {
@@ -117,6 +123,9 @@ class _NeverType extends _BaseStaticType {
 
   @override
   StaticType get nullable => StaticType.nullType;
+
+  @override
+  StaticType get nonNullable => this;
 }
 
 class _NullType extends NullableStaticType {
@@ -163,6 +172,9 @@ class NullableStaticType extends _BaseStaticType {
   StaticType get nullable => this;
 
   @override
+  StaticType get nonNullable => underlying;
+
+  @override
   int get hashCode => underlying.hashCode * 11;
 
   @override
@@ -175,6 +187,9 @@ class NullableStaticType extends _BaseStaticType {
 abstract class NonNullableStaticType extends _BaseStaticType {
   @override
   late final StaticType nullable = new NullableStaticType(this);
+
+  @override
+  StaticType get nonNullable => this;
 
   @override
   bool isSubtypeOf(StaticType other) {

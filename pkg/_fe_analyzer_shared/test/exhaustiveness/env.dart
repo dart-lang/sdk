@@ -304,6 +304,11 @@ class _TypeOperations implements TypeOperations<_Type> {
   }
 
   @override
+  bool isDynamic(_Type type) {
+    return type == _Type.NullableObject;
+  }
+
+  @override
   bool isNullType(_Type type) {
     return type == _Type.Null;
   }

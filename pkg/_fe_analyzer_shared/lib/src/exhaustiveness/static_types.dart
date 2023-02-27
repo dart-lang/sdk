@@ -37,6 +37,9 @@ abstract class TypeOperations<Type extends Object> {
   /// Returns `true` if [type] is the `Object` type.
   bool isNonNullableObject(Type type);
 
+  /// Returns `true` if [type] is the `dynamic` type.
+  bool isDynamic(Type type);
+
   /// Returns `true` if [type] is the `bool` type.
   bool isBoolType(Type type);
 
@@ -180,7 +183,8 @@ class ExhaustivenessCache<
       return StaticType.nullType;
     } else if (_typeOperations.isNonNullableObject(type)) {
       return StaticType.nonNullableObject;
-    } else if (_typeOperations.isNullableObject(type)) {
+    } else if (_typeOperations.isNullableObject(type) ||
+        _typeOperations.isDynamic(type)) {
       return StaticType.nullableObject;
     }
 
