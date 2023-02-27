@@ -10,6 +10,7 @@
 
 #include <errno.h>  // NOLINT
 #include <stdio.h>
+#include <sys/prctl.h>
 #include <sys/resource.h>  // NOLINT
 #include <sys/time.h>      // NOLINT
 
@@ -218,9 +219,10 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
 #endif  // SUPPORT_TIMELINE
 
 char* OSThread::GetCurrentThreadName() {
-  // TODO(derekx): |pthread_getname_np| isn't defined on Android, so we need to
-  // find an alternative solution.
-  return nullptr;
+  const intptr_t kNameBufferSize = 16;
+  char* name = static_cast<char*>(malloc(kNameBufferSize));
+  prctl(PR_GET_NAME, name);
+  return name;
 }
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {

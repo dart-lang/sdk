@@ -11,6 +11,9 @@
 #include <sys/resource.h>  // NOLINT
 #include <sys/syscall.h>   // NOLINT
 #include <sys/time.h>      // NOLINT
+#if defined(DART_HOST_OS_ANDROID)
+#include <sys/prctl.h>
+#endif  // defined(DART_HOST_OS_ANDROID)
 
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
@@ -230,16 +233,16 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
 #endif  // SUPPORT_TIMELINE
 
 char* OSThread::GetCurrentThreadName() {
-#if defined(DART_HOST_OS_ANDROID)
-  // TODO(derekx): |pthread_getname_np| isn't defined on Android, so we need to
-  // find an alternative solution.
-  return nullptr;
-#elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS)
   const intptr_t kNameBufferSize = 16;
   char* name = static_cast<char*>(malloc(kNameBufferSize));
+
+#if defined(DART_HOST_OS_ANDROID)
+  prctl(PR_GET_NAME, name);
+#elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS)
   pthread_getname_np(pthread_self(), name, kNameBufferSize);
-  return name;
 #endif
+
+  return name;
 }
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
