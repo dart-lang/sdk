@@ -599,21 +599,50 @@ AssignmentExpression
   }
 
   test_notLValue_parenthesized_simple() async {
-    // TODO(paulberry): remove `// @dart = 2.18` - see
-    // https://github.com/dart-lang/sdk/issues/50502
     await assertErrorsInCode(r'''
-// @dart = 2.18
-void f(int a, int b, double c) {
-  (a + b) = c;
+void f(int a, double b) {
+  (a + 0) = b;
 }
 ''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 51, 7),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 51, 7),
+      error(CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          29, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 31, 1),
     ]);
 
-    var assignment = findNode.assignment('= c');
+    var node = findNode.singlePatternAssignment;
+    assertResolvedNodeText(node, r'''
+PatternAssignment
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: AssignedVariablePattern
+      name: a
+      element: self::@function::f::@parameter::a
+      matchedValueType: double
+    rightParenthesis: )
+    matchedValueType: double
+  equals: =
+  expression: SimpleIdentifier
+    token: b
+    staticElement: self::@function::f::@parameter::b
+    staticType: double
+  patternTypeSchema: int
+  staticType: double
+''');
+  }
 
-    assertResolvedNodeText(assignment, r'''
+  test_notLValue_parenthesized_simple_language219() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.19
+void f(int a, double b) {
+  (a + 0) = b;
+}
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 44, 7),
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 44, 7),
+    ]);
+
+    var node = findNode.assignment('= b');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: ParenthesizedExpression
     leftParenthesis: (
@@ -623,10 +652,9 @@ AssignmentExpression
         staticElement: self::@function::f::@parameter::a
         staticType: int
       operator: +
-      rightOperand: SimpleIdentifier
-        token: b
+      rightOperand: IntegerLiteral
+        literal: 0
         parameter: dart:core::@class::num::@method::+::@parameter::other
-        staticElement: self::@function::f::@parameter::b
         staticType: int
       staticElement: dart:core::@class::num::@method::+
       staticInvokeType: num Function(num)
@@ -635,9 +663,9 @@ AssignmentExpression
     staticType: int
   operator: =
   rightHandSide: SimpleIdentifier
-    token: c
+    token: b
     parameter: <null>
-    staticElement: self::@function::f::@parameter::c
+    staticElement: self::@function::f::@parameter::b
     staticType: double
   readElement: <null>
   readType: null
