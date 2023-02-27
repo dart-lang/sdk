@@ -748,6 +748,7 @@ intermediate
 internet
 interop
 interpolations
+interpretation
 interrupted
 intersections
 intersects
@@ -822,6 +823,7 @@ leeway
 left's
 legitimately
 len
+lengths
 lets
 letting
 levels
