@@ -2256,9 +2256,7 @@ main() {
   }
 }
 ''');
-    var foo = findElement.localFunction('foo');
-    // TODO(scheglov) Can we do better?
-    final element = foo.typeParameters.single;
+    final element = findElement.typeParameter('T');
     await assertElementReferencesText(element, r'''
 self::@function::main
   23 2:15 |T| REFERENCE
@@ -2304,8 +2302,7 @@ void f(x) {
   v();
 }
 ''');
-    // TODO(scheglov) Can we do better (here and below)?
-    final element = findNode.declaredVariablePattern('v) =').declaredElement!;
+    final element = findNode.bindPatternVariableElement('v) =');
     await assertElementReferencesText(element, r'''
 self::@function::f
   29 3:3 |v| WRITE
@@ -2323,7 +2320,7 @@ void f(Object? x) {
   }
 }
 ''');
-    final element = findNode.declaredVariablePattern('v)').declaredElement!;
+    final element = findNode.bindPatternVariableElement('v)');
     await assertElementReferencesText(element, r'''
 self::@function::f
   46 3:5 |v| READ
@@ -2339,7 +2336,7 @@ void f(Object? x) {
   }
 }
 ''');
-    final element = findNode.declaredVariablePattern('v]').declaredElement!;
+    final element = findNode.bindPatternVariableElement('v]');
     await assertElementReferencesText(element, r'''
 self::@function::f
   57 3:5 |v| READ
@@ -2370,7 +2367,7 @@ Object f(Object? x) => switch (0) {
   _ => -1,
 }
 ''');
-    final element = findNode.declaredVariablePattern('int v').declaredElement!;
+    final element = findNode.bindPatternVariableElement('int v');
     await assertElementReferencesText(element, r'''
 self::@function::f
   49 2:14 |v| READ
@@ -2390,8 +2387,7 @@ void f(Object? x) {
   }
 }
 ''');
-    final element =
-        findNode.declaredVariablePattern('int v when').declaredElement!;
+    final element = findNode.bindPatternVariableElement('int v when');
     await assertElementReferencesText(element, r'''
 self::@function::f
   55 3:21 |v| READ
@@ -2412,8 +2408,7 @@ void f(Object? x) {
   }
 }
 ''');
-    final element =
-        findNode.declaredVariablePattern('int v when').declaredElement!;
+    final element = findNode.bindPatternVariableElement('int v when');
     await assertElementReferencesText(element, r'''
 self::@function::f
   55 3:21 |v| READ

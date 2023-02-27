@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
@@ -185,6 +186,11 @@ class FindNode {
 
   BinaryExpression binary(String search) {
     return _node(search, (n) => n is BinaryExpression);
+  }
+
+  BindPatternVariableElement bindPatternVariableElement(String search) {
+    final node = declaredVariablePattern(search);
+    return node.declaredElement!;
   }
 
   Block block(String search) {
