@@ -3731,7 +3731,7 @@ class ConstantPattern extends Pattern {
 
   @override
   String toString() {
-    return "ExpressionPattern(${toStringInternal()})";
+    return "ConstantPattern(${toStringInternal()})";
   }
 }
 
@@ -3770,7 +3770,8 @@ class AndPattern extends Pattern {
 class OrPattern extends Pattern {
   Pattern left;
   Pattern right;
-  List<VariableDeclaration> orPatternJointVariables;
+
+  final List<VariableDeclaration> orPatternJointVariables;
 
   @override
   List<VariableDeclaration> get declaredVariables => orPatternJointVariables;
@@ -3803,7 +3804,7 @@ class OrPattern extends Pattern {
 /// A [Pattern] for `pattern as type`.
 class CastPattern extends Pattern {
   Pattern pattern;
-  DartType type;
+  final DartType type;
 
   CastPattern(this.pattern, this.type, int fileOffset) : super(fileOffset) {
     pattern.parent = this;
@@ -4196,14 +4197,14 @@ class WildcardPattern extends Pattern {
 
   @override
   String toString() {
-    return "WildcardBinder(${toStringInternal()})";
+    return "WildcardPattern(${toStringInternal()})";
   }
 }
 
 class PatternVariableDeclaration extends InternalStatement {
   Pattern pattern;
   Expression initializer;
-  bool isFinal;
+  final bool isFinal;
 
   PatternVariableDeclaration(this.pattern, this.initializer,
       {required int fileOffset, required this.isFinal}) {
@@ -4350,22 +4351,14 @@ class IfCaseStatement extends InternalStatement {
 final MapPatternEntry dummyMapPatternEntry =
     new MapPatternEntry(dummyPattern, dummyPattern, TreeNode.noOffset);
 
-/// This is used as a sentinel value to mark the occurrence of the rest pattern
-final MapPatternEntry restMapPatternEntry = new MapPatternEntry(
-    new ConstantPattern(new NullLiteral()),
-    new ConstantPattern(new NullLiteral()),
-    TreeNode.noOffset);
-
 class MapPatternEntry extends TreeNode with InternalTreeNode {
-  final Pattern key;
-  final Pattern value;
+  Pattern key;
+  Pattern value;
 
-  @override
-  final int fileOffset;
-
-  MapPatternEntry(this.key, this.value, this.fileOffset) {
+  MapPatternEntry(this.key, this.value, int fileOffset) {
     key.parent = this;
     value.parent = this;
+    this.fileOffset = fileOffset;
   }
 
   @override
@@ -4378,6 +4371,38 @@ class MapPatternEntry extends TreeNode with InternalTreeNode {
   @override
   String toString() {
     return 'MapMatcherEntry(${toStringInternal()})';
+  }
+}
+
+class MapPatternRestEntry extends TreeNode
+    with InternalTreeNode
+    implements MapPatternEntry {
+  MapPatternRestEntry(int fileOffset) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  Pattern get key => throw new UnsupportedError('MapPatternRestEntry.key');
+
+  @override
+  void set key(Pattern value) =>
+      throw new UnsupportedError('MapPatternRestEntry.key=');
+
+  @override
+  Pattern get value => throw new UnsupportedError('MapPatternRestEntry.value');
+
+  @override
+  void set value(Pattern value) =>
+      throw new UnsupportedError('MapPatternRestEntry.value=');
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('...');
+  }
+
+  @override
+  String toString() {
+    return 'MapPatternRestEntry(${toStringInternal()})';
   }
 }
 
@@ -4457,8 +4482,10 @@ class MapPattern extends Pattern {
   late FunctionType indexGetType;
 
   @override
-  List<VariableDeclaration> get declaredVariables =>
-      [for (MapPatternEntry entry in entries) ...entry.value.declaredVariables];
+  List<VariableDeclaration> get declaredVariables => [
+        for (MapPatternEntry entry in entries)
+          if (entry is! MapPatternRestEntry) ...entry.value.declaredVariables
+      ];
 
   MapPattern(this.keyType, this.valueType, this.entries, int fileOffset)
       : assert((keyType == null) == (valueType == null)),

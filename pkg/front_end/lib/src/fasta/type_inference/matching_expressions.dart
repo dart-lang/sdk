@@ -310,7 +310,7 @@ class MatchingExpressionVisitor
     }
 
     for (MapPatternEntry entry in node.entries) {
-      if (identical(entry, restMapPatternEntry)) continue;
+      if (entry is MapPatternRestEntry) continue;
       ConstantPattern keyPattern = entry.key as ConstantPattern;
       CacheableExpression keyExpression =
           matchingCache.createConstantExpression(

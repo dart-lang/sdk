@@ -4769,7 +4769,7 @@ class BodyBuilder extends StackListenerImpl
       entries[j] = entry;
     }
     if (restPatternPreviousOffset != TreeNode.noOffset) {
-      entries.add(restMapPatternEntry);
+      entries.add(new MapPatternRestEntry(restPatternPreviousOffset));
     }
 
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
