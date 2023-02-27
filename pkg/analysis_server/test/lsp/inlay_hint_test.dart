@@ -302,6 +302,45 @@ final a1 = '';
         location.range.start.character + 'String'.length);
   }
 
+  Future<void> test_location_typeArguments() async {
+    final code = TestCode.parse('''
+class /*[0*/A/*0]*/<T> {}
+class /*[1*/B/*1]*/<T> {}
+class /*[2*/C/*2]*/ {}
+final x = A<B<C>>();
+''');
+    final ranges = code.ranges.map((r) => r.range).toList();
+    final hints = await _fetchHints(code.code);
+    final parts = hints.single.labelParts;
+
+    // Check the parts of the label.
+    expect(
+      parts.map((p) => p.value),
+      equals([
+        'A',
+        '<',
+        'B',
+        '<',
+        'C',
+        '>',
+        '>',
+      ]),
+    );
+    // Ensure each part has the correct location.
+    expect(
+      parts.map((p) => p.location?.range),
+      equals([
+        ranges[0], // A
+        null,
+        ranges[1], // B
+        null,
+        ranges[2], // C
+        null,
+        null,
+      ]),
+    );
+  }
+
   Future<void> test_method_parameters() async {
     final content = '''
 class A {

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 
@@ -71,19 +72,7 @@ class DartInlayHintComputer {
     final offset = nodeOrToken.offset;
     final position = toPosition(_lineInfo.getLocation(offset));
     final labelParts = <InlayHintLabelPart>[];
-    labelParts.add(InlayHintLabelPart(value: '<'));
-    for (int i = 0; i < types.length; i++) {
-      final type = types[i];
-      labelParts.add(InlayHintLabelPart(
-        value: type.getDisplayString(withNullability: _isNonNullableByDefault),
-        location: _locationForElement(type.element),
-      ));
-      final isLast = i == types.length - 1;
-      if (!isLast) {
-        labelParts.add(InlayHintLabelPart(value: ', '));
-      }
-    }
-    labelParts.add(InlayHintLabelPart(value: '>'));
+    _appendTypeArgumentParts(labelParts, types);
 
     _hints.add(InlayHint(
       label: Either2<List<InlayHintLabelPart>, String>.t1(labelParts.toList()),
@@ -98,20 +87,63 @@ class DartInlayHintComputer {
   void _addTypePrefix(SyntacticEntity nodeOrToken, DartType type) {
     final offset = nodeOrToken.offset;
     final position = toPosition(_lineInfo.getLocation(offset));
-    final label =
-        type.getDisplayString(withNullability: _isNonNullableByDefault);
-    final labelParts = Either2<List<InlayHintLabelPart>, String>.t1([
-      InlayHintLabelPart(
-        value: label,
-        location: _locationForElement(type.element),
-      )
-    ]);
+    final labelParts = <InlayHintLabelPart>[];
+    _appendTypePart(labelParts, type);
     _hints.add(InlayHint(
-      label: labelParts,
+      label: Either2<List<InlayHintLabelPart>, String>.t1(labelParts),
       position: position,
       kind: InlayHintKind.Type,
       paddingRight: true,
     ));
+  }
+
+  /// Adds labels to [parts] for each of [types], formatted as type arguments.
+  ///
+  /// If any of [types] have their own type arguments, will run recursively.
+  ///
+  /// `<x1, x2, x...>`
+  void _appendTypeArgumentParts(
+    List<InlayHintLabelPart> parts,
+    List<DartType> types,
+  ) {
+    parts.add(InlayHintLabelPart(value: '<'));
+    for (int i = 0; i < types.length; i++) {
+      _appendTypePart(parts, types[i]);
+      final isLast = i == types.length - 1;
+      if (!isLast) {
+        parts.add(InlayHintLabelPart(value: ', '));
+      }
+    }
+    parts.add(InlayHintLabelPart(value: '>'));
+  }
+
+  /// Adds a label to [parts] for [type].
+  ///
+  /// If [type] has type arguments, will run recursively.
+  void _appendTypePart(List<InlayHintLabelPart> parts, DartType type) {
+    parts.add(InlayHintLabelPart(
+      // Write type without type args or nullability suffix. Type args need
+      // adding as their own parts, and the nullability suffix does after them.
+      value:
+          type.element?.name ?? type.getDisplayString(withNullability: false),
+      location: _locationForElement(type.element),
+    ));
+    // Call recursively for any nested type arguments.
+    if (type is InterfaceType && type.typeArguments.isNotEmpty) {
+      _appendTypeArgumentParts(parts, type.typeArguments);
+    }
+    // Finally add any nullability suffix.
+    if (_isNonNullableByDefault) {
+      switch (type.nullabilitySuffix) {
+        case NullabilitySuffix.question:
+          parts.add(InlayHintLabelPart(value: '?'));
+          break;
+        case NullabilitySuffix.star:
+          parts.add(InlayHintLabelPart(value: '*'));
+          break;
+        default:
+      }
+    }
   }
 
   Location? _locationForElement(Element? element) {
