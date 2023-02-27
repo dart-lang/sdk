@@ -106,7 +106,6 @@ abstract class SealedClassOperations<Type extends Object,
   /// It is assumed that `TypeOperations.isSealedClass` is `true` for
   /// [sealedClassType] and that [subClass] is in `getDirectSubclasses` for
   /// `getSealedClass` of [sealedClassType].
-  ///
   Type? getSubclassAsInstanceOf(Class subClass, Type sealedClassType);
 }
 

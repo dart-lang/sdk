@@ -118,6 +118,11 @@ Space convertPatternToSpace(
         named: named,
         nullabilitySuffix: NullabilitySuffix.none);
     return Space(cache.getStaticType(recordType), fields);
+  } else if (pattern is LogicalOrPattern) {
+    return Space.union([
+      convertPatternToSpace(cache, pattern.leftOperand, constantPatternValues),
+      convertPatternToSpace(cache, pattern.rightOperand, constantPatternValues)
+    ]);
   }
   // TODO(johnniwinther): Handle remaining patterns.
   DartObjectImpl? value = constantPatternValues[pattern];

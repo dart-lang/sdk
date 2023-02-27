@@ -26,8 +26,8 @@ List<ExhaustivenessError> reportErrors(
   List<ExhaustivenessError> errors = <ExhaustivenessError>[];
 
   Pattern valuePattern = new Pattern(valueType, {}, []);
-  List<List<Pattern>> cases =
-      caseSpaces.map((space) => [_spaceToPattern(space)]).toList();
+  List<List<Patterns>> cases =
+      caseSpaces.map((space) => [_spaceToPatterns(space)]).toList();
 
   for (int i = 1; i < cases.length; i++) {
     // See if this case is covered by previous ones.
@@ -36,7 +36,9 @@ List<ExhaustivenessError> reportErrors(
     }
   }
 
-  String? witness = _unmatched(cases, [valuePattern]);
+  String? witness = _unmatched(cases, [
+    new Patterns([valuePattern])
+  ]);
   if (witness != null) {
     errors.add(new NonExhaustiveError(valueType, caseSpaces, witness));
   }
@@ -49,9 +51,9 @@ List<ExhaustivenessError> reportErrors(
 /// an example of one value that isn't matched by anything in [caseSpaces].
 String? checkExhaustiveness(Space valueSpace, List<Space> caseSpaces) {
   // TODO(johnniwinther): Perform reachability checking.
-  Pattern value = _spaceToPattern(valueSpace);
-  List<List<Pattern>> cases =
-      caseSpaces.map((space) => [_spaceToPattern(space)]).toList();
+  Patterns value = _spaceToPatterns(valueSpace);
+  List<List<Patterns>> cases =
+      caseSpaces.map((space) => [_spaceToPatterns(space)]).toList();
 
   String? witness = _unmatched(cases, [value]);
 
@@ -61,22 +63,27 @@ String? checkExhaustiveness(Space valueSpace, List<Space> caseSpaces) {
   return witness;
 }
 
-/// Convert the prototype's original [Space] representation to the [Pattern]
+/// Convert the prototype's original [Space] representation to the [Patterns]
 /// representation used here.
 ///
 /// This is only a convenience to run the existing test code which creates
 /// [Space]s using the new algorithm.
-Pattern _spaceToPattern(Space space, [List<String> path = const []]) {
-  if (space is! ExtractSpace) {
-    // TODO(johnniwinther): Remove this together with the old algorithm:
-    // The old algorithm creates UnionSpaces internally but they are never used
-    // directly as entrypoint arguments, so this function support them.
-    throw new ArgumentError('Space should be an ExtractSpace.');
+// TODO(johnniwinther): Encode Dart patterns directly into [Patterns].
+Patterns _spaceToPatterns(Space space, [List<String> path = const []]) {
+  if (space is UnionSpace) {
+    return new Patterns(
+        space.arms.map((arm) => _extractSpaceToPattern(arm, path)).toList());
   }
+  return new Patterns([_extractSpaceToPattern(space as ExtractSpace, path)]);
+}
 
-  Map<String, Pattern> fields = {
+/// Convert the prototype's original [ExtractSpace] representation into the
+/// [Pattern] representation used here.
+Pattern _extractSpaceToPattern(ExtractSpace space,
+    [List<String> path = const []]) {
+  Map<String, Patterns> fields = {
     for (String name in space.fields.keys)
-      name: _spaceToPattern(space.fields[name]!, [...path, name])
+      name: _spaceToPatterns(space.fields[name]!, [...path, name])
   };
   return new Pattern(space.type, fields, path);
 }
@@ -87,8 +94,9 @@ Pattern _spaceToPattern(Space space, [List<String> path = const []]) {
 /// If found, returns it. This is a witness example showing that [caseRows] is
 /// not exhaustive over all values in [valuePatterns]. If it returns `null`,
 /// then [caseRows] exhaustively covers [valuePatterns].
-String? _unmatched(List<List<Pattern>> caseRows, List<Pattern> valuePatterns,
+String? _unmatched(List<List<Patterns>> caseRows, List<Patterns> valuePatterns,
     [List<Predicate> witnessPredicates = const []]) {
+  assert(caseRows.every((element) => element.length == valuePatterns.length));
   profile.count('_unmatched');
   // If there are no more columns, then we've tested all the predicates we have
   // to test.
@@ -104,22 +112,24 @@ String? _unmatched(List<List<Pattern>> caseRows, List<Pattern> valuePatterns,
   }
 
   // Look down the first column of tests.
-  Pattern valuePattern = valuePatterns[0];
+  Patterns firstValuePatterns = valuePatterns[0];
 
-  // TODO(johnniwinther): Right now, this brute force expands all subtypes of
-  // sealed types and considers them individually. It would be faster to look
-  // at the types of the patterns in the first column of each row and only
-  // expand subtypes that are actually tested.
-  // Split the type into its sealed subtypes and consider each one separately.
-  // This enables it to filter rows more effectively.
-  List<StaticType> subtypes = expandSealedSubtypes(valuePattern.type);
-  for (StaticType subtype in subtypes) {
-    String? result =
-        _filterByType(subtype, caseRows, valuePatterns, witnessPredicates);
+  for (Pattern firstValuePattern in firstValuePatterns.patterns) {
+    // TODO(johnniwinther): Right now, this brute force expands all subtypes of
+    // sealed types and considers them individually. It would be faster to look
+    // at the types of the patterns in the first column of each row and only
+    // expand subtypes that are actually tested.
+    // Split the type into its sealed subtypes and consider each one separately.
+    // This enables it to filter rows more effectively.
+    List<StaticType> subtypes = expandSealedSubtypes(firstValuePattern.type);
+    for (StaticType subtype in subtypes) {
+      String? result = _filterByType(subtype, caseRows, firstValuePattern,
+          valuePatterns, witnessPredicates);
 
-    // If we found a witness for a subtype that no rows match, then we can
-    // stop. There may be others but we don't need to find more.
-    if (result != null) return result;
+      // If we found a witness for a subtype that no rows match, then we can
+      // stop. There may be others but we don't need to find more.
+      if (result != null) return result;
+    }
   }
 
   // If we get here, no subtype yielded a witness, so we must have matched
@@ -127,26 +137,38 @@ String? _unmatched(List<List<Pattern>> caseRows, List<Pattern> valuePatterns,
   return null;
 }
 
-String? _filterByType(StaticType type, List<List<Pattern>> caseRows,
-    List<Pattern> valuePatterns, List<Predicate> witnessPredicates) {
+String? _filterByType(
+    StaticType type,
+    List<List<Patterns>> caseRows,
+    Pattern firstValuePattern,
+    List<Patterns> valuePatterns,
+    List<Predicate> witnessPredicates) {
   profile.count('_filterByType');
   // Extend the witness with the type we're matching.
   List<Predicate> extendedWitness = [
     ...witnessPredicates,
-    new Predicate(valuePatterns.first.path, type)
+    new Predicate(firstValuePattern.path, type)
   ];
 
-  // Discard any row that may not match by type. We only keep rows that *must*
-  // match because a row that could potentially fail to match will not help us
-  // prove exhaustiveness.
-  List<List<Pattern>> remainingRows = <List<Pattern>>[];
-  for (List<Pattern> row in caseRows) {
-    Pattern firstPattern = row[0];
+  // 1) Discard any rows that might not match because the column's type isn't a
+  // subtype of the value's type.  We only keep rows that *must* match because a
+  // row that could potentially fail to match will not help us prove
+  // exhaustiveness.
+  //
+  // 2) Expand any unions in the first column. This can (deliberately) produce
+  // duplicate rows in remainingRows.
+  List<Pattern> remainingRowFirstPatterns = [];
+  List<List<Patterns>> remainingRows = [];
+  for (List<Patterns> row in caseRows) {
+    Patterns firstPatterns = row[0];
 
-    // If the row's type is a supertype of the value pattern's type then it
-    // must match.
-    if (type.isSubtypeOf(firstPattern.type)) {
-      remainingRows.add(row);
+    for (Pattern firstPattern in firstPatterns.patterns) {
+      // If the row's type is a supertype of the value pattern's type then it
+      // must match.
+      if (type.isSubtypeOf(firstPattern.type)) {
+        remainingRowFirstPatterns.add(firstPattern);
+        remainingRows.add(row);
+      }
     }
   }
 
@@ -154,8 +176,9 @@ String? _filterByType(StaticType type, List<List<Pattern>> caseRows,
   // some of those may also have field subpatterns. If so, lift those out so we
   // can recurse into them.
   Set<String> fieldNames = {
-    ...valuePatterns.first.fields.keys,
-    for (List<Pattern> row in remainingRows) ...row.first.fields.keys
+    ...firstValuePattern.fields.keys,
+    for (Pattern firstPattern in remainingRowFirstPatterns)
+      ...firstPattern.fields.keys
   };
 
   // Sorting isn't necessary, but makes the behavior deterministic.
@@ -164,7 +187,7 @@ String? _filterByType(StaticType type, List<List<Pattern>> caseRows,
   // Remove the first column from the value list and replace it with any
   // expanded fields.
   valuePatterns = [
-    ..._expandFields(sorted, valuePatterns.first, type),
+    ..._expandFields(sorted, firstValuePattern, type),
     ...valuePatterns.skip(1)
   ];
 
@@ -172,8 +195,8 @@ String? _filterByType(StaticType type, List<List<Pattern>> caseRows,
   // fields.
   for (int i = 0; i < remainingRows.length; i++) {
     remainingRows[i] = [
-      ..._expandFields(
-          sorted, remainingRows[i].first, remainingRows[i].first.type),
+      ..._expandFields(sorted, remainingRowFirstPatterns[i],
+          remainingRowFirstPatterns[i].type),
       ...remainingRows[i].skip(1)
     ];
   }
@@ -192,23 +215,25 @@ String? _filterByType(StaticType type, List<List<Pattern>> caseRows,
 ///
 /// In other words, this unpacks a set of fields so that the main algorithm can
 /// add them to the worklist.
-List<Pattern> _expandFields(
+List<Patterns> _expandFields(
     List<String> fieldNames, Pattern pattern, StaticType type) {
   profile.count('_expandFields');
-  List<Pattern> result = <Pattern>[];
+  List<Patterns> result = <Patterns>[];
   for (String fieldName in fieldNames) {
-    Pattern? field = pattern.fields[fieldName];
+    Patterns? field = pattern.fields[fieldName];
     if (field != null) {
       result.add(field);
     } else {
       // This pattern doesn't test this field, so add a pattern for the
       // field that matches all values. This way the columns stay aligned.
       result.add(
-        new Pattern(
-          type.fields[fieldName] ?? StaticType.nullableObject,
-          {},
-          [...pattern.path, fieldName],
-        ),
+        new Patterns([
+          new Pattern(
+            type.fields[fieldName] ?? StaticType.nullableObject,
+            {},
+            [...pattern.path, fieldName],
+          )
+        ]),
       );
     }
   }
@@ -243,7 +268,7 @@ class Pattern {
   final StaticType type;
 
   /// Any field subpatterns the pattern matches.
-  final Map<String, Pattern> fields;
+  final Map<String, Patterns> fields;
 
   /// The path of getters that led from the original matched value to value
   /// matched by this pattern. Used to generate a human-readable witness.
@@ -252,7 +277,22 @@ class Pattern {
   Pattern(this.type, this.fields, this.path);
 
   @override
-  String toString() => 'Pattern(type=$type,fields=$fields,path=$path)';
+  String toString() {
+    return 'Pattern(type=$type,fields=$fields,path=$path)';
+  }
+}
+
+/// A union of [Pattern]s.
+///
+/// This is used to support logical-or patterns without having to eagerly
+/// expand the subpatterns in the parent context.
+class Patterns {
+  final List<Pattern> patterns;
+
+  Patterns(this.patterns);
+
+  @override
+  String toString() => 'Patterns($patterns)';
 }
 
 /// Describes a pattern that matches the value or a field accessed from it.

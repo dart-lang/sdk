@@ -421,6 +421,11 @@ Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
     } else {
       return new Space(cache.getStaticType(type));
     }
+  } else if (pattern is OrPattern) {
+    return new Space.union([
+      convertPatternToSpace(cache, pattern.left, constants, context),
+      convertPatternToSpace(cache, pattern.right, constants, context)
+    ]);
   }
 
   // TODO(johnniwinther): Handle remaining constants.

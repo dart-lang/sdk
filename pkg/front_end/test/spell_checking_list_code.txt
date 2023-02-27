@@ -238,6 +238,7 @@ codes
 collision
 coloring
 colorized
+column's
 columns
 com
 combinations
@@ -1364,8 +1365,8 @@ sides
 sigmund
 signaling
 significant
-simplify
 simplifier
+simplify
 singleton
 sinker
 site
