@@ -4813,9 +4813,15 @@ class IfCaseElement extends InternalExpression with ControlFlowElement {
   PatternGuard patternGuard;
   Expression then;
   Expression? otherwise;
-  late List<Statement> replacement;
+  List<Statement> prelude;
 
-  IfCaseElement(this.expression, this.patternGuard, this.then, this.otherwise) {
+  IfCaseElement(
+      {required this.prelude,
+      required this.expression,
+      required this.patternGuard,
+      required this.then,
+      this.otherwise}) {
+    setParents(prelude, this);
     expression.parent = this;
     patternGuard.parent = this;
     then.parent = this;
@@ -4861,9 +4867,13 @@ class IfCaseElement extends InternalExpression with ControlFlowElement {
       }
       if (otherwiseEntry == null) return null;
     }
-    IfCaseMapEntry result =
-        new IfCaseMapEntry(expression, patternGuard, thenEntry, otherwiseEntry)
-          ..fileOffset = fileOffset;
+    IfCaseMapEntry result = new IfCaseMapEntry(
+        prelude: prelude,
+        expression: expression,
+        patternGuard: patternGuard,
+        then: thenEntry,
+        otherwise: otherwiseEntry)
+      ..fileOffset = fileOffset;
     onConvertElement(this, result);
     return result;
   }
@@ -4880,10 +4890,14 @@ class IfCaseMapEntry extends TreeNode
   PatternGuard patternGuard;
   MapLiteralEntry then;
   MapLiteralEntry? otherwise;
-  late List<Statement> replacement;
+  List<Statement> prelude;
 
   IfCaseMapEntry(
-      this.expression, this.patternGuard, this.then, this.otherwise) {
+      {required this.prelude,
+      required this.expression,
+      required this.patternGuard,
+      required this.then,
+      this.otherwise}) {
     expression.parent = this;
     patternGuard.parent = this;
     then.parent = this;

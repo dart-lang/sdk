@@ -837,12 +837,41 @@ Expression convertToElement(
     onConvertMapEntry(entry, result);
     return result;
   }
-  if (entry is ForMapEntry) {
-    ForElement result = new ForElement(entry.variables, entry.condition,
-        entry.updates, convertToElement(entry.body, helper, onConvertMapEntry))
+  if (entry is IfCaseMapEntry) {
+    IfCaseElement result = new IfCaseElement(
+        prelude: entry.prelude,
+        expression: entry.expression,
+        patternGuard: entry.patternGuard,
+        then: convertToElement(entry.then, helper, onConvertMapEntry),
+        otherwise: entry.otherwise == null
+            ? null
+            : convertToElement(entry.otherwise!, helper, onConvertMapEntry))
       ..fileOffset = entry.fileOffset;
     onConvertMapEntry(entry, result);
     return result;
+  }
+  if (entry is ForMapEntry) {
+    if (entry is PatternForMapEntry) {
+      PatternForElement result = new PatternForElement(
+          patternVariableDeclaration: entry.patternVariableDeclaration,
+          prelude: entry.prelude,
+          variables: entry.variables,
+          condition: entry.condition,
+          updates: entry.updates,
+          body: convertToElement(entry.body, helper, onConvertMapEntry))
+        ..fileOffset = entry.fileOffset;
+      onConvertMapEntry(entry, result);
+      return result;
+    } else {
+      ForElement result = new ForElement(
+          entry.variables,
+          entry.condition,
+          entry.updates,
+          convertToElement(entry.body, helper, onConvertMapEntry))
+        ..fileOffset = entry.fileOffset;
+      onConvertMapEntry(entry, result);
+      return result;
+    }
   }
   if (entry is ForInMapEntry) {
     ForInElement result = new ForInElement(
@@ -925,10 +954,11 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
   }
   if (element is IfCaseElement) {
     IfCaseMapEntry result = new IfCaseMapEntry(
-        element.expression,
-        element.patternGuard,
-        convertToMapEntry(element.then, helper, onConvertElement),
-        element.otherwise == null
+        prelude: [],
+        expression: element.expression,
+        patternGuard: element.patternGuard,
+        then: convertToMapEntry(element.then, helper, onConvertElement),
+        otherwise: element.otherwise == null
             ? null
             : convertToMapEntry(element.otherwise!, helper, onConvertElement))
       ..fileOffset = element.fileOffset;
