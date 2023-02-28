@@ -6,9 +6,9 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
   #L1:
   {
     core::List<dynamic> rest;
-    core::List<dynamic> rest';
-    core::List<dynamic> rest'';
-    core::List<dynamic> rest''';
+    core::List<dynamic> rest#1;
+    core::List<dynamic> rest#2;
+    core::List<dynamic> rest#3;
     final dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
@@ -56,23 +56,23 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
           }
         }
         else
-          if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && #C4 =={core::num::==}{(core::Object) → core::bool} #0#6 && (let final core::List<dynamic> #t2 = rest' = #0#0{core::List<dynamic>}.{core::List::sublist}(1, #0#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#14) {
+          if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && #C4 =={core::num::==}{(core::Object) → core::bool} #0#6 && (let final core::List<dynamic> #t2 = rest#1 = #0#0{core::List<dynamic>}.{core::List::sublist}(1, #0#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#14) {
             {
-              self::expect(expectedRest, rest');
+              self::expect(expectedRest, rest#1);
               return 3;
             }
           }
           else
-            if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#28 && #C4 =={core::num::==}{(core::Object) → core::bool} #0#6 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#9 && (let final core::List<dynamic> #t3 = rest'' = #0#34 in true) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#35 && #C6 =={core::num::==}{(core::Object) → core::bool} #0#14) {
+            if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#28 && #C4 =={core::num::==}{(core::Object) → core::bool} #0#6 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#9 && (let final core::List<dynamic> #t3 = rest#2 = #0#34 in true) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#35 && #C6 =={core::num::==}{(core::Object) → core::bool} #0#14) {
               {
-                self::expect(expectedRest, rest'');
+                self::expect(expectedRest, rest#2);
                 return 4;
               }
             }
             else
-              if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#28 && #C4 =={core::num::==}{(core::Object) → core::bool} #0#6 && #C7 =={core::num::==}{(core::Object) → core::bool} #0#9 && (#0#44.{core::num::>=}(#C2){(core::num) → core::bool} && #C5 =={core::num::==}{(core::Object) → core::bool} #0#34.{core::List::[]}(0){(core::int) → dynamic} && (let final core::List<dynamic> #t4 = rest''' = #0#34.{core::List::sublist}(1, #0#44.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#34.{core::List::[]}(#0#44.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#35 && #C6 =={core::num::==}{(core::Object) → core::bool} #0#14) {
+              if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#28 && #C4 =={core::num::==}{(core::Object) → core::bool} #0#6 && #C7 =={core::num::==}{(core::Object) → core::bool} #0#9 && (#0#44.{core::num::>=}(#C2){(core::num) → core::bool} && #C5 =={core::num::==}{(core::Object) → core::bool} #0#34.{core::List::[]}(0){(core::int) → dynamic} && (let final core::List<dynamic> #t4 = rest#3 = #0#34.{core::List::sublist}(1, #0#44.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#34.{core::List::[]}(#0#44.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#35 && #C6 =={core::num::==}{(core::Object) → core::bool} #0#14) {
                 {
-                  self::expect(expectedRest, rest''');
+                  self::expect(expectedRest, rest#3);
                   return 5;
                 }
               }
