@@ -1762,9 +1762,7 @@ LintCode.no_runtimeType_toString:
 LintCode.non_constant_identifier_names:
   status: hasFix
 LintCode.noop_primitive_operations:
-  status: needsFix
-  notes: |-
-    There should be a fix to remove the invocation of `toString`.
+  status: hasFix
 LintCode.null_check_on_nullable_type_parameter:
   status: hasFix
   notes: |-

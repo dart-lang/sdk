@@ -79,6 +79,7 @@ class LintNames {
       'no_leading_underscores_for_local_identifiers';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
+  static const String noop_primitive_operations = 'noop_primitive_operations';
   static const String null_check_on_nullable_type_parameter =
       'null_check_on_nullable_type_parameter';
   static const String null_closures = 'null_closures';

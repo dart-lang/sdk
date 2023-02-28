@@ -1066,6 +1066,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Remove unnecessary '??' operators everywhere in file",
   );
+  static const REMOVE_INVOCATION = FixKind(
+    'dart.fix.remove.invocation',
+    DartFixKindPriority.DEFAULT,
+    'Remove unnecessary {0} invocation',
+  );
+  static const REMOVE_INVOCATION_MULTI = FixKind(
+    'dart.fix.remove.invocation.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove unnecessary {0} invocations in file',
+  );
   static const REMOVE_INITIALIZER = FixKind(
     'dart.fix.remove.initializer',
     DartFixKindPriority.DEFAULT,
