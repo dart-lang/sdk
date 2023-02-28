@@ -31,7 +31,7 @@ class B<S extends num> {}
 
 class S {}
 
-class M {}
+mixin M {}
 
 class MA extends S with M {}
 
