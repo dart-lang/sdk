@@ -66,7 +66,6 @@ class BoolState extends InstanceState {
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
 
@@ -1471,7 +1470,6 @@ class GenericState extends InstanceState {
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
 
@@ -1573,18 +1571,6 @@ abstract class InstanceState {
   void assertBool(InstanceState? state) {
     if (state is! BoolState) {
       throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
-    }
-  }
-
-  /// Throw an exception if the given [state] does not represent a boolean,
-  /// numeric, string or null value.
-  void assertBoolNumStringOrNull(InstanceState state) {
-    if (!(state is BoolState ||
-        state is NumState ||
-        state is StringState ||
-        state is NullState)) {
-      throw EvaluationException(
-          CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
     }
   }
 
@@ -2416,7 +2402,6 @@ class ListState extends InstanceState {
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
 
@@ -2494,7 +2479,6 @@ class MapState extends InstanceState {
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
 
@@ -2556,7 +2540,6 @@ class NullState extends InstanceState {
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
 
@@ -2584,7 +2567,6 @@ abstract class NumState extends InstanceState {
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
 }
@@ -2761,7 +2743,6 @@ class SetState extends InstanceState {
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
 
@@ -2838,7 +2819,6 @@ class StringState extends InstanceState {
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
 
@@ -2900,7 +2880,6 @@ class SymbolState extends InstanceState {
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
 
@@ -2954,7 +2933,6 @@ class TypeState extends InstanceState {
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
   }
 
