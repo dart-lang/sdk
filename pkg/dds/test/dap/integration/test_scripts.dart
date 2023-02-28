@@ -127,6 +127,16 @@ const simpleBreakpointProgram = '''
   }
 ''';
 
+/// A simple Dart script that should run with no errors and contains a comment
+/// marker '// BREAKPOINT' on a blank line where a breakpoint should be resolved
+/// to the next line.
+const simpleBreakpointResolutionProgram = '''
+  void main(List<String> args) async {
+    $breakpointMarker
+    print('Hello!');
+  }
+''';
+
 /// A simple Dart script that has a blank line before its breakpoint, used to
 /// ensure breakpoints that resolve to the same place are handled correctly.
 const simpleBreakpointWithLeadingBlankLineProgram = '''

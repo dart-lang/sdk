@@ -98,6 +98,12 @@ class DapTestClient {
       events('dart.testNotification')
           .map((e) => e.body as Map<String, Object?>);
 
+  /// Waits for a 'breakpoint' event that changes the breakpoint with [id].
+  Stream<BreakpointEventBody> get breakpointChangeEvents => events('breakpoint')
+      .map((event) =>
+          BreakpointEventBody.fromJson(event.body as Map<String, Object?>))
+      .where((body) => body.reason == 'changed');
+
   /// Send an attachRequest to the server, asking it to attach to an existing
   /// Dart program.
   Future<Response> attach({
@@ -571,12 +577,17 @@ extension DapTestClientExtension on DapTestClient {
   }
 
   /// Sets a breakpoint at [line] in [file].
-  Future<void> setBreakpoint(File file, int line, {String? condition}) async {
-    await sendRequest(
+  Future<SetBreakpointsResponseBody> setBreakpoint(File file, int line,
+      {String? condition}) async {
+    final response = await sendRequest(
       SetBreakpointsArguments(
         source: Source(path: _normalizeBreakpointPath(file.path)),
         breakpoints: [SourceBreakpoint(line: line, condition: condition)],
       ),
+    );
+
+    return SetBreakpointsResponseBody.fromJson(
+      response.body as Map<String, Object?>,
     );
   }
 

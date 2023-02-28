@@ -1326,12 +1326,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final name = args.source.name;
     final uri = path != null ? Uri.file(normalizePath(path)).toString() : name!;
 
-    await _isolateManager.setBreakpoints(uri, breakpoints);
+    final clientBreakpoints = breakpoints.map(ClientBreakpoint.new).toList();
+    await _isolateManager.setBreakpoints(uri, clientBreakpoints);
 
-    // TODO(dantup): Handle breakpoint resolution rather than pretending all
-    // breakpoints are verified immediately.
     sendResponse(SetBreakpointsResponseBody(
-      breakpoints: breakpoints.map((e) => Breakpoint(verified: true)).toList(),
+      // Send breakpoints back as unverified and with our generated IDs so we
+      // can update them with a 'breakpoint' event when we get the
+      // 'BreakpointAdded'/'BreakpointResolved' events from the VM.
+      breakpoints: clientBreakpoints
+          .map((bp) => Breakpoint(id: bp.id, verified: false))
+          .toList(),
     ));
   }
 
