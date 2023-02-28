@@ -1252,7 +1252,9 @@ void Location::Write(FlowGraphSerializer* s) const {
 Location Location::Read(FlowGraphDeserializer* d) {
   const uword value = d->Read<uword>();
   if (value == kPairLocationTag) {
-    return Location::Pair(Location::Read(d), Location::Read(d));
+    const Location first = Location::Read(d);
+    const Location second = Location::Read(d);
+    return Location::Pair(first, second);
   } else if ((value & kConstantTag) == kConstantTag) {
     ConstantInstr* instr = d->ReadRef<Definition*>()->AsConstant();
     ASSERT(instr != nullptr);
