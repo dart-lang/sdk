@@ -26,7 +26,7 @@ dynamic_nosuchmethod_test: SkipByDesign # Expects names in NSM
 error_stack_trace1_test: SkipByDesign # Expects unobfuscated stack trace
 type_tostring_test: SkipByDesign # Expects names in Type.toString()
 
-[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk ]
+[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != ddc ]
 bigint_js_test: SkipByDesign # JavaScript-specific test
 
 [ $compiler == dart2js && $runtime != none ]
@@ -35,7 +35,7 @@ regexp/pcre_test: Slow, Pass # Issue 21593
 [ $runtime != dart_precompiled && $runtime != vm ]
 reg_exp_receive_port_test: SkipByDesign # uses SendPort/ReceivePort
 
-[ $runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
+[ $runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk || $compiler == ddc) ]
 int_parse_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.
 integer_arith_vm_test: SkipByDesign # Is a VM optimization test that requires int64 support.
 iterable_return_type_int64_test: SkipByDesign # Requires int64 support.
@@ -45,7 +45,7 @@ typed_data_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 supp
 bigint_parse_radix_test: Skip # Issue 31659
 bigint_test: Skip # Issue 31659
 
-[ $compiler == dartdevc || $compiler == dartdevk ]
+[ $compiler == dartdevc || $compiler == dartdevk || $compiler == ddc ]
 bigint_test/03: SkipSlow # modPow is very slow
 bigint_test/15: SkipSlow # modPow is very slow
 list_concurrent_modify_self_test: SkipSlow # missing check causes list to grow to whole heap

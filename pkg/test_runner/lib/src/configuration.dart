@@ -197,6 +197,7 @@ class TestConfiguration {
       Compiler.appJitk,
       Compiler.dartdevc,
       Compiler.dartdevk,
+      Compiler.ddc,
       Compiler.dartk,
       Compiler.dartkp,
       Compiler.fasta,

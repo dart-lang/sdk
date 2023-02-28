@@ -354,8 +354,8 @@ void main() {
     });
 
     group("visualCompare()", () {
-      var a = Configuration("dartdevc", Architecture.ia32, Compiler.dartdevc,
-          Mode.debug, Runtime.chrome, System.android,
+      var a = Configuration("ddc", Architecture.ia32, Compiler.ddc, Mode.debug,
+          Runtime.chrome, System.android,
           builderTag: "a tag",
           vmOptions: ["vm a1", "vm a2"],
           dart2jsOptions: ["dart2js a1", "dart2js a2"],
@@ -392,10 +392,10 @@ void main() {
 
       test("everything different", () {
         expect(a.visualCompare(b), equals("""
-dartdevc
+ddc
 dart2js
 architecture: ia32 x64
-   compiler: dartdevc dart2js
+   compiler: ddc dart2js
    mode: debug release
    runtime: chrome d8
    system: android fuchsia
@@ -423,10 +423,10 @@ architecture: ia32 x64
 
       test("everything the same", () {
         expect(a.visualCompare(a), equals("""
-dartdevc
-dartdevc
+ddc
+ddc
 architecture: ia32 ia32
-   compiler: dartdevc dartdevc
+   compiler: ddc ddc
    mode: debug debug
    runtime: chrome chrome
    system: android android

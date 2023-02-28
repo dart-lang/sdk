@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dartdevc || $compiler == dartdevk ]
+[ $compiler == dartdevc || $compiler == dartdevk || $compiler == ddc ]
 Language/Classes/Constructors/Generative_Constructors/formal_parameter_t07: SkipSlow
 Language/Classes/Constructors/Generative_Constructors/fresh_instance_t01: SkipSlow
 Language/Classes/Constructors/Generative_Constructors/implicit_superinitializer_t01: SkipSlow

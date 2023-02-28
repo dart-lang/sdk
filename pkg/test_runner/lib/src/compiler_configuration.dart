@@ -87,9 +87,8 @@ abstract class CompilerConfiguration {
         return Dart2WasmCompilerConfiguration(configuration);
 
       case Compiler.dartdevc:
-        return DevCompilerConfiguration(configuration);
-
       case Compiler.dartdevk:
+      case Compiler.ddc:
         return DevCompilerConfiguration(configuration);
 
       case Compiler.appJitk:
@@ -583,16 +582,17 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-/// Configuration for `dartdevc` and `dartdevk` (DDC with Kernel)
+/// Configuration for "dartdevc", "dartdevk", and "ddc".
+// TODO(nshahan): Cleanup mulitple aliases for the compiler.
 class DevCompilerConfiguration extends CompilerConfiguration {
   DevCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() {
-    // The compiler is a Dart program and not an executable itself, so the
-    // command to spawn as a subprocess is a Dart VM. Internally the
-    // [DevCompilerCompilationCommand] will prepend the snapshot or Dart library
-    // entrypoint that is executed by the VM.
+    // DDC is a Dart program and not an executable itself, so the command to
+    // spawn as a subprocess is a Dart VM.
+    // Internally the [DevCompilerCompilationCommand] will prepend the snapshot
+    // or Dart library entrypoint that is executed by the VM.
     // This will change once we update the DDC to use AOT instead of a snapshot.
     var dir = _useSdk ? '${_configuration.buildDirectory}/dart-sdk' : 'sdk';
     return '$dir/bin/dart$executableExtension';
