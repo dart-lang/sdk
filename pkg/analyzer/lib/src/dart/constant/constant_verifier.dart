@@ -780,7 +780,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (guardedPattern != null) {
         Space space;
         if (guardedPattern.whenClause != null) {
-          // TODO(johnniwinther): Test this.
           space = Space(_exhaustivenessCache.getUnknownStaticType());
         } else {
           final pattern = guardedPattern.pattern;

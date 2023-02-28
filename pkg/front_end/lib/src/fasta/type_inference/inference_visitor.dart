@@ -9856,6 +9856,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         pushRewrite(case_);
         _switchCasePatternInfo.add(new PatternCaseInfo(patternGuard.pattern,
+            hasGuard: patternGuard.guard != null,
             fileOffset: case_.caseOffsets[subIndex]));
       }
     } else {
@@ -9891,6 +9892,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
       }
       _switchCasePatternInfo.add(new PatternCaseInfo(patternGuard.pattern,
+          hasGuard: patternGuard.guard != null,
           fileOffset: switchExpressionCase.fileOffset));
     }
   }
