@@ -10,6 +10,7 @@
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
@@ -1068,10 +1069,9 @@ void FlowGraphCompiler::LoadBSSEntry(BSS::Relocation relocation,
 #undef __
 #define __ compiler_->assembler()->
 
-void ParallelMoveResolver::EmitSwap(int index) {
-  MoveOperands* move = moves_[index];
-  const Location source = move->src();
-  const Location destination = move->dest();
+void ParallelMoveEmitter::EmitSwap(const MoveOperands& move) {
+  const Location source = move.src();
+  const Location destination = move.dest();
 
   if (source.IsRegister() && destination.IsRegister()) {
     __ xchgq(destination.reg(), source.reg());
@@ -1130,66 +1130,49 @@ void ParallelMoveResolver::EmitSwap(int index) {
   } else {
     UNREACHABLE();
   }
-
-  // The swap of source and destination has executed a move from source to
-  // destination.
-  move->Eliminate();
-
-  // Any unperformed (including pending) move with a source of either
-  // this move's source or destination needs to have their source
-  // changed to reflect the state of affairs after the swap.
-  for (int i = 0; i < moves_.length(); ++i) {
-    const MoveOperands& other_move = *moves_[i];
-    if (other_move.Blocks(source)) {
-      moves_[i]->set_src(destination);
-    } else if (other_move.Blocks(destination)) {
-      moves_[i]->set_src(source);
-    }
-  }
 }
 
-void ParallelMoveResolver::MoveMemoryToMemory(const compiler::Address& dst,
-                                              const compiler::Address& src) {
+void ParallelMoveEmitter::MoveMemoryToMemory(const compiler::Address& dst,
+                                             const compiler::Address& src) {
   __ MoveMemoryToMemory(dst, src);
 }
 
-void ParallelMoveResolver::Exchange(Register reg,
-                                    const compiler::Address& mem) {
+void ParallelMoveEmitter::Exchange(Register reg, const compiler::Address& mem) {
   __ Exchange(reg, mem);
 }
 
-void ParallelMoveResolver::Exchange(const compiler::Address& mem1,
-                                    const compiler::Address& mem2) {
+void ParallelMoveEmitter::Exchange(const compiler::Address& mem1,
+                                   const compiler::Address& mem2) {
   __ Exchange(mem1, mem2);
 }
 
-void ParallelMoveResolver::Exchange(Register reg,
-                                    Register base_reg,
-                                    intptr_t stack_offset) {
+void ParallelMoveEmitter::Exchange(Register reg,
+                                   Register base_reg,
+                                   intptr_t stack_offset) {
   UNREACHABLE();
 }
 
-void ParallelMoveResolver::Exchange(Register base_reg1,
-                                    intptr_t stack_offset1,
-                                    Register base_reg2,
-                                    intptr_t stack_offset2) {
+void ParallelMoveEmitter::Exchange(Register base_reg1,
+                                   intptr_t stack_offset1,
+                                   Register base_reg2,
+                                   intptr_t stack_offset2) {
   UNREACHABLE();
 }
 
-void ParallelMoveResolver::SpillScratch(Register reg) {
+void ParallelMoveEmitter::SpillScratch(Register reg) {
   __ pushq(reg);
 }
 
-void ParallelMoveResolver::RestoreScratch(Register reg) {
+void ParallelMoveEmitter::RestoreScratch(Register reg) {
   __ popq(reg);
 }
 
-void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::SpillFpuScratch(FpuRegister reg) {
   __ AddImmediate(RSP, compiler::Immediate(-kFpuRegisterSize));
   __ movups(compiler::Address(RSP, 0), reg);
 }
 
-void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::RestoreFpuScratch(FpuRegister reg) {
   __ movups(reg, compiler::Address(RSP, 0));
   __ AddImmediate(RSP, compiler::Immediate(kFpuRegisterSize));
 }

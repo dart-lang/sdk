@@ -11,6 +11,7 @@
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
@@ -1030,10 +1031,9 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
 #undef __
 #define __ compiler_->assembler()->
 
-void ParallelMoveResolver::EmitSwap(int index) {
-  MoveOperands* move = moves_[index];
-  const Location source = move->src();
-  const Location destination = move->dest();
+void ParallelMoveEmitter::EmitSwap(const MoveOperands& move) {
+  const Location source = move.src();
+  const Location destination = move.dest();
 
   if (source.IsRegister() && destination.IsRegister()) {
     __ xchgl(destination.reg(), source.reg());
@@ -1092,40 +1092,23 @@ void ParallelMoveResolver::EmitSwap(int index) {
   } else {
     UNREACHABLE();
   }
-
-  // The swap of source and destination has executed a move from source to
-  // destination.
-  move->Eliminate();
-
-  // Any unperformed (including pending) move with a source of either
-  // this move's source or destination needs to have their source
-  // changed to reflect the state of affairs after the swap.
-  for (int i = 0; i < moves_.length(); ++i) {
-    const MoveOperands& other_move = *moves_[i];
-    if (other_move.Blocks(source)) {
-      moves_[i]->set_src(destination);
-    } else if (other_move.Blocks(destination)) {
-      moves_[i]->set_src(source);
-    }
-  }
 }
 
-void ParallelMoveResolver::MoveMemoryToMemory(const compiler::Address& dst,
-                                              const compiler::Address& src) {
+void ParallelMoveEmitter::MoveMemoryToMemory(const compiler::Address& dst,
+                                             const compiler::Address& src) {
   ScratchRegisterScope ensure_scratch(this, kNoRegister);
   __ MoveMemoryToMemory(dst, src, ensure_scratch.reg());
 }
 
-void ParallelMoveResolver::Exchange(Register reg,
-                                    const compiler::Address& mem) {
+void ParallelMoveEmitter::Exchange(Register reg, const compiler::Address& mem) {
   ScratchRegisterScope ensure_scratch(this, reg);
   __ movl(ensure_scratch.reg(), mem);
   __ movl(mem, reg);
   __ movl(reg, ensure_scratch.reg());
 }
 
-void ParallelMoveResolver::Exchange(const compiler::Address& mem1,
-                                    const compiler::Address& mem2) {
+void ParallelMoveEmitter::Exchange(const compiler::Address& mem1,
+                                   const compiler::Address& mem2) {
   ScratchRegisterScope ensure_scratch1(this, kNoRegister);
   ScratchRegisterScope ensure_scratch2(this, ensure_scratch1.reg());
   __ movl(ensure_scratch1.reg(), mem1);
@@ -1134,33 +1117,33 @@ void ParallelMoveResolver::Exchange(const compiler::Address& mem1,
   __ movl(mem1, ensure_scratch2.reg());
 }
 
-void ParallelMoveResolver::Exchange(Register reg,
-                                    Register base_reg,
-                                    intptr_t stack_offset) {
+void ParallelMoveEmitter::Exchange(Register reg,
+                                   Register base_reg,
+                                   intptr_t stack_offset) {
   UNREACHABLE();
 }
 
-void ParallelMoveResolver::Exchange(Register base_reg1,
-                                    intptr_t stack_offset1,
-                                    Register base_reg2,
-                                    intptr_t stack_offset2) {
+void ParallelMoveEmitter::Exchange(Register base_reg1,
+                                   intptr_t stack_offset1,
+                                   Register base_reg2,
+                                   intptr_t stack_offset2) {
   UNREACHABLE();
 }
 
-void ParallelMoveResolver::SpillScratch(Register reg) {
+void ParallelMoveEmitter::SpillScratch(Register reg) {
   __ pushl(reg);
 }
 
-void ParallelMoveResolver::RestoreScratch(Register reg) {
+void ParallelMoveEmitter::RestoreScratch(Register reg) {
   __ popl(reg);
 }
 
-void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::SpillFpuScratch(FpuRegister reg) {
   __ subl(ESP, compiler::Immediate(kFpuRegisterSize));
   __ movups(compiler::Address(ESP, 0), reg);
 }
 
-void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::RestoreFpuScratch(FpuRegister reg) {
   __ movups(reg, compiler::Address(ESP, 0));
   __ addl(ESP, compiler::Immediate(kFpuRegisterSize));
 }
