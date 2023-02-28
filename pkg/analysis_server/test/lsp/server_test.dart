@@ -20,6 +20,62 @@ void main() {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerTest {
+  List<String> get currentContextPaths => server.contextManager.analysisContexts
+      .map((context) => context.contextRoot.root.path)
+      .toList();
+
+  /// Ensure an analysis root that doesn't exist does not cause an infinite
+  /// rebuild loop.
+  /// https://github.com/Dart-Code/Dart-Code/issues/4280
+  Future<void> test_analysisRoot_doesNotExist() async {
+    const notExistingPath = '/does/not/exist';
+    resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
+    await initialize(workspaceFolders: [Uri.file(notExistingPath)]);
+
+    // Wait a short period and ensure there was exactly one context build.
+    await pumpEventQueue(times: 10000);
+    expect(server.contextBuilds, 1);
+    // And that the roots are as expected.
+    expect(
+      currentContextPaths,
+      unorderedEquals([
+        // TODO(dantup): It may be a bug that ContextLocator is producing
+        //  contexts at the root for missing folders.
+        convertPath('/'), // the first existing ancestor of the requested folder
+      ]),
+    );
+  }
+
+  Future<void> test_analysisRoot_existsAndDoesNotExist() async {
+    const notExistingPath = '/does/not/exist';
+    resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
+
+    // Track diagnostics for the file to ensure we're analyzing the existing
+    // root.
+    final diagnosticsFuture = waitForDiagnostics(mainFileUri);
+    newFile(mainFilePath, 'NotAClass a;');
+
+    await initialize(
+      workspaceFolders: [projectFolderUri, Uri.file(notExistingPath)],
+    );
+
+    // Wait a short period and ensure there was exactly one context build.
+    await pumpEventQueue(times: 10000);
+    expect(server.contextBuilds, 1);
+    // And that the roots are as expected.
+    expect(
+      currentContextPaths,
+      unorderedEquals([
+        projectFolderPath,
+        convertPath('/'), // the first existing ancestor of the requested folder
+      ]),
+    );
+
+    final diagnostics = await diagnosticsFuture;
+    expect(diagnostics, hasLength(1));
+    expect(diagnostics!.single.code, 'undefined_class');
+  }
+
   Future<void> test_capturesLatency_afterStartup() async {
     await initialize(includeClientRequestTime: true);
     await openFile(mainFileUri, '');
