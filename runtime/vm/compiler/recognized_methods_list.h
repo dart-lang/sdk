@@ -244,6 +244,9 @@ namespace dart {
   V(_Int32x4, _withFlagY, Int32x4WithFlagY, 0xa8cf9ba6)                        \
   V(_Int32x4, _withFlagZ, Int32x4WithFlagZ, 0xa8058854)                        \
   V(_Int32x4, _withFlagW, Int32x4WithFlagW, 0xb333f958)                        \
+  V(_RawReceivePort, get:sendPort, ReceivePort_getSendPort, 0xe6bb706d)        \
+  V(_RawReceivePort, get:_handler, ReceivePort_getHandler, 0xf1f36233)         \
+  V(_RawReceivePort, set:_handler, ReceivePort_setHandler, 0x571c5330)         \
   V(_HashVMBase, get:_index, LinkedHashBase_getIndex, 0x882671dc)              \
   V(_HashVMBase, set:_index, LinkedHashBase_setIndex, 0xa2be9418)              \
   V(_HashVMBase, get:_data, LinkedHashBase_getData, 0x2c8b5e83)                \

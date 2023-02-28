@@ -6,6 +6,15 @@ import 'space.dart';
 import 'static_type.dart';
 import 'witness.dart' as witness;
 
+/// Indicates whether the "fallback" exhaustiveness algorithm (based on flow
+/// analysis) should be used instead of full exhaustiveness.  This is a
+/// temporary measure to allow for the possibility of turning on pattern support
+/// before the full exhaustiveness algorithm is complete.
+///
+/// TODO(paulberry): remove this flag (and the implementation of the fallback
+/// exhaustiveness algorithm) when it is no longer needed.
+bool useFallbackExhaustivenessAlgorithm = true;
+
 /// Checks the [cases] representing a series of switch cases to see if they
 /// exhaustively cover all possible values of the matched [valueType]. Also
 /// checks to see if any case can't be matched because it's covered by previous

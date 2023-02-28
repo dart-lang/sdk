@@ -4,6 +4,8 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart'
+    as shared_exhaustive;
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
@@ -1072,6 +1074,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       final group = node.memberGroups[caseIndex];
       legacySwitchExhaustiveness?.visitSwitchMember(group);
       nullSafetyDeadCodeVerifier.flowEnd(group.members[subIndex]);
+    } else if (node is SwitchExpressionImpl) {
+      legacySwitchExhaustiveness
+          ?.visitSwitchExpressionCase(node.cases[caseIndex]);
     }
   }
 
@@ -1145,7 +1150,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void handleSwitchScrutinee(DartType type) {
-    if (!options.patternsEnabled) {
+    if (!options.patternsEnabled ||
+        shared_exhaustive.useFallbackExhaustivenessAlgorithm) {
       legacySwitchExhaustiveness = SwitchExhaustiveness(type);
     }
   }
@@ -5094,6 +5100,20 @@ class SwitchExhaustiveness {
 
   SwitchExhaustiveness._(this._enumConstants, this._isNullEnumValueCovered);
 
+  void visitSwitchExpressionCase(SwitchExpressionCaseImpl node) {
+    if (_enumConstants != null) {
+      ExpressionImpl? caseConstant;
+      var guardedPattern = node.guardedPattern;
+      if (guardedPattern.whenClause == null) {
+        var pattern = guardedPattern.pattern.unParenthesized;
+        if (pattern is ConstantPatternImpl) {
+          caseConstant = pattern.expression;
+        }
+      }
+      _handleCaseConstant(caseConstant);
+    }
+  }
+
   void visitSwitchMember(SwitchStatementCaseGroup group) {
     for (var node in group.members) {
       if (_enumConstants != null) {
@@ -5109,19 +5129,23 @@ class SwitchExhaustiveness {
             }
           }
         }
-        if (caseConstant != null) {
-          var element = _referencedElement(caseConstant);
-          if (element is PropertyAccessorElement) {
-            _enumConstants!.remove(element.variable);
-          }
-          if (caseConstant is NullLiteral) {
-            _isNullEnumValueCovered = true;
-          }
-          if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
-            isExhaustive = true;
-          }
-        }
+        _handleCaseConstant(caseConstant);
       } else if (node is SwitchDefault) {
+        isExhaustive = true;
+      }
+    }
+  }
+
+  void _handleCaseConstant(ExpressionImpl? caseConstant) {
+    if (caseConstant != null) {
+      var element = _referencedElement(caseConstant);
+      if (element is PropertyAccessorElement) {
+        _enumConstants!.remove(element.variable);
+      }
+      if (caseConstant is NullLiteral) {
+        _isNullEnumValueCovered = true;
+      }
+      if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
         isExhaustive = true;
       }
     }

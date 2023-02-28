@@ -342,6 +342,7 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
       case api.OutputType.dumpInfo:
       case api.OutputType.dumpUnusedLibraries:
       case api.OutputType.deferredMap:
+      case api.OutputType.resourceIdentifiers:
         if (name == '') {
           name = out.pathSegments.last;
         }

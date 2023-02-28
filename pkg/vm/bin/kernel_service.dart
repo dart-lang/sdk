@@ -106,8 +106,8 @@ CompilerOptions setupCompilerOptions(
     ..sdkSummary = platformKernelPath
     ..verbose = verbose
     ..omitPlatform = false // so that compilation results can be rejected,
-                           // which potentially is only relevant for
-                           // incremental, rather than single-shot compilter
+    // which potentially is only relevant for
+    // incremental, rather than single-shot compilter
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(expFlags), onError: (msg) {
       errorsPlain.add(msg);
@@ -1018,7 +1018,7 @@ Future<String?> findNativeAssets({
       if (found != null) {
         return found;
       }
-      final parentUri = script.resolve('..');
+      final parentUri = folderUri.resolve('..');
       if (parentUri.path == folderUri.path) {
         return null;
       }

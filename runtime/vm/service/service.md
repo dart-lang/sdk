@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.2
+# Dart VM Service Protocol 4.3
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.2_ of the Dart VM Service Protocol. This
+This document describes of _version 4.3_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1886,6 +1886,21 @@ class Class extends Object {
 
   // Is this a const class?
   bool const;
+
+  // Is this a sealed class?
+  bool isSealed;
+
+  // Is this a mixin class?
+  bool isMixinClass;
+
+  // Is this a base class?
+  bool isBaseClass;
+
+  // Is this an interface class?
+  bool isInterfaceClass;
+
+  // Is this a final class?
+  bool isFinal;
 
   // Are allocations of this class being traced?
   bool traceAllocations;
@@ -4491,5 +4506,6 @@ version | comments
 4.0 | Added `Record` and `RecordType` `InstanceKind`s, added a deprecation notice to the `decl` property of `BoundField`, added `name` property to `BoundField`, added a deprecation notice to the `parentListIndex` property of `InboundReference`, changed the type of the `parentField` property of `InboundReference` from `@Field` to `@Field\|string\|int`, added a deprecation notice to the `parentListIndex` property of `RetainingObject`, changed the type of the `parentField` property of `RetainingObject` from `string` to `string\|int`, removed the deprecated `timeSpan` property from `CpuSamples`, and removed the deprecated `timeSpan` property from `CpuSamplesEvent`.
 4.1 | Added optional `includeSubclasses` and `includeImplementers` parameters to `getInstances`.
 4.2 | Added `getInstancesAsList` RPC.
+4.3 | Added `isSealed`, `isMixinClass`, `isBaseClass`, `isInterfaceClass`, and `isFinal` properties to `Class`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

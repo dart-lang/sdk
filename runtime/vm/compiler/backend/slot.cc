@@ -145,6 +145,8 @@ bool Slot::IsImmutableLengthSlot() const {
   case Slot::Kind::k##Class##_##Field:
       UNBOXED_NATIVE_SLOTS_LIST(UNBOXED_NATIVE_SLOT_CASE)
 #undef UNBOXED_NATIVE_SLOT_CASE
+    case Slot::Kind::kReceivePort_send_port:
+    case Slot::Kind::kReceivePort_handler:
     case Slot::Kind::kLinkedHashBase_index:
     case Slot::Kind::kImmutableLinkedHashBase_index:
     case Slot::Kind::kLinkedHashBase_data:

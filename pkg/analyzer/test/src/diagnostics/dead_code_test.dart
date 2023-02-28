@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../fallback_exhaustiveness.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -61,7 +62,7 @@ Object f(int x) {
   }
 
   test_deadPattern_switchExpression_logicalOrPattern_nextCases() async {
-    await assertErrorsInCode(r'''
+    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
 Object f(int x) {
   return switch (x) {
     int() || 0 => 0,
@@ -70,11 +71,11 @@ Object f(int x) {
   };
 }
 ''', [
-      error(HintCode.DEAD_CODE, 50, 4),
-      error(HintCode.DEAD_CODE, 65, 10),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 71, 2),
-      error(HintCode.DEAD_CODE, 81, 6),
-    ]);
+          error(HintCode.DEAD_CODE, 50, 4),
+          error(HintCode.DEAD_CODE, 65, 10),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 71, 2),
+          error(HintCode.DEAD_CODE, 81, 6),
+        ]));
   }
 
   test_deadPattern_switchStatement_logicalOrPattern() async {
@@ -91,7 +92,7 @@ void f(int x) {
   }
 
   test_deadPattern_switchStatement_nextCases() async {
-    await assertErrorsInCode(r'''
+    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case int() || 0:
@@ -101,15 +102,15 @@ void f(int x) {
   }
 }
 ''', [
-      error(HintCode.DEAD_CODE, 46, 4),
-      error(HintCode.DEAD_CODE, 56, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 56, 4),
-      error(HintCode.DEAD_CODE, 68, 7),
-    ]);
+          error(HintCode.DEAD_CODE, 46, 4),
+          error(HintCode.DEAD_CODE, 56, 4),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 56, 4),
+          error(HintCode.DEAD_CODE, 68, 7),
+        ]));
   }
 
   test_deadPattern_switchStatement_nextCases2() async {
-    await assertErrorsInCode(r'''
+    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case int() || 42:
@@ -119,12 +120,12 @@ void f(int x) {
   }
 }
 ''', [
-      error(HintCode.DEAD_CODE, 46, 5),
-      error(HintCode.DEAD_CODE, 57, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 57, 4),
-      error(HintCode.DEAD_CODE, 78, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 78, 4),
-    ]);
+          error(HintCode.DEAD_CODE, 46, 5),
+          error(HintCode.DEAD_CODE, 57, 4),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 57, 4),
+          error(HintCode.DEAD_CODE, 78, 4),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 78, 4),
+        ]));
   }
 
   test_ifElement_patternAssignment() async {

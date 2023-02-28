@@ -128,7 +128,6 @@ Future<kernel_service.Status> singleShotCompile(
     /* [14] = String? = workingDirectory = */ null,
     /* [15] = String = verbosityLevel = */ Verbosity.all.name,
     /* [16] = bool = enableMirrors = */ false,
-    /* [17] = String? = nativeAssetsYaml = */ null,
   ]);
 
   // Wait for kernel-service response.

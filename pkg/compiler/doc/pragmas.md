@@ -12,6 +12,7 @@
 | `dart2js:noElision` | Disables an optimization whereby unused fields or unused parameters are removed |
 | `dart2js:load-priority:normal` | [Affects deferred library loading](#load-priority) |
 | `dart2js:load-priority:high` | [Affects deferred library loading](#load-priority) |
+| `dart2js:resource-identifer` | [Collects data references to resources](resource-identifers.md) |
 
 ## Unsafe pragmas for general use
 

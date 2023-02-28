@@ -142,6 +142,9 @@ enum OutputType {
   /// Unused libraries output.
   dumpUnusedLibraries,
 
+  /// Resource identifiers output.
+  resourceIdentifiers,
+
   /// Implementation specific output used for debugging the compiler.
   debug,
 }

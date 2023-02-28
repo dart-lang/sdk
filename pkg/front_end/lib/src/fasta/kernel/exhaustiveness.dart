@@ -456,9 +456,25 @@ Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
   } else if (pattern is NullCheckPattern) {
     return convertPatternToSpace(cache, pattern.pattern, constants, context,
         nonNull: true);
+  } else if (pattern is NullAssertPattern ||
+      pattern is CastPattern ||
+      pattern is InvalidPattern ||
+      pattern is RelationalPattern ||
+      pattern is AndPattern) {
+    // These pattern do not add to the exhaustiveness coverage.
+    // TODO(johnniwinther): Handle `Null` aspect implicitly covered by
+    // [NullAssertPattern] and `as Null`.
+    // TODO(johnniwinther): Handle top in [AndPattern] branches.
+    return new Space(cache.getUnknownStaticType());
+  } else if (pattern is ListPattern || pattern is MapPattern) {
+    // TODO(johnniwinther): Support list and map patterns. This not only
+    //  requires a new interpretation of [Space] fields that handles the
+    //  relation between concrete lengths, rest patterns with/without
+    //  subpattern, and list/map of arbitrary size and content, but also for the
+    //  runtime to check for lengths < 0.
+    return new Space(cache.getUnknownStaticType());
   }
-
-  // TODO(johnniwinther): Handle remaining constants.
+  assert(false, "Unexpected pattern $pattern (${pattern.runtimeType}).");
   return new Space(cache.getUnknownStaticType());
 }
 

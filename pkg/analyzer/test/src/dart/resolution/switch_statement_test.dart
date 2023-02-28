@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../fallback_exhaustiveness.dart';
 import 'context_collection_resolution.dart';
 
 main() {
@@ -1098,7 +1099,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasDefault2() async {
-    await assertErrorsInCode(r'''
+    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case var a:
@@ -1108,14 +1109,15 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(HintCode.DEAD_CODE, 55, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 55, 4),
-      error(HintCode.DEAD_CODE, 71, 7),
-      error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
-          86,
-          1),
-    ]);
+          error(HintCode.DEAD_CODE, 55, 4),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 55, 4),
+          error(HintCode.DEAD_CODE, 71, 7),
+          error(
+              CompileTimeErrorCode
+                  .INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+              86,
+              1),
+        ]));
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''

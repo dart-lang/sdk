@@ -380,8 +380,10 @@ Statement switch_(Expression expression, List<_SwitchStatementMember> cases,
             expectRequiresExhaustivenessValidation,
         expectScrutineeType: expectScrutineeType);
 
-Expression switchExpr(Expression expression, List<ExpressionCase> cases) =>
-    new _SwitchExpression(expression, cases, location: computeLocation());
+Expression switchExpr(Expression expression, List<ExpressionCase> cases,
+        {bool? isLegacyExhaustive}) =>
+    new _SwitchExpression(expression, cases, isLegacyExhaustive,
+        location: computeLocation());
 
 _SwitchStatementMember switchStatementMember(
   List<SwitchHead> cases,
@@ -3856,8 +3858,7 @@ class _MiniAstTypeAnalyzer
       operations.isAlwaysExhaustiveType(type);
 
   @override
-  bool isLegacySwitchExhaustive(
-      covariant _SwitchStatement node, Type expressionType) {
+  bool isLegacySwitchExhaustive(covariant _Switch node, Type expressionType) {
     return node.isLegacyExhaustive!;
   }
 
@@ -4495,12 +4496,20 @@ class _Return extends Statement {
   }
 }
 
-class _SwitchExpression extends Expression {
+abstract class _Switch implements Node {
+  bool? get isLegacyExhaustive;
+}
+
+class _SwitchExpression extends Expression implements _Switch {
   final Expression scrutinee;
 
   final List<ExpressionCase> cases;
 
-  _SwitchExpression(this.scrutinee, this.cases, {required super.location});
+  @override
+  final bool? isLegacyExhaustive;
+
+  _SwitchExpression(this.scrutinee, this.cases, this.isLegacyExhaustive,
+      {required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -4512,6 +4521,12 @@ class _SwitchExpression extends Expression {
 
   @override
   String toString() {
+    var isLegacyExhaustive = this.isLegacyExhaustive;
+    var exhaustiveness = isLegacyExhaustive == null
+        ? ''
+        : isLegacyExhaustive
+            ? '<exhaustive>'
+            : '<non-exhaustive>';
     String body;
     if (cases.isEmpty) {
       body = '{}';
@@ -4519,11 +4534,17 @@ class _SwitchExpression extends Expression {
       var contents = cases.join(' ');
       body = '{ $contents }';
     }
-    return 'switch ($scrutinee) $body';
+    return 'switch$exhaustiveness ($scrutinee) $body';
   }
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    bool needsLegacyExhaustive = h.errorOnSwitchExhaustiveness;
+    if (!needsLegacyExhaustive && isLegacyExhaustive != null) {
+      fail('isLegacyExhaustive should not be specified at $location');
+    } else if (needsLegacyExhaustive && isLegacyExhaustive == null) {
+      fail('isLegacyExhaustive should be specified at $location');
+    }
     var result = h.typeAnalyzer
         .analyzeSwitchExpression(this, scrutinee, cases.length, context);
     h.irBuilder.apply(
@@ -4545,11 +4566,12 @@ class _SwitchHeadDefault extends SwitchHead {
   _SwitchHeadDefault({required super.location}) : super._();
 }
 
-class _SwitchStatement extends Statement {
+class _SwitchStatement extends Statement implements _Switch {
   final Expression scrutinee;
 
   final List<_SwitchStatementMember> cases;
 
+  @override
   final bool? isLegacyExhaustive;
 
   final bool? expectHasDefault;
@@ -4600,12 +4622,12 @@ class _SwitchStatement extends Statement {
 
   @override
   void visit(Harness h) {
-    if (h.patternsEnabled && isLegacyExhaustive != null) {
-      fail('isLegacyExhaustive should not be specified when patterns enabled, '
-          'at $location');
-    } else if (!h.patternsEnabled && isLegacyExhaustive == null) {
-      fail('isLegacyExhaustive should be specified when patterns disabled, '
-          'at $location');
+    bool needsLegacyExhaustive =
+        !h.patternsEnabled || h.errorOnSwitchExhaustiveness;
+    if (!needsLegacyExhaustive && isLegacyExhaustive != null) {
+      fail('isLegacyExhaustive should not be specified at $location');
+    } else if (needsLegacyExhaustive && isLegacyExhaustive == null) {
+      fail('isLegacyExhaustive should be specified at $location');
     }
     var previousBreakTarget = h.typeAnalyzer._currentBreakTarget;
     h.typeAnalyzer._currentBreakTarget = this;

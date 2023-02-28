@@ -1,4 +1,9 @@
-## 11.1.1-dev
+## 11.2.1-dev
+
+## 11.2.0
+- Update to version `4.3` of the spec.
+- Add `isSealed`, `isMixinClass`, `isBaseClass`, `isInterfaceClass`, and
+  `isFinal` properties to `Class`.
 
 ## 11.1.0
 - Reduce number of type checks in `toJson()` methods.

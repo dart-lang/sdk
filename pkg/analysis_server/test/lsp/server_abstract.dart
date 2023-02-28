@@ -2221,13 +2221,16 @@ class _TextEditWithIndex {
   /// can be sequentially applied to a String to match the behaviour of an LSP
   /// client.
   static int compare(_TextEditWithIndex edit1, _TextEditWithIndex edit2) {
-    final start1 = edit1.edit.range.start;
-    final start2 = edit2.edit.range.start;
+    final end1 = edit1.edit.range.end;
+    final end2 = edit2.edit.range.end;
 
-    if (start1.line != start2.line) {
-      return start1.line.compareTo(start2.line) * -1;
-    } else if (start1.character != start2.character) {
-      return start1.character.compareTo(start2.character) * -1;
+    // VS Code's implementation of this is here:
+    // https://github.com/microsoft/vscode/blob/856a306d1a9b0879727421daf21a8059e671e3ea/src/vs/editor/common/model/pieceTreeTextBuffer/pieceTreeTextBuffer.ts#L475
+
+    if (end1.line != end2.line) {
+      return end1.line.compareTo(end2.line) * -1;
+    } else if (end1.character != end2.character) {
+      return end1.character.compareTo(end2.character) * -1;
     } else {
       return edit1.index.compareTo(edit2.index) * -1;
     }

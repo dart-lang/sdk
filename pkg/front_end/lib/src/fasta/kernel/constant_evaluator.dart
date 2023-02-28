@@ -832,23 +832,26 @@ class ConstantsTransformer extends RemovingTransformer {
       }
       List<ExhaustivenessError> errors =
           reportErrors(type, cases, remainingSpaces);
-      for (ExhaustivenessError error in errors) {
-        if (error is UnreachableCaseError) {
-          constantEvaluator.errorReporter.report(
-              constantEvaluator.createLocatedMessageWithOffset(
-                  node,
-                  switchInfo.cases[error.index].fileOffset,
-                  messageUnreachableSwitchCase));
-        } else if (error is NonExhaustiveError && switchInfo.mustBeExhaustive) {
-          Library library = constantEvaluator.libraryOf(node);
-          constantEvaluator.errorReporter.report(
-              constantEvaluator.createLocatedMessageWithOffset(
-                  node,
-                  switchInfo.fileOffset,
-                  templateNonExhaustiveSwitch.withArguments(
-                      switchInfo.expressionType,
-                      '${error.witness}',
-                      library.isNonNullableByDefault)));
+      if (!useFallbackExhaustivenessAlgorithm) {
+        for (ExhaustivenessError error in errors) {
+          if (error is UnreachableCaseError) {
+            constantEvaluator.errorReporter.report(
+                constantEvaluator.createLocatedMessageWithOffset(
+                    node,
+                    switchInfo.cases[error.index].fileOffset,
+                    messageUnreachableSwitchCase));
+          } else if (error is NonExhaustiveError &&
+              switchInfo.mustBeExhaustive) {
+            Library library = constantEvaluator.libraryOf(node);
+            constantEvaluator.errorReporter.report(
+                constantEvaluator.createLocatedMessageWithOffset(
+                    node,
+                    switchInfo.fileOffset,
+                    templateNonExhaustiveSwitch.withArguments(
+                        switchInfo.expressionType,
+                        '${error.witness}',
+                        library.isNonNullableByDefault)));
+          }
         }
       }
       if (_exhaustivenessDataForTesting != null) {

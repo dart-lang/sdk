@@ -1,8 +1,11 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// @dart=2.19
 
-// Test reporting a compile-time error if case expressions are of type double.
+// Test reporting a compile-time error if case expressions are of type double,
+// prior to Dart 3.0 and patterns.
 
 import "package:expect/expect.dart";
 

@@ -20,36 +20,30 @@ import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart';
 
 Space convertConstantValueToSpace(
-    AnalyzerExhaustivenessCache cache, DartObjectImpl? constantValue) {
-  if (constantValue != null) {
-    InstanceState state = constantValue.state;
-    if (constantValue.isNull) {
-      return Space.nullSpace;
-    } else if (state is BoolState && state.value != null) {
-      return Space(cache.getBoolValueStaticType(state.value!));
-    } else if (state is RecordState) {
-      Map<String, Space> fields = {};
-      for (int index = 0; index < state.positionalFields.length; index++) {
-        fields['\$${index + 1}'] =
-            convertConstantValueToSpace(cache, state.positionalFields[index]);
-      }
-      for (MapEntry<String, DartObjectImpl> entry
-          in state.namedFields.entries) {
-        fields[entry.key] = convertConstantValueToSpace(cache, entry.value);
-      }
-      return Space(cache.getStaticType(constantValue.type), fields);
+    AnalyzerExhaustivenessCache cache, DartObjectImpl constantValue) {
+  InstanceState state = constantValue.state;
+  if (constantValue.isNull) {
+    return Space.nullSpace;
+  } else if (state is BoolState && state.value != null) {
+    return Space(cache.getBoolValueStaticType(state.value!));
+  } else if (state is RecordState) {
+    Map<String, Space> fields = {};
+    for (int index = 0; index < state.positionalFields.length; index++) {
+      fields['\$${index + 1}'] =
+          convertConstantValueToSpace(cache, state.positionalFields[index]);
     }
-    DartType type = constantValue.type;
-    if (type is InterfaceType && type.element.kind == ElementKind.ENUM) {
-      return Space(cache.getEnumElementStaticType(
-          type.element as EnumElement, constantValue));
+    for (MapEntry<String, DartObjectImpl> entry in state.namedFields.entries) {
+      fields[entry.key] = convertConstantValueToSpace(cache, entry.value);
     }
-    return Space(cache.getUniqueStaticType(
-        type, constantValue, constantValue.toString()));
+    return Space(cache.getStaticType(constantValue.type), fields);
   }
-  // TODO(johnniwinther): Assert that constant value is available when the
-  // exhaustiveness checking is complete.
-  return Space(cache.getUnknownStaticType());
+  DartType type = constantValue.type;
+  if (type is InterfaceType && type.element.kind == ElementKind.ENUM) {
+    return Space(cache.getEnumElementStaticType(
+        type.element as EnumElement, constantValue));
+  }
+  return Space(
+      cache.getUniqueStaticType(type, constantValue, constantValue.toString()));
 }
 
 Space convertPatternToSpace(
@@ -150,10 +144,31 @@ Space convertPatternToSpace(
   } else if (pattern is ParenthesizedPattern) {
     return convertPatternToSpace(cache, pattern.pattern, constantPatternValues,
         nonNull: nonNull);
+  } else if (pattern is NullAssertPattern ||
+      pattern is CastPattern ||
+      pattern is RelationalPattern ||
+      pattern is LogicalAndPattern) {
+    // These pattern do not add to the exhaustiveness coverage.
+    // TODO(johnniwinther): Handle `Null` aspect implicitly covered by
+    // [NullAssertPattern] and `as Null`.
+    // TODO(johnniwinther): Handle top in [AndPattern] branches.
+    return Space(cache.getUnknownStaticType());
+  } else if (pattern is ListPattern || pattern is MapPattern) {
+    // TODO(johnniwinther): Support list and map patterns. This not only
+    //  requires a new interpretation of [Space] fields that handles the
+    //  relation between concrete lengths, rest patterns with/without
+    //  subpattern, and list/map of arbitrary size and content, but also for the
+    //  runtime to check for lengths < 0.
+    return Space(cache.getUnknownStaticType());
+  } else if (pattern is ConstantPattern) {
+    DartObjectImpl? value = constantPatternValues[pattern];
+    if (value != null) {
+      return convertConstantValueToSpace(cache, value);
+    }
+    return Space(cache.getUnknownStaticType());
   }
-  // TODO(johnniwinther): Handle remaining patterns.
-  DartObjectImpl? value = constantPatternValues[pattern];
-  return convertConstantValueToSpace(cache, value);
+  assert(false, "Unexpected pattern $pattern (${pattern.runtimeType})");
+  return Space(cache.getUnknownStaticType());
 }
 
 class AnalyzerEnumOperations

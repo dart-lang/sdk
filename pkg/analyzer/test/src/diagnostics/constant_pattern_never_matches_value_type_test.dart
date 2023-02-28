@@ -182,6 +182,102 @@ class B extends A {
     ]);
   }
 
+  test_custom_primitiveEquality_generic_differentElement_constantIsSubtypeOfValue() async {
+    await assertNoErrorsInCode('''
+void f(A<int> x) {
+  if (x case const B()) {}
+}
+
+class A<T> {
+  const A();
+}
+
+class B extends A<int> {
+  const B();
+}
+''');
+  }
+
+  test_custom_primitiveEquality_generic_differentElement_constantIsSupertypeOfValue() async {
+    await assertErrorsInCode('''
+void f(B x) {
+  if (x case const A<int>()) {}
+}
+
+class A<T> {
+  const A();
+}
+
+class B extends A<int> {
+  const B();
+}
+''', [
+      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 33, 8),
+    ]);
+  }
+
+  test_custom_primitiveEquality_generic_sameElement_constantIsSameTypeAsValue() async {
+    await assertNoErrorsInCode('''
+void f(A<int> x) {
+  if (x case const A<int>()) {}
+}
+
+class A<T> {
+  const A();
+}
+''');
+  }
+
+  test_custom_primitiveEquality_generic_sameElement_constantIsSubtypeOfValue() async {
+    await assertNoErrorsInCode('''
+void f(A<num> x) {
+  if (x case const A<int>()) {}
+}
+
+class A<T> {
+  const A();
+}
+''');
+  }
+
+  test_custom_primitiveEquality_generic_sameElement_constantIsSupertypeOfValue() async {
+    await assertErrorsInCode('''
+void f(A<int> x) {
+  if (x case const A<num>()) {}
+}
+
+class A<T> {
+  const A();
+}
+''', [
+      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 38, 8),
+    ]);
+  }
+
+  test_custom_primitiveEquality_generic_sameElement_typeParameter() async {
+    await assertNoErrorsInCode('''
+void f<T>(A<T> x) {
+  if (x case const A<int>()) {}
+}
+
+class A<T> {
+  const A();
+}
+''');
+  }
+
+  test_custom_primitiveEquality_generic_sameElement_typeParameter_contravariant() async {
+    await assertNoErrorsInCode('''
+void f<T>(A<void Function(T)> x) {
+  if (x case const A<void Function(int)>()) {}
+}
+
+class A<T> {
+  const A();
+}
+''');
+  }
+
   test_int_bool() async {
     await assertErrorsInCode('''
 void f(bool x) {
@@ -193,14 +289,24 @@ void f(bool x) {
   }
 
   test_int_double() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 void f(double x) {
   if (x case (zero)) {}
 }
 
 const zero = 0;
+''');
+  }
+
+  test_int_functionType() async {
+    await assertErrorsInCode('''
+void f(void Function() x) {
+  if (x case (0)) {}
+}
+
+class A {}
 ''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 33, 4),
+      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 1),
     ]);
   }
 

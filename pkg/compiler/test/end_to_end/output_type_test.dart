@@ -115,6 +115,19 @@ main() {
       '--csp',
       ...additionOptionals,
     ], expectedOutput);
+
+    // If we add the '--write-resources' flag, we get another file
+    // `out.js.resources.json'.
+    await test([
+      'pkg/compiler/test/deferred/data/deferred_helper.dart',
+      '--no-sound-null-safety',
+      '--csp',
+      Flags.writeResources,
+      ...additionOptionals,
+    ], [
+      ...expectedOutput,
+      'out.js.resources.json',
+    ]);
   }
 
   asyncTest(() async {

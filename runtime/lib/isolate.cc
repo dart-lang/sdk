@@ -66,11 +66,6 @@ DEFINE_NATIVE_ENTRY(RawReceivePort_get_id, 0, 1) {
   return Integer::New(port.Id());
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePort_get_sendport, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
-  return port.send_port();
-}
-
 DEFINE_NATIVE_ENTRY(RawReceivePort_closeInternal, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   Dart_Port id = port.Id();
