@@ -16,6 +16,21 @@ class VariableData {
   VariableData(this.data, this.format);
 }
 
+/// A wrapper around variables for use in `variablesRequest` that can hold
+/// additional data, such as a formatting information supplied in an evaluation
+/// request.
+class FrameScopeData {
+  final Frame frame;
+  final FrameScopeDataKind kind;
+
+  FrameScopeData(this.frame, this.kind);
+}
+
+enum FrameScopeDataKind {
+  locals,
+  globals,
+}
+
 /// A wrapper around a variable for use in `variablesRequest` that holds
 /// an instance sent for inspection.
 class InspectData {
