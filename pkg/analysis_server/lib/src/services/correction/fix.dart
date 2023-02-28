@@ -1069,12 +1069,12 @@ class DartFixKind {
   static const REMOVE_INVOCATION = FixKind(
     'dart.fix.remove.invocation',
     DartFixKindPriority.DEFAULT,
-    'Remove unnecessary {0} invocation',
+    'Remove unnecessary invocation of {0}',
   );
   static const REMOVE_INVOCATION_MULTI = FixKind(
     'dart.fix.remove.invocation.multi',
     DartFixKindPriority.IN_FILE,
-    'Remove unnecessary {0} invocations in file',
+    'Remove unnecessary invocations of {0} in file',
   );
   static const REMOVE_INITIALIZER = FixKind(
     'dart.fix.remove.initializer',
