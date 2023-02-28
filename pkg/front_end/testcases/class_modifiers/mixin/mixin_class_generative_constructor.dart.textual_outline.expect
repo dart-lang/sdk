@@ -10,6 +10,7 @@ mixin class ErrorMixinClassRedirect {
   int foo = 0;
   ErrorMixinClassRedirect.named(int f) {}
   ErrorMixinClassRedirect.x(int f) : this.named(f);
+  ErrorMixinClassRedirect() {}
 }
 mixin class ErrorMixinClassExternal {
   external ErrorMixinClassExternal();

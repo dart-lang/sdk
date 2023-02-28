@@ -11,7 +11,6 @@ import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../dap.dart';
-import 'adapters/dart.dart';
 import 'isolate_manager.dart';
 import 'protocol_generated.dart' as dap;
 import 'variables.dart';
@@ -378,6 +377,31 @@ class ProtocolConverter {
       return '<sentinel>';
     } else {
       return '<unknown: ${response.type}>';
+    }
+  }
+
+  Future<dap.Variable> convertFieldRefToVariable(
+    ThreadInfo thread,
+    vm.FieldRef fieldRef, {
+    required bool allowCallingToString,
+    required VariableFormat? format,
+  }) async {
+    final field = await thread.getObject(fieldRef);
+    if (field is vm.Field) {
+      return convertVmResponseToVariable(
+        thread,
+        field.staticValue,
+        name: fieldRef.name,
+        allowCallingToString: allowCallingToString,
+        evaluateName: fieldRef.name,
+        format: format,
+      );
+    } else {
+      return Variable(
+        name: fieldRef.name ?? '<unnamed field>',
+        value: '<unavailable>',
+        variablesReference: 0,
+      );
     }
   }
 

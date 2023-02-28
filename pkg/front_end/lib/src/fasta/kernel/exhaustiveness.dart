@@ -341,14 +341,19 @@ class ExpressionCaseInfo extends SwitchCaseInfo {
 
 class PatternCaseInfo extends SwitchCaseInfo {
   final Pattern pattern;
+
+  final bool hasGuard;
+
   @override
   final int fileOffset;
 
-  PatternCaseInfo(this.pattern, {required this.fileOffset});
+  PatternCaseInfo(this.pattern,
+      {required this.hasGuard, required this.fileOffset});
 
   @override
   Space createSpace(CfeExhaustivenessCache cache,
       Map<Node, Constant?> constants, StaticTypeContext context) {
+    if (hasGuard) return new Space(cache.getUnknownStaticType());
     return convertPatternToSpace(cache, pattern, constants, context,
         nonNull: false);
   }

@@ -765,6 +765,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     var hasDefault = false;
 
     // Build spaces for cases.
+    final patternConverter = PatternConverter(
+      cache: _exhaustivenessCache,
+      constantPatternValues: constantPatternValues,
+    );
     for (final caseNode in caseNodes) {
       GuardedPattern? guardedPattern;
       if (caseNode is SwitchDefault) {
@@ -780,13 +784,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (guardedPattern != null) {
         Space space;
         if (guardedPattern.whenClause != null) {
-          // TODO(johnniwinther): Test this.
           space = Space(_exhaustivenessCache.getUnknownStaticType());
         } else {
           final pattern = guardedPattern.pattern;
-          space = convertPatternToSpace(
-              _exhaustivenessCache, pattern, constantPatternValues,
-              nonNull: false);
+          space = patternConverter.convertPattern(pattern, nonNull: false);
         }
         caseNodesWithSpace.add(caseNode);
         caseSpaces.add(space);

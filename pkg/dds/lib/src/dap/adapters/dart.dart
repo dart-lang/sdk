@@ -1227,27 +1227,43 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     ScopesArguments args,
     void Function(ScopesResponseBody) sendResponse,
   ) async {
+    final storedData = _isolateManager.getStoredData(args.frameId);
+    final thread = storedData?.thread;
+    final data = storedData?.data;
+    final frameData = data is vm.Frame ? data : null;
     final scopes = <Scope>[];
 
-    // For local variables, we can just reuse the frameId as variablesReference
-    // as variablesRequest handles stored data of type `Frame` directly.
-    scopes.add(Scope(
-      name: 'Locals',
-      presentationHint: 'locals',
-      variablesReference: args.frameId,
-      expensive: false,
-    ));
-
-    // If the top frame has an exception, add an additional section to allow
-    // that to be inspected.
-    final data = _isolateManager.getStoredData(args.frameId);
-    final exceptionReference = data?.thread.exceptionReference;
-    if (exceptionReference != null) {
+    if (frameData != null && thread != null) {
       scopes.add(Scope(
-        name: 'Exceptions',
-        variablesReference: exceptionReference,
+        name: 'Locals',
+        presentationHint: 'locals',
+        variablesReference: _isolateManager.storeData(
+          thread,
+          FrameScopeData(frameData, FrameScopeDataKind.locals),
+        ),
         expensive: false,
       ));
+
+      scopes.add(Scope(
+        name: 'Globals',
+        presentationHint: 'globals',
+        variablesReference: _isolateManager.storeData(
+          thread,
+          FrameScopeData(frameData, FrameScopeDataKind.globals),
+        ),
+        expensive: false,
+      ));
+
+      // If the top frame has an exception, add an additional section to allow
+      // that to be inspected.
+      final exceptionReference = thread.exceptionReference;
+      if (exceptionReference != null) {
+        scopes.add(Scope(
+          name: 'Exceptions',
+          variablesReference: exceptionReference,
+          expensive: false,
+        ));
+      }
     }
 
     sendResponse(ScopesResponseBody(scopes: scopes));
@@ -1326,12 +1342,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final name = args.source.name;
     final uri = path != null ? Uri.file(normalizePath(path)).toString() : name!;
 
-    await _isolateManager.setBreakpoints(uri, breakpoints);
+    final clientBreakpoints = breakpoints.map(ClientBreakpoint.new).toList();
+    await _isolateManager.setBreakpoints(uri, clientBreakpoints);
 
-    // TODO(dantup): Handle breakpoint resolution rather than pretending all
-    // breakpoints are verified immediately.
     sendResponse(SetBreakpointsResponseBody(
-      breakpoints: breakpoints.map((e) => Breakpoint(verified: true)).toList(),
+      // Send breakpoints back as unverified and with our generated IDs so we
+      // can update them with a 'breakpoint' event when we get the
+      // 'BreakpointAdded'/'BreakpointResolved' events from the VM.
+      breakpoints: clientBreakpoints
+          .map((bp) => Breakpoint(id: bp.id, verified: false))
+          .toList(),
     ));
   }
 
@@ -1715,8 +1735,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     final variables = <Variable>[];
 
-    if (data is vm.Frame) {
-      final vars = data.vars;
+    if (data is FrameScopeData && data.kind == FrameScopeDataKind.locals) {
+      final vars = data.frame.vars;
       if (vars != null) {
         Future<Variable> convert(int index, vm.BoundVariable variable) {
           // Store the expression that gets this object as we may need it to
@@ -1738,6 +1758,22 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // Sort the variables by name.
         variables.sortBy((v) => v.name);
       }
+    } else if (data is FrameScopeData &&
+        data.kind == FrameScopeDataKind.globals) {
+      /// Helper to simplify calling converter.
+      Future<Variable> convert(int index, vm.FieldRef fieldRef) async {
+        return _converter.convertFieldRefToVariable(
+          thread,
+          fieldRef,
+          allowCallingToString: evaluateToStringInDebugViews &&
+              index <= maxToStringsPerEvaluation,
+          format: format,
+        );
+      }
+
+      final globals = await _getFrameGlobals(thread, data.frame);
+      variables.addAll(await Future.wait(globals.mapIndexed(convert)));
+      variables.sortBy((v) => v.name);
     } else if (data is InspectData) {
       // When sending variables as part of an OutputEvent, VS Code will only
       // show the first field, so we wrap the object to ensure there's always
@@ -1816,6 +1852,30 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
 
     sendResponse(VariablesResponseBody(variables: variables));
+  }
+
+  /// Gets global variables for the library of [frame].
+  Future<List<vm.FieldRef>> _getFrameGlobals(
+    ThreadInfo thread,
+    vm.Frame frame,
+  ) async {
+    final scriptRef = frame.location?.script;
+    if (scriptRef == null) {
+      return [];
+    }
+
+    final script = await thread.getScript(scriptRef);
+    final libraryRef = script.library;
+    if (libraryRef == null) {
+      return [];
+    }
+
+    final library = await thread.getObject(libraryRef);
+    if (library is! vm.Library) {
+      return [];
+    }
+
+    return library.variables ?? [];
   }
 
   /// Fixes up a VM Service WebSocket URI to not have a trailing /ws

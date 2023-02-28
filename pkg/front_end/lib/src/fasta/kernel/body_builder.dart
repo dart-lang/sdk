@@ -2030,14 +2030,8 @@ class BodyBuilder extends StackListenerImpl
         buildProblem(
             fasta.templateIllegalMixinDueToConstructors
                 .withArguments(sourceClassBuilder!.fullNameForErrors),
-            sourceClassBuilder!.charOffset,
-            noLength,
-            context: [
-              fasta.templateIllegalMixinDueToConstructorsCause
-                  .withArguments(sourceClassBuilder!.fullNameForErrors)
-                  .withLocation(constructorDeclaration.fileUri!,
-                      constructorDeclaration.charOffset, noLength)
-            ]);
+            constructorDeclaration.charOffset,
+            noLength);
       }
       if (initializers.last is SuperInitializer) {
         SuperInitializer superInitializer =
@@ -2203,14 +2197,8 @@ class BodyBuilder extends StackListenerImpl
       buildProblem(
           fasta.templateIllegalMixinDueToConstructors
               .withArguments(sourceClassBuilder!.fullNameForErrors),
-          sourceClassBuilder!.charOffset,
-          noLength,
-          context: [
-            fasta.templateIllegalMixinDueToConstructorsCause
-                .withArguments(sourceClassBuilder!.fullNameForErrors)
-                .withLocation(constructorDeclaration.fileUri!,
-                    constructorDeclaration.charOffset, noLength)
-          ]);
+          constructorDeclaration.charOffset,
+          noLength);
     }
   }
 

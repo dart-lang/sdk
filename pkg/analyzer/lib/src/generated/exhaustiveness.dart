@@ -19,158 +19,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart';
 
-Space convertConstantValueToSpace(
-    AnalyzerExhaustivenessCache cache, DartObjectImpl constantValue) {
-  InstanceState state = constantValue.state;
-  if (constantValue.isNull) {
-    return Space.nullSpace;
-  } else if (state is BoolState && state.value != null) {
-    return Space(cache.getBoolValueStaticType(state.value!));
-  } else if (state is RecordState) {
-    Map<String, Space> fields = {};
-    for (int index = 0; index < state.positionalFields.length; index++) {
-      fields['\$${index + 1}'] =
-          convertConstantValueToSpace(cache, state.positionalFields[index]);
-    }
-    for (MapEntry<String, DartObjectImpl> entry in state.namedFields.entries) {
-      fields[entry.key] = convertConstantValueToSpace(cache, entry.value);
-    }
-    return Space(cache.getStaticType(constantValue.type), fields);
-  }
-  DartType type = constantValue.type;
-  if (type is InterfaceType && type.element.kind == ElementKind.ENUM) {
-    return Space(cache.getEnumElementStaticType(
-        type.element as EnumElement, constantValue));
-  }
-  return Space(
-      cache.getUniqueStaticType(type, constantValue, constantValue.toString()));
-}
-
-Space convertPatternToSpace(
-    AnalyzerExhaustivenessCache cache,
-    DartPattern pattern,
-    Map<ConstantPattern, DartObjectImpl> constantPatternValues,
-    {required bool nonNull}) {
-  if (pattern is DeclaredVariablePatternImpl) {
-    DartType type = pattern.declaredElement!.type;
-    StaticType staticType = cache.getStaticType(type);
-    if (nonNull) {
-      staticType = staticType.nonNullable;
-    }
-    return Space(staticType);
-  } else if (pattern is ObjectPattern) {
-    Map<String, Space> fields = {};
-    for (PatternField field in pattern.fields) {
-      PatternFieldName? fieldName = field.name;
-      String? name;
-      if (fieldName?.name != null) {
-        name = fieldName!.name!.lexeme;
-      } else {
-        name = field.element?.name;
-      }
-      if (name == null) {
-        // TODO(johnniwinther): How do we handle error cases?
-        continue;
-      }
-      fields[name] = convertPatternToSpace(
-          cache, field.pattern, constantPatternValues,
-          nonNull: false);
-    }
-    final type = pattern.type.typeOrThrow;
-    StaticType staticType = cache.getStaticType(type);
-    if (nonNull) {
-      staticType = staticType.nonNullable;
-    }
-    return Space(staticType, fields);
-  } else if (pattern is WildcardPattern) {
-    final typeNode = pattern.type;
-    if (typeNode == null) {
-      if (nonNull) {
-        return Space(StaticType.nonNullableObject);
-      } else {
-        return Space.top;
-      }
-    } else {
-      final type = typeNode.typeOrThrow;
-      StaticType staticType = cache.getStaticType(type);
-      if (nonNull) {
-        staticType = staticType.nonNullable;
-      }
-      return Space(staticType);
-    }
-  } else if (pattern is RecordPattern) {
-    int index = 1;
-    Map<String, Space> fields = {};
-    List<DartType> positional = [];
-    Map<String, DartType> named = {};
-    for (PatternField field in pattern.fields) {
-      PatternFieldName? fieldName = (field as PatternFieldImpl).name;
-      String? name;
-      if (fieldName == null) {
-        name = '\$${index++}';
-        positional.add(cache.typeSystem.typeProvider.dynamicType);
-      } else {
-        if (fieldName.name != null) {
-          name = fieldName.name!.lexeme;
-        } else {
-          name = field.pattern.variablePattern?.name.lexeme;
-        }
-        if (name != null) {
-          named[name] = cache.typeSystem.typeProvider.dynamicType;
-        } else {
-          // Error case, skip field.
-          continue;
-        }
-      }
-      fields[name] = convertPatternToSpace(
-          cache, field.pattern, constantPatternValues,
-          nonNull: false);
-    }
-    RecordType recordType = RecordType(
-        positional: positional,
-        named: named,
-        nullabilitySuffix: NullabilitySuffix.none);
-    return Space(cache.getStaticType(recordType), fields);
-  } else if (pattern is LogicalOrPattern) {
-    return Space.union([
-      convertPatternToSpace(cache, pattern.leftOperand, constantPatternValues,
-          nonNull: nonNull),
-      convertPatternToSpace(cache, pattern.rightOperand, constantPatternValues,
-          nonNull: nonNull)
-    ]);
-  } else if (pattern is NullCheckPattern) {
-    return convertPatternToSpace(cache, pattern.pattern, constantPatternValues,
-        nonNull: true);
-  } else if (pattern is ParenthesizedPattern) {
-    return convertPatternToSpace(cache, pattern.pattern, constantPatternValues,
-        nonNull: nonNull);
-  } else if (pattern is NullAssertPattern ||
-      pattern is CastPattern ||
-      pattern is RelationalPattern ||
-      pattern is LogicalAndPattern) {
-    // These pattern do not add to the exhaustiveness coverage.
-    // TODO(johnniwinther): Handle `Null` aspect implicitly covered by
-    // [NullAssertPattern] and `as Null`.
-    // TODO(johnniwinther): Handle top in [AndPattern] branches.
-    return Space(cache.getUnknownStaticType());
-  } else if (pattern is ListPattern || pattern is MapPattern) {
-    // TODO(johnniwinther): Support list and map patterns. This not only
-    //  requires a new interpretation of [Space] fields that handles the
-    //  relation between concrete lengths, rest patterns with/without
-    //  subpattern, and list/map of arbitrary size and content, but also for the
-    //  runtime to check for lengths < 0.
-    return Space(cache.getUnknownStaticType());
-  } else if (pattern is ConstantPattern) {
-    DartObjectImpl? value = constantPatternValues[pattern];
-    if (value != null) {
-      return convertConstantValueToSpace(cache, value);
-    }
-    return Space(cache.getUnknownStaticType());
-  }
-  assert(false, "Unexpected pattern $pattern (${pattern.runtimeType})");
-  return Space(cache.getUnknownStaticType());
-}
-
 class AnalyzerEnumOperations
     implements EnumOperations<DartType, EnumElement, FieldElement, DartObject> {
   const AnalyzerEnumOperations();
@@ -440,6 +288,159 @@ class ExhaustivenessDataForTesting {
   /// Map from switch statement/expression/case nodes to the error reported
   /// on the node.
   Map<AstNode, ExhaustivenessError> errors = {};
+}
+
+class PatternConverter {
+  final AnalyzerExhaustivenessCache cache;
+  final Map<ConstantPattern, DartObjectImpl> constantPatternValues;
+
+  PatternConverter({
+    required this.cache,
+    required this.constantPatternValues,
+  });
+
+  Space convertPattern(
+    DartPattern pattern, {
+    required bool nonNull,
+  }) {
+    if (pattern is DeclaredVariablePatternImpl) {
+      DartType type = pattern.declaredElement!.type;
+      StaticType staticType = cache.getStaticType(type);
+      if (nonNull) {
+        staticType = staticType.nonNullable;
+      }
+      return Space(staticType);
+    } else if (pattern is ObjectPattern) {
+      Map<String, Space> fields = {};
+      for (PatternField field in pattern.fields) {
+        PatternFieldName? fieldName = field.name;
+        String? name;
+        if (fieldName?.name != null) {
+          name = fieldName!.name!.lexeme;
+        } else {
+          name = field.element?.name;
+        }
+        if (name == null) {
+          // TODO(johnniwinther): How do we handle error cases?
+          continue;
+        }
+        fields[name] = convertPattern(field.pattern, nonNull: false);
+      }
+      final type = pattern.type.typeOrThrow;
+      StaticType staticType = cache.getStaticType(type);
+      if (nonNull) {
+        staticType = staticType.nonNullable;
+      }
+      return Space(staticType, fields);
+    } else if (pattern is WildcardPattern) {
+      final typeNode = pattern.type;
+      if (typeNode == null) {
+        if (nonNull) {
+          return Space(StaticType.nonNullableObject);
+        } else {
+          return Space.top;
+        }
+      } else {
+        final type = typeNode.typeOrThrow;
+        StaticType staticType = cache.getStaticType(type);
+        if (nonNull) {
+          staticType = staticType.nonNullable;
+        }
+        return Space(staticType);
+      }
+    } else if (pattern is RecordPattern) {
+      int index = 1;
+      Map<String, Space> fields = {};
+      List<DartType> positional = [];
+      Map<String, DartType> named = {};
+      for (PatternField field in pattern.fields) {
+        PatternFieldName? fieldName = (field as PatternFieldImpl).name;
+        String? name;
+        if (fieldName == null) {
+          name = '\$${index++}';
+          positional.add(cache.typeSystem.typeProvider.dynamicType);
+        } else {
+          if (fieldName.name != null) {
+            name = fieldName.name!.lexeme;
+          } else {
+            name = field.pattern.variablePattern?.name.lexeme;
+          }
+          if (name != null) {
+            named[name] = cache.typeSystem.typeProvider.dynamicType;
+          } else {
+            // Error case, skip field.
+            continue;
+          }
+        }
+        fields[name] = convertPattern(field.pattern, nonNull: false);
+      }
+      RecordType recordType = RecordType(
+          positional: positional,
+          named: named,
+          nullabilitySuffix: NullabilitySuffix.none);
+      return Space(cache.getStaticType(recordType), fields);
+    } else if (pattern is LogicalOrPattern) {
+      return Space.union([
+        convertPattern(pattern.leftOperand, nonNull: nonNull),
+        convertPattern(pattern.rightOperand, nonNull: nonNull)
+      ]);
+    } else if (pattern is NullCheckPattern) {
+      return convertPattern(pattern.pattern, nonNull: true);
+    } else if (pattern is ParenthesizedPattern) {
+      return convertPattern(pattern.pattern, nonNull: nonNull);
+    } else if (pattern is NullAssertPattern ||
+        pattern is CastPattern ||
+        pattern is RelationalPattern ||
+        pattern is LogicalAndPattern) {
+      // These pattern do not add to the exhaustiveness coverage.
+      // TODO(johnniwinther): Handle `Null` aspect implicitly covered by
+      // [NullAssertPattern] and `as Null`.
+      // TODO(johnniwinther): Handle top in [AndPattern] branches.
+      return Space(cache.getUnknownStaticType());
+    } else if (pattern is ListPattern || pattern is MapPattern) {
+      // TODO(johnniwinther): Support list and map patterns. This not only
+      //  requires a new interpretation of [Space] fields that handles the
+      //  relation between concrete lengths, rest patterns with/without
+      //  subpattern, and list/map of arbitrary size and content, but also for the
+      //  runtime to check for lengths < 0.
+      return Space(cache.getUnknownStaticType());
+    } else if (pattern is ConstantPattern) {
+      DartObjectImpl? value = constantPatternValues[pattern];
+      if (value != null) {
+        return _convertConstantValue(value);
+      }
+      return Space(cache.getUnknownStaticType());
+    }
+    assert(false, "Unexpected pattern $pattern (${pattern.runtimeType})");
+    return Space(cache.getUnknownStaticType());
+  }
+
+  Space _convertConstantValue(DartObjectImpl constantValue) {
+    InstanceState state = constantValue.state;
+    if (constantValue.isNull) {
+      return Space.nullSpace;
+    } else if (state is BoolState && state.value != null) {
+      return Space(cache.getBoolValueStaticType(state.value!));
+    } else if (state is RecordState) {
+      Map<String, Space> fields = {};
+      for (int index = 0; index < state.positionalFields.length; index++) {
+        fields['\$${index + 1}'] =
+            _convertConstantValue(state.positionalFields[index]);
+      }
+      for (MapEntry<String, DartObjectImpl> entry
+          in state.namedFields.entries) {
+        fields[entry.key] = _convertConstantValue(entry.value);
+      }
+      return Space(cache.getStaticType(constantValue.type), fields);
+    }
+    DartType type = constantValue.type;
+    if (type is InterfaceType && type.element.kind == ElementKind.ENUM) {
+      return Space(cache.getEnumElementStaticType(
+          type.element as EnumElement, constantValue));
+    }
+    return Space(cache.getUniqueStaticType(
+        type, constantValue, constantValue.toString()));
+  }
 }
 
 class TypeParameterReplacer extends ReplacementVisitor {

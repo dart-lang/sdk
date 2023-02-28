@@ -68,11 +68,11 @@ class IsolateManager {
 
   /// Tracks breakpoints last provided by the client so they can be sent to new
   /// isolates that appear after initial breakpoints were sent.
-  final Map<String, List<SourceBreakpoint>> _clientBreakpointsByUri = {};
+  final Map<String, List<ClientBreakpoint>> _clientBreakpointsByUri = {};
 
   /// Tracks client breakpoints by the ID assigned by the VM so we can look up
   /// conditions/logpoints when hitting breakpoints.
-  final Map<String, SourceBreakpoint> _clientBreakpointsByVmId = {};
+  final Map<String, ClientBreakpoint> _clientBreakpointsByVmId = {};
 
   /// Tracks breakpoints created in the VM so they can be removed when the
   /// editor sends new breakpoints (currently the editor just sends a new list
@@ -180,6 +180,9 @@ class IsolateManager {
       _handleResumed(event);
     } else if (eventKind == vm.EventKind.kInspect) {
       _handleInspect(event);
+    } else if (eventKind == vm.EventKind.kBreakpointAdded ||
+        eventKind == vm.EventKind.kBreakpointResolved) {
+      _handleBreakpointAddedOrResolved(event);
     }
   }
 
@@ -292,7 +295,7 @@ class IsolateManager {
   /// before.
   Future<void> setBreakpoints(
     String uri,
-    List<SourceBreakpoint> breakpoints,
+    List<ClientBreakpoint> breakpoints,
   ) async {
     // Track the breakpoints to get sent to any new isolates that start.
     _clientBreakpointsByUri[uri] = breakpoints;
@@ -482,7 +485,7 @@ class IsolateManager {
         // we hit. It's possible some of these may be missing because we could
         // hit a breakpoint that was set before we were attached.
         final clientBreakpoints = event.pauseBreakpoints!
-            .map((bp) => _clientBreakpointsByVmId[bp.id!])
+            .map((bp) => _clientBreakpointsByVmId[bp.id!]?.breakpoint)
             .toSet();
 
         // Split into logpoints (which just print messages) and breakpoints.
@@ -554,6 +557,38 @@ class IsolateManager {
         variablesReference: ref,
       );
     }
+  }
+
+  /// Handles 'BreakpointAdded'/'BreakpointResolved' events from the VM,
+  /// informing the client of updated information about the breakpoint.
+  void _handleBreakpointAddedOrResolved(vm.Event event) {
+    final breakpoint = event.breakpoint!;
+    final breakpointId = breakpoint.id!;
+
+    final existingBreakpoint = _clientBreakpointsByVmId[breakpointId];
+    if (existingBreakpoint == null) {
+      // If we can't match this breakpoint up, we cannot get its ID or send
+      // events for it. This can happen if a breakpoint is being resolved just
+      // as a user changes breakpoints, so we have replaced our collection with
+      // a new set before we processed this event.
+      return;
+    }
+
+    // Location may be [SourceLocation] or [UnresolvedSourceLocaion] depending
+    // on whether this is an Added or Resolved event.
+    final location = breakpoint.location;
+    final resolvedLocation = location is vm.SourceLocation ? location : null;
+    final unresolvedLocation =
+        location is vm.UnresolvedSourceLocation ? location : null;
+    final updatedBreakpoint = Breakpoint(
+      id: existingBreakpoint.id,
+      line: resolvedLocation?.line ?? unresolvedLocation?.line,
+      column: resolvedLocation?.column ?? unresolvedLocation?.column,
+      verified: breakpoint.resolved ?? false,
+    );
+    _adapter.sendEvent(
+      BreakpointEventBody(breakpoint: updatedBreakpoint, reason: 'changed'),
+    );
   }
 
   /// Attempts to resolve [uris] to file:/// URIs via the VM Service.
@@ -675,7 +710,7 @@ class IsolateManager {
 
       // Set new breakpoints.
       final newBreakpoints = _clientBreakpointsByUri[uri] ?? const [];
-      await Future.forEach<SourceBreakpoint>(newBreakpoints, (bp) async {
+      await Future.forEach<ClientBreakpoint>(newBreakpoints, (bp) async {
         try {
           // Some file URIs (like SDK sources) need to be converted to
           // appropriate internal URIs to be able to set breakpoints.
@@ -688,8 +723,8 @@ class IsolateManager {
           }
 
           final vmBp = await service.addBreakpointWithScriptUri(
-              isolateId, vmUri.toString(), bp.line,
-              column: bp.column);
+              isolateId, vmUri.toString(), bp.breakpoint.line,
+              column: bp.breakpoint.column);
           existingBreakpointsForIsolateAndUri[vmBp.id!] = vmBp;
           _clientBreakpointsByVmId[vmBp.id!] = bp;
         } catch (e) {
@@ -1053,6 +1088,29 @@ class ThreadInfo {
         .replace(pathSegments: fileUri.pathSegments.sublist(0, keepSegments))
         .toFilePath();
   }
+}
+
+/// A wrapper over the client-provided [SourceBreakpoint] with a unique ID.
+///
+/// In order to tell clients about breakpoint changes (such as resolution) we
+/// must assign them an ID. If the VM does not have any running Isolates at the
+/// time initial breakpoints are set we cannot yet send the breakpoints (and
+/// therefore cannot get IDs from the VM). So we generate our own IDs and hold
+/// them with the breakpoint here. When we get a 'BreakpointResolved' event we
+/// can look up this [ClientBreakpoint] and use the ID to send an update to the
+/// client.
+class ClientBreakpoint {
+  /// The next number to use as a client ID for breakpoints.
+  ///
+  /// To slightly improve debugging, we start this at 100000 so it doesn't
+  /// initially overlap with VM-produced breakpoint numbers so it's more obvious
+  /// in log files which numbers are DAP-client and which are VM.
+  static int _nextId = 100000;
+
+  final SourceBreakpoint breakpoint;
+  final int id;
+
+  ClientBreakpoint(this.breakpoint) : id = _nextId++;
 }
 
 class StoredData {

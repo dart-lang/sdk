@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -62,6 +63,19 @@ class SearchTest extends PubPackageResolutionTest {
 
   String get testUriStr => 'package:test/test.dart';
 
+  void assertDeclarationsText(
+    WorkspaceSymbols symbols,
+    Map<File, String> inFiles,
+    String expected,
+  ) {
+    final actual = _getDeclarationsText(symbols, inFiles);
+    if (actual != expected) {
+      print(actual);
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
   Future<void> assertElementReferencesText(
     Element element,
     String expected,
@@ -104,11 +118,13 @@ class B {
   }
 }
 ''');
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
-
-    expect(await _findClassMembers('test'),
-        unorderedEquals([a.methods[0], b.fields[0]]));
+    expect(
+      await _findClassMembers('test'),
+      unorderedEquals([
+        findElement.method('test', of: 'A'),
+        findElement.field('test', of: 'B'),
+      ]),
+    );
   }
 
   test_classMembers_enum() async {
@@ -123,7 +139,6 @@ enum E2 {
   final int test = 0;
 }
 ''');
-
     expect(
       await _findClassMembers('test'),
       unorderedEquals([
@@ -153,10 +168,13 @@ mixin B {
   }
 }
 ''');
-    var a = findElement.mixin('A');
-    var b = findElement.mixin('B');
-    expect(await _findClassMembers('test'),
-        unorderedEquals([a.methods[0], b.fields[0]]));
+    expect(
+      await _findClassMembers('test'),
+      unorderedEquals([
+        findElement.method('test', of: 'A'),
+        findElement.field('test', of: 'B'),
+      ]),
+    );
   }
 
   test_declarations_cancel() async {
@@ -192,19 +210,40 @@ class C {
 ''');
     var results = WorkspaceSymbols();
     await FindDeclarations([driver], results, null, null).compute();
-    var declarations = results.declarations;
-    declarations.assertHas('C', DeclarationKind.CLASS,
-        offset: 6, codeOffset: 0, codeLength: 91);
-    declarations.assertHas('f', DeclarationKind.FIELD,
-        offset: 16, codeOffset: 12, codeLength: 5, className: 'C');
-    declarations.assertHas('named', DeclarationKind.CONSTRUCTOR,
-        offset: 30, codeOffset: 28, codeLength: 10, className: 'C');
-    declarations.assertHas('g', DeclarationKind.GETTER,
-        offset: 49, codeOffset: 41, codeLength: 15, className: 'C');
-    declarations.assertHas('s', DeclarationKind.SETTER,
-        offset: 68, codeOffset: 59, codeLength: 16, className: 'C');
-    declarations.assertHas('m', DeclarationKind.METHOD,
-        offset: 83, codeOffset: 78, codeLength: 11, className: 'C');
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  CLASS C
+    offset: 6 1:7
+    codeOffset: 0 + 91
+  FIELD f
+    offset: 16 2:7
+    codeOffset: 12 + 5
+    className: C
+  CONSTRUCTOR <unnamed>
+    offset: 21 3:3
+    codeOffset: 21 + 4
+    className: C
+    parameters: ()
+  CONSTRUCTOR named
+    offset: 30 4:5
+    codeOffset: 28 + 10
+    className: C
+    parameters: ()
+  GETTER g
+    offset: 49 5:11
+    codeOffset: 41 + 15
+    className: C
+  SETTER s
+    offset: 68 6:12
+    codeOffset: 59 + 16
+    className: C
+    parameters: (dynamic _)
+  METHOD m
+    offset: 83 7:8
+    codeOffset: 78 + 11
+    className: C
+    parameters: ()
+''');
   }
 
   test_declarations_discover() async {
@@ -221,20 +260,34 @@ class C {
         ..add(name: 'bbb', rootPath: bbbPackageRootPath),
     );
 
-    newFile(aaaFilePath, 'class A {}');
-    newFile(bbbFilePath, 'class B {}');
-    newFile(cccFilePath, 'class C {}');
+    final file_a = newFile(aaaFilePath, 'class A {}');
+    final file_b = newFile(bbbFilePath, 'class B {}');
+    final file_c = newFile(cccFilePath, 'class C {}');
 
     await resolveTestCode('class T {}');
 
     var results = WorkspaceSymbols();
     await FindDeclarations([driver], results, null, null).compute();
-    var declarations = results.declarations;
 
-    declarations.assertHas('T', DeclarationKind.CLASS);
-    declarations.assertHas('A', DeclarationKind.CLASS);
-    declarations.assertHas('B', DeclarationKind.CLASS);
-    declarations.assertNo('C');
+    assertDeclarationsText(results, {
+      testFile: 'testFile',
+      file_a: 'file_a',
+      file_b: 'file_b',
+      file_c: 'file_c',
+    }, r'''
+testFile
+  CLASS T
+    offset: 6 1:7
+    codeOffset: 0 + 10
+file_a
+  CLASS A
+    offset: 6 1:7
+    codeOffset: 0 + 10
+file_b
+  CLASS B
+    offset: 6 1:7
+    codeOffset: 0 + 10
+''');
   }
 
   test_declarations_enum() async {
@@ -246,16 +299,21 @@ enum E {
 
     var results = WorkspaceSymbols();
     await FindDeclarations([driver], results, null, null).compute();
-    var declarations = results.declarations;
-
-    declarations.assertHas('E', DeclarationKind.ENUM,
-        offset: 5, codeOffset: 0, codeLength: 23);
-    declarations.assertHas('a', DeclarationKind.ENUM_CONSTANT,
-        offset: 11, codeOffset: 11, codeLength: 1);
-    declarations.assertHas('bb', DeclarationKind.ENUM_CONSTANT,
-        offset: 14, codeOffset: 14, codeLength: 2);
-    declarations.assertHas('ccc', DeclarationKind.ENUM_CONSTANT,
-        offset: 18, codeOffset: 18, codeLength: 3);
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  ENUM E
+    offset: 5 1:6
+    codeOffset: 0 + 23
+  ENUM_CONSTANT a
+    offset: 11 2:3
+    codeOffset: 11 + 1
+  ENUM_CONSTANT bb
+    offset: 14 2:6
+    codeOffset: 14 + 2
+  ENUM_CONSTANT ccc
+    offset: 18 2:10
+    codeOffset: 18 + 3
+''');
   }
 
   test_declarations_extension() async {
@@ -269,17 +327,26 @@ extension E on int {
 ''');
     var results = WorkspaceSymbols();
     await FindDeclarations([driver], results, null, null).compute();
-    var declarations = results.declarations;
-    declarations.assertHas('E', DeclarationKind.EXTENSION,
-        offset: 10, codeOffset: 0, codeLength: 82);
-    declarations.assertHas('f', DeclarationKind.FIELD,
-        offset: 27, codeOffset: 23, codeLength: 5);
-    declarations.assertHas('g', DeclarationKind.GETTER,
-        offset: 40, codeOffset: 32, codeLength: 15);
-    declarations.assertHas('s', DeclarationKind.SETTER,
-        offset: 59, codeOffset: 50, codeLength: 16);
-    declarations.assertHas('m', DeclarationKind.METHOD,
-        offset: 74, codeOffset: 69, codeLength: 11);
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  EXTENSION E
+    offset: 10 1:11
+    codeOffset: 0 + 82
+  FIELD f
+    offset: 27 2:7
+    codeOffset: 23 + 5
+  GETTER g
+    offset: 40 3:11
+    codeOffset: 32 + 15
+  SETTER s
+    offset: 59 4:12
+    codeOffset: 50 + 16
+    parameters: (dynamic _)
+  METHOD m
+    offset: 74 5:8
+    codeOffset: 69 + 11
+    parameters: ()
+''');
   }
 
   test_declarations_maxResults() async {
@@ -304,32 +371,47 @@ mixin M {
 ''');
     var results = WorkspaceSymbols();
     await FindDeclarations([driver], results, null, null).compute();
-    var declarations = results.declarations;
-    declarations.assertHas('M', DeclarationKind.MIXIN,
-        offset: 6, codeOffset: 0, codeLength: 71);
-    declarations.assertHas('f', DeclarationKind.FIELD,
-        offset: 16, codeOffset: 12, codeLength: 5, mixinName: 'M');
-    declarations.assertHas('g', DeclarationKind.GETTER,
-        offset: 29, codeOffset: 21, codeLength: 15, mixinName: 'M');
-    declarations.assertHas('s', DeclarationKind.SETTER,
-        offset: 48, codeOffset: 39, codeLength: 16, mixinName: 'M');
-    declarations.assertHas('m', DeclarationKind.METHOD,
-        offset: 63, codeOffset: 58, codeLength: 11, mixinName: 'M');
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  MIXIN M
+    offset: 6 1:7
+    codeOffset: 0 + 71
+  FIELD f
+    offset: 16 2:7
+    codeOffset: 12 + 5
+    mixinName: M
+  GETTER g
+    offset: 29 3:11
+    codeOffset: 21 + 15
+    mixinName: M
+  SETTER s
+    offset: 48 4:12
+    codeOffset: 39 + 16
+    mixinName: M
+    parameters: (dynamic _)
+  METHOD m
+    offset: 63 5:8
+    codeOffset: 58 + 11
+    mixinName: M
+    parameters: ()
+''');
   }
 
   test_declarations_onlyForFile() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
-    var b = newFile('$testPackageLibPath/b.dart', 'class B {}').path;
+    var b = newFile('$testPackageLibPath/b.dart', 'class B {}');
 
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null, onlyForFile: b)
+    await FindDeclarations([driver], results, null, null, onlyForFile: b.path)
         .compute();
-    var declarations = results.declarations;
+    expect(results.files, [b.path]);
 
-    expect(results.files, [b]);
-
-    declarations.assertNo('A');
-    declarations.assertHas('B', DeclarationKind.CLASS);
+    assertDeclarationsText(results, {testFile: 'testFile', b: 'file_b'}, r'''
+file_b
+  CLASS B
+    offset: 6 1:7
+    codeOffset: 0 + 10
+''');
   }
 
   test_declarations_parameters() async {
@@ -342,21 +424,25 @@ void f(bool a, String b) {}
 ''');
     var results = WorkspaceSymbols();
     await FindDeclarations([driver], results, null, null).compute();
-    var declarations = results.declarations;
-
-    var declaration = declarations.assertHas('C', DeclarationKind.CLASS);
-    expect(declaration.parameters, isNull);
-
-    declaration =
-        declarations.assertHas('g', DeclarationKind.GETTER, className: 'C');
-    expect(declaration.parameters, isNull);
-
-    declaration =
-        declarations.assertHas('m', DeclarationKind.METHOD, className: 'C');
-    expect(declaration.parameters, '(int a, double b)');
-
-    declaration = declarations.assertHas('f', DeclarationKind.FUNCTION);
-    expect(declaration.parameters, '(bool a, String b)');
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  CLASS C
+    offset: 6 1:7
+    codeOffset: 0 + 58
+  GETTER g
+    offset: 20 2:11
+    codeOffset: 12 + 15
+    className: C
+  METHOD m
+    offset: 35 3:8
+    codeOffset: 30 + 26
+    className: C
+    parameters: (int a, double b)
+  FUNCTION f
+    offset: 64 5:6
+    codeOffset: 59 + 27
+    parameters: (bool a, String b)
+''');
   }
 
   test_declarations_parameters_functionTyped() async {
@@ -368,19 +454,25 @@ void f4(bool Function(int, String) a) {}
 ''');
     var results = WorkspaceSymbols();
     await FindDeclarations([driver], results, null, null).compute();
-    var declarations = results.declarations;
-
-    var declaration = declarations.assertHas('f1', DeclarationKind.FUNCTION);
-    expect(declaration.parameters, '(bool Function(int, String) a)');
-
-    declaration = declarations.assertHas('f2', DeclarationKind.FUNCTION);
-    expect(declaration.parameters, '(dynamic Function(dynamic, dynamic) a)');
-
-    declaration = declarations.assertHas('f3', DeclarationKind.FUNCTION);
-    expect(declaration.parameters, '(bool Function(int, String) c)');
-
-    declaration = declarations.assertHas('f4', DeclarationKind.FUNCTION);
-    expect(declaration.parameters, '(bool Function(int, String) a)');
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  FUNCTION f1
+    offset: 5 1:6
+    codeOffset: 0 + 35
+    parameters: (bool Function(int, String) a)
+  FUNCTION f2
+    offset: 41 2:6
+    codeOffset: 36 + 19
+    parameters: (dynamic Function(dynamic, dynamic) a)
+  FUNCTION f3
+    offset: 61 3:6
+    codeOffset: 56 + 44
+    parameters: (bool Function(int, String) c)
+  FUNCTION f4
+    offset: 106 4:6
+    codeOffset: 101 + 40
+    parameters: (bool Function(int, String) a)
+''');
   }
 
   test_declarations_parameters_typeArguments() async {
@@ -393,19 +485,27 @@ class A<T, T2> {
 ''');
     var results = WorkspaceSymbols();
     await FindDeclarations([driver], results, null, null).compute();
-    var declarations = results.declarations;
-
-    var declaration =
-        declarations.assertHas('m1', DeclarationKind.METHOD, className: 'A');
-    expect(declaration.parameters, '(Map<int, String> a)');
-
-    declaration =
-        declarations.assertHas('m2', DeclarationKind.METHOD, className: 'A');
-    expect(declaration.parameters, '(Map<T, U> a)');
-
-    declaration =
-        declarations.assertHas('m3', DeclarationKind.METHOD, className: 'A');
-    expect(declaration.parameters, '(Map<Map<T2, U2>, Map<U1, T>> a)');
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  CLASS A
+    offset: 6 1:7
+    codeOffset: 0 + 133
+  METHOD m1
+    offset: 24 2:8
+    codeOffset: 19 + 30
+    className: A
+    parameters: (Map<int, String> a)
+  METHOD m2
+    offset: 57 3:8
+    codeOffset: 52 + 26
+    className: A
+    parameters: (Map<T, U> a)
+  METHOD m3
+    offset: 86 4:8
+    codeOffset: 81 + 50
+    className: A
+    parameters: (Map<Map<T2, U2>, Map<U1, T>> a)
+''');
   }
 
   test_declarations_regExp() async {
@@ -417,12 +517,18 @@ class D {}
 ''');
     var results = WorkspaceSymbols();
     await FindDeclarations([driver], results, RegExp(r'[A-C]'), null).compute();
-    var declarations = results.declarations;
-
-    declarations.assertHas('A', DeclarationKind.CLASS);
-    declarations.assertHas('B', DeclarationKind.CLASS);
-    declarations.assertHas('C', DeclarationKind.CLASS);
-    declarations.assertNo('D');
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  CLASS A
+    offset: 6 1:7
+    codeOffset: 0 + 10
+  CLASS B
+    offset: 17 2:7
+    codeOffset: 11 + 10
+  CLASS C
+    offset: 28 3:7
+    codeOffset: 22 + 10
+''');
   }
 
   test_declarations_top() async {
@@ -436,25 +542,29 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
 ''');
     var results = WorkspaceSymbols();
     await FindDeclarations([driver], results, null, null).compute();
-    var declarations = results.declarations;
-
-    declarations.assertHas('g', DeclarationKind.GETTER,
-        offset: 8, codeOffset: 0, codeLength: 15);
-    declarations.assertHas('s', DeclarationKind.SETTER,
-        offset: 25, codeOffset: 16, codeLength: 16);
-    declarations.assertHas(
-      'f',
-      DeclarationKind.FUNCTION,
-      offset: 38,
-      codeOffset: 33,
-      codeLength: 16,
-    );
-    declarations.assertHas('v', DeclarationKind.VARIABLE,
-        offset: 54, codeOffset: 50, codeLength: 5);
-    declarations.assertHas('tf1', DeclarationKind.TYPE_ALIAS,
-        offset: 70, codeOffset: 57, codeLength: 19);
-    declarations.assertHas('tf2', DeclarationKind.TYPE_ALIAS,
-        offset: 85, codeOffset: 77, codeLength: 45);
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  GETTER g
+    offset: 8 1:9
+    codeOffset: 0 + 15
+  SETTER s
+    offset: 25 2:10
+    codeOffset: 16 + 16
+    parameters: (dynamic _)
+  FUNCTION f
+    offset: 38 3:6
+    codeOffset: 33 + 16
+    parameters: (int p)
+  VARIABLE v
+    offset: 54 4:5
+    codeOffset: 50 + 5
+  TYPE_ALIAS tf1
+    offset: 70 5:14
+    codeOffset: 57 + 19
+  TYPE_ALIAS tf2
+    offset: 85 6:9
+    codeOffset: 77 + 45
+''');
   }
 
   test_issue49951_references_dontAddToKnown_unrelated() async {
@@ -2725,6 +2835,57 @@ class NoMatchABCDEF {}
     return driver.search.classMembers(name, searchedFiles);
   }
 
+  String _getDeclarationsText(
+    WorkspaceSymbols symbols,
+    Map<File, String> inFiles,
+  ) {
+    final groups = symbols.declarations
+        .map((declaration) {
+          final file = getFile(symbols.files[declaration.fileIndex]);
+          final fileStr = inFiles[file];
+          return fileStr != null ? MapEntry(fileStr, declaration) : null;
+        })
+        .whereNotNull()
+        .groupListsBy((entry) => entry.key);
+
+    final buffer = StringBuffer();
+    for (final group in groups.entries) {
+      final fileStr = group.key;
+      buffer.writeln(fileStr);
+      final fileDeclarations = group.value.map((e) => e.value).toList();
+      final sorted = fileDeclarations.sortedBy<num>((e) => e.offset);
+      for (final declaration in sorted) {
+        final name = declaration.name;
+        buffer.write('  ${declaration.kind.name} ');
+        buffer.writeln(name.isNotEmpty ? name : '<unnamed>');
+        buffer.writeln(
+          '    offset: ${declaration.offset} '
+          '${declaration.line}:${declaration.column}',
+        );
+        buffer.writeln(
+          '    codeOffset: ${declaration.codeOffset} + '
+          '${declaration.codeLength}',
+        );
+
+        final className = declaration.className;
+        if (className != null) {
+          buffer.writeln('    className: $className');
+        }
+
+        final mixinName = declaration.mixinName;
+        if (mixinName != null) {
+          buffer.writeln('    mixinName: $mixinName');
+        }
+
+        final parameters = declaration.parameters;
+        if (parameters != null) {
+          buffer.writeln('    parameters: $parameters');
+        }
+      }
+    }
+    return buffer.toString();
+  }
+
   String _getSearchResultsText(List<SearchResult> results) {
     final selfUriStr = '${result.uri}';
 
@@ -2838,40 +2999,5 @@ class _GroupToPrint {
         .thisOrAncestorOfType<CompilationUnitElement>()!
         .source
         .fullName;
-  }
-}
-
-extension on List<Declaration> {
-  Declaration assertHas(String name, DeclarationKind kind,
-      {int? offset,
-      int? codeOffset,
-      int? codeLength,
-      String? className,
-      String? mixinName}) {
-    for (var declaration in this) {
-      if (declaration.name == name &&
-          declaration.kind == kind &&
-          (offset == null || declaration.offset == offset) &&
-          (codeOffset == null || declaration.codeOffset == codeOffset) &&
-          (codeLength == null || declaration.codeLength == codeLength) &&
-          declaration.className == className &&
-          declaration.mixinName == mixinName) {
-        return declaration;
-      }
-    }
-    var actual =
-        map((d) => '(name=${d.name}, kind=${d.kind}, offset=${d.offset}, '
-            'codeOffset=${d.codeOffset}, codeLength=${d.codeLength}, '
-            'className=${d.className}, mixinName=${d.mixinName})').join('\n');
-    fail('Expected to find (name=$name, kind=$kind, offset=$offset, '
-        'codeOffset=$codeOffset, codeLength=$codeLength) in\n$actual');
-  }
-
-  void assertNo(String name) {
-    for (var declaration in this) {
-      if (declaration.name == name) {
-        fail('Unexpected declaration $name');
-      }
-    }
   }
 }

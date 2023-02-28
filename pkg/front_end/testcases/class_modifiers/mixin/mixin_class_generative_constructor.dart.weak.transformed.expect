@@ -2,46 +2,36 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:5:13: Error: Can't use 'ErrorMixinClass' as a mixin because it has constructors.
-// mixin class ErrorMixinClass {
-//             ^
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:7:3: Context: This constructor prevents using 'ErrorMixinClass' as a mixin.
-//   ErrorMixinClass(this.foo);
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:7:3: Error: Can't use 'ErrorMixinClass' as a mixin because it has constructors.
+//   ErrorMixinClass(this.foo); /* Error */
 //   ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:10:13: Error: Can't use 'ErrorMixinClassNamed' as a mixin because it has constructors.
-// mixin class ErrorMixinClassNamed {
-//             ^
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:12:3: Context: This constructor prevents using 'ErrorMixinClassNamed' as a mixin.
-//   ErrorMixinClassNamed.named(this.foo);
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:12:3: Error: Can't use 'ErrorMixinClassNamed' as a mixin because it has constructors.
+//   ErrorMixinClassNamed.named(this.foo); /* Error */
 //   ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:15:13: Error: Can't use 'ErrorMixinClassRedirect' as a mixin because it has constructors.
-// mixin class ErrorMixinClassRedirect {
-//             ^
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:17:3: Context: This constructor prevents using 'ErrorMixinClassRedirect' as a mixin.
-//   ErrorMixinClassRedirect.named(int f) { this.foo = f; }
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:17:3: Error: Can't use 'ErrorMixinClassRedirect' as a mixin because it has constructors.
+//   ErrorMixinClassRedirect.named(int f) { this.foo = f; } /* Error */
 //   ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:21:13: Error: Can't use 'ErrorMixinClassExternal' as a mixin because it has constructors.
-// mixin class ErrorMixinClassExternal {
-//             ^
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:22:12: Context: This constructor prevents using 'ErrorMixinClassExternal' as a mixin.
-//   external ErrorMixinClassExternal();
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:18:3: Error: Can't use 'ErrorMixinClassRedirect' as a mixin because it has constructors.
+//   ErrorMixinClassRedirect.x(int f) : this.named(f); /* Error */
+//   ^
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:23:12: Error: Can't use 'ErrorMixinClassExternal' as a mixin because it has constructors.
+//   external ErrorMixinClassExternal(); /* Error */
 //            ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:25:13: Error: Can't use 'ErrorMixinClassSuper' as a mixin because it has constructors.
-// mixin class ErrorMixinClassSuper {
-//             ^
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:26:3: Context: This constructor prevents using 'ErrorMixinClassSuper' as a mixin.
-//   ErrorMixinClassSuper(): super();
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:19:3: Error: Can't use 'ErrorMixinClassRedirect' as a mixin because it has constructors.
+//   ErrorMixinClassRedirect() {} /* Error */
 //   ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:29:13: Error: Can't use 'ErrorMixinClassBody' as a mixin because it has constructors.
-// mixin class ErrorMixinClassBody {
-//             ^
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:30:3: Context: This constructor prevents using 'ErrorMixinClassBody' as a mixin.
-//   ErrorMixinClassBody() {}
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:27:3: Error: Can't use 'ErrorMixinClassSuper' as a mixin because it has constructors.
+//   ErrorMixinClassSuper(): super(); /* Error */
+//   ^
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:31:3: Error: Can't use 'ErrorMixinClassBody' as a mixin because it has constructors.
+//   ErrorMixinClassBody() {} /* Error */
 //   ^
 //
 import self as self;
@@ -68,6 +58,8 @@ mixin class ErrorMixinClassRedirect extends core::Object {
   constructor x(core::int f) → self::ErrorMixinClassRedirect
     : this self::ErrorMixinClassRedirect::named(f)
     ;
+  constructor •() → self::ErrorMixinClassRedirect
+    : super core::Object::•() {}
 }
 mixin class ErrorMixinClassExternal extends core::Object {
   external constructor •() → self::ErrorMixinClassExternal;

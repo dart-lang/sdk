@@ -1,3 +1,7 @@
+# 2.7.6
+- [DAP] `scopesRequest` now returns a `Globals` scope containing global variables for the current frame.
+- [DAP] Responses to `breakpointRequest` will now have `verified: false` and will send `breakpoint` events to update `verified` and/or `line`/`column` as the VM resolves them.
+
 # 2.7.5
 - Updated `vm_service` version to >=9.0.0 <12.0.0.
 

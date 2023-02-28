@@ -845,14 +845,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             addProblem(
                 templateIllegalMixinDueToConstructors
                     .withArguments(fullNameForErrors),
-                charOffset,
-                noLength,
-                context: [
-                  templateIllegalMixinDueToConstructorsCause
-                      .withArguments(fullNameForErrors)
-                      .withLocation(
-                          constructor.fileUri, constructor.charOffset, noLength)
-                ]);
+                constructor.charOffset,
+                noLength);
           }
         }
       }
