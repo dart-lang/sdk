@@ -18,6 +18,7 @@ class NodeTextExpectationsCollector {
     'ParserDiagnosticsTest.assertParsedNodeText',
     'ResolutionTest.assertParsedNodeText',
     'ResolutionTest.assertResolvedNodeText',
+    'SearchTest.assertDeclarationsText',
     'SearchTest.assertElementReferencesText',
     'SearchTest.assertUnresolvedMemberReferencesText',
   };
