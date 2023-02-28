@@ -25,48 +25,6 @@ main() {
   });
 }
 
-class ExpectedResult {
-  final Element enclosingElement;
-  final SearchResultKind kind;
-  final int offset;
-  final int length;
-  final bool isResolved;
-  final bool isQualified;
-
-  ExpectedResult(this.enclosingElement, this.kind, this.offset, this.length,
-      {this.isResolved = true, this.isQualified = false});
-
-  @override
-  bool operator ==(Object result) {
-    return result is SearchResult &&
-        result.kind == kind &&
-        result.isResolved == isResolved &&
-        result.isQualified == isQualified &&
-        result.offset == offset &&
-        result.length == length &&
-        result.enclosingElement == enclosingElement;
-  }
-
-  @override
-  String toString() {
-    StringBuffer buffer = StringBuffer();
-    buffer.write("ExpectedResult(kind=");
-    buffer.write(kind);
-    buffer.write(", enclosingElement=");
-    buffer.write(enclosingElement);
-    buffer.write(", offset=");
-    buffer.write(offset);
-    buffer.write(", length=");
-    buffer.write(length);
-    buffer.write(", isResolved=");
-    buffer.write(isResolved);
-    buffer.write(", isQualified=");
-    buffer.write(isQualified);
-    buffer.write(")");
-    return buffer.toString();
-  }
-}
-
 @reflectiveTest
 class SearchMultipleDriversTest extends PubPackageResolutionTest {
   @override
@@ -108,9 +66,26 @@ class SearchTest extends PubPackageResolutionTest {
     Element element,
     String expected,
   ) async {
-    var actual = await _getElementReferencesText(element);
+    final searchedFiles = SearchedFiles();
+    final results = await driver.search.references(element, searchedFiles);
+    final actual = _getSearchResultsText(results);
     if (actual != expected) {
-      actual;
+      print(actual);
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
+  Future<void> assertUnresolvedMemberReferencesText(
+    String name,
+    String expected,
+  ) async {
+    final searchedFiles = SearchedFiles();
+    final results =
+        await driver.search.unresolvedMemberReferences(name, searchedFiles);
+    final actual = _getSearchResultsText(results);
+    if (actual != expected) {
+      print(actual);
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
@@ -534,25 +509,27 @@ main(C c) {
   c.test();
 }
 ''');
-    await _verifyNameReferences('test', []);
+
+    await assertUnresolvedMemberReferencesText('test', '');
   }
 
   test_searchMemberReferences_qualified_unresolved() async {
     await resolveTestCode('''
-main(p) {
-  print(p.test);
+void f(p) {
+  p.test;
   p.test = 1;
   p.test += 2;
   p.test();
 }
 ''');
-    var main = findElement.function('main');
-    await _verifyNameReferences('test', <ExpectedResult>[
-      _expectIdQU(main, SearchResultKind.READ, 'test);'),
-      _expectIdQU(main, SearchResultKind.WRITE, 'test = 1;'),
-      _expectIdQU(main, SearchResultKind.READ_WRITE, 'test += 2;'),
-      _expectIdQU(main, SearchResultKind.INVOCATION, 'test();'),
-    ]);
+
+    await assertUnresolvedMemberReferencesText('test', r'''
+self::@function::f
+  16 2:5 |test| READ qualified unresolved
+  26 3:5 |test| WRITE qualified unresolved
+  40 4:5 |test| READ_WRITE qualified unresolved
+  55 5:5 |test| INVOCATION qualified unresolved
+''');
   }
 
   test_searchMemberReferences_unqualified_resolved() async {
@@ -567,7 +544,8 @@ class C {
   }
 }
 ''');
-    await _verifyNameReferences('test', []);
+
+    await assertUnresolvedMemberReferencesText('test', '');
   }
 
   test_searchMemberReferences_unqualified_unresolved() async {
@@ -581,13 +559,14 @@ class C {
   }
 }
 ''');
-    var main = findElement.method('main');
-    await _verifyNameReferences('test', <ExpectedResult>[
-      _expectIdU(main, SearchResultKind.READ, 'test);'),
-      _expectIdU(main, SearchResultKind.WRITE, 'test = 1;'),
-      _expectIdU(main, SearchResultKind.READ_WRITE, 'test += 2;'),
-      _expectIdU(main, SearchResultKind.INVOCATION, 'test();'),
-    ]);
+
+    await assertUnresolvedMemberReferencesText('test', r'''
+self::@class::C::@method::main
+  31 3:11 |test| READ unresolved
+  42 4:5 |test| WRITE unresolved
+  56 5:5 |test| READ_WRITE unresolved
+  71 6:5 |test| INVOCATION unresolved
+''');
   }
 
   test_searchReferences_class_getter_in_objectPattern() async {
@@ -2741,37 +2720,12 @@ class NoMatchABCDEF {}
         unorderedEquals([a, b, c, d, f, g]));
   }
 
-  ExpectedResult _expectId(
-      Element enclosingElement, SearchResultKind kind, String search,
-      {int? length, bool isResolved = true, bool isQualified = false}) {
-    int offset = findNode.offset(search);
-    length ??= findNode.simple(search).length;
-    return ExpectedResult(enclosingElement, kind, offset, length,
-        isResolved: isResolved, isQualified: isQualified);
-  }
-
-  /// Create [ExpectedResult] for a qualified and unresolved match.
-  ExpectedResult _expectIdQU(
-      Element element, SearchResultKind kind, String search,
-      {int? length}) {
-    return _expectId(element, kind, search,
-        isQualified: true, isResolved: false, length: length);
-  }
-
-  /// Create [ExpectedResult] for a unqualified and unresolved match.
-  ExpectedResult _expectIdU(
-      Element element, SearchResultKind kind, String search,
-      {int? length}) {
-    return _expectId(element, kind, search,
-        isQualified: false, isResolved: false, length: length);
-  }
-
   Future<List<Element>> _findClassMembers(String name) {
     var searchedFiles = SearchedFiles();
     return driver.search.classMembers(name, searchedFiles);
   }
 
-  Future<String> _getElementReferencesText(Element element) async {
+  String _getSearchResultsText(List<SearchResult> results) {
     final selfUriStr = '${result.uri}';
 
     String referenceToString(Reference reference) {
@@ -2810,9 +2764,6 @@ class NoMatchABCDEF {}
         return '${element.name}@${element.nameOffset}';
       }
     }
-
-    final searchedFiles = SearchedFiles();
-    final results = await driver.search.references(element, searchedFiles);
 
     final analysisSession = result.session;
 
@@ -2868,20 +2819,6 @@ class NoMatchABCDEF {}
       }
     }
     return buffer.toString();
-  }
-
-  Future<void> _verifyNameReferences(
-      String name, List<ExpectedResult> expectedMatches) async {
-    var searchedFiles = SearchedFiles();
-    List<SearchResult> results =
-        await driver.search.unresolvedMemberReferences(name, searchedFiles);
-    _assertResults(results, expectedMatches);
-    expect(results, hasLength(expectedMatches.length));
-  }
-
-  static void _assertResults(
-      List<SearchResult> matches, List<ExpectedResult> expectedMatches) {
-    expect(matches, unorderedEquals(expectedMatches));
   }
 }
 

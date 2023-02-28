@@ -19,6 +19,7 @@ class NodeTextExpectationsCollector {
     'ResolutionTest.assertParsedNodeText',
     'ResolutionTest.assertResolvedNodeText',
     'SearchTest.assertElementReferencesText',
+    'SearchTest.assertUnresolvedMemberReferencesText',
   };
 
   static final Map<String, _File> _files = {};
