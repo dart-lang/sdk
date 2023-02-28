@@ -8170,7 +8170,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         in declaredVariablesByName.values) {
       if (variables.length > 1) {
         for (int i = 1; i < variables.length; i++) {
-          variables[i].name = '${variables[i].name}${"'" * i}';
+          variables[i].name = '${variables[i].name}${"#$i"}';
         }
       }
     }
@@ -8559,7 +8559,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         in declaredVariablesByName.values) {
       if (variables.length > 1) {
         for (int i = 1; i < variables.length; i++) {
-          variables[i].name = '${variables[i].name}${"'" * i}';
+          variables[i].name = '${variables[i].name}${"#$i"}';
         }
       }
     }

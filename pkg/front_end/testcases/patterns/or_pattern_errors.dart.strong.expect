@@ -42,7 +42,7 @@ static method test(dynamic o) → dynamic {
   #L1:
   {
     core::int? s1;
-    core::int? s1';
+    core::int? s1#1;
     core::int? field1;
     core::int? f;
     core::int? s2;
@@ -56,7 +56,7 @@ static method test(dynamic o) → dynamic {
       }
     }
     else
-      if(#0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t3 = s1' = #0#2 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t4 = #0#2 in true)) {
+      if(#0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t3 = s1#1 = #0#2 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t4 = #0#2 in true)) {
         {
           break #L1;
         }

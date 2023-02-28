@@ -6,7 +6,7 @@ static method method(dynamic o) → dynamic {
   #L1:
   {
     core::String a;
-    core::int a';
+    core::int a#1;
     final dynamic #0#0 = o;
     if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t1 = a = #0#0{core::String} in true)) {
       {
@@ -15,9 +15,9 @@ static method method(dynamic o) → dynamic {
       }
     }
     else
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = a' = #0#0{core::int} in true)) {
+      if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = a#1 = #0#0{core::int} in true)) {
         {
-          core::print(a');
+          core::print(a#1);
           break #L1;
         }
       }
