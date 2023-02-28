@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/least_greatest_closure.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -447,15 +448,23 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// `false`, taking into account the fact that [constantType] has primitive
   /// equality.
   bool _canBeEqual(DartType constantType, DartType valueType) {
-    if (constantType is InterfaceType && constantType.typeArguments.isEmpty) {
+    if (constantType is InterfaceType) {
       if (valueType is InterfaceType) {
-        return valueType.typeArguments.isEmpty &&
-            _typeSystem.isSubtypeOf(constantType, valueType);
+        if (constantType.isDartCoreInt && valueType.isDartCoreDouble) {
+          return true;
+        }
+        final valueTypeGreatest = PatternGreatestClosureHelper(
+          topType: _typeSystem.objectQuestion,
+          bottomType: NeverTypeImpl.instance,
+        ).eliminateToGreatest(valueType);
+        return _typeSystem.isSubtypeOf(constantType, valueTypeGreatest);
       } else if (valueType is TypeParameterTypeImpl) {
         final bound = valueType.promotedBound ?? valueType.element.bound;
         if (bound != null && !hasTypeParameterReference(bound)) {
           return _canBeEqual(constantType, bound);
         }
+      } else if (valueType is FunctionType) {
+        return false;
       }
     }
     // All other cases are not supported, so no warning.
