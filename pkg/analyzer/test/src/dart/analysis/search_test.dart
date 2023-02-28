@@ -118,11 +118,13 @@ class B {
   }
 }
 ''');
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
-
-    expect(await _findClassMembers('test'),
-        unorderedEquals([a.methods[0], b.fields[0]]));
+    expect(
+      await _findClassMembers('test'),
+      unorderedEquals([
+        findElement.method('test', of: 'A'),
+        findElement.field('test', of: 'B'),
+      ]),
+    );
   }
 
   test_classMembers_enum() async {
@@ -137,7 +139,6 @@ enum E2 {
   final int test = 0;
 }
 ''');
-
     expect(
       await _findClassMembers('test'),
       unorderedEquals([
@@ -167,10 +168,13 @@ mixin B {
   }
 }
 ''');
-    var a = findElement.mixin('A');
-    var b = findElement.mixin('B');
-    expect(await _findClassMembers('test'),
-        unorderedEquals([a.methods[0], b.fields[0]]));
+    expect(
+      await _findClassMembers('test'),
+      unorderedEquals([
+        findElement.method('test', of: 'A'),
+        findElement.field('test', of: 'B'),
+      ]),
+    );
   }
 
   test_declarations_cancel() async {
