@@ -70,7 +70,7 @@ class MoveSchedule : public FixedArray<MoveSchedule, ParallelMoveResolver::Op> {
   }
 
  private:
-  friend class FixedArray;
+  friend class FixedArray<MoveSchedule, ParallelMoveResolver::Op>;
 
   explicit MoveSchedule(intptr_t length) : FixedArray(length) {}
 
