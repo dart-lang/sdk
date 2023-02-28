@@ -2260,7 +2260,7 @@
           "name": "ddk sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart",
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_suite.dart",
             "-rnone"
           ]
         },
@@ -2268,7 +2268,7 @@
           "name": "ddk sourcemap stacktrace tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "pkg/dev_compiler/test/sourcemap/stacktrace_suite.dart",
             "-rnone"
           ]
         },
@@ -2515,7 +2515,7 @@
           "name": "ddk sourcemap tests",
           "script": "xcodebuild/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart",
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_suite.dart",
             "-rnone"
           ]
         },
@@ -2523,7 +2523,7 @@
           "name": "ddk sourcemap stacktrace tests",
           "script": "xcodebuild/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "pkg/dev_compiler/test/sourcemap/stacktrace_suite.dart",
             "-rnone"
           ]
         },

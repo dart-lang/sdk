@@ -7,7 +7,7 @@ void main() {
 }
 
 void test(c) {
-  /*ddc.2:test*/ c.field. /*ddk.2:test*/ method();
+  c.field. /*2:test*/ method();
 }
 
 class Class {

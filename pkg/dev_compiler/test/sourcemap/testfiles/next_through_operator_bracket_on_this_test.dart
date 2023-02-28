@@ -7,7 +7,7 @@ class Class2 {
   dynamic operator [](index) => index;
 
   dynamic code() {
-    /*bl*/ /*sl:1*/ this[42]; // DDK fails to hover on `this`
+    /*bl*/ /*sl:1*/ this[42]; // fails to hover on `this`
     return /*sl:2*/ this[42];
   }
 }
