@@ -1,3 +1,5 @@
+part of dart.collection;
+
 extension IterableComparableExtensions<T extends Comparable> on Iterable<T> {
   /*
   * Returns the largest value in the iterable determined via
