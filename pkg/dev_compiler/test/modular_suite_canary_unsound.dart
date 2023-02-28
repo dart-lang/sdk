@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Test the modular compilation pipeline of ddc.
+/// Test the modular compilation pipeline of ddc in canary mode without
+/// sound null safety.
 ///
 /// This is a shell that runs multiple tests, one per folder under `data/`.
 import 'package:modular_test/src/io_pipeline.dart';
@@ -12,7 +13,7 @@ import 'modular_helpers.dart';
 
 void main(List<String> args) async {
   final options = Options.parse(args);
-  final soundNullSafety = true;
+  final soundNullSafety = false;
   await resolveScripts(options);
   await runSuite(
       sdkRoot.resolve('tests/modular/'),
@@ -20,7 +21,7 @@ void main(List<String> args) async {
       options,
       IOPipeline([
         SourceToSummaryDillStep(soundNullSafety: soundNullSafety),
-        DDCStep(soundNullSafety: soundNullSafety, canaryFeatures: false),
+        DDCStep(soundNullSafety: soundNullSafety, canaryFeatures: true),
         RunD8(),
       ], cacheSharedModules: true));
 }
