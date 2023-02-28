@@ -154,7 +154,7 @@ const intptr_t kOffsetOfPtr = 32;
 #define OPEN_ARRAY_START(type, align)                                          \
   do {                                                                         \
     const uword result = reinterpret_cast<uword>(this) + sizeof(*this);        \
-    ASSERT(Utils::IsAligned(result, sizeof(align)));                           \
+    ASSERT(Utils::IsAligned(result, alignof(align)));                          \
     return reinterpret_cast<type*>(result);                                    \
   } while (0)
 

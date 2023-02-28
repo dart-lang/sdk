@@ -1369,17 +1369,30 @@ template <>
 void FlowGraphSerializer::WriteTrait<MoveOperands*>::Write(
     FlowGraphSerializer* s,
     MoveOperands* x) {
+  s->Write<const MoveOperands*>(x);
+}
+
+template <>
+void FlowGraphSerializer::WriteTrait<const MoveOperands*>::Write(
+    FlowGraphSerializer* s,
+    const MoveOperands* x) {
   ASSERT(x != nullptr);
   x->src().Write(s);
   x->dest().Write(s);
 }
 
 template <>
-MoveOperands* FlowGraphDeserializer::ReadTrait<MoveOperands*>::Read(
+MoveOperands FlowGraphDeserializer::ReadTrait<MoveOperands>::Read(
     FlowGraphDeserializer* d) {
   Location src = Location::Read(d);
   Location dest = Location::Read(d);
-  return new (d->zone()) MoveOperands(dest, src);
+  return {dest, src};
+}
+
+template <>
+MoveOperands* FlowGraphDeserializer::ReadTrait<MoveOperands*>::Read(
+    FlowGraphDeserializer* d) {
+  return new (d->zone()) MoveOperands(d->Read<MoveOperands>());
 }
 
 template <>
@@ -2083,11 +2096,13 @@ OsrEntryInstr::OsrEntryInstr(FlowGraphDeserializer* d)
 void ParallelMoveInstr::WriteExtra(FlowGraphSerializer* s) {
   Instruction::WriteExtra(s);
   s->Write<GrowableArray<MoveOperands*>>(moves_);
+  s->Write<const MoveSchedule*>(move_schedule_);
 }
 
 void ParallelMoveInstr::ReadExtra(FlowGraphDeserializer* d) {
   Instruction::ReadExtra(d);
   moves_ = d->Read<GrowableArray<MoveOperands*>>();
+  move_schedule_ = d->Read<const MoveSchedule*>();
 }
 
 void PhiInstr::WriteTo(FlowGraphSerializer* s) {

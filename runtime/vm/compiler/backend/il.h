@@ -59,6 +59,7 @@ class Instruction;
 class InstructionVisitor;
 class LocalVariable;
 class LoopInfo;
+class MoveSchedule;
 class ParsedFunction;
 class Range;
 class RangeAnalysis;
@@ -1479,6 +1480,8 @@ class TemplateInstruction
 class MoveOperands : public ZoneAllocated {
  public:
   MoveOperands(Location dest, Location src) : dest_(dest), src_(src) {}
+  MoveOperands(const MoveOperands& other)
+      : dest_(other.dest_), src_(other.src_) {}
 
   MoveOperands& operator=(const MoveOperands& other) {
     dest_ = other.dest_;
@@ -1568,12 +1571,22 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
     return TokenPosition::kParallelMove;
   }
 
+  const MoveSchedule& move_schedule() const {
+    ASSERT(move_schedule_ != nullptr);
+    return *move_schedule_;
+  }
+
+  void set_move_schedule(const MoveSchedule& schedule) {
+    move_schedule_ = &schedule;
+  }
+
   PRINT_TO_SUPPORT
   DECLARE_EMPTY_SERIALIZATION(ParallelMoveInstr, TemplateInstruction)
   DECLARE_EXTRA_SERIALIZATION
 
  private:
   GrowableArray<MoveOperands*> moves_;  // Elements cannot be null.
+  const MoveSchedule* move_schedule_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
 };

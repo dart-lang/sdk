@@ -10,6 +10,7 @@
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -1080,10 +1081,9 @@ void FlowGraphCompiler::LoadBSSEntry(BSS::Relocation relocation,
 #undef __
 #define __ compiler_->assembler()->
 
-void ParallelMoveResolver::EmitSwap(int index) {
-  MoveOperands* move = moves_[index];
-  const Location source = move->src();
-  const Location destination = move->dest();
+void ParallelMoveEmitter::EmitSwap(const MoveOperands& move) {
+  const Location source = move.src();
+  const Location destination = move.dest();
 
   if (source.IsRegister() && destination.IsRegister()) {
     ASSERT(source.reg() != TMP);
@@ -1122,55 +1122,38 @@ void ParallelMoveResolver::EmitSwap(int index) {
   } else {
     UNREACHABLE();
   }
-
-  // The swap of source and destination has executed a move from source to
-  // destination.
-  move->Eliminate();
-
-  // Any unperformed (including pending) move with a source of either
-  // this move's source or destination needs to have their source
-  // changed to reflect the state of affairs after the swap.
-  for (int i = 0; i < moves_.length(); ++i) {
-    const MoveOperands& other_move = *moves_[i];
-    if (other_move.Blocks(source)) {
-      moves_[i]->set_src(destination);
-    } else if (other_move.Blocks(destination)) {
-      moves_[i]->set_src(source);
-    }
-  }
 }
 
-void ParallelMoveResolver::MoveMemoryToMemory(const compiler::Address& dst,
-                                              const compiler::Address& src) {
+void ParallelMoveEmitter::MoveMemoryToMemory(const compiler::Address& dst,
+                                             const compiler::Address& src) {
   UNREACHABLE();
 }
 
 // Do not call or implement this function. Instead, use the form below that
 // uses an offset from the frame pointer instead of an Address.
-void ParallelMoveResolver::Exchange(Register reg,
-                                    const compiler::Address& mem) {
+void ParallelMoveEmitter::Exchange(Register reg, const compiler::Address& mem) {
   UNREACHABLE();
 }
 
 // Do not call or implement this function. Instead, use the form below that
 // uses offsets from the frame pointer instead of Addresses.
-void ParallelMoveResolver::Exchange(const compiler::Address& mem1,
-                                    const compiler::Address& mem2) {
+void ParallelMoveEmitter::Exchange(const compiler::Address& mem1,
+                                   const compiler::Address& mem2) {
   UNREACHABLE();
 }
 
-void ParallelMoveResolver::Exchange(Register reg,
-                                    Register base_reg,
-                                    intptr_t stack_offset) {
+void ParallelMoveEmitter::Exchange(Register reg,
+                                   Register base_reg,
+                                   intptr_t stack_offset) {
   __ mv(TMP, reg);
   __ LoadFromOffset(reg, base_reg, stack_offset);
   __ StoreToOffset(TMP, base_reg, stack_offset);
 }
 
-void ParallelMoveResolver::Exchange(Register base_reg1,
-                                    intptr_t stack_offset1,
-                                    Register base_reg2,
-                                    intptr_t stack_offset2) {
+void ParallelMoveEmitter::Exchange(Register base_reg1,
+                                   intptr_t stack_offset1,
+                                   Register base_reg2,
+                                   intptr_t stack_offset2) {
   ScratchRegisterScope tmp1(this, kNoRegister);
   ScratchRegisterScope tmp2(this, tmp1.reg());
   __ LoadFromOffset(tmp1.reg(), base_reg1, stack_offset1);
@@ -1179,20 +1162,20 @@ void ParallelMoveResolver::Exchange(Register base_reg1,
   __ StoreToOffset(tmp2.reg(), base_reg1, stack_offset1);
 }
 
-void ParallelMoveResolver::SpillScratch(Register reg) {
+void ParallelMoveEmitter::SpillScratch(Register reg) {
   __ PushRegister(reg);
 }
 
-void ParallelMoveResolver::RestoreScratch(Register reg) {
+void ParallelMoveEmitter::RestoreScratch(Register reg) {
   __ PopRegister(reg);
 }
 
-void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::SpillFpuScratch(FpuRegister reg) {
   __ subi(SP, SP, sizeof(double));
   __ fsd(reg, compiler::Address(SP, 0));
 }
 
-void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::RestoreFpuScratch(FpuRegister reg) {
   __ fld(reg, compiler::Address(SP, 0));
   __ addi(SP, SP, sizeof(double));
 }

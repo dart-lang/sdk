@@ -38,6 +38,7 @@ class JoinEntryInstr;
 class LocalVariable;
 class LocationSummary;
 class MoveOperands;
+class MoveSchedule;
 class NonStreamingWriteStream;
 class OsrEntryInstr;
 class ParsedFunction;
@@ -100,6 +101,7 @@ class NativeCallingConvention;
   V(const LocalVariable&)                                                      \
   V(LocationSummary*)                                                          \
   V(MoveOperands*)                                                             \
+  V(const MoveSchedule*)                                                       \
   V(const compiler::ffi::NativeCallingConvention&)                             \
   V(const Object&)                                                             \
   V(ParallelMoveInstr*)                                                        \
@@ -253,6 +255,7 @@ class FlowGraphSerializer : public ValueObject {
     static void Write(FlowGraphSerializer* s, type x);                         \
   };
   IL_SERIALIZABLE_TYPE_LIST(DECLARE_WRITE_TRAIT)
+  DECLARE_WRITE_TRAIT(const MoveOperands*)
 #undef DECLARE_WRITE_TRAIT
 
   template <typename T>
@@ -472,6 +475,7 @@ class FlowGraphDeserializer : public ValueObject {
     static type Read(FlowGraphDeserializer* d);                                \
   };
   IL_SERIALIZABLE_TYPE_LIST(DECLARE_READ_TRAIT)
+  DECLARE_READ_TRAIT(MoveOperands)
 #undef DECLARE_READ_TRAIT
 
   template <typename T>
