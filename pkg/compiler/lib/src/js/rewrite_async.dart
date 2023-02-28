@@ -931,8 +931,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     bool storeTarget = node.arguments.any(shouldTransform);
     return withCallTargetExpression(node.target, (target) {
       return withExpressions(node.arguments, (List<js.Expression> arguments) {
-        return js.Call(target, arguments)
-            .withSourceInformation(node.sourceInformation);
+        return js.Call(target, arguments).withInformationFrom(node);
       });
     }, store: storeTarget);
   }

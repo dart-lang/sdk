@@ -34,6 +34,8 @@ String prettyPrint(Node node,
 CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
     JavaScriptSourceInformationStrategy sourceInformationStrategy,
     {DumpInfoTask? monitor,
+    JavaScriptAnnotationMonitor annotationMonitor =
+        const JavaScriptAnnotationMonitor(),
     bool allowVariableMinification = true,
     List<CodeOutputListener> listeners = const []}) {
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
@@ -44,21 +46,32 @@ CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
   SourceInformationProcessor sourceInformationProcessor =
       sourceInformationStrategy.createProcessor(
           SourceMapperProviderImpl(outBuffer), const SourceInformationReader());
+
   Dart2JSJavaScriptPrintingContext context = Dart2JSJavaScriptPrintingContext(
-      monitor, outBuffer, sourceInformationProcessor);
+      monitor, outBuffer, sourceInformationProcessor, annotationMonitor);
   Printer printer = Printer(options, context);
   printer.visit(node);
   sourceInformationProcessor.process(node, outBuffer);
   return outBuffer;
 }
 
+class JavaScriptAnnotationMonitor {
+  const JavaScriptAnnotationMonitor();
+
+  /// Called for each non-empty list of annotations in the JavaScript tree.
+  void onAnnotations(List<Object> annotations) {
+    // Should the position of the annotated node be recorded?
+  }
+}
+
 class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
   final DumpInfoTask? monitor;
   final CodeBuffer outBuffer;
   final CodePositionListener codePositionListener;
+  final JavaScriptAnnotationMonitor annotationMonitor;
 
-  Dart2JSJavaScriptPrintingContext(
-      this.monitor, this.outBuffer, this.codePositionListener);
+  Dart2JSJavaScriptPrintingContext(this.monitor, this.outBuffer,
+      this.codePositionListener, this.annotationMonitor);
 
   @override
   void error(String message) {
@@ -83,6 +96,10 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
     monitor?.exitNode(node, startPosition, endPosition, closingPosition);
     codePositionListener.onPositions(
         node, startPosition, endPosition, closingPosition);
+    final annotations = node.annotations;
+    if (annotations.isNotEmpty) {
+      annotationMonitor.onAnnotations(annotations);
+    }
   }
 
   @override

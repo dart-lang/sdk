@@ -641,6 +641,18 @@ abstract class Node {
         sourceInformation, List.unmodifiable([...annotations, newAnnotation]));
   }
 
+  /// Returns a node equivalent to [this] but with the same source information
+  /// and annotations as [node].
+  Node withInformationFrom(Node node) {
+    return _hasSameInformationAs(node)
+        ? this
+        : (_clone().._sourceInformation = node._sourceInformation);
+  }
+
+  bool _hasSameInformationAs(Node node) {
+    return node._sourceInformation == _sourceInformation;
+  }
+
   bool get isCommaOperator => false;
 
   Statement toStatement() {
@@ -712,6 +724,14 @@ abstract class Statement extends Node {
     return _clone()
       .._sourceInformation =
           _replacementSourceInformation(newSourceInformation);
+  }
+
+  // Override for refined return type.
+  @override
+  Statement withInformationFrom(Node node) {
+    return _hasSameInformationAs(node)
+        ? this
+        : (_clone().._sourceInformation = node._sourceInformation);
   }
 
   @override
@@ -1377,6 +1397,20 @@ abstract class Expression extends Node {
     return _clone()
       .._sourceInformation =
           _replacementSourceInformation(newSourceInformation);
+  }
+
+  // Override for refined return type.
+  @override
+  Expression withAnnotation(Object newAnnotation) {
+    return _clone().._sourceInformation = _appendedAnnotation(newAnnotation);
+  }
+
+  // Override for refined return type.
+  @override
+  Expression withInformationFrom(Node node) {
+    return _hasSameInformationAs(node)
+        ? this
+        : (_clone().._sourceInformation = node._sourceInformation);
   }
 
   @override

@@ -2706,6 +2706,7 @@ DeferredLoadCallback? deferredLoadHook;
 ///
 ///   - `0` for `LoadLibraryPriority.normal`
 ///   - `1` for `LoadLibraryPriority.high`
+@pragma('dart2js:resource-identifier')
 Future<Null> loadDeferredLibrary(String loadId, int priority) {
   // Validate the priority using the index to allow the actual enum to get
   // tree-shaken.

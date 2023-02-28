@@ -1846,11 +1846,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     String loadId = closedWorld.outputUnitData.getImportDeferName(
         _elementMap.getSpannable(targetElement, loadLibrary),
         _elementMap.getImport(loadLibrary.import));
-    // TODO(efortuna): Source information!
 
     final priority =
         closedWorld.annotationsData.getLoadLibraryPriorityAt(loadLibrary);
     final flag = priority.index;
+
+    final sourceInformation =
+        _sourceInformationBuilder.buildCall(loadLibrary, loadLibrary);
 
     push(HInvokeStatic(
         _commonElements.loadDeferredLibrary,
@@ -1860,7 +1862,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         ],
         _abstractValueDomain.nonNullType,
         const <DartType>[],
-        targetCanThrow: false));
+        targetCanThrow: false)
+      ..sourceInformation = sourceInformation);
   }
 
   @override
