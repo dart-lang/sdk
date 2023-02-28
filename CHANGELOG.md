@@ -1,3 +1,15 @@
+## 2.19.3 - 2023-03-01
+
+This is a patch release that:
+
+- Updates DDC test and builder configuration. (issue [#51481][]).
+
+- Improves the performance of the Dart Analysis Server by limiting the analysis
+  context to 1. (issue [#50981][]).
+
+[#50981]: https://github.com/dart-lang/sdk/issues/50981
+[#51481]: https://github.com/dart-lang/sdk/issues/51481
+
 ## 2.19.2 - 2023-02-08
 
 This is a patch release that:
