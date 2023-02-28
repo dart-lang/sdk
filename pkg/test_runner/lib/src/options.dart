@@ -347,6 +347,10 @@ options. Used to be able to make sane updates to the status files.''',
         aliases: ['dart2js_options'],
         hide: true,
         help: 'Extra options for dart2js compilation step.')
+    ..addMultiOption('ddc-options',
+        aliases: ['ddc_options'],
+        hide: true,
+        help: 'Extra command line options passed to the DDC compiler.')
     ..addMultiOption('shared-options',
         aliases: ['shared_options'], hide: true, help: 'Extra shared options.')
     ..addMultiOption('enable-experiment',
@@ -628,6 +632,7 @@ has been specified on the command line.''')
     }
 
     var dart2jsOptions = listOption("dart2js-options");
+    var ddcOptions = listOption("ddc-options");
     var vmOptions = listOption("vm-options");
     var sharedOptions = listOption("shared-options");
     var experiments = data["enable-experiment"] as List<String>?;
@@ -819,6 +824,7 @@ has been specified on the command line.''')
                   isMinified: data["minified"] as bool,
                   vmOptions: vmOptions,
                   dart2jsOptions: dart2jsOptions,
+                  ddcOptions: ddcOptions,
                   experiments: experiments,
                   babel: data['babel'] as String?,
                   builderTag: data["builder-tag"] as String?,

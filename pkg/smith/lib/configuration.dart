@@ -250,6 +250,7 @@ class Configuration {
         genKernelOptions: stringListOption("gen-kernel-options"),
         vmOptions: stringListOption("vm-options"),
         dart2jsOptions: stringListOption("dart2js-options"),
+        ddcOptions: stringListOption("ddc-options"),
         experiments: stringListOption("enable-experiment"),
         timeout: intOption("timeout"),
         enableAsserts: boolOption("enable-asserts"),
@@ -300,6 +301,8 @@ class Configuration {
 
   final List<String> dart2jsOptions;
 
+  final List<String> ddcOptions;
+
   /// The names of the experiments to enable while running tests.
   ///
   /// A test may *require* an experiment to always be enabled by containing a
@@ -347,6 +350,7 @@ class Configuration {
       List<String>? genKernelOptions,
       List<String>? vmOptions,
       List<String>? dart2jsOptions,
+      List<String>? ddcOptions,
       List<String>? experiments,
       int? timeout,
       bool? enableAsserts,
@@ -368,6 +372,7 @@ class Configuration {
         genKernelOptions = genKernelOptions ?? <String>[],
         vmOptions = vmOptions ?? <String>[],
         dart2jsOptions = dart2jsOptions ?? <String>[],
+        ddcOptions = ddcOptions ?? <String>[],
         experiments = experiments ?? <String>[],
         timeout = timeout ?? -1,
         enableAsserts = enableAsserts ?? false,
@@ -403,6 +408,7 @@ class Configuration {
       _listsEqual(genKernelOptions, other.genKernelOptions) &&
       _listsEqual(vmOptions, other.vmOptions) &&
       _listsEqual(dart2jsOptions, other.dart2jsOptions) &&
+      _listsEqual(ddcOptions, other.ddcOptions) &&
       _listsEqual(experiments, other.experiments) &&
       timeout == other.timeout &&
       enableAsserts == other.enableAsserts &&
@@ -453,6 +459,7 @@ class Configuration {
       genKernelOptions.join(" & ").hashCode ^
       vmOptions.join(" & ").hashCode ^
       dart2jsOptions.join(" & ").hashCode ^
+      ddcOptions.join(" & ").hashCode ^
       experiments.join(" & ").hashCode ^
       timeout.hashCode ^
       _toBinary([
@@ -495,6 +502,7 @@ class Configuration {
     stringListField("gen-kernel-options", genKernelOptions);
     stringListField("vm-options", vmOptions);
     stringListField("dart2js-options", dart2jsOptions);
+    stringListField("ddc-options", ddcOptions);
     stringListField("enable-experiment", experiments);
     if (timeout > 0) fields.add("timeout: $timeout");
     if (enableAsserts) fields.add("enable-asserts");
@@ -551,6 +559,7 @@ class Configuration {
         "gen-kernel-options", genKernelOptions, other.genKernelOptions);
     stringListField("vm-options", vmOptions, other.vmOptions);
     stringListField("dart2js-options", dart2jsOptions, other.dart2jsOptions);
+    stringListField("ddc-options", ddcOptions, other.ddcOptions);
     stringListField("experiments", experiments, other.experiments);
     fields.add("timeout: $timeout ${other.timeout}");
     boolField("enable-asserts", enableAsserts, other.enableAsserts);
