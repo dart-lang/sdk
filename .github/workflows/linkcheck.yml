@@ -11,6 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: link check
-        uses: filiph/linkcheck@2.0.23
+        uses: filiph/linkcheck@f2c15a0be0d9c83def5df3edcc0f2d6582845f2d
         with:
           arguments: -e https://dart-lang.github.io/linter/lints/index.html
