@@ -20,10 +20,14 @@ class SessionData {
   /// no version information was provided.
   final String clientVersion;
 
+  /// The version of the SDK from which the server was started.
+  final String sdkVersion;
+
   /// Initialize a newly created data holder.
   SessionData(
       {required this.startTime,
       required this.commandLineArguments,
       required this.clientId,
-      required this.clientVersion});
+      required this.clientVersion,
+      required this.sdkVersion});
 }

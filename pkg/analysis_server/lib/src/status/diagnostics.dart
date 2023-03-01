@@ -10,6 +10,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
     show LspAnalysisServer;
@@ -159,44 +160,39 @@ String writeOption(String name, dynamic value) {
   return '$name: <code>$value</code><br> ';
 }
 
-// TODO(brianwilkerson) This page is disabled for production until we determine
-//  whether we want to display some information to the user and if so what
-//  information we want to display.
-//
-// class AnalyticsPage extends DiagnosticPageWithNav {
-//   AnalyticsPage(DiagnosticsSite site)
-//       : super(site, 'analytics', 'Analytics',
-//             description: 'Analytics gathered by the analysis server.');
-//
-//   @override
-//   String? get navDetail => null;
-//
-//   @override
-//   Future generateContent(Map<String, String> params) async {
-//     var manager = server.analyticsManager;
-//     //
-//     // Display the standard header.
-//     //
-//     if (!manager.analytics.telemetryEnabled) {
-//       p('Analytics reporting disabled. In order to enable it, run:');
-//       p('&nbsp;&nbsp;<code>dart --enable-analytics</code>');
-//       p('If analytics had been enabled, the information below would have been '
-//           'reported.');
-//     } else {
-//       p('The Dart tool uses Google Analytics to report feature usage '
-//           'statistics and to send basic crash reports. This data is used to '
-//           'help improve the Dart platform and tools over time.');
-//       p('To disable reporting of analytics, run:');
-//       p('&nbsp;&nbsp;<code>dart --disable-analytics</code>');
-//       p('The information below will be reported the next time analytics are '
-//           'sent.');
-//     }
-//     //
-//     // Display the analytics data that has been gathered.
-//     //
-//     manager.toHtml(buf);
-//   }
-// }
+class AnalyticsPage extends DiagnosticPageWithNav {
+  AnalyticsPage(DiagnosticsSite site)
+      : super(site, 'analytics', 'Analytics',
+            description: 'Analytics gathered by the analysis server.');
+
+  @override
+  String? get navDetail => null;
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    var manager = server.analyticsManager;
+    //
+    // Display the standard header.
+    //
+    if (manager.analytics is NoopAnalytics) {
+      p('Analytics reporting disabled. In order to enable it, run:');
+      p('&nbsp;&nbsp;<code>dart --enable-analytics</code>');
+      p('If analytics had been enabled, the information below would be '
+          'reported on shutdown.');
+    } else {
+      p('The Dart tool uses Google Analytics to report feature usage '
+          'statistics and to send basic crash reports. This data is used to '
+          'help improve the Dart platform and tools over time.');
+      p('To disable reporting of analytics, run:');
+      p('&nbsp;&nbsp;<code>dart --disable-analytics</code>');
+      p('The information below will be reported on shutdown.');
+    }
+    //
+    // Display the analytics data that has been gathered.
+    //
+    manager.toHtml(buf);
+  }
+}
 
 class AstPage extends DiagnosticPageWithNav {
   String? _description;

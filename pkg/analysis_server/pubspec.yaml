@@ -15,7 +15,6 @@ dependencies:
   convert: any
   crypto: any
   dart_style: any
-  dash_analytics: any
   http: any
   linter: any
   meta: any
