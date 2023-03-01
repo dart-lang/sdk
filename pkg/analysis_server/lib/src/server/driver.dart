@@ -182,13 +182,13 @@ class Driver implements ServerStarter {
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
 
-    // Analytics
+    // Legacy Analytics
     var disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG] as bool;
     if (results.wasParsed(TRAIN_USING)) {
       disableAnalyticsForSession = true;
     }
 
-    // Use sdkConfig to optionally override analytics settings.
+    // Use sdkConfig to optionally override legacy analytics settings.
     final analyticsId = sdkConfig.analyticsId ?? 'UA-26406144-29';
     final forceAnalyticsEnabled = sdkConfig.analyticsForceEnabled == true;
     var analytics = telemetry.createAnalyticsInstance(
@@ -204,7 +204,6 @@ class Driver implements ServerStarter {
     if (analysisServerOptions.clientVersion != null) {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
-    var analyticsManager = AnalyticsManager(NoopAnalytics());
 
     bool shouldSendCallback() {
       // Check sdkConfig to optionally force reporting on.
@@ -255,15 +254,26 @@ class Driver implements ServerStarter {
     // can't be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
     var defaultSdk = _createDefaultSdk(defaultSdkPath);
-    //
+
+    // Create the analytics manager.
+    // TODO(brianwilkerson) Add support for finding the version of the Flutter
+    //  SDK, or `null` if we're not in a Flutter SDK.
+    // TODO(brianwilkerson) Delete the line below and uncomment the 3 lines
+    //  below it when we have (a) fixed the `dart analyze` and `dart fix` tests
+    //  so that they don't send events and (b) implemented a way for users to
+    //  disable analytics.
+    var analyticsManager = AnalyticsManager(NoopAnalytics());
+    // var analyticsManager = AnalyticsManager(Analytics(
+    //     tool: DashTool.languageServer,
+    //     dartVersion: defaultSdk.sdkVersion,
+    //     flutterVersion: null));
+
     // Record the start of the session.
-    //
     analyticsManager.startUp(
         time: sessionStartTime,
         arguments: _getArgumentsForAnalytics(results),
         clientId: clientId,
-        clientVersion: analysisServerOptions.clientVersion,
-        sdkVersion: defaultSdk.sdkVersion);
+        clientVersion: analysisServerOptions.clientVersion);
     //
     // Initialize the instrumentation service.
     //

@@ -17,7 +17,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:collection/collection.dart';
-import 'package:telemetry/telemetry.dart';
+import 'package:dash_analytics/dash_analytics.dart';
 
 /// An interface for managing and reporting analytics.
 ///
@@ -153,21 +153,15 @@ class AnalyticsManager {
   }
 
   /// The server is shutting down. Report any accumulated analytics data.
-  void shutdown() {
+  Future<void> shutdown() async {
     final sessionData = _sessionData;
     if (sessionData == null) {
       return;
     }
-    _sendSessionData(sessionData);
-    _sendServerResponseTimes();
-    _sendPluginResponseTimes();
-    _sendNotificationHandlingTimes();
-    _sendLintUsageCounts();
-    _sendSeverityAdjustments();
+    await _sendSessionData(sessionData);
+    await _sendPeriodicData();
 
-    analytics.waitForLastPing(timeout: Duration(milliseconds: 200)).then((_) {
-      analytics.close();
-    });
+    analytics.close();
   }
 
   /// Record data from the given [params].
@@ -211,20 +205,17 @@ class AnalyticsManager {
 
   /// Record that the server was started at the given [time], that it was passed
   /// the given command-line [arguments], that it was started by the client with
-  /// the given [clientId] and [clientVersion], and that it was invoked from an
-  /// SDK with the given [sdkVersion].
+  /// the given [clientId] and [clientVersion].
   void startUp(
       {required DateTime time,
       required List<String> arguments,
       required String clientId,
-      required String? clientVersion,
-      required String sdkVersion}) {
+      required String? clientVersion}) {
     _sessionData = SessionData(
         startTime: time,
         commandLineArguments: arguments.join(','),
         clientId: clientId,
-        clientVersion: clientVersion ?? '',
-        sdkVersion: sdkVersion);
+        clientVersion: clientVersion ?? '');
   }
 
   /// Return an HTML representation of the data that has been recorded.
@@ -265,7 +256,6 @@ class AnalyticsManager {
     li('duration: ${duration.toString()}');
     li('flags: ${sessionData.commandLineArguments}');
     li('parameters: ${sessionData.initializeParams}');
-    li('sdkVersion: ${sessionData.sdkVersion}');
     li('plugins: ${_pluginData.usageCountData}');
     buffer.writeln('</ul>');
 
@@ -361,18 +351,21 @@ class AnalyticsManager {
     requestData.responseTimes.addValue(responseTime);
   }
 
-  void _sendLintUsageCounts() {
+  /// Send information about the number of times each lint is enabled in an
+  /// analysis options file.
+  Future<void> _sendLintUsageCounts() async {
     if (_lintUsageCounts.isNotEmpty) {
-      analytics.sendEvent('language_server', 'lintUsageCounts', parameters: {
+      await analytics
+          .sendEvent(eventName: DashEvent.lintUsageCounts, eventData: {
         'usageCounts': json.encode(_lintUsageCounts),
       });
     }
   }
 
   /// Send information about the notifications handled by the server.
-  void _sendNotificationHandlingTimes() {
+  Future<void> _sendNotificationHandlingTimes() async {
     for (var data in _completedNotifications.values) {
-      analytics.sendEvent('language_server', 'notification', parameters: {
+      await analytics.sendEvent(eventName: DashEvent.notification, eventData: {
         'latency': data.latencyTimes.toAnalyticsString(),
         'method': data.method,
         'duration': data.handlingTimes.toAnalyticsString(),
@@ -380,12 +373,23 @@ class AnalyticsManager {
     }
   }
 
+  /// Send the information that is sent periodically, which is everything other
+  /// than the session data.
+  Future<void> _sendPeriodicData() async {
+    await _sendServerResponseTimes();
+    await _sendPluginResponseTimes();
+    await _sendNotificationHandlingTimes();
+    await _sendLintUsageCounts();
+    await _sendSeverityAdjustments();
+  }
+
   /// Send information about the response times of plugins.
-  void _sendPluginResponseTimes() {
+  Future<void> _sendPluginResponseTimes() async {
     var responseTimes = PluginManager.pluginResponseTimes;
     for (var pluginEntry in responseTimes.entries) {
       for (var responseEntry in pluginEntry.value.entries) {
-        analytics.sendEvent('language_server', 'pluginRequest', parameters: {
+        await analytics
+            .sendEvent(eventName: DashEvent.pluginRequest, eventData: {
           'pluginId': pluginEntry.key.pluginId,
           'method': responseEntry.key,
           'duration': responseEntry.value.toAnalyticsString(),
@@ -395,9 +399,9 @@ class AnalyticsManager {
   }
 
   /// Send information about the response times of server.
-  void _sendServerResponseTimes() {
+  Future<void> _sendServerResponseTimes() async {
     for (var data in _completedRequests.values) {
-      analytics.sendEvent('language_server', 'request', parameters: {
+      await analytics.sendEvent(eventName: DashEvent.request, eventData: {
         'latency': data.latencyTimes.toAnalyticsString(),
         'method': data.method,
         'duration': data.responseTimes.toAnalyticsString(),
@@ -410,24 +414,25 @@ class AnalyticsManager {
   }
 
   /// Send information about the session.
-  void _sendSessionData(SessionData sessionData) {
+  Future<void> _sendSessionData(SessionData sessionData) async {
     var endTime = DateTime.now().millisecondsSinceEpoch;
     var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
-    analytics.sendEvent('language_server', 'session', parameters: {
+    await analytics.sendEvent(eventName: DashEvent.session, eventData: {
       'flags': sessionData.commandLineArguments,
       'parameters': sessionData.initializeParams,
       'clientId': sessionData.clientId,
       'clientVersion': sessionData.clientVersion,
-      'sdkVersion': sessionData.sdkVersion,
       'duration': duration.toString(),
       'plugins': _pluginData.usageCountData,
     });
   }
 
-  void _sendSeverityAdjustments() {
+  /// Send information about the number of times that the severity of a
+  /// diagnostic is changed in an analysis options file.
+  Future<void> _sendSeverityAdjustments() async {
     if (_severityAdjustments.isNotEmpty) {
-      analytics
-          .sendEvent('language_server', 'severityAdjustments', parameters: {
+      await analytics
+          .sendEvent(eventName: DashEvent.severityAdjustments, eventData: {
         'adjustmentCounts': json.encode(_severityAdjustments),
       });
     }

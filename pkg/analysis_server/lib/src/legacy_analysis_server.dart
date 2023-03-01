@@ -695,8 +695,8 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   @override
-  Future<void> shutdown() {
-    super.shutdown();
+  Future<void> shutdown() async {
+    await super.shutdown();
 
     pubApi.close();
 
@@ -704,21 +704,21 @@ class LegacyAnalysisServer extends AnalysisServer {
     //  analyticsManager is being correctly initialized.
     var analytics = options.analytics;
     if (analytics != null) {
-      analytics.waitForLastPing(timeout: Duration(milliseconds: 200)).then((_) {
+      unawaited(analytics
+          .waitForLastPing(timeout: Duration(milliseconds: 200))
+          .then((_) {
         analytics.close();
-      });
+      }));
     }
 
     detachableFileSystemManager?.dispose();
 
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
-    Future(() {
+    unawaited(Future(() {
       instrumentationService.shutdown();
       channel.close();
-    });
-
-    return Future.value();
+    }));
   }
 
   /// Implementation for `analysis.updateContent`.
