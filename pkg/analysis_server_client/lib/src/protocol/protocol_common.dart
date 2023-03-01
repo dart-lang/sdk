@@ -293,12 +293,9 @@ class AnalysisErrorSeverity implements Enum {
 
   factory AnalysisErrorSeverity(String name) {
     switch (name) {
-      case 'INFO':
-        return INFO;
-      case 'WARNING':
-        return WARNING;
-      case 'ERROR':
-        return ERROR;
+      case 'INFO': return INFO;
+      case 'WARNING': return WARNING;
+      case 'ERROR': return ERROR;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -1076,26 +1073,16 @@ class CompletionSuggestionKind implements Enum {
 
   factory CompletionSuggestionKind(String name) {
     switch (name) {
-      case 'ARGUMENT_LIST':
-        return ARGUMENT_LIST;
-      case 'IMPORT':
-        return IMPORT;
-      case 'IDENTIFIER':
-        return IDENTIFIER;
-      case 'INVOCATION':
-        return INVOCATION;
-      case 'KEYWORD':
-        return KEYWORD;
-      case 'NAMED_ARGUMENT':
-        return NAMED_ARGUMENT;
-      case 'OPTIONAL_ARGUMENT':
-        return OPTIONAL_ARGUMENT;
-      case 'OVERRIDE':
-        return OVERRIDE;
-      case 'PARAMETER':
-        return PARAMETER;
-      case 'PACKAGE_NAME':
-        return PACKAGE_NAME;
+      case 'ARGUMENT_LIST': return ARGUMENT_LIST;
+      case 'IMPORT': return IMPORT;
+      case 'IDENTIFIER': return IDENTIFIER;
+      case 'INVOCATION': return INVOCATION;
+      case 'KEYWORD': return KEYWORD;
+      case 'NAMED_ARGUMENT': return NAMED_ARGUMENT;
+      case 'OPTIONAL_ARGUMENT': return OPTIONAL_ARGUMENT;
+      case 'OVERRIDE': return OVERRIDE;
+      case 'PARAMETER': return PARAMETER;
+      case 'PACKAGE_NAME': return PACKAGE_NAME;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -1532,62 +1519,34 @@ class ElementKind implements Enum {
 
   factory ElementKind(String name) {
     switch (name) {
-      case 'CLASS':
-        return CLASS;
-      case 'CLASS_TYPE_ALIAS':
-        return CLASS_TYPE_ALIAS;
-      case 'COMPILATION_UNIT':
-        return COMPILATION_UNIT;
-      case 'CONSTRUCTOR':
-        return CONSTRUCTOR;
-      case 'CONSTRUCTOR_INVOCATION':
-        return CONSTRUCTOR_INVOCATION;
-      case 'ENUM':
-        return ENUM;
-      case 'ENUM_CONSTANT':
-        return ENUM_CONSTANT;
-      case 'EXTENSION':
-        return EXTENSION;
-      case 'FIELD':
-        return FIELD;
-      case 'FILE':
-        return FILE;
-      case 'FUNCTION':
-        return FUNCTION;
-      case 'FUNCTION_INVOCATION':
-        return FUNCTION_INVOCATION;
-      case 'FUNCTION_TYPE_ALIAS':
-        return FUNCTION_TYPE_ALIAS;
-      case 'GETTER':
-        return GETTER;
-      case 'LABEL':
-        return LABEL;
-      case 'LIBRARY':
-        return LIBRARY;
-      case 'LOCAL_VARIABLE':
-        return LOCAL_VARIABLE;
-      case 'METHOD':
-        return METHOD;
-      case 'MIXIN':
-        return MIXIN;
-      case 'PARAMETER':
-        return PARAMETER;
-      case 'PREFIX':
-        return PREFIX;
-      case 'SETTER':
-        return SETTER;
-      case 'TOP_LEVEL_VARIABLE':
-        return TOP_LEVEL_VARIABLE;
-      case 'TYPE_ALIAS':
-        return TYPE_ALIAS;
-      case 'TYPE_PARAMETER':
-        return TYPE_PARAMETER;
-      case 'UNIT_TEST_GROUP':
-        return UNIT_TEST_GROUP;
-      case 'UNIT_TEST_TEST':
-        return UNIT_TEST_TEST;
-      case 'UNKNOWN':
-        return UNKNOWN;
+      case 'CLASS': return CLASS;
+      case 'CLASS_TYPE_ALIAS': return CLASS_TYPE_ALIAS;
+      case 'COMPILATION_UNIT': return COMPILATION_UNIT;
+      case 'CONSTRUCTOR': return CONSTRUCTOR;
+      case 'CONSTRUCTOR_INVOCATION': return CONSTRUCTOR_INVOCATION;
+      case 'ENUM': return ENUM;
+      case 'ENUM_CONSTANT': return ENUM_CONSTANT;
+      case 'EXTENSION': return EXTENSION;
+      case 'FIELD': return FIELD;
+      case 'FILE': return FILE;
+      case 'FUNCTION': return FUNCTION;
+      case 'FUNCTION_INVOCATION': return FUNCTION_INVOCATION;
+      case 'FUNCTION_TYPE_ALIAS': return FUNCTION_TYPE_ALIAS;
+      case 'GETTER': return GETTER;
+      case 'LABEL': return LABEL;
+      case 'LIBRARY': return LIBRARY;
+      case 'LOCAL_VARIABLE': return LOCAL_VARIABLE;
+      case 'METHOD': return METHOD;
+      case 'MIXIN': return MIXIN;
+      case 'PARAMETER': return PARAMETER;
+      case 'PREFIX': return PREFIX;
+      case 'SETTER': return SETTER;
+      case 'TOP_LEVEL_VARIABLE': return TOP_LEVEL_VARIABLE;
+      case 'TYPE_ALIAS': return TYPE_ALIAS;
+      case 'TYPE_PARAMETER': return TYPE_PARAMETER;
+      case 'UNIT_TEST_GROUP': return UNIT_TEST_GROUP;
+      case 'UNIT_TEST_TEST': return UNIT_TEST_TEST;
+      case 'UNKNOWN': return UNKNOWN;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -1673,28 +1632,17 @@ class FoldingKind implements Enum {
 
   factory FoldingKind(String name) {
     switch (name) {
-      case 'ANNOTATIONS':
-        return ANNOTATIONS;
-      case 'BLOCK':
-        return BLOCK;
-      case 'CLASS_BODY':
-        return CLASS_BODY;
-      case 'COMMENT':
-        return COMMENT;
-      case 'DIRECTIVES':
-        return DIRECTIVES;
-      case 'DOCUMENTATION_COMMENT':
-        return DOCUMENTATION_COMMENT;
-      case 'FILE_HEADER':
-        return FILE_HEADER;
-      case 'FUNCTION_BODY':
-        return FUNCTION_BODY;
-      case 'INVOCATION':
-        return INVOCATION;
-      case 'LITERAL':
-        return LITERAL;
-      case 'PARAMETERS':
-        return PARAMETERS;
+      case 'ANNOTATIONS': return ANNOTATIONS;
+      case 'BLOCK': return BLOCK;
+      case 'CLASS_BODY': return CLASS_BODY;
+      case 'COMMENT': return COMMENT;
+      case 'DIRECTIVES': return DIRECTIVES;
+      case 'DOCUMENTATION_COMMENT': return DOCUMENTATION_COMMENT;
+      case 'FILE_HEADER': return FILE_HEADER;
+      case 'FUNCTION_BODY': return FUNCTION_BODY;
+      case 'INVOCATION': return INVOCATION;
+      case 'LITERAL': return LITERAL;
+      case 'PARAMETERS': return PARAMETERS;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -2698,14 +2646,10 @@ class LinkedEditSuggestionKind implements Enum {
 
   factory LinkedEditSuggestionKind(String name) {
     switch (name) {
-      case 'METHOD':
-        return METHOD;
-      case 'PARAMETER':
-        return PARAMETER;
-      case 'TYPE':
-        return TYPE;
-      case 'VARIABLE':
-        return VARIABLE;
+      case 'METHOD': return METHOD;
+      case 'PARAMETER': return PARAMETER;
+      case 'TYPE': return TYPE;
+      case 'VARIABLE': return VARIABLE;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -3464,14 +3408,10 @@ class ParameterKind implements Enum {
 
   factory ParameterKind(String name) {
     switch (name) {
-      case 'OPTIONAL_NAMED':
-        return OPTIONAL_NAMED;
-      case 'OPTIONAL_POSITIONAL':
-        return OPTIONAL_POSITIONAL;
-      case 'REQUIRED_NAMED':
-        return REQUIRED_NAMED;
-      case 'REQUIRED_POSITIONAL':
-        return REQUIRED_POSITIONAL;
+      case 'OPTIONAL_NAMED': return OPTIONAL_NAMED;
+      case 'OPTIONAL_POSITIONAL': return OPTIONAL_POSITIONAL;
+      case 'REQUIRED_NAMED': return REQUIRED_NAMED;
+      case 'REQUIRED_POSITIONAL': return REQUIRED_POSITIONAL;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -3620,24 +3560,15 @@ class RefactoringKind implements Enum {
 
   factory RefactoringKind(String name) {
     switch (name) {
-      case 'CONVERT_GETTER_TO_METHOD':
-        return CONVERT_GETTER_TO_METHOD;
-      case 'CONVERT_METHOD_TO_GETTER':
-        return CONVERT_METHOD_TO_GETTER;
-      case 'EXTRACT_LOCAL_VARIABLE':
-        return EXTRACT_LOCAL_VARIABLE;
-      case 'EXTRACT_METHOD':
-        return EXTRACT_METHOD;
-      case 'EXTRACT_WIDGET':
-        return EXTRACT_WIDGET;
-      case 'INLINE_LOCAL_VARIABLE':
-        return INLINE_LOCAL_VARIABLE;
-      case 'INLINE_METHOD':
-        return INLINE_METHOD;
-      case 'MOVE_FILE':
-        return MOVE_FILE;
-      case 'RENAME':
-        return RENAME;
+      case 'CONVERT_GETTER_TO_METHOD': return CONVERT_GETTER_TO_METHOD;
+      case 'CONVERT_METHOD_TO_GETTER': return CONVERT_METHOD_TO_GETTER;
+      case 'EXTRACT_LOCAL_VARIABLE': return EXTRACT_LOCAL_VARIABLE;
+      case 'EXTRACT_METHOD': return EXTRACT_METHOD;
+      case 'EXTRACT_WIDGET': return EXTRACT_WIDGET;
+      case 'INLINE_LOCAL_VARIABLE': return INLINE_LOCAL_VARIABLE;
+      case 'INLINE_METHOD': return INLINE_METHOD;
+      case 'MOVE_FILE': return MOVE_FILE;
+      case 'RENAME': return RENAME;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -3805,12 +3736,9 @@ class RefactoringMethodParameterKind implements Enum {
 
   factory RefactoringMethodParameterKind(String name) {
     switch (name) {
-      case 'REQUIRED':
-        return REQUIRED;
-      case 'POSITIONAL':
-        return POSITIONAL;
-      case 'NAMED':
-        return NAMED;
+      case 'REQUIRED': return REQUIRED;
+      case 'POSITIONAL': return POSITIONAL;
+      case 'NAMED': return NAMED;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -3970,14 +3898,10 @@ class RefactoringProblemSeverity implements Enum {
 
   factory RefactoringProblemSeverity(String name) {
     switch (name) {
-      case 'INFO':
-        return INFO;
-      case 'WARNING':
-        return WARNING;
-      case 'ERROR':
-        return ERROR;
-      case 'FATAL':
-        return FATAL;
+      case 'INFO': return INFO;
+      case 'WARNING': return WARNING;
+      case 'ERROR': return ERROR;
+      case 'FATAL': return FATAL;
     }
     throw Exception('Illegal enum value: $name');
   }
