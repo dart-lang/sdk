@@ -18477,77 +18477,6 @@ HintCode:
 
       Null g() => null;
       ```
-  OVERRIDE_ON_NON_OVERRIDING_FIELD:
-    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
-    problemMessage: "The field doesn't override an inherited getter or setter."
-    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
-    hasPublishedDocs: true
-    comment: |-
-      A field with the override annotation does not override a getter or setter.
-
-      No parameters.
-  OVERRIDE_ON_NON_OVERRIDING_GETTER:
-    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
-    problemMessage: "The getter doesn't override an inherited getter."
-    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
-    hasPublishedDocs: true
-    comment: |-
-      A getter with the override annotation does not override an existing getter.
-
-      No parameters.
-  OVERRIDE_ON_NON_OVERRIDING_METHOD:
-    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
-    problemMessage: "The method doesn't override an inherited method."
-    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
-    hasPublishedDocs: true
-    comment: |-
-      A method with the override annotation does not override an existing method.
-
-      No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a class member is annotated with
-      the `@override` annotation, but the member isn't declared in any of the
-      supertypes of the class.
-
-      #### Example
-
-      The following code produces this diagnostic because `m` isn't declared in
-      any of the supertypes of `C`:
-
-      ```dart
-      class C {
-        @override
-        String [!m!]() => '';
-      }
-      ```
-
-      #### Common fixes
-
-      If the member is intended to override a member with a different name, then
-      update the member to have the same name:
-
-      ```dart
-      class C {
-        @override
-        String toString() => '';
-      }
-      ```
-
-      If the member is intended to override a member that was removed from the
-      superclass, then consider removing the member from the subclass.
-
-      If the member can't be removed, then remove the annotation.
-  OVERRIDE_ON_NON_OVERRIDING_SETTER:
-    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
-    problemMessage: "The setter doesn't override an inherited setter."
-    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
-    hasPublishedDocs: true
-    comment: |-
-      A setter with the override annotation does not override an existing setter.
-
-      No parameters.
   STRICT_RAW_TYPE:
     problemMessage: "The generic type '{0}' should have explicit type arguments but doesn't."
     correctionMessage: "Use explicit type arguments for '{0}'."
@@ -22267,8 +22196,76 @@ WarningCode:
       A condition in operands of a logical operator could evaluate to `null`
       because it uses the null-aware '?.' operator.
   OVERRIDE_ON_NON_OVERRIDING_FIELD:
-    aliasFor: HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD
-    comment: This is the new replacement for [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD].
+    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
+    problemMessage: "The field doesn't override an inherited getter or setter."
+    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
+    hasPublishedDocs: true
+    comment: |-
+      A field with the override annotation does not override a getter or setter.
+
+      No parameters.
+  OVERRIDE_ON_NON_OVERRIDING_GETTER:
+    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
+    problemMessage: "The getter doesn't override an inherited getter."
+    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
+    hasPublishedDocs: true
+    comment: |-
+      A getter with the override annotation does not override an existing getter.
+
+      No parameters.
+  OVERRIDE_ON_NON_OVERRIDING_METHOD:
+    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
+    problemMessage: "The method doesn't override an inherited method."
+    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
+    hasPublishedDocs: true
+    comment: |-
+      A method with the override annotation does not override an existing method.
+
+      No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class member is annotated with
+      the `@override` annotation, but the member isn't declared in any of the
+      supertypes of the class.
+
+      #### Example
+
+      The following code produces this diagnostic because `m` isn't declared in
+      any of the supertypes of `C`:
+
+      ```dart
+      class C {
+        @override
+        String [!m!]() => '';
+      }
+      ```
+
+      #### Common fixes
+
+      If the member is intended to override a member with a different name, then
+      update the member to have the same name:
+
+      ```dart
+      class C {
+        @override
+        String toString() => '';
+      }
+      ```
+
+      If the member is intended to override a member that was removed from the
+      superclass, then consider removing the member from the subclass.
+
+      If the member can't be removed, then remove the annotation.
+  OVERRIDE_ON_NON_OVERRIDING_SETTER:
+    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
+    problemMessage: "The setter doesn't override an inherited setter."
+    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
+    hasPublishedDocs: true
+    comment: |-
+      A setter with the override annotation does not override an existing setter.
+
+      No parameters.
   RECEIVER_OF_TYPE_NEVER:
     problemMessage: "The receiver is of type 'Never', and will never complete with a value."
     correctionMessage: Try checking for throw expressions or type errors in the receiver

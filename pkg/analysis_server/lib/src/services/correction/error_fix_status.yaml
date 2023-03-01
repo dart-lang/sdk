@@ -1446,14 +1446,6 @@ HintCode.NULL_CHECK_ALWAYS_FAILS:
   status: needsFix
   notes: |-
     Remove the null check.
-HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
-  status: hasFix
-HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
-  status: hasFix
-HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
-  status: hasFix
-HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
-  status: hasFix
 HintCode.STRICT_RAW_TYPE:
   status: needsFix
   notes: |-
@@ -2767,6 +2759,14 @@ WarningCode.NULL_AWARE_IN_CONDITION:
   status: noFix
 WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR:
   status: noFix
+WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
+  status: hasFix
+WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
+  status: hasFix
+WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
+  status: hasFix
+WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
+  status: hasFix
 WarningCode.RECEIVER_OF_TYPE_NEVER:
   status: needsFix
   notes: |-

@@ -909,7 +909,7 @@ class FixProcessor extends BaseProcessor {
     HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
       DataDriven.new,
     ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.new,
     ],
     WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
@@ -1377,18 +1377,6 @@ class FixProcessor extends BaseProcessor {
     ],
     // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
 //    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
-      RemoveAnnotation.new,
-    ],
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.new,
     ],
@@ -1571,6 +1559,18 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
       RemoveQuestionMark.new,
+    ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
+      RemoveAnnotation.new,
     ],
     WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
       AddTrailingComma.new,

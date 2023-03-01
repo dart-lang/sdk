@@ -6429,9 +6429,57 @@ class WarningCode extends AnalyzerErrorCode {
         "an operand of a logical operator.",
   );
 
-  ///  This is the new replacement for [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD].
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD =
-      HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD;
+  ///  A field with the override annotation does not override a getter or setter.
+  ///
+  ///  No parameters.
+  static const WarningCode OVERRIDE_ON_NON_OVERRIDING_FIELD = WarningCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The field doesn't override an inherited getter or setter.",
+    correctionMessage:
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_FIELD',
+  );
+
+  ///  A getter with the override annotation does not override an existing getter.
+  ///
+  ///  No parameters.
+  static const WarningCode OVERRIDE_ON_NON_OVERRIDING_GETTER = WarningCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The getter doesn't override an inherited getter.",
+    correctionMessage:
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_GETTER',
+  );
+
+  ///  A method with the override annotation does not override an existing method.
+  ///
+  ///  No parameters.
+  static const WarningCode OVERRIDE_ON_NON_OVERRIDING_METHOD = WarningCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The method doesn't override an inherited method.",
+    correctionMessage:
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_METHOD',
+  );
+
+  ///  A setter with the override annotation does not override an existing setter.
+  ///
+  ///  No parameters.
+  static const WarningCode OVERRIDE_ON_NON_OVERRIDING_SETTER = WarningCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The setter doesn't override an inherited setter.",
+    correctionMessage:
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_SETTER',
+  );
 
   ///  It is not an error to call or tear-off a method, setter, or getter, or to
   ///  read or write a field, on a receiver of static type `Never`.
