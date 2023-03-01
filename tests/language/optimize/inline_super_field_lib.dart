@@ -20,6 +20,6 @@ library inline_super_field_lib;
 
 var i = 0;
 
-class M1 {
+mixin M1 {
   final bar = ++i;
 }

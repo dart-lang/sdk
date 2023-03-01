@@ -40,7 +40,7 @@ abstract class Interface<I> {
   static _interfaceStaticMethod() => null;
 }
 
-class Mixin<M> {
+mixin Mixin<M> {
   operator *(x) => null;
 
   var mixinInstanceVariable;
