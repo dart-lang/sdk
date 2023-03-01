@@ -26,8 +26,10 @@ main() {
   Expect.equals(getType2<bool>(), getType1(false));
   Expect.equals(getType2<int>(), getType1(1));
   Expect.equals(getType2<(bool, int)>(), getType1((true, 3)));
-  Expect.equals(getType2<({int bar, bool foo})>(), getType1((foo: true, bar: 2)));
-  Expect.equals(getType2<(int, bool, {int bar, bool foo})>(), getType1((1, foo: true, false, bar: 2)));
+  Expect.equals(
+      getType2<({int bar, bool foo})>(), getType1((foo: true, bar: 2)));
+  Expect.equals(getType2<(int, bool, {int bar, bool foo})>(),
+      getType1((1, foo: true, false, bar: 2)));
 
   testRuntimeTypeEquality(true, (1, 2), (3, 4));
   testRuntimeTypeEquality(false, (1, 2), (1, 2, 3));

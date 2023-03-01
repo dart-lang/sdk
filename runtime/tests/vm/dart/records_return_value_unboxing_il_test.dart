@@ -102,7 +102,6 @@ void matchIL$test(FlowGraph graph) {
       'obj1' << match.Parameter(index: 4),
       'obj2' << match.Parameter(index: 5),
       match.CheckStackOverflow(),
-
       match.MoveArgument('x'),
       match.MoveArgument('z'),
       'r1' << match.StaticCall(),
@@ -112,7 +111,6 @@ void matchIL$test(FlowGraph graph) {
       match.StaticCall(),
       match.MoveArgument('r1_1'),
       match.StaticCall(),
-
       match.MoveArgument('foo'),
       match.MoveArgument('bar'),
       'r2' << match.StaticCall(),
@@ -122,7 +120,6 @@ void matchIL$test(FlowGraph graph) {
       match.StaticCall(),
       match.MoveArgument('r2_bar'),
       match.StaticCall(),
-
       match.MoveArgument('obj1'),
       'r3' << match.StaticCall(),
       'r3_0' << match.ExtractNthOutput('r3', index: 0),
@@ -131,7 +128,6 @@ void matchIL$test(FlowGraph graph) {
       match.StaticCall(),
       match.MoveArgument('r3_y'),
       match.StaticCall(),
-
       'obj2_cid' << match.LoadClassId('obj2'),
       match.MoveArgument('obj2'),
       'r4' << match.DispatchTableCall('obj2_cid'),
@@ -140,7 +136,6 @@ void matchIL$test(FlowGraph graph) {
       'r4_boxed' << match.AllocateSmallRecord('r4_0', 'r4_y'),
       match.MoveArgument('r4_boxed'),
       match.StaticCall(),
-
       match.Return(),
     ]),
   ]);
@@ -152,10 +147,6 @@ void main(List<String> args) {
   final intValue = args.length > 50 ? 1 << 53 : 42;
   final doubleValue = args.length > 50 ? 42.5 : 24.5;
 
-  test(intValue,
-    intValue == 4,
-    'foo' + intValue.toString(),
-    intValue,
-    B(intValue, doubleValue),
-    intValue == 42 ? B(1, 2) : C());
+  test(intValue, intValue == 4, 'foo' + intValue.toString(), intValue,
+      B(intValue, doubleValue), intValue == 42 ? B(1, 2) : C());
 }

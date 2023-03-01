@@ -435,7 +435,6 @@ bool testFileOpenDirectoryFails() {
   return false;
 }
 
-
 Future testListInterfaces() async {
   List<NetworkInterface> interfaces = await NetworkInterface.list();
   print('Found ${interfaces.length} interfaces:');
