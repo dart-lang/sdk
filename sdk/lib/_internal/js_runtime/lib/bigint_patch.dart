@@ -31,10 +31,6 @@ int _min(int a, int b) => a < b ? a : b;
 /// Empty list used as an initializer for local variables in the `_BigIntImpl`.
 final _dummyList = new Uint16List(0);
 
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 /*
  * Copyright (c) 2003-2005  Tom Wu
  * Copyright (c) 2012 Adam Singer (adam@solvr.io)
