@@ -12890,6 +12890,13 @@ CompileTimeErrorCode:
 
       int f(C c) => c.b;
       ```
+  SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
+    problemMessage: "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype '{1}' is '{2}'."
+    comment: |-
+      Parameters:
+      0: the name of the subtype that is not 'base', 'final', or 'sealed'
+      1: the name of the supertype which is 'base' or 'final'
+      2: the modifier on the supertype
   SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
     problemMessage: The type '{0}' of this parameter isn't a subtype of the type '{1}' of the associated super constructor parameter.
     correctionMessage: Try removing the explicit type annotation from the parameter.

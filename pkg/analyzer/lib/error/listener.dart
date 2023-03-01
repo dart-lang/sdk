@@ -73,10 +73,10 @@ class ErrorReporter {
   /// Report an error with the given [errorCode] and [arguments]. The [element]
   /// is used to compute the location of the error.
   void reportErrorForElement(ErrorCode errorCode, Element element,
-      [List<Object>? arguments]) {
+      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
     var nonSynthetic = element.nonSynthetic;
-    reportErrorForOffset(
-        errorCode, nonSynthetic.nameOffset, nonSynthetic.nameLength, arguments);
+    reportErrorForOffset(errorCode, nonSynthetic.nameOffset,
+        nonSynthetic.nameLength, arguments, messages);
   }
 
   /// Report a diagnostic with the given [code] and [arguments]. The

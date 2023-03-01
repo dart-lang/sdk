@@ -1055,6 +1055,8 @@ CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER:
   status: needsEvaluation
+CompileTimeErrorCode.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
+  status: needsEvaluation
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
   status: hasFix
   since: 2.17

@@ -18,7 +18,7 @@ class FinalClassExtendedOutsideOfLibraryTest extends PubPackageResolutionTest {
   test_inside() async {
     await assertNoErrorsInCode(r'''
 final class Foo {}
-class Bar extends Foo {}
+final class Bar extends Foo {}
 ''');
   }
 
@@ -29,10 +29,10 @@ final class Foo {}
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-class Bar extends Foo {}
+final class Bar extends Foo {}
 ''', [
       error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 37, 3),
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 43, 3),
     ]);
   }
 
@@ -44,10 +44,10 @@ typedef FooTypedef = Foo;
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-class Bar extends FooTypedef {}
+final class Bar extends FooTypedef {}
 ''', [
       error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 37, 10),
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 43, 10),
     ]);
   }
 
@@ -59,22 +59,10 @@ final class Foo {}
     await assertErrorsInCode(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
-class Bar extends FooTypedef {}
+final class Bar extends FooTypedef {}
 ''', [
       error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 63, 10),
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 69, 10),
     ]);
-  }
-
-  test_subtypeOfBase_outside() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-final class Foo {}
-class Bar extends Foo {}
-''');
-
-    await assertNoErrorsInCode(r'''
-import 'foo.dart';
-class Bar2 extends Bar {}
-''');
   }
 }

@@ -4423,6 +4423,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the subtype that is not 'base', 'final', or 'sealed'
+  ///  1: the name of the supertype which is 'base' or 'final'
+  ///  2: the modifier on the supertype
+  static const CompileTimeErrorCode
+      SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED =
+      CompileTimeErrorCode(
+    'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+    "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
+        "'{1}' is '{2}'.",
+  );
+
+  ///  Parameters:
   ///  0: the type of super-parameter
   ///  1: the type of associated super-constructor parameter
   static const CompileTimeErrorCode

@@ -10,11 +10,11 @@
 import 'base_mixin_with_lib.dart';
 
 abstract class AOutside with BaseMixin {}
-// ^
-// [analyzer] unspecified
+//             ^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] unspecified
 
 class BOutside with BaseMixin {}
-// ^
-// [analyzer] unspecified
+//    ^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] unspecified

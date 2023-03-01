@@ -74,6 +74,7 @@ import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/variable_declaration_resolver.dart';
 import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/error/base_or_final_type_verifier.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
@@ -203,6 +204,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   final MigratableAstInfoProvider _migratableAstInfoProvider;
 
   final MigrationResolutionHooks? migrationResolutionHooks;
+
+  /// Helper for checking that subtypes of a base or final type must be base,
+  /// final, or sealed.
+  late final BaseOrFinalTypeVerifier baseOrFinalTypeVerifier;
 
   /// Helper for checking expression that should have the `bool` type.
   late final BoolExpressionVerifier boolExpressionVerifier;
@@ -374,6 +379,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       errorReporter: errorReporter,
       resolver: this,
     );
+    baseOrFinalTypeVerifier = BaseOrFinalTypeVerifier(
+        definingLibrary: definingLibrary, errorReporter: errorReporter);
     boolExpressionVerifier = BoolExpressionVerifier(
       resolver: this,
       errorReporter: errorReporter,
@@ -2034,6 +2041,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } finally {
       enclosingClass = outerType;
     }
+
+    baseOrFinalTypeVerifier
+        .checkElement(node.declaredElement as ClassOrMixinElementImpl);
   }
 
   @override
@@ -2959,6 +2969,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } finally {
       enclosingClass = outerType;
     }
+
+    baseOrFinalTypeVerifier
+        .checkElement(node.declaredElement as ClassOrMixinElementImpl);
   }
 
   @override
