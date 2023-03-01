@@ -390,6 +390,8 @@ abstract class IntegrationTest {
   ///   from the URI "file:///bar.dart" to them. To check if a specific URI is
   ///   reachable from a given file, clients can check for its presence in the
   ///   resulting key set.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
   Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(
       String file) async {
@@ -644,6 +646,8 @@ abstract class IntegrationTest {
   /// options: AnalysisOptions
   ///
   ///   The options that are to be used to control analysis.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendAnalysisUpdateOptions(AnalysisOptions options) async {
     var params = AnalysisUpdateOptionsParams(options).toJson();
@@ -1105,6 +1109,8 @@ abstract class IntegrationTest {
   ///   from which the client is interested in receiving completion
   ///   suggestions. If one configured path is beneath another, the descendant
   ///   will override the ancestors' configured libraries of interest.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendCompletionRegisterLibraryPaths(
       List<LibraryPathSet> paths) async {
@@ -2329,6 +2335,8 @@ abstract class IntegrationTest {
   /// subscriptions: List<ExecutionService>
   ///
   ///   A list of the services being subscribed to.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendExecutionSetSubscriptions(
       List<ExecutionService> subscriptions) async {

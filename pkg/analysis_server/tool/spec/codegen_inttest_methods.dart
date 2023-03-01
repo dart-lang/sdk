@@ -191,6 +191,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       toHtmlVisitor.describePayload(request.result, 'Returns');
     }));
     if (request.deprecated) {
+      writeln('  // TODO(srawlins): Provide a deprecation message, or remove.');
+      writeln('  // ignore: provide_deprecation_message');
       writeln('@deprecated');
     }
 
