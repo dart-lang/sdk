@@ -249,17 +249,6 @@ config("compiler") {
     ]
   }
 
-  # We need -fPIC:
-  # 1. On ARM for tcmalloc.
-  # 2. On Android.
-  # 3. When using the sanitizers.
-  # Otherwise there is a performance hit, in particular on ia32.
-  if (is_android || is_asan || is_lsan || is_msan || is_tsan || is_ubsan ||
-      (is_linux && current_cpu != "x86") || is_fuchsia) {
-    cflags += [ "-fPIC" ]
-    ldflags += [ "-fPIC" ]
-  }
-
   # Linux-specific compiler flags setup.
   # ------------------------------------
   if (is_linux) {
