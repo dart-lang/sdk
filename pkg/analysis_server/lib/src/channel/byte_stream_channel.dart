@@ -56,7 +56,7 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   );
 
   @override
-  Future close() {
+  Future<void> close() {
     return output.close();
   }
 
@@ -80,7 +80,7 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
   final RequestStatisticsHelper? _requestStatistics;
 
   /// Completer that will be signalled when the input stream is closed.
-  final Completer _closed = Completer();
+  final Completer<void> _closed = Completer();
 
   /// True if [close] has been called.
   bool _closeRequested = false;
@@ -103,7 +103,7 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
   }
 
   /// Future that will be completed when the input stream is closed.
-  Future get closed {
+  Future<void> get closed {
     return _closed.future;
   }
 

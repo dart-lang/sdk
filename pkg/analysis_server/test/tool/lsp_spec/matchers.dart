@@ -34,8 +34,8 @@ class ArrayTypeMatcher extends Matcher {
       description.add('an array of ').addDescriptionOf(_elementTypeMatcher);
 
   @override
-  Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(item, Description mismatchDescription,
+      Map<dynamic, dynamic> matchState, bool verbose) {
     if (item is ArrayType) {
       return _elementTypeMatcher.describeMismatch(
           item, mismatchDescription, matchState, verbose);
@@ -45,7 +45,7 @@ class ArrayTypeMatcher extends Matcher {
   }
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<dynamic, dynamic> matchState) {
     return item is ArrayType &&
         _elementTypeMatcher.matches(item.elementType, matchState);
   }
@@ -63,7 +63,7 @@ class LiteralTypeMatcher extends Matcher {
       .add(' and value is $_value');
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<dynamic, dynamic> matchState) {
     return item is LiteralType &&
         _typeMatcher.matches(item.type, matchState) &&
         item.valueAsLiteral == _value;
@@ -82,7 +82,7 @@ class MapTypeMatcher extends Matcher {
       .addDescriptionOf(_valueMatcher);
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<dynamic, dynamic> matchState) {
     return item is MapType &&
         _indexMatcher.matches(item.indexType, matchState) &&
         _valueMatcher.matches(item.valueType, matchState);
@@ -98,8 +98,8 @@ class SimpleTypeMatcher extends Matcher {
       description.add('a type with the name $_expectedName');
 
   @override
-  Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(item, Description mismatchDescription,
+      Map<dynamic, dynamic> matchState, bool verbose) {
     if (item is TypeReference) {
       return mismatchDescription
           .add('has the name ')
@@ -110,7 +110,7 @@ class SimpleTypeMatcher extends Matcher {
   }
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<dynamic, dynamic> matchState) {
     return item is TypeReference && item.name == _expectedName;
   }
 }

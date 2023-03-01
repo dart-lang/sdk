@@ -20,7 +20,7 @@ import 'perf/dart_analyze.dart';
 import 'perf/flutter_analyze_benchmark.dart';
 import 'perf/flutter_completion_benchmark.dart';
 
-Future main(List<String> args) async {
+Future<void> main(List<String> args) async {
   var benchmarks = [
     ColdAnalysisBenchmark(ServerBenchmark.das),
     ColdAnalysisBenchmark(ServerBenchmark.lsp),
@@ -163,7 +163,7 @@ abstract class FlutterBenchmark {
   set flutterRepositoryPath(String path);
 }
 
-class ListCommand extends Command {
+class ListCommand extends Command<void> {
   final List<Benchmark> benchmarks;
 
   ListCommand(this.benchmarks) {
@@ -195,7 +195,7 @@ class ListCommand extends Command {
   }
 }
 
-class RunCommand extends Command {
+class RunCommand extends Command<void> {
   final List<Benchmark> benchmarks;
 
   RunCommand(this.benchmarks) {
@@ -225,7 +225,7 @@ class RunCommand extends Command {
   String get name => 'run';
 
   @override
-  Future run() async {
+  Future<void> run() async {
     var args = argResults;
     if (args == null) {
       throw StateError('argResults have not been set');
