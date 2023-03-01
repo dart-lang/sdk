@@ -306,7 +306,9 @@ class OSThread : public BaseThread {
   static OSThread* thread_list_head_;
   static bool creation_enabled_;
 
-  static thread_local ThreadState* current_vm_thread_;
+  // Inline initialization is important for avoiding unnecessary TLS
+  // initialization checks at each use.
+  static inline thread_local ThreadState* current_vm_thread_ = nullptr;
 
   friend class IsolateGroup;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
@@ -412,7 +414,7 @@ class ThreadInterruptScope : public ValueObject {
 
  private:
   ThreadState* saved_current_vm_thread_;
-  static thread_local bool in_thread_interrupt_scope_;
+  static inline thread_local bool in_thread_interrupt_scope_ = false;
 #endif  // DEBUG
 };
 

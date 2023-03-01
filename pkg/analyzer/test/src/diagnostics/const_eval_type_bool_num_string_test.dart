@@ -15,28 +15,107 @@ main() {
 
 @reflectiveTest
 class ConstEvalTypeBoolNumStringTest extends PubPackageResolutionTest {
-  test_equal() async {
+  test_equal_double_object() async {
+    await assertNoErrorsInCode(r'''
+const a = 0.1;
+const b = a == Object();
+''');
+  }
+
+  test_equal_int_object() async {
+    await assertNoErrorsInCode(r'''
+const a = 0;
+const b = a == Object();
+''');
+  }
+
+  test_equal_int_userClass() async {
     await assertNoErrorsInCode(r'''
 class A {
   const A();
 }
 
-const num a = 0;
-const b = a == const A();
+const a = 0;
+const b = a == A();
 ''');
   }
 
-  test_notEqual() async {
+  test_equal_null_object() async {
+    await assertNoErrorsInCode(r'''
+const a = null;
+const b = a == Object();
+''');
+  }
+
+  test_equal_string_object() async {
+    await assertNoErrorsInCode(r'''
+const a = 'foo';
+const b = a == Object();
+''');
+  }
+
+  test_equal_userClass_int() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
 }
 
-const num a = 0;
-const _ = a != const A();
+const a = A();
+const b = a == 0;
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 49, 1),
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 53, 14),
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 51, 6),
+    ]);
+  }
+
+  test_notEqual_double_object() async {
+    await assertNoErrorsInCode(r'''
+const a = 0.1;
+const b = a != Object();
+''');
+  }
+
+  test_notEqual_int_object() async {
+    await assertNoErrorsInCode(r'''
+const a = 0;
+const b = a != Object();
+''');
+  }
+
+  test_notEqual_int_userClass() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+}
+
+const a = 0;
+const b = a != A();
+''');
+  }
+
+  test_notEqual_null_object() async {
+    await assertNoErrorsInCode(r'''
+const a = null;
+const b = a != Object();
+''');
+  }
+
+  test_notEqual_string_object() async {
+    await assertNoErrorsInCode(r'''
+const a = 'foo';
+const b = a != Object();
+''');
+  }
+
+  test_notEqual_userClass_int() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+
+const a = A();
+const b = a != 0;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 51, 6),
     ]);
   }
 }

@@ -94,7 +94,7 @@ vars = {
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "devtools_rev": "a6657896603234b1dfbb597636ba4df09d4f01ea",
+  "devtools_rev": "bf15e7348d53dc83531d503be94e0c035b604984",
   "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -173,7 +173,7 @@ vars = {
   "test_descriptor_rev": "1d4a967dd17874f3835af30720e9820c74977569",
   "test_process_rev": "f76d0b8fcf078d629cb57f859db79be93d6323d5",
   "test_reflective_loader_rev": "c4c2d5c3f94a96f3fc79e9e28944fba391bc544c",
-  "tools_rev": "301033faf58fbb6c6992b6f7ab2b2ec1e931f642",
+  "tools_rev": "78859fb3e548fdc40acec24447bfaa12b3dd4dfa",
   "typed_data_rev": "f858046fb420cf644e7d8cb86b7893f2830d8a6c",
   "usage_rev": "399770f45ed2d384d79395c0341a04fb25609a4d",
   "vector_math_rev": "1e4d000f55512ca55d0fcef4e13fc03010d54251",

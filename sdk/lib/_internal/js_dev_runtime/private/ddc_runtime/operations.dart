@@ -255,18 +255,18 @@ _toDisplayName(name) => JS('', '''(() => {
 
 Symbol _dartSymbol(name) {
   return (JS<bool>('!', 'typeof # === "symbol"', name))
-      ? JS('Symbol', '#(new #.new(#, #))', const_, PrivateSymbol,
+      ? JS('Symbol', '#(new #.new(#, #))', const_, JS_CLASS_REF(PrivateSymbol),
           _toSymbolName(name), name)
-      : JS('Symbol', '#(new #.new(#))', const_, internal.Symbol,
+      : JS('Symbol', '#(new #.new(#))', const_, JS_CLASS_REF(internal.Symbol),
           _toDisplayName(name));
 }
 
 Symbol _setterSymbol(name) {
   return (JS<bool>('!', 'typeof # === "symbol"', name))
-      ? JS('Symbol', '#(new #.new(# + "=", #))', const_, PrivateSymbol,
-          _toSymbolName(name), name)
-      : JS('Symbol', '#(new #.new(# + "="))', const_, internal.Symbol,
-          _toDisplayName(name));
+      ? JS('Symbol', '#(new #.new(# + "=", #))', const_,
+          JS_CLASS_REF(PrivateSymbol), _toSymbolName(name), name)
+      : JS('Symbol', '#(new #.new(# + "="))', const_,
+          JS_CLASS_REF(internal.Symbol), _toDisplayName(name));
 }
 
 /// Checks for a valid function, receiver and arguments before calling [f].

@@ -108,7 +108,7 @@ def GenerateCopyright(filename):
     with open(filename, 'w') as f:
         f.write('Name: dart\n')
         f.write('Maintainer: Dart Team <misc@dartlang.org>\n')
-        f.write('Source: https://code.google.com/p/dart/\n')
+        f.write('Source: https://dart.googlesource.com/sdk\n')
         f.write('License:\n')
         for line in license_lines:
             f.write(' %s' % line)  # Line already contains trailing \n.
