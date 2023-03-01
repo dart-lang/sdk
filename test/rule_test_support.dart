@@ -280,7 +280,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
         lints: _lintRules,
       ),
     );
-    _writeTestPackageConfig(
+    writeTestPackageConfig(
       PackageConfigFileBuilder(),
     );
   }
@@ -305,7 +305,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     newPubspecYamlFile(testPackageRootPath, config.toContent());
   }
 
-  void _writeTestPackageConfig(PackageConfigFileBuilder config) {
+  void writeTestPackageConfig(PackageConfigFileBuilder config) {
     var configCopy = config.copy();
 
     configCopy.add(

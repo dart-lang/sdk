@@ -73,6 +73,7 @@ import 'prefer_final_parameters_test.dart' as prefer_final_parameters;
 import 'prefer_generic_function_type_aliases_test.dart'
     as prefer_generic_function_type_aliases;
 import 'prefer_mixin_test.dart' as prefer_mixin;
+import 'prefer_relative_imports_test.dart' as prefer_relative_imports;
 import 'prefer_spread_collections_test.dart' as prefer_spread_collections;
 import 'public_member_api_docs_test.dart' as public_member_api_docs;
 import 'recursive_getters_test.dart' as recursive_getters;
@@ -155,6 +156,7 @@ void main() {
   prefer_final_fields.main();
   prefer_final_parameters.main();
   prefer_generic_function_type_aliases.main();
+  prefer_relative_imports.main();
   prefer_spread_collections.main();
   public_member_api_docs.main();
   prefer_mixin.main();
