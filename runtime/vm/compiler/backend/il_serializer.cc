@@ -1369,31 +1369,22 @@ template <>
 void FlowGraphSerializer::WriteTrait<MoveOperands*>::Write(
     FlowGraphSerializer* s,
     MoveOperands* x) {
-  s->Write<const MoveOperands*>(x);
-}
-
-template <>
-void FlowGraphSerializer::WriteTrait<const MoveOperands*>::Write(
-    FlowGraphSerializer* s,
-    const MoveOperands* x) {
-  ASSERT(x != nullptr);
-  x->src().Write(s);
-  x->dest().Write(s);
-}
-
-template <>
-MoveOperands FlowGraphDeserializer::ReadTrait<MoveOperands>::Read(
-    FlowGraphDeserializer* d) {
-  Location src = Location::Read(d);
-  Location dest = Location::Read(d);
-  return {dest, src};
+  x->Write(s);
 }
 
 template <>
 MoveOperands* FlowGraphDeserializer::ReadTrait<MoveOperands*>::Read(
     FlowGraphDeserializer* d) {
-  return new (d->zone()) MoveOperands(d->Read<MoveOperands>());
+  return new (d->zone()) MoveOperands(d);
 }
+
+void MoveOperands::Write(FlowGraphSerializer* s) const {
+  dest().Write(s);
+  src().Write(s);
+}
+
+MoveOperands::MoveOperands(FlowGraphDeserializer* d)
+    : dest_(Location::Read(d)), src_(Location::Read(d)) {}
 
 template <>
 void FlowGraphSerializer::

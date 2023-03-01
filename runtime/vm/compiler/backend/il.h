@@ -1535,6 +1535,9 @@ class MoveOperands : public ZoneAllocated {
     return src_.IsInvalid();
   }
 
+  void Write(FlowGraphSerializer* s) const;
+  explicit MoveOperands(FlowGraphDeserializer* d);
+
  private:
   Location dest_;
   Location src_;
