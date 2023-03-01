@@ -1011,6 +1011,10 @@ abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
   @override
   ImplementsClause? get implementsClause;
 
+  /// Return the 'inline' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get inlineKeyword;
+
   /// Returns the left curly bracket.
   @override
   Token get leftBracket;

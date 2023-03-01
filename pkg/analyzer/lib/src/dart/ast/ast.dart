@@ -1848,6 +1848,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token? macroKeyword;
 
   /// The 'inline' keyword, or `null` if the keyword was absent.
+  @override
   final Token? inlineKeyword;
 
   /// The 'sealed' keyword, or `null` if the keyword was absent.
