@@ -29,6 +29,166 @@ main() {
 @reflectiveTest
 class ConstantVisitorTest extends ConstantVisitorTestSupport
     with ConstantVisitorTestCases {
+  test_equalEqual_double_object() async {
+    await assertNoErrorsInCode('''
+const v = 1.2 == Object();
+''');
+    final value = _evaluateConstant('v');
+    assertDartObjectText(value, r'''
+bool false
+''');
+  }
+
+  test_equalEqual_int_int_false() async {
+    await assertNoErrorsInCode('''
+const v = 1 == 2;
+''');
+    final value = _evaluateConstant('v');
+    assertDartObjectText(value, r'''
+bool false
+''');
+  }
+
+  test_equalEqual_int_int_true() async {
+    await assertNoErrorsInCode('''
+const v = 1 == 1;
+''');
+    final value = _evaluateConstant('v');
+    assertDartObjectText(value, r'''
+bool true
+''');
+  }
+
+  test_equalEqual_int_null() async {
+    await assertNoErrorsInCode('''
+const int? a = 1;
+const v = a == null;
+''');
+    final value = _evaluateConstant('v');
+    assertDartObjectText(value, r'''
+bool false
+''');
+  }
+
+  test_equalEqual_int_object() async {
+    await assertNoErrorsInCode('''
+const v = 1 == Object();
+''');
+    final value = _evaluateConstant('v');
+    assertDartObjectText(value, r'''
+bool false
+''');
+  }
+
+  test_equalEqual_int_userClass() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+}
+
+const v = 1 == A();
+''');
+    final value = _evaluateConstant('v');
+    assertDartObjectText(value, r'''
+bool false
+''');
+  }
+
+  test_equalEqual_null_object() async {
+    await assertNoErrorsInCode('''
+const Object? a = null;
+const v = a == Object();
+''');
+    final value = _evaluateConstant('v');
+    assertDartObjectText(value, r'''
+bool false
+''');
+  }
+
+  test_equalEqual_string_object() async {
+    await assertNoErrorsInCode('''
+const v = 'foo' == Object();
+''');
+    final value = _evaluateConstant('v');
+    assertDartObjectText(value, r'''
+bool false
+''');
+  }
+
+  test_equalEqual_userClass_hasEqEq() async {
+    await assertErrorsInCode('''
+class A {
+  const A();
+  bool operator ==(other) => false;
+}
+
+const v = A() == 0;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 72, 8),
+    ]);
+    // TODO(scheglov) check the invalid value
+  }
+
+  test_equalEqual_userClass_hasHashCode() async {
+    await assertErrorsInCode('''
+class A {
+  const A();
+  int get hashCode => 0;
+}
+
+const v = A() == 0;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 61, 8),
+    ]);
+    // TODO(scheglov) check the invalid value
+  }
+
+  test_equalEqual_userClass_hasPrimitiveEquality_false() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int f;
+  const A(this.f);
+}
+
+const v = A(0) == 0;
+''');
+    final value = _evaluateConstant('v');
+    assertDartObjectText(value, r'''
+bool false
+''');
+  }
+
+  test_equalEqual_userClass_hasPrimitiveEquality_language219() async {
+    await assertErrorsInCode('''
+// @dart = 2.19
+class A {
+  const A();
+}
+
+const v = A() == 0;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 52, 8),
+    ]);
+    _evaluateConstantOrNull('v', errorCodes: [
+      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING,
+    ]);
+  }
+
+  test_equalEqual_userClass_hasPrimitiveEquality_true() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int f;
+  const A(this.f);
+}
+
+const v = A(0) == A(0);
+''');
+    final value = _evaluateConstant('v');
+    assertDartObjectText(value, r'''
+bool true
+''');
+  }
+
   test_hasPrimitiveEquality_bool() async {
     await assertNoErrorsInCode('''
 const v = true;
@@ -2314,6 +2474,19 @@ const a = const A<int?>();
     );
   }
 
+  test_assertInitializer_intInDoubleContext_true() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A(double x): assert((x + 3) / 2 == 1.5);
+}
+const v = const A(0);
+''');
+    final value = _evaluateConstant('v');
+    assertDartObjectText(value, r'''
+A
+''');
+  }
+
   test_fieldInitializer_functionReference_withTypeParameter() async {
     await resolveTestCode('''
 void g<U>(U a) {}
@@ -2517,16 +2690,6 @@ const a = const A(1);
       'a',
       errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
     );
-  }
-
-  test_assertInitializer_intInDoubleContext_true() async {
-    await resolveTestCode('''
-class A {
-  const A(double x): assert((x + 3) / 2 == 1.5);
-}
-const a = const A(0);
-''');
-    _assertValidConstant('a');
   }
 
   test_assertInitializer_simple_false() async {
