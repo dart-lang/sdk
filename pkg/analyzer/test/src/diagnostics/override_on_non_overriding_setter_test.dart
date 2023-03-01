@@ -24,7 +24,7 @@ class B extends A {
   set foo(int _) {}
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 50, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 50, 3),
     ]);
   }
 
@@ -58,7 +58,7 @@ enum E {
   set foo(int _) {}
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 32, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 32, 3),
     ]);
   }
 
@@ -97,7 +97,7 @@ extension E on int {
   set foo(int _) {}
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 39, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 39, 3),
     ]);
   }
 
@@ -110,7 +110,7 @@ mixin M on A {
   set foo(int _) {}
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 45, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 45, 3),
     ]);
   }
 }

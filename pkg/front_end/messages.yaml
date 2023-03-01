@@ -6102,7 +6102,7 @@ BaseClassImplementedOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B implements A {}
+      base class B implements A {}
     lib.dart:
       base class A {}
 
@@ -6113,7 +6113,7 @@ BaseMixinImplementedOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B implements A {}
+      base class B implements A {}
     lib.dart:
       base mixin A {}
 
@@ -6146,7 +6146,7 @@ FinalClassExtendedOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B extends A {}
+      final class B extends A {}
     lib.dart:
       final class A {}
 
@@ -6157,7 +6157,7 @@ FinalClassImplementedOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B implements A {}
+      final class B implements A {}
     lib.dart:
       final class A {}
 
@@ -6168,7 +6168,7 @@ FinalMixinImplementedOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B implements A {}
+      final class B implements A {}
     lib.dart:
       final mixin A {}
 
@@ -6179,9 +6179,18 @@ FinalMixinMixedInOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B with A {}
+      final class B with A {}
     lib.dart:
       final mixin A {}
+
+SubtypeOfBaseOrFinalIsNotBaseFinalOrSealed:
+  problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is '#string'."
+  correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
+  analyzerCode: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+  experiments: class-modifiers,sealed-class
+  script: |
+      base class A {}
+      class B extends A {}
 
 UnspecifiedGetterNameInObjectPattern:
   problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."

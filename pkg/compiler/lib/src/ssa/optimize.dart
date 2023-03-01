@@ -1209,10 +1209,21 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   }
 
   FieldEntity _indexFieldOfEnumClass(ClassEntity enumClass) {
-    final member = _closedWorld.elementEnvironment
-        .lookupClassMember(enumClass, const PublicName('index'));
-    if (member is FieldEntity) return member;
-    throw StateError('$enumClass should have index field, found $member');
+    // We expect the enum class to extend `_Enum`, which has an `index` field,
+    // but that might be shadowed by an abstract getter from the class or a
+    // mixin.
+    ClassEntity? cls = enumClass;
+    MemberEntity? foundMember;
+    while (cls != null) {
+      final member = _closedWorld.elementEnvironment
+          .lookupClassMember(cls, const PublicName('index'));
+      if (member == null) break; // should never happen.
+      foundMember = member;
+      if (member is FieldEntity) return member;
+      if (!member.isAbstract) break;
+      cls = _closedWorld.elementEnvironment.getSuperClass(cls);
+    }
+    throw StateError('$enumClass should have index field, found $foundMember');
   }
 
   IntConstantValue _indexValueOfEnumConstant(

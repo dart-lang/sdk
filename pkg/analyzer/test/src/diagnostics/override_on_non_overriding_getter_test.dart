@@ -22,7 +22,7 @@ class A {
   int get foo => 0;
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 32, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 32, 3),
     ]);
   }
 
@@ -60,7 +60,7 @@ enum E {
   int get foo => 0;
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 36, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 36, 3),
     ]);
   }
 
@@ -99,7 +99,7 @@ extension E on int {
   int get foo => 1;
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 43, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 43, 3),
     ]);
   }
 
@@ -110,7 +110,7 @@ mixin M {
   int get foo => 0;
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 32, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 32, 3),
     ]);
   }
 }

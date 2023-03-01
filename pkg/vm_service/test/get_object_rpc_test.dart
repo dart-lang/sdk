@@ -20,7 +20,7 @@ abstract base mixin class _DummyAbstractBaseClass {
   void dummyFunction(int a, [bool b = false]);
 }
 
-class _DummyClass extends _DummyAbstractBaseClass {
+base class _DummyClass extends _DummyAbstractBaseClass {
   // ignore: unused_field
   static var dummyVar = 11;
   final List<String> dummyList = List<String>.filled(20, '');
@@ -34,7 +34,7 @@ class _DummyClass extends _DummyAbstractBaseClass {
   static List foo() => List<String>.filled(20, '');
 }
 
-class _DummyGenericSubClass<T> extends _DummyClass {}
+base class _DummyGenericSubClass<T> extends _DummyClass {}
 
 final class _DummyFinalClass extends _DummyClass {}
 
@@ -879,7 +879,7 @@ var tests = <IsolateTest>[
     expect(result.isConst, false);
     expect(result.isSealed, false);
     expect(result.isMixinClass, false);
-    expect(result.isBaseClass, false);
+    expect(result.isBaseClass, true);
     expect(result.isInterfaceClass, false);
     expect(result.isFinal, false);
     expect(result.typeParameters, isNull);
@@ -917,7 +917,7 @@ var tests = <IsolateTest>[
     expect(result.isConst, false);
     expect(result.isSealed, false);
     expect(result.isMixinClass, false);
-    expect(result.isBaseClass, false);
+    expect(result.isBaseClass, true);
     expect(result.isInterfaceClass, false);
     expect(result.isFinal, false);
     expect(result.typeParameters!.length, 1);

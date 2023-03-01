@@ -4,14 +4,14 @@
 
 import 'main_lib.dart';
 
-class ImplementsBaseClass implements A {} /* Error */
+base class ImplementsBaseClass implements A {} /* Error */
 
-class ImplementsBaseMixin implements M {} /* Error */
+base class ImplementsBaseMixin implements M {} /* Error */
 
 enum EnumImplementsBaseMixin implements M { x } /* Error */
 
-mixin MixinOnA on A {} /* Ok */
+base mixin MixinOnA on A {} /* Ok */
 
-mixin MixinOnM on M {} /* Ok */
+base mixin MixinOnM on M {} /* Ok */
 
-mixin MixinOnAM on A, M {} /* Ok */
+base mixin MixinOnAM on A, M {} /* Ok */

@@ -394,7 +394,7 @@ void FlowGraphSerializer::WriteTrait<const MoveSchedule*>::Write(
   for (intptr_t i = 0; i < len; ++i) {
     const auto& op = (*schedule)[i];
     s->Write<uint8_t>(static_cast<uint8_t>(op.kind));
-    s->Write<const MoveOperands*>(&op.operands);
+    op.operands.Write(s);
   }
 }
 
@@ -406,7 +406,7 @@ const MoveSchedule* FlowGraphDeserializer::ReadTrait<const MoveSchedule*>::Read(
   for (intptr_t i = 0; i < len; ++i) {
     schedule[i].kind =
         static_cast<ParallelMoveResolver::OpKind>(d->Read<uint8_t>());
-    schedule[i].operands = d->Read<MoveOperands>();
+    schedule[i].operands = MoveOperands(d);
   }
   return &schedule;
 }

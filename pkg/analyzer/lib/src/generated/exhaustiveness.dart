@@ -313,13 +313,7 @@ class PatternConverter {
     } else if (pattern is ObjectPattern) {
       Map<String, Space> fields = {};
       for (PatternField field in pattern.fields) {
-        PatternFieldName? fieldName = field.name;
-        String? name;
-        if (fieldName?.name != null) {
-          name = fieldName!.name!.lexeme;
-        } else {
-          name = field.element?.name;
-        }
+        final name = field.effectiveName;
         if (name == null) {
           // TODO(johnniwinther): How do we handle error cases?
           continue;
@@ -360,11 +354,7 @@ class PatternConverter {
           name = '\$${index++}';
           positional.add(cache.typeSystem.typeProvider.dynamicType);
         } else {
-          if (fieldName.name != null) {
-            name = fieldName.name!.lexeme;
-          } else {
-            name = field.pattern.variablePattern?.name.lexeme;
-          }
+          name = field.effectiveName;
           if (name != null) {
             named[name] = cache.typeSystem.typeProvider.dynamicType;
           } else {

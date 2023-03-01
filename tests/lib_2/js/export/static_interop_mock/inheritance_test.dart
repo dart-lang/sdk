@@ -4,6 +4,10 @@
 //
 // @dart=2.19
 
+// TODO(51557): Decide if the mixins being applied in this test should be
+// "mixin", "mixin class" or the test should be left at 2.19.
+// @dart=2.19
+
 // Test that @staticInterop extension methods are collected from all extensions,
 // including inheritance.
 

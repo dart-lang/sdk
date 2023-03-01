@@ -1848,6 +1848,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token? macroKeyword;
 
   /// The 'inline' keyword, or `null` if the keyword was absent.
+  @override
   final Token? inlineKeyword;
 
   /// The 'sealed' keyword, or `null` if the keyword was absent.
@@ -10454,6 +10455,16 @@ class PatternFieldImpl extends AstNodeImpl implements PatternField {
 
   @override
   Token get beginToken => name?.beginToken ?? pattern.beginToken;
+
+  @override
+  String? get effectiveName {
+    final nameNode = name;
+    if (nameNode != null) {
+      final nameToken = nameNode.name ?? pattern.variablePattern?.name;
+      return nameToken?.lexeme;
+    }
+    return null;
+  }
 
   @override
   Token get endToken => pattern.endToken;

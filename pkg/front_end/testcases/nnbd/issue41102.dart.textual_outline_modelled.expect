@@ -13,8 +13,7 @@ final s3 = new List<int>.filled(2, null);
 final s4 = () {
   var e = 0;
   switch (e) {
-    case 0:
-      print('fallthrough');
+    case 0: print('fallthrough');
     case 1:
     case '':
   }

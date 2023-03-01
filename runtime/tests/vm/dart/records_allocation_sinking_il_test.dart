@@ -12,7 +12,9 @@ import 'package:vm/testing/il_matchers.dart';
 (int, bool) createRecord1(int x, bool y) => (x, y);
 
 @pragma('vm:prefer-inline')
-({String foo, bool bar, int baz}) createRecord2(String foo, bool bar, int baz) => (foo: foo, bar: bar, baz: baz);
+({String foo, bool bar, int baz}) createRecord2(
+        String foo, bool bar, int baz) =>
+    (foo: foo, bar: bar, baz: baz);
 
 @pragma('vm:never-inline')
 @pragma('vm:testing:print-flow-graph')
@@ -52,5 +54,6 @@ void matchIL$test(FlowGraph graph) {
 
 void main(List<String> args) {
   // Make sure all parameters are non-constant.
-  test(args.length + 5, int.parse('3') == 3, 'foo' + 3.toString(), int.parse('3') == 4, args.length + 7);
+  test(args.length + 5, int.parse('3') == 3, 'foo' + 3.toString(),
+      int.parse('3') == 4, args.length + 7);
 }
