@@ -9606,11 +9606,63 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  DartType dispatchPatternSchema(TreeNode node) {
-    // The front end's representation of a switch cases currently doesn't have
-    // any support for patterns; each case is represented as an expression.  So
-    // analyze it as a constant pattern.
-    return analyzeConstantPatternSchema();
+  DartType dispatchPatternSchema(Node node) {
+    if (node is AndPattern) {
+      return analyzeLogicalAndPatternSchema(node.left, node.right);
+    } else if (node is AssignedVariablePattern) {
+      return analyzeAssignedVariablePatternSchema(node.variable);
+    } else if (node is CastPattern) {
+      return analyzeCastPatternSchema();
+    } else if (node is ConstantPattern) {
+      return analyzeConstantPatternSchema();
+    } else if (node is ListPattern) {
+      return analyzeListPatternSchema(
+          elementType: node.typeArgument, elements: node.patterns);
+    } else if (node is MapPattern) {
+      return analyzeMapPatternSchema(
+          typeArguments: node.keyType != null && node.valueType != null
+              ? new MapPatternTypeArguments<DartType>(
+                  keyType: node.keyType!, valueType: node.valueType!)
+              : null,
+          elements: node.entries);
+    } else if (node is NamedPattern) {
+      return dispatchPatternSchema(node.pattern);
+    } else if (node is NullAssertPattern) {
+      return analyzeNullCheckOrAssertPatternSchema(node.pattern,
+          isAssert: true);
+    } else if (node is NullCheckPattern) {
+      return analyzeNullCheckOrAssertPatternSchema(node.pattern,
+          isAssert: false);
+    } else if (node is ObjectPattern) {
+      return analyzeObjectPatternSchema(node.type);
+    } else if (node is OrPattern) {
+      return analyzeLogicalOrPatternSchema(node.left, node.right);
+    } else if (node is RecordPattern) {
+      return analyzeRecordPatternSchema(
+          fields: <RecordPatternField<TreeNode, Pattern>>[
+            for (Pattern element in node.patterns)
+              if (element is NamedPattern)
+                new RecordPatternField<TreeNode, Pattern>(
+                    node: element, name: element.name, pattern: element.pattern)
+              else
+                new RecordPatternField<TreeNode, Pattern>(
+                    node: element, name: null, pattern: element)
+          ]);
+    } else if (node is RelationalPattern) {
+      return analyzeRelationalPatternSchema();
+    } else if (node is RestPattern) {
+      // This pattern can't appear on it's own.
+      return const InvalidType();
+    } else if (node is VariablePattern) {
+      return analyzeDeclaredVariablePatternSchema(node.type);
+    } else if (node is WildcardPattern) {
+      return analyzeDeclaredVariablePatternSchema(node.type);
+    } else if (node is InvalidPattern) {
+      return const InvalidType();
+    } else {
+      return problems.unhandled("${node.runtimeType}", "dispatchPatternSchema",
+          node is TreeNode ? node.fileOffset : TreeNode.noOffset, helper.uri);
+    }
   }
 
   @override

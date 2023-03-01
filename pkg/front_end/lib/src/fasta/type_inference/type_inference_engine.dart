@@ -517,7 +517,8 @@ class OperationsCfe
 
   @override
   DartType glb(DartType type1, DartType type2) {
-    throw new UnimplementedError('TODO(paulberry)');
+    return typeEnvironment.getStandardLowerBound(type1, type2,
+        isNonNullableByDefault: true);
   }
 
   @override
@@ -546,7 +547,7 @@ class OperationsCfe
 
   @override
   DartType makeNullable(DartType type) {
-    throw new UnimplementedError('TODO(paulberry)');
+    return type.withDeclaredNullability(Nullability.nullable);
   }
 
   @override
@@ -600,8 +601,18 @@ class OperationsCfe
 
   @override
   DartType? matchIterableType(DartType type) {
-    // TODO(scheglov): implement matchIterableType
-    throw new UnimplementedError('TODO(scheglov)');
+    if (type is! InterfaceType) {
+      return null;
+    } else {
+      InterfaceType? interfaceType = typeEnvironment.getTypeAsInstanceOf(type,
+          typeEnvironment.coreTypes.iterableClass, typeEnvironment.coreTypes,
+          isNonNullableByDefault: isNonNullableByDefault);
+      if (interfaceType == null) {
+        return null;
+      } else {
+        return interfaceType.typeArguments.single;
+      }
+    }
   }
 }
 
