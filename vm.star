@@ -116,6 +116,13 @@ _nightly_builder(
     category = "vm|jit|rv",
     channels = ["try"],
 )
+_extra_builder(
+    "vm-linux-release-arm64",
+    category = "vm|jit|a6",
+    channels = [],
+    execution_timeout = 4 * time.hour,
+    properties = {"shard_timeout": (120 * time.minute) // time.second},
+)
 _nightly_builder(
     "vm-kernel-nnbd-mac-debug-arm64",
     category = "vm|jit|m1d",
@@ -202,6 +209,12 @@ _nightly_builder(
     category = "vm|aot|rv",
     channels = ["try"],
     properties = [slow_shards],
+)
+_nightly_builder(
+    "vm-aot-linux-release-arm64",
+    category = "vm|aot|a6",
+    channels = [],
+    properties = slow_shards,
 )
 _extra_builder(
     "vm-kernel-precomp-nnbd-mac-release-arm64",
@@ -409,13 +422,6 @@ _nightly_builder(
     dimensions = windows,
     properties = [slow_shards],
 )
-_extra_builder(
-    "cross-vm-linux-release-arm64",
-    category = "vm|legacy|jit|cra",
-    channels = [],
-    execution_timeout = 4 * time.hour,
-    properties = {"shard_timeout": (120 * time.minute) // time.second},
-)
 
 # vm|legacy|aot
 _extra_builder(
@@ -433,12 +439,6 @@ _extra_builder(
 _extra_builder(
     "vm-kernel-precomp-obfuscate-linux-release-x64",
     category = "vm|legacy|aot|o",
-)
-_nightly_builder(
-    "cross-vm-precomp-linux-release-arm64",
-    category = "vm|legacy|aot|cra",
-    channels = [],
-    properties = slow_shards,
 )
 _nightly_builder(
     "vm-kernel-precomp-dwarf-linux-product-x64",
