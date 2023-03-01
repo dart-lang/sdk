@@ -27,7 +27,7 @@ jobs:
       - name: Generate docs
         run: dart run tool/doc.dart --create-dirs --no-markdown --out lints --token ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy docs
-        uses: peaceiris/actions-gh-pages@de7ea6f8efb354206b205ef54722213d99067935
+        uses: peaceiris/actions-gh-pages@bd8c6b06eba6b3d25d72b7a1767993c0aeee42e7
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
