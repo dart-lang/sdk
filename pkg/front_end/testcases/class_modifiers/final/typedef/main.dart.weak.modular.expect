@@ -2,21 +2,21 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:7:40: Error: The class 'A' can't be extended outside of its library because it's a final class.
-// class ExtendsFinalClassTypedef extends ATypeDef {}
-//                                        ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:9:41: Error: The class 'A' can't be extended outside of its library because it's a final class.
-// class ExtendsFinalClassTypedef2 extends ATypeDef2 {}
-//                                         ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:11:46: Error: The class 'A' can't be implemented outside of its library because it's a final class.
-// class ImplementsFinalClassTypedef implements ATypeDef {}
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:7:46: Error: The class 'A' can't be extended outside of its library because it's a final class.
+// final class ExtendsFinalClassTypedef extends ATypeDef {}
 //                                              ^
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:13:47: Error: The class 'A' can't be implemented outside of its library because it's a final class.
-// class ImplementsFinalClassTypedef2 implements ATypeDef2 {}
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:9:47: Error: The class 'A' can't be extended outside of its library because it's a final class.
+// final class ExtendsFinalClassTypedef2 extends ATypeDef2 {}
 //                                               ^
+//
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:11:52: Error: The class 'A' can't be implemented outside of its library because it's a final class.
+// final class ImplementsFinalClassTypedef implements ATypeDef {}
+//                                                    ^
+//
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:13:53: Error: The class 'A' can't be implemented outside of its library because it's a final class.
+// final class ImplementsFinalClassTypedef2 implements ATypeDef2 {}
+//                                                     ^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:15:49: Error: The class 'A' can't be implemented outside of its library because it's a final class.
 // enum EnumImplementsFinalClassTypedef implements ATypeDef { x }
@@ -26,13 +26,13 @@ library /*isNonNullableByDefault*/;
 // enum EnumImplementsFinalClassTypedef2 implements ATypeDef2 { x }
 //                                                  ^
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:19:46: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
-// class ImplementsFinalMixinTypeDef implements MTypeDef {}
-//                                              ^
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:19:52: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
+// final class ImplementsFinalMixinTypeDef implements MTypeDef {}
+//                                                    ^
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:21:47: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
-// class ImplementsFinalMixinTypeDef2 implements MTypeDef2 {}
-//                                               ^
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:21:53: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
+// final class ImplementsFinalMixinTypeDef2 implements MTypeDef2 {}
+//                                                     ^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:23:49: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
 // enum EnumImplementsFinalMixinTypeDef implements MTypeDef { x }
@@ -42,13 +42,13 @@ library /*isNonNullableByDefault*/;
 // enum EnumImplementsFinalMixinTypeDef2 implements MTypeDef2 { x }
 //                                                  ^
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:27:35: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
-// class MixInFinalMixinTypeDef with MTypeDef {}
-//                                   ^
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:27:41: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
+// final class MixInFinalMixinTypeDef with MTypeDef {}
+//                                         ^
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:29:36: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
-// class MixInFinalMixinTypeDef2 with MTypeDef2 {}
-//                                    ^
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:29:42: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
+// final class MixInFinalMixinTypeDef2 with MTypeDef2 {}
+//                                          ^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:31:38: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
 // enum EnumMixInFinalMixinTypeDef with MTypeDef { x }
@@ -58,29 +58,29 @@ library /*isNonNullableByDefault*/;
 // enum EnumMixInFinalMixinTypeDef2 with MTypeDef2 { x }
 //                                       ^
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:39:47: Error: The class 'A' can't be extended outside of its library because it's a final class.
-// class ExtendsFinalClassTypedefOutside extends AOutsideTypedef {}
-//                                               ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:41:53: Error: The class 'A' can't be implemented outside of its library because it's a final class.
-// class ImplementsFinalClassTypedefOutside implements AOutsideTypedef {}
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:39:53: Error: The class 'A' can't be extended outside of its library because it's a final class.
+// final class ExtendsFinalClassTypedefOutside extends AOutsideTypedef {}
 //                                                     ^
+//
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:41:59: Error: The class 'A' can't be implemented outside of its library because it's a final class.
+// final class ImplementsFinalClassTypedefOutside implements AOutsideTypedef {}
+//                                                           ^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:43:56: Error: The class 'A' can't be implemented outside of its library because it's a final class.
 // enum EnumImplementsFinalClassTypedefOutside implements AOutsideTypedef { x }
 //                                                        ^
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:45:53: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
-// class ImplementsFinalMixinTypeDefOutside implements MOutsideTypedef {}
-//                                                     ^
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:45:59: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
+// final class ImplementsFinalMixinTypeDefOutside implements MOutsideTypedef {}
+//                                                           ^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:47:56: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
 // enum EnumImplementsFinalMixinTypeDefOutside implements MOutsideTypedef { x }
 //                                                        ^
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:49:42: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
-// class MixInFinalMixinTypeDefOutside with MOutsideTypedef {}
-//                                          ^
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:49:48: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
+// final class MixInFinalMixinTypeDefOutside with MOutsideTypedef {}
+//                                                ^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:51:45: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
 // enum EnumMixInFinalMixinTypeDefOutside with MOutsideTypedef { x }
@@ -94,22 +94,22 @@ import "org-dartlang-testcase:///main_lib.dart";
 
 typedef AOutsideTypedef = mai::A;
 typedef MOutsideTypedef = mai::M;
-class ExtendsFinalClassTypedef extends mai::A {
+final class ExtendsFinalClassTypedef extends mai::A {
   synthetic constructor •() → self::ExtendsFinalClassTypedef
     : super mai::A::•()
     ;
 }
-class ExtendsFinalClassTypedef2 extends mai::A {
+final class ExtendsFinalClassTypedef2 extends mai::A {
   synthetic constructor •() → self::ExtendsFinalClassTypedef2
     : super mai::A::•()
     ;
 }
-class ImplementsFinalClassTypedef extends core::Object implements mai::A {
+final class ImplementsFinalClassTypedef extends core::Object implements mai::A {
   synthetic constructor •() → self::ImplementsFinalClassTypedef
     : super core::Object::•()
     ;
 }
-class ImplementsFinalClassTypedef2 extends core::Object implements mai::A {
+final class ImplementsFinalClassTypedef2 extends core::Object implements mai::A {
   synthetic constructor •() → self::ImplementsFinalClassTypedef2
     : super core::Object::•()
     ;
@@ -132,12 +132,12 @@ class EnumImplementsFinalClassTypedef2 extends core::_Enum implements mai::A /*i
   method _enumToString() → core::String
     return "EnumImplementsFinalClassTypedef2.${this.{core::_Enum::_name}{core::String}}";
 }
-class ImplementsFinalMixinTypeDef extends core::Object implements mai::M {
+final class ImplementsFinalMixinTypeDef extends core::Object implements mai::M {
   synthetic constructor •() → self::ImplementsFinalMixinTypeDef
     : super core::Object::•()
     ;
 }
-class ImplementsFinalMixinTypeDef2 extends core::Object implements mai::M {
+final class ImplementsFinalMixinTypeDef2 extends core::Object implements mai::M {
   synthetic constructor •() → self::ImplementsFinalMixinTypeDef2
     : super core::Object::•()
     ;
@@ -165,7 +165,7 @@ abstract final class _MixInFinalMixinTypeDef&Object&MTypeDef = core::Object with
     : super core::Object::•()
     ;
 }
-class MixInFinalMixinTypeDef extends self::_MixInFinalMixinTypeDef&Object&MTypeDef {
+final class MixInFinalMixinTypeDef extends self::_MixInFinalMixinTypeDef&Object&MTypeDef {
   synthetic constructor •() → self::MixInFinalMixinTypeDef
     : super self::_MixInFinalMixinTypeDef&Object&MTypeDef::•()
     ;
@@ -175,7 +175,7 @@ abstract final class _MixInFinalMixinTypeDef2&Object&MTypeDef2 = core::Object wi
     : super core::Object::•()
     ;
 }
-class MixInFinalMixinTypeDef2 extends self::_MixInFinalMixinTypeDef2&Object&MTypeDef2 {
+final class MixInFinalMixinTypeDef2 extends self::_MixInFinalMixinTypeDef2&Object&MTypeDef2 {
   synthetic constructor •() → self::MixInFinalMixinTypeDef2
     : super self::_MixInFinalMixinTypeDef2&Object&MTypeDef2::•()
     ;
@@ -208,12 +208,12 @@ class EnumMixInFinalMixinTypeDef2 extends self::_EnumMixInFinalMixinTypeDef2&_En
   method _enumToString() → core::String
     return "EnumMixInFinalMixinTypeDef2.${this.{core::_Enum::_name}{core::String}}";
 }
-class ExtendsFinalClassTypedefOutside extends mai::A {
+final class ExtendsFinalClassTypedefOutside extends mai::A {
   synthetic constructor •() → self::ExtendsFinalClassTypedefOutside
     : super mai::A::•()
     ;
 }
-class ImplementsFinalClassTypedefOutside extends core::Object implements mai::A {
+final class ImplementsFinalClassTypedefOutside extends core::Object implements mai::A {
   synthetic constructor •() → self::ImplementsFinalClassTypedefOutside
     : super core::Object::•()
     ;
@@ -227,7 +227,7 @@ class EnumImplementsFinalClassTypedefOutside extends core::_Enum implements mai:
   method _enumToString() → core::String
     return "EnumImplementsFinalClassTypedefOutside.${this.{core::_Enum::_name}{core::String}}";
 }
-class ImplementsFinalMixinTypeDefOutside extends core::Object implements mai::M {
+final class ImplementsFinalMixinTypeDefOutside extends core::Object implements mai::M {
   synthetic constructor •() → self::ImplementsFinalMixinTypeDefOutside
     : super core::Object::•()
     ;
@@ -246,7 +246,7 @@ abstract final class _MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef = cor
     : super core::Object::•()
     ;
 }
-class MixInFinalMixinTypeDefOutside extends self::_MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef {
+final class MixInFinalMixinTypeDefOutside extends self::_MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef {
   synthetic constructor •() → self::MixInFinalMixinTypeDefOutside
     : super self::_MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef::•()
     ;

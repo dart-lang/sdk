@@ -11668,6 +11668,41 @@ const MessageCode messageStrongWithWeakDillLibrary = const MessageCode(
         r"""Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2, String string)>
+    templateSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed =
+    const Template<Message Function(String name, String name2, String string)>(
+        problemMessageTemplate:
+            r"""The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is '#string'.""",
+        correctionMessageTemplate:
+            r"""Try adding 'base', 'final', or 'sealed' to the type.""",
+        withArguments:
+            _withArgumentsSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String string)>
+    codeSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed =
+    const Code<Message Function(String name, String name2, String string)>(
+        "SubtypeOfBaseOrFinalIsNotBaseFinalOrSealed",
+        analyzerCodes: <String>[
+      "SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed(
+    String name, String name2, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed,
+      problemMessage:
+          """The type '${name}' must be 'base', 'final' or 'sealed' because the supertype '${name2}' is '${string}'.""",
+      correctionMessage: """Try adding 'base', 'final', or 'sealed' to the type.""",
+      arguments: {'name': name, 'name2': name2, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
