@@ -51,9 +51,7 @@ Object dlopenGlobalPlatformSpecific(String name, {String? path}) {
     // TODO(https://dartbug.com/50105): enable dlopen global via package:ffi.
     return using((arena) {
       final dylibHandle = dlopen(
-          platformPath("ffi_test_functions")
-              .toNativeUtf8(allocator: arena)
-              .cast(),
+          platformPath(name).toNativeUtf8(allocator: arena).cast(),
           RTLD_LAZY | RTLD_GLOBAL);
       return dylibHandle;
     });
