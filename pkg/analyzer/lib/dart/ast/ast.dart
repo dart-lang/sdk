@@ -4277,8 +4277,13 @@ abstract class PatternAssignment implements Expression {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class PatternField implements AstNode {
-  /// The element referenced explicitly by [name], or implicitly by the
-  /// variable pattern inside [pattern]. Is `null` if not resolved yet,
+  /// The name specified explicitly by [name], or implied by the variable
+  /// pattern inside [pattern]. Always `null` if [name] is `null`. Can be `null`
+  /// if [name] does not have the explicit name and [pattern] is not a variable
+  /// pattern.
+  String? get effectiveName;
+
+  /// The element referenced by [effectiveName]. Is `null` if not resolved yet,
   /// not `null` inside valid [ObjectPattern]s, always `null` inside
   /// [RecordPattern]s.
   Element? get element;
