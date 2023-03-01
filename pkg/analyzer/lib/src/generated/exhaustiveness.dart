@@ -304,15 +304,12 @@ class PatternConverter {
     required bool nonNull,
   }) {
     if (pattern is DeclaredVariablePatternImpl) {
-      DartType type = pattern.declaredElement!.type;
-      StaticType staticType = cache.getStaticType(type);
-      if (nonNull) {
-        staticType = staticType.nonNullable;
-      }
+      final type = pattern.declaredElement!.type;
+      final staticType = _asStaticType(type, nonNull: nonNull);
       return Space(staticType);
     } else if (pattern is ObjectPattern) {
-      Map<String, Space> fields = {};
-      for (PatternField field in pattern.fields) {
+      final fields = <String, Space>{};
+      for (final field in pattern.fields) {
         final name = field.effectiveName;
         if (name == null) {
           // TODO(johnniwinther): How do we handle error cases?
@@ -321,10 +318,7 @@ class PatternConverter {
         fields[name] = convertPattern(field.pattern, nonNull: false);
       }
       final type = pattern.type.typeOrThrow;
-      StaticType staticType = cache.getStaticType(type);
-      if (nonNull) {
-        staticType = staticType.nonNullable;
-      }
+      final staticType = _asStaticType(type, nonNull: nonNull);
       return Space(staticType, fields);
     } else if (pattern is WildcardPattern) {
       final typeNode = pattern.type;
@@ -336,21 +330,18 @@ class PatternConverter {
         }
       } else {
         final type = typeNode.typeOrThrow;
-        StaticType staticType = cache.getStaticType(type);
-        if (nonNull) {
-          staticType = staticType.nonNullable;
-        }
+        final staticType = _asStaticType(type, nonNull: nonNull);
         return Space(staticType);
       }
-    } else if (pattern is RecordPattern) {
-      int index = 1;
-      Map<String, Space> fields = {};
-      List<DartType> positional = [];
-      Map<String, DartType> named = {};
-      for (PatternField field in pattern.fields) {
-        PatternFieldName? fieldName = (field as PatternFieldImpl).name;
+    } else if (pattern is RecordPatternImpl) {
+      var index = 1;
+      final positional = <DartType>[];
+      final named = <String, DartType>{};
+      final fields = <String, Space>{};
+      for (final field in pattern.fields) {
+        final nameNode = field.name;
         String? name;
-        if (fieldName == null) {
+        if (nameNode == null) {
           name = '\$${index++}';
           positional.add(cache.typeSystem.typeProvider.dynamicType);
         } else {
@@ -364,10 +355,11 @@ class PatternConverter {
         }
         fields[name] = convertPattern(field.pattern, nonNull: false);
       }
-      RecordType recordType = RecordType(
-          positional: positional,
-          named: named,
-          nullabilitySuffix: NullabilitySuffix.none);
+      final recordType = RecordType(
+        positional: positional,
+        named: named,
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
       return Space(cache.getStaticType(recordType), fields);
     } else if (pattern is LogicalOrPattern) {
       return Space.union([
@@ -395,7 +387,7 @@ class PatternConverter {
       //  runtime to check for lengths < 0.
       return Space(cache.getUnknownStaticType());
     } else if (pattern is ConstantPattern) {
-      DartObjectImpl? value = constantPatternValues[pattern];
+      final value = constantPatternValues[pattern];
       if (value != null) {
         return _convertConstantValue(value);
       }
@@ -405,31 +397,39 @@ class PatternConverter {
     return Space(cache.getUnknownStaticType());
   }
 
-  Space _convertConstantValue(DartObjectImpl constantValue) {
-    InstanceState state = constantValue.state;
-    if (constantValue.isNull) {
+  StaticType _asStaticType(DartType type, {required bool nonNull}) {
+    final staticType = cache.getStaticType(type);
+    return nonNull ? staticType.nonNullable : staticType;
+  }
+
+  Space _convertConstantValue(DartObjectImpl value) {
+    final state = value.state;
+    if (value.isNull) {
       return Space.nullSpace;
-    } else if (state is BoolState && state.value != null) {
-      return Space(cache.getBoolValueStaticType(state.value!));
-    } else if (state is RecordState) {
-      Map<String, Space> fields = {};
-      for (int index = 0; index < state.positionalFields.length; index++) {
-        fields['\$${index + 1}'] =
-            _convertConstantValue(state.positionalFields[index]);
+    } else if (state is BoolState) {
+      final value = state.value;
+      if (value != null) {
+        return Space(cache.getBoolValueStaticType(value));
       }
-      for (MapEntry<String, DartObjectImpl> entry
-          in state.namedFields.entries) {
+    } else if (state is RecordState) {
+      final fields = <String, Space>{};
+      for (var index = 0; index < state.positionalFields.length; index++) {
+        final value = state.positionalFields[index];
+        fields['\$${1 + index}'] = _convertConstantValue(value);
+      }
+      for (final entry in state.namedFields.entries) {
         fields[entry.key] = _convertConstantValue(entry.value);
       }
-      return Space(cache.getStaticType(constantValue.type), fields);
+      return Space(cache.getStaticType(value.type), fields);
     }
-    DartType type = constantValue.type;
-    if (type is InterfaceType && type.element.kind == ElementKind.ENUM) {
-      return Space(cache.getEnumElementStaticType(
-          type.element as EnumElement, constantValue));
+    final type = value.type;
+    if (type is InterfaceType) {
+      final element = type.element;
+      if (element is EnumElement) {
+        return Space(cache.getEnumElementStaticType(element, value));
+      }
     }
-    return Space(cache.getUniqueStaticType(
-        type, constantValue, constantValue.toString()));
+    return Space(cache.getUniqueStaticType(type, value, value.toString()));
   }
 }
 
