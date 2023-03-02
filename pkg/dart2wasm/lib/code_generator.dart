@@ -2670,10 +2670,22 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitStringConcatenation(
       StringConcatenation node, w.ValueType expectedType) {
-    if (node.expressions.every((expr) => expr is StringLiteral)) {
+    bool isConstantString(Expression expr) =>
+        expr is StringLiteral ||
+        (expr is ConstantExpression && expr.constant is StringConstant);
+
+    String extractConstantString(Expression expr) {
+      if (expr is StringLiteral) {
+        return expr.value;
+      } else {
+        return ((expr as ConstantExpression).constant as StringConstant).value;
+      }
+    }
+
+    if (node.expressions.every(isConstantString)) {
       StringBuffer result = StringBuffer();
       for (final expr in node.expressions) {
-        result.write((expr as StringLiteral).value);
+        result.write(extractConstantString(expr));
       }
       final expr = StringLiteral(result.toString());
       return visitStringLiteral(expr, expectedType);
