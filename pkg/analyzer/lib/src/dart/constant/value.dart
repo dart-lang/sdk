@@ -429,7 +429,10 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl equalEqual(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    FeatureSet featureSet,
+    DartObjectImpl rightOperand,
+  ) {
     if (isNull || rightOperand.isNull) {
       return DartObjectImpl(
         typeSystem,
@@ -439,12 +442,22 @@ class DartObjectImpl implements DartObject {
             : BoolState.FALSE_STATE,
       );
     }
-    if (isBoolNumStringOrNull) {
-      return DartObjectImpl(
-        typeSystem,
-        typeSystem.typeProvider.boolType,
-        state.equalEqual(typeSystem, rightOperand.state),
-      );
+    if (featureSet.isEnabled(Feature.patterns)) {
+      if (state is DoubleState || hasPrimitiveEquality(featureSet)) {
+        return DartObjectImpl(
+          typeSystem,
+          typeSystem.typeProvider.boolType,
+          state.equalEqual(typeSystem, rightOperand.state),
+        );
+      }
+    } else {
+      if (isBoolNumStringOrNull) {
+        return DartObjectImpl(
+          typeSystem,
+          typeSystem.typeProvider.boolType,
+          state.equalEqual(typeSystem, rightOperand.state),
+        );
+      }
     }
     throw EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
@@ -598,7 +611,10 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lazyEqualEqual(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    FeatureSet featureSet,
+    DartObjectImpl rightOperand,
+  ) {
     if (isNull || rightOperand.isNull) {
       return DartObjectImpl(
         typeSystem,
@@ -608,12 +624,22 @@ class DartObjectImpl implements DartObject {
             : BoolState.FALSE_STATE,
       );
     }
-    if (isBoolNumStringOrNull) {
-      return DartObjectImpl(
-        typeSystem,
-        typeSystem.typeProvider.boolType,
-        state.lazyEqualEqual(typeSystem, rightOperand.state),
-      );
+    if (featureSet.isEnabled(Feature.patterns)) {
+      if (state is DoubleState || hasPrimitiveEquality(featureSet)) {
+        return DartObjectImpl(
+          typeSystem,
+          typeSystem.typeProvider.boolType,
+          state.equalEqual(typeSystem, rightOperand.state),
+        );
+      }
+    } else {
+      if (isBoolNumStringOrNull) {
+        return DartObjectImpl(
+          typeSystem,
+          typeSystem.typeProvider.boolType,
+          state.equalEqual(typeSystem, rightOperand.state),
+        );
+      }
     }
     throw EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
@@ -739,8 +765,12 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl notEqual(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
-    return equalEqual(typeSystem, rightOperand).logicalNot(typeSystem);
+    TypeSystemImpl typeSystem,
+    FeatureSet featureSet,
+    DartObjectImpl rightOperand,
+  ) {
+    return equalEqual(typeSystem, featureSet, rightOperand)
+        .logicalNot(typeSystem);
   }
 
   /// Return the result of converting this object to a 'String'.

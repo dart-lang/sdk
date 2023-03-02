@@ -177,8 +177,6 @@ method<T>(o) {
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
     case const Object() == 2: // Error
-    //         ^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL_NUM_STRING
     //                ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.

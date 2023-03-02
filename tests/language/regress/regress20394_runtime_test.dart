@@ -3,7 +3,7 @@
 
 import 'regress20394_lib.dart';
 
-class M {}
+mixin M {}
 
 class C extends Super with M {
 

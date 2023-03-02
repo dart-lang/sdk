@@ -6,6 +6,6 @@ library mixin_prefix_lib;
 
 import "dart:convert";
 
-class MixinClass {
+mixin MixinClass {
   String bar() => json.encode({'a': 1});
 }

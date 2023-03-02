@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(51557): Decide if the mixins being applied in this test should be
+// "mixin", "mixin class" or the test should be left at 2.19.
+// @dart=2.19
+
 // This library declares two null-safe classes `B` and `Bq` with members
 // using non-nullable types respectively nullable types. Subtypes having
 // either `B` or `Bq` as a superinterface are declared in the library

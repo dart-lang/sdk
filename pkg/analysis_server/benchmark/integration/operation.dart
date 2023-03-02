@@ -103,7 +103,7 @@ class ResponseOperation extends Operation {
   final CommonInputConverter converter;
   final Map<String, Object?> requestJson;
   final Map<String, Object?> responseJson;
-  final Completer completer = Completer();
+  final Completer<void> completer = Completer();
   late Driver driver;
 
   ResponseOperation(this.converter, this.requestJson, this.responseJson) {

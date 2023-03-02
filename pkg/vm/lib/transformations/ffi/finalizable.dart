@@ -149,11 +149,38 @@ mixin FinalizableTransformer on Transformer {
 
   @override
   TreeNode visitForInStatement(ForInStatement node) {
-    return inScope(
-      node,
-      () => super.visitForInStatement(node),
-      appendFencesToStatement: node.body,
-    );
+    // This does not use [inScope], because it would visit [iterable] with
+    // [variable] in scope.
+
+    // First, transform the iterable, which does not have variable in scope.
+    // ignore: unnecessary_null_comparison
+    if (node.iterable != null) {
+      node.iterable = transform(node.iterable);
+      node.iterable.parent = node;
+    }
+
+    final scope = _Scope(node, parent: _currentScope);
+    _currentScope = scope;
+
+    // Then, transform the variable, adding it to the new scope.
+    // ignore: unnecessary_null_comparison
+    if (node.variable != null) {
+      assert(node.variable.initializer == null);
+      node.variable = transform(node.variable);
+      node.variable.parent = node;
+    }
+
+    // Then transform the body, with the new variable in scope.
+    // ignore: unnecessary_null_comparison
+    if (node.body != null) {
+      node.body = transform(node.body);
+      node.body.parent = node;
+    }
+
+    _appendReachabilityFences(node.body, scope.toFenceThisScope);
+
+    _currentScope = _currentScope!.parent;
+    return node;
   }
 
   @override
@@ -624,6 +651,22 @@ class _Scope {
         this.allDeclarationsIsEmpty =
             (parent?.allDeclarationsIsEmpty ?? true) &&
                 !(declaresThis ?? false);
+
+  @override
+  String toString() => toStringIndented();
+
+  toStringIndented({int indentation = 0}) {
+    final nonIndented = '''node: $node
+declarations:${_declarations.map((e) => '''
+  $e''').join()}
+declaresThis: $declaresThis
+labels:${_labels.map((e) => '''
+  $e''').join()}
+parent:
+${parent?.toStringIndented(indentation: indentation + 2)}
+''';
+    return nonIndented.replaceAll('\n', (' ' * indentation) + '\n');
+  }
 
   void addDeclaration(VariableDeclaration declaration) {
     _declarations.add(declaration);
