@@ -76,12 +76,9 @@ const header = '''
 //
 // > dart benchmarks/FfiCall/generate_benchmarks.dart
 
-import 'dart:ffi';
-
-import 'package:benchmark_harness/benchmark_harness.dart';
-import 'package:ffi/ffi.dart';
-
-import 'FfiCall.dart';
+// Using part of, so that the library uri is identical to the main file.
+// That way the FfiNativeResolver works for the main uri.
+part of 'FfiCall.dart';
 
 ''';
 
@@ -108,6 +105,10 @@ void generateBenchmarkInt(StringBuffer buffer, List<String> types) {
       final String functionNameC = 'Function$number$typeName';
       final String argument = IntVariation(type, number).argument;
       final String arguments = repeat(argument, number, ', ');
+      final String functionNameDart = 'function$number$typeName';
+      final String dartArguments =
+          List.generate(number, (i) => '$dartType a$i').join(', ');
+
       buffer.write('''
 class $name extends FfiBenchmarkBase {
   final $functionType f;
@@ -128,6 +129,27 @@ class $name extends FfiBenchmarkBase {
   }
 }
 ''');
+
+      for (bool isLeaf in [false, true]) {
+        final leaf = isLeaf ? 'Leaf' : '';
+        buffer.write('''
+@Native<$functionNativeType>(symbol: '$functionNameC', isLeaf: $isLeaf)
+external $dartType $functionNameDart$leaf($dartArguments);
+
+class ${name}Native$leaf extends FfiBenchmarkBase {
+  ${name}Native$leaf() : super('FfiCall.${name}Native', isLeaf: $isLeaf);
+
+  @override
+  void run() {
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += $functionNameDart$leaf($arguments);
+    }
+    expectEquals(x, $expected);
+  }
+}
+''');
+      }
     }
   }
 }
@@ -146,6 +168,9 @@ void generateBenchmarkDouble(StringBuffer buffer, List<String> types) {
       final String functionNameC = 'Function$number$typeName';
       final List<double> argVals = List.generate(number, (i) => 1.0 * (i + 1));
       final String arguments = argVals.join(', ');
+      final String functionNameDart = 'function$number$typeName';
+      final String dartArguments =
+          List.generate(number, (i) => '$dartType a$i').join(', ');
       buffer.write('''
 class $name extends FfiBenchmarkBase {
   final $functionType f;
@@ -167,6 +192,28 @@ class $name extends FfiBenchmarkBase {
   }
 }
 ''');
+
+      for (bool isLeaf in [false, true]) {
+        final leaf = isLeaf ? 'Leaf' : '';
+        buffer.write('''
+@Native<$functionNativeType>(symbol: '$functionNameC', isLeaf: $isLeaf)
+external $dartType $functionNameDart$leaf($dartArguments);
+
+class ${name}Native$leaf extends FfiBenchmarkBase {
+  ${name}Native$leaf() : super('FfiCall.${name}Native', isLeaf: $isLeaf);
+
+  @override
+  void run() {
+    double x = 0;
+    for (int i = 0; i < N; i++) {
+      x += $functionNameDart$leaf($arguments);
+    }
+    final double expected = $expected;
+    expectApprox(x, expected);
+  }
+}
+''');
+      }
     }
   }
 }
@@ -175,7 +222,8 @@ void generateBenchmarkPointer(StringBuffer buffer, List<String> types) {
   for (String type in types) {
     if (type != 'Pointer<Uint8>') throw Exception('Not implemented for $type.');
     final String typeName = toIdentifier(type);
-    final String dartType = toIdentifier(nativeToDartType[type]!);
+    final String dartType = nativeToDartType[type]!;
+    final String dartTypeName = toIdentifier(dartType);
     for (int number in generateFor[type]!) {
       final String name = '${typeName}x${'$number'.padLeft(2, '0')}';
       final List<String> pointerNames =
@@ -184,10 +232,13 @@ void generateBenchmarkPointer(StringBuffer buffer, List<String> types) {
           pointerNames.map((n) => '$type $n = nullptr;').join('\n');
       final String setup = List.generate(
           number - 1, (i) => 'p${i + 2} = p1.elementAt(${i + 1});').join();
-      final String functionType = 'Function$number$dartType';
+      final String functionType = 'Function$number$dartTypeName';
       final String functionNativeType = 'NativeFunction$number$typeName';
       final String functionNameC = 'Function$number$typeName';
       final String arguments = pointerNames.skip(1).join(', ');
+      final String functionNameDart = 'function$number$typeName';
+      final String dartArguments =
+          List.generate(number, (i) => '$dartType a$i').join(', ');
       buffer.write('''
 class $name extends FfiBenchmarkBase {
   final $functionType f;
@@ -221,6 +272,40 @@ class $name extends FfiBenchmarkBase {
   }
 }
 ''');
+
+      for (bool isLeaf in [false, true]) {
+        final leaf = isLeaf ? 'Leaf' : '';
+        buffer.write('''
+@Native<$functionNativeType>(symbol: '$functionNameC', isLeaf: $isLeaf)
+external $dartType $functionNameDart$leaf($dartArguments);
+
+class ${name}Native$leaf extends FfiBenchmarkBase {
+  ${name}Native$leaf() : super('FfiCall.${name}Native', isLeaf: $isLeaf);
+
+  $pointers
+
+  @override
+  void setup() {
+    p1 = calloc(N + 1);
+    $setup
+  }
+
+  @override
+  void teardown() {
+    calloc.free(p1);
+  }
+
+  @override
+  void run() {
+  $type x = p1;
+    for (int i = 0; i < N; i++) {
+      x = $functionNameDart$leaf(x, $arguments);
+    }
+    expectEquals(x.address, p1.address + N * sizeOf<Uint8>());
+  }
+}
+''');
+      }
     }
   }
 }
@@ -241,6 +326,9 @@ void generateBenchmarkHandle(StringBuffer buffer, List<String> types) {
       final String functionNameC = 'Function$number$typeName';
       final String arguments =
           List.generate(number - 1, (i) => 'm${i + 2}').join(', ');
+      final String functionNameDart = 'function$number$typeName';
+      final String dartArguments =
+          List.generate(number, (i) => '$dartType a$i').join(', ');
       buffer.write('''
 class $name extends FfiBenchmarkBase {
   final $functionType f;
@@ -256,6 +344,24 @@ class $name extends FfiBenchmarkBase {
     Object x = m1;
     for (int i = 0; i < N; i++) {
       x = f(x, $arguments);
+    }
+    expectIdentical(x, m1);
+  }
+}
+
+@Native<$functionNativeType>(symbol: '$functionNameC', isLeaf: false)
+external $dartType $functionNameDart($dartArguments);
+
+class ${name}Native extends FfiBenchmarkBase {
+  ${name}Native() : super('FfiCall.${name}Native', isLeaf: false);
+
+  @override
+  void run() {
+    final m1 = MyClass(123);
+    $setup
+    Object x = m1;
+    for (int i = 0; i < N; i++) {
+      x = $functionNameDart(x, $arguments);
     }
     expectIdentical(x, m1);
   }

@@ -9,9 +9,11 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:benchmark_harness/benchmark_harness.dart';
+import 'package:ffi/ffi.dart';
 
-import 'benchmark_generated.dart';
 import 'dlopen_helper.dart';
+
+part 'benchmark_generated.dart';
 
 // Number of benchmark iterations per function.
 const N = 1000;
@@ -81,14 +83,23 @@ class Int64Mintx01 extends FfiBenchmarkBase {
 //
 
 void main() {
+  // Force loading the dylib with RLTD_GLOBAL so that the
+  // Native benchmarks below can do process lookup.
+  dlopenGlobalPlatformSpecific('native_functions',
+      path: Platform.script.resolve('../native/out/').path);
+
   final benchmarks = [
     Uint8x01.new,
     () => Uint8x01(isLeaf: true),
+    Uint8x01Native.new,
+    Uint8x01NativeLeaf.new,
     Uint16x01.new,
     Uint32x01.new,
     Uint64x01.new,
     Int8x01.new,
     () => Int8x01(isLeaf: true),
+    Int8x01Native.new,
+    Int8x01NativeLeaf.new,
     Int16x01.new,
     Int32x01.new,
     Int32x02.new,
@@ -101,6 +112,8 @@ void main() {
     Int64x10.new,
     Int64x20.new,
     () => Int64x20(isLeaf: true),
+    Int64x20Native.new,
+    Int64x20NativeLeaf.new,
     Int64Mintx01.new,
     () => Int64Mintx01(isLeaf: true),
     Floatx01.new,
@@ -109,23 +122,30 @@ void main() {
     Floatx10.new,
     Floatx20.new,
     () => Floatx20(isLeaf: true),
+    Floatx20Native.new,
+    Floatx20NativeLeaf.new,
     Doublex01.new,
     Doublex02.new,
     Doublex04.new,
     Doublex10.new,
     Doublex20.new,
     () => Doublex20(isLeaf: true),
+    Doublex20Native.new,
+    Doublex20NativeLeaf.new,
     PointerUint8x01.new,
     PointerUint8x02.new,
     PointerUint8x04.new,
     PointerUint8x10.new,
     PointerUint8x20.new,
     () => PointerUint8x20(isLeaf: true),
+    PointerUint8x20Native.new,
+    PointerUint8x20NativeLeaf.new,
     Handlex01.new,
     Handlex02.new,
     Handlex04.new,
     Handlex10.new,
     Handlex20.new,
+    Handlex20Native.new,
   ];
   for (var benchmark in benchmarks) {
     benchmark().report();
