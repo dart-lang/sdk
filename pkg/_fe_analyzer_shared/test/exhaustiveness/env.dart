@@ -375,6 +375,17 @@ class _TypeOperations implements TypeOperations<_Type> {
     // TODO(johnniwinther): Support generic types in testing.
     return false;
   }
+
+  @override
+  _Type instantiateFuture(_Type type) {
+    throw new UnimplementedError('_TypeOperations.getFutureOrFutureType');
+  }
+
+  @override
+  _Type? getFutureOrTypeArgument(_Type type) {
+    // TODO(johnniwinther): Support future or types in testing.
+    return null;
+  }
 }
 
 class _EnumOperations

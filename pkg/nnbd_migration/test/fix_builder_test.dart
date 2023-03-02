@@ -443,7 +443,7 @@ class _C {
 }
 _f(_C c) => c['foo'] += 0;
 ''');
-    visitAssignmentTarget(findNode.index('c['), 'int', 'num');
+    visitAssignmentTarget(findNode.index('c['), 'int', 'num?');
   }
 
   Future<void>
@@ -455,7 +455,7 @@ class _C {
 }
 _f(_C/*?*/ c) => c['foo'] += 0;
 ''');
-    visitAssignmentTarget(findNode.index('c['), 'int', 'num',
+    visitAssignmentTarget(findNode.index('c['), 'int', 'num?',
         changes: {findNode.simple('c['): isNullCheck});
   }
 
@@ -468,7 +468,7 @@ class _C {
 }
 _f(_C c, String/*?*/ s) => c[s] += 0;
 ''');
-    visitAssignmentTarget(findNode.index('c['), 'int', 'num',
+    visitAssignmentTarget(findNode.index('c['), 'int', 'num?',
         changes: {findNode.simple('s]'): isNullCheck});
   }
 
@@ -524,7 +524,7 @@ class _C {
 }
 _f(_C c) => c['foo'] = 0;
 ''');
-    visitAssignmentTarget(findNode.index('c['), null, 'num');
+    visitAssignmentTarget(findNode.index('c['), null, 'num?');
   }
 
   Future<void> test_assignmentTarget_indexExpression_simple_check_lhs() async {
@@ -535,7 +535,7 @@ class _C {
 }
 _f(_C/*?*/ c) => c['foo'] = 0;
 ''');
-    visitAssignmentTarget(findNode.index('c['), null, 'num',
+    visitAssignmentTarget(findNode.index('c['), null, 'num?',
         changes: {findNode.simple('c['): isNullCheck});
   }
 
@@ -547,7 +547,7 @@ class _C {
 }
 _f(_C c, String/*?*/ s) => c[s] = 0;
 ''');
-    visitAssignmentTarget(findNode.index('c['), null, 'num',
+    visitAssignmentTarget(findNode.index('c['), null, 'num?',
         changes: {findNode.simple('s]'): isNullCheck});
   }
 
@@ -1685,7 +1685,7 @@ _f(int/*?*/ x) {
   }
 
   Future<void> test_implicit_downcast() async {
-    await analyze('int f(num x) => x;');
+    await analyze('int _f(num x) => x;');
     var xRef = findNode.simple('x;');
     visitSubexpression(xRef, 'int', changes: {
       xRef: isNodeChangeForExpression.havingIntroduceAsWithInfo(

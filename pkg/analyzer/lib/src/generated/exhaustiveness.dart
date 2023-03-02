@@ -192,8 +192,18 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
+  DartType? getFutureOrTypeArgument(DartType type) {
+    return type.isDartAsyncFutureOr ? _typeSystem.futureOrBase(type) : null;
+  }
+
+  @override
   DartType getNonNullable(DartType type) {
     return _typeSystem.promoteToNonNull(type);
+  }
+
+  @override
+  DartType instantiateFuture(DartType type) {
+    return _typeSystem.typeProvider.futureType(type);
   }
 
   @override

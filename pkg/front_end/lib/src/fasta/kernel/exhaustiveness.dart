@@ -71,7 +71,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   bool isNullable(DartType type) {
-    return type.isPotentiallyNullable;
+    return type.declaredNullability == Nullability.nullable;
   }
 
   @override
@@ -108,8 +108,8 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   Map<String, DartType> getFieldTypes(DartType type) {
-    Map<String, DartType> fieldTypes = {};
     if (type is InterfaceType) {
+      Map<String, DartType> fieldTypes = {};
       Map<Class, Substitution> substitutions = {};
       for (Member member
           in _classHierarchy.getInterfaceMembers(type.classNode)) {
@@ -134,6 +134,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
           fieldTypes[member.name.text] = fieldType;
         }
       }
+      return fieldTypes;
     } else if (type is RecordType) {
       Map<String, DartType> fieldTypes = {};
       for (int index = 0; index < type.positional.length; index++) {
@@ -143,8 +144,9 @@ class CfeTypeOperations implements TypeOperations<DartType> {
         fieldTypes[field.name] = field.type;
       }
       return fieldTypes;
+    } else {
+      return getFieldTypes(_typeEnvironment.coreTypes.objectNonNullableRawType);
     }
-    return fieldTypes;
   }
 
   @override
@@ -158,6 +160,16 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   @override
   bool isGeneric(DartType type) {
     return type is InterfaceType && type.typeArguments.isNotEmpty;
+  }
+
+  @override
+  DartType instantiateFuture(DartType type) {
+    return _typeEnvironment.futureType(type, Nullability.nonNullable);
+  }
+
+  @override
+  DartType? getFutureOrTypeArgument(DartType type) {
+    return type is FutureOrType ? type.typeArgument : null;
   }
 }
 

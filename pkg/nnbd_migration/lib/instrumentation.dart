@@ -290,6 +290,7 @@ enum EdgeOriginKind {
   nullAwareAccess,
   optionalFormalParameter,
   parameterInheritance,
+  publicMethodArgument,
   quiverCheckNotNull,
   returnTypeInheritance,
   stackTraceTypeOrigin,
