@@ -7830,6 +7830,10 @@ class BodyBuilder extends StackListenerImpl
             }
             jointPatternVariables = sharedVariables;
           }
+        } else {
+          // It's a non-pattern head, so no variables can be joined.
+          jointPatternVariables = null;
+          break;
         }
       }
       if (jointPatternVariables != null) {
