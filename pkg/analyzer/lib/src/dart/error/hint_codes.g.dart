@@ -153,34 +153,6 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  It is a bad practice for a source file in a package "lib" directory
-  ///  hierarchy to traverse outside that directory hierarchy. For example, a
-  ///  source file in the "lib" directory should not contain a directive such as
-  ///  `import '../web/some.dart'` which references a file outside the lib
-  ///  directory.
-  static const HintCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE =
-      HintCode(
-    'FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE',
-    "A file in the 'lib' directory shouldn't import a file outside the 'lib' "
-        "directory.",
-    correctionMessage:
-        "Try removing the import, or moving the imported file inside the 'lib' "
-        "directory.",
-  );
-
-  ///  It is a bad practice for a source file outside a package "lib" directory
-  ///  hierarchy to traverse into that directory hierarchy. For example, a source
-  ///  file in the "web" directory should not contain a directive such as
-  ///  `import '../lib/some.dart'` which references a file inside the lib
-  ///  directory.
-  static const HintCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE =
-      HintCode(
-    'FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE',
-    "A file outside the 'lib' directory shouldn't reference a file inside the "
-        "'lib' directory using a relative path.",
-    correctionMessage: "Try using a 'package:' URI instead.",
-  );
-
   ///  No parameters.
   static const HintCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION = HintCode(
     'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',

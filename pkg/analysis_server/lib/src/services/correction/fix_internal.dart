@@ -1352,7 +1352,6 @@ class FixProcessor extends BaseProcessor {
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH: [
       RemoveNameFromDeclarationClause.new,
     ],
-
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
       ReplaceWithNullAware.inChain,
     ],
@@ -1375,8 +1374,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.DIVISION_OPTIMIZATION: [
       UseEffectiveIntegerDivision.new,
     ],
-    // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
-//    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.new,
     ],
@@ -1425,7 +1422,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNUSED_SHOWN_NAME: [
       RemoveNameFromCombinator.new,
     ],
-
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
       RemoveAbstract.bulkFixable,
     ],
@@ -1459,7 +1455,6 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.VAR_RETURN_TYPE: [
       RemoveVar.new,
     ],
-
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.new,
     ],
@@ -1481,7 +1476,6 @@ class FixProcessor extends BaseProcessor {
     StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN: [
       RemoveNonNullAssertion.new,
     ],
-
     WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
       AddReturnNull.new,
     ],

@@ -152,28 +152,10 @@ import 'package:somepackage/other.dart';
     ]);
   }
 
-  test_import_referenceIntoLibDirectory() async {
-    newFile("/myproj/pubspec.yaml", '');
-    newFile("/myproj/lib/other.dart", '');
-    await _assertErrorsInCodeInFile(
-        "/myproj/web/test.dart", "import '../lib/other.dart';", [
-      error(HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE, 0, 0),
-    ]);
-  }
-
   test_import_referenceIntoLibDirectory_no_pubspec() async {
     newFile("/myproj/lib/other.dart", '');
     await _assertErrorsInCodeInFile(
         "/myproj/web/test.dart", "import '../lib/other.dart';", []);
-  }
-
-  test_import_referenceOutOfLibDirectory() async {
-    newFile("/myproj/pubspec.yaml", '');
-    newFile("/myproj/web/other.dart", '');
-    await _assertErrorsInCodeInFile(
-        "/myproj/lib/test.dart", "import '../web/other.dart';", [
-      error(HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE, 0, 0),
-    ]);
   }
 
   test_import_referenceOutOfLibDirectory_no_pubspec() async {
