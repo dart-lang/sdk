@@ -319,7 +319,11 @@ config("compiler") {
   # C++ standard compiler flags setup.
   # ---------------------------
   if (is_win) {
-    cc_std = [ "/std:c++17" ]
+    cc_std = [
+      # This option fixes the value of the __cplusplus macro when using MSVC.
+      "/Zc:__cplusplus",
+      "/std:c++17",
+    ]
   } else {
     cc_std = [ "-std=c++17" ]
   }
