@@ -930,7 +930,7 @@ TEST_CASE(IsolateReload_TypeIdentityParameter) {
 
 TEST_CASE(IsolateReload_MixinChanged) {
   const char* kScript =
-      "class Mixin1 {\n"
+      "mixin Mixin1 {\n"
       "  var field = 'mixin1';\n"
       "  func() => 'mixin1';\n"
       "}\n"
@@ -946,7 +946,7 @@ TEST_CASE(IsolateReload_MixinChanged) {
   EXPECT_STREQ("saved:field=mixin1,func=mixin1", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
-      "class Mixin2 {\n"
+      "mixin Mixin2 {\n"
       "  var field = 'mixin2';\n"
       "  func() => 'mixin2';\n"
       "}\n"
@@ -1232,7 +1232,7 @@ TEST_CASE(IsolateReload_SmiFastPathStubs) {
 // mixins when we reload.
 TEST_CASE(IsolateReload_ImportedMixinFunction) {
   const char* kImportScript =
-      "class ImportedMixin {\n"
+      "mixin ImportedMixin {\n"
       "  mixinFunc() => 'mixin';\n"
       "}\n";
   TestCase::AddTestLib("test:lib1", kImportScript);
