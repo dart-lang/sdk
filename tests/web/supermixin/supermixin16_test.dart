@@ -44,4 +44,4 @@ main() {
   Expect.isTrue(listB is List<SuperB3<String>>);
   Expect.isTrue(listB is List<InterfaceB<Map<int, String>>>);
 
-} 
+}
