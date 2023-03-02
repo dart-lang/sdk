@@ -1,13 +1,11 @@
 import 'pattern_types_lib1.dart';
 import 'pattern_types_lib2.dart';
-
 typedef Dynamic = dynamic;
 typedef Function1 = void Function();
 typedef Function1_ = Function1?;
 typedef Record1 = (int, {String named});
 typedef Record1_ = Record1?;
 typedef Class_ = Class?;
-
 class Class {
   var field;
   void method() {}
@@ -15,12 +13,10 @@ class Class {
   int operator >(int i) => 0;
   operator ==(other) => true;
 }
-
 class Class2 {
   bool operator <(Class2 i) => true;
   operator ==(covariant Class2 other) => true;
 }
-
 extension on Class {
   int get extensionGetter => 42;
   void extensionMethod() {}
@@ -28,27 +24,14 @@ extension on Class {
   int operator >=(int i) => 0;
   int get ambiguousField => 42;
 }
-
 extension on Class {
   String get ambiguousField => '42';
 }
-
 extension on String {
   bool operator <=(other) => true;
 }
-
 extension on String {
   bool operator <=(other) => true;
 }
-
 objectPattern(o) {}
-relationalPattern(
-  dynamic dyn,
-  Never never,
-  Class cls,
-  Class? cls_,
-  Invalid invalid,
-  String string,
-  Class2 cls2,
-  Class2? cls2_,
-) {}
+relationalPattern(dynamic dyn, Never never, Class cls, Class? cls_, Invalid invalid, String string, Class2 cls2, Class2? cls2_, ) {}

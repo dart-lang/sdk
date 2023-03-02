@@ -137,15 +137,6 @@
 #### Web Dev Compiler (DDC)
 - Removed deprecated command line flags `-k`, `--kernel`, and `--dart-sdk`.
 
-#### Formatter
-
-* Allow switch case bodies on the same line as the `case:` or `default:` if all
-  case bodies fit.
-* Format `sync*` and `async*` functions with `=>` bodies.
-* Don't split after `<` in collection literals.
-* Better indentation of multiline function types inside type argument lists.
-* Fix bug where parameter metadata wouldn't always split when it should.
-
 #### Linter
 
 Updates the Linter to `1.34.0-dev`, which includes changes that

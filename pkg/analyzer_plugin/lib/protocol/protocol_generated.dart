@@ -930,11 +930,16 @@ class AnalysisService implements Enum {
 
   factory AnalysisService(String name) {
     switch (name) {
-      case 'FOLDING': return FOLDING;
-      case 'HIGHLIGHTS': return HIGHLIGHTS;
-      case 'NAVIGATION': return NAVIGATION;
-      case 'OCCURRENCES': return OCCURRENCES;
-      case 'OUTLINE': return OUTLINE;
+      case 'FOLDING':
+        return FOLDING;
+      case 'HIGHLIGHTS':
+        return HIGHLIGHTS;
+      case 'NAVIGATION':
+        return NAVIGATION;
+      case 'OCCURRENCES':
+        return OCCURRENCES;
+      case 'OUTLINE':
+        return OUTLINE;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -4030,10 +4035,14 @@ class RequestErrorCode implements Enum {
 
   factory RequestErrorCode(String name) {
     switch (name) {
-      case 'INVALID_OVERLAY_CHANGE': return INVALID_OVERLAY_CHANGE;
-      case 'INVALID_PARAMETER': return INVALID_PARAMETER;
-      case 'PLUGIN_ERROR': return PLUGIN_ERROR;
-      case 'UNKNOWN_REQUEST': return UNKNOWN_REQUEST;
+      case 'INVALID_OVERLAY_CHANGE':
+        return INVALID_OVERLAY_CHANGE;
+      case 'INVALID_PARAMETER':
+        return INVALID_PARAMETER;
+      case 'PLUGIN_ERROR':
+        return PLUGIN_ERROR;
+      case 'UNKNOWN_REQUEST':
+        return UNKNOWN_REQUEST;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -4155,9 +4164,12 @@ class WatchEventType implements Enum {
 
   factory WatchEventType(String name) {
     switch (name) {
-      case 'ADD': return ADD;
-      case 'MODIFY': return MODIFY;
-      case 'REMOVE': return REMOVE;
+      case 'ADD':
+        return ADD;
+      case 'MODIFY':
+        return MODIFY;
+      case 'REMOVE':
+        return REMOVE;
     }
     throw Exception('Illegal enum value: $name');
   }

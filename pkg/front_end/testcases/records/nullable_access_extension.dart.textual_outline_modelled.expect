@@ -1,6 +1,0 @@
-extension on (int, {String a})? {
-  String get a => '';
-  int get $1 => 0;
-}
-
-method((int, {String a})? r) {}
