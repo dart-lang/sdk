@@ -6161,7 +6161,8 @@ class BodyBuilder extends StackListenerImpl
       Token nameToken, int offset, Constness constness,
       {required bool inMetadata, required bool inImplicitCreationContext}) {
     assert(checkState(nameToken, [
-      /*arguments*/ ValueKinds.Arguments,
+      /*arguments*/ unionOfKinds(
+          [ValueKinds.Arguments, ValueKinds.ParserRecovery]),
       /*constructor name identifier*/ ValueKinds.IdentifierOrNull,
       /*constructor name*/ ValueKinds.Name,
       /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
@@ -6173,7 +6174,7 @@ class BodyBuilder extends StackListenerImpl
       ]),
       /*previous constant context*/ ValueKinds.ConstantContext,
     ]));
-    Arguments arguments = pop() as Arguments;
+    Object? arguments = pop();
     Identifier? nameLastIdentifier = pop(NullValues.Identifier) as Identifier?;
     Token nameLastToken = nameLastIdentifier?.token ?? nameToken;
     String name = pop() as String;
@@ -6188,7 +6189,12 @@ class BodyBuilder extends StackListenerImpl
     Object? type = pop();
 
     ConstantContext savedConstantContext = pop() as ConstantContext;
-    if (type is Generator) {
+
+    if (arguments is! Arguments) {
+      push(new ParserErrorGenerator(
+          this, nameToken, fasta.messageSyntheticToken));
+      arguments = forest.createArguments(offset, []);
+    } else if (type is Generator) {
       push(type.invokeConstructor(
           typeArguments, name, arguments, nameToken, nameLastToken, constness,
           inImplicitCreationContext: inImplicitCreationContext));
@@ -7830,6 +7836,10 @@ class BodyBuilder extends StackListenerImpl
             }
             jointPatternVariables = sharedVariables;
           }
+        } else {
+          // It's a non-pattern head, so no variables can be joined.
+          jointPatternVariables = null;
+          break;
         }
       }
       if (jointPatternVariables != null) {

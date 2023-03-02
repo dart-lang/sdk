@@ -605,46 +605,6 @@ class DartObjectImpl implements DartObject {
     );
   }
 
-  /// Return the result of invoking the '==' operator on this object with the
-  /// [rightOperand].
-  ///
-  /// Throws an [EvaluationException] if the operator is not appropriate for an
-  /// object of this kind.
-  DartObjectImpl lazyEqualEqual(
-    TypeSystemImpl typeSystem,
-    FeatureSet featureSet,
-    DartObjectImpl rightOperand,
-  ) {
-    if (isNull || rightOperand.isNull) {
-      return DartObjectImpl(
-        typeSystem,
-        typeSystem.typeProvider.boolType,
-        isNull && rightOperand.isNull
-            ? BoolState.TRUE_STATE
-            : BoolState.FALSE_STATE,
-      );
-    }
-    if (featureSet.isEnabled(Feature.patterns)) {
-      if (state is DoubleState || hasPrimitiveEquality(featureSet)) {
-        return DartObjectImpl(
-          typeSystem,
-          typeSystem.typeProvider.boolType,
-          state.equalEqual(typeSystem, rightOperand.state),
-        );
-      }
-    } else {
-      if (isBoolNumStringOrNull) {
-        return DartObjectImpl(
-          typeSystem,
-          typeSystem.typeProvider.boolType,
-          state.equalEqual(typeSystem, rightOperand.state),
-        );
-      }
-    }
-    throw EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
-  }
-
   /// Return the result of invoking the '||' operator on this object with the
   /// [rightOperand].
   ///
@@ -1763,18 +1723,6 @@ abstract class InstanceState {
     var rightOperand = rightOperandComputer();
     assertBool(rightOperand);
     return rightOperand!.convertToBool();
-  }
-
-  /// Return the result of invoking the '==' operator on this object with the
-  /// [rightOperand].
-  ///
-  /// Throws an [EvaluationException] if the operator is not appropriate for an
-  /// object of this kind.
-  BoolState lazyEqualEqual(
-    TypeSystemImpl typeSystem,
-    InstanceState rightOperand,
-  ) {
-    return isIdentical(typeSystem, rightOperand);
   }
 
   /// Return the result of invoking the '||' operator on this object with the
