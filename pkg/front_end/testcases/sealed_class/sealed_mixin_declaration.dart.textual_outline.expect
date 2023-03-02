@@ -1,1 +1,2 @@
-sealed mixin M {}
+sealed
+mixin M {}

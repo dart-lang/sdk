@@ -2489,15 +2489,24 @@ class AnalysisService implements Enum {
 
   factory AnalysisService(String name) {
     switch (name) {
-      case 'CLOSING_LABELS': return CLOSING_LABELS;
-      case 'FOLDING': return FOLDING;
-      case 'HIGHLIGHTS': return HIGHLIGHTS;
-      case 'IMPLEMENTED': return IMPLEMENTED;
-      case 'INVALIDATE': return INVALIDATE;
-      case 'NAVIGATION': return NAVIGATION;
-      case 'OCCURRENCES': return OCCURRENCES;
-      case 'OUTLINE': return OUTLINE;
-      case 'OVERRIDES': return OVERRIDES;
+      case 'CLOSING_LABELS':
+        return CLOSING_LABELS;
+      case 'FOLDING':
+        return FOLDING;
+      case 'HIGHLIGHTS':
+        return HIGHLIGHTS;
+      case 'IMPLEMENTED':
+        return IMPLEMENTED;
+      case 'INVALIDATE':
+        return INVALIDATE;
+      case 'NAVIGATION':
+        return NAVIGATION;
+      case 'OCCURRENCES':
+        return OCCURRENCES;
+      case 'OUTLINE':
+        return OUTLINE;
+      case 'OVERRIDES':
+        return OVERRIDES;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -4159,9 +4168,12 @@ class CompletionCaseMatchingMode implements Enum {
 
   factory CompletionCaseMatchingMode(String name) {
     switch (name) {
-      case 'FIRST_CHAR': return FIRST_CHAR;
-      case 'ALL_CHARS': return ALL_CHARS;
-      case 'NONE': return NONE;
+      case 'FIRST_CHAR':
+        return FIRST_CHAR;
+      case 'ALL_CHARS':
+        return ALL_CHARS;
+      case 'NONE':
+        return NONE;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -5112,8 +5124,10 @@ class CompletionMode implements Enum {
 
   factory CompletionMode(String name) {
     switch (name) {
-      case 'BASIC': return BASIC;
-      case 'SMART': return SMART;
+      case 'BASIC':
+        return BASIC;
+      case 'SMART':
+        return SMART;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -5498,7 +5512,8 @@ class CompletionService implements Enum {
 
   factory CompletionService(String name) {
     switch (name) {
-      case 'AVAILABLE_SUGGESTION_SETS': return AVAILABLE_SUGGESTION_SETS;
+      case 'AVAILABLE_SUGGESTION_SETS':
+        return AVAILABLE_SUGGESTION_SETS;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -8562,10 +8577,14 @@ class ExecutableKind implements Enum {
 
   factory ExecutableKind(String name) {
     switch (name) {
-      case 'CLIENT': return CLIENT;
-      case 'EITHER': return EITHER;
-      case 'NOT_EXECUTABLE': return NOT_EXECUTABLE;
-      case 'SERVER': return SERVER;
+      case 'CLIENT':
+        return CLIENT;
+      case 'EITHER':
+        return EITHER;
+      case 'NOT_EXECUTABLE':
+        return NOT_EXECUTABLE;
+      case 'SERVER':
+        return SERVER;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -9366,7 +9385,8 @@ class ExecutionService implements Enum {
 
   factory ExecutionService(String name) {
     switch (name) {
-      case 'LAUNCH_DATA': return LAUNCH_DATA;
+      case 'LAUNCH_DATA':
+        return LAUNCH_DATA;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -10249,8 +10269,10 @@ class FileKind implements Enum {
 
   factory FileKind(String name) {
     switch (name) {
-      case 'LIBRARY': return LIBRARY;
-      case 'PART': return PART;
+      case 'LIBRARY':
+        return LIBRARY;
+      case 'PART':
+        return PART;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -10888,12 +10910,18 @@ class FlutterOutlineKind implements Enum {
 
   factory FlutterOutlineKind(String name) {
     switch (name) {
-      case 'DART_ELEMENT': return DART_ELEMENT;
-      case 'GENERIC': return GENERIC;
-      case 'NEW_INSTANCE': return NEW_INSTANCE;
-      case 'INVOCATION': return INVOCATION;
-      case 'VARIABLE': return VARIABLE;
-      case 'PLACEHOLDER': return PLACEHOLDER;
+      case 'DART_ELEMENT':
+        return DART_ELEMENT;
+      case 'GENERIC':
+        return GENERIC;
+      case 'NEW_INSTANCE':
+        return NEW_INSTANCE;
+      case 'INVOCATION':
+        return INVOCATION;
+      case 'VARIABLE':
+        return VARIABLE;
+      case 'PLACEHOLDER':
+        return PLACEHOLDER;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -11011,7 +11039,8 @@ class FlutterService implements Enum {
 
   factory FlutterService(String name) {
     switch (name) {
-      case 'OUTLINE': return OUTLINE;
+      case 'OUTLINE':
+        return OUTLINE;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -11619,12 +11648,18 @@ class FlutterWidgetPropertyEditorKind implements Enum {
 
   factory FlutterWidgetPropertyEditorKind(String name) {
     switch (name) {
-      case 'BOOL': return BOOL;
-      case 'DOUBLE': return DOUBLE;
-      case 'ENUM': return ENUM;
-      case 'ENUM_LIKE': return ENUM_LIKE;
-      case 'INT': return INT;
-      case 'STRING': return STRING;
+      case 'BOOL':
+        return BOOL;
+      case 'DOUBLE':
+        return DOUBLE;
+      case 'ENUM':
+        return ENUM;
+      case 'ENUM_LIKE':
+        return ENUM_LIKE;
+      case 'INT':
+        return INT;
+      case 'STRING':
+        return STRING;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -11912,7 +11947,8 @@ class GeneralAnalysisService implements Enum {
 
   factory GeneralAnalysisService(String name) {
     switch (name) {
-      case 'ANALYZED_FILES': return ANALYZED_FILES;
+      case 'ANALYZED_FILES':
+        return ANALYZED_FILES;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -14283,9 +14319,12 @@ class RuntimeCompletionExpressionTypeKind implements Enum {
 
   factory RuntimeCompletionExpressionTypeKind(String name) {
     switch (name) {
-      case 'DYNAMIC': return DYNAMIC;
-      case 'FUNCTION': return FUNCTION;
-      case 'INTERFACE': return INTERFACE;
+      case 'DYNAMIC':
+        return DYNAMIC;
+      case 'FUNCTION':
+        return FUNCTION;
+      case 'INTERFACE':
+        return INTERFACE;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -15456,13 +15495,20 @@ class SearchResultKind implements Enum {
 
   factory SearchResultKind(String name) {
     switch (name) {
-      case 'DECLARATION': return DECLARATION;
-      case 'INVOCATION': return INVOCATION;
-      case 'READ': return READ;
-      case 'READ_WRITE': return READ_WRITE;
-      case 'REFERENCE': return REFERENCE;
-      case 'UNKNOWN': return UNKNOWN;
-      case 'WRITE': return WRITE;
+      case 'DECLARATION':
+        return DECLARATION;
+      case 'INVOCATION':
+        return INVOCATION;
+      case 'READ':
+        return READ;
+      case 'READ_WRITE':
+        return READ_WRITE;
+      case 'REFERENCE':
+        return REFERENCE;
+      case 'UNKNOWN':
+        return UNKNOWN;
+      case 'WRITE':
+        return WRITE;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -16048,10 +16094,14 @@ class ServerLogEntryKind implements Enum {
 
   factory ServerLogEntryKind(String name) {
     switch (name) {
-      case 'NOTIFICATION': return NOTIFICATION;
-      case 'RAW': return RAW;
-      case 'REQUEST': return REQUEST;
-      case 'RESPONSE': return RESPONSE;
+      case 'NOTIFICATION':
+        return NOTIFICATION;
+      case 'RAW':
+        return RAW;
+      case 'REQUEST':
+        return REQUEST;
+      case 'RESPONSE':
+        return RESPONSE;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -16157,8 +16207,10 @@ class ServerService implements Enum {
 
   factory ServerService(String name) {
     switch (name) {
-      case 'LOG': return LOG;
-      case 'STATUS': return STATUS;
+      case 'LOG':
+        return LOG;
+      case 'STATUS':
+        return STATUS;
     }
     throw Exception('Illegal enum value: $name');
   }

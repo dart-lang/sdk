@@ -1,5 +1,0 @@
-mixin M {}
-
-sealed class A {}
-
-sealed class B = Object with M;

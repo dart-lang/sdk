@@ -1,6 +1,0 @@
-class A {
-  bool operator ==(Object other) => false;
-  const A();
-}
-
-test() => const <(A,)>{(A(),)};
