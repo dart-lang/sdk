@@ -462,6 +462,13 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
+  void registerWeakStaticTearOff(
+      ir.Procedure procedure, ir.LibraryDependency? import) {
+    impactBuilder.registerStaticUse(StaticUse.weakStaticTearOff(
+        elementMap.getMethod(procedure), elementMap.getImport(import)));
+  }
+
+  @override
   void registerStaticGet(ir.Member member, ir.LibraryDependency? import) {
     impactBuilder.registerStaticUse(StaticUse.staticGet(
         elementMap.getMember(member), elementMap.getImport(import)));

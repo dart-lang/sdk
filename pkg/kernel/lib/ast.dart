@@ -3409,6 +3409,7 @@ class Procedure extends Member {
   static const int FlagInternalImplementation = 1 << 8;
   static const int FlagIsAbstractFieldAccessor = 1 << 9;
   static const int FlagInlineMember = 1 << 10;
+  static const int FlagHasWeakTearoffReferencePragma = 1 << 11;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3573,6 +3574,15 @@ class Procedure extends Member {
       stubKind == ProcedureStubKind.MemberSignature
           ? stubTargetReference?.asMember
           : null;
+
+  bool get hasWeakTearoffReferencePragma =>
+      flags & FlagHasWeakTearoffReferencePragma != 0;
+
+  void set hasWeakTearoffReferencePragma(bool value) {
+    flags = value
+        ? (flags | FlagHasWeakTearoffReferencePragma)
+        : (flags & ~FlagHasWeakTearoffReferencePragma);
+  }
 
   @override
   R accept<R>(MemberVisitor<R> v) => v.visitProcedure(this);

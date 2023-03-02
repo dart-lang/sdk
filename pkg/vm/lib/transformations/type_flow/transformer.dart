@@ -6,6 +6,8 @@
 
 import 'dart:core' hide Type;
 
+import 'package:front_end/src/api_prototype/static_weak_references.dart'
+    show StaticWeakReferences;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/class_hierarchy.dart'
@@ -23,8 +25,6 @@ import 'package:vm/metadata/unboxing_info.dart';
 import 'package:vm/metadata/unreachable.dart';
 import 'package:vm/transformations/devirtualization.dart' show Devirtualization;
 import 'package:vm/transformations/pragma.dart';
-import 'package:vm/transformations/static_weak_references.dart'
-    show StaticWeakReferences;
 
 import 'analysis.dart';
 import 'calls.dart';
@@ -712,7 +712,6 @@ class TreeShaker {
   final Set<Extension> _usedExtensions = new Set<Extension>();
   final Set<Typedef> _usedTypedefs = new Set<Typedef>();
   final FinalizableTypes _finalizableTypes;
-  final StaticWeakReferences _staticWeakReferences;
   late final FieldMorpher fieldMorpher;
   late final _TreeShakerTypeVisitor typeVisitor;
   late final _TreeShakerConstantVisitor constantVisitor;
@@ -725,9 +724,8 @@ class TreeShaker {
     CoreTypes coreTypes,
     ClassHierarchy hierarchy, {
     this.treeShakeWriteOnlyFields = true,
-  })  : _finalizableTypes = new FinalizableTypes(
-            coreTypes, typeFlowAnalysis.libraryIndex, hierarchy),
-        _staticWeakReferences = typeFlowAnalysis.staticWeakReferences {
+  }) : _finalizableTypes = new FinalizableTypes(
+            coreTypes, typeFlowAnalysis.libraryIndex, hierarchy) {
     fieldMorpher = new FieldMorpher(this);
     typeVisitor = new _TreeShakerTypeVisitor(this);
     constantVisitor = new _TreeShakerConstantVisitor(this, typeVisitor);
@@ -1379,11 +1377,10 @@ class _TreeShakerPass1 extends RemovingTransformer {
   @override
   TreeNode visitStaticInvocation(
       StaticInvocation node, TreeNode? removalSentinel) {
-    if (shaker._staticWeakReferences.isWeakReference(node)) {
-      final target = shaker._staticWeakReferences.getWeakReferenceTarget(node);
+    if (StaticWeakReferences.isWeakReference(node)) {
+      final target = StaticWeakReferences.getWeakReferenceTarget(node);
       if (shaker.isMemberBodyReachable(target)) {
-        return transform(
-            shaker._staticWeakReferences.getWeakReferenceArgument(node));
+        return transform(StaticWeakReferences.getWeakReferenceArgument(node));
       }
       return NullLiteral()..fileOffset = node.fileOffset;
     }

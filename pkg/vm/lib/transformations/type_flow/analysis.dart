@@ -15,8 +15,6 @@ import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart';
 import 'package:vm/transformations/pragma.dart';
-import 'package:vm/transformations/static_weak_references.dart'
-    show StaticWeakReferences;
 
 import 'calls.dart';
 import 'native_code.dart';
@@ -1615,7 +1613,6 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final ProtobufHandler? protobufHandler;
   late NativeCodeOracle nativeCodeOracle;
   late _ClassHierarchyCache hierarchyCache;
-  late StaticWeakReferences staticWeakReferences;
   late SummaryCollector summaryCollector;
   late _InvocationsCache _invocationsCache;
   late _WorkList workList;
@@ -1644,7 +1641,6 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
     hierarchyCache = new _ClassHierarchyCache(this, _genericInterfacesInfo,
         environment, target.flags.soundNullSafety);
-    staticWeakReferences = StaticWeakReferences(annotationMatcher);
     summaryCollector = new SummaryCollector(
         target,
         environment,
@@ -1653,7 +1649,6 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
         hierarchyCache,
         nativeCodeOracle,
         hierarchyCache,
-        staticWeakReferences,
         protobufHandler);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);

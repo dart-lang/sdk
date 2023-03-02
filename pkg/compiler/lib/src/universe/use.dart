@@ -170,6 +170,7 @@ enum StaticUseKind {
   STATIC_SET,
   FIELD_INIT,
   FIELD_CONSTANT_INIT,
+  WEAK_STATIC_TEAR_OFF,
 }
 
 /// Statically known use of an [Entity].
@@ -343,6 +344,19 @@ class StaticUse {
     assert(element.isFunction,
         failedAt(element, "Static get element $element must be a function."));
     return StaticUse.internal(element, StaticUseKind.STATIC_TEAR_OFF,
+        deferredImport: deferredImport);
+  }
+
+  /// Weak reference to a tear-off of a static or top-level function [element].
+  factory StaticUse.weakStaticTearOff(FunctionEntity element,
+      [ImportEntity? deferredImport]) {
+    assert(
+        element.isStatic || element.isTopLevel,
+        failedAt(
+            element,
+            "Weak tear-off element $element must be a top-level "
+            "or static method."));
+    return StaticUse.internal(element, StaticUseKind.WEAK_STATIC_TEAR_OFF,
         deferredImport: deferredImport);
   }
 

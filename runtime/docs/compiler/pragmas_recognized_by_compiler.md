@@ -36,7 +36,7 @@ VM will keep trying to inline the function in new contexts, not giving up after 
 ### Declaring a static weak reference intrinsic method
 
 ```dart
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 T Function()? weakRef<T>(T Function()? x) => x;
 ```
 

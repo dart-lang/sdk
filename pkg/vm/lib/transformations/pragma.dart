@@ -14,7 +14,6 @@ const kResultTypeUsesPassedTypeArguments =
     "result-type-uses-passed-type-arguments";
 const kVmRecognizedPragmaName = "vm:recognized";
 const kVmDisableUnboxedParametersPragmaName = "vm:disable-unboxed-parameters";
-const kVmWeakTearoffReference = "vm:weak-tearoff-reference";
 
 // Pragmas recognized by dart2wasm
 const kWasmEntryPointPragmaName = "wasm:entry-point";
@@ -56,10 +55,6 @@ class ParsedRecognized extends ParsedPragma {
 
 class ParsedDisableUnboxedParameters extends ParsedPragma {
   const ParsedDisableUnboxedParameters();
-}
-
-class ParsedWeakTearoffReference extends ParsedPragma {
-  const ParsedWeakTearoffReference();
 }
 
 abstract class PragmaAnnotationParser {
@@ -164,8 +159,6 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
         return ParsedRecognized(type);
       case kVmDisableUnboxedParametersPragmaName:
         return const ParsedDisableUnboxedParameters();
-      case kVmWeakTearoffReference:
-        return const ParsedWeakTearoffReference();
       case kWasmEntryPointPragmaName:
         return ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case kWasmExportPragmaName:

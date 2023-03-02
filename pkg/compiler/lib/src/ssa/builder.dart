@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
+    show StaticWeakReferences;
 import 'package:js_runtime/synced/embedded_names.dart';
 import 'package:js_shared/synced/embedded_names.dart'
     show JsBuiltin, JsGetName, TYPES;
@@ -4051,6 +4053,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   void visitStaticInvocation(ir.StaticInvocation node) {
+    if (ir.StaticWeakReferences.isWeakReference(node)) {
+      final weakTarget = ir.StaticWeakReferences.getWeakReferenceTarget(node);
+      if (_elementMap.containsMethod(weakTarget)) {
+        final argument = ir.StaticWeakReferences.getWeakReferenceArgument(node);
+        argument.accept(this);
+        return;
+      }
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
     ir.Procedure target = node.target;
     final sourceInformation = _sourceInformationBuilder.buildCall(node, node);
     final function = _elementMap.getMember(target) as FunctionEntity;

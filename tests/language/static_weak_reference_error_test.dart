@@ -2,64 +2,64 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test errors for incorrect usage of 'vm:weak-tearoff-reference' pragma.
+// Test errors for incorrect usage of 'weak-tearoff-reference' pragma.
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function? validWeakRef(Function? x) => x;
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function? weakRef1({Function? x}) => x;
 //        ^
 // [cfe] Weak reference should take one required positional argument.
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function? weakRef2({required Function? x}) => x;
 //        ^
 // [cfe] Weak reference should take one required positional argument.
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function? weakRef3([Function? x]) => x;
 //        ^
 // [cfe] Weak reference should take one required positional argument.
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function? weakRef4(Function? x, int y) => x;
 //        ^
 // [cfe] Weak reference should take one required positional argument.
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function? weakRef5(Function? x, {int? y}) => x;
 //        ^
 // [cfe] Weak reference should take one required positional argument.
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function weakRef6(Function x) => x;
 //       ^
 // [cfe] Return type of a weak reference should be nullable.
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function weakRef7(Function x) => x;
 //       ^
 // [cfe] Return type of a weak reference should be nullable.
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 dynamic validWeakRef8(dynamic x) => x;
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function? weakRef9(void Function() x) => x;
 //        ^
 // [cfe] Return and argument types of a weak reference should match.
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function? weakRef10(Function x) => x;
 //        ^
 // [cfe] Return and argument types of a weak reference should match.
 
 class A {
-  @pragma('vm:weak-tearoff-reference')
+  @pragma('weak-tearoff-reference')
   external static T Function()? validWeakReference11<T>(T Function()? x);
 
-  @pragma('vm:weak-tearoff-reference')
+  @pragma('weak-tearoff-reference')
   external T Function()? weakReference12<T>(T Function()? x);
 //                       ^
 // [cfe] Weak reference pragma can be used on a static method only.
