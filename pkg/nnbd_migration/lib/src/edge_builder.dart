@@ -1038,6 +1038,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                 node, null, getter.declaration, declaredElement);
           }
         }
+      } else if (declaredElement != null && declaredElement.isPublic) {
+        _makeArgumentsNullable(declaredElement, node);
       }
     }
     return null;
@@ -2684,6 +2686,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _dispatch(returnType);
     _createFlowAnalysis(node, parameters);
     _dispatch(parameters);
+
+    // Be over conservative with public methods' arguments:
+    // Unless we have reasons for non-nullability, assume they are nullable.
+    // Soft edge to `always` node does exactly this.
+    if (declaredElement.isPublic &&
+        declaredElement is! PropertyAccessorElement &&
+        // operator == treats `null` specially.
+        !(declaredElement.isOperator && declaredElement.name == '==')) {
+      _makeArgumentsNullable(declaredElement, node);
+    }
     _currentFunctionType = _variables.decoratedElementType(declaredElement);
     _currentFieldFormals = declaredElement is ConstructorElement
         ? _computeFieldFormalMap(declaredElement)
@@ -3399,6 +3411,20 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (x.returnType != null && y.returnType != null) {
       _linkDecoratedTypes(x.returnType!, y.returnType, origin,
           isUnion: isUnion);
+    }
+  }
+
+  void _makeArgumentsNullable(
+      ExecutableElement declaredElement, Declaration node) {
+    for (final p in declaredElement.parameters) {
+      if (p is! FieldFormalParameterElement &&
+          p is! SuperFormalParameterElement &&
+          p is! ConstVariableElement) {
+        final decoratedType = _variables.decoratedElementType(p);
+        if (decoratedType.type is TypeParameterType) continue;
+        _graph.makeNullable(
+            decoratedType.node, PublicMethodArgumentOrigin(source, node));
+      }
     }
   }
 

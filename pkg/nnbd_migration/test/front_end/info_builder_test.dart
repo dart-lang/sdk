@@ -580,9 +580,9 @@ void f(C/*!*/ a, int b) {
 }
 ''', migratedContent: '''
 abstract class C {
-  C/*?*/ operator+(int  i);
+  C/*?*/ operator+(int? i);
 }
-void f(C/*!*/ a, int  b) {
+void f(C/*!*/ a, int? b) {
   a += b;
 }
 ''');
@@ -839,7 +839,7 @@ void f(C/*!*/ a) {
 }
 ''', migratedContent: '''
 abstract class C {
-  C/*?*/ operator+(int  i);
+  C/*?*/ operator+(int? i);
 }
 void f(C/*!*/ a) {
   a++;
@@ -1025,14 +1025,14 @@ C/*!*/ _f(C c) => c + c;
 ''';
     var migratedContent = '''
 class C {
-  C? operator+(C  c) => null;
+  C? operator+(C? c) => null;
 }
 C/*!*/ _f(C  c) => (c + c)!;
 ''';
     var unit = await buildInfoForSingleTestFile(originalContent,
         migratedContent: migratedContent);
     var regions = unit.fixRegions;
-    expect(regions, hasLength(3));
+    expect(regions, hasLength(4));
     assertRegion(
         region: regions[0],
         offset: migratedContent.indexOf('? operator'),
@@ -1040,12 +1040,17 @@ C/*!*/ _f(C  c) => (c + c)!;
         explanation: "Changed type 'C' to be nullable");
     assertRegion(
         region: regions[1],
+        offset: migratedContent.indexOf('? c'),
+        length: 1,
+        explanation: "Changed type 'C' to be nullable");
+    assertRegion(
+        region: regions[2],
         offset: migratedContent.indexOf('/*!*/'),
         length: 5,
         explanation: "Type 'C' was not made nullable due to a hint",
         kind: NullabilityFixKind.typeNotMadeNullableDueToHint);
     assertRegion(
-        region: regions[2],
+        region: regions[3],
         offset: migratedContent.indexOf('!;'),
         length: 1,
         explanation: 'Added a non-null assertion to nullable expression',
@@ -1076,7 +1081,7 @@ int? f(List<int >  values, int/*?*/ x)
     var unit = await buildInfoForSingleTestFile('''
 int f(int/*!*/ x, int y) => x ??= y;
 ''', migratedContent: '''
-int  f(int/*!*/ x, int  y) => x ??= y;
+int  f(int/*!*/ x, int? y) => x ??= y;
 ''', warnOnWeakCode: false, removeViaComments: false);
     var codeToRemove = ' ??= y';
     var removalOffset = unit.content!.indexOf(codeToRemove);
@@ -1096,7 +1101,7 @@ int  f(int/*!*/ x, int  y) => x ??= y;
     var unit = await buildInfoForSingleTestFile('''
 int f(int/*!*/ x, int y) => x ??= y;
 ''', migratedContent: '''
-int  f(int/*!*/ x, int  y) => x ??= y;
+int  f(int/*!*/ x, int? y) => x ??= y!;
 ''', warnOnWeakCode: true);
     var operator = '??=';
     var operatorOffset = unit.content!.indexOf(operator);
@@ -1235,7 +1240,7 @@ void f(num n, int/*?*/ i) {
     // Note: even though `as int` is removed, it still shows up in the
     // preview, since we show deleted text.
     var migratedContent = '''
-void f(num  n, int/*?*/ i) {
+void f(num? n, int/*?*/ i) {
   if (n is! int ) return;
   print((n as int).isEven);
   print(i! + 1);
@@ -1244,17 +1249,17 @@ void f(num  n, int/*?*/ i) {
     var unit = await buildInfoForSingleTestFile(originalContent,
         migratedContent: migratedContent, removeViaComments: false);
     var regions = unit.fixRegions;
-    expect(regions, hasLength(4));
-    assertRegionPair(regions, 0,
+    expect(regions, hasLength(5));
+    assertRegionPair(regions, 1,
         kind: NullabilityFixKind.makeTypeNullableDueToHint);
     assertRegion(
-        region: regions[2],
+        region: regions[3],
         offset: migratedContent.indexOf(' as int'),
         length: ' as int'.length,
         explanation: 'Discarded a downcast that is now unnecessary',
         kind: NullabilityFixKind.removeAs);
     assertRegion(
-        region: regions[3],
+        region: regions[4],
         offset: migratedContent.indexOf('! + 1'),
         explanation: 'Added a non-null assertion to nullable expression',
         kind: NullabilityFixKind.checkExpression);
@@ -1287,7 +1292,7 @@ int f(Object o) {
 }
 ''';
     var migratedContent = '''
-int  f(Object  o) {
+int  f(Object? o) {
   if (o is! String ) return 0;
   return o /* no valid migration */;
 }
@@ -1428,51 +1433,55 @@ void f() {
 
   Future<void> test_trace_nullableType() async {
     var unit = await buildInfoForSingleTestFile('''
-void f(int i) {} // f
-void g(int i) { // g
-  f(i);
+void _f(int i) {} // _f
+void _g(int i) { // _g
+  _f(i);
 }
 void h() {
-  g(null);
+  _g(null);
 }
 ''', migratedContent: '''
-void f(int? i) {} // f
-void g(int? i) { // g
-  f(i);
+void _f(int? i) {} // _f
+void _g(int? i) { // _g
+  _f(i);
 }
 void h() {
-  g(null);
+  _g(null);
 }
 ''');
     var region = unit.regions
         .where((regionInfo) =>
-            regionInfo.offset == unit.content!.indexOf('? i) {} // f'))
+            regionInfo.offset == unit.content!.indexOf('? i) {} // _f'))
         .single;
     expect(region.traces, hasLength(1));
     var trace = region.traces.single;
     expect(trace.description, 'Nullability reason');
     var entries = trace.entries;
     expect(entries, hasLength(6));
-    // Entry 0 is the nullability of f's argument
-    assertTraceEntry(unit, entries[0], 'f',
-        unit.content!.indexOf('int? i) {} // f'), contains('parameter 0 of f'),
+    // Entry 0 is the nullability of _f's argument
+    assertTraceEntry(
+        unit,
+        entries[0],
+        '_f',
+        unit.content!.indexOf('int? i) {} // _f'),
+        contains('parameter 0 of _f'),
         hintActions: {
           HintActionKind.addNullableHint,
           HintActionKind.addNonNullableHint
         });
 
-    // Entry 1 is the edge from g's argument to f's argument, due to g's call to
-    // f.
+    // Entry 1 is the edge from _g's argument to _f's argument, due to g's call
+    // to _f.
     assertTraceEntry(
-        unit, entries[1], 'g', unit.content!.indexOf('i);'), 'data flow');
-    // Entry 2 is the nullability of g's argument
-    assertTraceEntry(unit, entries[2], 'g',
-        unit.content!.indexOf('int? i) { // g'), contains('parameter 0 of g'),
+        unit, entries[1], '_g', unit.content!.indexOf('i);'), 'data flow');
+    // Entry 2 is the nullability of _g's argument
+    assertTraceEntry(unit, entries[2], '_g',
+        unit.content!.indexOf('int? i) { // _g'), contains('parameter 0 of _g'),
         hintActions: {
           HintActionKind.addNullableHint,
           HintActionKind.addNonNullableHint
         });
-    // Entry 3 is the edge from null to g's argument, due to h's call to g.
+    // Entry 3 is the edge from null to _g's argument, due to h's call to _g.
     assertTraceEntry(
         unit, entries[3], 'h', unit.content!.indexOf('null'), 'data flow');
     // Entry 4 is the nullability of the null literal.

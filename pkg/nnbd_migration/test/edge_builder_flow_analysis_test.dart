@@ -1031,12 +1031,12 @@ bool g(int j) => j.isEven;
   Future<void>
       test_functionDeclaration_resets_unconditional_control_flow() async {
     await analyze('''
-void f(bool b, int i, int j) {
+void _f(bool b, int i, int j) {
   assert(i != null);
   if (b) return;
   assert(j != null);
 }
-void g(int k) {
+void _g(int k) {
   assert(k != null);
 }
 ''');

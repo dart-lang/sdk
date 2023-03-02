@@ -173,7 +173,7 @@ void test(C c) {
     // error.
     var expected = '''
 abstract class C {
-  void m<T>(T Function(T) callback);
+  void m<T>(T Function(T)? callback);
 }
 void test(C c) {
   c.m((dynamic value) => value + 1);
@@ -336,20 +336,20 @@ dynamic f<T>(Object? x, dynamic y) => y ? y : x is T;
 
   Future<void> test_ambiguous_closure_parameter_in_local_variable() async {
     var content = '''
-Object f<T>(Object Function(T) callback, Object obj) => 0;
+Object _f<T>(Object Function(T) callback, Object obj) => 0;
 g() {
-  var y = f<Map<String, int>>(
+  var y = _f<Map<String, int>>(
       (x) => x.keys,
-      f<List<bool>>(
+      _f<List<bool>>(
           (x) => x.last, 0));
 }
 ''';
     var expected = '''
-Object f<T>(Object Function(T) callback, Object obj) => 0;
+Object _f<T>(Object Function(T) callback, Object obj) => 0;
 g() {
-  var y = f<Map<String, int>>(
+  var y = _f<Map<String, int>>(
       (x) => x.keys,
-      f<List<bool>>(
+      _f<List<bool>>(
           (x) => x.last, 0));
 }
 ''';
@@ -458,7 +458,7 @@ class MyComponent {
   Element bar;
   Element baz;
 
-  f(Element e) {
+  f(Element /*!*/ e) {
     bar = e;
     baz = e;
   }
@@ -499,7 +499,7 @@ class myComponent {
   Element bar;
   Element baz;
 
-  f(Element e) {
+  f(Element /*!*/ e) {
     bar = e;
     baz = e;
   }
@@ -688,7 +688,7 @@ class MyComponent {
   Element bar;
   Element baz;
 
-  f(Element e) {
+  f(Element /*!*/ e) {
     bar = e;
     baz = e;
   }
@@ -752,7 +752,7 @@ class myComponent {
   Element bar;
   Element baz;
 
-  f(Element e) {
+  f(Element /*!*/ e) {
     bar = e;
     baz = e;
   }
@@ -795,8 +795,8 @@ class D {}
 ''';
     var expected = '''
 class C {
-  final List<Object> values;
-  const factory C.ints(List<int> list) = C;
+  final List<Object>? values;
+  const factory C.ints(List<int>? list) = C;
   const C(this.values);
 }
 
@@ -1191,24 +1191,24 @@ abstract class C {
   Future<void> test_call_migrated_base_class_method_non_nullable() async {
     var content = '''
 abstract class M<V> implements Map<String, V> {}
-void f(bool b, M<int> m, int i) {
+void _f(bool b, M<int> m, int i) {
   if (b) {
     m['x'] = i;
   }
 }
-void g(bool b, M<int> m) {
-  f(b, m, null);
+void _g(bool b, M<int> m) {
+  _f(b, m, null);
 }
 ''';
     var expected = '''
 abstract class M<V> implements Map<String, V> {}
-void f(bool b, M<int?> m, int? i) {
+void _f(bool b, M<int?> m, int? i) {
   if (b) {
     m['x'] = i;
   }
 }
-void g(bool b, M<int?> m) {
-  f(b, m, null);
+void _g(bool b, M<int?> m) {
+  _f(b, m, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1574,13 +1574,13 @@ main() {
 
   Future<void> test_class_with_default_constructor() async {
     var content = '''
-void main() => f(Foo());
-f(Foo f) {}
+void main() => _f(Foo());
+_f(Foo f) {}
 class Foo {}
 ''';
     var expected = '''
-void main() => f(Foo());
-f(Foo f) {}
+void main() => _f(Foo());
+_f(Foo f) {}
 class Foo {}
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1588,7 +1588,7 @@ class Foo {}
 
   Future<void> test_code_inside_switch_does_not_imply_non_null_intent() async {
     var content = '''
-int f(int i, int j) {
+int _f(int i, int j) {
   switch (i) {
     case 0:
       return j + 1;
@@ -1596,19 +1596,19 @@ int f(int i, int j) {
       return 0;
   }
 }
-int g(int i, int j) {
+int _g(int i, int j) {
   if (i == 0) {
-    return f(i, j);
+    return _f(i, j);
   } else {
     return 0;
   }
 }
 main() {
-  g(0, null);
+  _g(0, null);
 }
 ''';
     var expected = '''
-int f(int i, int? j) {
+int _f(int i, int? j) {
   switch (i) {
     case 0:
       return j! + 1;
@@ -1616,15 +1616,15 @@ int f(int i, int? j) {
       return 0;
   }
 }
-int g(int i, int? j) {
+int _g(int i, int? j) {
   if (i == 0) {
-    return f(i, j);
+    return _f(i, j);
   } else {
     return 0;
   }
 }
 main() {
-  g(0, null);
+  _g(0, null);
 }
 ''';
     // Note: prior to the fix for https://github.com/dart-lang/sdk/issues/41407,
@@ -1850,25 +1850,25 @@ void f(String? s, int? x, int? n) {
   Future<void>
       test_conditional_non_null_usage_does_not_imply_non_null_intent() async {
     var content = '''
-void f(bool b, int i, int j) {
+void _f(bool b, int i, int j) {
   if (b) i.gcd(j);
 }
-void g(bool b, int i, int j) {
-  if (b) f(b, i, j);
+void _g(bool b, int i, int j) {
+  if (b) _f(b, i, j);
 }
 main() {
-  g(false, 0, null);
+  _g(false, 0, null);
 }
 ''';
     var expected = '''
-void f(bool b, int i, int? j) {
+void _f(bool b, int i, int? j) {
   if (b) i.gcd(j!);
 }
-void g(bool b, int i, int? j) {
-  if (b) f(b, i, j);
+void _g(bool b, int i, int? j) {
+  if (b) _f(b, i, j);
 }
 main() {
-  g(false, 0, null);
+  _g(false, 0, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1877,31 +1877,31 @@ main() {
   Future<void>
       test_conditional_usage_does_not_propagate_non_null_intent() async {
     var content = '''
-void f(int i) {
+void _f(int i) {
   assert(i != null);
 }
-void g(bool b, int i) {
-  if (b) f(i);
+void _g(bool b, int i) {
+  if (b) _f(i);
 }
-void h(bool b1, bool b2, int i) {
-  if (b1) g(b2, i);
+void _h(bool b1, bool b2, int i) {
+  if (b1) _g(b2, i);
 }
 main() {
-  h(true, false, null);
+  _h(true, false, null);
 }
 ''';
     var expected = '''
-void f(int i) {
+void _f(int i) {
   assert(i != null);
 }
-void g(bool b, int? i) {
-  if (b) f(i!);
+void _g(bool b, int? i) {
+  if (b) _f(i!);
 }
-void h(bool b1, bool b2, int? i) {
-  if (b1) g(b2, i);
+void _h(bool b1, bool b2, int? i) {
+  if (b1) _g(b2, i);
 }
 main() {
-  h(true, false, null);
+  _h(true, false, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1909,29 +1909,29 @@ main() {
 
   Future<void> test_conditionalExpression_typeParameter_bound() async {
     var content = '''
-num f1<T extends num>(bool b, num x, T y) => b ? x : y;
-num f2<T extends num>(bool b, num x, T y) => b ? x : y;
-num f3<T extends num>(bool b, num x, T y) => b ? x : y;
-num f4<T extends num>(bool b, num x, T y) => b ? x : y;
+num _f1<T extends num>(bool b, num x, T y) => b ? x : y;
+num _f2<T extends num>(bool b, num x, T y) => b ? x : y;
+num _f3<T extends num>(bool b, num x, T y) => b ? x : y;
+num _f4<T extends num>(bool b, num x, T y) => b ? x : y;
 
 void main() {
-  int x1 = f1<int/*?*/>(true, 0, null);
-  int x2 = f2<int/*!*/>(true, 0, null);
-  int x3 = f3<int>(true, null, 0);
-  int x4 = f4<int>(true, 0, 0);
+  int x1 = _f1<int/*?*/>(true, 0, null);
+  int x2 = _f2<int/*!*/>(true, 0, null);
+  int x3 = _f3<int>(true, null, 0);
+  int x4 = _f4<int>(true, 0, 0);
 }
 ''';
     var expected = '''
-num? f1<T extends num?>(bool b, num x, T y) => b ? x : y;
-num? f2<T extends num>(bool b, num x, T? y) => b ? x : y;
-num? f3<T extends num>(bool b, num? x, T y) => b ? x : y;
-num f4<T extends num>(bool b, num x, T y) => b ? x : y;
+num? _f1<T extends num?>(bool b, num x, T y) => b ? x : y;
+num? _f2<T extends num>(bool b, num x, T? y) => b ? x : y;
+num? _f3<T extends num>(bool b, num? x, T y) => b ? x : y;
+num _f4<T extends num>(bool b, num x, T y) => b ? x : y;
 
 void main() {
-  int? x1 = f1<int?>(true, 0, null) as int?;
-  int? x2 = f2<int>(true, 0, null) as int?;
-  int? x3 = f3<int>(true, null, 0) as int?;
-  int x4 = f4<int>(true, 0, 0) as int;
+  int? x1 = _f1<int?>(true, 0, null) as int?;
+  int? x2 = _f2<int>(true, 0, null) as int?;
+  int? x3 = _f3<int>(true, null, 0) as int?;
+  int x4 = _f4<int>(true, 0, 0) as int;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2154,7 +2154,7 @@ class CustomFuture<T> implements Future<T> {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-f(CustomFuture<List<int>> x) async => (await x).first;
+_f(CustomFuture<List<int>> x) async => (await x).first;
 ''';
     var expected = '''
 class CustomFuture<T> implements Future<T> {
@@ -2162,7 +2162,7 @@ class CustomFuture<T> implements Future<T> {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-f(CustomFuture<List<int>> x) async => (await x).first;
+_f(CustomFuture<List<int>> x) async => (await x).first;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -2261,17 +2261,17 @@ int? f(C c) => c.f;
 
   Future<void> test_data_flow_function_return_type() async {
     var content = '''
-int Function() f(int Function() x) => x;
+int Function() _f(int Function() x) => x;
 int g() => null;
 main() {
-  f(g);
+  _f(g);
 }
 ''';
     var expected = '''
-int? Function() f(int? Function() x) => x;
+int? Function() _f(int? Function() x) => x;
 int? g() => null;
 main() {
-  f(g);
+  _f(g);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2408,71 +2408,74 @@ int f(C c) => c[null];
 class C {
   int operator[](int i) => null;
 }
-int f(C c) => c[0];
+int _f(C c) => c[0];
 ''';
     var expected = '''
 class C {
-  int? operator[](int i) => null;
+  int? operator[](int? i) => null;
 }
-int? f(C c) => c[0];
+int? _f(C c) => c[0];
 ''';
     await _checkSingleFileChanges(content, expected);
   }
 
+  // TODO(yanok): doesn't check anything, arguments are nullable by default.
   Future<void> test_data_flow_indexed_set_index_value() async {
     var content = '''
 class C {
   void operator[]=(int i, int j) {}
 }
-void f(C c) {
+void _f(C c) {
   c[null] = 0;
 }
 ''';
     var expected = '''
 class C {
-  void operator[]=(int? i, int j) {}
+  void operator[]=(int? i, int? j) {}
 }
-void f(C c) {
+void _f(C c) {
   c[null] = 0;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
   }
 
+  // TODO(yanok): doesn't check anything, arguments are nullable by default.
   Future<void> test_data_flow_indexed_set_index_value_in_cascade() async {
     var content = '''
 class C {
   void operator[]=(int i, int j) {}
 }
-void f(C c) {
+void _f(C c) {
   c..[null] = 0;
 }
 ''';
     var expected = '''
 class C {
-  void operator[]=(int? i, int j) {}
+  void operator[]=(int? i, int? j) {}
 }
-void f(C c) {
+void _f(C c) {
   c..[null] = 0;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
   }
 
+  // TODO(yanok): doesn't check anything, arguments are nullable by default.
   Future<void> test_data_flow_indexed_set_value() async {
     var content = '''
 class C {
   void operator[]=(int i, int j) {}
 }
-void f(C c) {
+void _f(C c) {
   c[0] = null;
 }
 ''';
     var expected = '''
 class C {
-  void operator[]=(int i, int? j) {}
+  void operator[]=(int? i, int? j) {}
 }
-void f(C c) {
+void _f(C c) {
   c[0] = null;
 }
 ''';
@@ -2583,26 +2586,26 @@ void f(C c) {
 
   Future<void> test_data_flow_outward() async {
     var content = '''
-int f(int i) => null;
-int g(int i) => f(i);
+int _f(int i) => null;
+int _g(int i) => _f(i);
 ''';
 
     var expected = '''
-int? f(int i) => null;
-int? g(int i) => f(i);
+int? _f(int i) => null;
+int? _g(int i) => _f(i);
 ''';
     await _checkSingleFileChanges(content, expected);
   }
 
   Future<void> test_data_flow_outward_missing_type() async {
     var content = '''
-f(int i) => null; // TODO(danrubel): suggest type
-int g(int i) => f(i);
+_f(int i) => null; // TODO(danrubel): suggest type
+int _g(int i) => _f(i);
 ''';
 
     var expected = '''
-f(int i) => null; // TODO(danrubel): suggest type
-int? g(int i) => f(i);
+_f(int i) => null; // TODO(danrubel): suggest type
+int? _g(int i) => _f(i);
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -2740,7 +2743,7 @@ g({required List<int> named}) {}
 
   Future<void> test_downcast_dynamic_function_to_functionType() async {
     var content = '''
-void f(Function a) {
+void _f(Function a) {
   int Function<T>(String y) f1 = a;
   Function b = null;
   int Function<T>(String y) f2 = b;
@@ -2748,7 +2751,7 @@ void f(Function a) {
 ''';
     // Don't assume any new nullabilities, but keep known nullabilities.
     var expected = '''
-void f(Function a) {
+void _f(Function a) {
   int Function<T>(String y) f1 = a as int Function<T>(String);
   Function? b = null;
   int Function<T>(String y)? f2 = b as int Function<T>(String)?;
@@ -2759,7 +2762,7 @@ void f(Function a) {
 
   Future<void> test_downcast_dynamic_to_functionType() async {
     var content = '''
-void f(dynamic a) {
+void _f(dynamic a) {
   int Function<T>(String y) f1 = a;
   dynamic b = null;
   int Function<T>(String y) f2 = b;
@@ -2767,7 +2770,7 @@ void f(dynamic a) {
 ''';
     // Don't assume any new nullabilities, but keep known nullabilities.
     var expected = '''
-void f(dynamic a) {
+void _f(dynamic a) {
   int Function<T>(String y) f1 = a;
   dynamic b = null;
   int Function<T>(String y)? f2 = b;
@@ -2781,16 +2784,16 @@ void f(dynamic a) {
     // less clear, but plausible, that this holds for other types of type
     // parameter downcasts.
     var content = '''
-List<int> f(List a) => a;
+List<int> _f(List a) => a;
 void main() {
-  f(<int>[null]);
+  _f(<int>[null]);
 }
 ''';
 
     var expected = '''
-List<int?> f(List a) => a as List<int?>;
+List<int?> _f(List a) => a as List<int?>;
 void main() {
-  f(<int?>[null]);
+  _f(<int?>[null]);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2856,16 +2859,16 @@ test() {
     // with a nullable type parameter. This is maybe correct, maybe not, and it
     // unblocks us to find out which at a later point in time.
     var content = '''
-List<int> f(Iterable<num> a) => a;
+List<int> _f(Iterable<num> a) => a;
 void main() {
-  f(<num>[null]);
+  _f(<num>[null]);
 }
 ''';
 
     var expected = '''
-List<int?> f(Iterable<num?> a) => a as List<int?>;
+List<int?> _f(Iterable<num?> a) => a as List<int?>;
 void main() {
-  f(<num?>[null]);
+  _f(<num?>[null]);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2936,6 +2939,8 @@ main() {
   f(false, C());
 }
 ''';
+    // TODO(yanok): this part is not tested anymore, since now g's argument
+    // is nullable by default.
     // `d.g(null)` is a dynamic call, so we can't tell that it will target `C.g`
     // at runtime.  So we can't figure out that we need to make g's argument and
     // return types nullable.
@@ -2944,7 +2949,7 @@ main() {
     // knowing whether a dynamic call will return `null`.
     var expected = '''
 class C {
-  int g(int i) => i;
+  int? g(int? i) => i;
 }
 int? f(bool b, dynamic d) {
   if (b) return 0;
@@ -3379,7 +3384,7 @@ void g() => f(null, false);
     var expected = '''
 class C {}
 extension E on C {
-  void operator+(int other) {}
+  void operator+(int? other) {}
 }
 void f(C? c, bool b) {
   if (b) {
@@ -3435,7 +3440,7 @@ void g() => f(null, false);
     var expected = '''
 class C {}
 extension E on C {
-  void operator[](int index) {}
+  void operator[](int? index) {}
 }
 void f(C? c, bool b) {
   if (b) {
@@ -3610,15 +3615,15 @@ extension E on String? {
 extension E on List<String> {
   void m() {}
 }
-void f(List<String> list) => list.m();
-void g() => f([null]);
+void _f(List<String> list) => list.m();
+void g() => _f([null]);
 ''';
     var expected = '''
 extension E on List<String?> {
   void m() {}
 }
-void f(List<String?> list) => list.m();
-void g() => f([null]);
+void _f(List<String?> list) => list.m();
+void g() => _f([null]);
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3730,7 +3735,7 @@ abstract class C {
 extension Cloner<T extends C> on T {
   T clone() => throw Exception();
 }
-C f(C c) => c.clone();
+C _f(C c) => c.clone();
 ''';
     var expected = '''
 abstract class C {
@@ -3739,7 +3744,7 @@ abstract class C {
 extension Cloner<T extends C> on T {
   T clone() => throw Exception();
 }
-C f(C c) => c.clone();
+C _f(C c) => c.clone();
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3749,7 +3754,7 @@ C f(C c) => c.clone();
 extension E<T> on T {
   T get foo => this;
 }
-List<int> f(List<int/*?*/> x) => x.foo;
+List<int> _f(List<int/*?*/> x) => x.foo;
 ''';
     // To see that the return type of `f` must be `List<int?`, the migration
     // tool needs to substitute the actual type argument (`T=List<int?>`) into
@@ -3758,7 +3763,7 @@ List<int> f(List<int/*?*/> x) => x.foo;
 extension E<T> on T {
   T get foo => this;
 }
-List<int?> f(List<int?> x) => x.foo;
+List<int?> _f(List<int?> x) => x.foo;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3768,13 +3773,13 @@ List<int?> f(List<int?> x) => x.foo;
 extension E on int {
   int get plusOne => this + 1;
 }
-int f(int x) => E(x).plusOne;
+int _f(int x) => E(x).plusOne;
 ''';
     var expected = '''
 extension E on int {
   int get plusOne => this + 1;
 }
-int f(int x) => E(x).plusOne;
+int _f(int x) => E(x).plusOne;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3800,13 +3805,13 @@ int f(int? x) => E(x!).plusOne;
 extension E on int {
   int get nullValue => null;
 }
-int f(int x) => E(x).nullValue;
+int _f(int x) => E(x).nullValue;
 ''';
     var expected = '''
 extension E on int {
   int? get nullValue => null;
 }
-int? f(int x) => E(x).nullValue;
+int? _f(int x) => E(x).nullValue;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3868,8 +3873,8 @@ class C {
 ''';
     var expected = '''
 class C {
-  external C(dynamic Function(dynamic) callback);
-  static Object g(Object Function(Object?) callback) => C(callback);
+  external C(dynamic Function(dynamic)? callback);
+  static Object g(Object Function(Object?)? callback) => C(callback);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -3905,8 +3910,8 @@ external void f(callback(x));
 void g(Object Function(Object) callback) => f(callback);
 ''';
     var expected = '''
-external void f(callback(x));
-void g(Object Function(Object?) callback) => f(callback);
+external void f(callback(x)?);
+void g(Object Function(Object?)? callback) => f(callback);
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3917,8 +3922,8 @@ external void f(callback(x()));
 void g(Object Function(Object Function()) callback) => f(callback);
 ''';
     var expected = '''
-external void f(callback(x()));
-void g(Object Function(Object? Function()) callback) => f(callback);
+external void f(callback(x())?);
+void g(Object Function(Object? Function())? callback) => f(callback);
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3929,8 +3934,8 @@ external void f(dynamic Function(dynamic) callback);
 void g(Object Function(Object) callback) => f(callback);
 ''';
     var expected = '''
-external void f(dynamic Function(dynamic) callback);
-void g(Object Function(Object?) callback) => f(callback);
+external void f(dynamic Function(dynamic)? callback);
+void g(Object Function(Object?)? callback) => f(callback);
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -4108,9 +4113,9 @@ abstract class D {
     }
   }
 
-  void visitB(B b);
+  void visitB(B? b);
 
-  void visitC(C c);
+  void visitC(C? c);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -4706,7 +4711,7 @@ void f(C c) {
     var expected = '''
 typedef CB = int Function(Object o);
 abstract class C {
-  void m(CB cb);
+  void m(CB? cb);
 }
 void f(C c) {
   c.m((_) => throw Exception());
@@ -4878,7 +4883,7 @@ Future<String> getFoo() {
   Future<void> test_future_or_t_downcast_to_t() async {
     var content = '''
 import 'dart:async';
-void f(
+void _f(
     FutureOr<int> foi1,
     FutureOr<int/*?*/> foi2,
     FutureOr<int>/*?*/ foi3,
@@ -4892,7 +4897,7 @@ void f(
 ''';
     var expected = '''
 import 'dart:async';
-void f(
+void _f(
     FutureOr<int> foi1,
     FutureOr<int?> foi2,
     FutureOr<int>? foi3,
@@ -5030,6 +5035,8 @@ Object g(C c) => c.f()();
     await _checkSingleFileChanges(content, expected);
   }
 
+  // TODO(yanok): this is the case I don't like. One would hope that usage
+  // in test would force comparison to be non-nullable.
   Future<void>
       test_generic_typedef_respects_explicit_nullability_of_type_arg() async {
     var content = '''
@@ -5044,10 +5051,10 @@ int f() => null;
 ''';
     var expected = '''
 class C {
-  final Comparator<int> comparison;
-  C(int Function(int, int) comparison) : comparison = comparison;
+  final Comparator<int>? comparison;
+  C(int Function(int, int)? comparison) : comparison = comparison;
   void test() {
-    comparison(f()!, f()!);
+    comparison!(f()!, f()!);
   }
 }
 int? f() => null;
@@ -5057,11 +5064,11 @@ int? f() => null;
 
   Future<void> test_genericType_noTypeArguments() async {
     var content = '''
-void f(C c) {}
+void _f(C c) {}
 class C<E> {}
 ''';
     var expected = '''
-void f(C c) {}
+void _f(C c) {}
 class C<E> {}
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -5490,7 +5497,7 @@ abstract class A {
   void f(int/*?*/ i);
 }
 abstract class B {
-  void f(int i);
+  void f(int/*!*/ i);
 }
 class C implements A, B {
   void f(i) {}
@@ -5659,11 +5666,11 @@ int g(C c) => c.f();
   Future<void> test_insert_as_prefixed_type() async {
     var content = '''
 import 'dart:async' as a;
-Future<int> f(Object o) => o;
+Future<int> _f(Object o) => o;
 ''';
     var expected = '''
 import 'dart:async' as a;
-Future<int> f(Object o) => o as a.Future<int>;
+Future<int> _f(Object o) => o as a.Future<int>;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -5887,14 +5894,14 @@ bool f(a) => a is List<int>;
 
   Future<void> test_isExpression_with_function_type() async {
     var content = '''
-void test(Function f) {
+void _test(Function f) {
   if (f is void Function()) {
     f();
   }
 }
 ''';
     var expected = '''
-void test(Function f) {
+void _test(Function f) {
   if (f is void Function()) {
     f();
   }
@@ -6196,8 +6203,8 @@ int g() => x;
   }
 
   Future<void> test_leave_downcast_from_dynamic_implicit() async {
-    var content = 'int f(dynamic n) => n;';
-    var expected = 'int f(dynamic n) => n;';
+    var content = 'int _f(dynamic n) => n;';
+    var expected = 'int _f(dynamic n) => n;';
     await _checkSingleFileChanges(content, expected);
   }
 
@@ -6220,7 +6227,7 @@ class C {
     var expected2 = '''
 part of '../../lib.dart';
 class C {
-  static void m(C c) {}
+  static void m(C? c) {}
 }
 ''';
     await _checkMultipleFileChanges(
@@ -6257,17 +6264,17 @@ int? g() => null;
 
   Future<void> test_list_conditional_element() async {
     var content = '''
-void bar(List<String> l) {}
+void _bar(List<String> l) {}
 
-void test({String foo}) {
-    bar([if (foo != null) foo]);
+void _test({String foo}) {
+    _bar([if (foo != null) foo]);
 }
 ''';
     var expected = '''
-void bar(List<String> l) {}
+void _bar(List<String> l) {}
 
-void test({String? foo}) {
-    bar([if (foo != null) foo]);
+void _test({String? foo}) {
+    _bar([if (foo != null) foo]);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -6429,7 +6436,7 @@ main() {
 void call(void Function() callback) {
   callback();
 }
-test(int? i, int j) {
+test(int? i, int? j) {
   call(() {
     i = j;
   });
@@ -6466,7 +6473,7 @@ main() {
 void call(void Function() callback) {
   callback();
 }
-test(int? i, int j) {
+test(int? i, int? j) {
   void f() {
     i = j;
   }
@@ -6678,7 +6685,7 @@ abstract class C implements B<int?> {
   }
 
   Future<void> test_make_downcast_explicit() async {
-    var content = 'int f(num n) => n;';
+    var content = 'int f(num/*!*/ n) => n;';
     var expected = 'int f(num n) => n as int;';
     await _checkSingleFileChanges(content, expected);
   }
@@ -6748,17 +6755,17 @@ main() {
 
   Future<void> test_map_nullable_output() async {
     var content = '''
-Iterable<int> f(List<int> x) => x.map((y) => g(y));
-int g(int x) => null;
+Iterable<int> _f(List<int> x) => x.map((y) => _g(y));
+int _g(int x) => null;
 main() {
-  f([1]);
+  _f([1]);
 }
 ''';
     var expected = '''
-Iterable<int?> f(List<int> x) => x.map((y) => g(y));
-int? g(int x) => null;
+Iterable<int?> _f(List<int> x) => x.map((y) => _g(y));
+int? _g(int x) => null;
 main() {
-  f([1]);
+  _f([1]);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -6766,20 +6773,20 @@ main() {
 
   Future<void> test_map_read_does_not_require_index_cast() async {
     var content = '''
-int f(Map<String, int> m, Object o) => m[o];
+int _f(Map<String, int> m, Object o) => m[o];
 ''';
     var expected = '''
-int? f(Map<String, int> m, Object o) => m[o];
+int? _f(Map<String, int> m, Object o) => m[o];
 ''';
     await _checkSingleFileChanges(content, expected);
   }
 
   Future<void> test_map_write_requires_index_cast() async {
     var content = '''
-void f(Map<String, int> m, Object o, int i) => m[o] = i;
+void _f(Map<String, int> m, Object o, int i) => m[o] = i;
 ''';
     var expected = '''
-void f(Map<String, int> m, Object o, int i) => m[o as String] = i;
+void _f(Map<String, int> m, Object o, int i) => m[o as String] = i;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -6957,41 +6964,41 @@ void test() {
 
   Future<void> test_multiDeclaration_softEdges() async {
     var content = '''
-int nullable(int i1, int i2) {
+int _nullable(int i1, int i2) {
   int i3 = i1, i4 = i2;
   return i3;
 }
-int nonNull(int i1, int i2) {
+int _nonNull(int i1, int i2) {
   int i3 = i1, i4 = i2;
   return i3;
 }
-int both(int i1, int i2) {
+int _both(int i1, int i2) {
   int i3 = i1, i4 = i2;
   return i3;
 }
 void main() {
-  nullable(null, null);
-  nonNull(0, 1);
-  both(0, null);
+  _nullable(null, null);
+  _nonNull(0, 1);
+  _both(0, null);
 }
 ''';
     var expected = '''
-int? nullable(int? i1, int? i2) {
+int? _nullable(int? i1, int? i2) {
   int? i3 = i1, i4 = i2;
   return i3;
 }
-int nonNull(int i1, int i2) {
+int _nonNull(int i1, int i2) {
   int i3 = i1, i4 = i2;
   return i3;
 }
-int? both(int i1, int? i2) {
+int? _both(int i1, int? i2) {
   int? i3 = i1, i4 = i2;
   return i3;
 }
 void main() {
-  nullable(null, null);
-  nonNull(0, 1);
-  both(0, null);
+  _nullable(null, null);
+  _nonNull(0, 1);
+  _both(0, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -7228,14 +7235,14 @@ main() {
 
   Future<void> test_non_null_assertion() async {
     var content = '''
-int f(int i, [int j]) {
+int _f(int i, [int j]) {
   if (i == 0) return i;
   return i + j;
 }
 ''';
 
     var expected = '''
-int f(int i, [int? j]) {
+int _f(int i, [int? j]) {
   if (i == 0) return i;
   return i + j!;
 }
@@ -7394,16 +7401,16 @@ String? f(bool b) {
   Future<void> test_null_aware_call_followed_by_if_null() async {
     var content = '''
 typedef MapGetter = Map<String, String> Function();
-void f(Map<String, String> m) {}
-void g(MapGetter/*?*/ mapGetter) {
-  f(mapGetter?.call() ?? {});
+void _f(Map<String, String> m) {}
+void _g(MapGetter/*?*/ mapGetter) {
+  _f(mapGetter?.call() ?? {});
 }
 ''';
     var expected = '''
 typedef MapGetter = Map<String, String> Function();
-void f(Map<String, String> m) {}
-void g(MapGetter? mapGetter) {
-  f(mapGetter?.call() ?? {});
+void _f(Map<String, String> m) {}
+void _g(MapGetter? mapGetter) {
+  _f(mapGetter?.call() ?? {});
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -8430,13 +8437,13 @@ class Derived extends Base {
     i + 1;
   }
 }
-void g(int i, bool b, Base base) {
+void _g(int i, bool b, Base base) {
   if (b) {
     base.f(i);
   }
 }
-void h(Base base) {
-  g(null, false, base);
+void _h(Base base) {
+  _g(null, false, base);
 }
 ''';
     var expected = '''
@@ -8448,13 +8455,13 @@ class Derived extends Base {
     i! + 1;
   }
 }
-void g(int? i, bool b, Base base) {
+void _g(int? i, bool b, Base base) {
   if (b) {
     base.f(i);
   }
 }
-void h(Base base) {
-  g(null, false, base);
+void _h(Base base) {
+  _g(null, false, base);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -8468,7 +8475,7 @@ abstract class Base {
 class Derived extends Base {
   void f(int i) {}
 }
-void g(int i, Base base) {
+void _g(int i, Base base) {
   base.f(null);
 }
 ''';
@@ -8479,7 +8486,7 @@ abstract class Base {
 class Derived extends Base {
   void f(int? i) {}
 }
-void g(int i, Base base) {
+void _g(int i, Base base) {
   base.f(null);
 }
 ''';
@@ -8570,12 +8577,12 @@ class Derived extends Base<int?> {
 
   Future<void> test_parameter_genericFunctionType() async {
     var content = '''
-int f(int x, int Function(int i) g) {
+int _f(int x, int Function(int i) g) {
   return g(x);
 }
 ''';
     var expected = '''
-int f(int x, int Function(int i) g) {
+int _f(int x, int Function(int i) g) {
   return g(x);
 }
 ''';
@@ -8713,84 +8720,84 @@ main() {
 
   Future<void> test_promotion_conditional_variableRead() async {
     var content = '''
-f({int i}) {
+_f({int i}) {
   i = i == null ? 0 : i;
-  g(i);
+  _g(i);
 }
 
-g(int j) {}
+_g(int j) {}
 ''';
     var expected = '''
-f({int? i}) {
+_f({int? i}) {
   i = i == null ? 0 : i;
-  g(i);
+  _g(i);
 }
 
-g(int j) {}
+_g(int j) {}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
 
   Future<void> test_promotion_ifNull_variableRead() async {
     var content = '''
-f({int i}) {
+_f({int i}) {
   i ??= 3;
-  g(i);
+  _g(i);
 }
 
-g(int j) {}
+_g(int j) {}
 ''';
     var expected = '''
-f({int? i}) {
+_f({int? i}) {
   i ??= 3;
-  g(i);
+  _g(i);
 }
 
-g(int j) {}
+_g(int j) {}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
 
   Future<void> test_promotion_ifNull_variableRead_alreadyPromoted() async {
     var content = '''
-f({num i}) {
+_f({num i}) {
   if (i is int /*?*/) {
     i ??= 3;
-    g(i);
+    _g(i);
   }
 }
 
-g(int j) {}
+_g(int j) {}
 ''';
     var expected = '''
-f({num? i}) {
+_f({num? i}) {
   if (i is int?) {
     i ??= 3;
-    g(i);
+    _g(i);
   }
 }
 
-g(int j) {}
+_g(int j) {}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
 
   Future<void> test_promotion_ifNull_variableRead_subType() async {
     var content = '''
-f({num i}) {
+_f({num i}) {
   i ??= 3;
-  g(i);
+  _g(i);
 }
 
-g(int j) {}
+_g(int j) {}
 ''';
     var expected = '''
-f({num? i}) {
+_f({num? i}) {
   i ??= 3;
-  g(i as int);
+  _g(i as int);
 }
 
-g(int j) {}
+_g(int j) {}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -8948,10 +8955,10 @@ main() {
 ''';
     var expected = '''
 class C {
-  factory C(int? i, int j) = D;
+  factory C(int? i, int? j) = D;
 }
 class D implements C {
-  D(int? i, int j);
+  D(int? i, int? j);
 }
 main() {
   C(null, 1);
@@ -8972,8 +8979,8 @@ main() {
 ''';
     var expected = '''
 class C {
-  C(int? i, int j) : this.named(j, i);
-  C.named(int j, int? i);
+  C(int? i, int? j) : this.named(j, i);
+  C.named(int? j, int? i);
 }
 main() {
   C(null, 1);
@@ -8994,8 +9001,8 @@ main() {
 ''';
     var expected = '''
 class C {
-  C.named(int? i, int j) : this(j, i);
-  C(int j, int? i);
+  C.named(int? i, int? j) : this(j, i);
+  C(int? j, int? i);
 }
 main() {
   C.named(null, 1);
@@ -9048,7 +9055,7 @@ class B<T extends Object> { // bound should not be made nullable
 
   Future<void> test_regression_40552() async {
     var content = '''
-void f(Object o) { // parameter should not be made nullable
+void _f(Object o) { // parameter should not be made nullable
   // Create an edge from the bound to some type
   List<dynamic> x = [o];
   // and make that type exact nullable
@@ -9056,7 +9063,7 @@ void f(Object o) { // parameter should not be made nullable
 }
 ''';
     var expected = '''
-void f(Object o) { // parameter should not be made nullable
+void _f(Object o) { // parameter should not be made nullable
   // Create an edge from the bound to some type
   List<dynamic> x = [o];
   // and make that type exact nullable
@@ -9602,13 +9609,13 @@ extension on C<List<int?>> {
 
   Future<void> test_topLevelFunction_parameterType_implicit_dynamic() async {
     var content = '''
-Object f(x) => x;
+Object _f(x) => x;
 ''';
     // Note: even though the type `dynamic` permits `null`, the migration engine
     // sees that there is no code path that passes a null value to `f`, so it
     // leaves its return type as `Object`, and there is an implicit downcast.
     var expected = '''
-Object f(x) => x;
+Object _f(x) => x;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -9700,7 +9707,7 @@ abstract class C<T extends Object> {
 abstract class D<T extends Object> {
   void m(T t);
 }
-f(C<int> c, D<int> d) {
+_f(C<int> c, D<int> d) {
   c.m(null);
 }
 ''';
@@ -9711,7 +9718,7 @@ abstract class C<T extends Object?> {
 abstract class D<T extends Object> {
   void m(T t);
 }
-f(C<int?> c, D<int> d) {
+_f(C<int?> c, D<int> d) {
   c.m(null);
 }
 ''';
@@ -10183,28 +10190,28 @@ main() {
 class C {
   operator[]=(int i, int j) {}
 }
-void f(C c) {
+void _f(C c) {
   c..[1] = 2;
 }
-void g(bool b, C c) {
-  if (b) f(c);
+void _g(bool b, C c) {
+  if (b) _f(c);
 }
 main() {
-  g(false, null);
+  _g(false, null);
 }
 ''';
     var expected = '''
 class C {
-  operator[]=(int i, int j) {}
+  operator[]=(int? i, int? j) {}
 }
-void f(C c) {
+void _f(C c) {
   c..[1] = 2;
 }
-void g(bool b, C? c) {
-  if (b) f(c!);
+void _g(bool b, C? c) {
+  if (b) _f(c!);
 }
 main() {
-  g(false, null);
+  _g(false, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -10367,25 +10374,25 @@ main() {
   Future<void>
       test_unconditional_non_null_usage_implies_non_null_intent() async {
     var content = '''
-void f(int i, int j) {
+void _f(int i, int j) {
   i.gcd(j);
 }
-void g(bool b, int i, int j) {
-  if (b) f(i, j);
+void _g(bool b, int i, int j) {
+  if (b) _f(i, j);
 }
 main() {
-  g(false, 0, null);
+  _g(false, 0, null);
 }
 ''';
     var expected = '''
-void f(int i, int j) {
+void _f(int i, int j) {
   i.gcd(j);
 }
-void g(bool b, int i, int? j) {
-  if (b) f(i, j!);
+void _g(bool b, int i, int? j) {
+  if (b) _f(i, j!);
 }
 main() {
-  g(false, 0, null);
+  _g(false, 0, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -10617,13 +10624,13 @@ f(bool b, List<C<int>> cs) {
     // When types need to be added to some variables in a declaration but not
     // others, we handle it by introducing `as` casts.
     var content = '''
-f(int i, String s) {
+_f(int i, String s) {
   var x = i, y = s;
   x = null;
 }
 ''';
     var expected = '''
-f(int i, String s) {
+_f(int i, String s) {
   var x = i as int?, y = s;
   x = null;
 }
