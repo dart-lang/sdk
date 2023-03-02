@@ -52,6 +52,12 @@ abstract class TypeOperations<Type extends Object> {
   /// Returns `true` if [type] is a generic interface type.
   bool isGeneric(Type type);
 
+  /// Returns the type `T` if [type] is `FutureOr<T>`. Returns `null` otherwise.
+  Type? getFutureOrTypeArgument(Type type);
+
+  /// Returns the non-nullable type `Future<T>` for [type] `T`.
+  Type instantiateFuture(Type type);
+
   /// Returns a map of the field names and corresponding types available on
   /// [type]. For an interface type, these are the fields and getters, and for
   /// record types these are the record fields.
@@ -195,23 +201,34 @@ class ExhaustivenessCache<
     } else if (_typeOperations.isRecordType(nonNullable)) {
       staticType = new RecordStaticType(_typeOperations, this, nonNullable);
     } else {
-      EnumClass? enumClass = enumOperations.getEnumClass(nonNullable);
-      if (enumClass != null) {
-        staticType = new EnumStaticType(
-            _typeOperations, this, nonNullable, _getEnumInfo(enumClass));
+      Type? futureOrTypeArgument =
+          _typeOperations.getFutureOrTypeArgument(nonNullable);
+      if (futureOrTypeArgument != null) {
+        StaticType typeArgument = getStaticType(futureOrTypeArgument);
+        StaticType futureType = getStaticType(
+            _typeOperations.instantiateFuture(futureOrTypeArgument));
+        staticType = new FutureOrStaticType(
+            _typeOperations, this, nonNullable, typeArgument, futureType);
       } else {
-        Class? sealedClass = _sealedClassOperations.getSealedClass(nonNullable);
-        if (sealedClass != null) {
-          staticType = new SealedClassStaticType(
-              _typeOperations,
-              this,
-              nonNullable,
-              this,
-              _sealedClassOperations,
-              _getSealedClassInfo(sealedClass));
+        EnumClass? enumClass = enumOperations.getEnumClass(nonNullable);
+        if (enumClass != null) {
+          staticType = new EnumStaticType(
+              _typeOperations, this, nonNullable, _getEnumInfo(enumClass));
         } else {
-          staticType =
-              new TypeBasedStaticType(_typeOperations, this, nonNullable);
+          Class? sealedClass =
+              _sealedClassOperations.getSealedClass(nonNullable);
+          if (sealedClass != null) {
+            staticType = new SealedClassStaticType(
+                _typeOperations,
+                this,
+                nonNullable,
+                this,
+                _sealedClassOperations,
+                _getSealedClassInfo(sealedClass));
+          } else {
+            staticType =
+                new TypeBasedStaticType(_typeOperations, this, nonNullable);
+          }
         }
       }
     }
@@ -565,4 +582,25 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
     }
     return true;
   }
+}
+
+/// [StaticType] for a `FutureOr<T>` type for some type `T`.
+///
+/// This is a sealed type where the subtypes for are `T` and `Future<T>`.
+class FutureOrStaticType<Type extends Object>
+    extends TypeBasedStaticType<Type> {
+  /// The type for `T`.
+  final StaticType _typeArgument;
+
+  /// The type for `Future<T>`.
+  final StaticType _futureType;
+
+  FutureOrStaticType(super.typeOperations, super.fieldLookup, super.type,
+      this._typeArgument, this._futureType);
+
+  @override
+  bool get isSealed => true;
+
+  @override
+  Iterable<StaticType> get subtypes => [_typeArgument, _futureType];
 }
