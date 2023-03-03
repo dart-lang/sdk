@@ -16,6 +16,7 @@ import 'avoid_private_typedef_functions_test.dart'
     as avoid_private_typedef_functions;
 import 'avoid_redundant_argument_values_test.dart'
     as avoid_redundant_argument_values;
+import 'avoid_relative_lib_imports_test.dart' as avoid_relative_lib_imports;
 import 'avoid_renaming_method_parameters_test.dart'
     as avoid_renaming_method_parameters;
 import 'avoid_returning_this_test.dart' as avoid_returning_this;
@@ -116,6 +117,7 @@ void main() {
   avoid_init_to_null.main();
   avoid_private_typedef_functions.main();
   avoid_redundant_argument_values.main();
+  avoid_relative_lib_imports.main();
   avoid_renaming_method_parameters.main();
   avoid_returning_this.main();
   avoid_setters_without_getters.main();
