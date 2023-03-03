@@ -25,6 +25,7 @@ import '../native/behavior.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
+import '../universe/class_set.dart';
 import '../universe/member_hierarchy.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
@@ -989,16 +990,18 @@ class InferrerEngine {
       ir.Node callSite,
       Set<MemberEntity> visited) {
     final member = target.member;
-    bool handleTarget(MemberEntity override) {
-      if (override.isAbstract || !visited.add(override)) return false;
-      MemberTypeInformation info = types.getInferredTypeOfMember(override);
-      info.addCall(callSiteType.caller, callSite);
+    IterationStep handleTarget(MemberEntity override) {
+      if (!visited.add(override)) return IterationStep.SKIP_SUBCLASSES;
+      if (!override.isAbstract) {
+        MemberTypeInformation info = types.getInferredTypeOfMember(override);
+        info.addCall(callSiteType.caller, callSite);
 
-      if (types.getInferredTypeOfVirtualMember(member).closurizedCount > 0) {
-        _markForClosurization(info, callSiteType,
-            remove: false, addToQueue: false);
+        if (types.getInferredTypeOfVirtualMember(member).closurizedCount > 0) {
+          _markForClosurization(info, callSiteType,
+              remove: false, addToQueue: false);
+        }
       }
-      return true;
+      return IterationStep.CONTINUE;
     }
 
     handleTarget(member);
@@ -1093,7 +1096,7 @@ class InferrerEngine {
       // Even if x.== doesn't return a bool, 'x == null' evaluates to 'false'.
       info.addInput(types.boolType);
     }
-    info.addInput(type);
+    if (info.inputs.isEmpty) info.addInput(type);
   }
 
   /// Notifies to the inferrer that [analyzedElement] can have return type
