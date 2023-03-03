@@ -1,3 +1,11 @@
+## 5.7.1
+* Require SDK `>=2.19.0 <3.0.0` to use `PathNotFoundException` from `dart:io`.
+
+## 5.7.0
+* Work on `class-modifiers` feature.
+* Work on `patterns` feature.
+* Support for primitive equality.
+
 ## 5.6.0
 * Fixes for patterns parsing.
 * Implemented `DartPattern.precedence`.

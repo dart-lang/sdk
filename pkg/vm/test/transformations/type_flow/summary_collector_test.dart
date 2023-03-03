@@ -15,8 +15,6 @@ import 'package:test/test.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/pragma.dart'
     show ConstantPragmaAnnotationParser;
-import 'package:vm/transformations/static_weak_references.dart'
-    show StaticWeakReferences;
 import 'package:vm/transformations/type_flow/analysis.dart';
 import 'package:vm/transformations/type_flow/calls.dart';
 import 'package:vm/transformations/type_flow/native_code.dart';
@@ -89,7 +87,6 @@ class PrintSummaries extends RecursiveVisitor {
         typesBuilder,
         NativeCodeOracle(coreTypes.index, annotationParser),
         GenericInterfacesInfoImpl(coreTypes, hierarchy),
-        StaticWeakReferences(annotationParser),
         /*_protobufHandler=*/ null);
   }
 

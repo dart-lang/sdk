@@ -4,6 +4,8 @@
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show operatorFromString;
+import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
+    show StaticWeakReferences;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
@@ -1063,14 +1065,22 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   void handleStaticInvocation(ir.StaticInvocation node,
       ArgumentTypes argumentTypes, ir.DartType returnType) {}
 
+  void handleWeakStaticTearOff(ir.Expression node, ir.Procedure target) {}
+
   @override
   ir.DartType visitStaticInvocation(ir.StaticInvocation node) {
-    ArgumentTypes argumentTypes = _visitArguments(node.arguments);
     ir.DartType returnType = ir.Substitution.fromPairs(
             node.target.function.typeParameters, node.arguments.types)
         .substituteType(node.target.function.returnType);
     _staticTypeCache._expressionTypes[node] = returnType;
-    handleStaticInvocation(node, argumentTypes, returnType);
+    if (ir.StaticWeakReferences.isWeakReference(node)) {
+      handleWeakStaticTearOff(
+          ir.StaticWeakReferences.getWeakReferenceArgument(node),
+          ir.StaticWeakReferences.getWeakReferenceTarget(node));
+    } else {
+      ArgumentTypes argumentTypes = _visitArguments(node.arguments);
+      handleStaticInvocation(node, argumentTypes, returnType);
+    }
     return returnType;
   }
 

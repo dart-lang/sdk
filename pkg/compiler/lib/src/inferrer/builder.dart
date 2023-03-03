@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
+    show StaticWeakReferences;
 
 import '../closure.dart';
 import '../common.dart';
@@ -1560,6 +1562,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
   @override
   TypeInformation visitStaticInvocation(ir.StaticInvocation node) {
+    if (ir.StaticWeakReferences.isWeakReference(node)) {
+      final weakTarget = ir.StaticWeakReferences.getWeakReferenceTarget(node);
+      if (_elementMap.containsMethod(weakTarget)) {
+        return visit(ir.StaticWeakReferences.getWeakReferenceArgument(node))!;
+      }
+      return _types.nullType;
+    }
     MemberEntity member = _elementMap.getMember(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);

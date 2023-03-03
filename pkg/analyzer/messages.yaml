@@ -18200,24 +18200,6 @@ HintCode:
       ```dart
       int divide(num x, num y) => x ~/ y;
       ```
-  FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE:
-    problemMessage: "A file in the 'lib' directory shouldn't import a file outside the 'lib' directory."
-    correctionMessage: "Try removing the import, or moving the imported file inside the 'lib' directory."
-    comment: |-
-      It is a bad practice for a source file in a package "lib" directory
-      hierarchy to traverse outside that directory hierarchy. For example, a
-      source file in the "lib" directory should not contain a directive such as
-      `import '../web/some.dart'` which references a file outside the lib
-      directory.
-  FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE:
-    problemMessage: "A file outside the 'lib' directory shouldn't reference a file inside the 'lib' directory using a relative path."
-    correctionMessage: "Try using a 'package:' URI instead."
-    comment: |-
-      It is a bad practice for a source file outside a package "lib" directory
-      hierarchy to traverse into that directory hierarchy. For example, a source
-      file in the "web" directory should not contain a directive such as
-      `import '../lib/some.dart'` which references a file inside the lib
-      directory.
   IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
     problemMessage: "The imported library defines a top-level function named 'loadLibrary' that is hidden by deferring this library."
     correctionMessage: Try changing the import to not be deferred, or rename the function in the imported library.

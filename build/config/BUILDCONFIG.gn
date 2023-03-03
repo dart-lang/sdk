@@ -342,7 +342,8 @@ set_defaults("static_library") {
 }
 
 # Shared library defaults (also for components in component mode).
-_shared_library_configs = _native_compiler_configs
+_shared_library_configs =
+    _native_compiler_configs + [ "//build/config:shared_library_config" ]
 if (is_win) {
   _shared_library_configs += _windows_linker_configs
 } else if (is_mac) {

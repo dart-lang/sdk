@@ -592,10 +592,12 @@ class ProcedureHelper {
     // TODO(29841): Remove this line after the issue is resolved.
     kRedirectingFactory = 1 << 4,
     kExtensionMember = 1 << 5,
+    kIsNonNullableByDefault = 1 << 6,
     kSyntheticProcedure = 1 << 7,
     kInternalImplementation = 1 << 8,
     kIsAbstractFieldAccessor = 1 << 9,
     kInlineClassMember = 1 << 10,
+    kHasWeakTearoffReferencePragma = 1 << 11,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)

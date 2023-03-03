@@ -715,24 +715,15 @@ class FlatTypeMask extends TypeMask {
       return results.isEmpty ? const [] : results;
     }
 
-    if (isExact) {
-      // Return the member that declares the selector on the mask's class
-      // (check only superclasses).
-      final match = memberHierarchyBuilder
-          .findSuperclassTarget(baseCls, selector, virtualResult: false);
-      return match != null ? [match] : const [];
-    }
-
     // Try to find a superclass that contains a matching member.
-    final superclassMatch = memberHierarchyBuilder
-        .findSuperclassTarget(baseCls, selector, virtualResult: true);
+    final superclassMatch = memberHierarchyBuilder.findSuperclassTarget(
+        baseCls, selector,
+        isExact: isExact, isSubclass: isSubclass);
 
-    if (superclassMatch != null) return [superclassMatch];
-
-    // Try to find a supertype that contains a matching member.
-    final supertypeMatch =
-        memberHierarchyBuilder.findSupertypeTarget(baseCls, selector);
-    if (supertypeMatch != null) return [supertypeMatch];
+    // If this mask is exact then we should have found a matching target on a
+    // superclass or need noSuchMethod handling and can quit early anyway.
+    // Otherwise only return if we actually found a match.
+    if (isExact || superclassMatch.isNotEmpty) return superclassMatch;
 
     // Default to a list of superclasses/supertypes that encompasses all
     // subclasses/subtypes of this type cone.

@@ -88,7 +88,6 @@
   "imports": []
 }]
 */
-
 import 'package:expect/expect.dart';
 
 /*class: Super:class=[{
@@ -116,14 +115,14 @@ class Super<T> {
   "outputUnit": "outputUnit/main",
   "parent": "library/memory:sdk/tests/web/native/main.dart::",
   "modifiers": {
-    "abstract": false
+    "abstract": true
   },
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::Mixin.method"
   ],
   "supers": []
 }]*/
-class Mixin {
+mixin Mixin {
   /*member: Mixin.method:
    function=[{
   "id": "function/memory:sdk/tests/web/native/main.dart::Mixin.method",

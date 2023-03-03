@@ -23,7 +23,13 @@ regress/utf_16_le_content.crash: EmptyOutput
 
 class_modifiers/anonymous_mixin: FormatterCrash
 class_modifiers/base/base_class_declaration: FormatterCrash
+class_modifiers/base/base_subtype_not_base_final_sealed: FormatterCrash
+class_modifiers/base/outside_library/main: FormatterCrash
+class_modifiers/base/typedef/main: FormatterCrash
 class_modifiers/final/final_class_declaration: FormatterCrash
+class_modifiers/final/final_subtype_not_base_final_sealed: FormatterCrash
+class_modifiers/final/outside_library/main: FormatterCrash
+class_modifiers/final/typedef/main: FormatterCrash
 class_modifiers/interface/interface_class_declaration: FormatterCrash
 class_modifiers/mixin/mixin_class_declaration: FormatterCrash
 class_modifiers/mixin/mixin_class_generative_constructor: FormatterCrash

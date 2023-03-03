@@ -45,6 +45,9 @@ abstract class ImpactRegistry {
   void registerStaticTearOff(
       ir.Procedure procedure, ir.LibraryDependency? import);
 
+  void registerWeakStaticTearOff(
+      ir.Procedure procedure, ir.LibraryDependency? import);
+
   void registerStaticGet(ir.Member member, ir.LibraryDependency? import);
 
   void registerStaticSet(ir.Member member, ir.LibraryDependency? import);

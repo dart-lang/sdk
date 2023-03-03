@@ -851,6 +851,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   FunctionEntity getMethod(ir.Procedure node) => getMethodInternal(node);
 
   @override
+  bool containsMethod(ir.Procedure node) => methodMap.containsKey(node);
+
+  @override
   FieldEntity getField(ir.Field node) => getFieldInternal(node);
 
   @override

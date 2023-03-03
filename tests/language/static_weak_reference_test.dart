@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test 'vm:weak-tearoff-reference' pragma.
-
-import 'dart:io' show Platform;
+// Test 'weak-tearoff-reference' pragma.
 
 import "package:expect/expect.dart";
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function? weakRef(Function? x) => x;
 
 int used1() => 10;
@@ -16,11 +14,9 @@ int used2() => 20;
 int unused1() => 30;
 int unused2() => 40;
 
-final bool isAot = Platform.executable.contains('dart_precompiled_runtime');
-
 void test(int expectedResult, bool isUsed, Function? ref) {
   print(ref);
-  if (isUsed || !isAot) {
+  if (isUsed) {
     Expect.isNotNull(ref);
     Expect.equals(expectedResult, ref!());
   } else {

@@ -40,6 +40,7 @@ import '../fasta_codes.dart';
 
 import 'constant_int_folder.dart';
 import 'exhaustiveness.dart';
+import 'static_weak_references.dart' show StaticWeakReferences;
 
 part 'constant_collection_builders.dart';
 
@@ -583,9 +584,15 @@ class ConstantsTransformer extends RemovingTransformer {
     return node;
   }
 
-  void transformAnnotations(List<Expression> nodes, TreeNode parent) {
+  void transformAnnotations(List<Expression> nodes, Annotatable parent) {
     if (evaluateAnnotations && nodes.length > 0) {
       transformExpressions(nodes, parent);
+
+      if (StaticWeakReferences.isAnnotatedWithWeakReferencePragma(
+          parent, typeEnvironment.coreTypes)) {
+        StaticWeakReferences.validateWeakReferenceDeclaration(
+            parent, constantEvaluator.errorReporter);
+      }
     }
   }
 
@@ -1026,7 +1033,15 @@ class ConstantsTransformer extends RemovingTransformer {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
-    return super.visitStaticInvocation(node, removalSentinel);
+    final TreeNode result = super.visitStaticInvocation(node, removalSentinel);
+    // Validation of weak references assumes
+    // arguments are already constant evaluated.
+    if (StaticWeakReferences.isAnnotatedWithWeakReferencePragma(
+        node.target, typeEnvironment.coreTypes)) {
+      StaticWeakReferences.validateWeakReferenceUse(
+          node, constantEvaluator.errorReporter);
+    }
+    return result;
   }
 
   @override

@@ -1416,14 +1416,6 @@ HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE:
   status: hasFix
 HintCode.DIVISION_OPTIMIZATION:
   status: hasFix
-HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE:
-  status: noFix
-  notes: |-
-    Fix depends on user's intent, which can't be known.
-HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE:
-  status: needsFix
-  notes: |-
-    One fix is to convert the reference to a 'package:' URI.
 HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
   status: noFix
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
