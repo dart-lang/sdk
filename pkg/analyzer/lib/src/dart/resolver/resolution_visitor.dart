@@ -1761,6 +1761,7 @@ class _VariableBinderErrors
         [name],
       ),
     );
+    duplicate.isDuplicate = true;
   }
 
   @override
