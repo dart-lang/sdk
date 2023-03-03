@@ -5,7 +5,7 @@
 part of "core_patch.dart";
 
 @pragma("vm:entry-point")
-class _Closure implements Function {
+final class _Closure implements Function {
   factory _Closure._uninstantiable() {
     throw "Unreachable";
   }

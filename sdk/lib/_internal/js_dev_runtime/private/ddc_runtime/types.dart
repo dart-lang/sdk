@@ -2277,7 +2277,7 @@ class Shape {
 }
 
 /// Internal base class for all concrete records.
-class _RecordImpl implements Record {
+final class _RecordImpl implements Record {
   Shape shape;
   List values;
 

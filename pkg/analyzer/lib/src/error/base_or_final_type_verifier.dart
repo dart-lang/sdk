@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -66,6 +67,26 @@ class BaseOrFinalTypeVerifier {
     }
   }
 
+  /// Checks whether a `final`, `base` or `interface` modifier can be ignored.
+  ///
+  /// Checks whether a subclass in the current library
+  /// can ignore a class modifier of a declaration in [superLibrary].
+  ///
+  /// Only true if the supertype library is a platform library, and
+  /// either the current library is also a platform library,
+  /// or the current library has a language version which predates
+  /// class modifiers
+  bool _mayIgnoreClassModifiers(LibraryElement superLibrary) {
+    // Only modifiers in platform libraries can be ignored.
+    if (!superLibrary.isInSdk) return false;
+
+    // Other platform libraries can ignore modifiers.
+    if (_definingLibrary.isInSdk) return true;
+
+    // Libraries predating class modifiers can ignore platform modifiers.
+    return !_definingLibrary.featureSet.isEnabled(Feature.class_modifiers);
+  }
+
   /// Returns true if a element modifier restriction error has been reported.
   ///
   /// Reports an error based on the modifier of the superElement.
@@ -82,7 +103,8 @@ class BaseOrFinalTypeVerifier {
       baseOrFinalSuperElement = superElement;
     } else if (hasCachedBaseOrFinalSuperElement) {
       // There's a base or final element higher up in the class hierarchy.
-      // The superelement is a sealed element.
+      // The superelement is a sealed element or an element of a
+      // legacy library.
       baseOrFinalSuperElement = cachedBaseOrFinalSuperElement;
     } else {
       // There are no restrictions on this element's modifiers.
@@ -95,13 +117,16 @@ class BaseOrFinalTypeVerifier {
       // Only report errors on elements within the current library.
       return false;
     }
-    if (!element.isBase && !element.isFinal && !element.isSealed) {
+    if (!element.isBase &&
+        !element.isFinal &&
+        !element.isSealed &&
+        !_mayIgnoreClassModifiers(baseOrFinalSuperElement.library)) {
       final contextMessage = <DiagnosticMessage>[
         DiagnosticMessageImpl(
           filePath: superElement.source.fullName,
           length: superElement.nameLength,
-          message: "The type '${superElement.name}' is a subtype of "
-              "'${baseOrFinalSuperElement.name}', and "
+          message: "The type '${superElement.displayName}' is a subtype of "
+              "'${baseOrFinalSuperElement.displayName}', and "
               "'${superElement.name}' is defined here.",
           offset: superElement.nameOffset,
           url: null,

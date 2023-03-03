@@ -59,7 +59,7 @@ class String {
  * [_StringBase] contains common methods used by concrete String
  * implementations, e.g., _OneByteString.
  */
-abstract class _StringBase implements String {
+abstract final class _StringBase implements String {
   bool _isWhitespace(int codeUnit);
 
   // Constants used by replaceAll encoding of string slices between matches.
@@ -983,7 +983,7 @@ int _clampedPositiveProduct(int a, int b) {
 }
 
 @pragma("vm:entry-point")
-class _OneByteString extends _StringBase {
+final class _OneByteString extends _StringBase {
   factory _OneByteString._uninstantiable() {
     throw "Unreachable";
   }
@@ -1321,7 +1321,7 @@ class _OneByteString extends _StringBase {
 }
 
 @pragma("vm:entry-point")
-class _TwoByteString extends _StringBase {
+final class _TwoByteString extends _StringBase {
   factory _TwoByteString._uninstantiable() {
     throw "Unreachable";
   }
@@ -1383,7 +1383,7 @@ class _TwoByteString extends _StringBase {
 }
 
 @pragma("vm:entry-point")
-class _ExternalOneByteString extends _StringBase {
+final class _ExternalOneByteString extends _StringBase {
   factory _ExternalOneByteString._uninstantiable() {
     throw "Unreachable";
   }
@@ -1403,7 +1403,7 @@ class _ExternalOneByteString extends _StringBase {
 }
 
 @pragma("vm:entry-point")
-class _ExternalTwoByteString extends _StringBase {
+final class _ExternalTwoByteString extends _StringBase {
   factory _ExternalTwoByteString._uninstantiable() {
     throw "Unreachable";
   }
@@ -1422,7 +1422,7 @@ class _ExternalTwoByteString extends _StringBase {
   }
 }
 
-class _StringMatch implements Match {
+final class _StringMatch implements Match {
   const _StringMatch(this.start, this.input, this.pattern);
 
   int get end => start + pattern.length;
@@ -1449,7 +1449,7 @@ class _StringMatch implements Match {
   final String pattern;
 }
 
-class _StringAllMatchesIterable extends Iterable<Match> {
+final class _StringAllMatchesIterable extends Iterable<Match> {
   final String _input;
   final String _pattern;
   final int _index;
@@ -1468,7 +1468,7 @@ class _StringAllMatchesIterable extends Iterable<Match> {
   }
 }
 
-class _StringAllMatchesIterator implements Iterator<Match> {
+final class _StringAllMatchesIterator implements Iterator<Match> {
   final String _input;
   final String _pattern;
   int _index;

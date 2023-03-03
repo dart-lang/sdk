@@ -66,7 +66,7 @@ class DartUriResolver extends UriResolver {
   ///
   /// @param uri the URI being tested
   /// @return `true` if the given URI is a `dart:` URI
-  static bool isDartUri(Uri uri) => DART_SCHEME == uri.scheme;
+  static bool isDartUri(Uri uri) => uri.isScheme(DART_SCHEME);
 }
 
 /// An implementation of an non-existing [Source].

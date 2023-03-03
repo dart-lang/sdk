@@ -2602,6 +2602,7 @@ restored
 restores
 restrict
 restricted
+restrictions
 restrictive
 result
 resulted

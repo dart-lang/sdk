@@ -17,7 +17,7 @@ class bool {
 }
 
 @pragma("wasm:entry-point")
-class _BoxedBool extends bool {
+final class _BoxedBool extends bool {
   // A boxed bool contains an unboxed bool.
   @pragma("wasm:entry-point")
   bool value = false;

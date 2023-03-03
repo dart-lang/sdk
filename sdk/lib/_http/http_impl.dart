@@ -289,7 +289,7 @@ class _HttpProfileData {
 int _nextServiceId = 1;
 
 // TODO(ajohnsen): Use other way of getting a unique id.
-abstract class _ServiceObject {
+mixin _ServiceObject {
   int __serviceId = 0;
   int get _serviceId {
     if (__serviceId == 0) __serviceId = _nextServiceId++;
@@ -3030,7 +3030,7 @@ class _HttpClient implements HttpClient {
       Platform.environment;
 }
 
-class _HttpConnection extends LinkedListEntry<_HttpConnection>
+final class _HttpConnection extends LinkedListEntry<_HttpConnection>
     with _ServiceObject {
   static const _ACTIVE = 0;
   static const _IDLE = 1;
