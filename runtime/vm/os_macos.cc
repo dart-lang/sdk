@@ -121,15 +121,6 @@ int64_t OS::GetCurrentMonotonicMicrosForTimeline() {
 #endif
 }
 
-int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
-#if defined(SUPPORT_TIMELINE)
-  if (Timeline::recorder_discards_clock_values()) return -1;
-  return OS::GetCurrentThreadCPUMicros();
-#else
-  return -1;
-#endif
-}
-
 intptr_t OS::ActivationFrameAlignment() {
 #if DART_HOST_OS_IOS
 #if TARGET_ARCH_ARM

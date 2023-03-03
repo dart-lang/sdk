@@ -205,7 +205,7 @@ TEST_CASE(TimelineEventPrintSystrace) {
 
   // Test a duration event. This event kind is not supported so we should
   // serialize it to an empty string.
-  event.Duration("DUR", 0, 1, 2, 3);
+  event.Duration("DUR", 0, 1);
   TimelineEventSystraceRecorder::PrintSystrace(&event, &buffer[0],
                                                kBufferLength);
   EXPECT_STREQ("", buffer);
