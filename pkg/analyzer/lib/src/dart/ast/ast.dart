@@ -3440,9 +3440,10 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 ///      | [LogicalAndPattern]
 ///      | [LogicalOrPattern]
 ///      | [MapPattern]
+///      | [NullAssertPattern]
+///      | [NullCheckPattern]
 ///      | [ObjectPattern]
 ///      | [ParenthesizedPattern]
-///      | [PostfixPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
 @experimental

@@ -194,7 +194,8 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
     // Dart `null` is implemented by JavaScript `null` and `undefined` which are
     // not strict-equals, so we can't use `===`. We would like to use `==` but
     // need to avoid any cases from ES6 7.2.14 that involve conversions.
-    if (left.isConstantNull() || right.isConstantNull()) {
+    if (_abstractValueDomain.isNull(leftType).isDefinitelyTrue ||
+        _abstractValueDomain.isNull(rightType).isDefinitelyTrue) {
       return '==';
     }
 
