@@ -12,7 +12,6 @@
 #include "vm/code_observers.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
-#include "vm/malloc_hooks.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/tags.h"
@@ -28,9 +27,7 @@ class ProcessedSample;
 class ProcessedSampleBuffer;
 
 class Sample;
-class AllocationSampleBuffer;
 class SampleBlock;
-class ProfileTrieNode;
 
 #define PROFILER_COUNTERS(V)                                                   \
   V(bail_out_unknown_task)                                                     \
@@ -45,7 +42,6 @@ class ProfileTrieNode;
   V(incomplete_sample_fp_bounds)                                               \
   V(incomplete_sample_fp_step)                                                 \
   V(incomplete_sample_bad_pc)                                                  \
-  V(failure_native_allocation_sample)                                          \
   V(sample_allocation_failure)
 
 struct ProfilerCounters {
@@ -57,7 +53,6 @@ struct ProfilerCounters {
 class Profiler : public AllStatic {
  public:
   static void Init();
-  static void InitAllocationSampleBuffer();
   static void Cleanup();
 
   static void SetSampleDepth(intptr_t depth);
@@ -75,9 +70,6 @@ class Profiler : public AllStatic {
   static void set_sample_block_buffer(SampleBlockBuffer* buffer) {
     sample_block_buffer_ = buffer;
   }
-  static AllocationSampleBuffer* allocation_sample_buffer() {
-    return allocation_sample_buffer_;
-  }
 
   static void DumpStackTrace(void* context);
   static void DumpStackTrace(bool for_crash = true);
@@ -85,9 +77,6 @@ class Profiler : public AllStatic {
   static void SampleAllocation(Thread* thread,
                                intptr_t cid,
                                uint32_t identity_hash);
-  static Sample* SampleNativeAllocation(intptr_t skip_count,
-                                        uword address,
-                                        uintptr_t allocation_size);
 
   // SampleThread is called from inside the signal handler and hence it is very
   // critical that the implementation of SampleThread does not do any of the
@@ -125,7 +114,6 @@ class Profiler : public AllStatic {
   static RelaxedAtomic<bool> initialized_;
 
   static SampleBlockBuffer* sample_block_buffer_;
-  static AllocationSampleBuffer* allocation_sample_buffer_;
 
   static ProfilerCounters counters_;
 
@@ -236,11 +224,6 @@ class Sample {
     state_ = 0;
     next_ = nullptr;
     allocation_identity_hash_ = 0;
-#if defined(DART_USE_TCMALLOC) && defined(DEBUG)
-    native_allocation_address_ = 0;
-    native_allocation_size_bytes_ = 0;
-    next_free_ = NULL;
-#endif
     set_head_sample(true);
   }
 
@@ -336,32 +319,6 @@ class Sample {
     allocation_identity_hash_ = hash;
   }
 
-#if defined(DART_USE_TCMALLOC) && defined(DEBUG)
-  uword native_allocation_address() const { return native_allocation_address_; }
-  void set_native_allocation_address(uword address) {
-    native_allocation_address_ = address;
-  }
-
-  uintptr_t native_allocation_size_bytes() const {
-    return native_allocation_size_bytes_;
-  }
-  void set_native_allocation_size_bytes(uintptr_t size) {
-    native_allocation_size_bytes_ = size;
-  }
-
-  Sample* next_free() const { return next_free_; }
-  void set_next_free(Sample* next_free) { next_free_ = next_free; }
-#else
-  uword native_allocation_address() const { return 0; }
-  void set_native_allocation_address(uword address) { UNREACHABLE(); }
-
-  uintptr_t native_allocation_size_bytes() const { return 0; }
-  void set_native_allocation_size_bytes(uintptr_t size) { UNREACHABLE(); }
-
-  Sample* next_free() const { return nullptr; }
-  void set_next_free(Sample* next_free) { UNREACHABLE(); }
-#endif  // defined(DART_USE_TCMALLOC) && defined(DEBUG)
-
   Thread::TaskKind thread_task() const { return ThreadTaskBit::decode(state_); }
 
   void set_thread_task(Thread::TaskKind task) {
@@ -450,34 +407,7 @@ class Sample {
   Sample* next_;
   uint32_t allocation_identity_hash_;
 
-#if defined(DART_USE_TCMALLOC) && defined(DEBUG)
-  uword native_allocation_address_;
-  uintptr_t native_allocation_size_bytes_;
-  Sample* next_free_;
-#endif
-
   DISALLOW_COPY_AND_ASSIGN(Sample);
-};
-
-class NativeAllocationSampleFilter : public SampleFilter {
- public:
-  NativeAllocationSampleFilter(int64_t time_origin_micros,
-                               int64_t time_extent_micros)
-      : SampleFilter(ILLEGAL_PORT,
-                     SampleFilter::kNoTaskFilter,
-                     time_origin_micros,
-                     time_extent_micros) {}
-
-  bool FilterSample(Sample* sample) {
-    // If the sample is an allocation sample, we need to check that the
-    // memory at the address hasn't been freed, and if the address associated
-    // with the allocation has been freed and then reissued.
-    void* alloc_address =
-        reinterpret_cast<void*>(sample->native_allocation_address());
-    ASSERT(alloc_address != NULL);
-    Sample* recorded_sample = MallocHooks::GetSample(alloc_address);
-    return (sample == recorded_sample);
-  }
 };
 
 class AbstractCode {
@@ -887,34 +817,10 @@ class StreamingSampleBufferBuilder : public ProcessedSampleBufferBuilder {
   DISALLOW_COPY_AND_ASSIGN(StreamingSampleBufferBuilder);
 };
 
-class AllocationSampleBuffer : public SampleBuffer {
- public:
-  explicit AllocationSampleBuffer(intptr_t capacity = 60000);
-  virtual ~AllocationSampleBuffer();
-
-  virtual Sample* ReserveSample();
-  virtual Sample* ReserveSampleAndLink(Sample* previous);
-  void FreeAllocationSample(Sample* sample);
-
-  intptr_t Size() { return memory_->size(); }
-
- private:
-  intptr_t ReserveSampleSlotLocked();
-
-  Mutex mutex_;
-  Sample* free_sample_list_;
-  VirtualMemory* memory_;
-  RelaxedAtomic<int> cursor_ = 0;
-  DISALLOW_COPY_AND_ASSIGN(AllocationSampleBuffer);
-};
-
 intptr_t Profiler::Size() {
   intptr_t size = 0;
   if (sample_block_buffer_ != nullptr) {
     size += sample_block_buffer_->Size();
-  }
-  if (allocation_sample_buffer_ != nullptr) {
-    size += allocation_sample_buffer_->Size();
   }
   return size;
 }
@@ -972,17 +878,6 @@ class ProcessedSample : public ZoneAllocated {
 
   bool IsAllocationSample() const { return allocation_cid_ > 0; }
 
-  bool is_native_allocation_sample() const {
-    return native_allocation_size_bytes_ != 0;
-  }
-
-  uintptr_t native_allocation_size_bytes() const {
-    return native_allocation_size_bytes_;
-  }
-  void set_native_allocation_size_bytes(uintptr_t allocation_size) {
-    native_allocation_size_bytes_ = allocation_size;
-  }
-
   // Was the stack trace truncated?
   bool truncated() const { return truncated_; }
   void set_truncated(bool truncated) { truncated_ = truncated; }
@@ -991,20 +886,6 @@ class ProcessedSample : public ZoneAllocated {
   bool first_frame_executing() const { return first_frame_executing_; }
   void set_first_frame_executing(bool first_frame_executing) {
     first_frame_executing_ = first_frame_executing;
-  }
-
-  ProfileTrieNode* timeline_code_trie() const { return timeline_code_trie_; }
-  void set_timeline_code_trie(ProfileTrieNode* trie) {
-    ASSERT(timeline_code_trie_ == NULL);
-    timeline_code_trie_ = trie;
-  }
-
-  ProfileTrieNode* timeline_function_trie() const {
-    return timeline_function_trie_;
-  }
-  void set_timeline_function_trie(ProfileTrieNode* trie) {
-    ASSERT(timeline_function_trie_ == NULL);
-    timeline_function_trie_ = trie;
   }
 
  private:
@@ -1026,10 +907,6 @@ class ProcessedSample : public ZoneAllocated {
   uint32_t allocation_identity_hash_;
   bool truncated_;
   bool first_frame_executing_;
-  uword native_allocation_address_;
-  uintptr_t native_allocation_size_bytes_;
-  ProfileTrieNode* timeline_code_trie_;
-  ProfileTrieNode* timeline_function_trie_;
 
   friend class SampleBuffer;
   DISALLOW_COPY_AND_ASSIGN(ProcessedSample);

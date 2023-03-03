@@ -155,13 +155,6 @@ config("dart_config") {
   }
 
   include_dirs = [ "include" ]
-  if (dart_use_tcmalloc) {
-    defines += [ "DART_USE_TCMALLOC" ]
-    include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
-  }
-  if (dart_use_mallinfo2) {
-    defines += [ "DART_USE_MALLINFO2" ]
-  }
 
   if (dart_use_compressed_pointers) {
     defines += [ "DART_COMPRESSED_POINTERS" ]

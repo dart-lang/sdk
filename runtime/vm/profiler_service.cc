@@ -9,7 +9,6 @@
 #include "vm/hash_map.h"
 #include "vm/heap/safepoint.h"
 #include "vm/log.h"
-#include "vm/malloc_hooks.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/os.h"
@@ -1698,10 +1697,6 @@ void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
     if (sample->truncated()) {
       sample_obj.AddProperty("truncated", true);
     }
-    if (sample->is_native_allocation_sample()) {
-      sample_obj.AddProperty64("_nativeAllocationSizeBytes",
-                               sample->native_allocation_size_bytes());
-    }
     {
       JSONArray stack(&sample_obj, "stack");
       // Walk the sampled PCs.
@@ -1880,16 +1875,6 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
                                      Thread::kMutatorTask, time_origin_micros,
                                      time_extent_micros);
   PrintJSONImpl(thread, stream, &filter, Profiler::sample_block_buffer(), true);
-}
-
-void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
-                                                int64_t time_origin_micros,
-                                                int64_t time_extent_micros,
-                                                bool include_code_samples) {
-  Thread* thread = Thread::Current();
-  NativeAllocationSampleFilter filter(time_origin_micros, time_extent_micros);
-  PrintJSONImpl(thread, stream, &filter, Profiler::allocation_sample_buffer(),
-                include_code_samples);
 }
 
 void ProfilerService::ClearSamples() {
