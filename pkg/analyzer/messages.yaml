@@ -6205,12 +6205,6 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the pattern variable
-  INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE:
-    problemMessage: "The variable '{0}' doesn't have the same type and/or finality in all cases that share this body."
-    correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
-    comment: |-
-      Parameters:
-      0: the name of the pattern variable
   INITIALIZER_FOR_NON_EXISTENT_FIELD:
     problemMessage: "'{0}' isn't a field in the enclosing class."
     correctionMessage: "Try correcting the name to match an existing field, or defining a field named '{0}'."
@@ -11353,6 +11347,24 @@ CompileTimeErrorCode:
   PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
     problemMessage: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
     correctionMessage: Try assigning to a different variable.
+  PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE:
+    problemMessage: "The variable '{0}' doesn't have the same type and/or finality in all cases that share this body."
+    correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
+    comment: |-
+      Parameters:
+      0: the name of the pattern variable
+  PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL:
+    problemMessage: "The variable '{0}' is not available because there is a label or 'default' case."
+    correctionMessage: Try removing the label, or providing the 'default' case with its own body.
+    comment: |-
+      Parameters:
+      0: the name of the pattern variable
+  PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES:
+    problemMessage: "The variable '{0}' is available in some, but not all cases that share this body."
+    correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
+    comment: |-
+      Parameters:
+      0: the name of the pattern variable
   POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
     problemMessage: Positional super parameters can't be used when the super constructor invocation has a positional argument.
     correctionMessage: Try making all the positional parameters passed to the super constructor be either all super parameters or all normal parameters.

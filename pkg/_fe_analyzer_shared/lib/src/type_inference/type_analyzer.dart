@@ -34,6 +34,47 @@ class CaseHeadOrDefaultInfo<Node extends Object, Expression extends Node,
   });
 }
 
+/// The kind of inconsistency identified for a variable.
+enum JoinedPatternVariableInconsistency {
+  /// No inconsistency.
+  none(0),
+
+  /// Only one branch of a logical-or pattern has the variable.
+  logicalOr(4),
+
+  /// Not every case of a shared case scope has the variable.
+  sharedCaseAbsent(3),
+
+  /// The shared case scope has a label or `default` case.
+  sharedCaseHasLabel(2),
+
+  /// The finality or type of the variable components is not the same.
+  /// This is reported for both logical-or and shared cases.
+  differentFinalityOrType(1);
+
+  final int _severity;
+
+  const JoinedPatternVariableInconsistency(this._severity);
+
+  /// Returns the most serious inconsistency for `this` or [other].
+  JoinedPatternVariableInconsistency maxWith(
+    JoinedPatternVariableInconsistency other,
+  ) {
+    return _severity > other._severity ? this : other;
+  }
+
+  /// Returns the most serious inconsistency for `this` or [others].
+  JoinedPatternVariableInconsistency maxWithAll(
+    Iterable<JoinedPatternVariableInconsistency> others,
+  ) {
+    JoinedPatternVariableInconsistency result = this;
+    for (JoinedPatternVariableInconsistency other in others) {
+      result = result.maxWith(other);
+    }
+    return result;
+  }
+}
+
 /// The location where the join of a pattern variable happens.
 enum JoinedPatternVariableLocation {
   /// A single pattern, from `logical-or` patterns.
@@ -1867,7 +1908,7 @@ mixin TypeAnalyzer<
   void finishJoinedPatternVariable(
     Variable variable, {
     required JoinedPatternVariableLocation location,
-    required bool isConsistent,
+    required JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
     required Type type,
   });
@@ -2210,8 +2251,10 @@ mixin TypeAnalyzer<
         if (!isIdenticalToComponent) {
           finishJoinedPatternVariable(variable,
               location: location,
-              isConsistent:
-                  typeIfConsistent != null && isFinalIfConsistent != null,
+              inconsistency: typeIfConsistent != null &&
+                      isFinalIfConsistent != null
+                  ? JoinedPatternVariableInconsistency.none
+                  : JoinedPatternVariableInconsistency.differentFinalityOrType,
               isFinal: isFinalIfConsistent ?? false,
               type: typeIfConsistent ?? errorType);
           flow.assignMatchedPatternVariable(variable, promotionKey);

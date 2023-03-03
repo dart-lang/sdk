@@ -2140,18 +2140,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the pattern variable
-  static const CompileTimeErrorCode
-      INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE = CompileTimeErrorCode(
-    'INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE',
-    "The variable '{0}' doesn't have the same type and/or finality in all "
-        "cases that share this body.",
-    correctionMessage:
-        "Try declaring the variable pattern with the same type and finality in "
-        "all cases.",
-  );
-
-  ///  Parameters:
   ///  0: the name of the initializing formal that is not an instance variable in
   ///     the immediately enclosing class
   static const CompileTimeErrorCode INITIALIZER_FOR_NON_EXISTENT_FIELD =
@@ -3911,6 +3899,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Pattern variables can't be assigned inside the guard of the enclosing "
         "guarded pattern.",
     correctionMessage: "Try assigning to a different variable.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the pattern variable
+  static const CompileTimeErrorCode
+      PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE =
+      CompileTimeErrorCode(
+    'PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE',
+    "The variable '{0}' doesn't have the same type and/or finality in all "
+        "cases that share this body.",
+    correctionMessage:
+        "Try declaring the variable pattern with the same type and finality in "
+        "all cases.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the pattern variable
+  static const CompileTimeErrorCode
+      PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL = CompileTimeErrorCode(
+    'PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL',
+    "The variable '{0}' is not available because there is a label or 'default' "
+        "case.",
+    correctionMessage:
+        "Try removing the label, or providing the 'default' case with its own "
+        "body.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the pattern variable
+  static const CompileTimeErrorCode
+      PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES = CompileTimeErrorCode(
+    'PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES',
+    "The variable '{0}' is available in some, but not all cases that share "
+        "this body.",
+    correctionMessage:
+        "Try declaring the variable pattern with the same type and finality in "
+        "all cases.",
   );
 
   ///  No parameters.

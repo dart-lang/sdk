@@ -443,8 +443,8 @@ main() {
                       'varPattern(x, matchedType: double, staticType: double), '
                       'varPattern(x, matchedType: double, staticType: '
                       'double), matchedType: double), true, variables('
-                      'notConsistent double x = [x1, x2])), expr(int)), '
-                      'case(default, expr(int)))',
+                      'notConsistent:differentFinalityOrType double x = '
+                      '[x1, x2])), expr(int)), case(default, expr(int)))',
                     )
                     .stmt,
               ], expectedErrors: {
@@ -470,8 +470,8 @@ main() {
                       'varPattern(x, matchedType: double, staticType: double), '
                       'varPattern(x, matchedType: double, staticType: '
                       'num), matchedType: double), true, variables('
-                      'notConsistent error x = [x1, x2])), expr(int)), '
-                      'case(default, expr(int)))',
+                      'notConsistent:differentFinalityOrType error x = '
+                      '[x1, x2])), expr(int)), case(default, expr(int)))',
                     )
                     .stmt,
               ], expectedErrors: {
@@ -972,8 +972,8 @@ main() {
                       'matchedType: int, staticType: num), true, '
                       'variables(x1)), head(varPattern(x, matchedType: int, '
                       'staticType: int), true, variables(x2)), '
-                      'variables(notConsistent error x = [x1, x2])), '
-                      'block(break())))'),
+                      'variables(notConsistent:differentFinalityOrType error '
+                      'x = [x1, x2])), block(break())))'),
                 ]);
               });
               test('explicit / implicit', () {
@@ -995,8 +995,8 @@ main() {
                       'matchedType: int, staticType: num), true, variables('
                       'x1)), head(varPattern(x, matchedType: int, '
                       'staticType: int), true, variables(x2)), '
-                      'variables(notConsistent error x = [x1, x2])), '
-                      'block(break())))'),
+                      'variables(notConsistent:differentFinalityOrType error '
+                      'x = [x1, x2])), block(break())))'),
                 ]);
               });
               test('implicit / implicit', () {
@@ -1020,7 +1020,8 @@ main() {
                       'variables(x1)), head(listPattern(varPattern(x, '
                       'matchedType: int, staticType: int), matchedType: '
                       'List<int>, requiredType: List<int>), true, '
-                      'variables(x2)), variables(notConsistent error '
+                      'variables(x2)), variables('
+                      'notConsistent:differentFinalityOrType error '
                       'x = [x1, x2])), block(break())))'),
                 ]);
               });
@@ -1043,8 +1044,9 @@ main() {
                 ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                     'matchedType: int, staticType: int), true, variables(x1)), '
                     'head(varPattern(x, matchedType: int, staticType: int), '
-                    'true, variables(x2)), variables(notConsistent '
-                    'int x = [x1, x2])), block(break())))'),
+                    'true, variables(x2)), variables('
+                    'notConsistent:differentFinalityOrType int x = [x1, x2])), '
+                    'block(break())))'),
               ]);
             });
           });
@@ -1065,7 +1067,8 @@ main() {
               ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                   'matchedType: int, staticType: int), true, variables(x1)), '
                   'head(const(0, matchedType: int), true, variables()), '
-                  'variables(notConsistent int x = [x1])), block(break())))'),
+                  'variables(notConsistent:sharedCaseAbsent int x = [x1])), '
+                  'block(break())))'),
             ]);
           });
           test('case not, case has', () {
@@ -1085,7 +1088,8 @@ main() {
               ).checkIr('switch(expr(int), case(heads(head(const(0, '
                   'matchedType: int), true, variables()), head(varPattern(x, '
                   'matchedType: int, staticType: int), true, variables(x1)), '
-                  'variables(notConsistent int x = [x1])), block(break())))'),
+                  'variables(notConsistent:sharedCaseAbsent int x = [x1])), '
+                  'block(break())))'),
             ]);
           });
           test('case has, default', () {
@@ -1104,8 +1108,8 @@ main() {
                 ],
               ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                   'matchedType: int, staticType: int), true, variables(x1)), '
-                  'default, variables(notConsistent int x = [x1])), '
-                  'block(break())))'),
+                  'default, variables(notConsistent:sharedCaseHasLabel int x '
+                  '= [x1])), block(break())))'),
             ]);
           });
           test('case has, with label', () {
@@ -1123,7 +1127,8 @@ main() {
                 ],
               ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                   'matchedType: int, staticType: int), true, variables(x1)), '
-                  'variables(notConsistent int x = [x1])), block(break())))'),
+                  'variables(notConsistent:sharedCaseHasLabel int x = '
+                  '[x1])), block(break())))'),
             ]);
           });
         });
@@ -2829,8 +2834,8 @@ main() {
                 ).checkIr('ifCase(expr(Object), logicalOrPattern(varPattern(x, '
                     'matchedType: Object, staticType: int), varPattern(x, '
                     'matchedType: Object, staticType: num), matchedType: '
-                    'Object), variables(notConsistent error x = [x1, x2]), '
-                    'true, block(), noop)'),
+                    'Object), variables(notConsistent:differentFinalityOrType '
+                    'error x = [x1, x2]), true, block(), noop)'),
               ], expectedErrors: {
                 'inconsistentJoinedPatternVariable(variable: x = [x1, x2], '
                     'component: x2)',
@@ -2848,8 +2853,8 @@ main() {
                 ).checkIr('ifCase(expr(num), logicalOrPattern(varPattern(x, '
                     'matchedType: num, staticType: int), varPattern(x, '
                     'matchedType: num, staticType: num), matchedType: num), '
-                    'variables(notConsistent error x = [x1, x2]), true, '
-                    'block(), noop)'),
+                    'variables(notConsistent:differentFinalityOrType error x = '
+                    '[x1, x2]), true, block(), noop)'),
               ], expectedErrors: {
                 'inconsistentJoinedPatternVariable(variable: x = [x1, x2], '
                     'component: x2)',
@@ -2869,8 +2874,8 @@ main() {
             ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                 'matchedType: int, staticType: int), varPattern(x, '
                 'matchedType: int, staticType: int), matchedType: int), '
-                'variables(notConsistent int x = [x1, x2]), true, '
-                'block(), noop)'),
+                'variables(notConsistent:differentFinalityOrType int x = '
+                '[x1, x2]), true, block(), noop)'),
           ], expectedErrors: {
             'inconsistentJoinedPatternVariable(variable: x = [x1, x2], '
                 'component: x2)',
@@ -2903,7 +2908,8 @@ main() {
               ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                   'matchedType: int, staticType: int), wildcardPattern('
                   'matchedType: int), matchedType: int), variables('
-                  'notConsistent int x = [x1]), true, block(), noop)'),
+                  'notConsistent:logicalOr int x = [x1]), true, block(), '
+                  'noop)'),
             ], expectedErrors: {
               'logicalOrPatternBranchMissingVariable(node: PATTERN, '
                   'hasInLeft: true, name: x, variable: x1)',
@@ -2920,7 +2926,8 @@ main() {
               ).checkIr('ifCase(expr(int), logicalOrPattern(wildcardPattern('
                   'matchedType: int), varPattern(x, matchedType: int, '
                   'staticType: int), matchedType: int), variables('
-                  'notConsistent int x = [x1]), true, block(), noop)'),
+                  'notConsistent:logicalOr int x = [x1]), true, block(), '
+                  'noop)'),
             ], expectedErrors: {
               'logicalOrPatternBranchMissingVariable(node: PATTERN, '
                   'hasInLeft: false, name: x, variable: x1)',

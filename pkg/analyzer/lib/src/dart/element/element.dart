@@ -5,6 +5,8 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -3838,8 +3840,7 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
   @override
   final List<PatternVariableElementImpl> variables;
 
-  @override
-  bool isConsistent;
+  shared.JoinedPatternVariableInconsistency inconsistency;
 
   /// The identifiers that reference this element.
   final List<SimpleIdentifier> references = [];
@@ -3848,7 +3849,7 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
     super.name,
     super.offset,
     this.variables,
-    this.isConsistent,
+    this.inconsistency,
   ) {
     for (var component in variables) {
       component.join = this;
@@ -3857,6 +3858,11 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
 
   @override
   int get hashCode => identityHashCode(this);
+
+  @override
+  bool get isConsistent {
+    return inconsistency == shared.JoinedPatternVariableInconsistency.none;
+  }
 
   /// Returns this variable, and variables that join into it.
   List<PatternVariableElementImpl> get transitiveVariables {

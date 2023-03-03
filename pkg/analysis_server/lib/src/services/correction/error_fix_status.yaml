@@ -612,8 +612,6 @@ CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
   status: needsEvaluation
 CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
   status: needsEvaluation
-CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE:
-  status: noFix
 CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
   status: noFix
   notes: |-
@@ -958,6 +956,12 @@ CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
   notes: |-
     We do not have enough information to figure out the user's intent with the
     use of the variable in the pattern.
+CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL:
+  status: needsEvaluation
+CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES:
+  status: needsEvaluation
 CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
   status: needsFix
   since: 2.17

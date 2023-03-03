@@ -90,7 +90,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
   Variable joinPatternVariables({
     required Object key,
     required List<Variable> components,
-    required bool isConsistent,
+    required JoinedPatternVariableInconsistency inconsistency,
   });
 
   /// Updates the binder after visiting a logical-or pattern, joins variables
@@ -109,7 +109,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
           joinPatternVariables(
             key: node,
             components: [leftVariable, rightVariable],
-            isConsistent: true,
+            inconsistency: JoinedPatternVariableInconsistency.none,
           ),
         );
       } else {
@@ -124,7 +124,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
           joinPatternVariables(
             key: node,
             components: [leftVariable],
-            isConsistent: false,
+            inconsistency: JoinedPatternVariableInconsistency.logicalOr,
           ),
         );
       }
@@ -143,7 +143,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
         joinPatternVariables(
           key: node,
           components: [rightVariable],
-          isConsistent: false,
+          inconsistency: JoinedPatternVariableInconsistency.logicalOr,
         ),
       );
     }
@@ -165,6 +165,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
   void switchStatementSharedCaseScopeEmpty(Object key) {
     _SharedCaseScope<Variable> sharedScope = _sharedCaseScopes.last;
     assert(sharedScope.key == key);
+    sharedScope.hasLabel = true;
     sharedScope.addAll({});
   }
 
@@ -183,13 +184,17 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
         in sharedScope.variables.entries) {
       _SharedCaseScopeVariable<Variable> sharedVariable = entry.value;
       List<Variable> variables = sharedVariable.variables;
-      if (sharedVariable.isConsistent && variables.length == 1) {
+      if (sharedVariable.allCases && variables.length == 1) {
         result[entry.key] = variables[0];
       } else {
         result[entry.key] = joinPatternVariables(
           key: key,
           components: variables,
-          isConsistent: sharedVariable.isConsistent,
+          inconsistency: sharedVariable.allCases
+              ? JoinedPatternVariableInconsistency.none
+              : sharedScope.hasLabel
+                  ? JoinedPatternVariableInconsistency.sharedCaseHasLabel
+                  : JoinedPatternVariableInconsistency.sharedCaseAbsent,
         );
       }
     }
@@ -230,6 +235,7 @@ abstract class VariableBinderErrors<Node extends Object,
 class _SharedCaseScope<Variable extends Object> {
   final Object key;
   bool isEmpty = true;
+  bool hasLabel = false;
   Map<String, _SharedCaseScopeVariable<Variable>> variables = {};
 
   _SharedCaseScope(this.key);
@@ -253,7 +259,7 @@ class _SharedCaseScope<Variable extends Object> {
         if (newVariable != null) {
           variable.variables.add(newVariable);
         } else {
-          variable.isConsistent = false;
+          variable.allCases = false;
         }
       }
       for (MapEntry<String, Variable> newEntry in newVariables.entries) {
@@ -261,7 +267,7 @@ class _SharedCaseScope<Variable extends Object> {
         Variable newVariable = newEntry.value;
         if (!variables.containsKey(name)) {
           _getVariable(name)
-            ..isConsistent = false
+            ..allCases = false
             ..variables.add(newVariable);
         }
       }
@@ -274,6 +280,6 @@ class _SharedCaseScope<Variable extends Object> {
 }
 
 class _SharedCaseScopeVariable<Variable extends Object> {
-  bool isConsistent = true;
+  bool allCases = true;
   final List<Variable> variables = [];
 }
