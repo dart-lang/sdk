@@ -489,7 +489,7 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 }
 
 void IsolateGroup::Shutdown() {
-  char* name;
+  char* name = nullptr;
   // We retrieve the flag value once to avoid the compiler complaining about the
   // possibly uninitialized value of name, as the compiler is unaware that when
   // the flag variable is non-const, it is set once during VM initialization and

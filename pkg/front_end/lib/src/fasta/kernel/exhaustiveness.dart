@@ -473,8 +473,12 @@ Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
   } else if (pattern is NullCheckPattern) {
     return convertPatternToSpace(cache, pattern.pattern, constants, context,
         nonNull: true);
-  } else if (pattern is NullAssertPattern ||
-      pattern is CastPattern ||
+  } else if (pattern is NullAssertPattern) {
+    Space space = convertPatternToSpace(
+        cache, pattern.pattern, constants, context,
+        nonNull: true);
+    return new Space.union([space, Space.nullSpace]);
+  } else if (pattern is CastPattern ||
       pattern is InvalidPattern ||
       pattern is RelationalPattern ||
       pattern is AndPattern) {
