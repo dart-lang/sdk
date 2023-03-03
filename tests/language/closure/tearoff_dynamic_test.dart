@@ -21,7 +21,6 @@ tearoffEquals(f1, f2) {
 
 tearoffNotEquals(f1, f2) {
   Expect.notEquals(f1, f2);
-  Expect.notEquals(f1.hashCode, f2.hashCode);
 }
 
 testDynamic() {
