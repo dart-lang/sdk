@@ -380,8 +380,10 @@ class PatternConverter {
       return convertPattern(pattern.pattern, nonNull: true);
     } else if (pattern is ParenthesizedPattern) {
       return convertPattern(pattern.pattern, nonNull: nonNull);
-    } else if (pattern is NullAssertPattern ||
-        pattern is CastPattern ||
+    } else if (pattern is NullAssertPattern) {
+      Space space = convertPattern(pattern.pattern, nonNull: true);
+      return Space.union([space, Space.nullSpace]);
+    } else if (pattern is CastPattern ||
         pattern is RelationalPattern ||
         pattern is LogicalAndPattern) {
       // These pattern do not add to the exhaustiveness coverage.
