@@ -52,7 +52,7 @@ class double {
 }
 
 @pragma("wasm:entry-point")
-class _BoxedDouble extends double {
+final class _BoxedDouble extends double {
   // A boxed double contains an unboxed double.
   @pragma("wasm:entry-point")
   double value = 0.0;

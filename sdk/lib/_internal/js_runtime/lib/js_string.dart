@@ -8,7 +8,7 @@ part of _interceptors;
 /// class as an interceptor, and changes references to [:this:] to
 /// actually use the receiver of the method, which is generated as an extra
 /// argument added to each member.
-class JSString extends Interceptor implements String, JSIndexable {
+final class JSString extends Interceptor implements String, JSIndexable {
   const JSString();
 
   @pragma('dart2js:noInline')
@@ -192,10 +192,8 @@ class JSString extends Interceptor implements String, JSIndexable {
         case 0x0D:
         case 0x20:
         case 0x85:
-        case 0xA0:
-          return true;
-        default:
-          return false;
+        case 0xA0: return true;
+        default: return false;
       }
     }
     switch (codeUnit) {
@@ -216,10 +214,8 @@ class JSString extends Interceptor implements String, JSIndexable {
       case 0x202F:
       case 0x205F:
       case 0x3000:
-      case 0xFEFF:
-        return true;
-      default:
-        return false;
+      case 0xFEFF: return true;
+      default: return false;
     }
   }
 

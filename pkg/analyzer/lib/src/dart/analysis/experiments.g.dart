@@ -140,7 +140,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.class_modifiers,
     isExpired: IsExpired.class_modifiers,
     documentation: 'Class modifiers',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.0.0'),
     releaseVersion: null,
   );
 
@@ -314,7 +314,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
     documentation: 'Records',
-    experimentalReleaseVersion: Version.parse('2.19.0'),
+    experimentalReleaseVersion: Version.parse('3.0.0'),
     releaseVersion: null,
   );
 
@@ -324,7 +324,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
     documentation: 'Sealed class',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.0.0'),
     releaseVersion: null,
   );
 

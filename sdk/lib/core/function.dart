@@ -101,7 +101,7 @@ part of dart.core;
 /// Function? maybeFun = Random().nextBool() ? fun : null;
 /// print(maybeFun?.call(1)); // Prints "1" or "null".
 /// ```
-abstract class Function {
+abstract final class Function {
   /// Dynamically call [function] with the specified arguments.
   ///
   /// Acts the same as dynamically calling [function] with

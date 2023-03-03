@@ -5,7 +5,7 @@
 part of "core_patch.dart";
 
 /// Base class for closure objects.
-class _Closure implements Function {
+final class _Closure implements Function {
   @pragma("wasm:entry-point")
   WasmStructRef context;
 

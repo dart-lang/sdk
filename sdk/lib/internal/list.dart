@@ -9,7 +9,7 @@ part of dart._internal;
  *
  * Intended to mix-in on top of [ListMixin] for fixed-length lists.
  */
-abstract class FixedLengthListMixin<E> {
+mixin FixedLengthListMixin<E> {
   /** This operation is not supported by a fixed length list. */
   set length(int newLength) {
     throw new UnsupportedError(
@@ -84,7 +84,7 @@ abstract class FixedLengthListMixin<E> {
  * This mixin is intended to be mixed in on top of [ListMixin] on
  * unmodifiable lists.
  */
-abstract class UnmodifiableListMixin<E> implements List<E> {
+mixin UnmodifiableListMixin<E> implements List<E> {
   /** This operation is not supported by an unmodifiable list. */
   void operator []=(int index, E value) {
     throw new UnsupportedError("Cannot modify an unmodifiable list");

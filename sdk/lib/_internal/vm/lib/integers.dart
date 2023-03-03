@@ -4,7 +4,7 @@
 
 part of "core_patch.dart";
 
-abstract class _IntegerImplementation implements int {
+abstract final class _IntegerImplementation implements int {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
@@ -558,7 +558,7 @@ abstract class _IntegerImplementation implements int {
 }
 
 @pragma("vm:entry-point")
-class _Smi extends _IntegerImplementation {
+final class _Smi extends _IntegerImplementation {
   factory _Smi._uninstantiable() {
     throw "Unreachable";
   }
@@ -760,7 +760,7 @@ class _Smi extends _IntegerImplementation {
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
 @pragma("vm:entry-point")
-class _Mint extends _IntegerImplementation {
+final class _Mint extends _IntegerImplementation {
   factory _Mint._uninstantiable() {
     throw "Unreachable";
   }

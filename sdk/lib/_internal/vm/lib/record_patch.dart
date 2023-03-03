@@ -6,7 +6,7 @@ part of "core_patch.dart";
 
 // Base class for record instances.
 @pragma("vm:entry-point")
-class _Record implements Record {
+final class _Record implements Record {
   factory _Record._uninstantiable() {
     throw "Unreachable";
   }

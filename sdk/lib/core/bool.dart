@@ -10,7 +10,7 @@ part of dart.core;
 /// It is a compile-time error for a class to attempt to extend or implement
 /// bool.
 @pragma("vm:entry-point")
-class bool {
+final class bool {
   /// Returns the boolean value of the environment declaration [name].
   ///
   /// The boolean value of the declaration is `true` if the declared value is

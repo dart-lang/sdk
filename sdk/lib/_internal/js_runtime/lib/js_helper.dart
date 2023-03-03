@@ -50,6 +50,7 @@ import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
 import 'dart:_internal'
     show
+        checkNotNullable,
         EfficientLengthIterable,
         MappedIterable,
         IterableElementError,
@@ -382,6 +383,35 @@ class Primitives {
       return null;
     }
     return result;
+  }
+
+  static bool? parseBool(String source, bool caseSensitive) {
+    checkNotNullable(source, "source");
+    checkNotNullable(caseSensitive, "caseSensitive");
+    // The caseSensitive defaults to true.
+    if (caseSensitive) {
+      return source == "true"
+          ? true
+          : source == "false"
+              ? false
+              : null;
+    }
+    // Compare case-sensitive when caseSensitive is false.
+    return _compareIgnoreCase(source, "true")
+        ? true
+        : _compareIgnoreCase(source, "false")
+            ? false
+            : null;
+  }
+
+  static bool _compareIgnoreCase(String input, String lowerCaseTarget) {
+    if (input.length != lowerCaseTarget.length) return false;
+    for (var i = 0; i < input.length; i++) {
+      if (input.codeUnitAt(i) | 0x20 != lowerCaseTarget.codeUnitAt(i)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// [: r"$".codeUnitAt(0) :]
@@ -1848,16 +1878,11 @@ int getLength(var array) {
 invokeClosure(Function closure, int numberOfArguments, var arg1, var arg2,
     var arg3, var arg4) {
   switch (numberOfArguments) {
-    case 0:
-      return closure();
-    case 1:
-      return closure(arg1);
-    case 2:
-      return closure(arg1, arg2);
-    case 3:
-      return closure(arg1, arg2, arg3);
-    case 4:
-      return closure(arg1, arg2, arg3, arg4);
+    case 0: return closure();
+    case 1: return closure(arg1);
+    case 2: return closure(arg1, arg2);
+    case 3: return closure(arg1, arg2, arg3);
+    case 4: return closure(arg1, arg2, arg3, arg4);
   }
   throw new Exception('Unsupported number of arguments for wrapped closure');
 }
@@ -1889,7 +1914,7 @@ convertDartClosureToJS(closure, int arity) {
 ///
 /// All static, tear-off, function declaration and function expression closures
 /// extend this class.
-abstract class Closure implements Function {
+abstract final class Closure implements Function {
   /// Global counter to prevent reusing function code objects.
   ///
   /// V8 will share the underlying function code objects when the same string is
@@ -2376,15 +2401,15 @@ closureFromTearOff(parameters) {
 }
 
 /// Base class for closures with no arguments.
-abstract class Closure0Args extends Closure {}
+abstract final class Closure0Args extends Closure {}
 
 /// Base class for closures with two positional arguments.
-abstract class Closure2Args extends Closure {}
+abstract final class Closure2Args extends Closure {}
 
 /// Represents an implicit closure of a function.
-abstract class TearOffClosure extends Closure {}
+abstract final class TearOffClosure extends Closure {}
 
-class StaticClosure extends TearOffClosure {
+final class StaticClosure extends TearOffClosure {
   String toString() {
     String? name =
         JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
@@ -2398,7 +2423,7 @@ class StaticClosure extends TearOffClosure {
 ///
 /// This is a base class that is extended to create a separate closure class for
 /// each instance method. The subclass is created at run time.
-class BoundClosure extends TearOffClosure {
+final class BoundClosure extends TearOffClosure {
   /// The Dart receiver.
   final _receiver;
 

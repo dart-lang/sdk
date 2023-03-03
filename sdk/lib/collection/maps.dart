@@ -108,7 +108,7 @@ abstract class MapBase<K, V> extends MapMixin<K, V> {
 ///
 /// A more efficient implementation is usually possible by overriding
 /// some of the other members as well.
-abstract class MapMixin<K, V> implements Map<K, V> {
+abstract mixin class MapMixin<K, V> implements Map<K, V> {
   Iterable<K> get keys;
   V? operator [](Object? key);
   operator []=(K key, V value);
@@ -263,7 +263,7 @@ class _MapBaseValueIterator<K, V> implements Iterator<V> {
 
 /// Mixin that overrides mutating map operations with implementations that
 /// throw.
-abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
+mixin _UnmodifiableMapMixin<K, V> implements Map<K, V> {
   /// This operation is not supported by an unmodifiable map.
   void operator []=(K key, V value) {
     throw UnsupportedError("Cannot modify unmodifiable map");

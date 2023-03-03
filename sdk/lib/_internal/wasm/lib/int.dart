@@ -26,7 +26,7 @@ class int {
 }
 
 @pragma("wasm:entry-point")
-class _BoxedInt extends int {
+final class _BoxedInt extends int {
   // A boxed int contains an unboxed int.
   @pragma("wasm:entry-point")
   int value = 0;

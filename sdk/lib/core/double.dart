@@ -21,7 +21,7 @@ part of dart.core;
 /// * [num] the super class for [double].
 /// * [Numbers](https://dart.dev/guides/language/numbers) in
 /// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
-abstract class double extends num {
+abstract final class double extends num {
   static const double nan = 0.0 / 0.0;
   static const double infinity = 1.0 / 0.0;
   static const double negativeInfinity = -infinity;

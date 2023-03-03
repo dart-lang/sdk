@@ -5,7 +5,7 @@
 part of "core_patch.dart";
 
 @pragma("vm:entry-point")
-class _Double implements double {
+final class _Double implements double {
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _Double)
   @pragma("vm:external-name", "Double_doubleFromInteger")

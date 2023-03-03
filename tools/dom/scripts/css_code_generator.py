@@ -277,7 +277,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   // items in the MEMBERS set if you want that functionality.
 }
 
-abstract class CssStyleDeclarationBase {
+abstract mixin class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String$NULLABLE value,
       [String$NULLABLE priority]);

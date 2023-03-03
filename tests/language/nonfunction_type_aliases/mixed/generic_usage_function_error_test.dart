@@ -22,6 +22,17 @@ abstract class C {
   // [cfe] unspecified
 }
 
+abstract class D2 extends C with T {}
+//                               ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+abstract class D4 = C with T;
+//                         ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+
 X foo<X>(X x) => x;
 
 main() {
