@@ -1,0 +1,6 @@
+class A {
+  const A(int x, int y) : pair = (x, y);
+  final (int, int) pair;
+}
+
+void main() {}

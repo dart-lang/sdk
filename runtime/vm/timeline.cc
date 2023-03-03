@@ -465,8 +465,6 @@ TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
       timestamp1_(0),
-      thread_timestamp0_(-1),
-      thread_timestamp1_(-1),
       state_(0),
       label_(NULL),
       stream_(NULL),
@@ -521,18 +519,14 @@ void TimelineEvent::AsyncEnd(const char* label,
   set_timestamp1(async_id);
 }
 
-void TimelineEvent::DurationBegin(const char* label,
-                                  int64_t micros,
-                                  int64_t thread_micros) {
+void TimelineEvent::DurationBegin(const char* label, int64_t micros) {
   Init(kDuration, label);
   set_timestamp0(micros);
-  set_thread_timestamp0(thread_micros);
 }
 
-void TimelineEvent::DurationEnd(int64_t micros, int64_t thread_micros) {
+void TimelineEvent::DurationEnd(int64_t micros) {
   ASSERT(timestamp1_ == 0);
   set_timestamp1(micros);
-  set_thread_timestamp1(thread_micros);
 }
 
 void TimelineEvent::Instant(const char* label, int64_t micros) {
@@ -542,34 +536,22 @@ void TimelineEvent::Instant(const char* label, int64_t micros) {
 
 void TimelineEvent::Duration(const char* label,
                              int64_t start_micros,
-                             int64_t end_micros,
-                             int64_t thread_start_micros,
-                             int64_t thread_end_micros) {
+                             int64_t end_micros) {
   Init(kDuration, label);
   set_timestamp0(start_micros);
   set_timestamp1(end_micros);
-  set_thread_timestamp0(thread_start_micros);
-  set_thread_timestamp1(thread_end_micros);
 }
 
-void TimelineEvent::Begin(const char* label,
-                          int64_t id,
-                          int64_t micros,
-                          int64_t thread_micros) {
+void TimelineEvent::Begin(const char* label, int64_t id, int64_t micros) {
   Init(kBegin, label);
   set_timestamp0(micros);
-  set_thread_timestamp0(thread_micros);
   // Overload timestamp1_ with the async_id.
   set_timestamp1(id);
 }
 
-void TimelineEvent::End(const char* label,
-                        int64_t id,
-                        int64_t micros,
-                        int64_t thread_micros) {
+void TimelineEvent::End(const char* label, int64_t id, int64_t micros) {
   Init(kEnd, label);
   set_timestamp0(micros);
-  set_thread_timestamp0(thread_micros);
   // Overload timestamp1_ with the async_id.
   set_timestamp1(id);
 }
@@ -641,8 +623,6 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   state_ = 0;
   timestamp0_ = 0;
   timestamp1_ = 0;
-  thread_timestamp0_ = -1;
-  thread_timestamp1_ = -1;
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
   thread_ = os_thread->trace_id();
@@ -694,9 +674,6 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
   writer->PrintProperty64("tid", tid);
   writer->PrintProperty64("pid", pid);
   writer->PrintProperty64("ts", TimeOrigin());
-  if (HasThreadCPUTime()) {
-    writer->PrintProperty64("tts", ThreadCPUTimeOrigin());
-  }
   switch (event_type()) {
     case kBegin: {
       writer->PrintProperty("ph", "B");
@@ -707,9 +684,6 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
     case kDuration: {
       writer->PrintProperty("ph", "X");
       writer->PrintProperty64("dur", TimeDuration());
-      if (HasThreadCPUTime()) {
-        writer->PrintProperty64("tdur", ThreadCPUTimeDuration());
-      }
     } break;
     case kInstant: {
       writer->PrintProperty("ph", "i");
@@ -808,24 +782,6 @@ int64_t TimelineEvent::TimeDuration() const {
     return OS::GetCurrentMonotonicMicrosForTimeline() - timestamp0_;
   }
   return timestamp1_ - timestamp0_;
-}
-
-bool TimelineEvent::HasThreadCPUTime() const {
-  return (thread_timestamp0_ != -1);
-}
-
-int64_t TimelineEvent::ThreadCPUTimeOrigin() const {
-  ASSERT(HasThreadCPUTime());
-  return thread_timestamp0_;
-}
-
-int64_t TimelineEvent::ThreadCPUTimeDuration() const {
-  ASSERT(HasThreadCPUTime());
-  if (thread_timestamp1_ == -1) {
-    // This duration is still open, use current time as end.
-    return OS::GetCurrentThreadCPUMicros() - thread_timestamp0_;
-  }
-  return thread_timestamp1_ - thread_timestamp0_;
 }
 
 bool TimelineEvent::HasIsolateId() const {
@@ -1907,7 +1863,6 @@ void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
                                                char* name,
                                                char* args) {
   const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
-  const int64_t start_cpu = OS::GetCurrentThreadCPUMicrosForTimeline();
   switch (static_cast<TimelineEvent::EventType>(type)) {
     case TimelineEvent::kAsyncInstant:
       event->AsyncInstant(name, id, start);
@@ -1919,10 +1874,10 @@ void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
       event->AsyncEnd(name, id, start);
       break;
     case TimelineEvent::kBegin:
-      event->Begin(name, id, start, start_cpu);
+      event->Begin(name, id, start);
       break;
     case TimelineEvent::kEnd:
-      event->End(name, id, start, start_cpu);
+      event->End(name, id, start);
       break;
     case TimelineEvent::kFlowBegin:
       event->FlowBegin(name, id, start);

@@ -1155,13 +1155,20 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   Command computeCompilationCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
     var snapshot = "$tempDir/out.jitsnapshot";
-    return CompilationCommand(
-        'app_jit',
-        tempDir,
-        bootstrapDependencies(),
-        "${_configuration.buildDirectory}/dart",
-        ["--snapshot=$snapshot", "--snapshot-kind=app-jit", ...arguments],
-        environmentOverrides,
+    var executable = "${_configuration.buildDirectory}/dart";
+    arguments = [
+      "--snapshot=$snapshot",
+      "--snapshot-kind=app-jit",
+      ...arguments
+    ];
+    if (_configuration.useQemu) {
+      final config = QemuConfig.all[_configuration.architecture]!;
+      arguments.insert(0, executable);
+      arguments.insertAll(0, config.arguments);
+      executable = config.executable;
+    }
+    return CompilationCommand('app_jit', tempDir, bootstrapDependencies(),
+        executable, arguments, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 

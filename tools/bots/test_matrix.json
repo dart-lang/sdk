@@ -1541,8 +1541,22 @@
     },
     {
       "builders": [
+        "vm-linux-debug-ia32",
+        "vm-linux-debug-simriscv64",
+        "vm-linux-debug-x64",
         "vm-linux-debug-x64c",
-        "vm-win-debug-x64c"
+        "vm-linux-release-ia32",
+        "vm-linux-release-simarm",
+        "vm-linux-release-simarm64",
+        "vm-linux-release-x64",
+        "vm-mac-debug-arm64",
+        "vm-mac-debug-x64",
+        "vm-mac-release-arm64",
+        "vm-mac-release-x64",
+        "vm-win-debug-x64",
+        "vm-win-debug-x64c",
+        "vm-win-release-ia32",
+        "vm-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is used by the VM JIT builders."
@@ -1552,8 +1566,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime",
-            "dart_precompiled_runtime"
+            "runtime"
           ]
         },
         {

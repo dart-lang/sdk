@@ -75,7 +75,7 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_version": "git_revision:20d06c833d833ef6b2d0f519cc4a7998d49a2803",
+  "clang_version": "git_revision:28ee6040710fff44ae1349eadabd4cb4a9b1b1b8",
   "gn_version": "git_revision:0bcd37bd2b83f1a9ee17088037ebdfe6eab6d31a",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
@@ -118,7 +118,7 @@ vars = {
   "boolean_selector_rev": "16e6ad3c8000e08a7f1c213aef2a692d872a16c7",
   "browser_launcher_rev": "bc2dc4ef53a6619032e9f01450848e9ed40a9437",
   "characters_rev": "3281cc7b76731de06dcbafa95516681710ba8d5e",
-  "cli_util_rev": "3851652a72ee572ec7371942a658788c61847dea",
+  "cli_util_rev": "91747f7dd9bdf2457f081d3cf035de5672dd4a02",
   "clock_rev": "5abb4816bad6cf3bfab64d65d501752d19760bd0",
   "collection_rev": "0d0e184a5f70ca4e23dab23df686127ec40bfb11",
   "convert_rev": "83886e3fd895211a98e49b7595a92796fa216641",
@@ -134,7 +134,7 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "d0c6b1da52c9f80679a7aaa05e5935ef5c6bb52f", # manually rev'd
+  "dart_style_rev": "a740aabf43a8b668a8abf8de0530a9f25bb1f5e6", # manually rev'd
   "dartdoc_rev": "e4cdbd6f349ecbc420d33cca69a02fb287a7edf5",
   "ffi_rev": "32f5eefea59d4461e8ab40e83f157e49d5abe0da",
   "file_rev": "72a67c33f90bfb7e10057e286e06d2fe3baa4d98",

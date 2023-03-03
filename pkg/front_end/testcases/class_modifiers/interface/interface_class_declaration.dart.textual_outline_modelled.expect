@@ -1,0 +1,7 @@
+abstract interface class B {}
+interface class A {}
+---- unknown chunk starts ----
+interface
+---- unknown chunk ends ----
+interface class C = Object with M;
+mixin M {}

@@ -1,0 +1,4 @@
+f() sync* {}
+g() sync* => dummy;
+h() sync* {}
+main() {}

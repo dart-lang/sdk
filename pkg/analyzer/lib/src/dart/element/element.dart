@@ -572,6 +572,10 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements BindPatternVariableElement {
   final DeclaredVariablePatternImpl node;
 
+  /// This flag is set to `true` if this variable clashes with another
+  /// pattern variable with the same name within the same pattern.
+  bool isDuplicate = false;
+
   BindPatternVariableElementImpl(this.node, super.name, super.offset);
 }
 

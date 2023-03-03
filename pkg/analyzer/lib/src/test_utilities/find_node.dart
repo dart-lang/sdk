@@ -28,6 +28,19 @@ class FindNode {
     return result;
   }
 
+  /// Returns the [Block], there must be only one.
+  Block get singleBlock {
+    var nodes = <Block>[];
+    unit.accept(
+      FunctionAstVisitor(
+        block: (node) {
+          nodes.add(node);
+        },
+      ),
+    );
+    return nodes.single;
+  }
+
   /// Returns the [ForElement], there must be only one.
   ForElement get singleForElement {
     var nodes = <ForElement>[];
@@ -133,6 +146,19 @@ class FindNode {
     unit.accept(
       FunctionAstVisitor(
         switchExpression: (node) {
+          nodes.add(node);
+        },
+      ),
+    );
+    return nodes.single;
+  }
+
+  /// Returns the [SwitchPatternCase], there must be only one.
+  SwitchPatternCase get singleSwitchPatternCase {
+    var nodes = <SwitchPatternCase>[];
+    unit.accept(
+      FunctionAstVisitor(
+        switchPatternCase: (node) {
           nodes.add(node);
         },
       ),

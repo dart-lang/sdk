@@ -42,6 +42,16 @@ sealed class _DummySealedClass {}
 
 interface class _DummyInterfaceClass extends _DummySealedClass {}
 
+final mixin _DummyFinalMixin {
+  void dummyMethod1() {}
+}
+
+sealed mixin _DummySealedMixin {
+  void dummyMethod2() {}
+}
+
+final class _DummyClassWithMixins with _DummyFinalMixin, _DummySealedMixin {}
+
 void warmup() {
   // Increase the usage count of these methods.
   _DummyClass().dummyFunction(0);
@@ -61,10 +71,10 @@ getMap() => {"x": 3, "y": 4, "z": 5};
 getSet() => {6, 7, 8};
 
 @pragma("vm:entry-point")
-getUint8List() => uint8List;
+getUint8List() => Uint8List.fromList([3, 2, 1]);
 
 @pragma("vm:entry-point")
-getUint64List() => uint64List;
+getUint64List() => Uint64List.fromList([3, 2, 1]);
 
 @pragma("vm:entry-point")
 getRecord() => (1, x: 2, 3.0, y: 4.0);
@@ -81,8 +91,8 @@ getDummyGenericSubClass() => _DummyGenericSubClass<Object>();
 @pragma("vm:entry-point")
 getDummyInterfaceClass() => _DummyInterfaceClass();
 
-var uint8List = Uint8List.fromList([3, 2, 1]);
-var uint64List = Uint64List.fromList([3, 2, 1]);
+@pragma("vm:entry-point")
+getDummyClassWithMixins() => _DummyClassWithMixins();
 
 var tests = <IsolateTest>[
   // null object.
@@ -1054,6 +1064,152 @@ var tests = <IsolateTest>[
     expect(json['_finalized'], true);
     expect(json['_implemented'], false);
     expect(json['_patch'], false);
+  },
+
+  // A class with final and sealed mixins.
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    // Use invoke to get a reference to an instance of [_DummyClassWithMixins].
+    final dummyClassInstanceRef = await service.invoke(
+            isolateId, isolate.rootLib!.id!, 'getDummyClassWithMixins', [])
+        as InstanceRef;
+    final dummyClass = await service.getObject(
+        isolateId, dummyClassInstanceRef.classRef!.id!) as Class;
+
+    final dummyClassWithTwoMixinsApplied =
+        await service.getObject(isolateId, dummyClass.superClass!.id!) as Class;
+    expect(dummyClassWithTwoMixinsApplied.id, startsWith('classes/'));
+    expect(dummyClassWithTwoMixinsApplied.name,
+        '__DummyClassWithMixins&Object&_DummyFinalMixin&_DummySealedMixin');
+    expect(dummyClassWithTwoMixinsApplied.isAbstract, true);
+    expect(dummyClassWithTwoMixinsApplied.isConst, true);
+    expect(dummyClassWithTwoMixinsApplied.isSealed, true);
+    expect(dummyClassWithTwoMixinsApplied.isMixinClass, false);
+    expect(dummyClassWithTwoMixinsApplied.isBaseClass, false);
+    expect(dummyClassWithTwoMixinsApplied.isInterfaceClass, false);
+    expect(dummyClassWithTwoMixinsApplied.isFinal, false);
+    expect(dummyClassWithTwoMixinsApplied.typeParameters, isNull);
+    expect(dummyClassWithTwoMixinsApplied.library, isNotNull);
+    expect(dummyClassWithTwoMixinsApplied.location, isNotNull);
+    expect(dummyClassWithTwoMixinsApplied.error, isNull);
+    expect(dummyClassWithTwoMixinsApplied.traceAllocations!, false);
+    expect(dummyClassWithTwoMixinsApplied.superType, isNotNull);
+    expect(dummyClassWithTwoMixinsApplied.fields!.length, 0);
+    expect(dummyClassWithTwoMixinsApplied.functions!.length, 2);
+    expect(dummyClassWithTwoMixinsApplied.subclasses!.length, 1);
+    final dummyClassWithTwoMixinsAppliedJson =
+        dummyClassWithTwoMixinsApplied.json!;
+    expect(
+        dummyClassWithTwoMixinsAppliedJson['_vmName'],
+        startsWith(
+            '__DummyClassWithMixins&Object&_DummyFinalMixin&_DummySealedMixin@'));
+    expect(dummyClassWithTwoMixinsAppliedJson['_finalized'], true);
+    expect(dummyClassWithTwoMixinsAppliedJson['_implemented'], false);
+    expect(dummyClassWithTwoMixinsAppliedJson['_patch'], false);
+
+    expect(dummyClassWithTwoMixinsApplied.interfaces!.length, 1);
+    expect(dummyClassWithTwoMixinsApplied.interfaces!.first,
+        dummyClassWithTwoMixinsApplied.mixin!);
+    final dummySealedMixinType = await service.getObject(
+        isolateId, dummyClassWithTwoMixinsApplied.mixin!.id!) as Instance;
+    expect(dummySealedMixinType.kind, InstanceKind.kType);
+    expect(dummySealedMixinType.id, startsWith('classes/'));
+    expect(dummySealedMixinType.name, '_DummySealedMixin');
+    final dummySealedMixinClass = await service.getObject(
+        isolateId, dummySealedMixinType.typeClass!.id!) as Class;
+    expect(dummySealedMixinClass.id, startsWith('classes/'));
+    expect(dummySealedMixinClass.name, '_DummySealedMixin');
+    expect(dummySealedMixinClass.isAbstract, true);
+    expect(dummySealedMixinClass.isConst, false);
+    expect(dummySealedMixinClass.isSealed, true);
+    expect(dummySealedMixinClass.isMixinClass, false);
+    expect(dummySealedMixinClass.isBaseClass, false);
+    expect(dummySealedMixinClass.isInterfaceClass, false);
+    expect(dummySealedMixinClass.isFinal, false);
+    expect(dummySealedMixinClass.typeParameters, isNull);
+    expect(dummySealedMixinClass.library, isNotNull);
+    expect(dummySealedMixinClass.location, isNotNull);
+    expect(dummySealedMixinClass.error, isNull);
+    expect(dummySealedMixinClass.traceAllocations!, false);
+    expect(dummySealedMixinClass.superType, isNotNull);
+    expect(dummySealedMixinClass.fields!.length, 0);
+    expect(dummySealedMixinClass.functions!.length, 1);
+    expect(dummySealedMixinClass.subclasses!.length, 0);
+    expect(dummySealedMixinClass.interfaces!.length, 0);
+    expect(dummySealedMixinClass.mixin, isNull);
+    final dummySealedMixinClassJson = dummySealedMixinClass.json!;
+    expect(
+        dummySealedMixinClassJson['_vmName'], startsWith('_DummySealedMixin@'));
+    expect(dummySealedMixinClassJson['_finalized'], true);
+    expect(dummySealedMixinClassJson['_implemented'], true);
+    expect(dummySealedMixinClassJson['_patch'], false);
+
+    final dummyClassWithOneMixinApplied = await service.getObject(
+        isolateId, dummyClassWithTwoMixinsApplied.superClass!.id!) as Class;
+    expect(dummyClassWithOneMixinApplied.id, startsWith('classes/'));
+    expect(dummyClassWithOneMixinApplied.name,
+        '__DummyClassWithMixins&Object&_DummyFinalMixin');
+    expect(dummyClassWithOneMixinApplied.isAbstract, true);
+    expect(dummyClassWithOneMixinApplied.isConst, true);
+    expect(dummyClassWithOneMixinApplied.isSealed, false);
+    expect(dummyClassWithOneMixinApplied.isMixinClass, false);
+    expect(dummyClassWithOneMixinApplied.isBaseClass, false);
+    expect(dummyClassWithOneMixinApplied.isInterfaceClass, false);
+    expect(dummyClassWithOneMixinApplied.isFinal, true);
+    expect(dummyClassWithOneMixinApplied.typeParameters, isNull);
+    expect(dummyClassWithOneMixinApplied.library, isNotNull);
+    expect(dummyClassWithOneMixinApplied.location, isNotNull);
+    expect(dummyClassWithOneMixinApplied.error, isNull);
+    expect(dummyClassWithOneMixinApplied.traceAllocations!, false);
+    expect(dummyClassWithOneMixinApplied.superType, isNotNull);
+    expect(dummyClassWithOneMixinApplied.fields!.length, 0);
+    expect(dummyClassWithOneMixinApplied.functions!.length, 2);
+    expect(dummyClassWithOneMixinApplied.subclasses!.length, 1);
+    final dummyClassWithOneMixinAppliedJson =
+        dummyClassWithOneMixinApplied.json!;
+    expect(dummyClassWithOneMixinAppliedJson['_vmName'],
+        startsWith('__DummyClassWithMixins&Object&_DummyFinalMixin@'));
+    expect(dummyClassWithOneMixinAppliedJson['_finalized'], true);
+    expect(dummyClassWithOneMixinAppliedJson['_implemented'], false);
+    expect(dummyClassWithOneMixinAppliedJson['_patch'], false);
+
+    expect(dummyClassWithOneMixinApplied.interfaces!.length, 1);
+    expect(dummyClassWithOneMixinApplied.interfaces!.first,
+        dummyClassWithOneMixinApplied.mixin!);
+    final dummyFinalMixinType = await service.getObject(
+        isolateId, dummyClassWithOneMixinApplied.mixin!.id!) as Instance;
+    expect(dummyFinalMixinType.kind, InstanceKind.kType);
+    expect(dummyFinalMixinType.id, startsWith('classes/'));
+    expect(dummyFinalMixinType.name, '_DummyFinalMixin');
+    final dummyFinalMixinClass = await service.getObject(
+        isolateId, dummyFinalMixinType.typeClass!.id!) as Class;
+    expect(dummyFinalMixinClass.id, startsWith('classes/'));
+    expect(dummyFinalMixinClass.name, '_DummyFinalMixin');
+    expect(dummyFinalMixinClass.isAbstract, true);
+    expect(dummyFinalMixinClass.isConst, false);
+    expect(dummyFinalMixinClass.isSealed, false);
+    expect(dummyFinalMixinClass.isMixinClass, false);
+    expect(dummyFinalMixinClass.isBaseClass, false);
+    expect(dummyFinalMixinClass.isInterfaceClass, false);
+    expect(dummyFinalMixinClass.isFinal, true);
+    expect(dummyFinalMixinClass.typeParameters, isNull);
+    expect(dummyFinalMixinClass.library, isNotNull);
+    expect(dummyFinalMixinClass.location, isNotNull);
+    expect(dummyFinalMixinClass.error, isNull);
+    expect(dummyFinalMixinClass.traceAllocations!, false);
+    expect(dummyFinalMixinClass.superType, isNotNull);
+    expect(dummyFinalMixinClass.fields!.length, 0);
+    expect(dummyFinalMixinClass.functions!.length, 1);
+    expect(dummyFinalMixinClass.subclasses!.length, 0);
+    expect(dummyFinalMixinClass.interfaces!.length, 0);
+    expect(dummyFinalMixinClass.mixin, isNull);
+    final dummyFinalMixinClassJson = dummyFinalMixinClass.json!;
+    expect(
+        dummyFinalMixinClassJson['_vmName'], startsWith('_DummyFinalMixin@'));
+    expect(dummyFinalMixinClassJson['_finalized'], true);
+    expect(dummyFinalMixinClassJson['_implemented'], true);
+    expect(dummyFinalMixinClassJson['_patch'], false);
   },
 
   // invalid class.
