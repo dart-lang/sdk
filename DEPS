@@ -118,7 +118,7 @@ vars = {
   "boolean_selector_rev": "16e6ad3c8000e08a7f1c213aef2a692d872a16c7",
   "browser_launcher_rev": "bc2dc4ef53a6619032e9f01450848e9ed40a9437",
   "characters_rev": "3281cc7b76731de06dcbafa95516681710ba8d5e",
-  "cli_util_rev": "3851652a72ee572ec7371942a658788c61847dea",
+  "cli_util_rev": "91747f7dd9bdf2457f081d3cf035de5672dd4a02",
   "clock_rev": "5abb4816bad6cf3bfab64d65d501752d19760bd0",
   "collection_rev": "0d0e184a5f70ca4e23dab23df686127ec40bfb11",
   "convert_rev": "83886e3fd895211a98e49b7595a92796fa216641",
