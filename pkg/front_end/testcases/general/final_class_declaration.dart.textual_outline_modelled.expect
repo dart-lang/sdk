@@ -1,0 +1,8 @@
+// @dart = 2.19
+abstract final class B {}
+final class A {}
+---- unknown chunk starts ----
+final
+---- unknown chunk ends ----
+final class C = Object with M;
+mixin M {}
