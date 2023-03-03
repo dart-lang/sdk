@@ -887,20 +887,36 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void finishJoinedPatternVariable(
     covariant JoinPatternVariableElementImpl variable, {
     required JoinedPatternVariableLocation location,
-    required bool isConsistent,
+    required shared.JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
     required DartType type,
   }) {
-    variable.isConsistent &= isConsistent;
+    variable.inconsistency = variable.inconsistency.maxWith(inconsistency);
     variable.isFinal = isFinal;
     variable.type = type;
 
     if (location == JoinedPatternVariableLocation.sharedCaseScope) {
       for (var reference in variable.references) {
-        if (!variable.isConsistent) {
+        if (variable.inconsistency ==
+            shared.JoinedPatternVariableInconsistency.sharedCaseAbsent) {
           errorReporter.reportErrorForNode(
             CompileTimeErrorCode
-                .INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+                .PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
+            reference,
+            [variable.name],
+          );
+        } else if (variable.inconsistency ==
+            shared.JoinedPatternVariableInconsistency.sharedCaseHasLabel) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+            reference,
+            [variable.name],
+          );
+        } else if (variable.inconsistency ==
+            shared.JoinedPatternVariableInconsistency.differentFinalityOrType) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
             reference,
             [variable.name],
           );

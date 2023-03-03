@@ -582,7 +582,8 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode
+              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
           101,
           1),
     ]);
@@ -682,7 +683,8 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode
+              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
           101,
           1),
     ]);
@@ -782,7 +784,8 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode
+              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
           95,
           1),
     ]);
@@ -881,7 +884,7 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           80,
           1),
     ]);
@@ -959,7 +962,7 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           80,
           1),
     ]);
@@ -1036,10 +1039,8 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
-          81,
-          1),
+      error(CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          81, 1),
     ]);
 
     final node = findNode.switchStatement('switch');
@@ -1113,8 +1114,7 @@ void f(Object? x) {
           error(HintCode.UNREACHABLE_SWITCH_CASE, 55, 4),
           error(HintCode.DEAD_CODE, 71, 7),
           error(
-              CompileTimeErrorCode
-                  .INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+              CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
               86,
               1),
         ]));
@@ -1176,10 +1176,8 @@ void f(Object? x) {
 }
 ''', [
       error(WarningCode.UNUSED_LABEL, 39, 8),
-      error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
-          81,
-          1),
+      error(CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          81, 1),
     ]);
 
     final node = findNode.switchStatement('switch');
@@ -1256,15 +1254,15 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           95,
           1),
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           104,
           1),
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           113,
           1),
     ]);

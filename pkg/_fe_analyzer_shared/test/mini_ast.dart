@@ -1299,7 +1299,8 @@ class PatternVariableJoin extends Var {
   /// of `true` either means that the variable is consistent or that analysis
   /// has not yet completed.
   @override
-  bool isConsistent = true;
+  JoinedPatternVariableInconsistency inconsistency =
+      JoinedPatternVariableInconsistency.none;
 
   /// Indicates whether [VariableBinder.joinPatternVariables] has been called
   /// for this variable join yet.
@@ -1321,10 +1322,10 @@ class PatternVariableJoin extends Var {
 
   @override
   String toString() {
-    var isConsistent = this.isConsistent;
     var declarationStr = <String>[
       if (_type != null) ...[
-        if (!isConsistent) 'notConsistent',
+        if (inconsistency != JoinedPatternVariableInconsistency.none)
+          'notConsistent:${inconsistency.name}',
         if (isFinal) 'final',
         type.type,
       ],
@@ -1336,14 +1337,16 @@ class PatternVariableJoin extends Var {
   }
 
   /// Called by [VariableBinder.joinPatternVariables].
-  void _handleJoin(
-      {required List<Var> components, required bool isConsistent}) {
+  void _handleJoin({
+    required List<Var> components,
+    required JoinedPatternVariableInconsistency inconsistency,
+  }) {
     expect(isJoined, false);
     expect(components.map((c) => c.identity),
         expectedComponents.map((c) => c.identity),
         reason: 'at $location');
     expect(components, expectedComponents, reason: 'at $location');
-    this.isConsistent = isConsistent;
+    this.inconsistency = inconsistency;
     this.isJoined = true;
   }
 }
@@ -1498,7 +1501,9 @@ class Var extends Node implements Promotable {
   LValue get expr =>
       new _VariableReference(this, null, location: computeLocation());
 
-  bool get isConsistent => true;
+  JoinedPatternVariableInconsistency get inconsistency {
+    return JoinedPatternVariableInconsistency.none;
+  }
 
   /// The string that should be used to check variables in a set.
   String get stringToCheckVariables => identity;
@@ -3614,15 +3619,13 @@ class _MiniAstTypeAnalyzer
   void finishJoinedPatternVariable(
     covariant PatternVariableJoin variable, {
     required JoinedPatternVariableLocation location,
-    required bool isConsistent,
+    required JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
     required Type type,
   }) {
     variable.isFinal = isFinal;
     variable.type = type;
-    if (!isConsistent) {
-      variable.isConsistent = false;
-    }
+    variable.inconsistency = variable.inconsistency.maxWith(inconsistency);
   }
 
   @override
@@ -4862,14 +4865,16 @@ class _VariableBinder extends VariableBinder<Node, Var> {
   Var joinPatternVariables({
     required Object? key,
     required List<Var> components,
-    required bool isConsistent,
+    required JoinedPatternVariableInconsistency inconsistency,
   }) {
     var joinedVariable = components[0]._joinedVar;
     if (joinedVariable == null) {
       fail('No joined variable for ${components[0].location}');
     }
     joinedVariable._handleJoin(
-        components: components, isConsistent: isConsistent);
+      components: components,
+      inconsistency: inconsistency,
+    );
     return joinedVariable;
   }
 }

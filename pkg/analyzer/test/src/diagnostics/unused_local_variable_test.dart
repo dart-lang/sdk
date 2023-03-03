@@ -290,7 +290,7 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           71,
           1),
     ]);

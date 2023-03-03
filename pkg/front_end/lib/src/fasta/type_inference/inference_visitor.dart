@@ -11081,7 +11081,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void finishJoinedPatternVariable(
     VariableDeclaration variable, {
     required JoinedPatternVariableLocation location,
-    required bool isConsistent,
+    required JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
     required DartType type,
   }) {
