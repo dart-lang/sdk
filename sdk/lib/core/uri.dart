@@ -1717,12 +1717,13 @@ class _Uri implements Uri {
 
   /// The default port for the scheme of this Uri.
   static int _defaultPort(String scheme) {
-    // TODO: Magic numbers could be replaced with constants
     switch (scheme) {
       case "http":
+        return 80;
       case "ws":
         return 80;
       case "https":
+        return 443;
       case "wss":
         return 443;
     }
