@@ -748,6 +748,7 @@ class Translator with KernelNodes {
     final dynamicCallEntry = makeDynamicCallEntry();
     ib.ref_func(dynamicCallEntry);
     if (representation.isGeneric) {
+      ib.ref_func(representation.instantiationTypeComparisonFunction);
       ib.ref_func(representation.instantiationFunction);
     }
     for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
