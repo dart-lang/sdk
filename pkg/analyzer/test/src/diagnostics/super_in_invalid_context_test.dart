@@ -122,34 +122,6 @@ class C extends S {
     ]);
   }
 
-  test_extension_field_static() async {
-    await assertErrorsInCode('''
-class A {
-  int get foo => 0;
-}
-
-extension E on int {
-  static var f = super.foo;
-}
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 71, 5),
-    ]);
-  }
-
-  test_extension_field_static_late() async {
-    await assertErrorsInCode('''
-class A {
-  int get foo => 0;
-}
-
-extension E on int {
-  static late var f = super.foo;
-}
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 76, 5),
-    ]);
-  }
-
   test_factoryConstructor() async {
     await assertErrorsInCode(r'''
 class A {
@@ -177,6 +149,28 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 50, 5),
+    ]);
+  }
+
+  test_methodInvocation_extension_field_static() async {
+    await assertErrorsInCode('''
+extension E on int {
+  static final v = super.foo();
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 40, 5),
+    ]);
+  }
+
+  test_methodInvocation_extension_method_static() async {
+    await assertErrorsInCode('''
+extension E on int {
+  static void foo() {
+    super.foo();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 47, 5),
     ]);
   }
 
@@ -231,6 +225,34 @@ mixin M on A {
 }
 ''', [
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 70, 5),
+    ]);
+  }
+
+  test_propertyAccess_extension_field_static() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+extension E on int {
+  static var f = super.foo;
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 71, 5),
+    ]);
+  }
+
+  test_propertyAccess_extension_field_static_late() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+extension E on int {
+  static late var f = super.foo;
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 76, 5),
     ]);
   }
 

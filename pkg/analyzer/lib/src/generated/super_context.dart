@@ -31,24 +31,32 @@ class SuperContext {
     for (AstNode? node = expression; node != null; node = node.parent) {
       if (node is Annotation) {
         return SuperContext.annotation;
+      } else if (node is ClassDeclaration) {
+        return SuperContext.valid;
       } else if (node is CompilationUnit) {
         return SuperContext.static;
       } else if (node is ConstructorDeclaration) {
-        return node.factoryKeyword == null
-            ? SuperContext.valid
-            : SuperContext.static;
+        if (node.factoryKeyword != null) {
+          return SuperContext.static;
+        }
       } else if (node is ConstructorInitializer) {
         return SuperContext.static;
+      } else if (node is EnumDeclaration) {
+        return SuperContext.valid;
+      } else if (node is ExtensionDeclaration) {
+        return SuperContext.extension;
       } else if (node is FieldDeclaration) {
-        return node.staticKeyword == null && node.fields.lateKeyword != null
-            ? SuperContext.valid
-            : SuperContext.static;
+        if (node.staticKeyword != null) {
+          return SuperContext.static;
+        }
+        if (node.fields.lateKeyword == null) {
+          return SuperContext.static;
+        }
       } else if (node is MethodDeclaration) {
         if (node.isStatic) {
           return SuperContext.static;
-        } else if (node.parent is ExtensionDeclaration) {
-          return SuperContext.extension;
         }
+      } else if (node is MixinDeclaration) {
         return SuperContext.valid;
       }
     }
