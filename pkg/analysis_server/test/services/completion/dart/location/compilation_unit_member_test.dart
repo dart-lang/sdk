@@ -50,7 +50,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_afterAbstract_base_partial() async {
+  Future<void> test_afterAbstract_base_prefix() async {
     await computeSuggestions('''
 abstract b^
 ''');
@@ -122,6 +122,521 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterBOF() async {
+    await computeSuggestions('''
+^
+''');
+    assertResponse('''
+suggestions
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  library
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterBOF_beforeIdentifier() async {
+    await computeSuggestions('''
+^
+imp
+import "package:foo/foo.dart";
+''');
+    // TODO(danrubel) should not suggest declaration keywords
+    // TODO(brianwilkerson) Should not suggest export or part directives.
+    assertResponse('''
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  library
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterBOF_beforeImport() async {
+    await computeSuggestions('''
+^
+import foo;
+''');
+    assertResponse('''
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
+  library
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+''');
+  }
+
+  Future<void> test_afterBOF_beforeImport_prefix() async {
+    await computeSuggestions('''
+imp^
+import "package:foo/foo.dart";
+''');
+    if (isProtocolVersion2) {
+      assertResponse('''
+replacement
+  left: 3
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+''');
+    } else {
+      assertResponse('''
+replacement
+  left: 3
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  library
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterBOF_prefix() async {
+    await computeSuggestions('''
+cl^
+''');
+    if (isProtocolVersion2) {
+      assertResponse('''
+replacement
+  left: 2
+suggestions
+  class
+    kind: keyword
+''');
+    } else {
+      assertResponse('''
+replacement
+  left: 2
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  library
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterBOF_suffix() async {
+    await computeSuggestions('''
+^imp
+import "package:foo/foo.dart";
+''');
+    // TODO(danrubel) should not suggest declaration keywords
+    assertResponse('''
+replacement
+  right: 3
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  library
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterDeclaration_class() async {
+    await computeSuggestions('''
+class A {}
+^
+''');
+    assertResponse('''
+suggestions
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterDeclaration_class_prefix() async {
+    await computeSuggestions('''
+class A {}
+c^
+''');
+    if (isProtocolVersion2) {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+''');
+    } else {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  class
+    kind: keyword
+  const
+    kind: keyword
+  void
+    kind: keyword
+  final
+    kind: keyword
+  typedef
+    kind: keyword
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
+  sealed
+    kind: keyword
+  var
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterDirective_import() async {
+    await computeSuggestions('''
+import "foo";
+^
+''');
+    assertResponse('''
+suggestions
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterDirective_import_prefix() async {
+    await computeSuggestions('''
+import "foo";
+c^
+''');
+    if (isProtocolVersion2) {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+''');
+    } else {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+    }
+  }
+
   Future<void> test_afterFinal_beforeClass() async {
     await computeSuggestions('''
 final ^ class A {}
@@ -149,7 +664,172 @@ suggestions
 ''');
   }
 
-  Future<void> test_base_partial() async {
+  Future<void> test_afterLibraryDirective_prefix() async {
+    await computeSuggestions('''
+library a;
+cl^
+''');
+    if (isProtocolVersion2) {
+      assertResponse('''
+replacement
+  left: 2
+suggestions
+  class
+    kind: keyword
+''');
+    } else {
+      assertResponse('''
+replacement
+  left: 2
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterPartOf() async {
+    await computeSuggestions('''
+part of foo;
+^
+''');
+    // TODO(brianwilkerson) We should not be suggesting directives.
+    assertResponse('''
+suggestions
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterWhitespaceAtBOF_suffix() async {
+    await computeSuggestions('''
+ ^imp
+ import "package:foo/foo.dart";
+ ''');
+    // TODO(danrubel) should not suggest declaration keywords
+    assertResponse('''
+replacement
+  right: 3
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  library
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_base_prefix() async {
     await computeSuggestions('''
 b^
 ''');
@@ -266,6 +946,136 @@ suggestions
 ''');
   }
 
+  Future<void> test_betweenImports_prefix() async {
+    await computeSuggestions('''
+library bar;
+import "zoo.dart";
+imp^
+import "package:foo/foo.dart";
+''');
+    // TODO(danrubel) should not suggest declaration keywords
+    if (isProtocolVersion2) {
+      assertResponse('''
+replacement
+  left: 3
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+''');
+    } else {
+      assertResponse('''
+replacement
+  left: 3
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_betweenLibraryAndImport_prefix() async {
+    await computeSuggestions('''
+library libA;
+imp^
+import "package:foo/foo.dart";
+''');
+    // TODO(danrubel) should not suggest declaration keywords
+    // TODO(brianwilkerson) Should not suggest library, export or part directives.
+    if (isProtocolVersion2) {
+      assertResponse('''
+replacement
+  left: 3
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+''');
+    } else {
+      assertResponse('''
+replacement
+  left: 3
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+    }
+  }
+
   Future<void> test_empty() async {
     await computeSuggestions('''
 ^
@@ -316,7 +1126,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_final_partial() async {
+  Future<void> test_final_prefix() async {
     await computeSuggestions('''
 f^
 ''');
@@ -333,7 +1143,7 @@ suggestions
     }
   }
 
-  Future<void> test_interface_partial() async {
+  Future<void> test_interface_prefix() async {
     await computeSuggestions('''
 i^
 ''');
@@ -353,7 +1163,7 @@ suggestions
     }
   }
 
-  Future<void> test_mixin_partial() async {
+  Future<void> test_mixin_prefix() async {
     await computeSuggestions('''
 m^
 ''');
@@ -370,7 +1180,7 @@ suggestions
     }
   }
 
-  Future<void> test_sealed_partial() async {
+  Future<void> test_sealed_prefix() async {
     await computeSuggestions('''
 s^
 ''');
