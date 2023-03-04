@@ -1543,6 +1543,15 @@ class Intrinsifier {
       //   bool _equals(f1, f2) {
       //     if (identical(f1, f2) return true;
       //     if (f1.vtable == f2.vtable) {
+      //       if (f1 and f2 are instantiations) {
+      //         if (f1.context.inner.vtable == f2.context.inner.vtable) {
+      //           if (identical(f1.context.inner.context,
+      //                         f2.context.inner.context)) {
+      //             return typesEqual(f1.context, f2.context);
+      //           }
+      //         }
+      //         return false;
+      //       }
       //       if (v1.context is #Top && v2.context is #Top) {
       //         return identical(v1.context, v2.context);
       //       }
@@ -1585,6 +1594,76 @@ class Intrinsifier {
       b.ref_eq();
 
       b.if_(); // fun1.vtable == fun2.vtable
+
+      // Check if closures are instantiations. Since they have the same vtable
+      // it's enough to check just one of them.
+      final instantiationContextBase = w.RefType(
+          translator.closureLayouter.instantiationContextBaseStruct,
+          nullable: false);
+      final instantiationBlock =
+          b.block([], [w.RefType.struct(nullable: false)]);
+
+      b.local_get(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.br_on_cast_fail(instantiationContextBase, instantiationBlock);
+
+      // Closures are instantiations. Compare inner function vtables to check
+      // that instantiations are for the same generic function.
+      final vtable1Local = codeGen.function.addLocal(w.RefType.def(
+          translator.closureLayouter.vtableBaseStruct,
+          nullable: false));
+
+      void getInstantiationContextInner(w.Local fun) {
+        b.local_get(fun);
+        // instantiation.context
+        b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+        b.ref_cast(instantiationContextBase);
+        // instantiation.context.inner
+        b.struct_get(translator.closureLayouter.instantiationContextBaseStruct,
+            FieldIndex.instantiationContextInner);
+      }
+
+      getInstantiationContextInner(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+      b.local_tee(vtable1Local);
+
+      getInstantiationContextInner(fun2);
+      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+
+      b.ref_eq();
+      b.if_(); // fun1.context.inner.vtable == fun2.context.inner.vtable
+
+      // Closures are instantiations of the same function, compare inner
+      // contexts and types
+      getInstantiationContextInner(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      getInstantiationContextInner(fun2);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.ref_eq();
+      b.if_(); // fun1.context.inner.context == fun2.context.inner.context
+      // Inner contexts are equal, compare types
+      b.local_get(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.ref_cast(instantiationContextBase);
+      b.local_get(fun2);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.ref_cast(instantiationContextBase);
+      b.local_get(vtable1Local);
+      b.ref_cast(w.RefType.def(
+          translator.closureLayouter.genericVtableBaseStruct,
+          nullable: false));
+      b.struct_get(translator.closureLayouter.genericVtableBaseStruct,
+          FieldIndex.vtableInstantiationTypeComparisonFunction);
+      b.call_ref(translator
+          .closureLayouter.instantiationClosureTypeComparisonFunctionType);
+      b.return_();
+      b.end(); // fun1.context.inner.context == fun2.context.inner.context
+      b.end(); // fun1.context.inner.vtable == fun2.context.inner.vtable
+      // Contexts or inner vtables are not equal
+      b.i32_const(0); // false
+      b.return_();
+      b.end(); // instantiationBlock
+      b.drop();
 
       // Compare context references. If context of a function has the top type
       // then the function is an instance tear-off. Otherwise it's a closure.

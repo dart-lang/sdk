@@ -29,7 +29,8 @@ class FieldIndex {
   static const closureVtable = 3;
   static const closureRuntimeType = 4;
   static const vtableDynamicCallEntry = 0;
-  static const vtableInstantiationFunction = 1;
+  static const vtableInstantiationTypeComparisonFunction = 1;
+  static const vtableInstantiationFunction = 2;
   static const instantiationContextInner = 0;
   static const instantiationContextTypeArgumentsBase = 1;
   static const typeIsDeclaredNullable = 2;
