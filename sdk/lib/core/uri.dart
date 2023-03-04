@@ -139,9 +139,9 @@ abstract class Uri {
   /// [port].
   /// If [port] is omitted or `null`, it implies the default port for
   /// the URI's scheme, and is equivalent to passing that port explicitly.
-  /// The recognized schemes, and their default ports, are "http" (80) and
-  /// "https" (443). All other schemes are considered as having zero as the
-  /// default port.
+  /// The recognized schemes, and their default ports, are "http" and "ws" (80)
+  /// as well as "https" and "wss" (443). All other schemes are considered as
+  /// having zero as the default port.
   ///
   /// If any of `userInfo`, `host` or `port` are provided,
   /// the URI has an authority according to [hasAuthority].
@@ -489,7 +489,8 @@ abstract class Uri {
   /// The port part of the authority component.
   ///
   /// The value is the default port if there is no port number in the authority
-  /// component. That's 80 for http, 443 for https, and 0 for everything else.
+  /// component. That's 80 for http and ws, 443 for https and wss, and 0 for
+  /// everything else.
   int get port;
 
   /// The path component.
@@ -589,8 +590,8 @@ abstract class Uri {
   /// Whether the URI has an explicit port.
   ///
   /// If the port number is the default port number
-  /// (zero for unrecognized schemes, with http (80) and https (443) being
-  /// recognized),
+  /// (zero for unrecognized schemes, with http and ws (80) as well as https
+  /// and wss (443) being recognized),
   /// then the port is made implicit and omitted from the URI.
   bool get hasPort;
 
