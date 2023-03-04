@@ -1717,6 +1717,14 @@ class _Uri implements Uri {
   }
 
   /// The default port for the scheme of this Uri.
+  ///
+  /// Currently, the default ports for HTTP and WebSockets are supported.
+  ///
+  /// See [RFC 9110, section 4.2] for HTTP and [RFC 6455, section 3] for
+  /// WebSockets.
+  ///
+  /// [RFC 6455, section 3]: https://www.rfc-editor.org/rfc/rfc6455#section-3
+  /// [RFC 9110, section 4.2]: https://www.rfc-editor.org/rfc/rfc9110#section-4.2
   static int _defaultPort(String scheme) {
     switch (scheme) {
       case "http":
