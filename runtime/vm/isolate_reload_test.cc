@@ -1705,7 +1705,7 @@ TEST_CASE(IsolateReload_TearOff_Remove) {
   const char* kScript =
       "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
-      "  static foo({String bar: 'bar'}) => 'old';\n"
+      "  static foo({String bar = 'bar'}) => 'old';\n"
       "}\n"
       "main() {\n"
       "  var f1 = C.foo;\n"

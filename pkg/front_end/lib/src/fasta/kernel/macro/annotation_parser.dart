@@ -2256,7 +2256,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleValuedFormalParameter(Token equals, Token token) {
+  void handleValuedFormalParameter(
+      Token equals, Token token, FormalParameterKind kind) {
     _unsupported();
   }
 

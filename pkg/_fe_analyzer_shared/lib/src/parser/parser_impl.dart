@@ -2097,7 +2097,7 @@ class Parser {
       listener.endFormalParameterDefaultValueExpression();
       // TODO(danrubel): Consider removing the last parameter from the
       // handleValuedFormalParameter event... it appears to be unused.
-      listener.handleValuedFormalParameter(equal, next);
+      listener.handleValuedFormalParameter(equal, next, parameterKind);
       if (parameterKind.isRequiredPositional) {
         reportRecoverableError(
             equal, codes.messageRequiredParameterWithDefault);

@@ -1860,7 +1860,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Function) {
 
           createF() => (){};
           createG() => () => 3;
-          createH() => (int x, String y, {int z : 0}) =>  x + z;
+          createH() => (int x, String y, {int z = 0}) =>  x + z;
 
           createAInt() => A<int>();
           createAFunction() => A<Function>();

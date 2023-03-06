@@ -975,6 +975,7 @@ obj
 obligated
 observatory
 observe
+obsolete
 obstruct
 obtaining
 occasionally

@@ -2073,7 +2073,8 @@ class Listener implements UnescapeErrorListener {
     logEvent("FormalParameterDefaultValueExpression");
   }
 
-  void handleValuedFormalParameter(Token equals, Token token) {
+  void handleValuedFormalParameter(
+      Token equals, Token token, FormalParameterKind kind) {
     logEvent("ValuedFormalParameter");
   }
 

@@ -5448,7 +5448,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleValuedFormalParameter(Token equals, Token token) {
+  void handleValuedFormalParameter(
+      Token equals, Token token, FormalParameterKind kind) {
     debugEvent("ValuedFormalParameter");
     Expression initializer = popForValue();
     Object? name = pop();
@@ -5456,6 +5457,13 @@ class BodyBuilder extends StackListenerImpl
       push(name);
     } else {
       push(new InitializedIdentifier(name as Identifier, initializer));
+    }
+    if ((kind == FormalParameterKind.optionalNamed ||
+            kind == FormalParameterKind.requiredNamed) &&
+        equals.lexeme == ':' &&
+        libraryBuilder.languageVersion.version.major >= 3) {
+      addProblem(fasta.messageObsoleteColonForDefaultValue, equals.charOffset,
+          equals.charCount);
     }
   }
 
