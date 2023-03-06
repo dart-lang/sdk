@@ -368,6 +368,8 @@ class LspAnalysisServer extends AnalysisServer {
 
     performanceAfterStartup = ServerPerformance();
     performance = performanceAfterStartup!;
+
+    _checkAnalytics();
   }
 
   /// Handles a response from the client by invoking the completer that the
@@ -683,7 +685,7 @@ class LspAnalysisServer extends AnalysisServer {
       logErrorToClient(
           '$message\n\n${error.message}\n\n${error.code}\n\n${error.data}');
 
-      shutdown();
+      unawaited(shutdown());
     }
   }
 
@@ -844,19 +846,17 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   @override
-  Future<void> shutdown() {
-    super.shutdown();
+  Future<void> shutdown() async {
+    await super.shutdown();
 
     detachableFileSystemManager?.dispose();
 
     // Defer closing the channel so that the shutdown response can be sent and
     // logged.
-    Future(() {
+    unawaited(Future(() {
       channel.close();
-    });
-    _pluginChangeSubscription?.cancel();
-
-    return Future.value();
+    }));
+    unawaited(_pluginChangeSubscription?.cancel());
   }
 
   /// There was an error related to the socket from which messages are being
@@ -894,6 +894,20 @@ class LspAnalysisServer extends AnalysisServer {
 
     notifyDeclarationsTracker(path);
     notifyFlutterWidgetDescriptions(path);
+  }
+
+  /// Display a message that will allow us to enable analytics on the next run.
+  void _checkAnalytics() {
+    var dashAnalytics = analyticsManager.analytics;
+    // The order of the conditions below is important. We need to check whether
+    // the client supports `showMessageRequest` before asking whether we need to
+    // show the message because the `Analytics` instance assumes that if
+    // `shouldShowMessage` returns `true` then the message will be shown.
+    if (_clientCapabilities!.supportsShowMessageRequest &&
+        dashAnalytics.shouldShowMessage) {
+      unawaited(
+          showUserPrompt(MessageType.Info, dashAnalytics.toolsMessage, ['Ok']));
+    }
   }
 
   /// Computes analysis roots for a set of open files.

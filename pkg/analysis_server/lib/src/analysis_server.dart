@@ -566,7 +566,7 @@ abstract class AnalysisServer {
   });
 
   @mustCallSuper
-  void shutdown() {
+  Future<void> shutdown() async {
     // For now we record plugins only on shutdown. We might want to record them
     // every time the set of plugins changes, in which case we'll need to listen
     // to the `PluginManager.pluginsChanged` stream.
@@ -578,7 +578,7 @@ abstract class AnalysisServer {
     analyticsManager.createdAnalysisContexts(contextManager.analysisContexts);
 
     pubPackageService.shutdown();
-    analyticsManager.shutdown();
+    await analyticsManager.shutdown();
   }
 
   /// Return the path to the location of the byte store on disk, or `null` if
