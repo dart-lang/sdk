@@ -8375,14 +8375,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<String, List<VariableDeclaration>> declaredVariablesByName = {};
 
     bool hasContinue = false;
+    for (PatternSwitchCase switchCase in node.cases) {
+      if (switchCase.labelUsers.isNotEmpty) {
+        hasContinue = true;
+        break;
+      }
+    }
     List<List<DelayedExpression>> matchingExpressions =
         new List.generate(node.cases.length, (int caseIndex) {
       PatternSwitchCase switchCase = node.cases[caseIndex];
       return new List.generate(switchCase.patternGuards.length,
           (int headIndex) {
-        if (switchCase.labelUsers.isNotEmpty) {
-          hasContinue = true;
-        }
         Pattern pattern = switchCase.patternGuards[headIndex].pattern;
         DelayedExpression matchingExpression =
             matchingExpressionVisitor.visitPattern(
