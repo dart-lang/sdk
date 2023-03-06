@@ -568,8 +568,20 @@ class OperationsCfe
 
   @override
   MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
-    // TODO: implement matchMapType
-    throw new UnimplementedError('TODO(scheglov)');
+    if (type is! InterfaceType) {
+      return null;
+    } else {
+      InterfaceType? mapType = typeEnvironment.getTypeAsInstanceOf(
+          type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes,
+          isNonNullableByDefault: isNonNullableByDefault);
+      if (mapType == null) {
+        return null;
+      } else {
+        return new MapPatternTypeArguments<DartType>(
+            keyType: mapType.typeArguments[0],
+            valueType: mapType.typeArguments[1]);
+      }
+    }
   }
 
   @override

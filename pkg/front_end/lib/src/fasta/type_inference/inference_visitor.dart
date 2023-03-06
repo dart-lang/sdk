@@ -9000,11 +9000,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    // TODO(cstefantsova): Support late variables.
-    analyzePatternVariableDeclaration(node, node.pattern, node.initializer,
-        isFinal: node.isFinal, isLate: false);
-
     Pattern pattern = node.pattern;
+    Expression initializer = node.initializer;
+
+    // TODO(cstefantsova): Support late variables.
+    analyzePatternVariableDeclaration(node, pattern, initializer,
+        isFinal: node.isFinal, isLate: false);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -9015,12 +9016,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (!identical(rewrite, pattern)) {
       pattern = rewrite as Pattern;
     }
-
-    Expression initializer = node.initializer;
-
-    assert(checkStack(node, stackBase, [
-      /* initializer = */ ValueKinds.Expression,
-    ]));
 
     rewrite = popRewrite();
     if (!identical(initializer, rewrite)) {
@@ -10685,11 +10680,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     node.matchedType = flow.getMatchedValueType();
 
+    MapPatternTypeArguments<DartType>? typeArguments =
+        node.keyType == null && node.valueType == null
+            ? null
+            : new MapPatternTypeArguments<DartType>(
+                keyType: node.keyType ?? const DynamicType(),
+                valueType: node.valueType ?? const DynamicType());
     DartType mapType = analyzeMapPattern(context, node,
-        typeArguments: new MapPatternTypeArguments<DartType>(
-            keyType: node.keyType ?? const DynamicType(),
-            valueType: node.valueType ?? const DynamicType()),
-        elements: node.entries);
+        typeArguments: typeArguments, elements: node.entries);
 
     // TODO(johnniwinther): How does `mapType` relate to `node.mapType`?
     DartType keyType = node.keyType ?? const DynamicType();
