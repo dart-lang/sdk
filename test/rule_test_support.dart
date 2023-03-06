@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -115,7 +116,16 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
   String? get lintRule;
 
   @override
-  List<String> get _lintRules => [if (lintRule != null) lintRule!];
+  List<String> get _lintRules {
+    var ruleName = lintRule;
+    if (ruleName != null) {
+      if (!Registry.ruleRegistry.any((r) => r.name == ruleName)) {
+        throw Exception("Unrecognized rule: '$ruleName'");
+      }
+      return [ruleName];
+    }
+    return [];
+  }
 
   /// Assert that the number of diagnostics that have been gathered matches the
   /// number of [expectedDiagnostics] and that they have the expected error
@@ -301,10 +311,6 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     );
   }
 
-  void writeTestPackagePubspecYamlFile(PubspecYamlFileConfig config) {
-    newPubspecYamlFile(testPackageRootPath, config.toContent());
-  }
-
   void writeTestPackageConfig(PackageConfigFileBuilder config) {
     var configCopy = config.copy();
 
@@ -340,6 +346,10 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
     var path = '$testPackageRootPath/.dart_tool/package_config.json';
     writePackageConfig(path, configCopy);
+  }
+
+  void writeTestPackagePubspecYamlFile(PubspecYamlFileConfig config) {
+    newPubspecYamlFile(testPackageRootPath, config.toContent());
   }
 
   /// Create a fake 'flutter' package that can be used by tests.
