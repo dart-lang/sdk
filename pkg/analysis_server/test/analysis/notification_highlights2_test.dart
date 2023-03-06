@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -25,6 +26,12 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationHighlightsTest extends HighlightsTestSupport {
+  @override
+  List<String> get experiments => [
+        Feature.inline_class.enableString,
+        ...super.experiments,
+      ];
+
   void assertHighlightText(TestCode testCode, int index, String expected) {
     var actual = _getHighlightText(testCode, index);
     if (actual != expected) {
@@ -1412,6 +1419,14 @@ f(a, b) {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.KEYWORD, 'if');
     assertHasRegion(HighlightRegionType.KEYWORD, 'else');
+  }
+
+  Future<void> test_KEYWORD_inline() async {
+    addTestFile('''
+inline class A {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'inline');
   }
 
   Future<void> test_KEYWORD_late() async {

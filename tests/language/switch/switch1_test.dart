@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=patterns,records
+
 /// Check that default clause must be last case.
 
 main() {
@@ -11,8 +13,6 @@ main() {
     case 1: x = 1; break;
     case 6: x = 2; break S;
     default:
-//  ^
-// [cfe] Switch case may fall through to the next case.
     case 8:  break;
 //  ^^^^
 // [analyzer] SYNTACTIC_ERROR.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE
