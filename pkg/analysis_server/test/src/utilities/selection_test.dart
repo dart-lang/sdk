@@ -291,6 +291,15 @@ extension on int {}
 ''');
   }
 
+  Future<void> test_fieldDeclaration_metadata() async {
+    await assertMetadata(prefix: '''
+class C {
+''', postfix: '''
+  int? f;
+}
+''');
+  }
+
   Future<void> test_fieldFormalParameter_metadata() async {
     await assertMetadata(prefix: '''
 class C {
@@ -298,6 +307,16 @@ class C {
   C(
 ''', postfix: '''
 this.x);
+}
+''');
+  }
+
+  Future<void> test_forEachPartsWithPattern_metadata() async {
+    await assertMetadata(prefix: '''
+void f(List<(int, int)> r) {
+  for (
+''', postfix: '''
+  var (x, y) in r) {}
 }
 ''');
   }
@@ -591,6 +610,15 @@ part of '';
 ''');
   }
 
+  Future<void> test_patternVariableDeclaration_metadata() async {
+    await assertMetadata(prefix: '''
+void f((int, int) r) {
+''', postfix: '''
+  var (x, y) = r;
+}
+''');
+  }
+
   Future<void> test_recordLiteral_fields() async {
     var nodes = await nodesInRange('''
 var r = ('0', [!1, 2.0!], '3');
@@ -675,6 +703,17 @@ void f(
 ''', postfix: '''
 int x) {}
 ''');
+  }
+
+  Future<void> test_stringInterpolation_elements() async {
+    var nodes = await nodesInRange(r'''
+void f(cd, gh) {
+  var s = 'ab${c[!d}e!]f${gh}';
+}
+''');
+    expect(nodes, hasLength(2));
+    nodes[0] as InterpolationExpression;
+    nodes[1] as InterpolationString;
   }
 
   Future<void> test_superFormalParameter_metadata() async {
