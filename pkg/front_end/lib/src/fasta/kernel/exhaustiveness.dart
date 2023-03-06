@@ -480,8 +480,12 @@ Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
         cache, pattern.pattern, constants, context,
         nonNull: true, path: path);
     return space.union(new Space(path, StaticType.nullType));
-  } else if (pattern is CastPattern ||
-      pattern is InvalidPattern ||
+  } else if (pattern is CastPattern) {
+    // TODO(johnniwinther): Handle types (sibling sealed types?) implicitly
+    // handled by the throw of the invalid cast.
+    return convertPatternToSpace(cache, pattern.pattern, constants, context,
+        nonNull: nonNull, path: path);
+  } else if (pattern is InvalidPattern ||
       pattern is RelationalPattern ||
       pattern is AndPattern) {
     // These pattern do not add to the exhaustiveness coverage.

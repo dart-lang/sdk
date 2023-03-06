@@ -8,23 +8,30 @@ class A {
   A(this.field);
 }
 
+sealed class B {}
+class C extends B {}
+class D extends B {}
+class E extends B {}
+
 simpleCast(o1, o2) {
   var a = /*
    fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
-    _ as A /*space=??*/=> 0,
-    _ /*space=()*/=> 1
+    _ as A /*space=()*/=> 0,
+    _ /*
+     error=unreachable,
+     space=()
+    */=> 1
   };
 
   var b = /*
-   error=non-exhaustive:Object,
    fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
-    _ as A /*space=??*/=> 0,
+    _ as A /*space=()*/=> 0,
   };
 }
 
@@ -36,7 +43,7 @@ restrictedCase(o1, o2) {
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
-    A(field: 42) as A /*space=??*/=> 0,
+    A(field: 42) as A /*cfe.space=A(field: IntConstant(42))*//*analyzer.space=A(field: int (42))*/=> 0,
     _ /*space=()*/=> 1
   };
 
@@ -46,6 +53,26 @@ restrictedCase(o1, o2) {
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
-    A(field: 42) as A /*space=??*/=> 0,
+    A(field: 42) as A /*cfe.space=A(field: IntConstant(42))*//*analyzer.space=A(field: int (42))*/=> 0,
   };
+}
+
+sealedCast(B b1, B b2) {
+  /*
+   fields={hashCode:int,runtimeType:Type},
+   subtypes={C,D,E},
+   type=B
+  */switch (b1) {
+    /*space=C*/case C():
+    /*space=()*/case _ as D:
+  }
+  /*
+   error=non-exhaustive:E,
+   fields={hashCode:int,runtimeType:Type},
+   subtypes={C,D,E},
+   type=B
+  */switch (b2) {
+    /*space=D*/case D():
+    /*space=C*/case var c as C:
+  }
 }

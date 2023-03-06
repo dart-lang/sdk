@@ -381,12 +381,12 @@ class PatternConverter {
     } else if (pattern is NullAssertPattern) {
       Space space = convertPattern(pattern.pattern, nonNull: true, path: path);
       return space.union(Space(path, StaticType.nullType));
-    } else if (pattern is CastPattern ||
-        pattern is RelationalPattern ||
-        pattern is LogicalAndPattern) {
+    } else if (pattern is CastPattern) {
+      // TODO(johnniwinther): Handle types (sibling sealed types?) implicitly
+      // handled by the throw of the invalid cast.
+      return convertPattern(pattern.pattern, nonNull: nonNull, path: path);
+    } else if (pattern is RelationalPattern || pattern is LogicalAndPattern) {
       // These pattern do not add to the exhaustiveness coverage.
-      // TODO(johnniwinther): Handle `Null` aspect implicitly covered by
-      // [NullAssertPattern] and `as Null`.
       // TODO(johnniwinther): Handle top in [AndPattern] branches.
       return Space(path, cache.getUnknownStaticType());
     } else if (pattern is ListPattern || pattern is MapPattern) {
