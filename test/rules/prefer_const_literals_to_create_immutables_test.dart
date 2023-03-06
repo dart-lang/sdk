@@ -18,7 +18,7 @@ class PreferConstLiteralsToCreateImmutablesTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'prefer_const_literals_to_create_immutables.dart';
+  String get lintRule => 'prefer_const_literals_to_create_immutables';
 
   test_missingRequiredArgument() async {
     await assertDiagnostics(r'''
