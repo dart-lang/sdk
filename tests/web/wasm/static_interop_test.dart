@@ -78,10 +78,10 @@ void createClassTest() {
         return (a ?? 'foo') + (b ?? 'bar');
       }
       this.doSum1Or2NonNull = function(a, b) {
-        return a + b;
+        return (a ?? 'foo') + (b ?? 'bar');
       }
       this.doSumUpTo2NonNull = function(a, b) {
-        return a + b;
+        return (a ?? 'foo') + (b ?? 'bar');
       }
       this.doIntSum1Or2 = function(a, b) {
         return a + (b ?? 2);
@@ -90,10 +90,10 @@ void createClassTest() {
         return (a ?? 1) + (b ?? 2);
       }
       this.doIntSum1Or2NonNull = function(a, b) {
-        return a + b;
+        return a + (b ?? 2);
       }
       this.doIntSumUpTo2NonNull = function(a, b) {
-        return a + b;
+        return (a ?? 1) + (b ?? 2);
       }
       this.nameInJSMethod = function(a, b) {
         return a + b;
