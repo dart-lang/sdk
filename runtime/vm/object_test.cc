@@ -24,6 +24,7 @@
 #include "vm/debugger_api_impl_test.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
+#include "vm/malloc_hooks.h"
 #include "vm/message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -2782,6 +2783,9 @@ ISOLATE_UNIT_TEST_CASE(Code) {
 // Test for immutability of generated instructions. The test crashes with a
 // segmentation fault when writing into it.
 ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
+  bool stack_trace_collection_enabled =
+      MallocHooks::stack_trace_collection_enabled();
+  MallocHooks::set_stack_trace_collection_enabled(false);
   extern void GenerateIncrement(compiler::Assembler * assembler);
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler _assembler_(&object_pool_builder);
@@ -2802,6 +2806,8 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
     // is switched off.
     FATAL("Test requires --write-protect-code; skip by forcing expected crash");
   }
+  MallocHooks::set_stack_trace_collection_enabled(
+      stack_trace_collection_enabled);
 }
 
 class CodeTestHelper {
@@ -2817,6 +2823,9 @@ class CodeTestHelper {
 // Test for executability of generated instructions. The test crashes with a
 // segmentation fault when executing the writeable view.
 ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
+  bool stack_trace_collection_enabled =
+      MallocHooks::stack_trace_collection_enabled();
+  MallocHooks::set_stack_trace_collection_enabled(false);
   extern void GenerateIncrement(compiler::Assembler * assembler);
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler _assembler_(&object_pool_builder);
@@ -2850,6 +2859,8 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
     // is switched off.
     FATAL("Test requires --dual-map-code; skip by forcing expected crash");
   }
+  MallocHooks::set_stack_trace_collection_enabled(
+      stack_trace_collection_enabled);
 }
 
 // Test for Embedded String object in the instructions.
