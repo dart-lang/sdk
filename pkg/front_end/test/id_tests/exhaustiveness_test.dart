@@ -83,9 +83,6 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
       }
       features[Tags.scrutineeFields] =
           fieldsToText(result.scrutineeType.fields);
-      if (result.remainingSpaces.isNotEmpty) {
-        features[Tags.remaining] = spaceToText(result.remainingSpaces.last);
-      }
       for (ExhaustivenessError error in result.errors) {
         if (error is NonExhaustiveError) {
           features[Tags.error] = errorToText(error);
@@ -95,10 +92,7 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
       for (int i = 0; i < result.caseSpaces.length; i++) {
         int offset = result.caseOffsets[i];
         Features caseFeatures = new Features();
-        caseFeatures[Tags.space] = spaceToText(result.caseSpaces[i]);
-        if (result.remainingSpaces.isNotEmpty) {
-          caseFeatures[Tags.remaining] = spaceToText(result.remainingSpaces[i]);
-        }
+        caseFeatures[Tags.space] = spacesToText(result.caseSpaces[i]);
         for (ExhaustivenessError error in result.errors) {
           if (error is UnreachableCaseError && error.index == i) {
             caseFeatures[Tags.error] = errorToText(error);

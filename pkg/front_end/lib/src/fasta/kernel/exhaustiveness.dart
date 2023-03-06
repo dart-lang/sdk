@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_types.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:front_end/src/fasta/kernel/constant_evaluator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -32,11 +32,10 @@ class ExhaustivenessResult {
   final StaticType scrutineeType;
   final List<Space> caseSpaces;
   final List<int> caseOffsets;
-  final List<Space> remainingSpaces;
   final List<ExhaustivenessError> errors;
 
-  ExhaustivenessResult(this.scrutineeType, this.caseSpaces, this.caseOffsets,
-      this.remainingSpaces, this.errors);
+  ExhaustivenessResult(
+      this.scrutineeType, this.caseSpaces, this.caseOffsets, this.errors);
 }
 
 class CfeTypeOperations implements TypeOperations<DartType> {
@@ -347,7 +346,8 @@ class ExpressionCaseInfo extends SwitchCaseInfo {
   @override
   Space createSpace(CfeExhaustivenessCache cache,
       Map<Node, Constant?> constants, StaticTypeContext context) {
-    return convertExpressionToSpace(cache, expression, constants, context);
+    return convertExpressionToSpace(
+        cache, expression, constants, context, const Path.root());
   }
 }
 
@@ -365,9 +365,11 @@ class PatternCaseInfo extends SwitchCaseInfo {
   @override
   Space createSpace(CfeExhaustivenessCache cache,
       Map<Node, Constant?> constants, StaticTypeContext context) {
-    if (hasGuard) return new Space(cache.getUnknownStaticType());
+    if (hasGuard) {
+      return new Space(const Path.root(), cache.getUnknownStaticType());
+    }
     return convertPatternToSpace(cache, pattern, constants, context,
-        nonNull: false);
+        nonNull: false, path: const Path.root());
   }
 }
 
@@ -400,36 +402,38 @@ Space convertExpressionToSpace(
     CfeExhaustivenessCache cache,
     Expression expression,
     Map<Node, Constant?> constants,
-    StaticTypeContext context) {
+    StaticTypeContext context,
+    Path path) {
   Constant? constant = constants[expression];
-  return convertConstantToSpace(cache, constant, constants, context);
+  return convertConstantToSpace(cache, constant, constants, context,
+      path: path);
 }
 
 Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
     Map<Node, Constant?> constants, StaticTypeContext context,
-    {required bool nonNull}) {
+    {required bool nonNull, required Path path}) {
   if (pattern is ObjectPattern) {
     DartType type = pattern.objectType;
     Map<String, Space> fields = {};
     for (NamedPattern field in pattern.fields) {
       fields[field.name] = convertPatternToSpace(
           cache, field.pattern, constants, context,
-          nonNull: false);
+          nonNull: false, path: path.add(field.name));
     }
     StaticType staticType = cache.getStaticType(type);
     if (nonNull) {
       staticType = staticType.nonNullable;
     }
-    return new Space(staticType, fields);
+    return new Space(path, staticType, fields: fields);
   } else if (pattern is VariablePattern) {
     StaticType staticType = cache.getStaticType(pattern.variable.type);
     if (nonNull) {
       staticType = staticType.nonNullable;
     }
-    return new Space(staticType);
+    return new Space(path, staticType);
   } else if (pattern is ConstantPattern) {
     return convertExpressionToSpace(
-        cache, pattern.expression, constants, context);
+        cache, pattern.expression, constants, context, path);
   } else if (pattern is RecordPattern) {
     int index = 1;
     Map<String, Space> fields = {};
@@ -445,39 +449,37 @@ Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
       }
       fields[name] = convertPatternToSpace(
           cache, subpattern, constants, context,
-          nonNull: false);
+          nonNull: false, path: path.add(name));
     }
-    return new Space(cache.getStaticType(pattern.type), fields);
+    return new Space(path, cache.getStaticType(pattern.type), fields: fields);
   } else if (pattern is WildcardPattern) {
     final DartType? type = pattern.type;
     if (type == null) {
       if (nonNull) {
-        return new Space(StaticType.nonNullableObject);
+        return new Space(path, StaticType.nonNullableObject);
       } else {
-        return Space.top;
+        return new Space(path, StaticType.nullableObject);
       }
     } else {
       StaticType staticType = cache.getStaticType(type);
       if (nonNull) {
         staticType = staticType.nonNullable;
       }
-      return new Space(staticType);
+      return new Space(path, staticType);
     }
   } else if (pattern is OrPattern) {
-    return new Space.union([
-      convertPatternToSpace(cache, pattern.left, constants, context,
-          nonNull: nonNull),
-      convertPatternToSpace(cache, pattern.right, constants, context,
-          nonNull: nonNull)
-    ]);
+    return convertPatternToSpace(cache, pattern.left, constants, context,
+            nonNull: nonNull, path: path)
+        .union(convertPatternToSpace(cache, pattern.right, constants, context,
+            nonNull: nonNull, path: path));
   } else if (pattern is NullCheckPattern) {
     return convertPatternToSpace(cache, pattern.pattern, constants, context,
-        nonNull: true);
+        nonNull: true, path: path);
   } else if (pattern is NullAssertPattern) {
     Space space = convertPatternToSpace(
         cache, pattern.pattern, constants, context,
-        nonNull: true);
-    return new Space.union([space, Space.nullSpace]);
+        nonNull: true, path: path);
+    return space.union(new Space(path, StaticType.nullType));
   } else if (pattern is CastPattern ||
       pattern is InvalidPattern ||
       pattern is RelationalPattern ||
@@ -486,48 +488,56 @@ Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
     // TODO(johnniwinther): Handle `Null` aspect implicitly covered by
     // [NullAssertPattern] and `as Null`.
     // TODO(johnniwinther): Handle top in [AndPattern] branches.
-    return new Space(cache.getUnknownStaticType());
+    return new Space(path, cache.getUnknownStaticType());
   } else if (pattern is ListPattern || pattern is MapPattern) {
     // TODO(johnniwinther): Support list and map patterns. This not only
     //  requires a new interpretation of [Space] fields that handles the
     //  relation between concrete lengths, rest patterns with/without
     //  subpattern, and list/map of arbitrary size and content, but also for the
     //  runtime to check for lengths < 0.
-    return new Space(cache.getUnknownStaticType());
+    return new Space(path, cache.getUnknownStaticType());
   }
   assert(false, "Unexpected pattern $pattern (${pattern.runtimeType}).");
-  return new Space(cache.getUnknownStaticType());
+  return new Space(path, cache.getUnknownStaticType());
 }
 
 Space convertConstantToSpace(CfeExhaustivenessCache cache, Constant? constant,
-    Map<Node, Constant?> constants, StaticTypeContext context) {
+    Map<Node, Constant?> constants, StaticTypeContext context,
+    {required Path path}) {
   if (constant != null) {
     if (constant is NullConstant) {
-      return Space.nullSpace;
+      return new Space(path, StaticType.nullType);
     } else if (constant is BoolConstant) {
-      return new Space(cache.getBoolValueStaticType(constant.value));
+      return new Space(path, cache.getBoolValueStaticType(constant.value));
     } else if (constant is InstanceConstant && constant.classNode.isEnum) {
       return new Space(
-          cache.getEnumElementStaticType(constant.classNode, constant));
+          path, cache.getEnumElementStaticType(constant.classNode, constant));
     } else if (constant is RecordConstant) {
       Map<String, Space> fields = {};
       for (int index = 0; index < constant.positional.length; index++) {
-        fields['\$${index + 1}'] = convertConstantToSpace(
-            cache, constant.positional[index], constants, context);
+        String name = '\$${index + 1}';
+        fields[name] = convertConstantToSpace(
+            cache, constant.positional[index], constants, context,
+            path: path.add(name));
       }
       for (MapEntry<String, Constant> entry in constant.named.entries) {
-        fields[entry.key] =
-            convertConstantToSpace(cache, entry.value, constants, context);
+        String name = entry.key;
+        fields[name] = convertConstantToSpace(
+            cache, entry.value, constants, context,
+            path: path.add(name));
       }
-      return new Space(cache.getStaticType(constant.recordType), fields);
+      return new Space(path, cache.getStaticType(constant.recordType),
+          fields: fields);
     } else {
-      return new Space(cache.getUniqueStaticType(
-          constant.getType(context), constant, '${constant}'));
+      return new Space(
+          path,
+          cache.getUniqueStaticType(
+              constant.getType(context), constant, '${constant}'));
     }
   } else {
     // TODO(johnniwinther): Assert that constant value is available when the
     // exhaustiveness checking is complete.
-    return new Space(cache.getUnknownStaticType());
+    return new Space(path, cache.getUnknownStaticType());
   }
 }
 

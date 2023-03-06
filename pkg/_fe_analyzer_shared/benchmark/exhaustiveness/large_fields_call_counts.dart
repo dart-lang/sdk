@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/profile.dart' as profile;
-import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 
@@ -113,6 +112,6 @@ void main() {
 void expectExhaustiveOnlyAll(StaticType type, List<Map<String, Object>> cases) {
   var spaces = cases.map((c) => ty(type, c)).toList();
   profile.reset();
-  print(isExhaustive(Space(type), spaces));
+  print(isExhaustive(Space(const Path.root(), type), spaces));
   profile.log();
 }

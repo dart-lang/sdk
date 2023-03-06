@@ -4,7 +4,6 @@
 
 import 'exhaustive.dart';
 import 'profile.dart' as profile;
-import 'space.dart';
 import 'static_type.dart';
 
 /// Returns `true` if [caseSpaces] exhaustively covers all possible values of
@@ -22,70 +21,40 @@ bool isExhaustive(Space valueSpace, List<Space> caseSpaces) {
 /// Returns an empty list if all cases are reachable and the cases are
 /// exhaustive.
 List<ExhaustivenessError> reportErrors(
-    StaticType valueType, List<Space> caseSpaces) {
+    StaticType valueType, List<Space> cases) {
   List<ExhaustivenessError> errors = <ExhaustivenessError>[];
 
-  Pattern valuePattern = new Pattern(valueType, {}, []);
-  List<List<Patterns>> cases =
-      caseSpaces.map((space) => [_spaceToPatterns(space)]).toList();
+  Space valuePattern = new Space(const Path.root(), valueType);
+  List<List<Space>> caseRows = cases.map((space) => [space]).toList();
 
-  for (int i = 1; i < cases.length; i++) {
+  for (int i = 1; i < caseRows.length; i++) {
     // See if this case is covered by previous ones.
-    if (_unmatched(cases.sublist(0, i), cases[i]) == null) {
-      errors.add(new UnreachableCaseError(valueType, caseSpaces, i));
+    if (_unmatched(caseRows.sublist(0, i), caseRows[i]) == null) {
+      errors.add(new UnreachableCaseError(valueType, cases, i));
     }
   }
 
-  String? witness = _unmatched(cases, [
-    new Patterns([valuePattern])
-  ]);
+  String? witness = _unmatched(caseRows, [valuePattern]);
   if (witness != null) {
-    errors.add(new NonExhaustiveError(valueType, caseSpaces, witness));
+    errors.add(new NonExhaustiveError(valueType, cases, witness));
   }
 
   return errors;
 }
 
-/// Determines if [caseSpaces] is exhaustive over all values contained by
+/// Determines if [cases] is exhaustive over all values contained by
 /// [valueSpace]. If so, returns `null`. Otherwise, returns a string describing
-/// an example of one value that isn't matched by anything in [caseSpaces].
-String? checkExhaustiveness(Space valueSpace, List<Space> caseSpaces) {
+/// an example of one value that isn't matched by anything in [cases].
+String? checkExhaustiveness(Space valueSpace, List<Space> cases) {
   // TODO(johnniwinther): Perform reachability checking.
-  Patterns value = _spaceToPatterns(valueSpace);
-  List<List<Patterns>> cases =
-      caseSpaces.map((space) => [_spaceToPatterns(space)]).toList();
+  List<List<Space>> caseRows = cases.map((space) => [space]).toList();
 
-  String? witness = _unmatched(cases, [value]);
+  String? witness = _unmatched(caseRows, [valueSpace]);
 
   // Uncomment this to have it print out the witness for non-exhaustive matches.
   // if (witness != null) print(witness);
 
   return witness;
-}
-
-/// Convert the prototype's original [Space] representation to the [Patterns]
-/// representation used here.
-///
-/// This is only a convenience to run the existing test code which creates
-/// [Space]s using the new algorithm.
-// TODO(johnniwinther): Encode Dart patterns directly into [Patterns].
-Patterns _spaceToPatterns(Space space, [List<String> path = const []]) {
-  if (space is UnionSpace) {
-    return new Patterns(
-        space.arms.map((arm) => _extractSpaceToPattern(arm, path)).toList());
-  }
-  return new Patterns([_extractSpaceToPattern(space as ExtractSpace, path)]);
-}
-
-/// Convert the prototype's original [ExtractSpace] representation into the
-/// [Pattern] representation used here.
-Pattern _extractSpaceToPattern(ExtractSpace space,
-    [List<String> path = const []]) {
-  Map<String, Patterns> fields = {
-    for (String name in space.fields.keys)
-      name: _spaceToPatterns(space.fields[name]!, [...path, name])
-  };
-  return new Pattern(space.type, fields, path);
 }
 
 /// Tries to find a pattern containing at least one value matched by
@@ -94,9 +63,10 @@ Pattern _extractSpaceToPattern(ExtractSpace space,
 /// If found, returns it. This is a witness example showing that [caseRows] is
 /// not exhaustive over all values in [valuePatterns]. If it returns `null`,
 /// then [caseRows] exhaustively covers [valuePatterns].
-String? _unmatched(List<List<Patterns>> caseRows, List<Patterns> valuePatterns,
+String? _unmatched(List<List<Space>> caseRows, List<Space> valuePatterns,
     [List<Predicate> witnessPredicates = const []]) {
-  assert(caseRows.every((element) => element.length == valuePatterns.length));
+  assert(caseRows.every((element) => element.length == valuePatterns.length),
+      "Value patterns: $valuePatterns, case rows: $caseRows.");
   profile.count('_unmatched');
   // If there are no more columns, then we've tested all the predicates we have
   // to test.
@@ -112,9 +82,9 @@ String? _unmatched(List<List<Patterns>> caseRows, List<Patterns> valuePatterns,
   }
 
   // Look down the first column of tests.
-  Patterns firstValuePatterns = valuePatterns[0];
+  Space firstValuePatterns = valuePatterns[0];
 
-  for (Pattern firstValuePattern in firstValuePatterns.patterns) {
+  for (SingleSpace firstValuePattern in firstValuePatterns.singleSpaces) {
     // TODO(johnniwinther): Right now, this brute force expands all subtypes of
     // sealed types and considers them individually. It would be faster to look
     // at the types of the patterns in the first column of each row and only
@@ -124,7 +94,7 @@ String? _unmatched(List<List<Patterns>> caseRows, List<Patterns> valuePatterns,
     List<StaticType> subtypes = expandSealedSubtypes(firstValuePattern.type);
     for (StaticType subtype in subtypes) {
       String? result = _filterByType(subtype, caseRows, firstValuePattern,
-          valuePatterns, witnessPredicates);
+          valuePatterns, witnessPredicates, firstValuePatterns.path);
 
       // If we found a witness for a subtype that no rows match, then we can
       // stop. There may be others but we don't need to find more.
@@ -139,15 +109,16 @@ String? _unmatched(List<List<Patterns>> caseRows, List<Patterns> valuePatterns,
 
 String? _filterByType(
     StaticType type,
-    List<List<Patterns>> caseRows,
-    Pattern firstValuePattern,
-    List<Patterns> valuePatterns,
-    List<Predicate> witnessPredicates) {
+    List<List<Space>> caseRows,
+    SingleSpace firstSingleSpaceValue,
+    List<Space> valueSpaces,
+    List<Predicate> witnessPredicates,
+    Path path) {
   profile.count('_filterByType');
   // Extend the witness with the type we're matching.
   List<Predicate> extendedWitness = [
     ...witnessPredicates,
-    new Predicate(firstValuePattern.path, type)
+    new Predicate(path, type)
   ];
 
   // 1) Discard any rows that might not match because the column's type isn't a
@@ -157,16 +128,16 @@ String? _filterByType(
   //
   // 2) Expand any unions in the first column. This can (deliberately) produce
   // duplicate rows in remainingRows.
-  List<Pattern> remainingRowFirstPatterns = [];
-  List<List<Patterns>> remainingRows = [];
-  for (List<Patterns> row in caseRows) {
-    Patterns firstPatterns = row[0];
+  List<SingleSpace> remainingRowFirstSingleSpaces = [];
+  List<List<Space>> remainingRows = [];
+  for (List<Space> row in caseRows) {
+    Space firstSpace = row[0];
 
-    for (Pattern firstPattern in firstPatterns.patterns) {
+    for (SingleSpace firstSingleSpace in firstSpace.singleSpaces) {
       // If the row's type is a supertype of the value pattern's type then it
       // must match.
-      if (type.isSubtypeOf(firstPattern.type)) {
-        remainingRowFirstPatterns.add(firstPattern);
+      if (type.isSubtypeOf(firstSingleSpace.type)) {
+        remainingRowFirstSingleSpaces.add(firstSingleSpace);
         remainingRows.add(row);
       }
     }
@@ -176,8 +147,8 @@ String? _filterByType(
   // some of those may also have field subpatterns. If so, lift those out so we
   // can recurse into them.
   Set<String> fieldNames = {
-    ...firstValuePattern.fields.keys,
-    for (Pattern firstPattern in remainingRowFirstPatterns)
+    ...firstSingleSpaceValue.fields.keys,
+    for (SingleSpace firstPattern in remainingRowFirstSingleSpaces)
       ...firstPattern.fields.keys
   };
 
@@ -186,55 +157,47 @@ String? _filterByType(
 
   // Remove the first column from the value list and replace it with any
   // expanded fields.
-  valuePatterns = [
-    ..._expandFields(sorted, firstValuePattern, type),
-    ...valuePatterns.skip(1)
+  valueSpaces = [
+    ..._expandFields(sorted, firstSingleSpaceValue, type, path),
+    ...valueSpaces.skip(1)
   ];
 
   // Remove the first column from each row and replace it with any expanded
   // fields.
   for (int i = 0; i < remainingRows.length; i++) {
     remainingRows[i] = [
-      ..._expandFields(sorted, remainingRowFirstPatterns[i],
-          remainingRowFirstPatterns[i].type),
+      ..._expandFields(sorted, remainingRowFirstSingleSpaces[i],
+          remainingRowFirstSingleSpaces[i].type, path),
       ...remainingRows[i].skip(1)
     ];
   }
 
   // Proceed to the next column.
-  return _unmatched(remainingRows, valuePatterns, extendedWitness);
+  return _unmatched(remainingRows, valueSpaces, extendedWitness);
 }
 
-/// Given a list of [fieldNames] and a [pattern], generates a list of patterns,
-/// one for each named field.
+/// Given a list of [fieldNames] and a [singleSpace], generates a list of
+/// single spaces, one for each named field.
 ///
-/// When pattern contains a field with that name, extracts it into the
-/// resulting list. Otherwise, the pattern doesn't care
-/// about that field, so inserts a default pattern that matches all values for
-/// the field.
+/// When [singleSpace] contains a field with that name, extracts it into the
+/// resulting list. Otherwise, the [singleSpace] doesn't care about that field,
+/// so inserts a default [Space] that matches all values for the field.
 ///
 /// In other words, this unpacks a set of fields so that the main algorithm can
 /// add them to the worklist.
-List<Patterns> _expandFields(
-    List<String> fieldNames, Pattern pattern, StaticType type) {
+List<Space> _expandFields(List<String> fieldNames, SingleSpace singleSpace,
+    StaticType type, Path path) {
   profile.count('_expandFields');
-  List<Patterns> result = <Patterns>[];
+  List<Space> result = <Space>[];
   for (String fieldName in fieldNames) {
-    Patterns? field = pattern.fields[fieldName];
+    Space? field = singleSpace.fields[fieldName];
     if (field != null) {
       result.add(field);
     } else {
       // This pattern doesn't test this field, so add a pattern for the
       // field that matches all values. This way the columns stay aligned.
-      result.add(
-        new Patterns([
-          new Pattern(
-            type.fields[fieldName] ?? StaticType.nullableObject,
-            {},
-            [...pattern.path, fieldName],
-          )
-        ]),
-      );
+      result.add(new Space(path.add(fieldName),
+          type.fields[fieldName] ?? StaticType.nullableObject));
     }
   }
 
@@ -256,43 +219,143 @@ List<StaticType> expandSealedSubtypes(StaticType type) {
 /// The main pattern for matching types and destructuring.
 ///
 /// It has a type which determines the type of values it contains. The type may
-/// be [StaticType.top] to indicate that it doesn't filter by type.
+/// be [StaticType.nullableObject] to indicate that it doesn't filter by type.
 ///
 /// It may also contain zero or more named fields. The pattern then only matches
 /// values where the field values are matched by the corresponding field
 /// patterns.
-// TODO(johnniwinther): Rename this to avoid name clash with Pattern from
-//  dart:core.
-class Pattern {
+class SingleSpace {
+  static final SingleSpace empty = new SingleSpace(StaticType.neverType);
+
   /// The type of values the pattern matches.
   final StaticType type;
 
   /// Any field subpatterns the pattern matches.
-  final Map<String, Patterns> fields;
+  final Map<String, Space> fields;
 
-  /// The path of getters that led from the original matched value to value
-  /// matched by this pattern. Used to generate a human-readable witness.
-  final List<String> path;
+  SingleSpace(this.type, {this.fields = const {}});
 
-  Pattern(this.type, this.fields, this.path);
+  @override
+  late final int hashCode = Object.hash(
+      type,
+      Object.hashAllUnordered(fields.keys),
+      Object.hashAllUnordered(fields.values));
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SingleSpace) return false;
+    if (type != other.type) return false;
+    if (fields.length != other.fields.length) return false;
+    if (fields.isNotEmpty) {
+      for (MapEntry<String, Space> entry in fields.entries) {
+        if (entry.value != other.fields[entry.key]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
   @override
   String toString() {
-    return 'Pattern(type=$type,fields=$fields,path=$path)';
+    if (type == StaticType.nullableObject && fields.isEmpty) return '()';
+    if (this == StaticType.neverType && fields.isEmpty) return '∅';
+
+    if (type.isRecord) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.write('(');
+      bool first = true;
+      type.fields.forEach((String name, StaticType staticType) {
+        if (!first) buffer.write(', ');
+        // TODO(johnniwinther): Ensure using Dart syntax for positional fields.
+        buffer.write('$name: ${fields[name] ?? staticType}');
+        first = false;
+      });
+
+      buffer.write(')');
+      return buffer.toString();
+    } else {
+      // If there are no fields, just show the type.
+      if (fields.isEmpty) return type.name;
+
+      StringBuffer buffer = new StringBuffer();
+      buffer.write(type.name);
+
+      buffer.write('(');
+      bool first = true;
+
+      fields.forEach((String name, Space space) {
+        if (!first) buffer.write(', ');
+        buffer.write('$name: $space');
+        first = false;
+      });
+
+      buffer.write(')');
+      return buffer.toString();
+    }
   }
 }
 
-/// A union of [Pattern]s.
+/// A set of runtime values encoded as a union of [SingleSpace]s.
 ///
 /// This is used to support logical-or patterns without having to eagerly
 /// expand the subpatterns in the parent context.
-class Patterns {
-  final List<Pattern> patterns;
+class Space {
+  /// The path of getters that led from the original matched value to value
+  /// matched by this pattern. Used to generate a human-readable witness.
+  final Path path;
 
-  Patterns(this.patterns);
+  final List<SingleSpace> singleSpaces;
+
+  /// Create an empty space.
+  Space.empty(this.path) : singleSpaces = [SingleSpace.empty];
+
+  Space(Path path, StaticType type, {Map<String, Space> fields = const {}})
+      : this._(path, [new SingleSpace(type, fields: fields)]);
+
+  Space._(this.path, this.singleSpaces);
+
+  Space union(Space other) {
+    Set<SingleSpace> singleSpacesSet = {};
+
+    for (SingleSpace singleSpace in singleSpaces) {
+      // Discard empty space.
+      if (singleSpace == SingleSpace.empty) {
+        continue;
+      }
+
+      singleSpacesSet.add(singleSpace);
+    }
+
+    for (SingleSpace singleSpace in other.singleSpaces) {
+      // Discard empty space.
+      if (singleSpace == SingleSpace.empty) {
+        continue;
+      }
+
+      singleSpacesSet.add(singleSpace);
+    }
+
+    List<SingleSpace> singleSpacesList = singleSpacesSet.toList();
+    if (singleSpacesSet.isEmpty) {
+      singleSpacesList.add(SingleSpace.empty);
+    } else if (singleSpacesList.length == 2) {
+      if (singleSpacesList[0].type == StaticType.nullType &&
+          singleSpacesList[0].fields.isEmpty &&
+          singleSpacesList[1].fields.isEmpty) {
+        singleSpacesList = [new SingleSpace(singleSpacesList[1].type.nullable)];
+      } else if (singleSpacesList[1].type == StaticType.nullType &&
+          singleSpacesList[1].fields.isEmpty &&
+          singleSpacesList[0].fields.isEmpty) {
+        singleSpacesList = [new SingleSpace(singleSpacesList[0].type.nullable)];
+      }
+    }
+    return new Space._(path, singleSpacesList);
+  }
 
   @override
-  String toString() => 'Patterns($patterns)';
+  String toString() => singleSpaces.join('|');
 }
 
 /// Describes a pattern that matches the value or a field accessed from it.
@@ -301,7 +364,7 @@ class Patterns {
 class Predicate {
   /// The path of getters that led from the original matched value to the value
   /// tested by this predicate.
-  final List<String> path;
+  final Path path;
 
   /// The type this predicate tests.
   // TODO(johnniwinther): In order to model exhaustiveness on enum types,
@@ -336,7 +399,7 @@ String _witnessString(List<Predicate> predicates) {
 
   for (Predicate predicate in predicates) {
     Witness here = witness;
-    for (String field in predicate.path) {
+    for (String field in predicate.path.toList()) {
       here = here.fields.putIfAbsent(field, () => new Witness());
     }
     here.type = predicate.type;
@@ -377,5 +440,84 @@ class Witness {
     StringBuffer sb = new StringBuffer();
     buildString(sb);
     return sb.toString();
+  }
+}
+
+/// A path that describes location of a [SingleSpace] from the root of
+/// enclosing [Space].
+abstract class Path {
+  const Path();
+
+  /// Create root path.
+  const factory Path.root() = _Root;
+
+  /// Returns a path that adds a step by the [name] to the current path.
+  Path add(String name) => new _Step(this, name);
+
+  void _toList(List<String> list);
+
+  /// Returns a list of the names from the root to this path.
+  List<String> toList();
+}
+
+/// The root path object.
+class _Root extends Path {
+  const _Root();
+
+  @override
+  void _toList(List<String> list) {}
+
+  @override
+  List<String> toList() => const [];
+
+  @override
+  int get hashCode => 1729;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _Root;
+  }
+
+  @override
+  String toString() => '@';
+}
+
+/// A single step in a path that holds the [parent] pointer the [name] for the
+/// step.
+class _Step extends Path {
+  final Path parent;
+  final String name;
+
+  _Step(this.parent, this.name);
+
+  @override
+  List<String> toList() {
+    List<String> list = [];
+    _toList(list);
+    return list;
+  }
+
+  @override
+  void _toList(List<String> list) {
+    parent._toList(list);
+    list.add(name);
+  }
+
+  @override
+  late final int hashCode = Object.hash(parent, name);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is _Step && name == other.name && parent == other.parent;
+  }
+
+  @override
+  String toString() {
+    if (parent is _Root) {
+      return name;
+    } else {
+      return '$parent.$name';
+    }
   }
 }

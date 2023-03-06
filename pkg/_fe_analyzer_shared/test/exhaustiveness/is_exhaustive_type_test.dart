@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:test/test.dart';
 
 import 'env.dart';
@@ -188,10 +188,10 @@ Function(List<StaticType>, String) _makeTestFunction(
   var letters = 'ABCDEF';
 
   return (types, covered) {
-    var spaces = types.map((type) => Space(type)).toList();
+    var spaces = types.map((type) => Space(const Path.root(), type)).toList();
 
     for (var i = 0; i < allTypes.length; i++) {
-      var value = Space(allTypes[i]);
+      var value = Space(const Path.root(), allTypes[i]);
       if (covered.contains(letters[i])) {
         expectExhaustive(value, spaces);
       } else {
