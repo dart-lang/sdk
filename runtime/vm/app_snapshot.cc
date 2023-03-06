@@ -8497,7 +8497,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
     default:
       break;
   }
-  FATAL1("No cluster defined for cid %" Pd, cid);
+  FATAL("No cluster defined for cid %" Pd, cid);
   return NULL;
 }
 
@@ -8863,9 +8863,9 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
     primary = roots->AddBaseObjects(this);
 
     if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {
-      FATAL2("Snapshot expects %" Pd
-             " base objects, but deserializer provided %" Pd,
-             num_base_objects_, next_ref_index_ - kFirstReference);
+      FATAL("Snapshot expects %" Pd
+            " base objects, but deserializer provided %" Pd,
+            num_base_objects_, next_ref_index_ - kFirstReference);
     }
 
     {

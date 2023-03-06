@@ -871,7 +871,7 @@ DART_EXPORT void Dart_PropagateError(Dart_Handle handle) {
   TransitionNativeToVM transition(thread);
   const Object& obj = Object::Handle(thread->zone(), Api::UnwrapHandle(handle));
   if (!obj.IsError()) {
-    FATAL1(
+    FATAL(
         "%s expects argument 'handle' to be an error handle.  "
         "Did you forget to check Dart_IsError first?",
         CURRENT_FUNC);
@@ -1136,7 +1136,7 @@ DART_EXPORT void Dart_UpdateFinalizableExternalSize(
     intptr_t external_allocation_size) {
   if (!::Dart_IdentityEquals(strong_ref_to_object,
                              HandleFromFinalizable(object))) {
-    FATAL1(
+    FATAL(
         "%s expects arguments 'object' and 'strong_ref_to_object' to point to "
         "the same object.",
         CURRENT_FUNC);
@@ -1179,7 +1179,7 @@ DART_EXPORT void Dart_DeleteFinalizableHandle(
     Dart_Handle strong_ref_to_object) {
   if (!::Dart_IdentityEquals(strong_ref_to_object,
                              HandleFromFinalizable(object))) {
-    FATAL1(
+    FATAL(
         "%s expects arguments 'object' and 'strong_ref_to_object' to point to "
         "the same object.",
         CURRENT_FUNC);
@@ -1243,8 +1243,8 @@ VM_METRIC_LIST(VM_METRIC_API)
   DART_EXPORT int64_t Dart_IsolateGroup##variable##Metric(                     \
       Dart_IsolateGroup isolate_group) {                                       \
     if (isolate_group == nullptr) {                                            \
-      FATAL1("%s expects argument 'isolate_group' to be non-null.",            \
-             CURRENT_FUNC);                                                    \
+      FATAL("%s expects argument 'isolate_group' to be non-null.",             \
+            CURRENT_FUNC);                                                     \
     }                                                                          \
     IsolateGroup* group = reinterpret_cast<IsolateGroup*>(isolate_group);      \
     return group->Get##variable##Metric()->Value();                            \
@@ -1256,7 +1256,7 @@ ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_API)
 #define ISOLATE_METRIC_API(type, variable, name, unit)                         \
   DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
     if (isolate == NULL) {                                                     \
-      FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);   \
+      FATAL("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);    \
     }                                                                          \
     Isolate* iso = reinterpret_cast<Isolate*>(isolate);                        \
     return iso->Get##variable##Metric()->Value();                              \
@@ -1515,7 +1515,7 @@ DART_EXPORT void* Dart_CurrentIsolateData() {
 
 DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
   if (isolate == NULL) {
-    FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
+    FATAL("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
   // TODO(http://dartbug.com/16615): Validate isolate parameter.
   return reinterpret_cast<Isolate*>(isolate)->init_callback_data();
@@ -1540,7 +1540,7 @@ DART_EXPORT Dart_IsolateGroupId Dart_CurrentIsolateGroupId() {
 
 DART_EXPORT void* Dart_IsolateGroupData(Dart_Isolate isolate) {
   if (isolate == NULL) {
-    FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
+    FATAL("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
   // TODO(http://dartbug.com/16615): Validate isolate parameter.
   return reinterpret_cast<Isolate*>(isolate)->group()->embedder_data();
@@ -1556,7 +1556,7 @@ DART_EXPORT Dart_Handle Dart_DebugName() {
 
 DART_EXPORT const char* Dart_IsolateServiceId(Dart_Isolate isolate) {
   if (isolate == NULL) {
-    FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
+    FATAL("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
   // TODO(http://dartbug.com/16615): Validate isolate parameter.
   Isolate* I = reinterpret_cast<Isolate*>(isolate);
@@ -1681,15 +1681,15 @@ DART_EXPORT bool Dart_ShouldPauseOnStart() {
 DART_EXPORT void Dart_SetShouldPauseOnStart(bool should_pause) {
 #if defined(PRODUCT)
   if (should_pause) {
-    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+    FATAL("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
   }
 #else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   if (isolate->is_runnable()) {
-    FATAL1("%s expects the current isolate to not be runnable yet.",
-           CURRENT_FUNC);
+    FATAL("%s expects the current isolate to not be runnable yet.",
+          CURRENT_FUNC);
   }
   isolate->message_handler()->set_should_pause_on_start(should_pause);
 #endif
@@ -1709,7 +1709,7 @@ DART_EXPORT bool Dart_IsPausedOnStart() {
 DART_EXPORT void Dart_SetPausedOnStart(bool paused) {
 #if defined(PRODUCT)
   if (paused) {
-    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+    FATAL("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
   }
 #else
   Isolate* isolate = Isolate::Current();
@@ -1735,7 +1735,7 @@ DART_EXPORT bool Dart_ShouldPauseOnExit() {
 DART_EXPORT void Dart_SetShouldPauseOnExit(bool should_pause) {
 #if defined(PRODUCT)
   if (should_pause) {
-    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+    FATAL("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
   }
 #else
   Isolate* isolate = Isolate::Current();
@@ -1759,7 +1759,7 @@ DART_EXPORT bool Dart_IsPausedOnExit() {
 DART_EXPORT void Dart_SetPausedOnExit(bool paused) {
 #if defined(PRODUCT)
   if (paused) {
-    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+    FATAL("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
   }
 #else
   Isolate* isolate = Isolate::Current();
@@ -1780,12 +1780,12 @@ DART_EXPORT void Dart_SetStickyError(Dart_Handle error) {
   const Error& error_handle = Api::UnwrapErrorHandle(Z, error);
   if ((isolate->sticky_error() != Error::null()) &&
       (error_handle.ptr() != Object::null())) {
-    FATAL1("%s expects there to be no sticky error.", CURRENT_FUNC);
+    FATAL("%s expects there to be no sticky error.", CURRENT_FUNC);
   }
   if (!error_handle.IsUnhandledException() &&
       (error_handle.ptr() != Object::null())) {
-    FATAL1("%s expects the error to be an unhandled exception error or null.",
-           CURRENT_FUNC);
+    FATAL("%s expects the error to be an unhandled exception error or null.",
+          CURRENT_FUNC);
   }
   isolate->SetStickyError(error_handle.ptr());
 }
@@ -1952,7 +1952,7 @@ DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   API_TIMELINE_DURATION(Thread::Current());
   if (isolate == NULL) {
-    FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
+    FATAL("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
   // TODO(16615): Validate isolate parameter.
   const char* error = reinterpret_cast<Isolate*>(isolate)->MakeRunnable();
@@ -5323,7 +5323,7 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
     OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
 
     const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));
-    FATAL1(
+    FATAL(
         "Return value check failed: saw '%s' expected a dart Instance or "
         "an Error.",
         ret_obj.ToCString());
@@ -6164,7 +6164,7 @@ Dart_CompileToKernel(const char* script_uri,
             KernelIsolate::AcceptCompilation():
             KernelIsolate::RejectCompilation();
     if (ack_result.status != Dart_KernelCompilationStatus_Ok) {
-      FATAL1(
+      FATAL(
           "An error occurred in the CFE while acking the most recent"
           " compilation results: %s",
           ack_result.error);

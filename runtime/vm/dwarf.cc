@@ -211,8 +211,8 @@ intptr_t Dwarf::LookupFunction(const Function& function) {
   RELEASE_ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
   if (pair == NULL) {
-    FATAL1("Function detected too late during DWARF generation: %s",
-           function.ToCString());
+    FATAL("Function detected too late during DWARF generation: %s",
+          function.ToCString());
   }
   return pair->index_;
 }
@@ -221,8 +221,8 @@ intptr_t Dwarf::LookupScript(const Script& script) {
   RELEASE_ASSERT(!script.IsNull());
   ScriptIndexPair* pair = script_to_index_.Lookup(&script);
   if (pair == NULL) {
-    FATAL1("Script detected too late during DWARF generation: %s",
-           script.ToCString());
+    FATAL("Script detected too late during DWARF generation: %s",
+          script.ToCString());
   }
   return pair->index_;
 }
@@ -429,7 +429,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
   const Array& functions = Array::Handle(zone_, code.inlined_id_to_function());
   const Function& root_function = Function::ZoneHandle(zone_, code.function());
   if (root_function.IsNull()) {
-    FATAL1("Wherefore art thou functionless code, %s?\n", code.ToCString());
+    FATAL("Wherefore art thou functionless code, %s?\n", code.ToCString());
   }
 
   GrowableArray<InliningNode*> node_stack(zone_, 4);

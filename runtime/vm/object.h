@@ -150,8 +150,8 @@ class BaseTextBuffer;
     object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
     initializeHandle(obj, ptr);                                                \
     if (!obj->Is##object()) {                                                  \
-      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
-             #object);                                                         \
+      FATAL("Handle check failed: saw %s expected %s", obj->ToCString(),       \
+            #object);                                                          \
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
@@ -160,8 +160,8 @@ class BaseTextBuffer;
         reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \
     initializeHandle(obj, ptr);                                                \
     if (!obj->Is##object()) {                                                  \
-      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
-             #object);                                                         \
+      FATAL("Handle check failed: saw %s expected %s", obj->ToCString(),       \
+            #object);                                                          \
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \

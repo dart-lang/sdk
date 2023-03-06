@@ -281,7 +281,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
         const bool line_starts_differ =
             !pair->line_starts->CanonicalizeEquals(line_starts);
         if (src_differ || line_starts_differ) {
-          FATAL3(
+          FATAL(
               "Invalid kernel binary: Contains at least two source entries "
               "that do not agree. URI '%s', difference: %s. Subprogram count: "
               "%" Pd ".",
@@ -311,7 +311,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     const char* error = nullptr;
     std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader, &error);
     if (subprogram == nullptr) {
-      FATAL1("Failed to load kernel file: %s", error);
+      FATAL("Failed to load kernel file: %s", error);
     }
     ASSERT(subprogram->is_single_program());
     KernelLoader loader(subprogram.get(), &uri_to_source_table);
@@ -792,7 +792,7 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       const char* error = nullptr;
       std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader, &error);
       if (subprogram == nullptr) {
-        FATAL1("Failed to load kernel file: %s", error);
+        FATAL("Failed to load kernel file: %s", error);
       }
       ASSERT(subprogram->is_single_program());
       KernelLoader loader(subprogram.get(), /*uri_to_source_table=*/nullptr);

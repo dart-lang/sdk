@@ -114,7 +114,7 @@ static void FindICData(const Array& ic_data_array,
       lo = mid + 1;
     }
   }
-  FATAL1("Missing deopt id %" Pd "\n", deopt_id);
+  FATAL("Missing deopt id %" Pd "\n", deopt_id);
 }
 
 void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
@@ -146,8 +146,8 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
     descriptors_ = code.pc_descriptors();
     PcDescriptors::Iterator iter(descriptors_, UntaggedPcDescriptors::kIcCall);
     while (iter.MoveNext()) {
-      FATAL1("%s has IC calls but no ic_data_array\n",
-             function.ToFullyQualifiedCString());
+      FATAL("%s has IC calls but no ic_data_array\n",
+            function.ToFullyQualifiedCString());
     }
 #endif
     return;

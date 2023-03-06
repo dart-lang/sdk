@@ -46,7 +46,7 @@ int Utils::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   if (str == NULL || size == 0) {
     int retval = _vscprintf(format, args);
     if (retval < 0) {
-      FATAL1("Fatal error in Utils::VSNPrint with format '%s'", format);
+      FATAL("Fatal error in Utils::VSNPrint with format '%s'", format);
     }
     return retval;
   }
@@ -62,7 +62,7 @@ int Utils::VSNPrint(char* str, size_t size, const char* format, va_list args) {
     va_copy(args_retry, args);
     written = _vscprintf(format, args_retry);
     if (written < 0) {
-      FATAL1("Fatal error in Utils::VSNPrint with format '%s'", format);
+      FATAL("Fatal error in Utils::VSNPrint with format '%s'", format);
     }
     va_end(args_retry);
   }

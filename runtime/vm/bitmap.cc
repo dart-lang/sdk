@@ -133,7 +133,7 @@ bool BitmapBuilder::GetBit(intptr_t bit_offset) const {
 
 void BitmapBuilder::SetBit(intptr_t bit_offset, bool value) {
   if (!InRange(bit_offset)) {
-    FATAL1(
+    FATAL(
         "Fatal error in BitmapBuilder::SetBit :"
         " invalid bit_offset, %" Pd "\n",
         bit_offset);

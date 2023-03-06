@@ -430,7 +430,7 @@ class Reader : public ValueObject {
 
   void EnsureEnd() {
     if (offset_ != size_) {
-      FATAL2(
+      FATAL(
           "Reading Kernel file: Expected to be at EOF "
           "(offset: %" Pd ", size: %" Pd ")",
           offset_, size_);

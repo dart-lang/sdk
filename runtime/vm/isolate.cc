@@ -1310,7 +1310,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
 #if defined(DEBUG)
     // Malformed OOB messages are silently ignored in release builds.
     default:
-      FATAL1("Unknown OOB message type: %" Pd "\n", msg_type);
+      FATAL("Unknown OOB message type: %" Pd "\n", msg_type);
       break;
 #endif  // defined(DEBUG)
   }

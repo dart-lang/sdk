@@ -282,13 +282,13 @@ void OS::Init() {
   // libnotify is initialized early before any fork happens.
   struct timeval tv;
   if (gettimeofday(&tv, NULL) < 0) {
-    FATAL1("gettimeofday returned an error (%s)\n", strerror(errno));
+    FATAL("gettimeofday returned an error (%s)\n", strerror(errno));
     return;
   }
   tm decomposed;
   struct tm* error_code = localtime_r(&(tv.tv_sec), &decomposed);
   if (error_code == NULL) {
-    FATAL1("localtime_r returned an error (%s)\n", strerror(errno));
+    FATAL("localtime_r returned an error (%s)\n", strerror(errno));
     return;
   }
 }

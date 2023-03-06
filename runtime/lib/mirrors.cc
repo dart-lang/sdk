@@ -1604,7 +1604,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
     const String& uri = String::Handle(zone, script.url());
     return CreateSourceLocation(uri, 1, 1);
   } else {
-    FATAL1("Unexpected declaration type: %s", decl.ToCString());
+    FATAL("Unexpected declaration type: %s", decl.ToCString());
   }
 
   ASSERT(!script.IsNull());

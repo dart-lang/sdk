@@ -93,7 +93,7 @@ intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
                             ARRAY_SIZE(indirect_call_pattern))) {
     pc -= ARRAY_SIZE(indirect_call_pattern);
   } else {
-    FATAL1("Failed to decode at %" Px, pc_);
+    FATAL("Failed to decode at %" Px, pc_);
   }
 
   if (MatchesPattern(pc, pattern_disp8, ARRAY_SIZE(pattern_disp8))) {
@@ -101,7 +101,7 @@ intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   } else if (MatchesPattern(pc, pattern_disp32, ARRAY_SIZE(pattern_disp32))) {
     return IndexFromPPLoadDisp32(pc - 4);
   } else {
-    FATAL1("Failed to decode at %" Px, pc);
+    FATAL("Failed to decode at %" Px, pc);
   }
 }
 

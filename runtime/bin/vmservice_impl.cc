@@ -248,7 +248,7 @@ void VmService::SetServerAddress(const char* server_uri) {
   }
   const intptr_t server_uri_len = strlen(server_uri);
   if (server_uri_len >= (kServerUriStringBufferSize - 1)) {
-    FATAL1("vm-service: Server URI exceeded length: %s\n", server_uri);
+    FATAL("vm-service: Server URI exceeded length: %s\n", server_uri);
   }
   strncpy(server_uri_, server_uri, kServerUriStringBufferSize);
   server_uri_[kServerUriStringBufferSize - 1] = '\0';

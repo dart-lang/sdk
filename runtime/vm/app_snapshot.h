@@ -149,7 +149,7 @@ class DeserializationCluster : public ZoneAllocated {
                         const Array& refs,
                         bool primary) {
     if (!primary && is_canonical()) {
-      FATAL1("%s needs canonicalization but doesn't define PostLoad", name());
+      FATAL("%s needs canonicalization but doesn't define PostLoad", name());
     }
   }
 

@@ -407,7 +407,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       const NameIndex index = reader.ReadCanonicalNameReference();
       const auto& klass = Class::Handle(Z, H.LookupClassByKernelClass(index));
       if (!klass.is_declaration_loaded()) {
-        FATAL1(
+        FATAL(
             "Trying to evaluate an instance constant whose references class "
             "%s is not loaded yet.",
             klass.ToCString());
