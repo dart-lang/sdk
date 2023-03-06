@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  #L1:
+  {
+    core::int #t1 = -1;
+    final core::int #0#0 = 0;
+    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
+      #t1 = 0;
+    else
+      #t1 = 1;
+    switch(#t1) {
+      #L2:
+      case #C2:
+        {
+          {
+            continue #L3;
+          }
+        }
+      #L3:
+      case #C1:
+      default:
+        {}
+    }
+  }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 0
+}

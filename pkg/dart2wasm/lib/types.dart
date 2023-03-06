@@ -243,16 +243,14 @@ class Types {
   w.ValueType makeTypeNames(w.Instructions b) {
     w.ValueType expectedType =
         translator.classInfo[translator.immutableListClass]!.nonNullableType;
-    DartType stringType = InterfaceType(
-        translator.stringBaseClass,
-        Nullability.nonNullable,
-        [translator.coreTypes.stringNonNullableRawType]);
     List<StringConstant> listStringConstant = [];
     for (String name in typeNames) {
       listStringConstant.add(StringConstant(name));
     }
     DartType listStringType = InterfaceType(
-        translator.immutableListClass, Nullability.nonNullable, [stringType]);
+        translator.immutableListClass,
+        Nullability.nonNullable,
+        [translator.coreTypes.stringNonNullableRawType]);
     translator.constants.instantiateConstant(null, b,
         ListConstant(listStringType, listStringConstant), expectedType);
     return expectedType;

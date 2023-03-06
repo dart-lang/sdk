@@ -15,6 +15,7 @@ List<String> compilerFlagsForFile(String filepath) {
     '-Iruntime',
     '-Ithird_party',
     '-Iruntime/include',
+    '-Ithird_party/tcmalloc/gperftools/src',
     '-Ithird_party/boringssl/src/include',
     '-Ithird_party/zlib',
     '-DTARGET_ARCH_X64',
