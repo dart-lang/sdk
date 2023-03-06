@@ -1785,6 +1785,9 @@ void TextNode::GetQuickCheckDetails(QuickCheckDetails* details,
       RegExpCharacterClass* tree = elm.char_class();
       ZoneGrowableArray<CharacterRange>* ranges = tree->ranges();
       ASSERT(!ranges->is_empty());
+      if (!CharacterRange::IsCanonical(ranges)) {
+        CharacterRange::Canonicalize(ranges);
+      }
       if (tree->is_negated()) {
         // A quick check uses multi-character mask and compare.  There is no
         // useful way to incorporate a negative char class into this scheme
