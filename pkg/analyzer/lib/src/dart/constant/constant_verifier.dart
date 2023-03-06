@@ -823,7 +823,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           _errorReporter.reportErrorForToken(
             CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
             switchKeyword,
-            [scrutineeType, error.witness],
+            [scrutineeType, error.witness.toString()],
           );
         }
       }
