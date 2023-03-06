@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
+      - uses: dart-lang/setup-dart@929ed5f8bae55086c6fac456ba5acb9763c9e3e2
         with:
           sdk: dev
 
