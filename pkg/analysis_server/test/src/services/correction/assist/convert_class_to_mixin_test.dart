@@ -28,6 +28,39 @@ mixin A {}
 ''');
   }
 
+  Future<void> test_base_extendsWithImplements_super_both() async {
+    await resolveTestCode('''
+class A {
+  a() {}
+}
+mixin class B {
+  b() {}
+}
+class C {}
+base class D extends A with B implements C {
+  d() {
+    super.a();
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('D', '''
+class A {
+  a() {}
+}
+mixin class B {
+  b() {}
+}
+class C {}
+base mixin D on A, B implements C {
+  d() {
+    super.a();
+    super.b();
+  }
+}
+''');
+  }
+
   Future<void> test_extends_noSuper() async {
     await resolveTestCode('''
 class A {}
@@ -337,6 +370,17 @@ mixin D on B implements A, C {
 ''');
   }
 
+  Future<void> test_final_implements() async {
+    await resolveTestCode('''
+class A {}
+final class B implements A {}
+''');
+    await assertHasAssistAt('B', '''
+class A {}
+final mixin B implements A {}
+''');
+  }
+
   Future<void> test_implements() async {
     await resolveTestCode('''
 class A {}
@@ -370,6 +414,46 @@ class A {}
 ''');
     await assertHasAssistAt('A', '''
 mixin A {}
+''');
+  }
+
+  Future<void> test_sealed_extends_noSuper() async {
+    await resolveTestCode('''
+class A {}
+sealed class B extends A {}
+''');
+    await assertHasAssistAt('B', '''
+class A {}
+sealed mixin B implements A {}
+''');
+  }
+
+  Future<void> test_sealed_extendsWith_super_extends() async {
+    await resolveTestCode('''
+class A {
+  a() {}
+}
+mixin class B {
+  b() {}
+}
+sealed class C extends A with B {
+  c() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('C', '''
+class A {
+  a() {}
+}
+mixin class B {
+  b() {}
+}
+sealed mixin C on A implements B {
+  c() {
+    super.a();
+  }
+}
 ''');
   }
 
