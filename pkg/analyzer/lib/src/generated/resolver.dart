@@ -154,7 +154,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     with
         ErrorDetectionHelpers,
         TypeAnalyzer<AstNode, Statement, Expression, PromotableElement,
-            DartType, DartPattern> {
+            DartType, DartPattern, void> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;
@@ -1563,7 +1563,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node,
       typeArguments: typeArguments,
       elements: node.elements,
-    );
+    ).requiredType;
   }
 
   @override

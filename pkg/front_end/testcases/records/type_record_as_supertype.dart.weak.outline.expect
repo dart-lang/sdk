@@ -38,9 +38,9 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:22:16: Error: 'RR' is restricted and can't be extended or implemented.
 // abstract class C2 with RR {} // Error.
 //                ^
-// sdk/lib/core/record.dart:11:16: Context: This is the type denoted by the type alias.
-// abstract class Record {}
-//                ^
+// sdk/lib/core/record.dart:11:22: Context: This is the type denoted by the type alias.
+// abstract final class Record {}
+//                      ^
 //
 import self as self;
 import "dart:core" as core;
@@ -83,7 +83,7 @@ abstract class B4 extends core::Object implements self::G<core::Record> {
   synthetic constructor •() → self::B4
     ;
 }
-abstract class _C1&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _C1&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C1&Object&Record
     : super core::Object::•()
     ;
@@ -92,7 +92,7 @@ abstract class C1 extends self::_C1&Object&Record {
   synthetic constructor •() → self::C1
     ;
 }
-abstract class _C2&Object&RR = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _C2&Object&RR = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C2&Object&RR
     : super core::Object::•()
     ;

@@ -8515,7 +8515,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  Expression buildProblem(Message message, int charOffset, int length,
+  InvalidExpression buildProblem(Message message, int charOffset, int length,
       {List<LocatedMessage>? context,
       bool suppressMessage = false,
       Expression? expression}) {
@@ -9282,10 +9282,13 @@ class BodyBuilder extends StackListenerImpl
     } else if (inAssignmentPattern) {
       String name = variable.lexeme;
       if (keyword != null || type != null) {
-        pattern = new InvalidPattern(buildProblem(
-            fasta.templatePatternAssignmentDeclaresVariable.withArguments(name),
-            variable.charOffset,
-            variable.charCount));
+        pattern = new InvalidPattern(
+            buildProblem(
+                fasta.templatePatternAssignmentDeclaresVariable
+                    .withArguments(name),
+                variable.charOffset,
+                variable.charCount),
+            declaredVariables: const []);
       } else {
         Expression variableUse = toValue(scopeLookup(scope, name, variable));
         if (variableUse is VariableGet) {
@@ -9334,10 +9337,10 @@ class BodyBuilder extends StackListenerImpl
         name = pattern.variableName;
       }
       if (name == null) {
-        push(new InvalidPattern(buildProblem(
-            fasta.messageUnspecifiedGetterNameInObjectPattern,
-            colon.charOffset,
-            noLength)));
+        push(new InvalidPattern(
+            buildProblem(fasta.messageUnspecifiedGetterNameInObjectPattern,
+                colon.charOffset, noLength),
+            declaredVariables: const []));
       } else {
         push(new NamedPattern(name, pattern, colon.charOffset));
       }

@@ -48,7 +48,7 @@ abstract class A2 extends core::Object implements core::Record {
   synthetic constructor •() → self::A2
     ;
 }
-abstract class _A3&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _A3&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A3&Object&Record
     : super core::Object::•()
     ;

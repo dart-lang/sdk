@@ -2410,7 +2410,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // ignore: unnecessary_null_comparison
     assert(isImplicitCall != null);
     Expression error = createMissingMethodInvocation(
-        fileOffset, receiver, receiverType, name, arguments,
+        fileOffset, receiverType, name,
+        receiver: receiver,
+        arguments: arguments,
         isExpressionInvocation: isExpressionInvocation,
         implicitInvocationPropertyName: implicitInvocationPropertyName,
         extensionAccessCandidates:
@@ -3945,7 +3947,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       int length,
       DartType receiverType,
       Name name,
-      Expression wrappedExpression,
+      Expression? wrappedExpression,
       List<ExtensionAccessCandidate>? extensionAccessCandidates,
       Template<Message Function(String, DartType, bool)> missingTemplate,
       Template<Message Function(String, DartType, bool)> ambiguousTemplate) {
@@ -3962,37 +3964,60 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           .toList();
       template = ambiguousTemplate;
     }
-    return helper.wrapInProblem(
-        wrappedExpression,
-        template.withArguments(name.text, resolveTypeParameter(receiverType),
-            isNonNullableByDefault),
-        fileOffset,
-        length,
-        context: context);
+    if (wrappedExpression != null) {
+      return helper.wrapInProblem(
+          wrappedExpression,
+          template.withArguments(name.text, resolveTypeParameter(receiverType),
+              isNonNullableByDefault),
+          fileOffset,
+          length,
+          context: context);
+    } else {
+      return helper.buildProblem(
+          template.withArguments(name.text, resolveTypeParameter(receiverType),
+              isNonNullableByDefault),
+          fileOffset,
+          length,
+          context: context);
+    }
   }
 
-  Expression createMissingMethodInvocation(int fileOffset, Expression receiver,
-      DartType receiverType, Name name, Arguments arguments,
-      {required bool isExpressionInvocation,
+  Expression createMissingMethodInvocation(
+      int fileOffset, DartType receiverType, Name name,
+      {Expression? receiver,
+      Arguments? arguments,
+      required bool isExpressionInvocation,
       Name? implicitInvocationPropertyName,
       List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
     // ignore: unnecessary_null_comparison
     assert(isExpressionInvocation != null);
+    assert((receiver == null) == (arguments == null),
+        "Receiver and arguments must be supplied together.");
     if (implicitInvocationPropertyName != null) {
       assert(extensionAccessCandidates == null);
-      return helper.wrapInProblem(
-          _createInvalidInvocation(fileOffset, receiver, name, arguments),
-          templateInvokeNonFunction
-              .withArguments(implicitInvocationPropertyName.text),
-          fileOffset,
-          implicitInvocationPropertyName.text.length);
+      if (receiver != null) {
+        return helper.wrapInProblem(
+            _createInvalidInvocation(fileOffset, receiver, name, arguments!),
+            templateInvokeNonFunction
+                .withArguments(implicitInvocationPropertyName.text),
+            fileOffset,
+            implicitInvocationPropertyName.text.length);
+      } else {
+        return helper.buildProblem(
+            templateInvokeNonFunction
+                .withArguments(implicitInvocationPropertyName.text),
+            fileOffset,
+            implicitInvocationPropertyName.text.length);
+      }
     } else {
       return _reportMissingOrAmbiguousMember(
           fileOffset,
           isExpressionInvocation ? noLength : name.text.length,
           receiverType,
           name,
-          _createInvalidInvocation(fileOffset, receiver, name, arguments),
+          receiver != null
+              ? _createInvalidInvocation(fileOffset, receiver, name, arguments!)
+              : null,
           extensionAccessCandidates,
           receiverType is ExtensionType
               ? templateUndefinedExtensionMethod
@@ -4021,12 +4046,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     switch (readTarget.kind) {
       case ObjectAccessTargetKind.missing:
-        read = createMissingPropertyGet(
-            fileOffset, receiver, receiverType, propertyName);
+        read = createMissingPropertyGet(fileOffset, receiverType, propertyName,
+            receiver: receiver);
         break;
       case ObjectAccessTargetKind.ambiguous:
-        read = createMissingPropertyGet(
-            fileOffset, receiver, receiverType, propertyName,
+        read = createMissingPropertyGet(fileOffset, receiverType, propertyName,
+            receiver: receiver,
             extensionAccessCandidates: readTarget.candidates);
         break;
       case ObjectAccessTargetKind.extensionMember:
@@ -4184,9 +4209,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return new PropertyGetInferenceResult(readResult, readTarget.member);
   }
 
-  Expression createMissingPropertyGet(int fileOffset, Expression receiver,
-      DartType receiverType, Name propertyName,
-      {List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
+  Expression createMissingPropertyGet(
+      int fileOffset, DartType receiverType, Name propertyName,
+      {Expression? receiver,
+      List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
     Template<Message Function(String, DartType, bool)> templateMissing;
     if (receiverType is ExtensionType) {
       templateMissing = templateUndefinedExtensionGetter;
@@ -4198,7 +4224,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         propertyName.text.length,
         receiverType,
         propertyName,
-        _createInvalidGet(fileOffset, receiver, propertyName),
+        receiver != null
+            ? _createInvalidGet(fileOffset, receiver, propertyName)
+            : null,
         extensionAccessCandidates,
         templateMissing,
         templateAmbiguousExtensionProperty);

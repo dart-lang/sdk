@@ -98,7 +98,7 @@ abstract class InferenceVisitor {
 class InferenceVisitorImpl extends InferenceVisitorBase
     with
         TypeAnalyzer<TreeNode, Statement, Expression, VariableDeclaration,
-            DartType, Pattern>,
+            DartType, Pattern, InvalidExpression>,
         StackChecker
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
@@ -1150,7 +1150,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read;
     if (readTarget.isMissing) {
       read = createMissingPropertyGet(
-          node.readOffset, readReceiver, readType, node.propertyName);
+          node.readOffset, readType, node.propertyName,
+          receiver: readReceiver);
     } else {
       assert(readTarget.isExtensionMember);
       read = new StaticInvocation(
@@ -1852,13 +1853,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStackBase(node, stackBase = stackHeight));
 
     // TODO(scheglov) Pass actual variables, not just `{}`.
-    DartType scrutineeType = analyzeIfCaseStatement(
-        node,
-        node.expression,
-        node.patternGuard.pattern,
-        node.patternGuard.guard,
-        node.then,
-        node.otherwise, {});
+    IfCaseStatementResult<DartType, InvalidExpression> analysisResult =
+        analyzeIfCaseStatement(node, node.expression, node.patternGuard.pattern,
+            node.patternGuard.guard, node.then, node.otherwise, {});
+
+    DartType scrutineeType = analysisResult.matchedExpressionType;
 
     assert(checkStack(node, stackBase, [
       /* ifFalse = */ ValueKinds.StatementOrNull,
@@ -1879,7 +1878,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       then = node.then = (rewrite as Statement)..parent = node;
     }
     rewrite = popRewrite(NullValues.Expression);
-    if (!identical(node.patternGuard.guard, rewrite)) {
+    InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
+    if (guardError != null) {
+      node.patternGuard.guard = guardError..parent = node.patternGuard;
+    } else if (!identical(node.patternGuard.guard, rewrite)) {
       node.patternGuard.guard = (rewrite as Expression)
         ..parent = node.patternGuard;
     }
@@ -2203,19 +2205,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               inferredTypeArgument: inferredTypeArgument,
               inferredSpreadTypes: inferredSpreadTypes,
               inferredConditionTypes: inferredConditionTypes);
-      analyzeIfCaseElement(
-          node: element,
-          expression: element.expression,
-          pattern: element.patternGuard.pattern,
-          variables: {
-            for (VariableDeclaration variable
-                in element.patternGuard.pattern.declaredVariables)
-              variable.name!: variable
-          },
-          guard: element.patternGuard.guard,
-          ifTrue: element.then,
-          ifFalse: element.otherwise,
-          context: context);
+      IfCaseStatementResult<DartType, InvalidExpression> analysisResult =
+          analyzeIfCaseElement(
+              node: element,
+              expression: element.expression,
+              pattern: element.patternGuard.pattern,
+              variables: {
+                for (VariableDeclaration variable
+                    in element.patternGuard.pattern.declaredVariables)
+                  variable.name!: variable
+              },
+              guard: element.patternGuard.guard,
+              ifTrue: element.then,
+              ifFalse: element.otherwise,
+              context: context);
 
       assert(checkStack(element, stackBase, [
         /* ifFalse = */ ValueKinds.ExpressionOrNull,
@@ -2237,7 +2240,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       PatternGuard patternGuard = element.patternGuard;
       rewrite = popRewrite(NullValues.Expression);
-      if (!identical(patternGuard.guard, rewrite)) {
+      InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
+      if (guardError != null) {
+        patternGuard.guard = guardError..parent = patternGuard;
+      } else if (!identical(patternGuard.guard, rewrite)) {
         patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
       }
 
@@ -8088,8 +8094,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStackBase(node, stackBase = stackHeight));
 
     Expression expression = node.expression;
-    SimpleTypeAnalysisResult<DartType> analysisResult = analyzeSwitchExpression(
-        node, expression, node.cases.length, typeContext);
+    SwitchExpressionResult<DartType, InvalidExpression> analysisResult =
+        analyzeSwitchExpression(
+            node, expression, node.cases.length, typeContext);
     DartType valueType = analysisResult.type;
 
     assert(checkStack(node, stackBase, [
@@ -8140,8 +8147,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       SwitchExpressionCase switchCase = node.cases[caseIndex];
       Expression body = switchCase.expression;
 
-      Pattern pattern = switchCase.patternGuard.pattern;
-      Expression? guard = switchCase.patternGuard.guard;
+      PatternGuard patternGuard = switchCase.patternGuard;
+      Pattern pattern = patternGuard.pattern;
+      Expression? guard = patternGuard.guard;
+
+      InvalidExpression? guardError =
+          analysisResult.nonBooleanGuardErrors?[caseIndex];
+      if (guardError != null) {
+        guard = patternGuard.guard = guardError..parent = patternGuard;
+      }
 
       replacementStatements.addAll(pattern.declaredVariables);
 
@@ -8216,7 +8230,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<SwitchCaseInfo> previousSwitchPatternInfo = _switchCasePatternInfo;
     _switchCasePatternInfo = [];
     Expression expression = node.expression;
-    SwitchStatementTypeAnalysisResult<DartType> analysisResult =
+    SwitchStatementTypeAnalysisResult<DartType, InvalidExpression>
+        analysisResult =
         analyzeSwitchStatement(node, expression, node.cases.length);
 
     assert(checkStack(node, stackBase, [
@@ -8319,7 +8334,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _switchCasePatternInfo = [];
 
     Expression expression = node.expression;
-    SwitchStatementTypeAnalysisResult<DartType> analysisResult =
+    SwitchStatementTypeAnalysisResult<DartType, InvalidExpression>
+        analysisResult =
         analyzeSwitchStatement(node, expression, node.cases.length);
 
     assert(checkStack(node, stackBase, [
@@ -8413,8 +8429,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       for (int headIndex = 0;
           headIndex < switchCase.patternGuards.length;
           headIndex++) {
-        Pattern pattern = switchCase.patternGuards[headIndex].pattern;
-        Expression? guard = switchCase.patternGuards[headIndex].guard;
+        PatternGuard patternGuard = switchCase.patternGuards[headIndex];
+        Pattern pattern = patternGuard.pattern;
+        Expression? guard = patternGuard.guard;
+
+        InvalidExpression? guardError =
+            analysisResult.nonBooleanGuardErrors?[caseIndex]?[headIndex];
+        if (guardError != null) {
+          guard = patternGuard.guard = guardError..parent = patternGuard;
+        }
 
         replacementStatements.addAll(pattern.declaredVariables);
 
@@ -9003,11 +9026,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    Pattern pattern = node.pattern;
-    Expression initializer = node.initializer;
-
     // TODO(cstefantsova): Support late variables.
-    analyzePatternVariableDeclaration(node, pattern, initializer,
+    analyzePatternVariableDeclaration(node, node.pattern, node.initializer,
         isFinal: node.isFinal, isLate: false);
 
     assert(checkStack(node, stackBase, [
@@ -9016,13 +9036,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
 
     Object? rewrite = popRewrite();
-    if (!identical(rewrite, pattern)) {
-      pattern = rewrite as Pattern;
+    if (!identical(rewrite, node.pattern)) {
+      node.pattern = rewrite as Pattern..parent = node;
     }
 
+    assert(checkStack(node, stackBase, [
+      /* initializer = */ ValueKinds.Expression,
+    ]));
+
     rewrite = popRewrite();
-    if (!identical(initializer, rewrite)) {
-      initializer = rewrite as Expression;
+    if (!identical(node.initializer, rewrite)) {
+      node.initializer = rewrite as Expression;
     }
 
     MatchingCache matchingCache = createMatchingCache();
@@ -9031,7 +9055,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // TODO(cstefantsova): Do we need a more precise type for the variable?
     DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
-        matchingCache.createRootExpression(initializer, matchedType);
+        matchingCache.createRootExpression(node.initializer, matchedType);
 
     DelayedExpression matchingExpression =
         matchingExpressionVisitor.visitPattern(node.pattern, matchedExpression);
@@ -10073,15 +10097,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     node.matchedType = flow.getMatchedValueType();
 
-    DartType inferredType = analyzeDeclaredVariablePattern(
-        context, node, node.variable, node.variable.name!, node.type);
+    DeclaredVariablePatternResult<DartType, InvalidExpression> analysisResult =
+        analyzeDeclaredVariablePattern(
+            context, node, node.variable, node.variable.name!, node.type);
+
+    Pattern? replacement;
+
+    InvalidExpression? error =
+        analysisResult.patternTypeMismatchInIrrefutableContextError;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+    }
+
+    DartType inferredType = analysisResult.staticType;
     instrumentation?.record(uriForInstrumentation, node.variable.fileOffset,
         'type', new InstrumentationValueForType(inferredType));
     if (node.type == null) {
       node.variable.type = inferredType;
     }
 
-    pushRewrite(node);
+    pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10093,10 +10129,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    analyzeWildcardPattern(
-        context: context, node: node, declaredType: node.type);
+    WildcardPatternResult<InvalidExpression> analysisResult =
+        analyzeWildcardPattern(
+            context: context, node: node, declaredType: node.type);
 
-    pushRewrite(node);
+    Pattern? replacement;
+
+    InvalidExpression? error =
+        analysisResult.patternTypeMismatchInIrrefutableContextError;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+    }
+
+    pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10108,8 +10154,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    node.expressionType =
+    ConstantPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeConstantPattern(context, node, node.expression);
+
+    Pattern? replacement;
+
+    InvalidExpression? error =
+        analysisResult.refutablePatternInIrrefutableContextError;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+    }
+
+    node.expressionType = analysisResult.expressionType;
 
     ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
         node.expressionType, equalsName, node.fileOffset,
@@ -10131,7 +10188,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.expression = (rewrite as Expression)..parent = node;
     }
 
-    pushRewrite(node);
+    pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10172,12 +10229,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    analyzeLogicalOrPattern(context, node, node.left, node.right);
+    LogicalOrPatternResult<InvalidExpression> analysisResult =
+        analyzeLogicalOrPattern(context, node, node.left, node.right);
 
     assert(checkStack(node, stackBase, [
       /* right = */ ValueKinds.Pattern,
       /* left = */ ValueKinds.Pattern,
     ]));
+
+    Pattern? replacement;
+
+    InvalidExpression? error =
+        analysisResult.refutablePatternInIrrefutableContextError;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+    }
 
     Object? rewrite = popRewrite();
     if (!identical(rewrite, node.right)) {
@@ -10189,7 +10256,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.left = (rewrite as Pattern)..parent = node;
     }
 
-    pushRewrite(node);
+    pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10230,19 +10297,29 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    analyzeNullCheckOrAssertPattern(context, node, node.pattern,
-        isAssert: true);
+    NullCheckOrAssertPatternResult<InvalidExpression> analysisResult =
+        analyzeNullCheckOrAssertPattern(context, node, node.pattern,
+            isAssert: true);
 
     assert(checkStack(node, stackBase, [
       /* subpattern = */ ValueKinds.Pattern,
     ]));
+
+    Pattern? replacement;
+
+    InvalidExpression? error =
+        analysisResult.refutablePatternInIrrefutableContextError;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+    }
 
     Object? rewrite = popRewrite();
     if (!identical(rewrite, node.pattern)) {
       node.pattern = (rewrite as Pattern)..parent = node;
     }
 
-    pushRewrite(node);
+    pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10363,22 +10440,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.lengthCheckType = equalsInvokeTarget.getFunctionType(this);
     }
 
-    analyzeListPattern(context, node,
-        elements: node.patterns, elementType: node.typeArgument);
+    ListPatternResult<DartType, InvalidExpression> analysisResult =
+        analyzeListPattern(context, node,
+            elements: node.patterns, elementType: node.typeArgument);
 
     assert(checkStack(node, stackBase, [
       /* subpatterns = */ ...repeatedKind(
           ValueKinds.Pattern, node.patterns.length)
     ]));
 
+    Pattern? replacement;
+
+    InvalidExpression? error =
+        analysisResult.patternTypeMismatchInIrrefutableContextError;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+    }
+
     for (int i = node.patterns.length - 1; i >= 0; i--) {
       Object? rewrite = popRewrite();
-      if (!identical(rewrite, node.patterns[i])) {
+      InvalidExpression? error = analysisResult.duplicateRestPatternErrors?[i];
+      if (error != null) {
+        node.patterns[i] = new InvalidPattern(error,
+            declaredVariables: node.patterns[i].declaredVariables)
+          ..parent = node;
+      } else if (!identical(rewrite, node.patterns[i])) {
         node.patterns[i] = (rewrite as Pattern)..parent = node;
       }
     }
 
-    pushRewrite(node);
+    pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10398,8 +10490,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     node.matchedType = flow.getMatchedValueType();
 
-    analyzeObjectPattern(context, node,
-        fields: <RecordPatternField<TreeNode, Pattern>>[
+    ObjectPatternResult<DartType, InvalidExpression> analysisResult =
+        analyzeObjectPattern(context, node,
+            fields: <RecordPatternField<TreeNode, Pattern>>[
           for (NamedPattern field in node.fields)
             new RecordPatternField(
                 node: field, name: field.name, pattern: field.pattern)
@@ -10410,10 +10503,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ValueKinds.Pattern, node.fields.length)
     ]));
 
+    Pattern? replacement;
+
+    InvalidExpression? error =
+        analysisResult.patternTypeMismatchInIrrefutableContextError;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+    }
+
     for (int i = node.fields.length - 1; i >= 0; i--) {
       NamedPattern field = node.fields[i];
       Object? rewrite = popRewrite();
-      if (!identical(rewrite, field.pattern)) {
+      InvalidExpression? error =
+          analysisResult.duplicateRecordPatternFieldErrors?[i];
+      if (error != null) {
+        field.pattern = new InvalidPattern(error,
+            declaredVariables: field.pattern.declaredVariables)
+          ..parent = field;
+      } else if (!identical(rewrite, field.pattern)) {
         field.pattern = (rewrite as Pattern)..parent = field;
       }
     }
@@ -10477,9 +10585,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case ObjectAccessTargetKind.nullableCallFunction:
           case ObjectAccessTargetKind.missing:
           case ObjectAccessTargetKind.ambiguous:
-            // TODO(johnniwinther): Provide the right receiver.
-            field.error = createMissingPropertyGet(field.fileOffset,
-                new NullLiteral(), node.objectType, field.fieldName);
+            field.pattern = new InvalidPattern(
+                createMissingPropertyGet(
+                    field.fileOffset, node.objectType, field.fieldName),
+                declaredVariables: field.pattern.declaredVariables)
+              ..parent = field;
             field.accessKind = ObjectAccessKind.Error;
             break;
           case ObjectAccessTargetKind.invalid:
@@ -10509,14 +10619,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
       } else {
         field.accessKind = ObjectAccessKind.Error;
-        field.error = helper.buildProblem(
-            messageUnspecifiedGetterNameInObjectPattern,
-            node.fileOffset,
-            noLength);
+        field.pattern = new InvalidPattern(
+            helper.buildProblem(messageUnspecifiedGetterNameInObjectPattern,
+                node.fileOffset, noLength),
+            declaredVariables: field.pattern.declaredVariables)
+          ..parent = field;
       }
     }
 
-    pushRewrite(node);
+    pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10555,18 +10666,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     node.matchedType = flow.getMatchedValueType();
 
-    DartType expressionType =
+    RelationalPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeRelationalPattern(context, node, node.expression);
 
     assert(checkStack(node, stackBase, [
       /* expression = */ ValueKinds.Expression,
     ]));
 
+    Pattern? replacement;
+
+    InvalidExpression? error =
+        analysisResult.refutablePatternInIrrefutableContextError ??
+            analysisResult.operatorReturnTypeNotAssignableToBoolError ??
+            analysisResult.argumentTypeNotAssignableError;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+    }
+
     Object? rewrite = popRewrite();
     if (!identical(rewrite, node.expression)) {
       node.expression = (rewrite as Expression)..parent = node;
     }
 
+    DartType expressionType = analysisResult.operandType;
     node.expressionType = expressionType;
 
     switch (node.kind) {
@@ -10627,15 +10750,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case ObjectAccessTargetKind.nullableInlineClassMember:
           case ObjectAccessTargetKind.missing:
           case ObjectAccessTargetKind.ambiguous:
-            // TODO(johnniwinther): Provide the right receiver and argument.
-            node.error = createMissingMethodInvocation(
-                node.fileOffset,
-                new NullLiteral(),
-                node.matchedType,
-                node.name,
-                new Arguments([])..fileOffset = node.fileOffset,
-                isExpressionInvocation: false);
-            node.accessKind = RelationAccessKind.Error;
+            replacement ??= new InvalidPattern(
+                createMissingMethodInvocation(
+                    node.fileOffset, node.matchedType, node.name,
+                    isExpressionInvocation: false),
+                declaredVariables: node.declaredVariables);
             break;
           case ObjectAccessTargetKind.objectMember:
           case ObjectAccessTargetKind.superMember:
@@ -10669,7 +10788,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
     }
 
-    pushRewrite(node);
+    pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10689,8 +10808,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             : new MapPatternTypeArguments<DartType>(
                 keyType: node.keyType ?? const DynamicType(),
                 valueType: node.valueType ?? const DynamicType());
-    DartType mapType = analyzeMapPattern(context, node,
-        typeArguments: typeArguments, elements: node.entries);
+    MapPatternResult<DartType, InvalidExpression> analysisResult =
+        analyzeMapPattern(context, node,
+            typeArguments: typeArguments, elements: node.entries);
+
+    Pattern? replacement;
+
+    InvalidExpression? error =
+        analysisResult.patternTypeMismatchInIrrefutableContextError;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+    }
+
+    DartType mapType = analysisResult.requiredType;
 
     // TODO(johnniwinther): How does `mapType` relate to `node.mapType`?
     DartType keyType = node.keyType ?? const DynamicType();
@@ -10766,6 +10897,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     for (int i = node.entries.length - 1; i >= 0; i--) {
       Object? rewrite = popRewrite();
+      InvalidExpression? error = analysisResult.duplicateRestPatternErrors?[i];
+      if (error != null) {
+        node.entries[i] = new MapPatternEntry(
+            new ConstantPattern(new NullLiteral()),
+            new InvalidPattern(error,
+                declaredVariables: node.entries[i].value.declaredVariables),
+            node.entries[i].fileOffset)
+          ..parent = node;
+      }
       if (!identical(node.entries[i], rewrite)) {
         node.entries[i] = (rewrite as MapPatternEntry)..parent = node;
       }
@@ -10779,7 +10919,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    pushRewrite(node);
+    pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10815,12 +10955,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 : fieldPattern,
             name: fieldPattern is NamedPattern ? fieldPattern.name : null)
     ];
-    DartType recordType = analyzeRecordPattern(context, node, fields: fields);
+    RecordPatternResult<DartType, InvalidExpression> analysisResult =
+        analyzeRecordPattern(context, node, fields: fields);
 
     assert(checkStack(node, stackBase, [
       /* fields = */ ...repeatedKind(ValueKinds.Pattern, node.patterns.length)
     ]));
 
+    Pattern? replacement;
+
+    InvalidExpression? error =
+        analysisResult.patternTypeMismatchInIrrefutableContextError ??
+            analysisResult.duplicateRecordPatternFieldErrors?.values.first;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+    }
+
+    DartType recordType = analysisResult.requiredType;
     node.type = recordType as RecordType;
 
     // TODO(johnniwinther): How does `recordType` relate to `node.recordType`?
@@ -10853,7 +11005,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    pushRewrite(node);
+    pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10865,10 +11017,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    Expression expression = node.expression;
-    Pattern pattern = node.pattern;
     ExpressionTypeAnalysisResult<DartType> analysisResult =
-        analyzePatternAssignment(node, pattern, expression);
+        analyzePatternAssignment(node, node.pattern, node.expression);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10876,8 +11026,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
 
     Object? rewrite = popRewrite();
-    if (!identical(pattern, rewrite)) {
-      pattern = rewrite as Pattern;
+    if (!identical(node.pattern, rewrite)) {
+      node.pattern = rewrite as Pattern..parent = node;
     }
 
     assert(checkStack(node, stackBase, [
@@ -10885,8 +11035,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
 
     rewrite = popRewrite();
-    if (!identical(expression, rewrite)) {
-      expression = rewrite as Expression;
+    if (!identical(node.expression, rewrite)) {
+      node.expression = rewrite as Expression..parent = node;
     }
 
     assert(checkStack(node, stackBase, [/*empty*/]));
@@ -10897,7 +11047,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // TODO(cstefantsova): Do we need a more precise type for the variable?
     DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
-        matchingCache.createRootExpression(expression, matchedType);
+        matchingCache.createRootExpression(node.expression, matchedType);
 
     DelayedExpression matchingExpression =
         matchingExpressionVisitor.visitPattern(node.pattern, matchedExpression);
@@ -10942,6 +11092,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         matchedType: node.matchedType, requiredType: node.variable.type);
 
     // TODO(johnniwinther): Share this through the type analyzer.
+    Pattern? replacement;
     VariableDeclarationImpl variable = node.variable as VariableDeclarationImpl;
     if (isNonNullableByDefault) {
       bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable);
@@ -10949,32 +11100,47 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if ((variable.isLate && variable.isFinal) ||
           variable.isLateFinalWithoutInitializer) {
         if (isDefinitelyAssigned) {
-          node.error = helper.buildProblem(
-              templateLateDefinitelyAssignedError
-                  .withArguments(node.variable.name!),
-              node.fileOffset,
-              node.variable.name!.length);
+          replacement = new InvalidPattern(
+              helper.buildProblem(
+                  templateLateDefinitelyAssignedError
+                      .withArguments(node.variable.name!),
+                  node.fileOffset,
+                  node.variable.name!.length),
+              declaredVariables: node.declaredVariables);
         }
       } else if (variable.isStaticLate) {
         if (!isDefinitelyUnassigned) {
-          node.error = helper.buildProblem(
-              templateFinalPossiblyAssignedError
-                  .withArguments(node.variable.name!),
-              node.fileOffset,
-              node.variable.name!.length);
+          replacement = new InvalidPattern(
+              helper.buildProblem(
+                  templateFinalPossiblyAssignedError
+                      .withArguments(node.variable.name!),
+                  node.fileOffset,
+                  node.variable.name!.length),
+              declaredVariables: node.declaredVariables);
         }
       } else if (variable.isFinal && variable.hasDeclaredInitializer) {
-        node.error = helper.buildProblem(
-            templateCannotAssignToFinalVariable
-                .withArguments(node.variable.name!),
-            node.fileOffset,
-            node.variable.name!.length);
+        replacement = new InvalidPattern(
+            helper.buildProblem(
+                templateCannotAssignToFinalVariable
+                    .withArguments(node.variable.name!),
+                node.fileOffset,
+                node.variable.name!.length),
+            declaredVariables: node.declaredVariables);
       }
     }
 
-    analyzeAssignedVariablePattern(context, node, node.variable);
+    AssignedVariablePatternResult<InvalidExpression> analysisResult =
+        analyzeAssignedVariablePattern(context, node, node.variable);
 
-    pushRewrite(node);
+    InvalidExpression? error =
+        analysisResult.duplicateAssignmentPatternVariableError ??
+            analysisResult.patternTypeMismatchInIrrefutableContextError;
+    if (error != null) {
+      replacement ??=
+          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+    }
+
+    pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,

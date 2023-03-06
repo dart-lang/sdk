@@ -3667,8 +3667,6 @@ class InternalRecordLiteral extends InternalExpression {
 }
 
 abstract class Pattern extends TreeNode with InternalTreeNode {
-  Expression? error;
-
   Pattern(int fileOffset) {
     this.fileOffset = fileOffset;
   }
@@ -4236,11 +4234,13 @@ class PatternVariableDeclaration extends InternalStatement {
 }
 
 class PatternAssignment extends InternalExpression {
-  final Pattern pattern;
-  final Expression expression;
+  Pattern pattern;
+  Expression expression;
 
   PatternAssignment(this.pattern, this.expression, {required int fileOffset}) {
     super.fileOffset = fileOffset;
+    pattern.parent = this;
+    expression.parent = this;
   }
 
   @override
@@ -4730,16 +4730,17 @@ class RestPattern extends Pattern {
 class InvalidPattern extends Pattern {
   final Expression invalidExpression;
 
-  InvalidPattern(this.invalidExpression) : super(invalidExpression.fileOffset) {
+  @override
+  final List<VariableDeclaration> declaredVariables;
+
+  InvalidPattern(this.invalidExpression, {required this.declaredVariables})
+      : super(invalidExpression.fileOffset) {
     invalidExpression.parent = this;
   }
 
   @override
   R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
       visitor.visitInvalidPattern(this, arg);
-
-  @override
-  List<VariableDeclaration> get declaredVariables => const [];
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -4797,9 +4798,6 @@ enum RelationAccessKind {
 
   /// Operator accessed on a receiver of an invalid type.
   Invalid,
-
-  /// Erroneous operator access.
-  Error,
 }
 
 /// Kinds of lowerings of objects pattern property access.

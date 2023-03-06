@@ -13325,7 +13325,11 @@ class RecordType extends DartType {
   final Nullability declaredNullability;
 
   RecordType(this.positional, this.named, this.declaredNullability)
-      : assert(() {
+      : /*TODO(johnniwinther): Enabled this assert:
+        assert(named.length == named.map((p) => p.name).toSet().length,
+            "Named field types must have unique names in a RecordType: "
+            "${named}"),*/
+        assert(() {
           // Assert that the named field types are sorted.
           for (int i = 1; i < named.length; i++) {
             if (named[i].name.compareTo(named[i - 1].name) < 0) {

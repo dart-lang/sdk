@@ -19,9 +19,6 @@ class MatchingExpressionVisitor
 
   DelayedExpression visitPattern(
       Pattern node, CacheableExpression matchedExpression) {
-    if (node.error != null) {
-      return new FixedExpression(node.error!, const InvalidType());
-    }
     return node.acceptPattern1(this, matchedExpression);
   }
 
@@ -459,7 +456,9 @@ class MatchingExpressionVisitor
               fileOffset: field.fileOffset);
           break;
         case ObjectAccessKind.Error:
-          expression = new FixedExpression(field.error!, const InvalidType());
+          expression = new FixedExpression(
+              (field.pattern as InvalidPattern).invalidExpression,
+              const InvalidType());
           break;
       }
       CacheableExpression objectExpression =
@@ -621,9 +620,6 @@ class MatchingExpressionVisitor
                 DynamicAccessKind.Invalid,
                 const InvalidType(),
                 fileOffset: node.fileOffset);
-            break;
-          case RelationAccessKind.Error:
-            expression = new FixedExpression(node.error!, const InvalidType());
             break;
         }
         return matchingCache.createComparisonExpression(
