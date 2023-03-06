@@ -27,7 +27,6 @@
 #include "vm/isolate.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
-#include "vm/malloc_hooks.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/message_snapshot.h"
@@ -530,18 +529,6 @@ static bool CheckCompilerDisabled(Thread* thread, JSONStream* js) {
 static bool CheckProfilerDisabled(Thread* thread, JSONStream* js) {
   if (!FLAG_profiler) {
     js->PrintError(kFeatureDisabled, "Profiler is disabled.");
-    return true;
-  }
-  return false;
-}
-
-static bool CheckNativeAllocationProfilerDisabled(Thread* thread,
-                                                  JSONStream* js) {
-  if (CheckProfilerDisabled(thread, js)) {
-    return true;
-  }
-  if (!FLAG_profiler_native_memory) {
-    js->PrintError(kFeatureDisabled, "Native memory profiling is disabled.");
     return true;
   }
   return false;
@@ -4476,30 +4463,6 @@ static void GetAllocationTraces(Thread* thread, JSONStream* js) {
   }
 }
 
-static const MethodParameter* const get_native_allocation_samples_params[] = {
-    NO_ISOLATE_PARAMETER,
-    new Int64Parameter("timeOriginMicros", false),
-    new Int64Parameter("timeExtentMicros", false),
-    NULL,
-};
-
-static void GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
-  int64_t time_origin_micros =
-      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
-  int64_t time_extent_micros =
-      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
-  bool include_code_samples =
-      BoolParameter::Parse(js->LookupParam("_code"), false);
-#if defined(DEBUG)
-  IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kDebugging);
-#endif
-  if (CheckNativeAllocationProfilerDisabled(thread, js)) {
-    return;
-  }
-  ProfilerService::PrintNativeAllocationJSON(
-      js, time_origin_micros, time_extent_micros, include_code_samples);
-}
-
 static const MethodParameter* const clear_cpu_samples_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     NULL,
@@ -4775,35 +4738,6 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
     vm.AddProperty("description", "");
     vm.AddProperty64("size", vm_size);
   }
-
-  // On Android, malloc is better labeled by /proc/self/smaps.
-#if !defined(DART_HOST_OS_ANDROID)
-  intptr_t used, capacity;
-  const char* implementation;
-  if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
-    JSONObject malloc(&rss_children);
-    malloc.AddPropertyF("name", "Malloc (%s)", implementation);
-    malloc.AddProperty("description", "");
-    malloc.AddProperty64("size", capacity);
-    JSONArray malloc_children(&malloc, "children");
-
-    {
-      JSONObject malloc_used(&malloc_children);
-      malloc_used.AddProperty("name", "Used");
-      malloc_used.AddProperty("description", "");
-      malloc_used.AddProperty64("size", used);
-      JSONArray(&malloc_used, "children");
-    }
-
-    {
-      JSONObject malloc_free(&malloc_children);
-      malloc_free.AddProperty("name", "Free");
-      malloc_free.AddProperty("description", "");
-      malloc_free.AddProperty64("size", capacity - used);
-      JSONArray(&malloc_free, "children");
-    }
-  }
-#endif
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   AddVMMappings(&rss_children);
@@ -5292,15 +5226,6 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
-  {
-    intptr_t used, capacity;
-    const char* implementation;
-    if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
-      jsobj.AddProperty("_mallocUsed", used);
-      jsobj.AddProperty("_mallocCapacity", capacity);
-      jsobj.AddProperty("_mallocImplementation", implementation);
-    }
-  }
   PrintJSONForEmbedderInformation(&jsobj);
   // Construct the isolate and isolate_groups list.
   {
@@ -5872,8 +5797,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_allocation_profile_params },
   { "getAllocationTraces", GetAllocationTraces,
       get_allocation_traces_params },
-  { "_getNativeAllocationSamples", GetNativeAllocationSamples,
-      get_native_allocation_samples_params },
   { "getClassList", GetClassList,
     get_class_list_params },
   { "getCpuSamples", GetCpuSamples,

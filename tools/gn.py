@@ -250,9 +250,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
                                     (gn_args['target_cpu'] != 'riscv64') and
                                     sanitizer == 'none')
 
-    # Use mallinfo2 if specified on the command line
-    gn_args['dart_use_mallinfo2'] = args.use_mallinfo2
-
     if gn_args['target_os'] == 'linux':
         if gn_args['target_cpu'] == 'arm':
             # Default to -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're
