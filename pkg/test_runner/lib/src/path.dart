@@ -246,7 +246,7 @@ class Path {
 
   String toNativePath() {
     if (isEmpty) return '.';
-    if (Platform.operatingSystem == 'windows') {
+    if (Platform.isWindows) {
       var nativePath = _path;
       // Drop '/' before a drive letter.
       if (nativePath.length >= 3 &&
