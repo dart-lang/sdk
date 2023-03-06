@@ -214,7 +214,7 @@ _nightly_builder(
     "vm-aot-linux-release-arm64",
     category = "vm|aot|a6",
     channels = [],
-    properties = slow_shards,
+    properties = {"shard_timeout": (120 * time.minute) // time.second},
 )
 _extra_builder(
     "vm-kernel-precomp-nnbd-mac-release-arm64",
