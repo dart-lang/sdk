@@ -114,10 +114,10 @@ class ByteStreamServerChannelTest {
   late Stream<Request> requestStream;
 
   /// Stream of errors received from the channel via [listen()].
-  late Stream errorStream;
+  late Stream<Object?> errorStream;
 
   /// Future which is completed when then [listen()] reports [onDone].
-  late Future doneFuture;
+  late Future<void> doneFuture;
 
   void setUp() {
     var inputStream = StreamController<List<int>>();
@@ -131,7 +131,7 @@ class ByteStreamServerChannelTest {
         inputStream.stream, outputSink, InstrumentationService.NULL_SERVICE);
     var requestStreamController = StreamController<Request>();
     requestStream = requestStreamController.stream;
-    var errorStreamController = StreamController();
+    var errorStreamController = StreamController<Object?>();
     errorStream = errorStreamController.stream;
     var doneCompleter = Completer();
     doneFuture = doneCompleter.future;

@@ -1454,7 +1454,7 @@ void f() {
     _assertSingleLinkedEditGroup(length: 3, offsets: [43, 69], names: ['xy']);
   }
 
-  Future _assertInitialConditions_fatal_selection() async {
+  Future<void> _assertInitialConditions_fatal_selection() async {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
@@ -1485,7 +1485,7 @@ void f() {
 
   /// Checks that all conditions are OK and the result of applying the
   /// [SourceChange] to [testUnit] is [expectedCode].
-  Future _assertSuccessfulRefactoring(String expectedCode) async {
+  Future<void> _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;

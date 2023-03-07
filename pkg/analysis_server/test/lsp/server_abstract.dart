@@ -165,7 +165,8 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   @override
-  Future sendNotificationToServer(NotificationMessage notification) async {
+  Future<void> sendNotificationToServer(
+      NotificationMessage notification) async {
     channel.sendNotificationToServer(notification);
     await pumpEventQueue(times: 5000);
   }
@@ -228,7 +229,7 @@ analyzer:
     writePackageConfig(projectFolderPath);
   }
 
-  Future tearDown() async {
+  Future<void> tearDown() async {
     channel.close();
     await server.shutdown();
   }
@@ -915,7 +916,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         request, _fromJsonList(CallHierarchyOutgoingCall.fromJson));
   }
 
-  Future changeFile(
+  Future<void> changeFile(
     int newVersion,
     Uri uri,
     List<TextDocumentContentChangeEvent> changes,
@@ -931,7 +932,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await sendNotificationToServer(notification);
   }
 
-  Future changeWorkspaceFolders({List<Uri>? add, List<Uri>? remove}) async {
+  Future<void> changeWorkspaceFolders(
+      {List<Uri>? add, List<Uri>? remove}) async {
     var notification = makeNotification(
       Method.workspace_didChangeWorkspaceFolders,
       DidChangeWorkspaceFoldersParams(
@@ -944,7 +946,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await sendNotificationToServer(notification);
   }
 
-  Future closeFile(Uri uri) async {
+  Future<void> closeFile(Uri uri) async {
     var notification = makeNotification(
       Method.textDocument_didClose,
       DidCloseTextDocumentParams(
@@ -1698,7 +1700,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
   }
 
-  Future openFile(Uri uri, String content, {int version = 1}) async {
+  Future<void> openFile(Uri uri, String content, {int version = 1}) async {
     var notification = makeNotification(
       Method.textDocument_didOpen,
       DidOpenTextDocumentParams(
@@ -1903,7 +1905,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return sendRequestToServer(request);
   }
 
-  Future replaceFile(int newVersion, Uri uri, String content) {
+  Future<void> replaceFile(int newVersion, Uri uri, String content) {
     return changeFile(
       newVersion,
       uri,

@@ -84,7 +84,7 @@ class AbstractSearchDomainTest extends PubPackageAnalysisServerTest {
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
-  Future waitForSearchResults() {
+  Future<void> waitForSearchResults() {
     var resultSet = _resultSets[searchId];
     if (resultSet != null && resultSet.done) {
       results = resultSet.results;

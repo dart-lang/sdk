@@ -32,7 +32,8 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     }
   }
 
-  Future findTopLevelDeclarations(String pattern) async {
+  Future<dynamic /*RequestError?|void*/ > findTopLevelDeclarations(
+      String pattern) async {
     await waitForTasksFinished();
     var request = SearchFindTopLevelDeclarationsParams(pattern).toRequest('0');
     var response = await handleRequest(request);

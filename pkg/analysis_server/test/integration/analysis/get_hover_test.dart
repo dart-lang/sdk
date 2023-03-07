@@ -117,7 +117,7 @@ void f() {
 
   /// Check that a getHover request on the substring [target] produces no
   /// results.
-  Future checkNoHover(String target) {
+  Future<void> checkNoHover(String target) {
     var offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {
       expect(result.hovers, hasLength(0));

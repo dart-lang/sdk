@@ -174,7 +174,7 @@ void f() {
         'Only explicit getters can be converted to methods.');
   }
 
-  Future _assertInitialConditions_fatal(String message) async {
+  Future<void> _assertInitialConditions_fatal(String message) async {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
@@ -182,7 +182,7 @@ void f() {
 
   /// Checks that all conditions are OK and the result of applying [refactoring]
   /// change to [testUnit] is [expectedCode].
-  Future _assertSuccessfulRefactoring(String expectedCode) async {
+  Future<void> _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;

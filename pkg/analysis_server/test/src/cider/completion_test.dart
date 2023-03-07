@@ -788,7 +788,7 @@ import 'a.dart';
     }
   }
 
-  Future _compute(String content) async {
+  Future<void> _compute(String content) async {
     var context = _updateFile(content);
 
     _completionResult = await _newComputer().compute(
