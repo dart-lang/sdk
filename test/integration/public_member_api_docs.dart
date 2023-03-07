@@ -28,6 +28,7 @@ void main() {
           result.stdout.trim(),
           stringContainsInOrder([
             'a.dart:7:1',
+            'a.dart:8:16',
             'a.dart:9:11',
             'a.dart:10:9',
             'a.dart:14:16',
