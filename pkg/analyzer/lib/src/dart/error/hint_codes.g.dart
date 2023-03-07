@@ -15,18 +15,6 @@ import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 
 class HintCode extends AnalyzerErrorCode {
-  ///  Users should not assign values marked `@doNotStore`.
-  ///
-  ///  Parameters:
-  ///  0: the name of the field or variable
-  static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
-    'ASSIGNMENT_OF_DO_NOT_STORE',
-    "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
-        "top-level variable.",
-    correctionMessage: "Try removing the assignment.",
-    hasPublishedDocs: true,
-  );
-
   ///  When the target expression uses '?.' operator, it can be `null`, so all the
   ///  subsequent invocations should also use '?.' operator.
   ///
@@ -173,22 +161,6 @@ class HintCode extends AnalyzerErrorCode {
     "The library '{0}' is legacy, and shouldn't be imported into a null safe "
         "library.",
     correctionMessage: "Try migrating the imported library.",
-    hasPublishedDocs: true,
-  );
-
-  ///  This hint is generated anywhere where a `@sealed` class is used as a
-  ///  a superclass constraint of a mixin.
-  ///
-  ///  Parameters:
-  ///  0: the name of the sealed class
-  static const HintCode MIXIN_ON_SEALED_CLASS = HintCode(
-    'MIXIN_ON_SEALED_CLASS',
-    "The class '{0}' shouldn't be used as a mixin constraint because it is "
-        "sealed, and any class mixing in this mixin must have '{0}' as a "
-        "superclass.",
-    correctionMessage:
-        "Try composing with this class, or refer to its documentation for more "
-        "information.",
     hasPublishedDocs: true,
   );
 

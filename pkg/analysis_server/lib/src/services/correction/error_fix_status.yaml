@@ -1384,10 +1384,6 @@ FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
   status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
   status: hasFix
-HintCode.ASSIGNMENT_OF_DO_NOT_STORE:
-  status: noFix
-  notes: |-
-    Fix depends on user's intent, which can't be known.
 HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
   status: hasFix
 HintCode.DEAD_CODE:
@@ -1425,11 +1421,6 @@ HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
   status: noFix
   notes: Deprecated
-HintCode.MIXIN_ON_SEALED_CLASS:
-  status: noFix
-  notes: |-
-    `sealed` annotation is likely to be replaced by the `sealed` keyword
-    in the next stable release.
 HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
   status: needsFix
   notes: |-
@@ -2569,6 +2560,10 @@ WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
+WarningCode.ASSIGNMENT_OF_DO_NOT_STORE:
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
 WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
   status: needsFix
 WarningCode.CAST_FROM_NULL_ALWAYS_FAILS:
@@ -2740,6 +2735,11 @@ WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
   status: hasFix
 WarningCode.MISSING_RETURN:
   status: hasFix
+WarningCode.MIXIN_ON_SEALED_CLASS:
+  status: noFix
+  notes: |-
+    `sealed` annotation is likely to be replaced by the `sealed` keyword
+    in the next stable release.
 WarningCode.MUST_BE_IMMUTABLE:
   status: noFix
 WarningCode.MUST_CALL_SUPER:
