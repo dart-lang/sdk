@@ -30,8 +30,10 @@ class ListPatternResolver {
       }
     }
 
-    node.requiredType = resolverVisitor.analyzeListPattern(context, node,
-        elementType: typeArguments?.arguments.first.typeOrThrow,
-        elements: node.elements);
+    node.requiredType = resolverVisitor
+        .analyzeListPattern(context, node,
+            elementType: typeArguments?.arguments.first.typeOrThrow,
+            elements: node.elements)
+        .requiredType;
   }
 }

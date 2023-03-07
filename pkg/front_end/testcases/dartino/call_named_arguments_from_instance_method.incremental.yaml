@@ -8,7 +8,7 @@ main.dart.patch: |
   // the same class.
 
   class C {
-    foo({a: 'v2'}) {
+    foo({a = 'v2'}) {
       print(a);
     }
 

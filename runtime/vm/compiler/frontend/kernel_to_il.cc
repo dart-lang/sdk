@@ -802,13 +802,11 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
        MethodRecognizer::IsMarkedAsRecognized(function)) &&
       !function.IsDynamicInvocationForwarder()) {
     if (function.IsRecognized()) {
-      FATAL1(
-          "Recognized method %s is not marked with the vm:recognized pragma.",
-          function.ToQualifiedCString());
+      FATAL("Recognized method %s is not marked with the vm:recognized pragma.",
+            function.ToQualifiedCString());
     } else {
-      FATAL1(
-          "Non-recognized method %s is marked with the vm:recognized pragma.",
-          function.ToQualifiedCString());
+      FATAL("Non-recognized method %s is marked with the vm:recognized pragma.",
+            function.ToQualifiedCString());
     }
   }
 #endif

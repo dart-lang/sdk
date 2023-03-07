@@ -208,7 +208,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
 
       default:
         // We should have covered all the bases. If not, let's get an error.
-        FATAL1("Unexpected d_type: %d\n", entry->d_type);
+        FATAL("Unexpected d_type: %d\n", entry->d_type);
         return kListError;
     }
   }
@@ -351,7 +351,7 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
       }
       default:
         // We should have covered all the bases. If not, let's get an error.
-        FATAL1("Unexpected d_type: %d\n", entry->d_type);
+        FATAL("Unexpected d_type: %d\n", entry->d_type);
         break;
     }
     if (!ok) {

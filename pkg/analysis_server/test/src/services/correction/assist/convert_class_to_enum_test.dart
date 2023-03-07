@@ -242,6 +242,18 @@ abstract class E {}
     await assertNoAssistAt('E {');
   }
 
+  Future<void> test_invalid_base() async {
+    await resolveTestCode('''
+base class E {
+  final int index;
+
+  static const E c0 = E(0);
+  const E(this.index);
+}
+''');
+    await assertNoAssistAt('E {');
+  }
+
   Future<void> test_invalid_constructorUsedInConstructor() async {
     await resolveTestCode('''
 class _E {
@@ -313,6 +325,17 @@ class _E {
 
   factory _E() => c0;
   const _E._();
+}
+''');
+    await assertNoAssistAt('E {');
+  }
+
+  Future<void> test_invalid_final() async {
+    await resolveTestCode('''
+final class E {
+  static const E c = E();
+
+  const E();
 }
 ''');
     await assertNoAssistAt('E {');
@@ -411,6 +434,17 @@ class _E {
 
   @override
   bool operator ==(Object other) => true;
+}
+''');
+    await assertNoAssistAt('E {');
+  }
+
+  Future<void> test_invalid_sealed() async {
+    await resolveTestCode('''
+sealed class E {
+  final int index;
+
+  const E._(this.index);
 }
 ''');
     await assertNoAssistAt('E {');

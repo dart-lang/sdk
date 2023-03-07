@@ -66,6 +66,7 @@ class VerifyTests {
   void _buildTestsIn(
       AnalysisSession session, String testDirPath, Folder directory) {
     var testFileNames = <String>[];
+    var testFilePaths = <String>[];
     File? testAllFile;
     var children = directory.getChildren();
     children
@@ -83,6 +84,7 @@ class VerifyTests {
           testAllFile = child;
         } else if (name.endsWith('_test.dart') && !isExpensive(child)) {
           testFileNames.add(name);
+          testFilePaths.add(child.path);
         }
       }
     }
@@ -126,6 +128,7 @@ class VerifyTests {
       if (missingFiles.isNotEmpty) {
         fail('Tests missing from "test_all.dart": ${missingFiles.join(', ')}');
       }
+
       var extraImports = <String>[];
       for (var importedFile in importedFiles) {
         if (!testFileNames.contains(importedFile) &&
@@ -135,6 +138,30 @@ class VerifyTests {
       }
       if (extraImports.isNotEmpty) {
         fail('Extra tests in "test_all.dart": ${extraImports.join(', ')}');
+      }
+
+      for (var testFilePath in testFilePaths) {
+        var result = session.getParsedUnit(testFilePath);
+        if (result is! ParsedUnitResult) {
+          fail('Could not parse $testFilePath');
+        }
+        for (var declaration in result.unit.declarations) {
+          if (declaration is ClassDeclaration) {
+            for (var member in declaration.members) {
+              if (member is MethodDeclaration) {
+                var name = member.name.lexeme;
+                if (name.startsWith('solo_test_')) {
+                  fail("Solo test: $name in '$testFilePath'");
+                }
+                for (var annotation in member.metadata) {
+                  if (annotation.name.name == 'soloTest') {
+                    fail("Solo test: $name in '$testFilePath'");
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     });
   }

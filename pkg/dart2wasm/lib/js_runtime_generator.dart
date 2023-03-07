@@ -141,6 +141,7 @@ class _JSLowerer extends Transformer {
   int _methodN = 1;
   late Library _library;
   late String _libraryJSString;
+  final Map<Procedure, Map<int, Procedure>> _overloadedProcedures = {};
 
   final CoreTypes _coreTypes;
   late InlineExtensionIndex _inlineExtensionIndex;
@@ -212,16 +213,28 @@ class _JSLowerer extends Transformer {
   @override
   Expression visitStaticInvocation(StaticInvocation node) {
     node = super.visitStaticInvocation(node) as StaticInvocation;
-    if (node.target == _allowInteropTarget) {
-      Expression argument = node.arguments.positional.single;
+    List<Expression> positional = node.arguments.positional;
+    Procedure target = node.target;
+    if (target == _allowInteropTarget) {
+      Expression argument = positional.single;
       DartType functionType = argument.getStaticType(_staticTypeContext);
       return _allowInterop(node.target, functionType as FunctionType, argument);
-    } else if (node.target == _functionToJSTarget) {
-      Expression argument = node.arguments.positional.single;
+    } else if (target == _functionToJSTarget) {
+      Expression argument = positional.single;
       DartType functionType = argument.getStaticType(_staticTypeContext);
-      return _functionToJS(node.target, functionType as FunctionType, argument);
+      return _functionToJS(target, functionType as FunctionType, argument);
     } else if (node.target == _inlineJSTarget) {
       return _expandInlineJS(node.target, node);
+    } else if (target.isExternal) {
+      tryTransformProcedure(target);
+    }
+
+    if (_overloadedProcedures.containsKey(target)) {
+      final overloads = _overloadedProcedures[target]!;
+      int positionalLength = positional.length;
+      if (overloads.containsKey(positionalLength)) {
+        return StaticInvocation(overloads[positionalLength]!, node.arguments);
+      }
     }
     return node;
   }
@@ -259,10 +272,11 @@ class _JSLowerer extends Transformer {
     }
   }
 
-  @override
-  Procedure visitProcedure(Procedure node) {
-    _staticTypeContext.enterMember(node);
-    Statement? transformedBody;
+  bool tryTransformProcedure(Procedure node) {
+    if (_overloadedProcedures.containsKey(node)) {
+      return true;
+    }
+
     if (node.isExternal) {
       _MethodType? type;
       String jsString = '';
@@ -272,7 +286,14 @@ class _JSLowerer extends Transformer {
         jsString = _getTopLevelJSString(cls, cls.name);
         if (node.isFactory) {
           if (hasAnonymousAnnotation(cls)) {
-            type = _MethodType.jsObjectLiteralConstructor;
+            // TODO(joshualitt): These should really be lowered at the
+            // invocation level.
+            _specializeJSObjectLiteral(_MethodLoweringConfig(
+                node,
+                _MethodType.jsObjectLiteralConstructor,
+                jsString,
+                _inlineExtensionIndex));
+            return true;
           } else {
             type = _MethodType.constructor;
           }
@@ -332,14 +353,18 @@ class _JSLowerer extends Transformer {
         type = _getTypeForNonExtensionMember(node);
       }
       if (type != null) {
-        transformedBody = _specializeJSMethod(
+        _specializeProcedureWithOptionalParameters(
             _MethodLoweringConfig(node, type, jsString, _inlineExtensionIndex));
+        return true;
       }
     }
-    if (transformedBody != null) {
-      node.function.body = transformedBody..parent = node.function;
-      node.isExternal = false;
-    } else {
+    return false;
+  }
+
+  @override
+  Procedure visitProcedure(Procedure node) {
+    _staticTypeContext.enterMember(node);
+    if (!tryTransformProcedure(node)) {
       // Under very restricted circumstances, we will make a procedure external
       // and clear it's body. See the description on [_expandInlineJS] for more
       // details.
@@ -657,12 +682,20 @@ class _JSLowerer extends Transformer {
           functionType:
               target.function.computeFunctionType(Nullability.nonNullable));
 
-  // Specializes a JS method for a given [_MethodLoweringConfig] and returns an
-  // invocation of the specialized method.
-  Statement _specializeJSMethod(_MethodLoweringConfig config) {
+  void _specializeJSObjectLiteral(_MethodLoweringConfig config) {
+    Procedure procedure = config.procedure;
+    Statement? transformedBody =
+        _specializeProcedure(config, config.parameters);
+    procedure.function.body = transformedBody..parent = procedure.function;
+    procedure.isExternal = false;
+  }
+
+  /// Creates a Dart procedure that calls out to a specialized JS method for the
+  /// given [config] and returns the created procedure.
+  Statement _specializeProcedure(_MethodLoweringConfig config,
+      List<VariableDeclaration> originalParameters) {
     // Initialize variable declarations.
     List<String> jsParameterStrings = [];
-    List<VariableDeclaration> originalParameters = config.parameters;
     List<VariableDeclaration> dartPositionalParameters = [];
     for (int j = 0; j < originalParameters.length; j++) {
       String parameterString = 'x$j';
@@ -742,6 +775,62 @@ class _JSLowerer extends Transformer {
     } else {
       return expression;
     }
+  }
+
+  /// Specializes a JS method for a given [config] while handling optional
+  /// parameters. We will generate one procedure for every optional argument,
+  /// and make all of the arguments to that procedure required. For the time
+  /// being to support tearoffs we simply replace the body of the original
+  /// procedure, but leave the optional arguments intact. This unfortunately
+  /// results in inconsistent behavior between the tearoff and the original
+  /// functions.
+  /// TODO(joshualitt): Decide if we should disallow tearoffs of external
+  /// functions, and if so we can clean this up.
+  void _specializeProcedureWithOptionalParameters(
+      _MethodLoweringConfig config) {
+    // First handle optional arguments by creating a specialized procedure for
+    // each optional, and make all of the arguments required. These will be used
+    // when we visit static invocations to specialize calls.
+    Procedure procedure = config.procedure;
+    FunctionNode function = procedure.function;
+    int requiredParameterCount = function.requiredParameterCount;
+    List<VariableDeclaration> positionalParameters =
+        function.positionalParameters;
+    Map<int, Procedure> overloadMap = {};
+    for (int i = requiredParameterCount; i < positionalParameters.length; i++) {
+      List<VariableDeclaration> newParameters = positionalParameters
+          .sublist(0, i)
+          .map((v) => VariableDeclaration(v.name, flags: v.flags, type: v.type))
+          .toList();
+      Statement body = _specializeProcedure(config, newParameters);
+      String procedureName = '|${generateMethodName()}';
+      Procedure specializedProcedure = Procedure(
+          Name(procedureName, _library),
+          procedure.kind,
+          FunctionNode(body,
+              requiredParameterCount: i,
+              positionalParameters: newParameters,
+              returnType: function.returnType),
+          fileUri: procedure.fileUri)
+        ..isStatic = procedure.isStatic
+        ..fileOffset = procedure.fileOffset;
+      if (procedure.parent is Class) {
+        procedure.enclosingClass!.addProcedure(specializedProcedure);
+      } else {
+        procedure.enclosingLibrary.addProcedure(specializedProcedure);
+      }
+      overloadMap[i] = specializedProcedure;
+    }
+
+    // Finally, create a specialized body to replace the original external
+    // procedure. This will be used for tearoffs and in cases where all
+    // arguments are specified at the call site.
+    Statement transformedBody =
+        _specializeProcedure(config, positionalParameters);
+    function.body = transformedBody..parent = function;
+    procedure.isExternal = false;
+    overloadMap[positionalParameters.length] = procedure;
+    _overloadedProcedures[procedure] = overloadMap;
   }
 
   Procedure? _tryGetEnclosingProcedure(TreeNode? node) {

@@ -2338,9 +2338,7 @@ severity: $severity
                     .withArguments(mixedInTypeDeclaration.fullNameForErrors),
                 mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
                 noLength);
-          }
-
-          if (cls.libraryBuilder.origin !=
+          } else if (cls.libraryBuilder.origin !=
               mixedInTypeDeclaration.libraryBuilder.origin) {
             if (mixedInTypeDeclaration.isInterface &&
                 !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {

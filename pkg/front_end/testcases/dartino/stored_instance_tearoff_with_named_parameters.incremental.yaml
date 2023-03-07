@@ -7,7 +7,7 @@ main.dart.patch: |
   // when updated
 
   class C {
-    m({a: 'a'}) {
+    m({a = 'a'}) {
   <<<< ["closure is null","v1"]
     print('v1');
   ==== "v2"

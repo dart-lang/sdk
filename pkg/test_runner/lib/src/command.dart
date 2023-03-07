@@ -327,8 +327,8 @@ class DevCompilerCompilationCommand extends CompilationCommand {
       required bool alwaysCompile,
       String? workingDirectory,
       int index = 0})
-      : super("dartdevc", outputFile, bootstrapDependencies, executable,
-            arguments, environmentOverrides,
+      : super("ddc", outputFile, bootstrapDependencies, executable, arguments,
+            environmentOverrides,
             alwaysCompile: alwaysCompile,
             workingDirectory: workingDirectory,
             index: index);

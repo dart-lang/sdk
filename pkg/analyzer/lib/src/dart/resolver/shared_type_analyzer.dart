@@ -23,7 +23,7 @@ typedef SharedPatternField
 class SharedTypeAnalyzerErrors
     implements
         shared.TypeAnalyzerErrors<AstNode, Statement, Expression,
-            PromotableElement, DartType, DartPattern> {
+            PromotableElement, DartType, DartPattern, void> {
   final ErrorReporter _errorReporter;
 
   SharedTypeAnalyzerErrors(this._errorReporter);

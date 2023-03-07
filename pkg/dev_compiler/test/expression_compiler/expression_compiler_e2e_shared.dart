@@ -703,7 +703,7 @@ void runAgnosticSharedTests(SetupCompilerOptions setup, TestDriver driver) {
 
   group('Expression compiler tests in static function:', () {
     var source = '''
-        int foo(int x, {int y: 0}) {
+        int foo(int x, {int y = 0}) {
           int z = 3;
           // Breakpoint: bp
           return x + y + z;

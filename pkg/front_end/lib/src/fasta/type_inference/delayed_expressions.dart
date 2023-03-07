@@ -653,7 +653,13 @@ class DelayedRecordNameGet implements DelayedExpression {
   final int fileOffset;
 
   DelayedRecordNameGet(this._receiver, this._recordType, this._name,
-      {required this.fileOffset});
+      {required this.fileOffset})
+      : assert(
+            _recordType.named
+                    .where((element) => element.name == _name)
+                    .length ==
+                1,
+            "Invalid record type $_recordType for named access of '$_name'.");
 
   @override
   Expression createExpression(TypeEnvironment typeEnvironment) {

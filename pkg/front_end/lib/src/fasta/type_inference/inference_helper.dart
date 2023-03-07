@@ -9,7 +9,7 @@ import '../fasta_codes.dart' show LocatedMessage, Message;
 abstract class InferenceHelper {
   Uri get uri;
 
-  Expression buildProblem(Message message, int charOffset, int length,
+  InvalidExpression buildProblem(Message message, int charOffset, int length,
       {List<LocatedMessage>? context,
       bool suppressMessage = false,
       Expression? expression});

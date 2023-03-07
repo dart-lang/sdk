@@ -34,7 +34,7 @@ DEFINE_FLAG(int,
     const int kBufferSize = 1024;                                              \
     char error_message[kBufferSize];                                           \
     Utils::StrError(result, error_message, kBufferSize);                       \
-    FATAL2("pthread error: %d (%s)", result, error_message);                   \
+    FATAL("pthread error: %d (%s)", result, error_message);                    \
   }
 
 #if defined(PRODUCT)
@@ -45,7 +45,7 @@ DEFINE_FLAG(int,
     const int kBufferSize = 1024;                                              \
     char error_message[kBufferSize];                                           \
     Utils::StrError(result, error_message, kBufferSize);                       \
-    FATAL3("[%s] pthread error: %d (%s)", name_, result, error_message);       \
+    FATAL("[%s] pthread error: %d (%s)", name_, result, error_message);        \
   }
 #endif
 
@@ -126,8 +126,8 @@ static void* ThreadStart(void* data_ptr) {
   if (FLAG_worker_thread_priority != kMinInt) {
     if (setpriority(PRIO_PROCESS, gettid(), FLAG_worker_thread_priority) ==
         -1) {
-      FATAL2("Setting thread priority to %d failed: errno = %d\n",
-             FLAG_worker_thread_priority, errno);
+      FATAL("Setting thread priority to %d failed: errno = %d\n",
+            FLAG_worker_thread_priority, errno);
     }
   }
 

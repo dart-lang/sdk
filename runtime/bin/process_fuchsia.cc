@@ -166,8 +166,8 @@ class ExitCodeHandler {
 
     zx_status_t status = zx_port_create(0, &port_);
     if (status != ZX_OK) {
-      FATAL1("ExitCodeHandler: zx_port_create failed: %s\n",
-             zx_status_get_string(status));
+      FATAL("ExitCodeHandler: zx_port_create failed: %s\n",
+            zx_status_get_string(status));
       return;
     }
 
@@ -175,7 +175,7 @@ class ExitCodeHandler {
     intptr_t result =
         Thread::Start("dart:io Process.start", ExitCodeHandlerEntry, 0);
     if (result != 0) {
-      FATAL1("Failed to start exit code handler worker thread %ld", result);
+      FATAL("Failed to start exit code handler worker thread %ld", result);
     }
 
     running_ = true;
@@ -227,8 +227,8 @@ class ExitCodeHandler {
     while (true) {
       zx_status_t status = zx_port_wait(port_, ZX_TIME_INFINITE, &pkt);
       if (status != ZX_OK) {
-        FATAL1("ExitCodeHandler: zx_port_wait failed: %s\n",
-               zx_status_get_string(status));
+        FATAL("ExitCodeHandler: zx_port_wait failed: %s\n",
+              zx_status_get_string(status));
       }
       if (pkt.type == ZX_PKT_TYPE_USER) {
         ASSERT(pkt.key == kShutdownPacketKey);

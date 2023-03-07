@@ -6,7 +6,7 @@ main.dart.patch: |
   // Test that named arguments can be called
 
   class C {
-    foo({a, named: 'v1', x}) {
+    foo({a, named = 'v1', x}) {
       print(named);
     }
   }

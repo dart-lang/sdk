@@ -21,7 +21,7 @@ class NonExhaustiveError implements ExhaustivenessError {
 
   final List<Space> cases;
 
-  final String witness;
+  final Witness witness;
 
   NonExhaustiveError(this.valueType, this.cases, this.witness);
 

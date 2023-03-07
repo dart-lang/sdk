@@ -117,7 +117,7 @@ static void Unmap(zx_handle_t vmar, uword start, uword end) {
 
   zx_status_t status = zx_vmar_unmap(vmar, start, size);
   if (status != ZX_OK) {
-    FATAL1("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
+    FATAL("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
   }
 }
 
@@ -294,8 +294,8 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   LOG_INFO("zx_vmar_protect(%u, 0x%lx, 0x%lx)\n", prot, page_address,
            end_address - page_address);
   if (status != ZX_OK) {
-    FATAL3("zx_vmar_protect(0x%lx, 0x%lx) failed: %s\n", page_address,
-           end_address - page_address, zx_status_get_string(status));
+    FATAL("zx_vmar_protect(0x%lx, 0x%lx) failed: %s\n", page_address,
+          end_address - page_address, zx_status_get_string(status));
   }
 }
 

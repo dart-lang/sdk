@@ -639,7 +639,7 @@ static ObjectPtr AcceptCompilation(Thread* thread) {
   Dart_KernelCompilationResult result = KernelIsolate::AcceptCompilation();
   if (result.status != Dart_KernelCompilationStatus_Ok) {
     if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
-      FATAL1(
+      FATAL(
           "An error occurred while accepting the most recent"
           " compilation results: %s",
           result.error);
@@ -661,7 +661,7 @@ static ObjectPtr RejectCompilation(Thread* thread) {
   Dart_KernelCompilationResult result = KernelIsolate::RejectCompilation();
   if (result.status != Dart_KernelCompilationStatus_Ok) {
     if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
-      FATAL1(
+      FATAL(
           "An error occurred while rejecting the most recent"
           " compilation results: %s",
           result.error);

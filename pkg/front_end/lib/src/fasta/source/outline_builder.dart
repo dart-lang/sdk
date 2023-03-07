@@ -2549,7 +2549,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleValuedFormalParameter(Token equals, Token token) {
+  void handleValuedFormalParameter(
+      Token equals, Token token, FormalParameterKind kind) {
     debugEvent("ValuedFormalParameter");
     // Ignored for now.
   }

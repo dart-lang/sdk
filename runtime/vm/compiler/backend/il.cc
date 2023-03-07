@@ -7686,7 +7686,7 @@ SimdOpInstr::Kind SimdOpInstr::KindForMethod(MethodRecognizer::Kind kind) {
       break;
   }
 
-  FATAL1("Not a SIMD method: %s", MethodRecognizer::KindToCString(kind));
+  FATAL("Not a SIMD method: %s", MethodRecognizer::KindToCString(kind));
   return kIllegalSimdOp;
 }
 

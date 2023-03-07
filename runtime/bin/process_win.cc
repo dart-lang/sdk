@@ -168,7 +168,7 @@ class ProcessInfoList {
     int exit_code;
     ok = GetExitCodeProcess(handle, reinterpret_cast<DWORD*>(&exit_code));
     if (!ok) {
-      FATAL1("GetExitCodeProcess failed %d\n", GetLastError());
+      FATAL("GetExitCodeProcess failed %d\n", GetLastError());
     }
     int negative = 0;
     if (exit_code < 0) {
@@ -185,7 +185,7 @@ class ProcessInfoList {
     if (ok && (written != sizeof(message))) {
       FATAL("Failed to write entire process exit message");
     } else if (!ok && (GetLastError() != ERROR_NO_DATA)) {
-      FATAL1("Failed to write exit code: %d", GetLastError());
+      FATAL("Failed to write exit code: %d", GetLastError());
     }
     // Remove the process from the list of active processes.
     RemoveProcess(pid);

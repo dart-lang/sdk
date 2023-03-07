@@ -1626,7 +1626,7 @@ class ObjectCopy : public Base {
     }
 
     const Object& obj = Types::HandlifyObject(from);
-    FATAL1("Unexpected object: %s\n", obj.ToCString());
+    FATAL("Unexpected object: %s\n", obj.ToCString());
   }
 
   void CopyUserdefinedInstance(typename Types::Object from,

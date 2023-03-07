@@ -6513,3 +6513,9 @@ WeakReferenceTargetNotStaticTearoff:
 
 WeakReferenceTargetHasParameters:
   problemMessage: "The target of weak reference should not take parameters."
+
+ObsoleteColonForDefaultValue:
+  problemMessage: "Using a colon as a separator before a default value is no longer supported."
+  correctionMessage: "Try replacing the colon with an equal sign."
+  script: |
+    method({int x: 3}) {}

@@ -14,7 +14,7 @@ class B extends A {
   foo() => new T1();
 }
 
-abstract class C implements B {}
+mixin C implements B {}
 
 class D {}
 

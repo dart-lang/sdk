@@ -2987,10 +2987,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleValuedFormalParameter(Token equals, Token token) {
+  void handleValuedFormalParameter(
+      Token equals, Token token, FormalParameterKind kind) {
     seen(equals);
     seen(token);
-    doPrint('handleValuedFormalParameter(' '$equals, ' '$token)');
+    doPrint('handleValuedFormalParameter(' '$equals, ' '$token, ' '$kind)');
   }
 
   @override

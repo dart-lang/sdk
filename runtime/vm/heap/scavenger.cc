@@ -877,7 +877,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         if (is_card_remembered_) {
           if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
-            FATAL3(
+            FATAL(
                 "Old object %#" Px " references new object %#" Px
                 ", but the "
                 "slot's card is not remembered. Consider using rr to watch the "
@@ -887,13 +887,13 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
                 ptr);
           }
         } else if (!is_remembered_) {
-          FATAL3(
-              "Old object %#" Px " references new object %#" Px
-              ", but it is "
-              "not in any store buffer. Consider using rr to watch the "
-              "slot %p and reverse-continue to find the store with a missing "
-              "barrier.\n",
-              static_cast<uword>(visiting_), static_cast<uword>(raw_obj), ptr);
+          FATAL("Old object %#" Px " references new object %#" Px
+                ", but it is "
+                "not in any store buffer. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
+                ptr);
         }
         RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
       }
@@ -908,7 +908,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         if (is_card_remembered_) {
           if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
-            FATAL3(
+            FATAL(
                 "Old object %#" Px " references new object %#" Px
                 ", but the "
                 "slot's card is not remembered. Consider using rr to watch the "
@@ -918,13 +918,13 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
                 ptr);
           }
         } else if (!is_remembered_) {
-          FATAL3(
-              "Old object %#" Px " references new object %#" Px
-              ", but it is "
-              "not in any store buffer. Consider using rr to watch the "
-              "slot %p and reverse-continue to find the store with a missing "
-              "barrier.\n",
-              static_cast<uword>(visiting_), static_cast<uword>(raw_obj), ptr);
+          FATAL("Old object %#" Px " references new object %#" Px
+                ", but it is "
+                "not in any store buffer. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
+                ptr);
         }
         RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
       }

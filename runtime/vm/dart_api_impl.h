@@ -32,7 +32,7 @@ const char* CanonicalFunction(const char* func);
 #define CHECK_ISOLATE_GROUP(isolate_group)                                     \
   do {                                                                         \
     if ((isolate_group) == NULL) {                                             \
-      FATAL1(                                                                  \
+      FATAL(                                                                   \
           "%s expects there to be a current isolate group. Did you "           \
           "forget to call Dart_CreateIsolateGroup or Dart_EnterIsolate?",      \
           CURRENT_FUNC);                                                       \
@@ -43,7 +43,7 @@ const char* CanonicalFunction(const char* func);
 #define CHECK_ISOLATE(isolate)                                                 \
   do {                                                                         \
     if ((isolate) == NULL) {                                                   \
-      FATAL1(                                                                  \
+      FATAL(                                                                   \
           "%s expects there to be a current isolate. Did you "                 \
           "forget to call Dart_CreateIsolateGroup or Dart_EnterIsolate?",      \
           CURRENT_FUNC);                                                       \
@@ -54,7 +54,7 @@ const char* CanonicalFunction(const char* func);
 #define CHECK_NO_ISOLATE(isolate)                                              \
   do {                                                                         \
     if ((isolate) != NULL) {                                                   \
-      FATAL1(                                                                  \
+      FATAL(                                                                   \
           "%s expects there to be no current isolate. Did you "                \
           "forget to call Dart_ExitIsolate?",                                  \
           CURRENT_FUNC);                                                       \
@@ -68,7 +68,7 @@ const char* CanonicalFunction(const char* func);
     Isolate* tmpI = tmpT == NULL ? NULL : tmpT->isolate();                     \
     CHECK_ISOLATE(tmpI);                                                       \
     if (tmpT->api_top_scope() == NULL) {                                       \
-      FATAL1(                                                                  \
+      FATAL(                                                                   \
           "%s expects to find a current scope. Did you forget to call "        \
           "Dart_EnterScope?",                                                  \
           CURRENT_FUNC);                                                       \

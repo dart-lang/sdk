@@ -118,7 +118,7 @@
           RELEASE_ASSERT(far_branch_level < 2);                                \
           far_branch_level++;                                                  \
         } else {                                                               \
-          FATAL1("Unexpected error: %s\n", error.ToErrorCString());            \
+          FATAL("Unexpected error: %s\n", error.ToErrorCString());             \
         }                                                                      \
       }                                                                        \
     }                                                                          \

@@ -10139,6 +10139,17 @@ const MessageCode messageObjectMixesIn = const MessageCode("ObjectMixesIn",
     problemMessage: r"""The class 'Object' can't use mixins.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeObsoleteColonForDefaultValue =
+    messageObsoleteColonForDefaultValue;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageObsoleteColonForDefaultValue = const MessageCode(
+    "ObsoleteColonForDefaultValue",
+    problemMessage:
+        r"""Using a colon as a separator before a default value is no longer supported.""",
+    correctionMessage: r"""Try replacing the colon with an equal sign.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

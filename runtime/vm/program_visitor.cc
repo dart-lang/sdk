@@ -121,7 +121,7 @@ class ProgramWalker : public ValueObject {
       } else if (worklist_entry_.IsCode()) {
         VisitCode(Code::Cast(worklist_entry_));
       } else {
-        FATAL1("Got unexpected object %s", worklist_entry_.ToCString());
+        FATAL("Got unexpected object %s", worklist_entry_.ToCString());
       }
     }
   }

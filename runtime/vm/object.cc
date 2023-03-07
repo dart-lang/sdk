@@ -4699,7 +4699,7 @@ void Class::EnsureDeclarationLoaded() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    FATAL1("Unable to use class %s which is not loaded yet.", ToCString());
+    FATAL("Unable to use class %s which is not loaded yet.", ToCString());
 #endif
   }
 }
@@ -7475,7 +7475,7 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
 TypeArgumentsPtr TypeArguments::New(intptr_t len, Heap::Space space) {
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in TypeArguments::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in TypeArguments::New: invalid len %" Pd "\n", len);
   }
   TypeArguments& result = TypeArguments::Handle();
   {
@@ -15270,7 +15270,7 @@ InstructionsPtr Instructions::New(intptr_t size, bool has_monomorphic_entry) {
   ASSERT(Object::instructions_class() != Class::null());
   if (size < 0 || size > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Instructions::New: invalid size %" Pd "\n", size);
+    FATAL("Fatal error in Instructions::New: invalid size %" Pd "\n", size);
   }
   Instructions& result = Instructions::Handle();
   {
@@ -15477,7 +15477,7 @@ ObjectPoolPtr ObjectPool::New(intptr_t len) {
   ASSERT(Object::object_pool_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ObjectPool::New: invalid length %" Pd "\n", len);
+    FATAL("Fatal error in ObjectPool::New: invalid length %" Pd "\n", len);
   }
   ObjectPool& result = ObjectPool::Handle();
   {
@@ -15823,7 +15823,7 @@ CompressedStackMapsPtr CompressedStackMaps::New(const void* payload,
   ASSERT(size != 0);
 
   if (!UntaggedCompressedStackMaps::SizeField::is_valid(size)) {
-    FATAL1(
+    FATAL(
         "Fatal error in CompressedStackMaps::New: "
         "invalid payload size %" Pu "\n",
         size);
@@ -15973,7 +15973,7 @@ LocalVarDescriptorsPtr LocalVarDescriptors::New(intptr_t num_variables) {
   ASSERT(Object::var_descriptors_class() != Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL2(
+    FATAL(
         "Fatal error in LocalVarDescriptors::New: "
         "invalid num_variables %" Pd ". Maximum is: %d\n",
         num_variables, UntaggedLocalVarDescriptors::kMaxIndex);
@@ -16086,7 +16086,7 @@ void ExceptionHandlers::set_handled_types_data(const Array& value) const {
 ExceptionHandlersPtr ExceptionHandlers::New(intptr_t num_handlers) {
   ASSERT(Object::exception_handlers_class() != Class::null());
   if ((num_handlers < 0) || (num_handlers >= kMaxHandlers)) {
-    FATAL1(
+    FATAL(
         "Fatal error in ExceptionHandlers::New(): "
         "invalid num_handlers %" Pd "\n",
         num_handlers);
@@ -16114,7 +16114,7 @@ ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
   ASSERT(Object::exception_handlers_class() != Class::null());
   const intptr_t num_handlers = handled_types_data.Length();
   if ((num_handlers < 0) || (num_handlers >= kMaxHandlers)) {
-    FATAL1(
+    FATAL(
         "Fatal error in ExceptionHandlers::New(): "
         "invalid num_handlers %" Pd "\n",
         num_handlers);
@@ -17479,8 +17479,7 @@ Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;
   if (count < 0 || count > (kIntptrMax / kNumberOfEntries)) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Code::Comments::New: invalid count %" Pd "\n",
-           count);
+    FATAL("Fatal error in Code::Comments::New: invalid count %" Pd "\n", count);
   }
   if (count == 0) {
     comments = new Comments(Object::empty_array());
@@ -17891,8 +17890,8 @@ void Code::set_inlined_id_to_function(const Array& value) const {
 CodePtr Code::New(intptr_t pointer_offsets_length) {
   if (pointer_offsets_length < 0 || pointer_offsets_length > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Code::New: invalid pointer_offsets_length %" Pd "\n",
-           pointer_offsets_length);
+    FATAL("Fatal error in Code::New: invalid pointer_offsets_length %" Pd "\n",
+          pointer_offsets_length);
   }
   ASSERT(Object::code_class() != Class::null());
   Code& result = Code::Handle();
@@ -18451,8 +18450,8 @@ ContextPtr Context::New(intptr_t num_variables, Heap::Space space) {
 
   if (!IsValidLength(num_variables)) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Context::New: invalid num_variables %" Pd "\n",
-           num_variables);
+    FATAL("Fatal error in Context::New: invalid num_variables %" Pd "\n",
+          num_variables);
   }
   Context& result = Context::Handle();
   {
@@ -18521,8 +18520,8 @@ ContextScopePtr ContextScope::New(intptr_t num_variables, bool is_implicit) {
   ASSERT(Object::context_scope_class() != Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ContextScope::New: invalid num_variables %" Pd "\n",
-           num_variables);
+    FATAL("Fatal error in ContextScope::New: invalid num_variables %" Pd "\n",
+          num_variables);
   }
   intptr_t size = ContextScope::InstanceSize(num_variables);
   ContextScope& result = ContextScope::Handle();
@@ -24844,7 +24843,7 @@ OneByteStringPtr OneByteString::New(intptr_t len, Heap::Space space) {
            Class::null())));
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in OneByteString::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in OneByteString::New: invalid len %" Pd "\n", len);
   }
   {
     ObjectPtr raw = Object::Allocate(
@@ -25053,7 +25052,7 @@ TwoByteStringPtr TwoByteString::New(intptr_t len, Heap::Space space) {
          nullptr);
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in TwoByteString::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in TwoByteString::New: invalid len %" Pd "\n", len);
   }
   String& result = String::Handle();
   {
@@ -25212,8 +25211,8 @@ ExternalOneByteStringPtr ExternalOneByteString::New(
              ->external_one_byte_string_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ExternalOneByteString::New: invalid len %" Pd "\n",
-           len);
+    FATAL("Fatal error in ExternalOneByteString::New: invalid len %" Pd "\n",
+          len);
   }
   String& result = String::Handle();
   {
@@ -25244,8 +25243,8 @@ ExternalTwoByteStringPtr ExternalTwoByteString::New(
              ->external_two_byte_string_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ExternalTwoByteString::New: invalid len %" Pd "\n",
-           len);
+    FATAL("Fatal error in ExternalTwoByteString::New: invalid len %" Pd "\n",
+          len);
   }
   String& result = String::Handle();
   {
@@ -25346,7 +25345,7 @@ ArrayPtr Array::NewUninitialized(intptr_t class_id,
                                  Heap::Space space) {
   if (!IsValidLength(len)) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Array::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in Array::New: invalid len %" Pd "\n", len);
   }
   {
     ArrayPtr raw = static_cast<ArrayPtr>(
@@ -26193,7 +26192,7 @@ TypedDataPtr TypedData::New(intptr_t class_id,
                             intptr_t len,
                             Heap::Space space) {
   if (len < 0 || len > TypedData::MaxElements(class_id)) {
-    FATAL1("Fatal error in TypedData::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in TypedData::New: invalid len %" Pd "\n", len);
   }
   TypedData& result = TypedData::Handle();
   {
@@ -26241,7 +26240,7 @@ ExternalTypedDataPtr ExternalTypedData::New(
     Heap::Space space,
     bool perform_eager_msan_initialization_check) {
   if (len < 0 || len > ExternalTypedData::MaxElements(class_id)) {
-    FATAL1("Fatal error in ExternalTypedData::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in ExternalTypedData::New: invalid len %" Pd "\n", len);
   }
 
   if (perform_eager_msan_initialization_check) {

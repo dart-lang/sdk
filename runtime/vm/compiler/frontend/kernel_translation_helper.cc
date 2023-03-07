@@ -1579,7 +1579,7 @@ void MetadataHelper::ScanMetadataMappings() {
 
     if (H.StringEquals(tag, tag_)) {
       if ((!FLAG_precompiled_mode) && precompiler_only_) {
-        FATAL1("%s metadata is allowed in precompiled mode only", tag_);
+        FATAL("%s metadata is allowed in precompiled mode only", tag_);
       }
       SetMetadataMappings(offset + kUInt32Size, mappings_num);
       return;
@@ -1913,7 +1913,7 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
           translation_helper_.DartSymbolPlain(helper_->ReadStringReference());
       lib = Library::LookupLibrary(thread, uri);
       if (lib.IsNull()) {
-        FATAL1("Missing library: %s\n", uri.ToCString());
+        FATAL("Missing library: %s\n", uri.ToCString());
       }
       lib.set_loading_unit(unit);
       uris.SetAt(j, uri);
@@ -2165,8 +2165,8 @@ void KernelReaderHelper::SkipInterfaceMemberNameReference() {
 }
 
 void KernelReaderHelper::ReportUnexpectedTag(const char* variant, Tag tag) {
-  FATAL3("Unexpected tag %d (%s) in ?, expected %s", tag, Reader::TagName(tag),
-         variant);
+  FATAL("Unexpected tag %d (%s) in ?, expected %s", tag, Reader::TagName(tag),
+        variant);
 }
 
 void KernelReaderHelper::ReadUntilFunctionNode() {

@@ -75,7 +75,7 @@ void main() {
   // Methods and tear-offs.
   expect(extension.method(), 'method');
   expect((extension.method)(), 'method');
-  expect(extension.differentArgsMethod('method'), 'method');
+  expect(extension.differentArgsMethod('method'), 'methodundefined');
   expect((extension.differentArgsMethod)('optional', 'method'),
       'optionalmethod');
   expect(extension.renamedMethod(), 'method');

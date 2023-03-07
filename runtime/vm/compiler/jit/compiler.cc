@@ -821,10 +821,10 @@ ObjectPtr Compiler::CompileFunction(Thread* thread, const Function& function) {
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  FATAL3("Precompilation missed function %s (%s, %s)\n",
-         function.ToLibNamePrefixedQualifiedCString(),
-         function.token_pos().ToCString(),
-         Function::KindToCString(function.kind()));
+  FATAL("Precompilation missed function %s (%s, %s)\n",
+        function.ToLibNamePrefixedQualifiedCString(),
+        function.token_pos().ToCString(),
+        Function::KindToCString(function.kind()));
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
@@ -1256,10 +1256,10 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  FATAL3("Precompilation missed function %s (%s, %s)\n",
-         function.ToLibNamePrefixedQualifiedCString(),
-         function.token_pos().ToCString(),
-         Function::KindToCString(function.kind()));
+  FATAL("Precompilation missed function %s (%s, %s)\n",
+        function.ToLibNamePrefixedQualifiedCString(),
+        function.token_pos().ToCString(),
+        Function::KindToCString(function.kind()));
 }
 
 bool Compiler::IsBackgroundCompilation() {
@@ -1272,20 +1272,20 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 }
 
 ObjectPtr Compiler::CompileFunction(Thread* thread, const Function& function) {
-  FATAL1("Attempt to compile function %s", function.ToCString());
+  FATAL("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
 
 ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
                                          const Function& function) {
-  FATAL1("Attempt to compile function %s", function.ToCString());
+  FATAL("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
 
 ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
-  FATAL1("Attempt to compile function %s", function.ToCString());
+  FATAL("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
 
@@ -1294,7 +1294,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
 }
 
 ErrorPtr Compiler::CompileAllFunctions(const Class& cls) {
-  FATAL1("Attempt to compile class %s", cls.ToCString());
+  FATAL("Attempt to compile class %s", cls.ToCString());
   return Error::null();
 }
 

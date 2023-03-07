@@ -24,7 +24,7 @@ namespace dart {
 
 #define VALIDATE_PTHREAD_RESULT(result)                                        \
   if (result != 0) {                                                           \
-    FATAL1("pthread error: %d", result);                                       \
+    FATAL("pthread error: %d", result);                                        \
   }
 
 #if defined(PRODUCT)
@@ -32,7 +32,7 @@ namespace dart {
 #else
 #define VALIDATE_PTHREAD_RESULT_NAMED(result)                                  \
   if (result != 0) {                                                           \
-    FATAL2("[%s] pthread error: %d", name_, result);                           \
+    FATAL("[%s] pthread error: %d", name_, result);                            \
   }
 #endif
 

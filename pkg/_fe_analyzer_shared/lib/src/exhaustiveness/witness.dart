@@ -34,7 +34,7 @@ List<ExhaustivenessError> reportErrors(
     }
   }
 
-  String? witness = _unmatched(caseRows, [valuePattern]);
+  Witness? witness = _unmatched(caseRows, [valuePattern]);
   if (witness != null) {
     errors.add(new NonExhaustiveError(valueType, cases, witness));
   }
@@ -45,11 +45,11 @@ List<ExhaustivenessError> reportErrors(
 /// Determines if [cases] is exhaustive over all values contained by
 /// [valueSpace]. If so, returns `null`. Otherwise, returns a string describing
 /// an example of one value that isn't matched by anything in [cases].
-String? checkExhaustiveness(Space valueSpace, List<Space> cases) {
+Witness? checkExhaustiveness(Space valueSpace, List<Space> cases) {
   // TODO(johnniwinther): Perform reachability checking.
   List<List<Space>> caseRows = cases.map((space) => [space]).toList();
 
-  String? witness = _unmatched(caseRows, [valueSpace]);
+  Witness? witness = _unmatched(caseRows, [valueSpace]);
 
   // Uncomment this to have it print out the witness for non-exhaustive matches.
   // if (witness != null) print(witness);
@@ -63,7 +63,7 @@ String? checkExhaustiveness(Space valueSpace, List<Space> cases) {
 /// If found, returns it. This is a witness example showing that [caseRows] is
 /// not exhaustive over all values in [valuePatterns]. If it returns `null`,
 /// then [caseRows] exhaustively covers [valuePatterns].
-String? _unmatched(List<List<Space>> caseRows, List<Space> valuePatterns,
+Witness? _unmatched(List<List<Space>> caseRows, List<Space> valuePatterns,
     [List<Predicate> witnessPredicates = const []]) {
   assert(caseRows.every((element) => element.length == valuePatterns.length),
       "Value patterns: $valuePatterns, case rows: $caseRows.");
@@ -78,7 +78,7 @@ String? _unmatched(List<List<Space>> caseRows, List<Space> valuePatterns,
     // If we ran out of rows too, then it means [witnessPredicates] is now a
     // complete description of at least one value that slipped past all the
     // rows.
-    return _witnessString(witnessPredicates);
+    return new Witness(witnessPredicates);
   }
 
   // Look down the first column of tests.
@@ -93,7 +93,7 @@ String? _unmatched(List<List<Space>> caseRows, List<Space> valuePatterns,
     // This enables it to filter rows more effectively.
     List<StaticType> subtypes = expandSealedSubtypes(firstValuePattern.type);
     for (StaticType subtype in subtypes) {
-      String? result = _filterByType(subtype, caseRows, firstValuePattern,
+      Witness? result = _filterByType(subtype, caseRows, firstValuePattern,
           valuePatterns, witnessPredicates, firstValuePatterns.path);
 
       // If we found a witness for a subtype that no rows match, then we can
@@ -107,7 +107,7 @@ String? _unmatched(List<List<Space>> caseRows, List<Space> valuePatterns,
   return null;
 }
 
-String? _filterByType(
+Witness? _filterByType(
     StaticType type,
     List<List<Space>> caseRows,
     SingleSpace firstSingleSpaceValue,
@@ -378,8 +378,10 @@ class Predicate {
   String toString() => 'Predicate(path=$path,type=$type)';
 }
 
-/// Builds a human-friendly pattern-like string for the witness matched by
-/// [predicates].
+/// Witness that show an unmatched case.
+///
+/// This is used to builds a human-friendly pattern-like string for the witness
+/// matched by [_predicates].
 ///
 /// For example, given:
 ///
@@ -391,31 +393,38 @@ class Predicate {
 ///     ['z', 'x'] is C
 ///     ['z', 'y'] is B
 ///
-/// Produces:
+/// the [toString] produces:
 ///
 ///     'U(w: T(x: B, y: B), z: T(x: C, y: B))'
-String _witnessString(List<Predicate> predicates) {
-  Witness witness = new Witness();
+class Witness {
+  final List<Predicate> _predicates;
+  late final _Witness _witness = _buildWitness();
 
-  for (Predicate predicate in predicates) {
-    Witness here = witness;
-    for (String field in predicate.path.toList()) {
-      here = here.fields.putIfAbsent(field, () => new Witness());
+  Witness(this._predicates);
+
+  _Witness _buildWitness() {
+    _Witness witness = new _Witness();
+
+    for (Predicate predicate in _predicates) {
+      _Witness here = witness;
+      for (String field in predicate.path.toList()) {
+        here = here.fields.putIfAbsent(field, () => new _Witness());
+      }
+      here.type = predicate.type;
     }
-    here.type = predicate.type;
+    return witness;
   }
 
-  StringBuffer buffer = new StringBuffer();
-  witness.buildString(buffer);
-  return buffer.toString();
+  @override
+  String toString() => _witness.toString();
 }
 
 /// Helper class used to turn a list of [Predicates] into a string.
-class Witness {
+class _Witness {
   StaticType type = StaticType.nullableObject;
-  final Map<String, Witness> fields = {};
+  final Map<String, _Witness> fields = {};
 
-  void buildString(StringBuffer buffer) {
+  void _buildString(StringBuffer buffer) {
     if (!type.isRecord) {
       buffer.write(type);
     }
@@ -429,7 +438,7 @@ class Witness {
 
         buffer.write(name);
         buffer.write(': ');
-        field.buildString(buffer);
+        field._buildString(buffer);
       });
       buffer.write(')');
     }
@@ -438,7 +447,7 @@ class Witness {
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
-    buildString(sb);
+    _buildString(sb);
     return sb.toString();
   }
 }

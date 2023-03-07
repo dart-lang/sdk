@@ -3664,12 +3664,10 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    declaredElement!.type = resolverVisitor.analyzeDeclaredVariablePattern(
-        context,
-        this,
-        declaredElement!,
-        declaredElement!.name,
-        type?.typeOrThrow);
+    declaredElement!.type = resolverVisitor
+        .analyzeDeclaredVariablePattern(context, this, declaredElement!,
+            declaredElement!.name, type?.typeOrThrow)
+        .staticType;
   }
 
   @override

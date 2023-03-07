@@ -64,7 +64,7 @@ int Utils::SNPrint(char* str, size_t size, const char* format, ...) {
 int Utils::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   int retval = vsnprintf(str, size, format, args);
   if (retval < 0) {
-    FATAL1("Fatal error in Utils::VSNPrint with format '%s'", format);
+    FATAL("Fatal error in Utils::VSNPrint with format '%s'", format);
   }
   return retval;
 }
@@ -97,7 +97,7 @@ int32_t DarwinMajorVersionInternal() {
   }
 
   if (strcmp(uname_info.sysname, "Darwin") != 0) {
-    FATAL1(
+    FATAL(
         "Fatal error in DarwinMajorVersionInternal : unexpected uname"
         " sysname '%s'",
         uname_info.sysname);
@@ -116,7 +116,7 @@ int32_t DarwinMajorVersionInternal() {
   }
 
   if (!dot) {
-    FATAL1(
+    FATAL(
         "Fatal error in DarwinMajorVersionInternal :"
         " could not parse uname release '%s'",
         uname_info.release);
