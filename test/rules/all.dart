@@ -40,6 +40,7 @@ import 'dangling_library_doc_comments_test.dart'
 import 'deprecated_consistency_test.dart' as deprecated_consistency;
 import 'directives_ordering_test.dart' as directives_ordering;
 import 'discarded_futures_test.dart' as discarded_futures;
+import 'eol_at_end_of_file_test.dart' as eol_at_end_of_file;
 import 'file_names_test.dart' as file_names;
 import 'flutter_style_todos_test.dart' as flutter_style_todos;
 import 'hash_and_equals_test.dart' as hash_and_equals;
@@ -135,6 +136,7 @@ void main() {
   deprecated_consistency.main();
   directives_ordering.main();
   discarded_futures.main();
+  eol_at_end_of_file.main();
   file_names.main();
   flutter_style_todos.main();
   hash_and_equals.main();
