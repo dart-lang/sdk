@@ -350,6 +350,8 @@ class TestDriver {
     var bootstrapFile = File(htmlBootstrapper.toFilePath())..createSync();
     var moduleName = compiler.metadata!.name;
     var mainLibraryName = compiler.metadataForLibraryUri(input).name;
+    var appName = p.relative(
+        p.withoutExtension(compiler.metadataForLibraryUri(input).importUri));
 
     switch (setup.moduleFormat) {
       case ModuleFormat.ddc:
@@ -368,6 +370,9 @@ class TestDriver {
         var dartLibraryPath =
             escaped(p.join(ddcPath, 'lib', 'js', 'legacy', 'dart_library.js'));
         var outputPath = output.toFilePath();
+        // This is used in the DDC module system for multiapp workflows and is
+        // stubbed here.
+        var uuid = '00000000-0000-0000-0000-000000000000';
         bootstrapFile.writeAsStringSync('''
 <script src='$dartLibraryPath'></script>
 <script src='$dartSdkPath'></script>
@@ -384,7 +389,8 @@ class TestDriver {
   sdk.dart.nonNullAsserts(true);
   sdk.dart.nativeNonNullAsserts(true);
   sdk._debugger.registerDevtoolsFormatter();
-  dart_library.start('$moduleName', '$mainLibraryName');
+  dart_library.start('$appName', '$uuid', '$moduleName', '$mainLibraryName',
+    false);
 </script>
 ''');
         break;
