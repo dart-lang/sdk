@@ -695,17 +695,18 @@ void Class::CheckReload(const Class& replacement,
       for (intptr_t i = 0, n = old_fields.Length(); i < n; i++) {
         old_field ^= old_fields.At(i);
         new_field ^= new_fields.At(i);
-        if (old_field.IsNull() != new_field.IsNull()) {
+        if (old_field.IsNull()) {
+          continue;
+        }
+        if (new_field.IsNull()) {
           field_removed = true;
           break;
         }
-        if (!old_field.IsNull()) {
-          old_name = old_field.name();
-          new_name = new_field.name();
-          if (!old_name.Equals(new_name)) {
-            field_removed = true;
-            break;
-          }
+        old_name = old_field.name();
+        new_name = new_field.name();
+        if (!old_name.Equals(new_name)) {
+          field_removed = true;
+          break;
         }
       }
     }
