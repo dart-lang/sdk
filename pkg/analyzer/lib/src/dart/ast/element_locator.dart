@@ -27,6 +27,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitAssignedVariablePattern(AssignedVariablePattern node) {
+    return node.element;
+  }
+
+  @override
   Element? visitAssignmentExpression(AssignmentExpression node) {
     return node.staticElement;
   }
@@ -70,6 +75,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitDeclaredIdentifier(DeclaredIdentifier node) {
+    return node.declaredElement;
+  }
+
+  @override
+  Element? visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     return node.declaredElement;
   }
 
@@ -189,6 +199,21 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitPartOfDirective(PartOfDirective node) {
     return node.element;
+  }
+
+  @override
+  Element? visitPatternField(PatternField node) {
+    return node.element;
+  }
+
+  @override
+  Element? visitPatternFieldName(PatternFieldName node) {
+    final parent = node.parent;
+    if (parent is PatternField) {
+      return parent.element;
+    } else {
+      return null;
+    }
   }
 
   @override

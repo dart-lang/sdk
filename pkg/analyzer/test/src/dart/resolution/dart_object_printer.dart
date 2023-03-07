@@ -56,7 +56,7 @@ class DartObjectPrinter {
             _withIndent(() {
               for (final element in elements) {
                 sink.write(indent);
-                write(element as DartObjectImpl);
+                write(element);
               }
             });
           }

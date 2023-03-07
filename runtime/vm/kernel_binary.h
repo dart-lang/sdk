@@ -18,7 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kSupportedKernelFormatVersion = 93;
+static const uint32_t kSupportedKernelFormatVersion = 95;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -147,11 +147,11 @@ static const uint32_t kSupportedKernelFormatVersion = 93;
   V(FunctionInvocation, 125)                                                   \
   V(FunctionTearOff, 126)                                                      \
   V(LocalFunctionInvocation, 127)                                              \
-  V(SpecializedVariableGet, 128)                                               \
-  V(SpecializedVariableSet, 136)                                               \
-  V(SpecializedIntLiteral, 144)
+  V(SpecializedVariableGet, 224)                                               \
+  V(SpecializedVariableSet, 232)                                               \
+  V(SpecializedIntLiteral, 240)
 
-static const intptr_t kSpecializedTagHighBit = 0x80;
+static const intptr_t kSpecializedTagHighBits = 0xe0;
 static const intptr_t kSpecializedTagMask = 0xf8;
 static const intptr_t kSpecializedPayloadMask = 0x7;
 
@@ -379,7 +379,8 @@ class Reader : public ValueObject {
 
   Tag ReadTag(uint8_t* payload = NULL) {
     uint8_t byte = ReadByte();
-    bool has_payload = (byte & kSpecializedTagHighBit) != 0;
+    bool has_payload =
+        (byte & kSpecializedTagHighBits) == kSpecializedTagHighBits;
     if (has_payload) {
       if (payload != NULL) {
         *payload = byte & kSpecializedPayloadMask;
@@ -392,7 +393,8 @@ class Reader : public ValueObject {
 
   Tag PeekTag(uint8_t* payload = NULL) {
     uint8_t byte = PeekByte();
-    bool has_payload = (byte & kSpecializedTagHighBit) != 0;
+    bool has_payload =
+        (byte & kSpecializedTagHighBits) == kSpecializedTagHighBits;
     if (has_payload) {
       if (payload != NULL) {
         *payload = byte & kSpecializedPayloadMask;

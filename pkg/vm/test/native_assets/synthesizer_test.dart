@@ -30,7 +30,7 @@ native-assets:
     );
     final libraryToString = kernelLibraryToString(component.libraries.single);
     final expectedKernel = '''@#C9
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 
 constants  {
@@ -40,8 +40,8 @@ constants  {
   #C4 = "absolute"
   #C5 = "/path/to/libfoo.so"
   #C6 = <dynamic>[#C4, #C5]
-  #C7 = <dynamic, dynamic>{#C3:#C6)
-  #C8 = <dynamic, dynamic>{#C2:#C7)
+  #C7 = <dynamic, dynamic>{#C3:#C6}
+  #C8 = <dynamic, dynamic>{#C2:#C7}
   #C9 = #lib1::pragma {name:#C1, options:#C8}
 }
 ''';

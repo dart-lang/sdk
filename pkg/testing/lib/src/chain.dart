@@ -54,10 +54,8 @@ class Chain extends Suite {
     }
     Uri uri = base.resolve(path);
     Uri statusFile = base.resolve(json["status"]);
-    List<RegExp> pattern =
-        json["pattern"].map<RegExp>((p) => RegExp(p)).toList();
-    List<RegExp> exclude =
-        json["exclude"].map<RegExp>((p) => RegExp(p)).toList();
+    List<RegExp> pattern = [for (final p in json['pattern']) RegExp(p)];
+    List<RegExp> exclude = [for (final e in json['exclude']) RegExp(e)];
     bool processMultitests = json["process-multitests"] ?? false;
     return Chain(name, kind, source, uri, statusFile, pattern, exclude,
         processMultitests);
@@ -90,8 +88,8 @@ class Chain extends Suite {
       "path": "$uri",
       "status": "$statusFile",
       "process-multitests": processMultitests,
-      "pattern": []..addAll(pattern.map((RegExp r) => r.pattern)),
-      "exclude": []..addAll(exclude.map((RegExp r) => r.pattern)),
+      "pattern": [for (final r in pattern) r.pattern],
+      "exclude": [for (final r in exclude) r.pattern],
     };
   }
 }
@@ -101,9 +99,9 @@ abstract class ChainContext {
 
   List<Step> get steps;
 
-  ExpectationSet get expectationSet => ExpectationSet.Default;
+  ExpectationSet get expectationSet => ExpectationSet.defaultExpectations;
 
-  Future<Null> run(Chain suite, Set<String> selectors,
+  Future<void> run(Chain suite, Set<String> selectors,
       {int shards = 1,
       int shard = 0,
       Logger logger = const StdoutLogger()}) async {
@@ -150,7 +148,7 @@ abstract class ChainContext {
           expectations.expectations(description.shortName), description);
       bool shouldSkip = false;
       for (Expectation expectation in expectedOutcomes) {
-        if (expectation.group == ExpectationGroup.Skip) {
+        if (expectation.group == ExpectationGroup.skip) {
           shouldSkip = true;
           break;
         }
@@ -201,13 +199,12 @@ abstract class ChainContext {
         } else {
           future = Future.value(null);
         }
-        future = future.then((_currentResult) async {
-          Result? currentResult = _currentResult;
+        future = future.then((currentResult) async {
           if (currentResult != null) {
             logger.logStepComplete(completed, unexpectedResults.length,
                 descriptions.length, suite, description, lastStepRun!);
             result = currentResult;
-            if (currentResult.outcome == Expectation.Pass) {
+            if ((currentResult as Result).outcome == Expectation.pass) {
               // The input to the next step is the output of this step.
               return doStep(result!.output);
             }
@@ -291,9 +288,9 @@ abstract class ChainContext {
             toNegativeTestResult(result, description.multitestExpectations);
       }
     } else if (last && description.shortName.endsWith("negative_test")) {
-      if (result.outcome == Expectation.Pass) {
+      if (result.outcome == Expectation.pass) {
         result.addLog("Negative test didn't report an error.\n");
-      } else if (result.outcome == Expectation.Fail) {
+      } else if (result.outcome == Expectation.fail) {
         result.addLog("Negative test reported an error as expected.\n");
       }
       result = toNegativeTestResult(result);
@@ -303,19 +300,19 @@ abstract class ChainContext {
 
   Result toNegativeTestResult(Result result, [Set<String>? expectations]) {
     Expectation outcome = result.outcome;
-    if (outcome == Expectation.Pass) {
+    if (outcome == Expectation.pass) {
       if (expectations == null) {
-        outcome = Expectation.Fail;
+        outcome = Expectation.fail;
       } else if (expectations.contains("compile-time error")) {
         outcome = expectationSet["MissingCompileTimeError"];
       } else if (expectations.contains("runtime error") ||
           expectations.contains("dynamic type error")) {
         outcome = expectationSet["MissingRuntimeError"];
       } else {
-        outcome = Expectation.Fail;
+        outcome = Expectation.fail;
       }
-    } else if (outcome == Expectation.Fail) {
-      outcome = Expectation.Pass;
+    } else if (outcome == Expectation.fail) {
+      outcome = Expectation.pass;
     }
     return result.copyWithOutcome(outcome);
   }
@@ -398,15 +395,15 @@ class Result<O> {
     this.canBeFixWithUpdateExpectations = false,
   });
 
-  Result.pass(O output) : this(output, Expectation.Pass, null);
+  Result.pass(O output) : this(output, Expectation.pass, null);
 
   Result.crash(error, StackTrace trace)
-      : this(null, Expectation.Crash, error, trace: trace);
+      : this(null, Expectation.crash, error, trace: trace);
 
   Result.fail(O output, [error, StackTrace? trace])
-      : this(output, Expectation.Fail, error, trace: trace);
+      : this(output, Expectation.fail, error, trace: trace);
 
-  bool get isPass => outcome == Expectation.Pass;
+  bool get isPass => outcome == Expectation.pass;
 
   String get log => logs.join();
 
@@ -428,7 +425,7 @@ class Result<O> {
 }
 
 /// This is called from generated code.
-Future<Null> runChain(CreateContext f, Map<String, String> environment,
+Future<void> runChain(CreateContext f, Map<String, String> environment,
     Set<String> selectors, String jsonText) {
   return withErrorHandling(() async {
     Chain suite = Suite.fromJsonMap(Uri.base, json.decode(jsonText)) as Chain;

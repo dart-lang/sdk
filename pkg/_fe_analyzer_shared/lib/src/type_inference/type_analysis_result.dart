@@ -51,17 +51,10 @@ class MatchContext<Node extends Object, Expression extends Node,
   /// Indicates whether variables declared in the pattern should be `late`.
   final bool isLate;
 
-  /// The top level pattern in this pattern match.
-  final Node? topPattern;
-
-  /// The initializer being assigned to this pattern via a variable declaration
-  /// statement, or `null` if this pattern does not occur in a variable
-  /// declaration statement.
-  final Expression? _initializer;
-
   /// The switch scrutinee, or `null` if this pattern does not occur in a switch
-  /// statement or switch expression.
-  final Expression? _switchScrutinee;
+  /// statement or switch expression, or this pattern is not the top-level
+  /// pattern.
+  final Expression? switchScrutinee;
 
   /// If the match is being done in a pattern assignment, the set of variables
   /// assigned so far.
@@ -76,28 +69,19 @@ class MatchContext<Node extends Object, Expression extends Node,
   /// captured by that variable.
   final Map<String, int> patternVariablePromotionKeys;
 
+  /// If non-null, the warning that should be issued if the pattern is `_`
+  final UnnecessaryWildcardKind? unnecessaryWildcardKind;
+
   MatchContext({
-    Expression? initializer,
     this.irrefutableContext,
     required this.isFinal,
     this.isLate = false,
-    Expression? switchScrutinee,
-    required this.topPattern,
+    this.switchScrutinee,
     this.assignedVariables,
     required this.componentVariables,
     required this.patternVariablePromotionKeys,
-  })  : _initializer = initializer,
-        _switchScrutinee = switchScrutinee;
-
-  /// If the pattern [pattern] is the [topPattern] and there is a corresponding
-  /// initializer expression, returns it.  Otherwise returns `null`.
-  Expression? getInitializer(Pattern pattern) =>
-      identical(pattern, topPattern) ? _initializer : null;
-
-  /// If the pattern [pattern] is the [topPattern] and there is a corresponding
-  /// switch scrutinee expression, returns it.  Otherwise returns `null`.
-  Expression? getSwitchScrutinee(Node pattern) =>
-      identical(pattern, topPattern) ? _switchScrutinee : null;
+    this.unnecessaryWildcardKind,
+  });
 
   /// Returns a modified version of `this`, with [irrefutableContext] set to
   /// `null`.  This is used to suppress cascading errors after reporting
@@ -106,11 +90,10 @@ class MatchContext<Node extends Object, Expression extends Node,
       irrefutableContext == null
           ? this
           : new MatchContext(
-              initializer: _initializer,
               isFinal: isFinal,
               isLate: isLate,
-              switchScrutinee: _switchScrutinee,
-              topPattern: topPattern,
+              switchScrutinee: switchScrutinee,
+              assignedVariables: assignedVariables,
               componentVariables: componentVariables,
               patternVariablePromotionKeys: patternVariablePromotionKeys,
             );
@@ -120,15 +103,33 @@ class MatchContext<Node extends Object, Expression extends Node,
   MatchContext<Node, Expression, Pattern, Type, Variable> withPromotionKeys(
           Map<String, int> patternVariablePromotionKeys) =>
       new MatchContext(
-        initializer: _initializer,
         irrefutableContext: irrefutableContext,
         isFinal: isFinal,
         isLate: isLate,
-        switchScrutinee: _switchScrutinee,
-        topPattern: topPattern,
+        switchScrutinee: null,
+        assignedVariables: assignedVariables,
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,
+        unnecessaryWildcardKind: unnecessaryWildcardKind,
       );
+
+  /// Returns a modified version of `this`, with both [initializer] and
+  /// [switchScrutinee] set to `null` (because this context is not for a
+  /// top-level pattern anymore).
+  MatchContext<Node, Expression, Pattern, Type, Variable>
+      withUnnecessaryWildcardKind(
+          UnnecessaryWildcardKind? unnecessaryWildcardKind) {
+    return new MatchContext(
+      irrefutableContext: irrefutableContext,
+      isFinal: isFinal,
+      isLate: isLate,
+      assignedVariables: assignedVariables,
+      switchScrutinee: null,
+      componentVariables: componentVariables,
+      patternVariablePromotionKeys: patternVariablePromotionKeys,
+      unnecessaryWildcardKind: unnecessaryWildcardKind,
+    );
+  }
 }
 
 /// Container for the result of running type analysis on a pattern assignment.
@@ -188,4 +189,16 @@ class SwitchStatementTypeAnalysisResult<Type> {
     required this.requiresExhaustivenessValidation,
     required this.scrutineeType,
   });
+}
+
+/// The location of a wildcard pattern that was found unnecessary.
+///
+/// When a wildcard pattern always matches, and is not required by the
+/// by the location, we can report it as unnecessary. The locations where it
+/// is necessary include list patterns, record patterns, cast patterns, etc.
+enum UnnecessaryWildcardKind {
+  /// The wildcard pattern is the left or the right side of a logical-and
+  /// pattern. Because we found that is always matches, it has no effect,
+  /// and can be removed.
+  logicalAndPatternOperand,
 }

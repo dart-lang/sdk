@@ -149,6 +149,16 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.ABSTRACT_SEALED_CLASS,
   ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
   ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC,
+  ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY,
+  ParserErrorCode.FINAL_MIXIN_CLASS,
+  ParserErrorCode.INTERFACE_MIXIN_CLASS,
+  ParserErrorCode.SEALED_MIXIN_CLASS,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -813,6 +823,12 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try removing the keyword 'final'.",
   );
 
+  static const ParserErrorCode FINAL_MIXIN_CLASS = ParserErrorCode(
+    'FINAL_MIXIN_CLASS',
+    "A mixin class can't be declared 'final'.",
+    correctionMessage: "Try removing the 'final' keyword.",
+  );
+
   static const ParserErrorCode FINAL_TYPEDEF = ParserErrorCode(
     'FINAL_TYPEDEF',
     "Typedefs can't be declared to be 'final'.",
@@ -890,6 +906,12 @@ class ParserErrorCode extends ErrorCode {
         "Try removing the initializer, or using a different kind of loop.",
   );
 
+  static const ParserErrorCode INTERFACE_MIXIN_CLASS = ParserErrorCode(
+    'INTERFACE_MIXIN_CLASS',
+    "A mixin class can't be declared 'interface'.",
+    correctionMessage: "Try removing the 'interface' keyword.",
+  );
+
   static const ParserErrorCode INVALID_AWAIT_IN_FOR = ParserErrorCode(
     'INVALID_AWAIT_IN_FOR',
     "The keyword 'await' isn't allowed for a normal 'for' statement.",
@@ -907,6 +929,53 @@ class ParserErrorCode extends ErrorCode {
     'INVALID_COMMENT_REFERENCE',
     "Comment references should contain a possibly prefixed identifier and can "
         "start with 'new', but shouldn't contain anything else.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_CONST_PREFIX = ParserErrorCode(
+    'INVALID_CONSTANT_CONST_PREFIX',
+    "The expression can't be prefixed by 'const' to form a constant pattern.",
+    correctionMessage:
+        "Try wrapping the expression in 'const ( ... )' instead.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_BINARY =
+      ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_BINARY',
+    "The binary operator {0} is not supported as a constant pattern.",
+    correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_DUPLICATE_CONST =
+      ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_DUPLICATE_CONST',
+    "Duplicate 'const' keyword in constant expression.",
+    correctionMessage: "Try removing one of the 'const' keywords.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL =
+      ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL',
+    "The empty record literal is not supported as a constant pattern.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_GENERIC =
+      ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_GENERIC',
+    "This expression is not supported as a constant pattern.",
+    correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_NEGATION =
+      ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_NEGATION',
+    "Only negation of a numeric literal is supported as a constant pattern.",
+    correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_UNARY = ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_UNARY',
+    "The unary operator {0} is not supported as a constant pattern.",
+    correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
   );
 
   static const ParserErrorCode INVALID_CONSTRUCTOR_NAME = ParserErrorCode(
@@ -1488,6 +1557,12 @@ class ParserErrorCode extends ErrorCode {
     "Only factory constructor can specify '=' redirection.",
     correctionMessage:
         "Try making this a factory constructor, or remove the redirection.",
+  );
+
+  static const ParserErrorCode SEALED_MIXIN_CLASS = ParserErrorCode(
+    'SEALED_MIXIN_CLASS',
+    "A mixin class can't be declared 'sealed'.",
+    correctionMessage: "Try removing the 'sealed' keyword.",
   );
 
   static const ParserErrorCode SETTER_CONSTRUCTOR = ParserErrorCode(

@@ -12,8 +12,8 @@ class A {
 }
 
 main() {
-  new A().a = 54;
-  return new A().a;
+  A().a = 54;
+  return A().a;
 }
 """;
 
@@ -23,7 +23,7 @@ class A {
 }
 
 main() {
-  return new A().a;
+  return A().a;
 }
 """;
 
@@ -33,7 +33,7 @@ class A {
 }
 
 main() {
-  var a = new A();
+  var a = A();
   return a.a + a.a;
 }
 """;
@@ -45,8 +45,8 @@ class A {
 
 var list = [];
 main() {
-  new A().a = 54;
-  var a = new A();
+  A().a = 54;
+  var a = A();
   list.add(a);
   return a.a + a.a;
 }
@@ -59,7 +59,7 @@ class A {
 
 var list = [];
 main() {
-  var a = new A();
+  var a = A();
   list.add(a);
   return a.a + a.a;
 }
@@ -72,7 +72,7 @@ class A {
 
 var list = [new A()];
 main() {
-  var a = new A();
+  var a = A();
   var b = list[0];
   b.a = 52;
   return a.a + a.a;
@@ -84,7 +84,7 @@ class A {
   var a = 42;
 }
 
-var list = [new A(), new A()];
+var list = [new A(), A()];
 main() {
   var a = list[0];
   a.a = 32;
@@ -97,7 +97,7 @@ class A {
   var a = 42;
 }
 
-var list = [new A(), new A()];
+var list = [new A(), A()];
 main() {
   var a = list[0];
   a.a = 32;
@@ -113,7 +113,7 @@ class A {
 }
 
 main() {
-  var a = new A();
+  var a = A();
   (() => a.a = 2)();
   return a.a;
 }
@@ -125,7 +125,7 @@ class A {
 }
 
 main() {
-  var a = new A();
+  var a = A();
   a.a = 2;
   return a.a;
 }
@@ -145,8 +145,8 @@ class A {
 }
 
 main() {
-  var a = new A(42);
-  var b = new A.bar(a);
+  var a = A(42);
+  var b = A.bar(a);
   b.foo();
   return a.a;
 }

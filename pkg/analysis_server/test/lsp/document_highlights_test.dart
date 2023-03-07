@@ -4,10 +4,12 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -19,8 +21,8 @@ void main() {
 @reflectiveTest
 class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
   Future<void> test_functions() => _testMarkedContent('''
-    [[main]]() {
-      [[mai^n]]();
+    /*[0*/main/*0]*/() {
+      /*[1*/mai^n/*1]*/();
     }
     ''');
 
@@ -30,7 +32,7 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
     const content = '// single line';
 
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, content);
 
     // Lines are zero-based so 1 is invalid.
     final pos = Position(line: 1, character: 0);
@@ -42,9 +44,9 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_localVariable() => _testMarkedContent('''
     void f() {
-      var [[f^oo]] = 1;
-      print([[foo]]);
-      [[foo]] = 2;
+      var /*[0*/f^oo/*0]*/ = 1;
+      print(/*[1*/foo/*1]*/);
+      /*[2*/foo/*2]*/ = 2;
     }
     ''');
 
@@ -67,7 +69,7 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_onlySelf() => _testMarkedContent('''
     void f() {
-      [[prin^t]]();
+      /*[0*/prin^t/*0]*/();
     }
     ''');
 
@@ -75,51 +77,51 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
     void f() {
       var foo = 1;
       func() {
-        var [[fo^o]] = 2;
-        print([[foo]]);
+        var /*[0*/fo^o/*0]*/ = 2;
+        print(/*[1*/foo/*1]*/);
       }
     }
     ''');
 
   Future<void> test_shadow_outer() => _testMarkedContent('''
     void f() {
-      var [[foo]] = 1;
+      var /*[0*/foo/*0]*/ = 1;
       func() {
         var foo = 2;
         print(foo);
       }
-      print([[fo^o]]);
+      print(/*[1*/fo^o/*1]*/);
     }
     ''');
 
   Future<void> test_topLevelVariable() => _testMarkedContent('''
-    String [[foo]] = 'bar';
+    String /*[0*/foo/*0]*/ = 'bar';
     void f() {
-      print([[foo]]);
-      [[fo^o]] = 2;
+      print(/*[1*/foo/*1]*/);
+      /*[2*/fo^o/*2]*/ = 2;
     }
     ''');
 
   /// Tests highlights in a Dart file using the provided content.
-  /// The content should be marked with a ^ where the highlights request should
-  /// be invoked and with `[[double brackets]]` around each range expected to
-  /// be highlighted (eg. all references to the symbol under ^).
-  /// If the content does not include any `[[double brackets]]` then the response
-  /// is expected to be `null`.
+  ///
+  /// The content should be marked up using the [TestCode] format.
+  ///
+  /// If the content does not include any ranges then the response is expected
+  /// to be `null`.
   Future<void> _testMarkedContent(String content) async {
-    final expectedRanges = rangesFromMarkers(content);
+    final code = TestCode.parse(content);
 
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
 
-    final pos = positionFromMarker(content);
+    final pos = code.position.position;
     final highlights = await getDocumentHighlights(mainFileUri, pos);
 
-    if (expectedRanges.isEmpty) {
+    if (code.ranges.isEmpty) {
       expect(highlights, isNull);
     } else {
       final highlightRanges = highlights!.map((h) => h.range).toList();
-      expect(highlightRanges, equals(expectedRanges));
+      expect(highlightRanges, equals(code.ranges.map((r) => r.range)));
     }
   }
 }

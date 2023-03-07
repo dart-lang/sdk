@@ -73,18 +73,21 @@ main() {
 class C {
   final Object x;
   const C(this.x);
+  @override
   int get hashCode => x.hashCode;
+  @override
   bool operator ==(Object other) => other is C && x == other.x;
 }
 
 int _ctr = 0;
-fails(test(msg)) {
+
+void fails(void Function(String msg) test) {
   var msg = "__#${_ctr++}#__"; // "Unique" name.
   try {
     test(msg);
     throw "Did not throw!";
   } on ExpectException catch (e) {
-    if (e.message.indexOf(msg) < 0) {
+    if (!e.message.contains(msg)) {
       throw "Failure did not contain message: \"$msg\" not in ${e.message}";
     }
   }

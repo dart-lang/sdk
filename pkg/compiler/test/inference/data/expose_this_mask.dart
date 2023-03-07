@@ -44,8 +44,8 @@ class OtherClass1 {
 
 /*member: otherGetter:[null]*/
 otherGetter() {
-  new OtherClass1(). /*[exact=OtherClass1]*/ field1a;
-  new Class1();
+  OtherClass1(). /*[exact=OtherClass1]*/ field1a;
+  Class1();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,8 +72,8 @@ class OtherClass2 {
 
 /*member: otherMethod:[null]*/
 otherMethod() {
-  new OtherClass2(). /*[exact=OtherClass2]*/ field2a;
-  new Class2();
+  OtherClass2(). /*[exact=OtherClass2]*/ field2a;
+  Class2();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -100,8 +100,8 @@ class OtherClass3 {
 
 /*member: otherField:[null]*/
 otherField() {
-  new OtherClass3();
-  new Class3();
+  OtherClass3();
+  Class3();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -128,8 +128,8 @@ class Class5 extends SuperClass5 {
 
 /*member: superclassField:[null]*/
 superclassField() {
-  new SuperClass5();
-  new Class5();
+  SuperClass5();
+  Class5();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -158,8 +158,8 @@ class SubClass4 extends Class4 {
 
 /*member: subclassFieldRead:[null]*/
 subclassFieldRead() {
-  new Class4();
-  new SubClass4();
+  Class4();
+  SubClass4();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -191,8 +191,8 @@ class SubClass6 extends Class6 {
 
 /*member: subclassFieldWrite:[null|exact=JSUInt31]*/
 subclassFieldWrite() {
-  new Class6();
-  return new SubClass6(). /*[exact=SubClass6]*/ access;
+  Class6();
+  return SubClass6(). /*[exact=SubClass6]*/ access;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -228,9 +228,9 @@ class SubClass9b extends Class9 {}
 
 /*member: subclassesFieldWrite:[null|exact=JSUInt31]*/
 subclassesFieldWrite() {
-  new Class9();
-  new SubClass9b();
-  return new SubClass9a(). /*[exact=SubClass9a]*/ access;
+  Class9();
+  SubClass9b();
+  return SubClass9a(). /*[exact=SubClass9a]*/ access;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -259,8 +259,8 @@ class SubClass7 extends Class7 {
 
 /*member: subclassFieldInvoke:[null]*/
 subclassFieldInvoke() {
-  new Class7();
-  new SubClass7();
+  Class7();
+  SubClass7();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -295,6 +295,6 @@ class SubClass8b extends Class8 {
 
 /*member: subclassFieldSet:[null]*/
 subclassFieldSet() {
-  new SubClass8a();
-  new SubClass8b();
+  SubClass8a();
+  SubClass8b();
 }

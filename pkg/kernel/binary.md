@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 93;
+  UInt32 formatVersion = 95;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -387,6 +387,7 @@ type InlineClass extends Node {
   List<TypeParameter> typeParameters;
   DartType declaredRepresentationType;
   StringReference representationName;
+  List<InlineType> implements;
   List<InlineClassMemberDescriptor> members;
 }
 
@@ -604,7 +605,7 @@ type VariableGet extends Expression {
 }
 
 type SpecializedVariableGet extends Expression {
-  Byte tag = 128 + N; // Where 0 <= N < 8.
+  Byte tag = 224 + N; // Where 0 <= N < 8.
   // Equivalent to a VariableGet with index N.
   FileOffset fileOffset;
   // Byte offset in the binary for the variable declaration (without tag).
@@ -621,7 +622,7 @@ type VariableSet extends Expression {
 }
 
 type SpecializedVariableSet extends Expression {
-  Byte tag = 136 + N; // Where 0 <= N < 8.
+  Byte tag = 232 + N; // Where 0 <= N < 8.
   FileOffset fileOffset;
   // Byte offset in the binary for the variable declaration (without tag).
   UInt variableDeclarationPosition;
@@ -1030,7 +1031,7 @@ type StringLiteral extends Expression {
 type IntegerLiteral extends Expression {}
 
 type SpecializedIntLiteral extends IntegerLiteral {
-  Byte tag = 144 + N; // Where 0 <= N < 8.
+  Byte tag = 240 + N; // Where 0 <= N < 8.
   // Integer literal with value (N - 3), that is, an integer in range -3..4.
 }
 

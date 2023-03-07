@@ -26,7 +26,7 @@ main() {
 main() {
   runTest() async {
     await compileAndMatch(TEST, 'main',
-        new RegExp('if \\(typeof count !== "number"\\)(.|\\n)*while'));
+        RegExp('if \\(typeof count !== "number"\\)(.|\\n)*while'));
   }
 
   asyncTest(() async {

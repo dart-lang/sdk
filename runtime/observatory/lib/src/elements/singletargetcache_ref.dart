@@ -25,8 +25,6 @@ class SingleTargetCacheRefElement extends CustomElement implements Renderable {
   factory SingleTargetCacheRefElement(
       M.IsolateRef isolate, M.SingleTargetCacheRef singleTargetCache,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(singleTargetCache != null);
     SingleTargetCacheRefElement e = new SingleTargetCacheRefElement.created();
     e._r = new RenderingScheduler<SingleTargetCacheRefElement>(e, queue: queue);
     e._isolate = isolate;

@@ -22,7 +22,7 @@ class C<T> {
 class D extends C<B> {}
 
 main() {
-  C<A> c = new D();
+  C<A> c = D();
   c.method(
       /*spec.checks=[$signature],instance*/
       /*prod.checks=[],instance*/

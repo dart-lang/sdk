@@ -30,7 +30,7 @@ void f(Null n) {
   n as Never;
 }
 ''', [
-      error(HintCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 10),
+      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 10),
     ]);
   }
 
@@ -40,7 +40,7 @@ void f(Null n) {
   n as int;
 }
 ''', [
-      error(HintCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 8),
+      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 8),
     ]);
   }
 
@@ -50,7 +50,7 @@ void f<T extends Object>(Null n) {
   n as T;
 }
 ''', [
-      error(HintCode.CAST_FROM_NULL_ALWAYS_FAILS, 37, 6),
+      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 37, 6),
     ]);
   }
 

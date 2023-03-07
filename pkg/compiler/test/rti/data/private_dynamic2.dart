@@ -15,6 +15,6 @@ class D {
 }
 
 main() {
-  dynamic d = new D();
+  dynamic d = D();
   d._private2<int>(new C(), 0);
 }

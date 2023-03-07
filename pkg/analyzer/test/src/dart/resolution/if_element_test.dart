@@ -38,6 +38,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 1
@@ -45,6 +46,38 @@ IfElement
   elseKeyword: else
   elseElement: IntegerLiteral
     literal: 2
+    staticType: int
+''');
+  }
+
+  test_caseClause_topLevelVariableInitializer() async {
+    await assertNoErrorsInCode(r'''
+final x = 0;
+final y = [ if (x case var a) a ];
+''');
+
+    final node = findNode.singleIfElement;
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@getter::x
+    staticType: int
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: DeclaredVariablePattern
+        keyword: var
+        name: a
+        declaredElement: hasImplicitType a@40
+          type: int
+        matchedValueType: int
+  rightParenthesis: )
+  thenElement: SimpleIdentifier
+    token: a
+    staticElement: a@40
     staticType: int
 ''');
   }
@@ -98,6 +131,7 @@ IfElement
             name: a
             declaredElement: a@56
               type: int
+            matchedValueType: Object?
           RelationalPattern
             operator: ==
             operand: SimpleIdentifier
@@ -105,7 +139,9 @@ IfElement
               staticElement: a@56
               staticType: int
             element: dart:core::@class::Object::@method::==
+            matchedValueType: Object?
         rightBracket: ]
+        matchedValueType: Object
         requiredType: List<Object?>
       whenClause: WhenClause
         whenKeyword: when
@@ -171,6 +207,7 @@ IfElement
         name: a
         declaredElement: a@42
           type: int
+        matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -237,6 +274,7 @@ IfElement
             leftParenthesis: (
             rightParenthesis: )
           staticType: A
+        matchedValueType: Object
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 0
@@ -304,6 +342,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: int
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 1
@@ -334,6 +373,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
         expression: FunctionExpressionInvocation
@@ -377,6 +417,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
         expression: BooleanLiteral

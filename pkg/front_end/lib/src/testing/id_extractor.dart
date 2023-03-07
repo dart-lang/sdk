@@ -587,6 +587,13 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
+  void visitBlockExpression(BlockExpression node) {
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    return super.visitBlockExpression(node);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     computeForNode(node, computeDefaultNodeId(node));
     return super.visitConditionalExpression(node);

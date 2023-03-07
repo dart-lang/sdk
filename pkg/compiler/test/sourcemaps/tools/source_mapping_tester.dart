@@ -30,7 +30,7 @@ main(List<String> arguments) {
 
 void test(List<String> arguments,
     {WhiteListFunction whiteListFunction = emptyWhiteListFunction}) {
-  Set<String> configurations = new Set<String>();
+  Set<String> configurations = Set<String>();
   Map<String, Uri> tests = <String, Uri>{};
   if (!parseArguments(arguments, configurations, tests)) {
     return;
@@ -71,7 +71,7 @@ void test(List<String> arguments,
 bool parseArguments(
     List<String> arguments, Set<String> configurations, Map<String, Uri> tests,
     {bool measure = false}) {
-  Set<String>? extra = arguments.contains('--file') ? new Set<String>() : null;
+  Set<String>? extra = arguments.contains('--file') ? Set<String>() : null;
 
   for (String argument in arguments) {
     if (!parseArgument(argument, configurations, tests, extra)) {
@@ -95,7 +95,7 @@ bool parseArguments(
     tests.addAll(TEST_FILES);
   }
   if (arguments.contains('--exclude')) {
-    List<String> filesToRemove = new List<String>.from(tests.keys);
+    List<String> filesToRemove = List<String>.from(tests.keys);
     tests.clear();
     tests.addAll(TEST_FILES);
     filesToRemove.forEach(tests.remove);
@@ -138,8 +138,8 @@ final Map<String, Uri> TEST_FILES = _computeTestFiles();
 
 Map<String, Uri> _computeTestFiles() {
   Map<String, Uri> map = <String, Uri>{};
-  Directory dataDir = new Directory.fromUri(
-      Uri.base.resolve('pkg/compiler/test/sourcemaps/data/'));
+  Directory dataDir =
+      Directory.fromUri(Uri.base.resolve('pkg/compiler/test/sourcemaps/data/'));
   for (FileSystemEntity file in dataDir.listSync()) {
     Uri uri = file.uri;
     map[uri.pathSegments.last] = uri;
@@ -150,10 +150,10 @@ Map<String, Uri> _computeTestFiles() {
 Future<TestResult> runTests(
     String config, String filename, Uri uri, List<String> options,
     {bool verbose = true}) async {
-  SourceMapProcessor processor = new SourceMapProcessor(uri);
+  SourceMapProcessor processor = SourceMapProcessor(uri);
   SourceMaps sourceMaps = await processor
       .process(['--csp', Flags.disableInlining, ...options], verbose: verbose);
-  TestResult result = new TestResult(config, filename, processor);
+  TestResult result = TestResult(config, filename, processor);
   for (SourceMapInfo info in sourceMaps.elementSourceMapInfos.values) {
     if (info.element!.library.canonicalUri.isScheme('dart')) continue;
     result.userInfoList.add(info);
@@ -173,7 +173,7 @@ Future<TestResult> runTests(
           multipleMap[node] = sourceLocations;
         } else {
           offsetToLocationsMap
-              .putIfAbsent(targetOffset, () => new Set<SourceLocation>())
+              .putIfAbsent(targetOffset, () => Set<SourceLocation>())
               .addAll(sourceLocations);
         }
       });

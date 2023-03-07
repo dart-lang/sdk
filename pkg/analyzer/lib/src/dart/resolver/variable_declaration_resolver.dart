@@ -30,7 +30,7 @@ class VariableDeclarationResolver {
     if (initializer == null) {
       if (_strictInference && parent.type == null) {
         _resolver.errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
+          WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
           node,
           [node.name.lexeme],
         );

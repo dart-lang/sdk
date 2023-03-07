@@ -73,12 +73,12 @@ class F {
   F(this.foo);
 }
 
-newA() => new A(0);
-newB() => new B(1);
-newC() => new C(foo: 2);
-newD() => new D(foo: 3);
-newE() => new E(4);
-newF() => new F(5);
+newA() => A(0);
+newB() => B(1);
+newC() => C(foo: 2);
+newD() => D(foo: 3);
+newE() => E(4);
+newF() => F(5);
 
 $mainSource
 """
@@ -107,7 +107,7 @@ $mainSource
     ClassEntity E = registerClass(findClass(world, 'E'));
     ClassEntity F = registerClass(findClass(world, 'F'));
 
-    Selector nonExisting = new Selector.getter(const PublicName('nonExisting'));
+    Selector nonExisting = Selector.getter(const PublicName('nonExisting'));
 
     Expect.equals(elementEnvironment.getSuperClass(Interceptor), Object_);
     Expect.equals(

@@ -106,10 +106,7 @@ static method argumentTypeNotAssignable(self::Class cls) → dynamic {
   #L1:
   {
     final self::Class #0#0 = cls;
-    if(#0#0.{self::Class::>=}(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:13:13: Error: The argument type 'int' can't be assigned to the parameter type 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/patterns/shared_errors.dart'.
-    case >= 0: // Error
-            ^" in #C1 as{TypeError,ForNonNullableByDefault} self::Class){(self::Class) → core::bool}) {
+    if(#0#0.{self::Class::>=}(#C1){(self::Class) → core::bool}) {
       {
         core::print(0);
       }
@@ -140,7 +137,7 @@ static method duplicateAssignmentPatternVariable(core::List<core::String> list) 
   core::String a = "";
   block {
     final dynamic #0#0 = list;
-    if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t1 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::String in true) && (let final dynamic #t2 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:31:7: Error: The variable 'a' is already assigned in this pattern.
+    if(!(#0#0{core::List<core::String>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t1 = a = #0#0{core::List<core::String>}.{core::List::[]}(0){(core::int) → core::String} in true) && (let final dynamic #t2 = #0#0{core::List<core::String>}.{core::List::[]}(1){(core::int) → core::String} in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:31:7: Error: The variable 'a' is already assigned in this pattern.
 Try renaming the variable.
   [a, a] = list; // Error
       ^")))

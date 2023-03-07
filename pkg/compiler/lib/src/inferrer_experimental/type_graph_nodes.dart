@@ -14,6 +14,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/member_hierarchy.dart';
+import '../universe/record_shape.dart' show RecordShape;
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Setlet;
 import '../inferrer/abstract_value_domain.dart';
@@ -1138,15 +1139,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   Iterable<DynamicCallTarget> get concreteTargets => _concreteTargets!;
 
   @override
-  Iterable<MemberEntity> get callees =>
-      _callees ??= concreteTargets.map((e) => e.member).toSet();
-
-  Iterable<MemberEntity>? _callees;
-
-  void updateTargets(Iterable<DynamicCallTarget> targets) {
-    _concreteTargets = targets;
-    _callees = null;
-  }
+  Iterable<MemberEntity> get callees => concreteTargets.map((e) => e.member);
 
   AbstractValue? computeTypedSelector(InferrerEngine inferrer) {
     AbstractValue receiverType = receiver.type;
@@ -2013,6 +2006,82 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
   String toString() => 'Value in Map $type';
 }
 
+/// A [RecordTypeInformation] is the constructor for a record, used for Record
+/// constants and literals.
+class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
+  final RecordShape recordShape;
+  final AbstractValue originalType;
+  final List<FieldInRecordTypeInformation> fieldTypes;
+  RecordTypeInformation(MemberTypeInformation? context, this.originalType,
+      this.recordShape, this.fieldTypes)
+      : super(originalType, context) {
+    for (final fieldType in fieldTypes) {
+      fieldType.addUser(this);
+    }
+  }
+  markAsInferred() {
+    for (final fieldType in fieldTypes) fieldType.inferred = true;
+  }
+
+  @override
+  addInput(TypeInformation other) {
+    throw UnsupportedError('addInput');
+  }
+
+  @override
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitRecordTypeInformation(this);
+  }
+
+  AbstractValue toTypeMask(InferrerEngine inferrer) {
+    AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
+    return abstractValueDomain.recordType;
+  }
+
+  @override
+  AbstractValue computeType(InferrerEngine inferrer) {
+    return toTypeMask(inferrer);
+  }
+
+  @override
+  // TODO(50701): This could be a top type of the record shape.
+  AbstractValue safeType(InferrerEngine inferrer) => originalType;
+  @override
+  bool hasStableType(InferrerEngine inferrer) {
+    return fieldTypes.every((type) => type.hasStableType(inferrer)) &&
+        super.hasStableType(inferrer);
+  }
+
+  @override
+  void cleanup() {
+    super.cleanup();
+    for (final fieldType in fieldTypes) {
+      fieldType.cleanup();
+    }
+    _flowsInto = null;
+  }
+
+  @override
+  String toString() {
+    return 'Record $type $fieldTypes';
+  }
+}
+
+/// A [FieldInRecordTypeInformation] holds the input of one position of a
+/// [RecordTypeInformation].
+class FieldInRecordTypeInformation extends InferredTypeInformation {
+  final int indexInShape;
+  FieldInRecordTypeInformation(super.abstractValueDomain, super.context,
+      this.indexInShape, super.parentType);
+  @override
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitFieldInRecordTypeInformation(this);
+  }
+
+  @override
+  String toString() => 'Field in Record $type';
+}
+
 /// A [PhiElementTypeInformation] is an union of
 /// [ElementTypeInformation], that is local to a method.
 class PhiElementTypeInformation extends TypeInformation {
@@ -2170,9 +2239,11 @@ abstract class TypeInformationVisitor<T> {
   T visitElementInSetTypeInformation(ElementInSetTypeInformation info);
   T visitKeyInMapTypeInformation(KeyInMapTypeInformation info);
   T visitValueInMapTypeInformation(ValueInMapTypeInformation info);
+  T visitFieldInRecordTypeInformation(FieldInRecordTypeInformation info);
   T visitListTypeInformation(ListTypeInformation info);
   T visitSetTypeInformation(SetTypeInformation info);
   T visitMapTypeInformation(MapTypeInformation info);
+  T visitRecordTypeInformation(RecordTypeInformation info);
   T visitConcreteTypeInformation(ConcreteTypeInformation info);
   T visitStringLiteralTypeInformation(StringLiteralTypeInformation info);
   T visitBoolLiteralTypeInformation(BoolLiteralTypeInformation info);
@@ -2218,6 +2289,8 @@ AbstractValue _narrowType(
         abstractValueDomain.createNonNullSubtype(annotation.element));
   } else if (annotation is FunctionType) {
     return _intersectionWith(abstractValueDomain.functionType);
+  } else if (annotation is RecordType) {
+    return _intersectionWith(abstractValueDomain.recordType);
   } else {
     throw 'Unexpected annotation type $annotation';
   }

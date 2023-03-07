@@ -20,7 +20,7 @@ class A<T> {
   final field;
 
   @pragma('dart2js:noInline')
-  factory A.fact(t) => new A(t);
+  factory A.fact(t) => A(t);
 
   @pragma('dart2js:noInline')
   A(t) : field = t is T;
@@ -28,7 +28,7 @@ class A<T> {
 
 // A call to A.fact.
 @pragma('dart2js:noInline')
-callAfact() => new A<int>.fact(0).runtimeType;
+callAfact() => A<int>.fact(0).runtimeType;
 
 main() {
   callAfact();
@@ -45,7 +45,7 @@ main() {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-    ProgramLookup programLookup = new ProgramLookup(backendStrategy);
+    ProgramLookup programLookup = ProgramLookup(backendStrategy);
 
     js.Name getName(String name) {
       return backendStrategy.namerForTesting

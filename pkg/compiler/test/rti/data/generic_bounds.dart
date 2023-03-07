@@ -54,7 +54,7 @@ main() {
   dynamic f1 = method1;
   dynamic f2 = method2;
   dynamic f3 = method3;
-  dynamic c3 = new Class3();
+  dynamic c3 = Class3();
   dynamic f7 = method7;
   dynamic f8 = method8;
   dynamic f9 = method9;
@@ -72,8 +72,7 @@ main() {
   makeLive(/**/ () => f1<Class2a<num>>());
   makeLive(/**/ () => f2<Class2b<String>>());
   makeLive(/**/ () => c3.method4<Class2a<num>>());
-  makeLive(
-      /**/ () => c3.method5<Class2b<String>>());
+  makeLive(/**/ () => c3.method5<Class2b<String>>());
   makeLive(/**/ () => f7<Class2a<num>>());
   makeLive(/**/ () => f8<Class2b<String>>());
 

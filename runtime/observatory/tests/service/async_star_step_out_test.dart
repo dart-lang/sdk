@@ -25,7 +25,7 @@ foobar() async* {
 
 helper() async {
   print('helper'); // LINE_C.
-  await for (var i in foobar()) /* LINE_H */ {
+  await for (var _ in foobar()) /* LINE_H */ {
     debugger();
     print('loop'); // LINE_D.
   }

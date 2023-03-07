@@ -52,10 +52,10 @@ class MappingState {
 }
 
 void generateHtml(String jsFileName, String jsMapFileName) {
-  String jsFile = new File(jsFileName).readAsStringSync();
-  String jsMapFile = new File(jsMapFileName).readAsStringSync();
-  SingleMapping mapping = new SingleMapping.fromJson(json.decode(jsMapFile));
-  StringBuffer output = new StringBuffer();
+  String jsFile = File(jsFileName).readAsStringSync();
+  String jsMapFile = File(jsMapFileName).readAsStringSync();
+  SingleMapping mapping = SingleMapping.fromJson(json.decode(jsMapFile));
+  StringBuffer output = StringBuffer();
   output.write('''
 <html>
   <head>
@@ -190,7 +190,7 @@ void generateHtml(String jsFileName, String jsMapFileName) {
     state = state.continuedState;
   }
   output.write('</pre></body></html>');
-  File outputFile = new File('out.js.map.html');
+  File outputFile = File('out.js.map.html');
   outputFile.writeAsStringSync(output.toString());
   print('Output written to: ${outputFile.absolute.uri}');
 }

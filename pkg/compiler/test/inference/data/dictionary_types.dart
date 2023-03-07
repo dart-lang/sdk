@@ -171,9 +171,9 @@ test4() {
   if ([true, false]
       /*Container([exact=JSExtendableArray], element: [exact=JSBool], length: 2)*/
       [0]) {
-    it = new A4();
+    it = A4();
   } else {
-    it = new B4();
+    it = B4();
   }
   print(it. /*invoke: Union([exact=A4], [exact=B4])*/ foo4(
           dictionary) /*invoke: [exact=JSUInt31]*/ +

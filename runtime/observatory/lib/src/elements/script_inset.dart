@@ -14,7 +14,6 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/utils.dart';
 
 class ScriptInsetElement extends CustomElement implements Renderable {
   late RenderingScheduler<ScriptInsetElement> _r;
@@ -49,13 +48,6 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       bool inDebuggerContext = false,
       Iterable variables = const [],
       RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(script != null);
-    assert(scripts != null);
-    assert(objects != null);
-    assert(events != null);
-    assert(inDebuggerContext != null);
-    assert(variables != null);
     ScriptInsetElement e = new ScriptInsetElement.created();
     e._r = new RenderingScheduler<ScriptInsetElement>(e, queue: queue);
     e._isolate = isolate;
@@ -812,8 +804,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
         line.script.isolate!.addBreakpoint(line.script, line.line).then((_) {},
             onError: (e, st) {
           if (e is! S.ServerRpcException ||
-              (e as S.ServerRpcException).code !=
-                  S.ServerRpcException.kCannotAddBreakpoint) {
+              e.code != S.ServerRpcException.kCannotAddBreakpoint) {
             ObservatoryApplication.app.handleException(e, st);
           }
         }).whenComplete(() {
@@ -1231,13 +1222,6 @@ abstract class DeclarationAnnotation extends Annotation {
       : super(isolate, objects, queue) {
     assert(decl.loaded);
     S.SourceLocation location = decl.location;
-    if (location == null) {
-      line = 0;
-      columnStart = 0;
-      columnStop = 0;
-      return;
-    }
-
     S.Script script = location.script;
     line = script.tokenToLine(location.tokenPos);
     columnStart = script.tokenToCol(location.tokenPos);

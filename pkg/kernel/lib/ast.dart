@@ -2032,6 +2032,8 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
   @override
   List<Expression> annotations = const <Expression>[];
 
+  List<InlineType> implements;
+
   int flags = 0;
 
   @override
@@ -2048,6 +2050,7 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
       List<TypeParameter>? typeParameters,
       DartType? declaredRepresentationType,
       List<InlineClassMemberDescriptor>? members,
+      List<InlineType>? implements,
       required this.fileUri,
       Reference? reference})
       // ignore: unnecessary_null_comparison
@@ -2056,6 +2059,7 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
         assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <InlineClassMemberDescriptor>[],
+        this.implements = implements ?? <InlineType>[],
         super(reference) {
     setParents(this.typeParameters, this);
     if (declaredRepresentationType != null) {
@@ -3301,6 +3305,7 @@ class Procedure extends Member {
       bool isExternal = false,
       bool isConst = false,
       bool isExtensionMember = false,
+      bool isInlineClassMember = false,
       bool isSynthetic = false,
       bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
@@ -3314,6 +3319,7 @@ class Procedure extends Member {
             isExternal: isExternal,
             isConst: isConst,
             isExtensionMember: isExtensionMember,
+            isInlineClassMember: isInlineClassMember,
             isSynthetic: isSynthetic,
             isAbstractFieldAccessor: isAbstractFieldAccessor,
             transformerFlags: transformerFlags,
@@ -3329,6 +3335,7 @@ class Procedure extends Member {
       bool isExternal = false,
       bool isConst = false,
       bool isExtensionMember = false,
+      bool isInlineClassMember = false,
       bool isSynthetic = false,
       bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
@@ -3347,6 +3354,7 @@ class Procedure extends Member {
     this.isExternal = isExternal;
     this.isConst = isConst;
     this.isExtensionMember = isExtensionMember;
+    this.isInlineClassMember = isInlineClassMember;
     this.isSynthetic = isSynthetic;
     this.isAbstractFieldAccessor = isAbstractFieldAccessor;
     setTransformerFlagsWithoutLazyLoading(transformerFlags);
@@ -11219,7 +11227,6 @@ class VariableDeclaration extends Statement implements Annotatable {
   bool get isConst => flags & FlagConst != 0;
 
   /// Whether the parameter is declared with the `covariant` keyword.
-  // TODO(johnniwinther): Rename to isCovariantByDeclaration
   bool get isCovariantByDeclaration => flags & FlagCovariantByDeclaration != 0;
 
   /// Whether the variable is declared as an initializing formal parameter of
@@ -11232,7 +11239,6 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// deal with generic covariance.
   ///
   /// When `true`, runtime checks may need to be performed.
-  // TODO(johnniwinther): Rename to isCovariantByClass
   bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
   /// Whether the variable is declared with the `late` keyword.
@@ -11944,7 +11950,7 @@ class NeverType extends DartType {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write("Never");
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12094,7 +12100,7 @@ class InterfaceType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeClassName(className, forType: true);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12301,7 +12307,7 @@ class FunctionType extends DartType {
       printer.write("}");
     }
     printer.write(")");
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12410,7 +12416,7 @@ class TypedefType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeTypedefName(typedefReference);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12487,7 +12493,7 @@ class FutureOrType extends DartType {
     printer.write("FutureOr<");
     printer.writeType(typeArgument);
     printer.write(">");
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12609,7 +12615,7 @@ class ExtensionType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeExtensionName(extensionReference);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12733,7 +12739,7 @@ class InlineType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeInlineClassName(inlineClassReference);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -13128,7 +13134,7 @@ class IntersectionType extends DartType {
     printer.write(" & ");
     printer.writeType(right);
     printer.write(')');
-    printer.write(nullabilityToString(nullability));
+    printer.writeNullability(nullability);
   }
 }
 
@@ -13297,7 +13303,7 @@ class TypeParameterType extends DartType {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeTypeParameterName(parameter);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -13408,7 +13414,9 @@ class RecordType extends DartType {
         if (i > 0) {
           printer.write(", ");
         }
-        printer.writeNamedType(named[i]);
+        printer.writeType(named[i].type);
+        printer.write(' ');
+        printer.write(named[i].name);
       }
       printer.write("}");
     }
@@ -15686,6 +15694,11 @@ final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
 final List<InlineClassMemberDescriptor> emptyListOfInlineClassMemberDescriptor =
     List.filled(0, dummyInlineClassMemberDescriptor, growable: false);
 
+/// Almost const <InlineType>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<InlineType> emptyListOfInlineType =
+    List.filled(0, dummyInlineType, growable: false);
+
 /// Almost const <Constructor>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Constructor> emptyListOfConstructor =
@@ -15819,6 +15832,14 @@ final InlineClassMemberDescriptor dummyInlineClassMemberDescriptor =
         name: dummyName,
         kind: InlineClassMemberKind.Getter,
         member: dummyReference);
+
+/// Non-nullable [InlineType] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final InlineType dummyInlineType =
+    new InlineType(dummyInlineClass, Nullability.nonNullable);
 
 /// Non-nullable [Member] dummy value.
 ///
@@ -15995,6 +16016,12 @@ final List<TreeNode> dummyTreeNodes = [
   dummyCatch,
   dummyLabeledStatement,
 ];
+
+void clearDummyTreeNodesParentPointer() {
+  for (TreeNode treeNode in dummyTreeNodes) {
+    treeNode.parent = null;
+  }
+}
 
 /// Sentinel value used to signal that a node cannot be removed through the
 /// [RemovingTransformer].

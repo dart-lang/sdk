@@ -161,7 +161,7 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
   @override
   Features computeLibraryValue(Id id, ir.Library library) {
     var name = '${library.importUri.pathSegments.last}';
-    Features features = new Features();
+    Features features = Features();
     if (!name.startsWith('main')) return features;
 
     // First build a list of pre fragments and their dependencies.

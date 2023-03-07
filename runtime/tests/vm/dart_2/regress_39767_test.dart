@@ -15,18 +15,19 @@
 
 List<double> var25 = List<double>.filled(8, 0);
 
-double foo0(){
-    do {
-      throw {}; //# 01: runtime error
-    } while (false);
+double foo0() {
+  do {
+    throw {}; //# 01: runtime error
+  } while (false);
 }
 
 main() {
-      do {
-        switch (1){
-          case 1: {
-                var25[7] = foo0();
-          }
+  do {
+    switch (1) {
+      case 1:
+        {
+          var25[7] = foo0();
         }
-      } while (false);
+    }
+  } while (false);
 }

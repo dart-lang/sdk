@@ -7,8 +7,7 @@
 @JS()
 library jsobject_type_test;
 
-// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_interop';
+import 'dart:js_interop';
 
 import 'package:expect/minitest.dart';
 

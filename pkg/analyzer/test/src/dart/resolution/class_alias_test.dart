@@ -18,7 +18,7 @@ class ClassAliasDriverResolutionTest extends PubPackageResolutionTest {
   test_defaultConstructor() async {
     await assertNoErrorsInCode(r'''
 class A {}
-class M {}
+mixin class M {}
 class X = A with M;
 ''');
     assertConstructors(findElement.class_('X'), ['X X()']);
@@ -27,7 +27,7 @@ class X = A with M;
   test_element() async {
     await assertNoErrorsInCode(r'''
 class A {}
-class B {}
+mixin class B {}
 class C {}
 
 class X = A with B implements C;
@@ -46,7 +46,7 @@ class X = A with B implements C;
 
   test_element_typeFunction_extends() async {
     await assertNoErrorsInCode(r'''
-class A {}
+mixin class A {}
 class X = Function with A;
 ''');
     var x = findElement.class_('X');
@@ -55,7 +55,7 @@ class X = Function with A;
 
   test_element_typeFunction_implements() async {
     await assertNoErrorsInCode(r'''
-class A {}
+mixin class A {}
 class B {}
 class X = Object with A implements A, Function, B;
 ''');
@@ -65,8 +65,8 @@ class X = Object with A implements A, Function, B;
 
   test_element_typeFunction_with() async {
     await assertNoErrorsInCode(r'''
-class A {}
-class B {}
+mixin class A {}
+mixin class B {}
 class X = Object with A, Function, B;
 ''');
     var x = findElement.class_('X');
@@ -79,7 +79,7 @@ class A {
   const A();
 }
 
-class M {}
+mixin M {}
 
 class C = A with M;
 
@@ -93,7 +93,7 @@ class A {
   const A();
 }
 
-class M {
+mixin M {
   int i = 0;
 }
 
@@ -101,9 +101,9 @@ class C = A with M;
 
 const x = const C();
 ''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 83, 5),
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 83,
           5),
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 83, 5),
     ]);
   }
 
@@ -113,7 +113,7 @@ class A {
   const A();
 }
 
-class M {
+mixin M {
   int get i => 0;
 }
 
@@ -129,7 +129,7 @@ class A {
   const A();
 }
 
-class M {
+mixin M {
   set(int i) {}
 }
 
@@ -144,8 +144,8 @@ const x = const C();
 class A {
   A(int i);
 }
-class M1 {}
-class M2 {}
+mixin class M1 {}
+mixin class M2 {}
 
 class C2 = C1 with M2;
 class C1 = A with M1;
@@ -163,7 +163,7 @@ class A {
   A.c3(int a, {int? b, int c = 0});
 }
 
-class M {}
+mixin M {}
 
 class C = A with M;
 ''');
@@ -184,7 +184,7 @@ class A<T extends num> {
   A(T x, T y);
 }
 
-class M {}
+mixin M {}
 
 class B<E extends num> = A<E> with M;
 ''');

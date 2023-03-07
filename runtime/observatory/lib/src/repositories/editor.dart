@@ -12,9 +12,7 @@ class EditorRepository extends M.EditorRepository {
 
   EditorRepository(S.VM vm, {String? editor})
       : _vm = vm,
-        _editor = editor {
-    assert(_vm != null);
-  }
+        _editor = editor;
 
   S.Service? _getService() {
     Iterable<M.Service> services =
@@ -30,7 +28,6 @@ class EditorRepository extends M.EditorRepository {
 
   Future openClass(M.IsolateRef i, M.ClassRef c) async {
     S.Class clazz = c as S.Class;
-    assert(clazz != null);
     if (!clazz.loaded) {
       await clazz.load();
     }
@@ -42,7 +39,6 @@ class EditorRepository extends M.EditorRepository {
 
   Future openField(M.IsolateRef i, M.FieldRef f) async {
     S.Field field = f as S.Field;
-    assert(field != null);
     if (!field.loaded) {
       await field.load();
     }
@@ -54,7 +50,6 @@ class EditorRepository extends M.EditorRepository {
 
   Future openFunction(M.IsolateRef i, M.FunctionRef f) async {
     S.ServiceFunction field = f as S.ServiceFunction;
-    assert(field != null);
     if (!field.loaded) {
       await field.load();
     }
@@ -65,7 +60,6 @@ class EditorRepository extends M.EditorRepository {
   }
 
   Future openObject(M.IsolateRef i, M.ObjectRef o) async {
-    assert(o != null);
     if (o is M.ClassRef) {
       return await openClass(i, o);
     }
@@ -89,7 +83,6 @@ class EditorRepository extends M.EditorRepository {
 
   Future openSourceLocation(M.IsolateRef i, M.SourceLocation? l) async {
     final isolate = i as S.Isolate;
-    assert(isolate != null);
     assert(l != null);
     return await isolate.invokeRpc(_getService()!.method,
         {'scriptId': l!.script!.id!, 'tokenPos': l.tokenPos});

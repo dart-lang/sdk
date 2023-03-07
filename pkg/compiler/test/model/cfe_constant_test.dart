@@ -19,9 +19,9 @@ import '../helpers/shared_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script
+    Directory dataDir = Directory.fromUri(Platform.script
         .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data_2'));
-    await checkTests<String>(dataDir, new ConstantDataComputer(),
+    await checkTests<String>(dataDir, ConstantDataComputer(),
         args: args, testedConfigs: [sharedConfig]);
   });
 }
@@ -32,9 +32,9 @@ class ConstantDataComputer extends DataComputer<String> {
   ir.TypeEnvironment getTypeEnvironment(KernelToElementMap elementMap) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
-      ir.CoreTypes coreTypes = new ir.CoreTypes(component);
-      _typeEnvironment = new ir.TypeEnvironment(
-          coreTypes, new ir.ClassHierarchy(component, coreTypes));
+      ir.CoreTypes coreTypes = ir.CoreTypes(component);
+      _typeEnvironment = ir.TypeEnvironment(
+          coreTypes, ir.ClassHierarchy(component, coreTypes));
     }
     return _typeEnvironment!;
   }
@@ -49,7 +49,7 @@ class ConstantDataComputer extends DataComputer<String> {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Member node = elementMap.getMemberNode(member);
-    new ConstantDataExtractor(compiler.reporter, actualMap, elementMap, member)
+    ConstantDataExtractor(compiler.reporter, actualMap, elementMap, member)
         .run(node);
   }
 

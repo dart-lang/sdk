@@ -18,10 +18,10 @@ main(List<String> args) {
     ArgResults argResults = argParser.parse(args);
     bool useDataKinds = argResults['kinds'] || argResults['debug'];
     SerializationStrategy strategy =
-        new BytesInMemorySerializationStrategy(useDataKinds: useDataKinds);
+        BytesInMemorySerializationStrategy(useDataKinds: useDataKinds);
     if (argResults['object'] || argResults['debug']) {
       strategy =
-          new ObjectsInMemorySerializationStrategy(useDataKinds: useDataKinds);
+          ObjectsInMemorySerializationStrategy(useDataKinds: useDataKinds);
     }
 
     Uri entryPoint = getEntryPoint(argResults) ??

@@ -17,8 +17,8 @@ class Class2<T> {
 }
 
 main() {
-  dynamic cls1 = new Class1<int>();
+  dynamic cls1 = Class1<int>();
   makeLive('${cls1.runtimeType}');
-  new Class2<int>();
+  Class2<int>();
   cls1 = null;
 }

@@ -21,7 +21,7 @@ const MEMORY_SOURCE_FILES = const {
 };
 
 Future test({required bool minify}) async {
-  OutputCollector collector = new OutputCollector();
+  OutputCollector collector = OutputCollector();
   List<String> options = <String>[];
   if (minify) {
     options.add(Flags.minify);

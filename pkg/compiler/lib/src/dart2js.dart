@@ -664,6 +664,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption(Flags.soundNullSafety, setNullSafetyMode),
     _OneOption(Flags.noSoundNullSafety, setNullSafetyMode),
     _OneOption(Flags.dumpUnusedLibraries, passThrough),
+    _OneOption(Flags.writeResources, passThrough),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly

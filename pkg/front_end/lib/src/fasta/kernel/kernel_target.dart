@@ -1548,8 +1548,11 @@ class KernelTarget extends TargetImplementation {
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             exhaustivenessDataForTesting:
                 loader.dataForTesting?.exhaustivenessData);
-    assert(exhaustivenessInfo.isEmpty,
-        "Unhandled exhaustiveness for ${exhaustivenessInfo.nodes}.");
+    // TODO(johnniwinther): We don't handle exhaustive for switch expression
+    // occurring in constant context. These are error cases. Find a way to
+    // support this.
+    /*assert(exhaustivenessInfo.isEmpty,
+        "Unhandled exhaustiveness for ${exhaustivenessInfo.nodes}.");*/
     ticker.logMs("Evaluated constants");
 
     markLibrariesUsed(constantEvaluationData.visitedLibraries);
@@ -1618,7 +1621,6 @@ class KernelTarget extends TargetImplementation {
       _getConstantEvaluationMode();
 
   constants.EvaluationMode _getConstantEvaluationMode() {
-    constants.EvaluationMode evaluationMode;
     // If nnbd is not enabled we will use weak evaluation mode. This is needed
     // because the SDK might be agnostic and therefore needs to be weakened
     // for legacy mode.
@@ -1627,18 +1629,7 @@ class KernelTarget extends TargetImplementation {
             loader.nnbdMode == NnbdMode.Weak,
         "Non-weak nnbd mode found without experiment enabled: "
         "${loader.nnbdMode}.");
-    switch (loader.nnbdMode) {
-      case NnbdMode.Weak:
-        evaluationMode = constants.EvaluationMode.weak;
-        break;
-      case NnbdMode.Strong:
-        evaluationMode = constants.EvaluationMode.strong;
-        break;
-      case NnbdMode.Agnostic:
-        evaluationMode = constants.EvaluationMode.agnostic;
-        break;
-    }
-    return evaluationMode;
+    return constants.EvaluationMode.fromNnbdMode(loader.nnbdMode);
   }
 
   void verify() {

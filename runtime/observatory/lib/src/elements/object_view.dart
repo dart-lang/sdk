@@ -5,8 +5,6 @@
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/context_ref.dart';
-import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
@@ -50,16 +48,6 @@ class ObjectViewElement extends CustomElement implements Renderable {
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(object != null);
-    assert(objects != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
     ObjectViewElement e = new ObjectViewElement.created();
     e._r = new RenderingScheduler<ObjectViewElement>(e, queue: queue);
     e._vm = vm;

@@ -73,12 +73,11 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   Class(field1: definitelyAssignedLateFinal, // Error
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#3 is{ForNonNullableByDefault} core::List<dynamic> && #2#3{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9 is{ForNonNullableByDefault} core::List<dynamic> && #2#9{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t5 = #2#9{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:37:17: Error: Final variable 'notDefinitelyAssignedFinal' might already be assigned at this point.
       field2: [[notDefinitelyAssignedFinal, _], // Error
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^") && (let final dynamic #t6 = #2#9{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true)) && (#2#16 is{ForNonNullableByDefault} core::List<dynamic> && #2#16{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #C2 =={core::num::==}{(core::Object) → core::bool} #2#16{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && (let final dynamic #t7 = notDefinitelyAssignedLateFinal = #2#16{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true)))))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^") && (let final dynamic #t6 = #2#9{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true)) && (#2#16 is{ForNonNullableByDefault} core::List<dynamic> && #2#16{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t7 = #2#16{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && (let final dynamic #t8 = notDefinitelyAssignedLateFinal = #2#16{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true)))))
       throw new _in::ReachabilityError::•();
   } =>#2#0;
 }
 
 constants  {
   #C1 = 2
-  #C2 = 1
 }

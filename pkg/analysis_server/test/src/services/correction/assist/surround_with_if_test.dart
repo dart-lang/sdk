@@ -19,6 +19,25 @@ class SurroundWithIfTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.SURROUND_WITH_IF;
 
+  Future<void> test_encloseForWithPattern() async {
+    await resolveTestCode('''
+void f() {
+// start
+  for (var (a, b) = (0, 1); a <= 13; (a, b) = (b, a + b)) print(a);
+// end
+}
+''');
+    await assertHasAssist('''
+void f() {
+  if (condition) {
+    for (var (a, b) = (0, 1); a <= 13; (a, b) = (b, a + b)) print(a);
+  }
+}
+''');
+    assertLinkedGroup(0, ['condition']);
+    assertExitPosition(after: '  }');
+  }
+
   Future<void> test_twoStatements() async {
     await resolveTestCode('''
 void f() {

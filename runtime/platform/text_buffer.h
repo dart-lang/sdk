@@ -22,11 +22,13 @@ class BaseTextBuffer : public ValueObject {
   intptr_t Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   intptr_t VPrintf(const char* format, va_list args);
   void AddChar(char ch);
-  void EscapeAndAddUTF16CodeUnit(uint16_t cu);
-  void EscapeAndAddCodeUnit(uint32_t cu);
   void AddString(const char* s);
-  void AddEscapedString(const char* s);
   void AddRaw(const uint8_t* buffer, intptr_t buffer_length);
+
+  void AddEscapedString(const char* s);
+  void AddEscapedUTF8(const char* s, intptr_t len);
+  void AddEscapedLatin1(const uint8_t* code_units, intptr_t len);
+  void AddEscapedUTF16(const uint16_t* code_units, intptr_t len);
 
   // Returns a pointer to the current internal buffer. Whether the pointer is
   // still valid after the BaseTextBuffer dies depends on the subclass.
@@ -36,6 +38,11 @@ class BaseTextBuffer : public ValueObject {
   // Clears the stored contents. Unless specified otherwise by the subclass,
   // should be assumed to invalidate the contents of previous calls to buffer().
   virtual void Clear() = 0;
+
+ private:
+  intptr_t EscapedCodeUnitLength(uint32_t cu);
+  void EscapeAndAddCodeUnit(uint32_t cu);
+  void EscapeAndAddUTF16CodeUnit(uint16_t cu);
 
  protected:
   virtual bool EnsureCapacity(intptr_t len) = 0;

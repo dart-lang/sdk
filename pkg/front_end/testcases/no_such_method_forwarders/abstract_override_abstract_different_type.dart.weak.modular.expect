@@ -56,6 +56,6 @@ static method main() → dynamic {
 constants  {
   #C1 = #push=
   #C2 = <core::Type*>[]
-  #C3 = <core::Symbol*, dynamic>{)
+  #C3 = <core::Symbol*, dynamic>{}
   #C4 = #float=
 }

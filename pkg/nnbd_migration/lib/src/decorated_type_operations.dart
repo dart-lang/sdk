@@ -153,6 +153,12 @@ class DecoratedTypeOperations
   }
 
   @override
+  DecoratedType? matchStreamType(DecoratedType type) {
+    // TODO: implement matchStreamType
+    throw UnimplementedError();
+  }
+
+  @override
   DecoratedType normalize(DecoratedType type) {
     // TODO(scheglov): implement normalize
     throw UnimplementedError('TODO(scheglov)');

@@ -290,22 +290,6 @@ abstract class Target {
   /// for the target backend.
   bool get enableNoSuchMethodForwarders => false;
 
-  /// A derived class may change this to `true` to enable Flutter specific
-  /// "super-mixins" semantics.
-  ///
-  /// This semantics relaxes a number of constraint previously imposed on
-  /// mixins. Importantly it imposes the following change:
-  ///
-  ///     An abstract class may contain a member with a super-invocation that
-  ///     corresponds to a member of the superclass interface, but where the
-  ///     actual superclass does not declare or inherit a matching method.
-  ///     Since no amount of overriding can change this property, such a class
-  ///     cannot be extended to a class that is not abstract, it can only be
-  ///     used to derive a mixin from.
-  ///
-  /// See dartbug.com/31542 for details of the semantics.
-  bool get enableSuperMixins => false;
-
   /// Perform target-specific transformations on the outlines stored in
   /// [Component] when generating summaries.
   ///
@@ -918,9 +902,6 @@ class TargetWrapper extends Target {
 
   @override
   bool get enableNoSuchMethodForwarders => _target.enableNoSuchMethodForwarders;
-
-  @override
-  bool get enableSuperMixins => _target.enableSuperMixins;
 
   @override
   bool get errorOnUnexactWebIntLiterals => _target.errorOnUnexactWebIntLiterals;

@@ -20,8 +20,6 @@ class IsolateRunStateElement extends CustomElement implements Renderable {
 
   factory IsolateRunStateElement(M.Isolate isolate, M.EventRepository events,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(events != null);
     IsolateRunStateElement e = new IsolateRunStateElement.created();
     e._r = new RenderingScheduler<IsolateRunStateElement>(e, queue: queue);
     e._isolate = isolate;
@@ -49,7 +47,7 @@ class IsolateRunStateElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    switch (_isolate.status) {
+    switch (_isolate.status!) {
       case M.IsolateStatus.loading:
         children = <Element>[new SpanElement()..text = 'loading... '];
         break;

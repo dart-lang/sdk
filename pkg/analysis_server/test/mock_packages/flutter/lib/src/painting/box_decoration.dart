@@ -67,7 +67,7 @@ class BoxDecoration extends Decoration {
   /// This is ignored if [gradient] is non-null.
   ///
   /// The [color] is drawn under the [image].
-  final Color color;
+  final Color? color;
 
   /// A border to draw above the background [color], [gradient], or [image].
   ///
@@ -79,7 +79,7 @@ class BoxDecoration extends Decoration {
   /// Use [BoxBorder] objects to describe borders that should flip their left
   /// and right edges based on whether the text is being read left-to-right or
   /// right-to-left.
-  final BoxBorder border;
+  final BoxBorder? border;
 
   /// If non-null, the corners of this box are rounded by this [BorderRadius].
   ///
@@ -87,7 +87,7 @@ class BoxDecoration extends Decoration {
   /// [BoxShape.rectangle].
   ///
   /// {@macro flutter.painting.boxDecoration.clip}
-  final BorderRadiusGeometry borderRadius;
+  final BorderRadiusGeometry? borderRadius;
 
   /// The blend mode applied to the [color] or [gradient] background of the box.
   ///
@@ -95,7 +95,7 @@ class BoxDecoration extends Decoration {
   /// mode is used.
   ///
   /// If no [color] or [gradient] is provided then the blend mode has no impact.
-  final BlendMode backgroundBlendMode;
+  final BlendMode? backgroundBlendMode;
 
   /// The shape to fill the background [color], [gradient], and [image] into and
   /// to cast as the [boxShadow].

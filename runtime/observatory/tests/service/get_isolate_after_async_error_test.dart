@@ -8,7 +8,7 @@ import 'test_helper.dart';
 import 'service_test_common.dart';
 
 doThrow() async {
-  throw "oh no"; // Line 13.
+  throw "oh no";
 }
 
 var tests = <IsolateTest>[

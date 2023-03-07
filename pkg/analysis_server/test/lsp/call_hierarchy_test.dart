@@ -124,6 +124,47 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  Future<void> test_functionInPattern() async {
+    final contents = '''
+    bool gr^eater(int x, int y) => x > y;
+    ''';
+
+    final otherContents = '''
+    import 'main.dart';
+
+    void foo() {
+      var pair = (1, 2);
+      switch (pair) {
+        case (int a, int b) when greater(a, b):
+        print('First element');
+      }
+    }
+    ''';
+
+    await expectResults(
+      mainContents: contents,
+      otherContents: otherContents,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'foo',
+            detail: 'other.dart',
+            kind: SymbolKind.Function,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+                otherContents, RegExp(r'void foo\(\) \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(otherContents, 'foo'),
+          ),
+          // Ranges of calls within this container.
+          fromRanges: [
+            rangeOfString(otherContents, 'greater'),
+          ],
+        ),
+      ],
+    );
+  }
+
   Future<void> test_implicitConstructor() async {
     final contents = '''
     import 'other.dart';
@@ -348,6 +389,47 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
           // Ranges of the outbound call.
           fromRanges: [
             rangeOfString(contents, 'bar'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_functionInPattern() async {
+    final contents = '''
+    import 'other.dart';
+
+    void fo^o() {
+      var pair = (1, 2);
+      switch (pair) {
+        case (int a, int b) when greater(a, b):
+        break;
+      }
+    }
+    ''';
+
+    final otherContents = '''
+    bool greater(int x, int y) => x > y;
+    ''';
+
+    await expectResults(
+      mainContents: contents,
+      otherContents: otherContents,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'greater',
+            detail: 'other.dart',
+            kind: SymbolKind.Function,
+            uri: otherFileUri,
+            range: rangeOfString(
+                otherContents, 'bool greater(int x, int y) => x > y;'),
+            selectionRange: rangeOfString(otherContents, 'greater'),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [
+            rangeOfString(contents, 'greater'),
           ],
         ),
       ],

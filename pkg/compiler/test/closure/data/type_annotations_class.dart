@@ -151,13 +151,13 @@ class Class8<T> {
 }
 
 main() {
-  new Class1<int>().method1(0).call();
-  new Class1b<int>().method1b(0).call();
-  new Class2<int>().method2().call(0);
-  new Class3<int>().method3(0).call();
-  new Class4<int>().method4(0).call();
-  new Class5<int>().method5(0);
-  new Class6<int>().method6().call(0).call();
-  new Class7<int>().method7(0).call().call();
-  new Class8<int>().field8;
+  Class1<int>().method1(0).call();
+  Class1b<int>().method1b(0).call();
+  Class2<int>().method2().call(0);
+  Class3<int>().method3(0).call();
+  Class4<int>().method4(0).call();
+  Class5<int>().method5(0);
+  Class6<int>().method6().call(0).call();
+  Class7<int>().method7(0).call().call();
+  Class8<int>().field8;
 }

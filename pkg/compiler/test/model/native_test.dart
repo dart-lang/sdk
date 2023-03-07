@@ -211,7 +211,7 @@ runTest(String fileName, String location, Map<String, Kind> expectations,
   print('--------------------------------------------------------------------');
   print('Testing $fileName');
   print('--------------------------------------------------------------------');
-  String test = new File(fileName).readAsStringSync();
+  String test = File(fileName).readAsStringSync();
 
   List<String> commonLines = <String>[];
   Map<String, SubTest> subTests = <String, SubTest>{};
@@ -223,7 +223,7 @@ runTest(String fileName, String location, Map<String, Kind> expectations,
       String prefix = line.substring(0, index);
       String suffix = line.substring(index + 3);
       String name = suffix.substring(0, suffix.indexOf((':'))).trim();
-      SubTest subTest = subTests.putIfAbsent(name, () => new SubTest());
+      SubTest subTest = subTests.putIfAbsent(name, () => SubTest());
       subTest.lines[lineIndex] = line;
       int commentIndex = prefix.indexOf('// ');
       if (commentIndex != -1) {
@@ -324,7 +324,7 @@ runPositiveTest(Uri entryPoint, Map<String, String> sources,
 
 runNegativeTest(
     SubTest subTest, Uri entryPoint, Map<String, String> sources) async {
-  DiagnosticCollector collector = new DiagnosticCollector();
+  DiagnosticCollector collector = DiagnosticCollector();
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: sources,
@@ -346,7 +346,7 @@ class SubTest {
   final Map<int, String> lines = <int, String>{};
 
   String generateCode(List<String> commonLines) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     int i = 0;
     while (i < commonLines.length) {
       if (lines.containsKey(i)) {

@@ -128,12 +128,12 @@ mixin C on A implements B {
   Future<void> test_extendsWith_noSuper() async {
     await resolveTestCode('''
 class A {}
-class B {}
+mixin B {}
 class C extends A with B {}
 ''');
     await assertHasAssistAt('C', '''
 class A {}
-class B {}
+mixin B {}
 mixin C implements A, B {}
 ''');
   }
@@ -143,7 +143,7 @@ mixin C implements A, B {}
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 class C extends A with B {
@@ -157,7 +157,7 @@ class C extends A with B {
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 mixin C on A, B {
@@ -174,7 +174,7 @@ mixin C on A, B {
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 class C extends A with B {
@@ -187,7 +187,7 @@ class C extends A with B {
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 mixin C on A implements B {
@@ -203,7 +203,7 @@ mixin C on A implements B {
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 class C extends A with B {
@@ -216,7 +216,7 @@ class C extends A with B {
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 mixin C on B implements A {
@@ -230,13 +230,13 @@ mixin C on B implements A {
   Future<void> test_extendsWithImplements_noSuper() async {
     await resolveTestCode('''
 class A {}
-class B {}
+mixin B {}
 class C {}
 class D extends A with B implements C {}
 ''');
     await assertHasAssistAt('D', '''
 class A {}
-class B {}
+mixin B {}
 class C {}
 mixin D implements A, B, C {}
 ''');
@@ -247,7 +247,7 @@ mixin D implements A, B, C {}
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 class C {}
@@ -262,7 +262,7 @@ class D extends A with B implements C {
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 class C {}
@@ -280,7 +280,7 @@ mixin D on A, B implements C {
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 class C {}
@@ -294,7 +294,7 @@ class D extends A with B implements C {
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 class C {}
@@ -311,7 +311,7 @@ mixin D on A implements B, C {
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 class C {}
@@ -325,7 +325,7 @@ class D extends A with B implements C {
 class A {
   a() {}
 }
-class B {
+mixin class B {
   b() {}
 }
 class C {}
@@ -384,18 +384,18 @@ mixin A<T> {}
 
   Future<void> test_with_noSuper() async {
     await resolveTestCode('''
-class A {}
+mixin class A {}
 class B with A {}
 ''');
     await assertHasAssistAt('B', '''
-class A {}
+mixin class A {}
 mixin B implements A {}
 ''');
   }
 
   Future<void> test_with_super() async {
     await resolveTestCode('''
-class A {
+mixin class A {
   a() {}
 }
 class B with A {
@@ -405,7 +405,7 @@ class B with A {
 }
 ''');
     await assertHasAssistAt('B', '''
-class A {
+mixin class A {
   a() {}
 }
 mixin B on A {

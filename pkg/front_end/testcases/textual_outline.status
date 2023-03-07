@@ -21,11 +21,13 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
+class_modifiers/anonymous_mixin: FormatterCrash
 class_modifiers/base/base_class_declaration: FormatterCrash
 class_modifiers/final/final_class_declaration: FormatterCrash
 class_modifiers/interface/interface_class_declaration: FormatterCrash
 class_modifiers/mixin/mixin_class_declaration: FormatterCrash
 class_modifiers/mixin/mixin_class_generative_constructor: FormatterCrash
+class_modifiers/mixin/mixin_class_invalid_modifiers: FormatterCrash
 class_modifiers/mixin/mixin_class_superclass_not_object: FormatterCrash
 const_functions/const_functions_const_ctor: FormatterCrash
 const_functions/const_functions_const_ctor_error: FormatterCrash
@@ -127,11 +129,14 @@ general/sealed_class_declaration: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
+inline_class/annotations: FormatterCrash
 inline_class/constructor_access: FormatterCrash
 inline_class/constructor_bodies: FormatterCrash
+inline_class/constructor_formal_parameters: FormatterCrash
 inline_class/constructors: FormatterCrash
 inline_class/external: FormatterCrash
 inline_class/field_access: FormatterCrash
+inline_class/implements: FormatterCrash
 inline_class/initializers: FormatterCrash
 inline_class/inline_class_declaration: FormatterCrash
 inline_class/member_not_found: FormatterCrash
@@ -161,9 +166,15 @@ nnbd_mixed/inheritance_from_opt_in: FormatterCrash
 nnbd_mixed/issue41597: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
 nonfunction_type_aliases/old_version: FormatterCrash
+patterns/if_else_in_collections_errors: FormatterCrash
+patterns/issue51489: FormatterCrash
 patterns/pattern_matching: FormatterCrash
+patterns/pattern_types: FormatterCrash
 patterns/records/destructuring: FormatterCrash
 patterns/records/record_pattern_inside_if_case: FormatterCrash
+patterns/simple_c_style_pattern_for_in_collections: FormatterCrash
+patterns/simple_if_case_in_lists: FormatterCrash
+patterns/simple_if_case_map_entries: FormatterCrash
 patterns/switchExpression_empty: FormatterCrash
 patterns/switchExpression_onePattern_guarded: FormatterCrash
 patterns/switchExpression_onePattern_noTrailingComma: FormatterCrash
@@ -180,9 +191,11 @@ rasta/issue_000047: FormatterCrash
 rasta/malformed_const_constructor: FormatterCrash
 rasta/mandatory_parameter_initializer: FormatterCrash
 records/access_through_type_variable: FormatterCrash
+records/block_combine_statements: FormatterCrash
 records/const_local_access: FormatterCrash
 records/const_record_literal: FormatterCrash
 records/duplicated_name_errors: FormatterCrash
+records/for_in_without_variable: FormatterCrash
 records/issue50132: FormatterCrash
 records/issue50133: FormatterCrash
 records/issue50157: FormatterCrash

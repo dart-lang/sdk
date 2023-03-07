@@ -125,7 +125,7 @@ main() {
               intLiteral(0).checkContext('int').asCollectionElement,
             ).inContextElementType('int'),
           ], expectedErrors: {
-            'nonBooleanCondition(GUARD)'
+            'nonBooleanCondition(node: GUARD)'
           });
         });
 
@@ -215,7 +215,8 @@ main() {
                     'matchedType: int?), celt(expr(Object)))')
                 .inContextElementType('Object'),
           ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, FOR)',
+            'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                'context: FOR)',
           });
         });
         test('When the variable type is not a subtype of the matched type', () {
@@ -380,7 +381,7 @@ main() {
                   .thenExpr(expr('int')),
             ]).stmt,
           ], expectedErrors: {
-            'nonBooleanCondition(GUARD)'
+            'nonBooleanCondition(node: GUARD)'
           });
         });
 
@@ -481,6 +482,82 @@ main() {
           });
         });
       });
+
+      group('With errorOnSwitchExhaustiveness enabled', () {
+        test('Errors if there is no default', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            (switchExpr(
+                    expr('int'),
+                    [
+                      intLiteral(0).pattern.thenExpr(expr('int')),
+                    ],
+                    isLegacyExhaustive: false)
+                  ..errorId = 'SWITCH')
+                .stmt,
+          ], expectedErrors: {
+            'nonExhaustiveSwitch(node: SWITCH, scrutineeType: int)'
+          });
+        });
+
+        test('Does not error if there is a default', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            switchExpr(
+                    expr('int'),
+                    [
+                      default_.thenExpr(expr('int')),
+                    ],
+                    isLegacyExhaustive: false)
+                .stmt,
+          ]);
+        });
+
+        test('Does not error if there is a catchall case', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            switchExpr(
+                    expr('int'),
+                    [
+                      wildcard().thenExpr(expr('int')),
+                    ],
+                    isLegacyExhaustive: false)
+                .stmt,
+          ]);
+        });
+
+        test(
+            'Does not error if the legacy exhaustiveness algorithm determines '
+            'that the switch is exhaustive', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            switchExpr(
+                    expr('E'),
+                    [
+                      expr('E').pattern.thenExpr(expr('int')),
+                    ],
+                    isLegacyExhaustive: true)
+                .stmt,
+          ]);
+        });
+
+        test('Errors even if the switch is unreachable', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            return_(),
+            (switchExpr(
+                    expr('int'),
+                    [
+                      intLiteral(0).pattern.thenExpr(expr('int')),
+                    ],
+                    isLegacyExhaustive: false)
+                  ..errorId = 'SWITCH')
+                .stmt,
+          ], expectedErrors: {
+            'nonExhaustiveSwitch(node: SWITCH, scrutineeType: int)'
+          });
+        });
+      });
     });
   });
 
@@ -574,7 +651,7 @@ main() {
               [],
             ),
           ], expectedErrors: {
-            'nonBooleanCondition(GUARD)'
+            'nonBooleanCondition(node: GUARD)'
           });
         });
 
@@ -1069,7 +1146,7 @@ main() {
               isLegacyExhaustive: true,
             )..errorId = 'SWITCH'),
           ], expectedErrors: {
-            'switchCaseCompletesNormally(SWITCH, 0, 1)'
+            'switchCaseCompletesNormally(node: SWITCH, caseIndex: 0)'
           });
         });
 
@@ -1093,7 +1170,7 @@ main() {
               isLegacyExhaustive: true,
             )..errorId = 'SWITCH'),
           ], expectedErrors: {
-            'switchCaseCompletesNormally(SWITCH, 0, 1)'
+            'switchCaseCompletesNormally(node: SWITCH, caseIndex: 0)'
           });
         });
 
@@ -1462,7 +1539,7 @@ main() {
               ],
             ),
           ], expectedErrors: {
-            'nonBooleanCondition(GUARD)'
+            'nonBooleanCondition(node: GUARD)'
           });
         });
 
@@ -1558,6 +1635,102 @@ main() {
           ]);
         });
       });
+
+      group('With errorOnSwitchExhaustiveness enabled', () {
+        test('Errors if the type is always-exhaustive and there is no default',
+            () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            (switch_(
+                expr('bool'),
+                [
+                  booleanLiteral(false).pattern.then([
+                    break_(),
+                  ]),
+                ],
+                isLegacyExhaustive: false)
+              ..errorId = 'SWITCH'),
+          ], expectedErrors: {
+            'nonExhaustiveSwitch(node: SWITCH, scrutineeType: bool)'
+          });
+        });
+
+        test(
+            'Does not error if the type is always-exhaustive and there is a '
+            'default', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            switch_(
+                expr('bool'),
+                [
+                  default_.then([break_()]),
+                ],
+                isLegacyExhaustive: false),
+          ]);
+        });
+
+        test(
+            'Does not error if the type is always-exhaustive and there is a '
+            'catchall case', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            switch_(
+                expr('bool'),
+                [
+                  wildcard().then([break_()]),
+                ],
+                isLegacyExhaustive: false),
+          ]);
+        });
+
+        test(
+            'Does not error if the type is always-exhaustive and the legacy '
+            'exhaustiveness algorithm determines that the switch is exhaustive',
+            () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.addExhaustiveness('E', true);
+          h.run([
+            switch_(
+                expr('E'),
+                [
+                  expr('E').pattern.then([break_()]),
+                ],
+                isLegacyExhaustive: true),
+          ]);
+        });
+
+        test('Does not error if the type is not always-exhaustive', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            switch_(
+                expr('int'),
+                [
+                  intLiteral(0).pattern.then([
+                    break_(),
+                  ]),
+                ],
+                isLegacyExhaustive: false),
+          ]);
+        });
+
+        test('Errors even if the switch is unreachable', () {
+          h.errorOnSwitchExhaustiveness = true;
+          h.run([
+            return_(),
+            (switch_(
+                expr('bool'),
+                [
+                  booleanLiteral(false).pattern.then([
+                    break_(),
+                  ]),
+                ],
+                isLegacyExhaustive: false)
+              ..errorId = 'SWITCH'),
+          ], expectedErrors: {
+            'nonExhaustiveSwitch(node: SWITCH, scrutineeType: bool)'
+          });
+        });
+      });
     });
 
     group('Variable declaration:', () {
@@ -1619,7 +1792,7 @@ main() {
               listPattern([wildcard()])..errorId = 'PATTERN', expr('List<int>'),
               isLate: true),
         ], expectedErrors: {
-          'patternDoesNotAllowLate(PATTERN)'
+          'patternDoesNotAllowLate(pattern: PATTERN)'
         });
       });
 
@@ -1628,88 +1801,199 @@ main() {
           (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0))
             ..errorId = 'CONTEXT'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
     });
 
     group('Pattern-for-in:', () {
-      group('Expression context type schema:', () {
-        test('Pattern has type', () {
-          var x = Var('x');
-          h.run([
-            patternForIn(x.pattern(type: 'num'),
-                    expr('List<int>').checkContext('Iterable<num>'), [])
-                .checkIr('forEach(expr(List<int>), varPattern(x, '
-                    'matchedType: int, staticType: num), block())'),
-          ]);
+      group('sync', () {
+        group('Expression context type schema:', () {
+          test('Pattern has type', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(x.pattern(type: 'num'),
+                      expr('List<int>').checkContext('Iterable<num>'), [])
+                  .checkIr('forEach(expr(List<int>), varPattern(x, '
+                      'matchedType: int, staticType: num), block())'),
+            ]);
+          });
+          test('Pattern does not have type', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(x.pattern(),
+                      expr('List<int>').checkContext('Iterable<?>'), [])
+                  .checkIr('forEach(expr(List<int>), varPattern(x, '
+                      'matchedType: int, staticType: int), block())'),
+            ]);
+          });
         });
-        test('Pattern does not have type', () {
-          var x = Var('x');
-          h.run([
-            patternForIn(x.pattern(),
-                    expr('List<int>').checkContext('Iterable<?>'), [])
-                .checkIr('forEach(expr(List<int>), varPattern(x, '
-                    'matchedType: int, staticType: int), block())'),
-          ]);
+        group('Expression type:', () {
+          test('Iterable', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(x.pattern(), expr('Iterable<int>'), [])
+                  .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
+                      'matchedType: int, staticType: int), block())'),
+            ]);
+          });
+          test('dynamic', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(x.pattern(), expr('dynamic'), [])
+                  .checkIr('forEach(expr(dynamic), varPattern(x, '
+                      'matchedType: dynamic, staticType: dynamic), block())'),
+            ]);
+          });
+          test('Object', () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(
+                      x.pattern(), expr('Object')..errorId = 'EXPRESSION', [])
+                    ..errorId = 'FOR')
+                  .checkIr('forEach(expr(Object), varPattern(x, '
+                      'matchedType: dynamic, staticType: dynamic), block())'),
+            ], expectedErrors: {
+              'patternForInExpressionIsNotIterable(node: FOR, '
+                  'expression: EXPRESSION, expressionType: Object)'
+            });
+          });
         });
-      });
-      group('Expression type:', () {
-        test('Iterable', () {
-          var x = Var('x');
-          h.run([
-            patternForIn(x.pattern(), expr('Iterable<int>'), [])
-                .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
-                    'matchedType: int, staticType: int), block())'),
-          ]);
-        });
-        test('dynamic', () {
-          var x = Var('x');
-          h.run([
-            patternForIn(x.pattern(), expr('dynamic'), [])
-                .checkIr('forEach(expr(dynamic), varPattern(x, '
-                    'matchedType: dynamic, staticType: dynamic), block())'),
-          ]);
-        });
-        test('Object', () {
-          var x = Var('x');
-          h.run([
-            (patternForIn(
-                    x.pattern(), expr('Object')..errorId = 'EXPRESSION', [])
-                  ..errorId = 'FOR')
-                .checkIr('forEach(expr(Object), varPattern(x, '
-                    'matchedType: dynamic, staticType: dynamic), block())'),
-          ], expectedErrors: {
-            'patternForInExpressionIsNotIterable(node: FOR, '
-                'expression: EXPRESSION, expressionType: Object)'
+        group('Refutability:', () {
+          test('When a refutable pattern', () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(x.pattern().nullCheck..errorId = 'PATTERN',
+                      expr('Iterable<int?>'), [])
+                    ..errorId = 'FOR')
+                  .checkIr('forEach(expr(Iterable<int?>), nullCheckPattern('
+                      'varPattern(x, matchedType: int, staticType: int), '
+                      'matchedType: int?), block())'),
+            ], expectedErrors: {
+              'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                  'context: FOR)',
+            });
+          });
+          test('When the variable type is not a subtype of the matched type',
+              () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(x.pattern(type: 'String')..errorId = 'PATTERN',
+                      expr('Iterable<int>'), [])
+                    ..errorId = 'FOR')
+                  .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
+                      'matchedType: int, staticType: String), block())'),
+            ], expectedErrors: {
+              'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                  'context: FOR, matchedType: int, requiredType: String)',
+            });
           });
         });
       });
-      group('Refutability:', () {
-        test('When a refutable pattern', () {
-          var x = Var('x');
-          h.run([
-            (patternForIn(x.pattern().nullCheck..errorId = 'PATTERN',
-                    expr('Iterable<int?>'), [])
-                  ..errorId = 'FOR')
-                .checkIr('forEach(expr(Iterable<int?>), nullCheckPattern('
-                    'varPattern(x, matchedType: int, staticType: int), '
-                    'matchedType: int?), block())'),
-          ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, FOR)',
+      group('async', () {
+        group('Expression context type schema:', () {
+          test('Pattern has type', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(
+                x.pattern(type: 'num'),
+                expr('Stream<int>').checkContext('Stream<num>'),
+                [],
+                hasAwait: true,
+              ).checkIr('forEach(expr(Stream<int>), varPattern(x, '
+                  'matchedType: int, staticType: num), block())'),
+            ]);
+          });
+          test('Pattern does not have type', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(
+                x.pattern(),
+                expr('Stream<int>').checkContext('Stream<?>'),
+                [],
+                hasAwait: true,
+              ).checkIr('forEach(expr(Stream<int>), varPattern(x, '
+                  'matchedType: int, staticType: int), block())'),
+            ]);
           });
         });
-        test('When the variable type is not a subtype of the matched type', () {
-          var x = Var('x');
-          h.run([
-            (patternForIn(x.pattern(type: 'String')..errorId = 'PATTERN',
-                    expr('Iterable<int>'), [])
-                  ..errorId = 'FOR')
-                .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
-                    'matchedType: int, staticType: String), block())'),
-          ], expectedErrors: {
-            'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
-                'context: FOR, matchedType: int, requiredType: String)',
+        group('Expression type:', () {
+          test('Stream', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(
+                x.pattern(),
+                expr('Stream<int>'),
+                [],
+                hasAwait: true,
+              ).checkIr('forEach(expr(Stream<int>), varPattern(x, '
+                  'matchedType: int, staticType: int), block())'),
+            ]);
+          });
+          test('dynamic', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(
+                x.pattern(),
+                expr('dynamic'),
+                [],
+                hasAwait: true,
+              ).checkIr('forEach(expr(dynamic), varPattern(x, '
+                  'matchedType: dynamic, staticType: dynamic), block())'),
+            ]);
+          });
+          test('Object', () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(
+                x.pattern(),
+                expr('Object')..errorId = 'EXPRESSION',
+                [],
+                hasAwait: true,
+              )..errorId = 'FOR')
+                  .checkIr('forEach(expr(Object), varPattern(x, '
+                      'matchedType: dynamic, staticType: dynamic), block())'),
+            ], expectedErrors: {
+              'patternForInExpressionIsNotIterable(node: FOR, '
+                  'expression: EXPRESSION, expressionType: Object)'
+            });
+          });
+        });
+        group('Refutability:', () {
+          test('When a refutable pattern', () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(
+                x.pattern().nullCheck..errorId = 'PATTERN',
+                expr('Stream<int?>'),
+                [],
+                hasAwait: true,
+              )..errorId = 'FOR')
+                  .checkIr('forEach(expr(Stream<int?>), nullCheckPattern('
+                      'varPattern(x, matchedType: int, staticType: int), '
+                      'matchedType: int?), block())'),
+            ], expectedErrors: {
+              'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                  'context: FOR)',
+            });
+          });
+          test('When the variable type is not a subtype of the matched type',
+              () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(
+                x.pattern(type: 'String')..errorId = 'PATTERN',
+                expr('Stream<int>'),
+                [],
+                hasAwait: true,
+              )..errorId = 'FOR')
+                  .checkIr('forEach(expr(Stream<int>), varPattern(x, '
+                      'matchedType: int, staticType: String), block())'),
+            ], expectedErrors: {
+              'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                  'context: FOR, matchedType: int, requiredType: String)',
+            });
           });
         });
       });
@@ -1790,7 +2074,8 @@ main() {
           (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0))
             ..errorId = 'CONTEXT'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
     });
@@ -1994,7 +2279,7 @@ main() {
               expr('dynamic'),
             ),
           ], expectedErrors: {
-            'restPatternNotLastInMap(MAP_PATTERN, REST_ELEMENT)'
+            'restPatternNotLastInMap(node: MAP_PATTERN, element: REST_ELEMENT)'
           });
         });
         test('Two rest elements at the end', () {
@@ -2045,7 +2330,8 @@ main() {
               expr('dynamic'),
             ),
           ], expectedErrors: {
-            'restPatternWithSubPatternInMap(MAP_PATTERN, REST_ELEMENT)'
+            'restPatternWithSubPatternInMap(node: MAP_PATTERN, '
+                'element: REST_ELEMENT)'
           });
         });
       });
@@ -2376,12 +2662,19 @@ main() {
     group('Logical-and:', () {
       test('Type schema', () {
         h.run([
-          match(wildcard(type: 'int?').and(wildcard(type: 'double?')),
+          match(
+                  (wildcard(type: 'int?')..errorId = 'WILDCARD1')
+                      .and(wildcard(type: 'double?')..errorId = 'WILDCARD2'),
                   nullLiteral.checkContext('Null'))
               .checkIr('match(null, logicalAndPattern(wildcardPattern('
                   'matchedType: Null), wildcardPattern(matchedType: Null), '
                   'matchedType: Null))'),
-        ]);
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD1, '
+              'kind: logicalAndPatternOperand)',
+          'unnecessaryWildcardPattern(pattern: WILDCARD2, '
+              'kind: logicalAndPatternOperand)'
+        });
       });
 
       test('Refutability', () {
@@ -2419,7 +2712,8 @@ main() {
             nullLiteral.checkContext('?'),
           )..errorId = 'CONTEXT'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
 
@@ -2434,7 +2728,8 @@ main() {
               expr('num'))
             ..errorId = 'CONTEXT'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
 
@@ -2732,7 +3027,8 @@ main() {
               expr('int').checkContext('?'))
             ..errorId = 'CONTEXT'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
 
@@ -2742,7 +3038,8 @@ main() {
             (match(wildcard().nullCheck..errorId = 'PATTERN', expr('int?'))
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+            'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT)'
           });
         });
 
@@ -2751,7 +3048,8 @@ main() {
             (match(wildcard().nullCheck..errorId = 'PATTERN', expr('int'))
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+            'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT)'
           });
         });
 
@@ -2760,7 +3058,8 @@ main() {
             (match(wildcard().nullCheck..errorId = 'PATTERN', expr('dynamic'))
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+            'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT)'
           });
         });
 
@@ -2770,7 +3069,8 @@ main() {
                 expr('num'))
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+            'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT)'
           });
         });
       });
@@ -3273,7 +3573,8 @@ main() {
           )..errorId = 'CONTEXT')
               .checkIr('match(1, >(0, matchedType: int))'),
         ], expectedErrors: {
-          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+              'context: CONTEXT)'
         });
       });
       test('no operator', () {

@@ -17,7 +17,7 @@ class SubClass extends Class {
 method1(Class c, Type type, [o]) {
   if (/*Class*/ c == null) {
     if (/*dynamic*/ o != null) {
-      c = new Class(String);
+      c = Class(String);
     }
     /*Class*/ c;
     print(/*Type*/ type /*invoke: [Type]->bool*/ == /*Class*/ c?.componentType);
@@ -27,7 +27,7 @@ method1(Class c, Type type, [o]) {
 method2(Class c, Type type, [o]) {
   if (/*Class*/ c == null) {
     if (/*dynamic*/ o != null) {
-      c = new SubClass(String);
+      c = SubClass(String);
     }
     /*Class*/ c;
     print(/*Type*/ type /*invoke: [Type]->bool*/ == /*Class*/ c?.componentType);
@@ -38,7 +38,7 @@ method3(Class c, Type type, [o]) {
   if (/*Class*/ c is SubClass) {
     if (/*SubClass*/ c == null) {
       if (/*dynamic*/ o != null) {
-        c = new SubClass(String);
+        c = SubClass(String);
       }
       /*SubClass*/ c;
       print(/*Type*/ type /*invoke: [Type]->bool*/ ==

@@ -31,15 +31,14 @@ main() {
         compiler.initializedCompilerState,
         false)))!;
     ir.Component component = result.component;
-    StaticTypeVisitor visitor = new Visitor(component);
+    StaticTypeVisitor visitor = Visitor(component);
     component.accept(visitor);
   });
 }
 
 class Visitor extends StaticTypeVisitorBase {
   Visitor(ir.Component component)
-      : super(component,
-            new ir.ClassHierarchy(component, new ir.CoreTypes(component)),
+      : super(component, ir.ClassHierarchy(component, ir.CoreTypes(component)),
             evaluationMode: ir.EvaluationMode.weak);
 
   ir.DartType getStaticType(ir.Expression node) {
@@ -48,8 +47,8 @@ class Visitor extends StaticTypeVisitorBase {
       enclosingMember = enclosingMember.parent;
     }
     try {
-      staticTypeContext = new ir.StaticTypeContext(
-          enclosingMember as ir.Member, typeEnvironment);
+      staticTypeContext =
+          ir.StaticTypeContext(enclosingMember as ir.Member, typeEnvironment);
       return node.getStaticType(staticTypeContext);
     } catch (e) {
       // The static type computation crashes on type errors. Use `dynamic`

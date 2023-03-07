@@ -17,7 +17,7 @@ String forwardN(TokenScope scope, int N) {
 
 void main() {
   // Test a normal scope.
-  TokenScope scope = new TokenScope();
+  TokenScope scope = TokenScope();
 
   // We start with 'a'.
   Expect.equals("a", scope.getNextName());
@@ -44,8 +44,8 @@ void main() {
   Expect.equals("a__", forwardN(scope, 63 * 33));
 
   // Test a filtered scope.
-  Set<String> illegal = new Set.from(["b", "aa"]);
-  scope = new TokenScope(illegalNames: illegal);
+  Set<String> illegal = Set.from(["b", "aa"]);
+  scope = TokenScope(illegalNames: illegal);
 
   // We start with 'a'.
   Expect.equals("a", forwardN(scope, 1));
@@ -64,7 +64,7 @@ void main() {
 
   // Test a initial char
   {
-    TokenScope scope = new TokenScope(initialChar: $A);
+    TokenScope scope = TokenScope(initialChar: $A);
 
     // We start with 'A'.
     Expect.equals("A", scope.getNextName());
@@ -73,7 +73,7 @@ void main() {
     Expect.equals("A_", forwardN(scope, 26));
   }
   {
-    TokenScope scope = new TokenScope(initialChar: $A + 1);
+    TokenScope scope = TokenScope(initialChar: $A + 1);
 
     // We start with 'B'.
     Expect.equals("B", scope.getNextName());

@@ -53,10 +53,8 @@ class PlatformWin {
       uMode |= SEM_NOGPFAULTERRORBOX;
     }
     SetErrorMode(uMode);
-#ifndef PRODUCT
     // Set up global exception handler to be able to dump stack trace on crash.
     SetExceptionHandler();
-#endif
   }
 
   // Windows top-level unhandled exception handler function.

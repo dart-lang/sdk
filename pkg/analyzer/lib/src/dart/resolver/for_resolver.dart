@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -37,6 +38,7 @@ class ForResolver {
     } else if (forLoopParts is ForEachPartsWithPatternImpl) {
       _analyzePatternForIn(
         node: node,
+        awaitKeyword: node.awaitKeyword,
         forLoopParts: forLoopParts,
         dispatchBody: () {
           _resolver.dispatchCollectionElement(node.body, context);
@@ -58,6 +60,7 @@ class ForResolver {
     } else if (forLoopParts is ForEachPartsWithPatternImpl) {
       _analyzePatternForIn(
         node: node,
+        awaitKeyword: node.awaitKeyword,
         forLoopParts: forLoopParts,
         dispatchBody: () {
           _resolver.dispatchStatement(node.body);
@@ -70,11 +73,13 @@ class ForResolver {
 
   void _analyzePatternForIn({
     required AstNodeImpl node,
+    required Token? awaitKeyword,
     required ForEachPartsWithPatternImpl forLoopParts,
     required void Function() dispatchBody,
   }) {
     _resolver.analyzePatternForIn(
       node: node,
+      hasAwait: awaitKeyword != null,
       pattern: forLoopParts.pattern,
       expression: forLoopParts.iterable,
       dispatchBody: dispatchBody,

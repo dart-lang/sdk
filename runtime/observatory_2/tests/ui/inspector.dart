@@ -250,11 +250,6 @@ class Typed {
     float32List[0] = 3.14;
     int8List[0] = 5;
   }
-
-  Typed._named() {
-    float32List[0] = 3.14;
-    int8List[0] = 5;
-  }
 }
 
 main() {

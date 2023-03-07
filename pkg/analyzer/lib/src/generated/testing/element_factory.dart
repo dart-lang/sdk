@@ -75,6 +75,19 @@ class ElementFactory {
     return element;
   }
 
+  static ClassElementImpl classElement4(String typeName,
+          {bool isBase = false,
+          bool isInterface = false,
+          bool isFinal = false,
+          bool isSealed = false,
+          bool isMixinClass = false}) =>
+      classElement2(typeName)
+        ..isBase = isBase
+        ..isInterface = isInterface
+        ..isFinal = isFinal
+        ..isSealed = isSealed
+        ..isMixinClass = isMixinClass;
+
   static ClassElementImpl classTypeAlias(
       String typeName, InterfaceType superclassType,
       [List<String>? parameterNames]) {
@@ -185,8 +198,9 @@ class ElementFactory {
     return getter;
   }
 
-  static LibraryElementImpl library(
-      AnalysisContext context, String libraryName) {
+  static LibraryElementImpl library(AnalysisContext context, String libraryName,
+      {FeatureSet? featureSet}) {
+    FeatureSet features = featureSet ?? FeatureSet.latestLanguageVersion();
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(
       source: NonExistingSource(fileName, toUri(fileName)),
@@ -197,7 +211,7 @@ class ElementFactory {
       libraryName,
       0,
       libraryName.length,
-      FeatureSet.latestLanguageVersion(),
+      features,
     );
     library.definingCompilationUnit = unit;
     return library;
@@ -249,6 +263,17 @@ class ElementFactory {
     element.constructors = const <ConstructorElementImpl>[];
     return element;
   }
+
+  static MixinElementImpl mixinElement2(String name,
+          {bool isBase = false,
+          bool isInterface = false,
+          bool isFinal = false,
+          bool isSealed = false}) =>
+      mixinElement(name: name)
+        ..isBase = isBase
+        ..isInterface = isInterface
+        ..isFinal = isFinal
+        ..isSealed = isSealed;
 
   static ParameterElementImpl namedParameter(String name) {
     return ParameterElementImpl(

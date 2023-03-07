@@ -493,6 +493,13 @@ class TypeSystemOperations
   }
 
   @override
+  DartType? matchStreamType(DartType type) {
+    var streamElement = typeSystem.typeProvider.streamElement;
+    var listType = type.asInstanceOf(streamElement);
+    return listType?.typeArguments[0];
+  }
+
+  @override
   DartType normalize(DartType type) {
     return typeSystem.normalize(type);
   }

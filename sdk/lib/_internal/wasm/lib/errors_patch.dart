@@ -87,6 +87,15 @@ class _TypeError extends _Error implements TypeError {
         stackTrace);
     return Error._throw(typeError, stackTrace);
   }
+
+  @pragma("wasm:entry-point")
+  static Never _throwTypeArgumentBoundCheckError(
+      _Type param, _Type bound, String paramName, StackTrace stackTrace) {
+    final typeError = _TypeError.fromMessageAndStackTrace(
+        "type '$param' is not a subtype of type '$bound' of '$paramName'",
+        stackTrace);
+    return Error._throw(typeError, stackTrace);
+  }
 }
 
 @patch
@@ -116,6 +125,12 @@ class NoSuchMethodError {
   @pragma("wasm:entry-point")
   static Never _throwWithInvocation(Object? receiver, Invocation invocation) {
     throw NoSuchMethodError.withInvocation(receiver, invocation);
+  }
+
+  @pragma("wasm:entry-point")
+  static Never _throwUnimplementedExternalMemberError(
+      Object? receiver, Symbol memberName) {
+    throw NoSuchMethodError(receiver, memberName, null, null);
   }
 
   @patch

@@ -25,26 +25,27 @@ void DumpFunctionJSON(Dart_SnapshotAnalyzerInformation* info,
 
   const auto isolate_instructions_base =
       reinterpret_cast<uint64_t>(info->vm_isolate_instructions);
-  const auto vm_instructions_base =
-      reinterpret_cast<uint64_t>(info->vm_snapshot_instructions);
   uint64_t relative_offset;
+  uint64_t size;
   const char* section;
 
   js->OpenObject();
   js->PrintProperty("name", function.ToCString());
   js->PrintProperty("signature", signature.ToCString());
-  // Should not have code that is located in
-  // _kDartVmSnapshotInstructions, but check in case.
-  if (code_addr < isolate_instructions_base) {
-    relative_offset = code_addr - vm_instructions_base;
+  // Invoking code.PayloadStart() for _kDartVmSnapshotInstructions
+  // when the tree has been shaken always returns 0
+  if (code_addr == 0) {
+    relative_offset = 0;
+    size = 0;
     section = "_kDartVmSnapshotInstructions";
   } else {
     relative_offset = code_addr - isolate_instructions_base;
+    size = static_cast<uint64_t>(code.Size());
     section = "_kDartIsolateSnapshotInstructions";
   }
-  js->PrintProperty("offset", static_cast<intptr_t>(relative_offset));
   js->PrintProperty("section", section);
-  js->PrintProperty("size", static_cast<intptr_t>(code.Size()));
+  js->PrintProperty64("offset", relative_offset);
+  js->PrintProperty64("size", size);
   js->CloseObject();
 }
 void DumpClassTableJSON(Thread* thread,
@@ -256,31 +257,24 @@ void DumpFunctionPP(Dart_SnapshotAnalyzerInformation* info,
 
   const auto isolate_instructions_base =
       reinterpret_cast<uint64_t>(info->vm_isolate_instructions);
-  const auto vm_instructions_base =
-      reinterpret_cast<uint64_t>(info->vm_snapshot_instructions);
   uint64_t relative_offset;
   const char* section;
 
   ss << "\t" << function.ToCString() << " " << signature.ToCString()
      << " {\n\n";
   char offset_buff[100] = "";
-  // Should not have code that is located in
-  // _kDartVmSnapshotInstructions, but check in case.
-  if (code_addr < isolate_instructions_base) {
-    relative_offset = code_addr - vm_instructions_base;
+  // Invoking code.PayloadStart() for _kDartVmSnapshotInstructions
+  // when the tree has been shaken always returns 0
+  if (code_addr == 0) {
     section = "_kDartVmSnapshotInstructions";
+    snprintf(offset_buff, sizeof(offset_buff), "Offset: <Could not read>");
   } else {
     relative_offset = code_addr - isolate_instructions_base;
     section = "_kDartIsolateSnapshotInstructions";
-  }
-
-  // Can not calculate for function without payload start
-  if (code_addr == 0) {
-    snprintf(offset_buff, sizeof(offset_buff), "Offset: <Could not read>");
-  } else {
     snprintf(offset_buff, sizeof(offset_buff), "Offset: %s + 0x%" PRIx64 "",
              section, relative_offset);
   }
+
   ss << "\t\t" << offset_buff << "\n\n\t}\n";
 }
 // TODO(#47924): Refactor and reduce code duplication.

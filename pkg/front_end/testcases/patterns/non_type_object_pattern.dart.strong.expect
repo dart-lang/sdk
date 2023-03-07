@@ -262,7 +262,7 @@ static method testUnresolved(dynamic o) → dynamic {
                     ^";
   {
     final dynamic #1#0 = o{invalid-type};
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t2 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(let final dynamic #t2 = o = #1#0{invalid-type}{<invalid>}.o in true))
       throw new _in::ReachabilityError::•();
   }
   {
@@ -305,7 +305,7 @@ static method testNonType(dynamic o) → dynamic {
                  ^";
   {
     final dynamic #1#0 = o{invalid-type};
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t8 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(let final dynamic #t8 = o = #1#0{invalid-type}{<invalid>}.o in true))
       throw new _in::ReachabilityError::•();
   }
   {
@@ -348,7 +348,7 @@ static method testExtension(dynamic o) → dynamic {
                    ^";
   {
     final dynamic #1#0 = o{invalid-type};
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t14 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(let final dynamic #t14 = o = #1#0{invalid-type}{<invalid>}.o in true))
       throw new _in::ReachabilityError::•();
   }
   {
@@ -391,7 +391,7 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
                            ^";
   {
     final dynamic #1#0 = o{invalid-type};
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t20 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(let final dynamic #t20 = o = #1#0{invalid-type}{<invalid>}.o in true))
       throw new _in::ReachabilityError::•();
   }
   {
@@ -434,7 +434,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
                         ^";
   {
     final dynamic #1#0 = o{invalid-type};
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t26 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(let final dynamic #t26 = o = #1#0{invalid-type}{<invalid>}.o in true))
       throw new _in::ReachabilityError::•();
   }
   {
@@ -477,7 +477,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
                           ^";
   {
     final dynamic #1#0 = o{invalid-type};
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t32 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(let final dynamic #t32 = o = #1#0{invalid-type}{<invalid>}.o in true))
       throw new _in::ReachabilityError::•();
   }
   {
@@ -520,7 +520,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
                          ^";
   {
     final dynamic #1#0 = o{invalid-type};
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t38 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(let final dynamic #t38 = o = #1#0{invalid-type}{<invalid>}.o in true))
       throw new _in::ReachabilityError::•();
   }
   {
@@ -563,7 +563,7 @@ static method testMemberAccess(dynamic o) → dynamic {
                           ^";
   {
     final dynamic #1#0 = o{invalid-type};
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t44 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(let final dynamic #t44 = o = #1#0{invalid-type}{<invalid>}.o in true))
       throw new _in::ReachabilityError::•();
   }
   {

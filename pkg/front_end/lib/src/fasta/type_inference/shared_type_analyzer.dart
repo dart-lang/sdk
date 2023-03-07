@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:front_end/src/fasta/kernel/exhaustiveness.dart'
+    show textStrategy;
 import 'package:front_end/src/fasta/type_inference/inference_visitor.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
@@ -154,16 +157,34 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void nonBooleanCondition(Expression node) {
+  void nonBooleanCondition({required Expression node}) {
     // TODO(johnniwinther): Find a way to propagate the error state to the
     // parent of the guard.
     helper.addProblem(messageNonBoolCondition, node.fileOffset, noLength);
   }
 
   @override
-  void patternDoesNotAllowLate(TreeNode pattern) {
+  void patternDoesNotAllowLate({required TreeNode pattern}) {
     // TODO(johnniwinther): Is late even supported by the grammar or parser?
     throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void nonExhaustiveSwitch(
+      {required TreeNode node, required DartType scrutineeType}) {
+    // Report the error on the scrutinee expression, to match what the full
+    // exhaustiveness algorithm does
+    int fileOffset;
+    if (node is SwitchStatement) {
+      fileOffset = node.expression.fileOffset;
+    } else {
+      fileOffset = (node as SwitchExpression).expression.fileOffset;
+    }
+    helper.addProblem(
+        templateNonExhaustiveSwitch.withArguments(scrutineeType,
+            scrutineeType.toText(textStrategy), isNonNullableByDefault),
+        fileOffset,
+        noLength);
   }
 
   @override
@@ -190,7 +211,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void refutablePatternInIrrefutableContext(
-      covariant Pattern pattern, TreeNode context) {
+      {required covariant Pattern pattern, required TreeNode context}) {
     pattern.error = helper.buildProblem(
         messageRefutablePatternInIrrefutableContext,
         pattern.fileOffset,
@@ -210,19 +231,29 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void restPatternNotLastInMap(Pattern node, TreeNode element) {
+  void restPatternNotLastInMap(
+      {required Pattern node, required TreeNode element}) {
     // This is reported in the body builder.
   }
 
   @override
-  void restPatternWithSubPatternInMap(Pattern node, TreeNode element) {
+  void restPatternWithSubPatternInMap(
+      {required Pattern node, required TreeNode element}) {
     // This is reported in the body builder.
   }
 
   @override
   void switchCaseCompletesNormally(
-      covariant SwitchStatement node, int caseIndex, int numMergedCases) {
+      {required covariant SwitchStatement node, required int caseIndex}) {
     helper.addProblem(messageSwitchCaseFallThrough,
         node.cases[caseIndex].fileOffset, noLength);
+  }
+
+  @override
+  void unnecessaryWildcardPattern({
+    required Pattern pattern,
+    required UnnecessaryWildcardKind kind,
+  }) {
+    // TODO(scheglov): implement unnecessaryWildcardPattern
   }
 }

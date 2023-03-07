@@ -102,58 +102,51 @@ void matchIL$test(FlowGraph graph) {
       'obj1' << match.Parameter(index: 4),
       'obj2' << match.Parameter(index: 5),
       match.CheckStackOverflow(),
-
-      'x_unboxed' << match.UnboxInt64('x'),
-      match.PushArgument('x_unboxed'),
-      match.PushArgument('z'),
+      match.MoveArgument('x'),
+      match.MoveArgument('z'),
       'r1' << match.StaticCall(),
       'r1_0' << match.ExtractNthOutput('r1', index: 0),
       'r1_1' << match.ExtractNthOutput('r1', index: 1),
-      match.PushArgument('r1_0'),
+      match.MoveArgument('r1_0'),
       match.StaticCall(),
-      match.PushArgument('r1_1'),
+      match.MoveArgument('r1_1'),
       match.StaticCall(),
-
-      match.PushArgument('foo'),
-      match.PushArgument('bar'),
+      match.MoveArgument('foo'),
+      match.MoveArgument('bar'),
       'r2' << match.StaticCall(),
       'r2_bar' << match.ExtractNthOutput('r2', index: 0),
       'r2_foo' << match.ExtractNthOutput('r2', index: 1),
-      match.PushArgument('r2_foo'),
+      match.MoveArgument('r2_foo'),
       match.StaticCall(),
-      match.PushArgument('r2_bar'),
+      match.MoveArgument('r2_bar'),
       match.StaticCall(),
-
-      match.PushArgument('obj1'),
+      match.MoveArgument('obj1'),
       'r3' << match.StaticCall(),
       'r3_0' << match.ExtractNthOutput('r3', index: 0),
       'r3_y' << match.ExtractNthOutput('r3', index: 1),
-      match.PushArgument('r3_0'),
+      match.MoveArgument('r3_0'),
       match.StaticCall(),
-      match.PushArgument('r3_y'),
+      match.MoveArgument('r3_y'),
       match.StaticCall(),
-
       'obj2_cid' << match.LoadClassId('obj2'),
-      match.PushArgument('obj2'),
+      match.MoveArgument('obj2'),
       'r4' << match.DispatchTableCall('obj2_cid'),
       'r4_0' << match.ExtractNthOutput('r4', index: 0),
       'r4_y' << match.ExtractNthOutput('r4', index: 1),
       'r4_boxed' << match.AllocateSmallRecord('r4_0', 'r4_y'),
-      match.PushArgument('r4_boxed'),
+      match.MoveArgument('r4_boxed'),
       match.StaticCall(),
-
       match.Return(),
     ]),
   ]);
 }
 
-void main() {
+void main(List<String> args) {
   // Make sure all parameters are non-constant
   // and obj1 has a known type for devirtualization.
-  test(int.parse('5')!,
-    int.parse('3') == 4,
-    'foo' + 3.toString(),
-    int.parse('7')!,
-    B(int.parse('8')!, double.parse('9')!),
-    int.parse('10') == 11 ? B(1, 2) : C());
+  final intValue = args.length > 50 ? 1 << 53 : 42;
+  final doubleValue = args.length > 50 ? 42.5 : 24.5;
+
+  test(intValue, intValue == 4, 'foo' + intValue.toString(), intValue,
+      B(intValue, doubleValue), intValue == 42 ? B(1, 2) : C());
 }

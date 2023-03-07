@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
@@ -59,6 +60,19 @@ class FindNode {
     unit.accept(
       FunctionAstVisitor(
         guardedPattern: (node) {
+          nodes.add(node);
+        },
+      ),
+    );
+    return nodes.single;
+  }
+
+  /// Returns the [IfElement], there must be only one.
+  IfElement get singleIfElement {
+    var nodes = <IfElement>[];
+    unit.accept(
+      FunctionAstVisitor(
+        ifElement: (node) {
           nodes.add(node);
         },
       ),
@@ -172,6 +186,11 @@ class FindNode {
 
   BinaryExpression binary(String search) {
     return _node(search, (n) => n is BinaryExpression);
+  }
+
+  BindPatternVariableElement bindPatternVariableElement(String search) {
+    final node = declaredVariablePattern(search);
+    return node.declaredElement!;
   }
 
   Block block(String search) {
@@ -595,6 +614,14 @@ class FindNode {
     return _node(search, (n) => n is PatternAssignment);
   }
 
+  PatternField patternField(String search) {
+    return _node(search, (n) => n is PatternField);
+  }
+
+  PatternFieldName patternFieldName(String search) {
+    return _node(search, (n) => n is PatternFieldName);
+  }
+
   PatternVariableDeclaration patternVariableDeclaration(String search) {
     return _node(search, (n) => n is PatternVariableDeclaration);
   }
@@ -626,14 +653,6 @@ class FindNode {
 
   RecordPattern recordPattern(String search) {
     return _node(search, (n) => n is RecordPattern);
-  }
-
-  RecordPatternField recordPatternField(String search) {
-    return _node(search, (n) => n is RecordPatternField);
-  }
-
-  RecordPatternFieldName recordPatternFieldName(String search) {
-    return _node(search, (n) => n is RecordPatternFieldName);
   }
 
   RecordTypeAnnotation recordTypeAnnotation(String search) {

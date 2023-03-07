@@ -5,11 +5,11 @@
 // @dart = 2.7
 
 main() {
-  var c = new Class();
+  var c = Class();
   c. /*1:main*/ instancePositional1(0);
 
   // Use all optional parameters to ensure that they are not elided.
-  var d = new Class();
+  var d = Class();
   d.instancePositional1(null, null, null);
   d.instancePositional2(null, null, null);
   d.instanceNamed1(null, b: null, c: null, d: null);

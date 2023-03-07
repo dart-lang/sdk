@@ -426,8 +426,8 @@ class _SyncClosureContext implements ClosureContext {
           _returnExpressionTypes![i]);
     }
 
-    return _inferredReturnType = demoteTypeInLibrary(
-        inferredReturnType, inferrer.libraryBuilder.library);
+    return _inferredReturnType = demoteTypeInLibrary(inferredReturnType,
+        isNonNullableByDefault: inferrer.isNonNullableByDefault);
   }
 
   @override
@@ -844,8 +844,8 @@ class _AsyncClosureContext implements ClosureContext {
           inferredType, _returnStatements![i], _returnExpressionTypes![i]);
     }
 
-    return _inferredReturnType =
-        demoteTypeInLibrary(inferredType, inferrer.libraryBuilder.library);
+    return _inferredReturnType = demoteTypeInLibrary(inferredType,
+        isNonNullableByDefault: inferrer.isNonNullableByDefault);
   }
 
   @override
@@ -1013,7 +1013,8 @@ class _SyncStarClosureContext implements ClosureContext {
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
     }
 
-    return demoteTypeInLibrary(inferredType, inferrer.libraryBuilder.library);
+    return demoteTypeInLibrary(inferredType,
+        isNonNullableByDefault: inferrer.isNonNullableByDefault);
   }
 
   @override
@@ -1147,7 +1148,8 @@ class _AsyncStarClosureContext implements ClosureContext {
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
     }
 
-    return demoteTypeInLibrary(inferredType, inferrer.libraryBuilder.library);
+    return demoteTypeInLibrary(inferredType,
+        isNonNullableByDefault: inferrer.isNonNullableByDefault);
   }
 
   @override

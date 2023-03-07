@@ -42,6 +42,7 @@ class Section {
   bool isEnabled(Map<String, String> environment) =>
       condition == null || condition!.evaluate(environment);
 
+  @override
   String toString() {
     return "Section: $condition";
   }
@@ -75,7 +76,8 @@ Future<void> readTestExpectationsInto(TestExpectations expectations,
   return completer.future;
 }
 
-void readConfigurationInto(Path path, List<Section> sections, void onDone()) {
+void readConfigurationInto(
+    Path path, List<Section> sections, void Function() onDone) {
   StatusFile statusFile = StatusFile(path);
   File file = File(path.toNativePath());
   if (!file.existsSync()) {
@@ -122,11 +124,10 @@ void readConfigurationInto(Path path, List<Section> sections, void onDone()) {
           ExpressionParser(Scanner(tokens)).parseSetExpression();
 
       // Look for issue number in comment.
-      String? issueString = null;
+      String? issueString;
       match = issueNumberPattern.firstMatch(comment);
       if (match != null) {
-        issueString = match[1];
-        if (issueString == null) issueString = match[2];
+        issueString = match[1] ?? match[2];
       }
       int? issue = issueString != null ? int.parse(issueString) : null;
       currentSection.testRules
@@ -148,6 +149,7 @@ class TestRule {
 
   bool get hasIssue => issue != null;
 
+  @override
   String toString() => 'TestRule($name, $expression, $issue)';
 }
 
@@ -155,11 +157,11 @@ class TestExpectations {
   // Only create one copy of each Set<Expectation>.
   // We just use .toString as a key, so we may make a few
   // sets that only differ in their toString element order.
-  static Map<String, Set<Expectation>> _cachedSets = {};
+  static final Map<String, Set<Expectation>> _cachedSets = {};
 
   final ExpectationSet expectationSet;
 
-  Map<String, Set<Expectation>> _map;
+  final Map<String, Set<Expectation>> _map;
   bool _preprocessed = false;
   Map<String, RegExp>? _regExpCache;
   Map<String, List<RegExp>>? _keyToRegExps;
@@ -177,7 +179,7 @@ class TestExpectations {
     }
     var names = testRule.expression.evaluate(environment);
     var expectations = names.map((name) => expectationSet[name]);
-    _map.putIfAbsent(testRule.name, () => Set()).addAll(expectations);
+    _map.putIfAbsent(testRule.name, () => {}).addAll(expectations);
   }
 
   /// Compute the expectations for a test based on the filename.
@@ -190,7 +192,7 @@ class TestExpectations {
   /// components and checks that the anchored regular expression
   /// "^$keyComponent\$" matches the corresponding filename component.
   Set<Expectation> expectations(String filename) {
-    var result = Set<Expectation>();
+    var result = <Expectation>{};
     var splitFilename = filename.split('/');
 
     // Create mapping from keys to list of RegExps once and for all.
@@ -210,7 +212,7 @@ class TestExpectations {
     // If no expectations were found the expectation is that the test
     // passes.
     if (result.isEmpty) {
-      result.add(Expectation.Pass);
+      result.add(Expectation.pass);
     }
     return _cachedSets.putIfAbsent(result.toString(), () => result);
   }

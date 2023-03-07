@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../fallback_exhaustiveness.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -35,6 +36,7 @@ GuardedPattern
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
+    matchedValueType: int
 ''');
 
     final node2 = findNode.caseClause('case final b').guardedPattern;
@@ -45,6 +47,7 @@ GuardedPattern
     name: b
     declaredElement: hasImplicitType isFinal b@61
       type: int
+    matchedValueType: int
 ''');
   }
 
@@ -67,6 +70,7 @@ GuardedPattern
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
+    matchedValueType: int
 ''');
 
     final node2 = findNode.caseClause('case final b').guardedPattern;
@@ -77,6 +81,7 @@ GuardedPattern
     name: b
     declaredElement: hasImplicitType isFinal b@60
       type: int
+    matchedValueType: int
 ''');
   }
 
@@ -87,6 +92,7 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.DEAD_CODE, 37, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -97,12 +103,15 @@ LogicalOrPattern
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@46
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -123,18 +132,23 @@ LogicalOrPattern
       expression: IntegerLiteral
         literal: 0
         staticType: int
+      matchedValueType: int
     operator: &&
     rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@40
         type: int
+      matchedValueType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@51
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -161,11 +175,14 @@ LogicalOrPattern
     name: a
     declaredElement: isFinal a@39
       type: int
+    matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -185,12 +202,15 @@ LogicalOrPattern
     expression: IntegerLiteral
       literal: 1
       staticType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@40
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -219,16 +239,21 @@ LogicalOrPattern
       name: a
       declaredElement: isFinal a@39
         type: int
+      matchedValueType: num
     operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
+      matchedValueType: num
+    matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -257,6 +282,7 @@ LogicalOrPattern
       name: a
       declaredElement: isFinal a@39
         type: int
+      matchedValueType: num
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: final
@@ -269,11 +295,15 @@ LogicalOrPattern
       name: a
       declaredElement: isFinal a@54
         type: int
+      matchedValueType: num
+    matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -284,7 +314,9 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.DEAD_CODE, 37, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(HintCode.DEAD_CODE, 48, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -296,18 +328,23 @@ LogicalOrPattern
       name: a
       declaredElement: hasImplicitType isFinal a@35
         type: int
+      matchedValueType: int
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@46
         type: int
+      matchedValueType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@57
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -336,11 +373,14 @@ LogicalOrPattern
       name: a
       declaredElement: isFinal a@39
         type: int
+      matchedValueType: num
     operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
+      matchedValueType: num
+    matchedValueType: num
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
@@ -353,6 +393,8 @@ LogicalOrPattern
     name: a
     declaredElement: isFinal a@59
       type: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -374,6 +416,7 @@ LogicalOrPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
+      matchedValueType: num
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: final
@@ -386,11 +429,15 @@ LogicalOrPattern
       name: a
       declaredElement: isFinal a@44
         type: int
+      matchedValueType: num
+    matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -402,6 +449,7 @@ void f(int x) {
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(HintCode.DEAD_CODE, 42, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -412,18 +460,23 @@ LogicalOrPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
+      matchedValueType: int
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@40
         type: int
+      matchedValueType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@51
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -444,17 +497,22 @@ LogicalOrPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
+      matchedValueType: int
     operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
+      matchedValueType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@45
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -468,6 +526,7 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(HintCode.DEAD_CODE, 48, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -478,12 +537,15 @@ LogicalOrPattern
     name: a
     declaredElement: hasImplicitType isFinal a@46
       type: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@57
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -513,11 +575,14 @@ LogicalOrPattern
     name: a
     declaredElement: isFinal a@50
       type: int
+    matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -540,17 +605,20 @@ LogicalOrPattern
     expression: IntegerLiteral
       literal: 1
       staticType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@51
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
   test_switchStatement_case2_both() async {
-    await assertErrorsInCode(r'''
+    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case /*1*/ final a:
@@ -559,10 +627,11 @@ void f(int x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 59, 4),
-    ]);
+          error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+          error(HintCode.DEAD_CODE, 59, 4),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 59, 4),
+          error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+        ]));
 
     final node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;
     assertResolvedNodeText(node1, r'''
@@ -572,6 +641,7 @@ GuardedPattern
     name: a
     declaredElement: hasImplicitType isFinal a@52
       type: int
+    matchedValueType: int
 ''');
 
     final node2 = findNode.switchPatternCase('case /*2*/').guardedPattern;
@@ -582,6 +652,7 @@ GuardedPattern
     name: a
     declaredElement: hasImplicitType isFinal a@76
       type: int
+    matchedValueType: int
 ''');
   }
 

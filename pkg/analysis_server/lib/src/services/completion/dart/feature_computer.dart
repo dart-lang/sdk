@@ -966,6 +966,17 @@ parent3: ${node.parent?.parent?.parent}
   }
 
   @override
+  DartType? visitPatternField(PatternField node) {
+    var parent = node.parent;
+    if (parent is ObjectPattern) {
+      return _visitFieldInObjectPattern(parent, node);
+    } else if (parent is RecordPattern) {
+      return _visitFieldInRecordPattern(parent, node);
+    }
+    return null;
+  }
+
+  @override
   DartType? visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     if (offset >= node.equals.end) {
       return _requiredTypeOfPattern(node.pattern);
@@ -1047,17 +1058,6 @@ parent3: ${node.parent?.parent?.parent}
     var positionalFields = recordType.positionalFields;
     if (positionalIndex < positionalFields.length) {
       return positionalFields[positionalIndex].type;
-    }
-    return null;
-  }
-
-  @override
-  DartType? visitRecordPatternField(RecordPatternField node) {
-    var parent = node.parent;
-    if (parent is ObjectPattern) {
-      return _visitFieldInObjectPattern(parent, node);
-    } else if (parent is RecordPattern) {
-      return _visitFieldInRecordPattern(parent, node);
     }
     return null;
   }
@@ -1202,7 +1202,7 @@ parent3: ${node.parent?.parent?.parent}
       if (offset <= rightToken.offset) {
         return index;
       }
-      if (field.fieldName == null) {
+      if (field.name == null) {
         index++;
       }
     }
@@ -1233,8 +1233,8 @@ parent3: ${node.parent?.parent?.parent}
   }
 
   DartType? _visitFieldInObjectPattern(
-      ObjectPattern parent, RecordPatternField field) {
-    var fieldName = field.fieldName;
+      ObjectPattern parent, PatternField field) {
+    var fieldName = field.name;
     if (fieldName == null || offset < fieldName.end) {
       return null;
     }
@@ -1264,19 +1264,19 @@ parent3: ${node.parent?.parent?.parent}
   }
 
   DartType? _visitFieldInRecordPattern(
-      RecordPattern parent, RecordPatternField field) {
+      RecordPattern parent, PatternField field) {
     var recordType = parent.matchedValueType;
     if (recordType is! RecordType) {
       return null;
     }
-    var fieldName = field.fieldName;
+    var fieldName = field.name;
     if (fieldName == null) {
       // Completing a positional field.
       var fields = parent.fields;
       var index = fields.indexOf(field);
       int fieldIndex = 0; // The index of the positional field being matched.
       for (int i = 0; i < index; i++) {
-        if (fields[i].fieldName == null) {
+        if (fields[i].name == null) {
           fieldIndex++;
         }
       }

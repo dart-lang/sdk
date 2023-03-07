@@ -269,28 +269,30 @@ class DevToolsServer {
       throw ex;
     }
 
-    final _server = server!;
+    // Type promote server.
+    server!;
+
     if (allowEmbedding) {
-      _server.defaultResponseHeaders.remove('x-frame-options', 'SAMEORIGIN');
+      server.defaultResponseHeaders.remove('x-frame-options', 'SAMEORIGIN');
       // The origin-agent-cluster header is required to support the embedding of
       // Dart DevTools in Chrome DevTools.
-      _server.defaultResponseHeaders.add('origin-agent-cluster', '?1');
+      server.defaultResponseHeaders.add('origin-agent-cluster', '?1');
     }
 
     // Ensure browsers don't cache older versions of the app.
-    _server.defaultResponseHeaders.add(
+    server.defaultResponseHeaders.add(
       HttpHeaders.cacheControlHeader,
-      'max-age=0',
+      'no-store',
     );
 
     // Serve requests in an error zone to prevent failures
     // when running from another error zone.
     runZonedGuarded(
-      () => shelf.serveRequests(_server, handler!),
+      () => shelf.serveRequests(server!, handler!),
       (e, _) => print('Error serving requests: $e'),
     );
 
-    final devToolsUrl = 'http://${_server.address.host}:${_server.port}';
+    final devToolsUrl = 'http://${server.address.host}:${server.port}';
 
     if (launchBrowser) {
       if (serviceProtocolUri != null) {
@@ -346,8 +348,8 @@ class DevToolsServer {
           // used `method` for the original releases.
           'method': 'server.started',
           'params': {
-            'host': _server.address.host,
-            'port': _server.port,
+            'host': server.address.host,
+            'port': server.port,
             'pid': pid,
             'protocolVersion': protocolVersion,
           }
@@ -643,7 +645,7 @@ class DevToolsServer {
 
     return devToolsUri
         .replace(
-            path: '${devToolsUri.path.isEmpty ? '/' : devToolsUri.path}',
+            path: devToolsUri.path.isEmpty ? '/' : devToolsUri.path,
             fragment: '?${queryStringNameValues.join('&')}')
         .toString();
   }

@@ -38,7 +38,7 @@ class B implements A {}
   test_classTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
-class M {}
+mixin M {}
 class B = A with M implements B;
 ''', [
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS, 28,

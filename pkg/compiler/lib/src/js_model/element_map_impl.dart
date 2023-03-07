@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 
 import 'package:kernel/ast.dart' as ir;
@@ -55,7 +54,8 @@ import 'elements.dart';
 import 'element_map.dart';
 import 'env.dart';
 import 'locals.dart';
-import 'records.dart' show JRecordClass, RecordClassData;
+import 'records.dart'
+    show JRecordClass, RecordClassData, JRecordGetter, RecordGetterData;
 
 class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   /// Tag used for identifying serialized [JsKernelToElementMap] objects in a
@@ -701,9 +701,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         data.instantiationToBounds = data.thisType;
       } else {
         data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
-            coreTypes.legacyRawType(node),
-            coreTypes.objectClass,
-            node.enclosingLibrary) as ir.InterfaceType);
+            coreTypes.legacyRawType(node), coreTypes.objectClass,
+            isNonNullableByDefault: node
+                .enclosingLibrary.isNonNullableByDefault) as ir.InterfaceType);
       }
     }
   }
@@ -1228,6 +1228,11 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           node = node.parent;
         }
         break;
+
+      case MemberKind.recordGetter:
+        // TODO(51310): Avoid calling [getStaticTypeProvider] for synthetic
+        // elements that have no Kernel Node context.
+        return NoStaticTypeProvider();
     }
     return CachedStaticType(staticTypeContext, cachedStaticTypes,
         ThisInterfaceType.from(staticTypeContext.thisType));
@@ -1701,6 +1706,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       case MemberKind.signature:
       case MemberKind.generatorBody:
         return getParentMember(definition.node as ir.TreeNode?);
+      case MemberKind.recordGetter:
+        return null;
     }
   }
 
@@ -2193,16 +2200,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     SourceSpan location = SourceSpan.unknown(); // TODO(50081): What to use?
 
     Map<Name, IndexedMember> memberMap = {};
-    IndexedClass classEntity = JRecordClass(
-      library,
-      name,
-      isAbstract: false,
-    );
+    final classEntity = JRecordClass(library, name, isAbstract: false);
 
-    // Create a classData and set up the interfaces and subclass
-    // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
-    InterfaceType thisType =
-        types.interfaceType(classEntity, const <DartType>[]);
+    // Create a classData and set up the interfaces and subclass relationships
+    // that for regular classes would be done by _ensureSupertypes and
+    // _ensureThisAndRawType.
+    InterfaceType thisType = types.interfaceType(classEntity, const []);
     RecordClassData recordData = RecordClassData(
         RecordClassDefinition(location),
         thisType,
@@ -2210,6 +2213,32 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         getOrderedTypeSet(supertype.element as IndexedClass)
             .extendClass(types, thisType));
     classes.register(classEntity, recordData, RecordClassEnv(memberMap));
+
+    // Add field getters, which are called only from dynamic getter invocations.
+
+    for (int i = 0; i < shape.fieldCount; i++) {
+      String name = i < shape.positionalFieldCount
+          ? '\$${i + 1}'
+          : shape.fieldNames[i - shape.positionalFieldCount];
+      Name memberName = Name(name, null);
+      final getter = JRecordGetter(classEntity, memberName);
+
+      // The function type of a dynamic getter is a function of no arguments
+      // that returns `dynamic` (any other top would be ok too).
+      FunctionType functionType = commonElements.dartTypes.functionType(
+          commonElements.dartTypes.dynamicType(),
+          const [],
+          const [],
+          const [],
+          const {},
+          const [],
+          const []);
+      final data = RecordGetterData(
+          RecordGetterDefinition(location, i), thisType, functionType);
+
+      members.register<IndexedFunction, FunctionData>(getter, data);
+      memberMap[memberName] = getter;
+    }
 
     // TODO(49718): Implement `==` specialized to the shape.
 

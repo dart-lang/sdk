@@ -19,7 +19,7 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const AnnotationDataComputer(),
         args: args, testedConfigs: allSpecConfigs);
   });
@@ -38,7 +38,7 @@ class AnnotationDataComputer extends DataComputer<String> {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new AnnotationIrComputer(
+    AnnotationIrComputer(
             compiler.reporter,
             actualMap,
             elementMap,
@@ -80,7 +80,7 @@ class AnnotationIrComputer extends IrDataExtractor<String> {
     EnumSet<PragmaAnnotation>? pragmas =
         _annotationData.pragmaAnnotations[member];
     if (pragmas != null) {
-      Features features = new Features();
+      Features features = Features();
       for (PragmaAnnotation pragma
           in pragmas.iterable(PragmaAnnotation.values)) {
         features.add(pragma.name);

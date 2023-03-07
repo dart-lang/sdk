@@ -26,8 +26,7 @@ class Class1 {
 
 /*member: nonNullInstanceField1:[exact=JSUInt31]*/
 nonNullInstanceField1() {
-  return new Class1(). /*[exact=Class1]*/ /*update: [exact=Class1]*/ field ??=
-      42;
+  return Class1(). /*[exact=Class1]*/ /*update: [exact=Class1]*/ field ??= 42;
 }
 
 /*member: Class2.:[exact=Class2]*/
@@ -43,7 +42,7 @@ class Class2 {
 
 /*member: nonNullInstanceField2:[exact=JSUInt31]*/
 nonNullInstanceField2() {
-  return new Class2(). /*invoke: [exact=Class2]*/ method();
+  return Class2(). /*invoke: [exact=Class2]*/ method();
 }
 
 /*member: nonNullLocal:[exact=JSUInt31]*/

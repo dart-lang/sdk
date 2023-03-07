@@ -222,11 +222,11 @@ constants  {
   #C28 = <Null>[#C10]
   #C29 = <core::int>[#C22]
   #C30 = <core::int>{#C22}
-  #C31 = <core::int, core::int>{#C22:#C22)
+  #C31 = <core::int, core::int>{#C22:#C22}
   #C32 = <core::List<core::int>>[#C29]
   #C33 = <core::Set<core::int>>{#C30}
-  #C34 = <core::Map<core::int, core::int>, core::int>{#C31:#C22)
-  #C35 = <core::int, core::Map<core::int, core::int>>{#C22:#C31)
+  #C34 = <core::Map<core::int, core::int>, core::int>{#C31:#C22}
+  #C35 = <core::int, core::Map<core::int, core::int>>{#C22:#C31}
   #C36 = eval const core::String::fromEnvironment(#C1)
   #C37 = eval const _in::Symbol::•(#C36)
   #C38 = #42

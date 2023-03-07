@@ -13,7 +13,7 @@ main() {
   });
 }
 
-/// Tests of HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER with the
+/// Tests of WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER with the
 /// "strict-inference" static analysis option.
 @reflectiveTest
 class InferenceFailureOnUntypedParameterTest extends PubPackageResolutionTest {
@@ -46,7 +46,7 @@ void fn(String cb(int x)) => print(cb(7));
     await assertErrorsInCode(r'''
 void fn(String cb(var x)) => print(cb(7));
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 18, 5),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 18, 5),
     ]);
   }
 
@@ -60,7 +60,7 @@ void fn({int a = 0}) => print(a);
     await assertErrorsInCode(r'''
 void fn({var a}) => print(a);
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 9, 5),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 9, 5),
     ]);
   }
 
@@ -74,7 +74,7 @@ void fn({var a}) {}
     await assertErrorsInCode(r'''
 void fn(a) => print(a);
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 1),
     ]);
   }
 
@@ -86,7 +86,7 @@ class C {
   }
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 14, 5),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 14, 5),
     ]);
   }
 
@@ -118,7 +118,7 @@ class C {
   C(var a) : assert(a != null);
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 14, 5),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 14, 5),
     ]);
   }
 
@@ -145,7 +145,7 @@ void fn() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 23, 5),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 23, 5),
     ]);
   }
 
@@ -185,7 +185,7 @@ class C {
   void fn(var a) => print(a);
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 20, 5),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 20, 5),
     ]);
   }
 
@@ -195,7 +195,7 @@ abstract class C {
   void fn(var a);
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 29, 5),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 29, 5),
     ]);
   }
 
@@ -276,7 +276,7 @@ class D extends C {
     await assertErrorsInCode(r'''
 typedef void cb(a);
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 16, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 16, 1),
     ]);
   }
 
@@ -290,7 +290,7 @@ typedef cb = void Function(int a);
     await assertErrorsInCode(r'''
 void fn(a) => print(a);
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 1),
     ]);
   }
 
@@ -310,7 +310,7 @@ void fn([int a = 7]) => print(a);
     await assertErrorsInCode(r'''
 void fn(var a) => print(a);
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 5),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 5),
     ]);
   }
 
@@ -318,7 +318,7 @@ void fn(var a) => print(a);
     await assertErrorsInCode(r'''
 void fn([var a = 7]) => print(a);
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 9, 5),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 9, 5),
     ]);
   }
 }

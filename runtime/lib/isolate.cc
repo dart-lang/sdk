@@ -66,11 +66,6 @@ DEFINE_NATIVE_ENTRY(RawReceivePort_get_id, 0, 1) {
   return Integer::New(port.Id());
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePort_get_sendport, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
-  return port.send_port();
-}
-
 DEFINE_NATIVE_ENTRY(RawReceivePort_closeInternal, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   Dart_Port id = port.Id();
@@ -214,32 +209,11 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     thread->CheckForSafepoint();
 
     ObjectPtr raw = working_set->RemoveLast();
-
+    if (CanShareObjectAcrossIsolates(raw)) {
+      continue;
+    }
     const intptr_t cid = raw->GetClassId();
-    // Keep the list in sync with the one in runtime/vm/object_graph_copy.cc
     switch (cid) {
-      // Can be shared.
-      case kOneByteStringCid:
-      case kTwoByteStringCid:
-      case kExternalOneByteStringCid:
-      case kExternalTwoByteStringCid:
-      case kMintCid:
-      case kImmutableArrayCid:
-      case kNeverCid:
-      case kSentinelCid:
-      case kInt32x4Cid:
-      case kSendPortCid:
-      case kCapabilityCid:
-      case kRegExpCid:
-      case kStackTraceCid:
-        continue;
-      // Cannot be shared due to possibly being mutable boxes for unboxed
-      // fields in JIT, but can be transferred via Isolate.exit()
-      case kDoubleCid:
-      case kFloat32x4Cid:
-      case kFloat64x2Cid:
-        continue;
-
       case kArrayCid: {
         array ^= Array::RawCast(raw);
         visitor.VisitObject(array.GetTypeArguments());
@@ -299,7 +273,13 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
 
     const Array& args = Array::Handle(zone, Array::New(3));
     args.SetAt(0, illegal_object);
-    args.SetAt(2, String::Handle(zone, String::New(exception_message)));
+    args.SetAt(2, String::Handle(
+                      zone, String::NewFormatted(
+                                "%s%s",
+                                FindRetainingPath(
+                                    zone, isolate, obj, illegal_object,
+                                    TraversalRules::kInternalToIsolateGroup),
+                                exception_message)));
     const Object& exception = Object::Handle(
         zone, Exceptions::Create(Exceptions::kArgumentValue, args));
     return UnhandledException::New(Instance::Cast(exception),

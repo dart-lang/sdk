@@ -253,6 +253,9 @@ class UntaggedObject {
   class OldAndNotRememberedBit
       : public BitField<uword, bool, kOldAndNotRememberedBit, 1> {};
 
+  // Will be set to 1 iff
+  //   - is unmodifiable typed data view (backing store may be mutable)
+  //   - is transitively immutable
   class ImmutableBit : public BitField<uword, bool, kImmutableBit, 1> {};
 
   class ReservedBit : public BitField<uword, intptr_t, kReservedBit, 1> {};
@@ -1273,7 +1276,7 @@ class UntaggedFunction : public UntaggedObject {
     DART_FORCE_INLINE void SetAt(intptr_t position, UnboxedState state) {
       ASSERT(position < kCapacity);
       const intptr_t shift = kBitsPerElement * position;
-      bitmap_ = (bitmap_ & ((~kElementBitmask) << shift)) |
+      bitmap_ = (bitmap_ & ~(kElementBitmask << shift)) |
                 (static_cast<decltype(bitmap_)>(state) << shift);
     }
 

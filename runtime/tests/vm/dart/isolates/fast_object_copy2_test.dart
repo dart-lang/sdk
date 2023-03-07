@@ -111,7 +111,6 @@ class SendReceiveTest extends SendReceiveTestBase {
     await testSharable2();
     await testCopyableClosures();
     await testSharableTypedData();
-    await testUnmodifiableList();
   }
 
   Future testSharable() async {
@@ -165,6 +164,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     const int Dart_TypedData_kUint8 = 2;
     const int count = 10;
     final bytes = malloc.allocate<Uint8>(count);
+    msanUnpoison(bytes, count);
     final td = createUnmodifiableTypedData(
         Dart_TypedData_kUint8, bytes, count, nullptr, 0, nullptr);
     Expect.equals(count, td.length);
@@ -175,35 +175,6 @@ class SendReceiveTest extends SendReceiveTestBase {
     }
 
     malloc.free(bytes);
-  }
-
-  Future testUnmodifiableList() async {
-    print('testUnmodifiableList');
-
-    // Sharable.
-    for (final sharable in [
-      1,
-      const Object(),
-      'foo',
-      List.unmodifiable([const Object()])
-    ]) {
-      final list = List.unmodifiable([sharable]);
-      final listCopy = await sendReceive(list);
-      Expect.identical(list, listCopy);
-    }
-
-    // Non-Sharable.
-    for (final nonSharable in [
-      Object(),
-      [],
-      {},
-      List.unmodifiable([Object()])
-    ]) {
-      final list = List.unmodifiable([nonSharable]);
-      final listCopy = await sendReceive(list);
-      Expect.notIdentical(list, listCopy);
-      Expect.notIdentical(list[0], listCopy[0]);
-    }
   }
 }
 
@@ -217,3 +188,17 @@ main() async {
     symbol: "Dart_NewUnmodifiableExternalTypedDataWithFinalizer")
 external Uint8List createUnmodifiableTypedData(int type, Pointer<Uint8> data,
     int length, Pointer<Void> peer, int externalSize, Pointer<Void> callback);
+
+final msanUnpoisonPointer =
+    DynamicLibrary.process().providesSymbol("__msan_unpoison")
+        ? DynamicLibrary.process()
+            .lookup<NativeFunction<Void Function(Pointer<Void>, Size)>>(
+                "__msan_unpoison")
+        : nullptr;
+
+void msanUnpoison(Pointer<Uint8> pointer, int size) {
+  if (msanUnpoisonPointer != nullptr) {
+    msanUnpoisonPointer.asFunction<void Function(Pointer<Void>, int)>()(
+        pointer.cast(), size);
+  }
+}

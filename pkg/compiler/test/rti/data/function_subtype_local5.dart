@@ -46,7 +46,7 @@ class C<T> {
 class D<S, T> extends C<T> {}
 
 main() {
-  new D<String, bool>().test('bool', true);
-  new D<bool, int>().test('int', false);
-  new D().test('dynamic', true);
+  D<String, bool>().test('bool', true);
+  D<bool, int>().test('int', false);
+  D().test('dynamic', true);
 }

@@ -25,8 +25,6 @@ class SubtypeTestCacheRefElement extends CustomElement implements Renderable {
   factory SubtypeTestCacheRefElement(
       M.IsolateRef isolate, M.SubtypeTestCacheRef subtypeTestCache,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(subtypeTestCache != null);
     SubtypeTestCacheRefElement e = new SubtypeTestCacheRefElement.created();
     e._r = new RenderingScheduler<SubtypeTestCacheRefElement>(e, queue: queue);
     e._isolate = isolate;

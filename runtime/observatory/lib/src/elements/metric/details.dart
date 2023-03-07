@@ -23,9 +23,6 @@ class MetricDetailsElement extends CustomElement implements Renderable {
   factory MetricDetailsElement(
       M.IsolateRef isolate, M.Metric metric, M.MetricRepository metrics,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(metric != null);
-    assert(metrics != null);
     MetricDetailsElement e = new MetricDetailsElement.created();
     e._r = new RenderingScheduler<MetricDetailsElement>(e, queue: queue);
     e._isolate = isolate;
@@ -151,7 +148,6 @@ class MetricDetailsElement extends CustomElement implements Renderable {
       case M.MetricSamplingRate.e8s:
         return 'Every eight seconds';
     }
-    throw new Exception('Unknown MetricSamplingRate ($rate)');
   }
 
   static String _sizeToString(M.MetricBufferSize size) {
@@ -163,6 +159,5 @@ class MetricDetailsElement extends CustomElement implements Renderable {
       case M.MetricBufferSize.n1000samples:
         return '1000';
     }
-    throw new Exception('Unknown MetricSamplingRate ($size)');
   }
 }

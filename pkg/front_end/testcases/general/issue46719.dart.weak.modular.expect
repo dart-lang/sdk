@@ -124,6 +124,6 @@ static method test() → dynamic {
 static method main() → void {}
 
 constants  {
-  #C1 = <core::Symbol*, dynamic>{)
+  #C1 = <core::Symbol*, dynamic>{}
   #C2 = static-tearoff self::A::n
 }

@@ -76,12 +76,12 @@ TestSpecification parseTestSpecification(String contents) {
     if (value is String) {
       values.add(value);
     } else if (value is List) {
-      value.forEach((entry) {
+      for (var entry in value) {
         if (entry is! String) {
           _invalidSpecification("entry: '$entry' is not a string");
         }
         values.add(entry);
-      });
+      }
     } else {
       _invalidSpecification(
           "entry: '$value' is not a string or a list of strings");
@@ -144,5 +144,6 @@ _invalidSpecification(String message) {
 class InvalidSpecificationError extends Error {
   final String message;
   InvalidSpecificationError(this.message);
+  @override
   String toString() => "Invalid specification: $message";
 }

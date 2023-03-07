@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 export 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
@@ -17,5 +18,7 @@ abstract class DartCompletionContributor {
 
   /// Return a [Future] that completes when the suggestions appropriate for the
   /// given completion [request] have been added to the [builder].
-  Future<void> computeSuggestions();
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  });
 }

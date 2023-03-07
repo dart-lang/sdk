@@ -38,10 +38,6 @@ class TimelinePageElement extends CustomElement implements Renderable {
   factory TimelinePageElement(M.VM vm, M.TimelineRepository repository,
       M.EventRepository events, M.NotificationRepository notifications,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(repository != null);
-    assert(events != null);
-    assert(notifications != null);
     TimelinePageElement e = new TimelinePageElement.created();
     e._r = new RenderingScheduler<TimelinePageElement>(e, queue: queue);
     e._vm = vm;

@@ -15,7 +15,7 @@ abstract class Configurations {
 }
 
 void outputMultiConfigs(Uri uri, Configurations configurations) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   String defaultConfig = configurations.configs.first;
   String defaultFile = configurations.files.first;
   sb.write('''
@@ -238,6 +238,6 @@ $html
 
 /// Outputs [html] in [uri].
 void output(Uri uri, String html) {
-  File outputFile = new File.fromUri(uri);
+  File outputFile = File.fromUri(uri);
   outputFile.writeAsStringSync(html);
 }

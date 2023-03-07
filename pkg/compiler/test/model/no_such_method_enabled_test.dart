@@ -173,7 +173,7 @@ main() {
   const NoSuchMethodTest("""
 class A {
   noSuchMethod(Invocation x) {
-    throw new UnsupportedError('');
+    throw UnsupportedError('');
   }
 }
 main() {

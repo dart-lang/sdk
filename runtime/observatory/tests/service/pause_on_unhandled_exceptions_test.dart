@@ -8,8 +8,7 @@ import 'test_helper.dart';
 import 'service_test_common.dart';
 
 doThrow() {
-  throw "TheException"; // Line 13.
-  return "end of doThrow";
+  throw "TheException";
 }
 
 var tests = <IsolateTest>[

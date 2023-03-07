@@ -19,10 +19,9 @@ void testTransform(String source, String expected, AsyncRewriterBase rewriter) {
   final fun = js(source) as Fun;
   Fun rewritten = rewriter.rewrite(fun, null, null);
 
-  JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
-  SimpleJavaScriptPrintingContext context =
-      new SimpleJavaScriptPrintingContext();
-  Printer printer = new Printer(options, context);
+  JavaScriptPrintingOptions options = JavaScriptPrintingOptions();
+  SimpleJavaScriptPrintingContext context = SimpleJavaScriptPrintingContext();
+  Printer printer = Printer(options, context);
   printer.visit(rewritten);
   Expect.stringEquals(expected, context.getText());
 }
@@ -31,32 +30,32 @@ void testAsyncTransform(String source, String expected) {
   testTransform(
       source,
       expected,
-      new AsyncRewriter(
+      AsyncRewriter(
           SimpleErrorReporter(), // The diagnostic helper should not be used in these tests.
           null,
-          asyncStart: new VariableUse("startHelper"),
-          asyncAwait: new VariableUse("awaitHelper"),
-          asyncReturn: new VariableUse("returnHelper"),
-          asyncRethrow: new VariableUse("rethrowHelper"),
-          completerFactory: new VariableUse("NewCompleter"),
-          completerFactoryTypeArguments: [new VariableUse("CompleterType")],
-          wrapBody: new VariableUse("_wrapJsFunctionForAsync"),
+          asyncStart: VariableUse("startHelper"),
+          asyncAwait: VariableUse("awaitHelper"),
+          asyncReturn: VariableUse("returnHelper"),
+          asyncRethrow: VariableUse("rethrowHelper"),
+          completerFactory: VariableUse("NewCompleter"),
+          completerFactoryTypeArguments: [VariableUse("CompleterType")],
+          wrapBody: VariableUse("_wrapJsFunctionForAsync"),
           safeVariableName: (String name) => "__$name",
-          bodyName: new StringBackedName("body")));
+          bodyName: StringBackedName("body")));
 }
 
 void testSyncStarTransform(String source, String expected) {
   testTransform(
       source,
       expected,
-      new SyncStarRewriter(SimpleErrorReporter(), null,
-          endOfIteration: new VariableUse("endOfIteration"),
-          iterableFactory: new VariableUse("NewIterable"),
-          iterableFactoryTypeArguments: [new VariableUse("IterableType")],
-          yieldStarExpression: new VariableUse("yieldStar"),
-          uncaughtErrorExpression: new VariableUse("uncaughtError"),
+      SyncStarRewriter(SimpleErrorReporter(), null,
+          endOfIteration: VariableUse("endOfIteration"),
+          iterableFactory: VariableUse("NewIterable"),
+          iterableFactoryTypeArguments: [VariableUse("IterableType")],
+          yieldStarExpression: VariableUse("yieldStar"),
+          uncaughtErrorExpression: VariableUse("uncaughtError"),
           safeVariableName: (String name) => "__$name",
-          bodyName: new StringBackedName("body")));
+          bodyName: StringBackedName("body")));
 }
 
 main() {

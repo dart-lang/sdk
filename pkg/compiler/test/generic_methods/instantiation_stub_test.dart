@@ -51,7 +51,7 @@ main() {
   print(method1(42, f1a));
   print(f1b(42, 87));
 
-  Class c = new Class();
+  Class c = Class();
   print(method2(0, 1, c.f2a));
   print(c.f2b(42, 87, 123));
 
@@ -68,7 +68,7 @@ main() {
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
-    ProgramLookup programLookup = new ProgramLookup(compiler.backendStrategy);
+    ProgramLookup programLookup = ProgramLookup(compiler.backendStrategy);
 
     void checkStubs(ClassEntity element, List<String> expectedStubs) {
       Class? cls = programLookup.getClass(element);

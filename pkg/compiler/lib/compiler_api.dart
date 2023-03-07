@@ -142,6 +142,9 @@ enum OutputType {
   /// Unused libraries output.
   dumpUnusedLibraries,
 
+  /// Resource identifiers output.
+  resourceIdentifiers,
+
   /// Implementation specific output used for debugging the compiler.
   debug,
 }
@@ -241,7 +244,7 @@ Future<CompilationResult> compile(
   var compiler = Compiler(
       compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
   return compiler.run().then((bool success) {
-    return new CompilationResult(compiler,
+    return CompilationResult(compiler,
         isSuccess: success,
         kernelInitializedCompilerState: compiler.initializedCompilerState);
   });

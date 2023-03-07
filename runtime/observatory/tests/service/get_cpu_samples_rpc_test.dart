@@ -31,7 +31,7 @@ Future checkSamples(Isolate isolate) async {
   expect(functions.length, greaterThan(10),
       reason: "Should have many functions");
   final codes = result['_codes'];
-  expect(functions.length, greaterThan(10),
+  expect(codes.length, greaterThan(10),
       reason: "Should have many code objects");
 
   final samples = result['samples'];

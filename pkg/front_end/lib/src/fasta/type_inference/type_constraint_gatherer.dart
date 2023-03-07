@@ -23,18 +23,19 @@ abstract class TypeConstraintGatherer {
 
   final List<TypeParameter> _parametersToConstrain;
 
-  final Library _currentLibrary;
+  final bool isNonNullableByDefault;
 
   /// Creates a [TypeConstraintGatherer] which is prepared to gather type
   /// constraints for the given [typeParameters].
-  TypeConstraintGatherer.subclassing(
-      Iterable<TypeParameter> typeParameters, this._currentLibrary)
+  TypeConstraintGatherer.subclassing(Iterable<TypeParameter> typeParameters,
+      {required this.isNonNullableByDefault})
       : _parametersToConstrain = typeParameters.toList();
 
-  factory TypeConstraintGatherer(TypeSchemaEnvironment environment,
-      Iterable<TypeParameter> typeParameters, Library currentLibrary) {
-    return new TypeSchemaConstraintGatherer(
-        environment, typeParameters, currentLibrary);
+  factory TypeConstraintGatherer(
+      TypeSchemaEnvironment environment, Iterable<TypeParameter> typeParameters,
+      {required bool isNonNullableByDefault}) {
+    return new TypeSchemaConstraintGatherer(environment, typeParameters,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   CoreTypes get coreTypes;
@@ -59,8 +60,9 @@ abstract class TypeConstraintGatherer {
 
   Member? getInterfaceMember(Class class_, Name name, {bool setter = false});
 
-  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes);
+  InterfaceType? getTypeAsInstanceOf(
+      InterfaceType type, Class superclass, CoreTypes coreTypes,
+      {required bool isNonNullableByDefault});
 
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass);
@@ -68,7 +70,8 @@ abstract class TypeConstraintGatherer {
   InterfaceType futureType(DartType type, Nullability nullability);
 
   /// Returns the set of type constraints that was gathered.
-  Map<TypeParameter, TypeConstraint> computeConstraints(Library clientLibrary) {
+  Map<TypeParameter, TypeConstraint> computeConstraints(
+      {required bool isNonNullableByDefault}) {
     Map<TypeParameter, TypeConstraint> result =
         <TypeParameter, TypeConstraint>{};
     for (TypeParameter parameter in _parametersToConstrain) {
@@ -77,10 +80,10 @@ abstract class TypeConstraintGatherer {
     for (_ProtoConstraint protoConstraint in _protoConstraints) {
       if (protoConstraint.isUpper) {
         addUpperBound(result[protoConstraint.parameter]!, protoConstraint.bound,
-            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
+            isNonNullableByDefault: isNonNullableByDefault);
       } else {
         addLowerBound(result[protoConstraint.parameter]!, protoConstraint.bound,
-            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
+            isNonNullableByDefault: isNonNullableByDefault);
       }
     }
     return result;
@@ -91,7 +94,7 @@ abstract class TypeConstraintGatherer {
   /// Doesn't change the already accumulated set of constraints if [bound] isn't
   /// a subtype of [type] under any set of constraints.
   bool tryConstrainLower(DartType type, DartType bound) {
-    if (_currentLibrary.isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       return _tryNullabilityAwareSubtypeMatch(bound, type,
           constrainSupertype: true);
     } else {
@@ -104,7 +107,7 @@ abstract class TypeConstraintGatherer {
   /// Doesn't change the already accumulated set of constraints if [type] isn't
   /// a subtype of [bound] under any set of constraints.
   bool tryConstrainUpper(DartType type, DartType bound) {
-    if (_currentLibrary.isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       return _tryNullabilityAwareSubtypeMatch(type, bound,
           constrainSupertype: false);
     } else {
@@ -389,7 +392,7 @@ abstract class TypeConstraintGatherer {
     // Under constraint _ <: X <: Q.
     if (p is TypeParameterType &&
         isTypeParameterTypeWithoutNullabilityMarker(p,
-            isNonNullableByDefault: _currentLibrary.isNonNullableByDefault) &&
+            isNonNullableByDefault: isNonNullableByDefault) &&
         _parametersToConstrain.contains(p.parameter)) {
       _constrainParameterUpper(p.parameter, q);
       return true;
@@ -400,7 +403,7 @@ abstract class TypeConstraintGatherer {
     // Under constraint P <: X <: _.
     if (q is TypeParameterType &&
         isTypeParameterTypeWithoutNullabilityMarker(q,
-            isNonNullableByDefault: _currentLibrary.isNonNullableByDefault) &&
+            isNonNullableByDefault: isNonNullableByDefault) &&
         _parametersToConstrain.contains(q.parameter)) {
       _constrainParameterLower(q.parameter, p);
       return true;
@@ -420,10 +423,10 @@ abstract class TypeConstraintGatherer {
     //
     // Only if P0 is a subtype match for Q under constraint set C.
     if (isLegacyTypeConstructorApplication(p,
-        isNonNullableByDefault: _currentLibrary.isNonNullableByDefault)) {
+        isNonNullableByDefault: isNonNullableByDefault)) {
       return _isNullabilityAwareSubtypeMatch(
           computeTypeWithoutNullabilityMarker(p,
-              isNonNullableByDefault: _currentLibrary.isNonNullableByDefault),
+              isNonNullableByDefault: isNonNullableByDefault),
           q,
           constrainSupertype: constrainSupertype);
     }
@@ -435,15 +438,14 @@ abstract class TypeConstraintGatherer {
     // Or if P is not dynamic or void and P is a subtype match for Q0? under
     // constraint set C.
     if (isLegacyTypeConstructorApplication(q,
-        isNonNullableByDefault: _currentLibrary.isNonNullableByDefault)) {
+        isNonNullableByDefault: isNonNullableByDefault)) {
       final int baseConstraintCount = _protoConstraints.length;
 
       if ((p is DynamicType || p is VoidType) &&
           _isNullabilityAwareSubtypeMatch(
               p,
               computeTypeWithoutNullabilityMarker(q,
-                  isNonNullableByDefault:
-                      _currentLibrary.isNonNullableByDefault),
+                  isNonNullableByDefault: isNonNullableByDefault),
               constrainSupertype: constrainSupertype)) {
         return true;
       }
@@ -509,9 +511,9 @@ abstract class TypeConstraintGatherer {
     if (isNullableTypeConstructorApplication(q)) {
       final int baseConstraintCount = _protoConstraints.length;
       final DartType rawP = computeTypeWithoutNullabilityMarker(p,
-          isNonNullableByDefault: _currentLibrary.isNonNullableByDefault);
+          isNonNullableByDefault: isNonNullableByDefault);
       final DartType rawQ = computeTypeWithoutNullabilityMarker(q,
-          isNonNullableByDefault: _currentLibrary.isNonNullableByDefault);
+          isNonNullableByDefault: isNonNullableByDefault);
 
       if (isNullableTypeConstructorApplication(p) &&
           _isNullabilityAwareSubtypeMatch(rawP, rawQ,
@@ -573,8 +575,7 @@ abstract class TypeConstraintGatherer {
       final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(
               computeTypeWithoutNullabilityMarker(p,
-                  isNonNullableByDefault:
-                      _currentLibrary.isNonNullableByDefault),
+                  isNonNullableByDefault: isNonNullableByDefault),
               q,
               constrainSupertype: constrainSupertype) &&
           _isNullabilityAwareSubtypeMatch(const NullType(), q,
@@ -931,8 +932,11 @@ abstract class TypeConstraintGatherer {
       //   constraints `C0`.
       // - And `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C1`.
-      InterfaceType subtypeFuture =
-          futureType(subtypeArg, _currentLibrary.nonNullable);
+      InterfaceType subtypeFuture = futureType(
+          subtypeArg,
+          isNonNullableByDefault
+              ? Nullability.nonNullable
+              : Nullability.legacy);
       return _isNullabilityObliviousSubtypeMatch(subtypeFuture, supertype) &&
           _isNullabilityObliviousSubtypeMatch(subtypeArg, supertype) &&
           new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype)
@@ -1087,9 +1091,11 @@ abstract class TypeConstraintGatherer {
 class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   final TypeSchemaEnvironment environment;
 
-  TypeSchemaConstraintGatherer(this.environment,
-      Iterable<TypeParameter> typeParameters, Library currentLibrary)
-      : super.subclassing(typeParameters, currentLibrary);
+  TypeSchemaConstraintGatherer(
+      this.environment, Iterable<TypeParameter> typeParameters,
+      {required bool isNonNullableByDefault})
+      : super.subclassing(typeParameters,
+            isNonNullableByDefault: isNonNullableByDefault);
 
   @override
   CoreTypes get coreTypes => environment.coreTypes;
@@ -1115,10 +1121,11 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   }
 
   @override
-  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes) {
-    return environment.getTypeAsInstanceOf(
-        type, superclass, clientLibrary, coreTypes);
+  InterfaceType? getTypeAsInstanceOf(
+      InterfaceType type, Class superclass, CoreTypes coreTypes,
+      {required bool isNonNullableByDefault}) {
+    return environment.getTypeAsInstanceOf(type, superclass, coreTypes,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override

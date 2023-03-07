@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
 
 /// A contributor that produces suggestions for super formal parameters that
@@ -14,7 +15,9 @@ class SuperFormalContributor extends DartCompletionContributor {
   SuperFormalContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     var node = request.target.containingNode;
     if (node is! SuperFormalParameter) {
       return;

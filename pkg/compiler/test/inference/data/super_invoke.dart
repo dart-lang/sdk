@@ -33,7 +33,7 @@ class Sub1 extends Super1 {
 
 /*member: superMethodInvoke:[null]*/
 superMethodInvoke() {
-  new Sub1(). /*invoke: [exact=Sub1]*/ method();
+  Sub1(). /*invoke: [exact=Sub1]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ class Sub2 extends Super2 {
 
 /*member: superFieldInvoke:[null]*/
 superFieldInvoke() {
-  new Sub2(). /*invoke: [exact=Sub2]*/ method();
+  Sub2(). /*invoke: [exact=Sub2]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ class Sub3 extends Super3 {
 
 /*member: superGetterInvoke:[null]*/
 superGetterInvoke() {
-  new Sub3(). /*invoke: [exact=Sub3]*/ method();
+  Sub3(). /*invoke: [exact=Sub3]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -111,5 +111,5 @@ class Sub10 extends Super10 {
 
 /*member: overridingAbstractSuperMethodInvoke:[null]*/
 overridingAbstractSuperMethodInvoke() {
-  new Sub10(). /*invoke: [exact=Sub10]*/ method();
+  Sub10(). /*invoke: [exact=Sub10]*/ method();
 }

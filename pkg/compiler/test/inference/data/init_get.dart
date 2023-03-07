@@ -36,7 +36,7 @@ class Class1 {
 }
 
 /*member: getGetterInFinalField:[exact=JSUInt31]*/
-getGetterInFinalField() => new Class1(). /*[exact=Class1]*/ field;
+getGetterInFinalField() => Class1(). /*[exact=Class1]*/ field;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Access a top level getter in a non-final instance field initializer.
@@ -49,7 +49,7 @@ class Class2 {
 }
 
 /*member: getGetterInField:[exact=JSUInt31]*/
-getGetterInField() => new Class2(). /*[exact=Class2]*/ field;
+getGetterInField() => Class2(). /*[exact=Class2]*/ field;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Access a top level getter in a final top level field initializer.

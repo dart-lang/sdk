@@ -236,15 +236,13 @@ class SourceClassBuilder extends ClassBuilderImpl
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
     Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder);
-    if (supertype != null) {
-      Class superclass = supertype.classNode;
-      if (superclass.name == 'Function' &&
-          superclass.enclosingLibrary == coreLibrary.library) {
+    if (_isFunction(supertype, coreLibrary)) {
+      if (libraryBuilder.libraryFeatures.classModifiers.isEnabled) {
         libraryBuilder.addProblem(
             messageExtendFunction, charOffset, noLength, fileUri);
-        supertype = null;
-        supertypeBuilder = null;
       }
+      supertype = null;
+      supertypeBuilder = null;
     }
     if (!isMixinDeclaration &&
         actualCls.supertype != null &&
@@ -271,8 +269,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     Supertype? mixedInType =
         mixedInTypeBuilder?.buildMixedInType(libraryBuilder);
     if (_isFunction(mixedInType, coreLibrary)) {
-      libraryBuilder.addProblem(
-          messageMixinFunction, charOffset, noLength, fileUri);
+      if (libraryBuilder.libraryFeatures.classModifiers.isEnabled) {
+        libraryBuilder.addProblem(
+            messageMixinFunction, charOffset, noLength, fileUri);
+      }
       mixedInType = null;
       mixedInTypeBuilder = null;
       actualCls.isAnonymousMixin = false;
@@ -293,6 +293,29 @@ class SourceClassBuilder extends ClassBuilderImpl
     cls.isBase = isBase;
     cls.isInterface = isInterface;
     cls.isFinal = isFinal;
+
+    // Anonymous mixins have to propagate certain class modifiers.
+    if (cls.isAnonymousMixin) {
+      Class? superclass = cls.superclass;
+      Class? mixedInClass = cls.mixedInClass;
+      // If either [superclass] or [mixedInClass] is sealed, the current
+      // anonymous mixin is sealed.
+      if (superclass != null && superclass.isSealed ||
+          mixedInClass != null && mixedInClass.isSealed) {
+        cls.isSealed = true;
+      } else {
+        // Otherwise, if either [superclass] or [mixedInClass] is base or final,
+        // then the current anonymous mixin is final.
+        bool superclassIsBaseOrFinal =
+            superclass != null && (superclass.isBase || superclass.isFinal);
+        bool mixedInClassIsBaseOrFinal = mixedInClass != null &&
+            (mixedInClass.isBase || mixedInClass.isFinal);
+        if (superclassIsBaseOrFinal || mixedInClassIsBaseOrFinal) {
+          cls.isFinal = true;
+        }
+      }
+    }
+
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);
@@ -300,8 +323,10 @@ class SourceClassBuilder extends ClassBuilderImpl
             interfaceBuilders![i].buildSupertype(libraryBuilder);
         if (supertype != null) {
           if (_isFunction(supertype, coreLibrary)) {
-            libraryBuilder.addProblem(
-                messageImplementFunction, charOffset, noLength, fileUri);
+            if (libraryBuilder.libraryFeatures.classModifiers.isEnabled) {
+              libraryBuilder.addProblem(
+                  messageImplementFunction, charOffset, noLength, fileUri);
+            }
             continue;
           }
           // TODO(ahe): Report an error if supertype is null.
@@ -810,17 +835,20 @@ class SourceClassBuilder extends ClassBuilderImpl
         SourceMemberBuilder constructor = constructorIterator.current;
         // Assumes the constructor isn't synthetic since
         // [installSyntheticConstructors] hasn't been called yet.
-        addProblem(
-            templateIllegalMixinDueToConstructors
-                .withArguments(fullNameForErrors),
-            charOffset,
-            noLength,
-            context: [
-              templateIllegalMixinDueToConstructorsCause
-                  .withArguments(fullNameForErrors)
-                  .withLocation(
-                      constructor.fileUri!, constructor.charOffset, noLength)
-            ]);
+        if (constructor is DeclaredSourceConstructorBuilder) {
+          // Report an error if a mixin class has a constructor with parameters,
+          // is external, or is a redirecting constructor.
+          if (constructor.isRedirecting ||
+              (constructor.formals != null &&
+                  constructor.formals!.isNotEmpty) ||
+              constructor.isExternal) {
+            addProblem(
+                templateIllegalMixinDueToConstructors
+                    .withArguments(fullNameForErrors),
+                constructor.charOffset,
+                noLength);
+          }
+        }
       }
       // Check that the class has 'Object' as their superclass.
       if (superClass != null &&
@@ -954,9 +982,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    Iterator<SourceFactoryBuilder> iterator =
-        constructorScope.filteredIterator<SourceFactoryBuilder>(
-            parent: this, includeDuplicates: true, includeAugmentations: true);
+    Iterator<SourceFactoryBuilder> iterator = constructorScope.filteredIterator(
+        parent: this, includeDuplicates: true, includeAugmentations: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }

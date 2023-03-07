@@ -43,6 +43,6 @@ constants  {
   #C1 = #bar
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{)
+  #C4 = <core::Symbol*, dynamic>{}
   #C5 = #foo=
 }

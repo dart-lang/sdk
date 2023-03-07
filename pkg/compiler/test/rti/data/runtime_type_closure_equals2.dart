@@ -23,5 +23,5 @@ main() {
 
   makeLive(local1a.runtimeType == local1b.runtimeType);
   makeLive(local1a.runtimeType == local2.runtimeType);
-  new Class();
+  Class();
 }

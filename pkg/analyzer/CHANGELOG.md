@@ -1,3 +1,11 @@
+## 5.6.0
+* Fixes for patterns parsing.
+* Implemented `DartPattern.precedence`.
+
+## 5.5.0
+* Rename `RecordPatternField` to `PatternField`.
+* Rename `RecordPatternFieldName` to `PatternFieldName`.
+
 ## 5.4.0
 * Bug fixes: 50660
 

@@ -72,7 +72,7 @@ static method test(() → void f) → core::Object? {
 }
 
 constants  {
-  #C1 = <dynamic, dynamic>{)
+  #C1 = <dynamic, dynamic>{}
   #C2 = #org-dartlang-testcase:///issue47994b.dart::_symbol
   #C3 = self::Const {}
 }

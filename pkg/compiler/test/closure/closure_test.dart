@@ -20,7 +20,7 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const ClosureDataComputer(), args: args);
   });
 }
@@ -42,7 +42,7 @@ class ClosureDataComputer extends DataComputer<String> {
         definition.kind == MemberKind.regular ||
             definition.kind == MemberKind.constructor,
         failedAt(member, "Unexpected member definition $definition"));
-    new ClosureIrChecker(compiler.reporter, actualMap, elementMap, member,
+    ClosureIrChecker(compiler.reporter, actualMap, elementMap, member,
             localsMap.getLocalsMap(member), closureDataLookup, closedWorld,
             verbose: verbose)
         .run(definition.node);
@@ -209,7 +209,7 @@ class ClosureIrChecker extends IrDataExtractor<String> {
 
   /// Compute a string representation of the data stored for [local] in [info].
   String computeLocalValue(Local local) {
-    Features features = new Features();
+    Features features = Features();
     if (scopeInfo.localIsUsedInTryOrSync(_localsMap, local)) {
       features.add('inTry');
       // TODO(johnniwinther,efortuna): Should this be enabled and checked?
@@ -236,7 +236,7 @@ class ClosureIrChecker extends IrDataExtractor<String> {
   }
 
   String computeObjectValue(MemberEntity member) {
-    Features features = new Features();
+    Features features = Features();
 
     void addLocals(
         String name, forEach(KernelToLocalsMap localsMap, f(Local local, _))) {

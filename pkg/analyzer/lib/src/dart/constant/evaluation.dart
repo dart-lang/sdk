@@ -544,6 +544,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         _substitution = substitution {
     _dartObjectComputer = DartObjectComputer(
       typeSystem,
+      _library.featureSet,
       _errorReporter,
     );
   }
@@ -613,7 +614,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (operatorType == TokenType.CARET) {
       return _dartObjectComputer.eagerXor(node, leftResult, rightResult);
     } else if (operatorType == TokenType.EQ_EQ) {
-      return _dartObjectComputer.lazyEqualEqual(node, leftResult, rightResult);
+      return _dartObjectComputer.equalEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT) {
       return _dartObjectComputer.greaterThan(node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT_EQ) {
@@ -1566,11 +1567,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 /// class and for collecting errors during evaluation.
 class DartObjectComputer {
   final TypeSystemImpl _typeSystem;
+  final FeatureSet _featureSet;
 
   /// The error reporter that we are using to collect errors.
   final ErrorReporter _errorReporter;
 
-  DartObjectComputer(this._typeSystem, this._errorReporter);
+  DartObjectComputer(this._typeSystem, this._featureSet, this._errorReporter);
 
   DartObjectImpl? add(BinaryExpression node, DartObjectImpl? leftOperand,
       DartObjectImpl? rightOperand) {
@@ -1698,7 +1700,7 @@ class DartObjectComputer {
       DartObjectImpl? rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
-        return leftOperand.equalEqual(_typeSystem, rightOperand);
+        return leftOperand.equalEqual(_typeSystem, _featureSet, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1759,18 +1761,6 @@ class DartObjectComputer {
     if (leftOperand != null) {
       try {
         return leftOperand.lazyAnd(_typeSystem, rightOperandComputer);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return null;
-  }
-
-  DartObjectImpl? lazyEqualEqual(Expression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.lazyEqualEqual(_typeSystem, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1878,7 +1868,7 @@ class DartObjectComputer {
       DartObjectImpl? rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
-        return leftOperand.notEqual(_typeSystem, rightOperand);
+        return leftOperand.notEqual(_typeSystem, _featureSet, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -2313,7 +2303,7 @@ class _InstanceCreationEvaluator {
     return DartObjectImpl(
       typeSystem,
       definingType,
-      GenericState(_fieldMap, invocation: _invocation),
+      GenericState(definingType, _fieldMap, invocation: _invocation),
     );
   }
 

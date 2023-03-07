@@ -336,7 +336,7 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   __ leaq(array_reg, compiler::Address(array_reg, start_reg, scale, offset));
 }
 
-LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
+LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -352,22 +352,20 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
-  // where arguments are pushed by their definitions.
-  if (compiler->is_optimizing()) {
-    Location value = locs()->in(0);
-    if (value.IsRegister()) {
-      __ pushq(value.reg());
-    } else if (value.IsConstant()) {
-      __ PushObject(value.constant());
-    } else if (value.IsFpuRegister()) {
-      __ AddImmediate(RSP, compiler::Immediate(-kDoubleSize));
-      __ movsd(compiler::Address(RSP, 0), value.fpu_reg());
-    } else {
-      ASSERT(value.IsStackSlot());
-      __ pushq(LocationToStackSlotAddress(value));
-    }
+void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(compiler->is_optimizing());
+
+  const Location value = locs()->in(0);
+  const compiler::Address dst(RSP, sp_relative_index() * kWordSize);
+  if (value.IsRegister()) {
+    __ movq(dst, value.reg());
+  } else if (value.IsConstant()) {
+    __ StoreObject(dst, value.constant());
+  } else if (value.IsFpuRegister()) {
+    __ movsd(dst, value.fpu_reg());
+  } else {
+    ASSERT(value.IsStackSlot());
+    __ MoveMemoryToMemory(dst, LocationToStackSlotAddress(value));
   }
 }
 
@@ -1138,8 +1136,7 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
 
   compiler::Label* deopt =
       CanDeoptimize()
-          ? compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids,
-                                   licm_hoisted_ ? ICData::kHoisted : 0)
+          ? compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids)
           : NULL;
 
   const intptr_t true_result = (kind() == Token::kIS) ? 1 : 0;
@@ -1218,16 +1215,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
 
-  // All arguments are already @RSP due to preceding PushArgument()s.
-  ASSERT(ArgumentCount() ==
-         function().NumParameters() + (function().IsGeneric() ? 1 : 0));
-
-  // Push the result place holder initialized to NULL.
-  __ PushObject(Object::null_object());
-
   // Pass a pointer to the first argument in R13 (we avoid using RAX here to
   // simplify the stub code that will call native code).
-  __ leaq(R13, compiler::Address(RSP, ArgumentCount() * kWordSize));
+  __ leaq(R13, compiler::Address(RSP, (ArgumentCount() - 1) * kWordSize));
 
   __ LoadImmediate(R10, compiler::Immediate(argc_tag));
   const Code* stub;
@@ -1255,9 +1245,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateNonLazyDeoptableStubCall(
         source(), *stub, UntaggedPcDescriptors::kOther, locs());
   }
-  __ popq(result);
-
-  __ Drop(ArgumentCount());  // Drop the arguments.
+  __ LoadFromOffset(result, RSP, 0);
+  compiler->EmitDropArguments(ArgumentCount());  // Drop the arguments.
 }
 
 #define R(r) (1 << r)
@@ -2905,7 +2894,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
   if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 
   // Restore RSP from RBP as we are coming from a throw and the code for
@@ -3721,8 +3710,7 @@ LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(Zone* zone,
 
 void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label* deopt =
-      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryDoubleOp,
-                             licm_hoisted_ ? ICData::kHoisted : 0);
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryDoubleOp);
   intptr_t left_cid = left()->Type()->ToCid();
   intptr_t right_cid = right()->Type()->ToCid();
   Register left = locs()->in(0).reg();
@@ -5580,8 +5568,8 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary(Zone* zone,
 
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
-  compiler::Label* deopt = compiler->AddDeoptStub(
-      deopt_id(), ICData::kDeoptCheckSmi, licm_hoisted_ ? ICData::kHoisted : 0);
+  compiler::Label* deopt =
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckSmi);
   __ BranchIfNotSmi(value, deopt);
 }
 
@@ -5655,7 +5643,6 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   uint32_t flags = generalized_ ? ICData::kGeneralized : 0;
-  flags |= licm_hoisted_ ? ICData::kHoisted : 0;
   compiler::Label* deopt =
       compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckArrayBound, flags);
 
@@ -6596,7 +6583,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    InstructionSource());
   }
   if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 
   // We can fall through if the successor is the next block in the list.
@@ -6730,7 +6717,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ call(RCX);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),
                                  UntaggedPcDescriptors::kOther, locs(), env());
-  __ Drop(argument_count);
+  compiler->EmitDropArguments(argument_count);
 }
 
 LocationSummary* BooleanNegateInstr::MakeLocationSummary(Zone* zone,

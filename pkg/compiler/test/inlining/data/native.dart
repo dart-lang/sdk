@@ -23,20 +23,20 @@ main() {
 /*member: newCustom:[]*/
 @pragma('dart2js:noInline')
 newCustom() {
-  new CustomElement();
+  CustomElement();
 }
 
 /*member: newCustomCreated:[]*/
 @pragma('dart2js:noInline')
 newCustomCreated() {
-  new CustomElement.created();
+  CustomElement.created();
 }
 
 class CustomElement extends HtmlElement {
   static final tag = 'x-foo';
 
   /*member: CustomElement.:[newCustom:CustomElement]*/
-  factory CustomElement() => new Element.tag(tag);
+  factory CustomElement() => Element.tag(tag);
 
   /*member: CustomElement.created:[]*/
   CustomElement.created() : super.created() {
@@ -52,13 +52,13 @@ class CustomElement extends HtmlElement {
 /*member: newNormal:[]*/
 @pragma('dart2js:noInline')
 newNormal() {
-  new NormalElement();
+  NormalElement();
 }
 
 /*member: newNormalCreated:[]*/
 @pragma('dart2js:noInline')
 newNormalCreated() {
-  new NormalElement.created();
+  NormalElement.created();
 }
 
 class NormalElement {

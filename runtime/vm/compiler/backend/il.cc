@@ -16,6 +16,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/loops.h"
+#include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/marshaller.h"
@@ -840,7 +841,6 @@ CheckClassInstr::CheckClassInstr(Value* value,
                                  const InstructionSource& source)
     : TemplateInstruction(source, deopt_id),
       cids_(cids),
-      licm_hoisted_(false),
       is_bit_test_(IsCompactCidRange(cids)),
       token_pos_(source.token_pos) {
   // Expected useful check data.
@@ -1476,18 +1476,18 @@ void Instruction::UnuseAllInputs() {
   }
 }
 
-void Instruction::RepairPushArgsInEnvironment() const {
+void Instruction::RepairArgumentUsesInEnvironment() const {
   // Some calls (e.g. closure calls) have more inputs than actual arguments.
   // Those extra inputs will be consumed from the stack before the call.
   const intptr_t after_args_input_count = env()->LazyDeoptPruneCount();
-  PushArgumentsArray* push_arguments = GetPushArguments();
-  ASSERT(push_arguments != nullptr);
+  MoveArgumentsArray* move_arguments = GetMoveArguments();
+  ASSERT(move_arguments != nullptr);
   const intptr_t arg_count = ArgumentCount();
   ASSERT((arg_count + after_args_input_count) <= env()->Length());
   const intptr_t env_base =
       env()->Length() - arg_count - after_args_input_count;
   for (intptr_t i = 0; i < arg_count; ++i) {
-    env()->ValueAt(env_base + i)->BindToEnvironment(push_arguments->At(i));
+    env()->ValueAt(env_base + i)->BindToEnvironment(move_arguments->At(i));
   }
 }
 
@@ -3629,9 +3629,7 @@ TestCidsInstr::TestCidsInstr(const InstructionSource& source,
                              Value* value,
                              const ZoneGrowableArray<intptr_t>& cid_results,
                              intptr_t deopt_id)
-    : TemplateComparison(source, kind, deopt_id),
-      cid_results_(cid_results),
-      licm_hoisted_(false) {
+    : TemplateComparison(source, kind, deopt_id), cid_results_(cid_results) {
   ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
   SetInputAt(0, value);
   set_operation_cid(kObjectCid);
@@ -4038,7 +4036,7 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    InstructionSource());
   }
   if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
@@ -4068,7 +4066,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
@@ -4142,7 +4140,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
@@ -4238,7 +4236,7 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
@@ -4683,7 +4681,7 @@ LocationSummary* ParallelMoveInstr::MakeLocationSummary(Zone* zone,
 }
 
 void ParallelMoveInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  ParallelMoveEmitter(compiler, this).EmitNativeCode();
 }
 
 LocationSummary* ConstraintInstr::MakeLocationSummary(Zone* zone,
@@ -5189,8 +5187,7 @@ void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->AddNullCheck(source(), function_name);
     }
   }
-  __ Drop(ArgumentsSize());
-
+  compiler->EmitDropArguments(ArgumentsSize());
   compiler->AddDispatchTableCallTarget(selector());
 }
 
@@ -5830,8 +5827,7 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label* deopt =
-      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
-                             licm_hoisted_ ? ICData::kHoisted : 0);
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
   if (IsNullCheck()) {
     EmitNullCheck(compiler, deopt);
     return;
@@ -6116,6 +6112,9 @@ Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
                   function_, (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
   copy->SetDeoptId(DeoptIdBits::decode(bitfield_));
   copy->SetLazyDeoptToBeforeDeoptId(LazyDeoptToBeforeDeoptId());
+  if (IsHoisted()) {
+    copy->MarkAsHoisted();
+  }
   if (locations_ != NULL) {
     Location* new_locations = zone->Alloc<Location>(length);
     copy->set_locations(new_locations);

@@ -35,13 +35,13 @@ static method test2(core::Iterable<core::List<core::String>> x) → dynamic {
         core::String y;
         {
           final dynamic #0#0 = #t3;
-          function ##0#2#initializer() → core::int
-            return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-          late final core::int #0#2 = ##0#2#initializer(){() → core::int};
-          function ##0#6#initializer() → dynamic
-            return #0#0{core::List<dynamic>}.{core::List::[]}(#0#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
-          late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
-          if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y = #0#6{core::String} in true))))
+          function ##0#1#initializer() → core::int
+            return #0#0{core::List<core::String>}.{core::List::length}{core::int};
+          late final core::int #0#1 = ##0#1#initializer(){() → core::int};
+          function ##0#4#initializer() → core::String
+            return #0#0{core::List<core::String>}.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::String};
+          late final core::String #0#4 = ##0#4#initializer(){() → core::String};
+          if(!(#0#1.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#4 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y = #0#4 in true))))
             throw new _in::ReachabilityError::•();
         }
         if(y.{core::String::startsWith}("f"){(core::Pattern, [core::int]) → core::bool}) {
@@ -108,4 +108,4 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.d
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:23:10 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:27:40 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:32:27 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 138, effectively constant: 4
+Extra constant evaluation: evaluated: 135, effectively constant: 4

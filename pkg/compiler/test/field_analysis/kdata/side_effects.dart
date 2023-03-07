@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  new Class1();
+  Class1();
 }
 
 method1() => 1;

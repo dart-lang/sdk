@@ -24,7 +24,7 @@ foo(int a, int b, bool param2) {
 main() {
   runTest() async {
     await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      RegExp regexp = new RegExp('a \\+ b');
+      RegExp regexp = RegExp('a \\+ b');
       Iterator matches = regexp.allMatches(generated).iterator;
       Expect.isTrue(matches.moveNext());
       Expect.isFalse(matches.moveNext());

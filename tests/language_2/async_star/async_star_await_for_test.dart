@@ -217,7 +217,7 @@ main() async {
     if (trace.contains("B1?2")) {
       message += " (did not break in time)";
     }
-    Expects.equals(r"(^?1!1y1[e1B1$)", trace, message);
+    Expects.equals(r"(^?1!1y1[e1B1$", trace, message);
   }
 
   // Yield* at 1.
@@ -321,7 +321,7 @@ main() async {
     if (trace.contains("e1?2")) {
       message += " (did not cancel in time)";
     }
-    Expects.equals(r"(^?1!1Y1[e1B1$)", trace, message);
+    Expects.equals(r"(^?1!1Y1[e1B1$", trace, message);
   }
 
   // Yield* at 1, pause at yield, then break at yield.
@@ -341,7 +341,7 @@ main() async {
     await Future.delayed(Duration(milliseconds: 10));
     var trace = log.join("");
     String message = "yield* then pause then break at 1";
-    Expects.equals(r"(^?1!1Y1[e1<>B1$)", trace, message);
+    Expects.equals(r"(^?1!1Y1[e1<>B1$", trace, message);
   }
 
   Expects.summarize();

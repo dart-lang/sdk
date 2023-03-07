@@ -60,7 +60,9 @@ part of dart.io;
 /// ```
 class Platform {
   static final _numberOfProcessors = _Platform.numberOfProcessors;
+  @pragma("vm:platform-const")
   static final _pathSeparator = _Platform.pathSeparator;
+  @pragma("vm:platform-const")
   static final _operatingSystem = _Platform.operatingSystem;
   static final _operatingSystemVersion = _Platform.operatingSystemVersion;
   static final _localHostname = _Platform.localHostname;
@@ -71,6 +73,7 @@ class Platform {
 
   /// The path separator used by the operating system to separate
   /// components in file paths.
+  @pragma("vm:platform-const")
   static String get pathSeparator => _pathSeparator;
 
   /// Get the name of the current locale.
@@ -106,6 +109,7 @@ class Platform {
   ///
   /// Note that this list may change over time so platform-specific logic
   /// should be guarded by the appropriate boolean getter e.g. [isMacOS].
+  @pragma("vm:platform-const")
   static String get operatingSystem => _operatingSystem;
 
   /// A string representing the version of the operating system or platform.
@@ -134,26 +138,32 @@ class Platform {
   /// This value is `false` if the operating system is a specialized
   /// version of Linux that identifies itself by a different name,
   /// for example Android (see [isAndroid]).
+  @pragma("vm:platform-const")
   static final bool isLinux = (_operatingSystem == "linux");
 
   /// Whether the operating system is a version of
   /// [macOS](https://en.wikipedia.org/wiki/MacOS).
+  @pragma("vm:platform-const")
   static final bool isMacOS = (_operatingSystem == "macos");
 
   /// Whether the operating system is a version of
   /// [Microsoft Windows](https://en.wikipedia.org/wiki/Microsoft_Windows).
+  @pragma("vm:platform-const")
   static final bool isWindows = (_operatingSystem == "windows");
 
   /// Whether the operating system is a version of
   /// [Android](https://en.wikipedia.org/wiki/Android_%28operating_system%29).
+  @pragma("vm:platform-const")
   static final bool isAndroid = (_operatingSystem == "android");
 
   /// Whether the operating system is a version of
   /// [iOS](https://en.wikipedia.org/wiki/IOS).
+  @pragma("vm:platform-const")
   static final bool isIOS = (_operatingSystem == "ios");
 
   /// Whether the operating system is a version of
   /// [Fuchsia](https://en.wikipedia.org/wiki/Google_Fuchsia).
+  @pragma("vm:platform-const")
   static final bool isFuchsia = (_operatingSystem == "fuchsia");
 
   /// The environment for this process as a map from string key to string value.

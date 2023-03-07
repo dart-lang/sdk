@@ -231,6 +231,7 @@ nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 nnbd_mixed/mixin_from_opt_in/main: RuntimeError
+patterns/pattern_types: TypeCheckError
 patterns/shared_errors: TypeCheckError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
@@ -254,6 +255,7 @@ rasta/issue_000041: RuntimeError
 rasta/issue_000042: RuntimeError
 rasta/issue_000044: RuntimeError
 rasta/malformed_const_constructor: RuntimeError
+rasta/malformed_function: RuntimeError
 rasta/parser_error: RuntimeError
 rasta/static: RuntimeError
 rasta/super: RuntimeError
@@ -276,7 +278,6 @@ regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
 regress/issue_37285: RuntimeError
 regress/issue_39091_2: RuntimeError
-regress/issue_39040: RuntimeError # https://github.com/dart-lang/sdk/issues/51206
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 set_literals/disambiguation_rule2: RuntimeError

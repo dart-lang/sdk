@@ -179,7 +179,9 @@ cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
+dart/reachability_test: SkipByDesign # Developer API not supported in product mode
 dart_2/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
+dart_2/reachability_test: SkipByDesign # Developer API not supported in product mode
 
 [ $nnbd == legacy ]
 dart/*: SkipByDesign # Migrated tests are not supposed to run on non-NNBD bots.
@@ -269,8 +271,6 @@ cc/DebuggerAPI_ScriptGetTokenInfo_MultiLineInterpolation: Fail
 cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
-cc/IsolateReload_NotTypedefToTypedef: Fail
-cc/IsolateReload_TypedefToNotTypedef: Fail
 dart/spawn_shutdown_test: SkipSlow
 dart_2/spawn_shutdown_test: SkipSlow
 
@@ -288,6 +288,7 @@ dart/appjit*: SkipSlow # DFE too slow
 dart/b162922506_test: SkipSlow # Generates large input file
 dart/data_uri_spawn_test: Skip # Please triage.
 dart/enable_mirrors_test: SkipByDesign # Separate kernel compilation doesn't respect VM options.
+dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
 dart/isolates/fast_object_copy_test*: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
@@ -321,6 +322,7 @@ dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https:/
 
 [ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
 dart/isolates/fast_object_copy_test*: SkipSlow
 dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
 dart_2/isolates/fast_object_copy_test*: SkipSlow

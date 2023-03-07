@@ -13,16 +13,16 @@ library testing.expectation;
 /// use the canonical expectation instead of a more specific one. Note this
 /// isn't implemented yet.
 class Expectation {
-  static const Expectation Pass = Expectation("Pass", ExpectationGroup.Pass);
+  static const Expectation pass = Expectation("Pass", ExpectationGroup.pass);
 
-  static const Expectation Crash = Expectation("Crash", ExpectationGroup.Crash);
+  static const Expectation crash = Expectation("Crash", ExpectationGroup.crash);
 
-  static const Expectation Timeout =
-      Expectation("Timeout", ExpectationGroup.Timeout);
+  static const Expectation timeout =
+      Expectation("Timeout", ExpectationGroup.timeout);
 
-  static const Expectation Fail = Expectation("Fail", ExpectationGroup.Fail);
+  static const Expectation fail = Expectation("Fail", ExpectationGroup.fail);
 
-  static const Expectation Skip = Expectation("Skip", ExpectationGroup.Skip);
+  static const Expectation skip = Expectation("Skip", ExpectationGroup.skip);
 
   final String name;
 
@@ -30,45 +30,46 @@ class Expectation {
 
   const Expectation(this.name, this.group);
 
-  const Expectation.fail(this.name) : group = ExpectationGroup.Fail;
-
   /// Returns the canonical expectation representing [group]. That is, one of
   /// the above expectations (except for `Meta` which returns `this`).
   Expectation get canonical => fromGroup(group) ?? this;
 
+  @override
   String toString() => name;
 
   static Expectation? fromGroup(ExpectationGroup group) {
     switch (group) {
-      case ExpectationGroup.Crash:
-        return Expectation.Crash;
-      case ExpectationGroup.Fail:
-        return Expectation.Fail;
-      case ExpectationGroup.Meta:
+      case ExpectationGroup.crash:
+        return Expectation.crash;
+      case ExpectationGroup.fail:
+        return Expectation.fail;
+      case ExpectationGroup.meta:
         return null;
-      case ExpectationGroup.Pass:
-        return Expectation.Pass;
-      case ExpectationGroup.Skip:
-        return Expectation.Skip;
-      case ExpectationGroup.Timeout:
-        return Expectation.Timeout;
+      case ExpectationGroup.pass:
+        return Expectation.pass;
+      case ExpectationGroup.skip:
+        return Expectation.skip;
+      case ExpectationGroup.timeout:
+        return Expectation.timeout;
     }
   }
 }
 
 class ExpectationSet {
-  static const ExpectationSet Default = ExpectationSet(<String, Expectation>{
-    "pass": Expectation.Pass,
-    "crash": Expectation.Crash,
-    "timeout": Expectation.Timeout,
-    "fail": Expectation.Fail,
-    "skip": Expectation.Skip,
-    "missingcompiletimeerror":
-        Expectation("MissingCompileTimeError", ExpectationGroup.Fail),
-    "missingruntimeerror":
-        Expectation("MissingRuntimeError", ExpectationGroup.Fail),
-    "runtimeerror": Expectation("RuntimeError", ExpectationGroup.Fail),
-  });
+  static const ExpectationSet defaultExpectations = ExpectationSet(
+    <String, Expectation>{
+      "pass": Expectation.pass,
+      "crash": Expectation.crash,
+      "timeout": Expectation.timeout,
+      "fail": Expectation.fail,
+      "skip": Expectation.skip,
+      "missingcompiletimeerror":
+          Expectation("MissingCompileTimeError", ExpectationGroup.fail),
+      "missingruntimeerror":
+          Expectation("MissingRuntimeError", ExpectationGroup.fail),
+      "runtimeerror": Expectation("RuntimeError", ExpectationGroup.fail),
+    },
+  );
 
   final Map<String, Expectation> internalMap;
 
@@ -81,22 +82,18 @@ class ExpectationSet {
 
   factory ExpectationSet.fromJsonList(List data) {
     Map<String, Expectation> internalMap =
-        Map<String, Expectation>.from(Default.internalMap);
+        Map<String, Expectation>.from(defaultExpectations.internalMap);
     for (Map map in data) {
       String? name;
       String? group;
-      map.forEach((_key, _value) {
-        String key = _key;
-        String value = _value;
+      map.cast<String, String>().forEach((key, value) {
         switch (key) {
           case "name":
             name = value;
             break;
-
           case "group":
             group = value;
             break;
-
           default:
             throw "Unrecognized key: '$key' in '$map'.";
         }
@@ -119,28 +116,28 @@ class ExpectationSet {
 }
 
 enum ExpectationGroup {
-  Crash,
-  Fail,
-  Meta,
-  Pass,
-  Skip,
-  Timeout,
+  crash,
+  fail,
+  meta,
+  pass,
+  skip,
+  timeout,
 }
 
 ExpectationGroup groupFromString(String name) {
   switch (name) {
     case "Crash":
-      return ExpectationGroup.Crash;
+      return ExpectationGroup.crash;
     case "Fail":
-      return ExpectationGroup.Fail;
+      return ExpectationGroup.fail;
     case "Meta":
-      return ExpectationGroup.Meta;
+      return ExpectationGroup.meta;
     case "Pass":
-      return ExpectationGroup.Pass;
+      return ExpectationGroup.pass;
     case "Skip":
-      return ExpectationGroup.Skip;
+      return ExpectationGroup.skip;
     case "Timeout":
-      return ExpectationGroup.Timeout;
+      return ExpectationGroup.timeout;
     default:
       throw "Unrecognized group: '$name'.";
   }

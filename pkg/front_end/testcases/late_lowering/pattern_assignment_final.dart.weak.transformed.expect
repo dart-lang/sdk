@@ -100,7 +100,7 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   } =>#0#0;
   block {
     final dynamic #1#0 = y;
-    if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int? #t3 = #definitelyUnassignedLateFinal = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int? in true) && (let final dynamic #t4 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:35:5: Error: Final variable 'definitelyAssignedFinal' might already be assigned at this point.
+    if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t3 = #definitelyUnassignedLateFinal#set(#1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int?){(core::int) → dynamic} in true) && (let final dynamic #t4 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:35:5: Error: Final variable 'definitelyAssignedFinal' might already be assigned at this point.
     definitelyAssignedFinal] = y; // Error
     ^^^^^^^^^^^^^^^^^^^^^^^")))
       throw new _in::ReachabilityError::•();
@@ -123,12 +123,11 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   Class(field1: definitelyAssignedLateFinal, // Error
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#3#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#3#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#9#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t9 = (#2#9#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:37:17: Error: Final variable 'notDefinitelyAssignedFinal' might already be assigned at this point.
       field2: [[notDefinitelyAssignedFinal, _], // Error
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^") && (let final dynamic #t10 = (#2#9#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic} in true)) && (#2#16#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#16#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #C2 =={core::num::==}{(core::Object) → core::bool} (#2#16#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic} && (let final core::int? #t11 = #notDefinitelyAssignedLateFinal = (#2#16#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic} as{ForNonNullableByDefault} core::int? in true)))))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^") && (let final dynamic #t10 = (#2#9#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic} in true)) && (#2#16#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#16#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t11 = (#2#16#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic} in true) && (let final dynamic #t12 = #notDefinitelyAssignedLateFinal#set((#2#16#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic} as{ForNonNullableByDefault} core::int?){(core::int) → dynamic} in true)))))
       throw new _in::ReachabilityError::•();
   } =>#2#0;
 }
 
 constants  {
   #C1 = 2
-  #C2 = 1
 }

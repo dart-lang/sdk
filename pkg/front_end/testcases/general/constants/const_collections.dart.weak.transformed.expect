@@ -372,9 +372,9 @@ constants  {
   #C9 = self::CustomIterable {}
   #C10 = <core::String*>{#C4, #C5}
   #C11 = <core::String*>{#C4, #C5, #C7}
-  #C12 = <core::String*, core::String*>{#C4:#C5)
+  #C12 = <core::String*, core::String*>{#C4:#C5}
   #C13 = "bye!"
-  #C14 = <core::String*, core::String*>{#C4:#C5, #C7:#C13)
+  #C14 = <core::String*, core::String*>{#C4:#C5, #C7:#C13}
   #C15 = self::CustomMap {}
   #C16 = <core::String*>{#C4}
 }

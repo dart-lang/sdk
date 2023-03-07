@@ -5,7 +5,6 @@
 library service_test_common;
 
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'package:dds/dds.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_common.dart';
@@ -247,7 +246,6 @@ IsolateTest setBreakpointAtLine(int line) {
     Breakpoint bpt = await isolate.addBreakpoint(script, line);
     print("Breakpoint is $bpt");
     expect(bpt, isNotNull);
-    expect(bpt is Breakpoint, isTrue);
   };
 }
 
@@ -260,7 +258,6 @@ IsolateTest setBreakpointAtLineColumn(int line, int column) {
     Breakpoint bpt = await isolate.addBreakpoint(script, line, column);
     print("Breakpoint is $bpt");
     expect(bpt, isNotNull);
-    expect(bpt is Breakpoint, isTrue);
   };
 }
 
@@ -270,7 +267,6 @@ IsolateTest setBreakpointAtUriAndLine(String uri, int line) {
     Breakpoint bpt = await isolate.addBreakpointByScriptUri(uri, line);
     print("Breakpoint is $bpt");
     expect(bpt, isNotNull);
-    expect(bpt is Breakpoint, isTrue);
   };
 }
 

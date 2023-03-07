@@ -3,8 +3,7 @@ library static_interop;
 import 'package:js/js.dart';
 abstract class A {}
 @JS()
-inline
-class B {
+inline class B {
   final A a;
   external B(A a);
   external B.named(int i);

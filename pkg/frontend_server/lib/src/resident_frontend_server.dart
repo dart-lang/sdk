@@ -2,6 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: implementation_imports
+
+// front_end/src imports below that require lint `ignore_for_file` are a
+// temporary state of things until frontend team builds better api that would
+// replace api used below. This api was made private in an effort to discourage
+// further use.
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io'
@@ -9,11 +16,6 @@ import 'dart:io'
 import 'dart:typed_data' show Uint8List;
 
 import 'package:args/args.dart';
-
-// front_end/src imports below that require lint `ignore_for_file`
-// are a temporary state of things until frontend team builds better api
-// that would replace api used below. This api was made private in
-// an effort to discourage further use.
 import 'package:front_end/src/api_unstable/vm.dart';
 
 import '../frontend_server.dart';
@@ -22,7 +24,7 @@ import '../frontend_server.dart';
 /// source files on all platforms. This has no effect on correctness,
 /// but may result in more files being marked as modified than strictly
 /// required.
-const _STAT_GRANULARITY = const Duration(seconds: 1);
+const _stateGranularity = Duration(seconds: 1);
 
 /// Ensures the info file is removed if Ctrl-C is sent to the server.
 /// Mostly used when debugging.
@@ -36,16 +38,16 @@ extension on DateTime {
   /// granularity. We must floor the system time
   /// by 1 second so that if a file is modified within the same second of
   /// the last compile time, it will be correctly detected as being modified.
-  DateTime floorTime({Duration amount = _STAT_GRANULARITY}) {
-    return DateTime.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch -
-        this.millisecondsSinceEpoch % amount.inMilliseconds);
+  DateTime floorTime({Duration amount = _stateGranularity}) {
+    return DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch -
+        millisecondsSinceEpoch % amount.inMilliseconds);
   }
 }
 
 enum _ResidentState {
-  WAITING_FOR_FIRST_COMPILE,
-  COMPILING,
-  WAITING_FOR_RECOMPILE,
+  waitingForFirstCompile,
+  compiling,
+  waitingForRecompile,
 }
 
 /// A wrapper around the FrontendCompiler, along with all the state needed
@@ -64,13 +66,13 @@ enum _ResidentState {
 /// TODO Fix the race condition that occurs when the same entry point is
 ///   compiled concurrently.
 class ResidentCompiler {
-  File _entryPoint;
-  File _outputDill;
+  final File _entryPoint;
+  final File _outputDill;
   File? _currentPackage;
   ArgResults _compileOptions;
   late FrontendCompiler _compiler;
   DateTime _lastCompileStartTime = DateTime.now().floorTime();
-  _ResidentState _state = _ResidentState.WAITING_FOR_FIRST_COMPILE;
+  _ResidentState _state = _ResidentState.waitingForFirstCompile;
   final StringBuffer _compilerOutput = StringBuffer();
   final Set<Uri> trackedSources = <Uri>{};
   final List<String> _formattedOutput = <String>[];
@@ -91,7 +93,7 @@ class ResidentCompiler {
     // Refresh the compiler's output for the next compile
     _compilerOutput.clear();
     _formattedOutput.clear();
-    _state = _ResidentState.WAITING_FOR_FIRST_COMPILE;
+    _state = _ResidentState.waitingForFirstCompile;
   }
 
   /// The current compiler options are outdated when any option has changed
@@ -121,7 +123,7 @@ class ResidentCompiler {
     // check which source files need to be recompiled in the incremental
     // compilation request. If no files have been modified, we can return
     // the cached kernel. Otherwise, perform an incremental compilation.
-    if (_state == _ResidentState.WAITING_FOR_RECOMPILE) {
+    if (_state == _ResidentState.waitingForRecompile) {
       var invalidatedUris =
           await _getSourceFilesToRecompile(_lastCompileStartTime);
       // No changes to source files detected and cached kernel file exists
@@ -132,15 +134,16 @@ class ResidentCompiler {
             _outputDill.path, _formattedOutput, _compiler.errors.length,
             usingCachedKernel: true);
       }
-      _state = _ResidentState.COMPILING;
+      _state = _ResidentState.compiling;
       incremental = true;
-      invalidatedUris
-          .forEach((invalidatedUri) => _compiler.invalidate(invalidatedUri));
+      for (var invalidatedUri in invalidatedUris) {
+        _compiler.invalidate(invalidatedUri);
+      }
       _compiler.errors.clear();
       _lastCompileStartTime = DateTime.now().floorTime();
       await _compiler.recompileDelta(entryPoint: _entryPoint.path);
     } else {
-      _state = _ResidentState.COMPILING;
+      _state = _ResidentState.compiling;
       _lastCompileStartTime = DateTime.now().floorTime();
       _compiler.errors.clear();
       await _compiler.compile(_entryPoint.path, _compileOptions);
@@ -158,9 +161,9 @@ class ResidentCompiler {
       _compiler
         ..acceptLastDelta()
         ..resetIncrementalCompiler();
-      _state = _ResidentState.WAITING_FOR_RECOMPILE;
+      _state = _ResidentState.waitingForRecompile;
     } else {
-      _state = _ResidentState.WAITING_FOR_FIRST_COMPILE;
+      _state = _ResidentState.waitingForFirstCompile;
     }
     return _encodeCompilerOutput(
         _outputDill.path, _formattedOutput, _compiler.errors.length,
@@ -458,9 +461,8 @@ Future<StreamSubscription<Socket>?> residentListenAndCompile(
       throw StateError('A server is already running.');
     }
     server = await ServerSocket.bind(address, port);
-    serverInfoFile
-      ..writeAsStringSync(
-          'address:${server.address.address} port:${server.port}');
+    serverInfoFile.writeAsStringSync(
+        'address:${server.address.address} port:${server.port}');
   } on StateError catch (e) {
     print('Error: $e\n');
     return null;

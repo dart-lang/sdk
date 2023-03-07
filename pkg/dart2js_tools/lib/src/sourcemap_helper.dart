@@ -64,7 +64,8 @@ int nextDeclarationCandidate(String sources, int start) {
 ///
 /// Copied from [SingleMapping._findLine].
 TargetLineEntry? findLine(SingleMapping sourceMap, int line) {
-  int index = binarySearch(sourceMap.lines, (e) => e.line > line);
+  int index =
+      binarySearch<TargetLineEntry>(sourceMap.lines, (e) => e.line > line);
   return (index <= 0) ? null : sourceMap.lines[index - 1];
 }
 
@@ -79,6 +80,6 @@ TargetEntry? findColumn(int line, int column, TargetLineEntry? lineEntry) {
   if (lineEntry == null || lineEntry.entries.isEmpty) return null;
   if (lineEntry.line != line) return lineEntry.entries.last;
   var entries = lineEntry.entries;
-  int index = binarySearch(entries, (e) => e.column > column);
+  int index = binarySearch<TargetEntry>(entries, (e) => e.column > column);
   return (index <= 0) ? null : entries[index - 1];
 }

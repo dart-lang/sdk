@@ -18,7 +18,6 @@ import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/visitors.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
-import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
@@ -584,7 +583,7 @@ main(List<String> args) {
 }
 
 Future testData(TestData data) async {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.writeln('${data.declarations}');
   Map<String, ConstantData> constants = {};
   List<String> names = <String>[];
@@ -617,7 +616,7 @@ Future testData(TestData data) async {
     ir.TypeEnvironment typeEnvironment = elementMap.typeEnvironment;
     KElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
-    ConstantValuefier constantValuefier = new ConstantValuefier(elementMap);
+    ConstantValuefier constantValuefier = ConstantValuefier(elementMap);
     LibraryEntity library = elementEnvironment.mainLibrary!;
     constants.forEach((String name, ConstantData data) {
       final field = elementEnvironment.lookupLibraryMember(library, name)!;
@@ -634,7 +633,7 @@ Future testData(TestData data) async {
         expectedResults
             .forEach((Map<String, String> environment, String expectedText) {
           List<String> errors = [];
-          Dart2jsConstantEvaluator evaluator = new Dart2jsConstantEvaluator(
+          Dart2jsConstantEvaluator evaluator = Dart2jsConstantEvaluator(
               elementMap.env.mainComponent, elementMap.typeEnvironment,
               (ir.LocatedMessage message, List<ir.LocatedMessage>? context) {
             // TODO(johnniwinther): Assert that `message.uri != null`. Currently
@@ -650,11 +649,11 @@ Future testData(TestData data) async {
                   ? ir.EvaluationMode.weak
                   : ir.EvaluationMode.strong);
           ir.Constant evaluatedConstant = evaluator.evaluate(
-              new ir.StaticTypeContext(node, typeEnvironment), initializer);
+              ir.StaticTypeContext(node, typeEnvironment), initializer);
 
           ConstantValue value = evaluatedConstant is! ir.UnevaluatedConstant
               ? constantValuefier.visitConstant(evaluatedConstant)
-              : new NonConstantValue();
+              : NonConstantValue();
 
           Expect.isNotNull(
               value,

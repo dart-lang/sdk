@@ -44,13 +44,13 @@ class TestCompiler extends Compiler {
       String this.testType,
       Function this.onTest)
       : super(inputProvider, outputProvider, handler, options) {
-    reporter = new TestDiagnosticReporter(this);
+    reporter = TestDiagnosticReporter(this);
     test('Compiler');
   }
 
   @override
   JsBackendStrategy createBackendStrategy() {
-    return new TestBackendStrategy(this);
+    return TestBackendStrategy(this);
   }
 
   @override
@@ -142,7 +142,7 @@ Future testExitCode(
     }
   }
 
-  return new Future(() {
+  return Future(() {
     Future<api.CompilationResult> compile(
         CompilerOptions compilerOptions,
         api.CompilerInput compilerInput,
@@ -151,10 +151,10 @@ Future testExitCode(
       compilerOutput = const NullCompilerOutput();
       // Use this to silence the test when debugging:
       // handler = (uri, begin, end, message, kind) {};
-      Compiler compiler = new TestCompiler(compilerInput, compilerOutput,
+      Compiler compiler = TestCompiler(compilerInput, compilerOutput,
           compilerDiagnostics, compilerOptions, marker, type, onTest);
       return compiler.run().then((bool success) {
-        return new api.CompilationResult(compiler, isSuccess: success);
+        return api.CompilationResult(compiler, isSuccess: success);
       });
     }
 
@@ -184,7 +184,7 @@ Future testExitCode(
     entry.exitFunc = exit;
     entry.compileFunc = compile;
 
-    List<String> args = new List<String>.from(options)
+    List<String> args = List<String>.from(options)
       ..add("--libraries-spec=$sdkLibrariesSpecificationUri")
       ..add("--platform-binaries=$sdkPlatformBinariesPath")
       ..add("pkg/compiler/test/end_to_end/data/exit_code_helper.dart");

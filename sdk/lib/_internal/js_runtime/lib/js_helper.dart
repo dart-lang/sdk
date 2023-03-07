@@ -462,6 +462,13 @@ class Primitives {
     if (JS('bool', 'typeof window == "undefined"')) return;
     var window = JS('var', 'window');
     if (window == null) return;
+
+    // This property is set in the preambles that fake `Date.now()` to simulate
+    // the passage of time by advancing the clock rather than waiting. The
+    // simulated passage of time is not implemented for the browser
+    // `Performance` APIs, so we must use `Date.now()` to measure time.
+    if (JS('bool', '!!#.dartUseDateNowForTicks', window)) return;
+
     var performance = JS('var', '#.performance', window);
     if (performance == null) return;
     if (JS('bool', 'typeof #.now != "function"', performance)) return;
@@ -2699,6 +2706,7 @@ DeferredLoadCallback? deferredLoadHook;
 ///
 ///   - `0` for `LoadLibraryPriority.normal`
 ///   - `1` for `LoadLibraryPriority.high`
+@pragma('dart2js:resource-identifier')
 Future<Null> loadDeferredLibrary(String loadId, int priority) {
   // Validate the priority using the index to allow the actual enum to get
   // tree-shaken.

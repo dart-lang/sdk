@@ -70,7 +70,7 @@ void _callAsyncBridge(WasmStructRef args, Completer<Object?> completer) =>
         "(args, completer) => asyncBridge(args, completer)", args, completer);
 
 @pragma("wasm:export", "\$asyncBridge")
-WasmAnyRef? _asyncBridge(
+WasmExternRef? _asyncBridge(
     WasmExternRef? stack, WasmStructRef args, Completer<Object?> completer) {
   try {
     Object? result = _asyncBridge2(args, stack);
@@ -112,7 +112,7 @@ Object? _awaitHelper(Object? operand, WasmExternRef? stack) {
 
 Object? _futurePromise(WasmExternRef? stack, Future<Object?> future) =>
     JS<Object?>("""new WebAssembly.Function(
-            {parameters: ['externref', 'externref'], results: ['externref']},
+            {parameters: ['externref', 'anyref'], results: ['anyref']},
             function(future) {
                 return new Promise(function (resolve, reject) {
                     dartInstance.exports.\$awaitCallback(future, resolve);

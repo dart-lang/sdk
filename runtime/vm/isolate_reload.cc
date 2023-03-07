@@ -2005,8 +2005,11 @@ void ProgramReloadContext::RunInvalidationVisitors() {
 
   InvalidateKernelInfos(zone, kernel_infos);
   InvalidateSuspendStates(zone, suspend_states);
-  InvalidateFunctions(zone, functions);
   InvalidateFields(zone, fields, instances);
+
+  // After InvalidateFields in order to invalidate
+  // implicit getters which need load guards.
+  InvalidateFunctions(zone, functions);
 }
 
 void ProgramReloadContext::InvalidateKernelInfos(
@@ -2051,6 +2054,7 @@ void ProgramReloadContext::InvalidateFunctions(
   Class& owning_class = Class::Handle(zone);
   Library& owning_lib = Library::Handle(zone);
   Code& code = Code::Handle(zone);
+  Field& field = Field::Handle(zone);
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   for (intptr_t i = 0; i < functions.length(); i++) {
     const Function& func = *functions[i];
@@ -2062,9 +2066,20 @@ void ProgramReloadContext::InvalidateFunctions(
     code = func.CurrentCode();
     ASSERT(!code.IsNull());
 
+    // Force recompilation of unoptimized code of implicit getters
+    // in order to add load guards. This is needed for future
+    // deoptimizations which will expect load guard in the unoptimized code.
+    bool recompile_for_load_guard = false;
+    if (func.IsImplicitGetterFunction() ||
+        func.IsImplicitStaticGetterFunction()) {
+      field = func.accessor_field();
+      recompile_for_load_guard = field.needs_load_guard();
+    }
+
     owning_class = func.Owner();
     owning_lib = owning_class.library();
-    const bool clear_code = IsDirty(owning_lib);
+    const bool clear_unoptimized_code =
+        IsDirty(owning_lib) || recompile_for_load_guard;
     const bool stub_code = code.IsStubCode();
 
     // Zero edge counters, before clearing the ICDataArray, since that's where
@@ -2073,7 +2088,7 @@ void ProgramReloadContext::InvalidateFunctions(
 
     if (stub_code) {
       // Nothing to reset.
-    } else if (clear_code) {
+    } else if (clear_unoptimized_code) {
       VTIR_Print("Marking %s for recompilation, clearing code\n",
                  func.ToCString());
       // Null out the ICData array and code.
@@ -2379,7 +2394,16 @@ class FieldInvalidator {
       // Even if doing an identity reload, type check can fail if hot reload
       // happens while constructor is still running and field is not
       // initialized yet, so it has a null value.
-      ASSERT(!FLAG_identity_reload || value.IsNull());
+#ifdef DEBUG
+      if (FLAG_identity_reload && !value.IsNull()) {
+        FATAL(
+            "Type check failed during identity hot reload.\n"
+            "  field: %s\n"
+            "  type: %s\n"
+            "  value: %s\n",
+            field.ToCString(), type_.ToCString(), value.ToCString());
+      }
+#endif
       field.set_needs_load_guard(true);
     }
   }

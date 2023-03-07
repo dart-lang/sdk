@@ -29,18 +29,22 @@ Future<void> main(List<String> args) async {
     "Extension",
     ["name", "fileUri"],
   ));
-  helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
+
+  helper.VMServiceHeapHelperSpecificExactLeakFinder createNewLeakFinder() =>
       new helper.VMServiceHeapHelperSpecificExactLeakFinder(
-    interests: interests,
-    prettyPrints: [
-      new helper.Interest(
-        Uri.parse("package:kernel/ast.dart"),
-        "Library",
-        ["fileUri", "libraryIdForTesting"],
-      ),
-    ],
-    throwOnPossibleLeak: true,
-  );
+        interests: interests,
+        prettyPrints: [
+          new helper.Interest(
+            Uri.parse("package:kernel/ast.dart"),
+            "Library",
+            ["fileUri", "libraryIdForTesting"],
+          ),
+        ],
+        throwOnPossibleLeak: true,
+      );
+
+  helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
+      createNewLeakFinder();
 
   if (args.length > 0 && args[0] == "--dart2js") {
     await heapHelper.start([
@@ -61,6 +65,46 @@ Future<void> main(List<String> args) async {
       // mixups with import urls and file urls.
       "-DskipTests=import_package_by_file_uri,issue_49968"
     ]);
+  } else if (args.length > 0 && args[0].startsWith("--connect=")) {
+    // Connect to already running process.
+    String uriString = args[0].substring("--connect=".length);
+    Uri uri = Uri.parse(uriString);
+    while (true) {
+      try {
+        heapHelper.timeout = 30;
+        heapHelper.verbose = true;
+        await heapHelper.startWithoutRunning(uri);
+      } catch (e) {
+        print("Got $e...");
+        if ("$e".contains("Leaks found")) {
+          rethrow;
+        }
+        print("Will retry in a few seconds.");
+        heapHelper = createNewLeakFinder();
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+  } else if (args.length > 0 && args[0] == "--dart-leak-test") {
+    // Connect to already running process via file specifying uri.
+    while (true) {
+      try {
+        final String uriString = new File.fromUri(
+                Directory.systemTemp.uri.resolve('./dart_leak_test_uri'))
+            .readAsStringSync();
+        final Uri uri = Uri.parse(uriString);
+        heapHelper.timeout = 30;
+        heapHelper.verbose = true;
+        await heapHelper.startWithoutRunning(uri);
+      } catch (e) {
+        print("Got $e...");
+        if ("$e".contains("Leaks found")) {
+          rethrow;
+        }
+        print("Will retry in a few seconds.");
+        heapHelper = createNewLeakFinder();
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
   } else {
     await heapHelper.start([
       "--enable-asserts",

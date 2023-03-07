@@ -45,8 +45,8 @@ class Subclass extends Class {
 /*member: main:calls=*,params=0*/
 main() {
   method1();
-  new Class.capture();
-  new Class.box();
-  new Subclass.capture();
-  new Subclass.box();
+  Class.capture();
+  Class.box();
+  Subclass.capture();
+  Subclass.box();
 }

@@ -46,10 +46,6 @@ class NativeMemoryProfileElement extends CustomElement implements Renderable {
       M.NotificationRepository notifications,
       M.NativeMemorySampleProfileRepository profiles,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(profiles != null);
     NativeMemoryProfileElement e = new NativeMemoryProfileElement.created();
     e._r = new RenderingScheduler<NativeMemoryProfileElement>(e, queue: queue);
     e._vm = vm;

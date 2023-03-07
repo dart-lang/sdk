@@ -209,6 +209,16 @@ final a = switch (Object()) {
   Square(length: v^ar l) => l * l,
   Circle(radius: var r) => math.pi * r * r
 };
+
+class Square {
+  final int length;
+  Square(this.length);
+}
+
+class Circle {
+  final int length;
+  Circle(this.radius);
+}
 ''');
 
     final regions = await _computeSelectionRanges(content);

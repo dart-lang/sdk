@@ -149,6 +149,7 @@ nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42603: TypeCheckError
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 no_such_method_forwarders/mixin_nsm: TypeCheckError
+patterns/pattern_types: TypeCheckError
 patterns/shared_errors: TypeCheckError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
@@ -172,6 +173,7 @@ rasta/issue_000041: RuntimeError
 rasta/issue_000042: RuntimeError
 rasta/issue_000044: RuntimeError
 rasta/malformed_const_constructor: RuntimeError
+rasta/malformed_function: RuntimeError
 rasta/parser_error: RuntimeError
 rasta/static: RuntimeError
 rasta/super: RuntimeError

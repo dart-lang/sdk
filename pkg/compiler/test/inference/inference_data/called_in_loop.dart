@@ -95,10 +95,10 @@ class Class {
 
 /*member: instanceCalledInForLoop:*/
 instanceCalledInForLoop() {
-  var c = new Class.constructorNotCalledInForLoop();
+  var c = Class.constructorNotCalledInForLoop();
   c.instanceNotCalledInForLoop();
   for (int i = 0; i < 10; i++) {
-    new Class.constructorCalledInForLoop();
+    Class.constructorCalledInForLoop();
     c.instanceCalledInForLoop();
   }
   c.instanceNotCalledInForLoop();

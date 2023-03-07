@@ -8,7 +8,7 @@ import 'test_helper.dart';
 import 'dart:async';
 
 doThrow() {
-  throw "TheException"; // Line 13.
+  throw "TheException";
 }
 
 doCaught() {

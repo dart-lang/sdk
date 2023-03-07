@@ -88,11 +88,11 @@ Future testUnionTypeMaskFlatten() async {
       class E extends B implements A {}
 
       main() {
-        new A();
-        new B();
-        new C();
-        new D();
-        new E();
+        A();
+        B();
+        C();
+        D();
+        E();
       }
       """, testBackendWorld: true);
 

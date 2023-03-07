@@ -35,6 +35,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 
+import '../../base/nnbd_mode.dart';
 import '../fasta_codes.dart';
 
 import 'constant_int_folder.dart';
@@ -177,7 +178,18 @@ void transformProcedure(
 enum EvaluationMode {
   weak,
   agnostic,
-  strong,
+  strong;
+
+  static EvaluationMode fromNnbdMode(NnbdMode nnbdMode) {
+    switch (nnbdMode) {
+      case NnbdMode.Weak:
+        return EvaluationMode.weak;
+      case NnbdMode.Strong:
+        return EvaluationMode.strong;
+      case NnbdMode.Agnostic:
+        return EvaluationMode.agnostic;
+    }
+  }
 }
 
 class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
@@ -386,7 +398,7 @@ class ConstantsTransformer extends RemovingTransformer {
   final bool errorOnUnevaluatedConstant;
 
   /// Cache used for checking exhaustiveness.
-  final CfeExhaustivenessCache exhaustivenessCache;
+  late final CfeExhaustivenessCache exhaustivenessCache;
 
   final ExhaustivenessInfo? exhaustivenessInfo;
   final ExhaustivenessDataForTesting? _exhaustivenessDataForTesting;
@@ -406,7 +418,6 @@ class ConstantsTransformer extends RemovingTransformer {
       this.exhaustivenessInfo,
       {ExhaustivenessDataForTesting? exhaustivenessDataForTesting})
       : this.backend = target.constantsBackend,
-        exhaustivenessCache = new CfeExhaustivenessCache(typeEnvironment),
         constantEvaluator = new ConstantEvaluator(
             target.dartLibrarySupport,
             target.constantsBackend,
@@ -418,7 +429,9 @@ class ConstantsTransformer extends RemovingTransformer {
             enableConstFunctions: enableConstFunctions,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             evaluationMode: evaluationMode),
-        _exhaustivenessDataForTesting = exhaustivenessDataForTesting;
+        _exhaustivenessDataForTesting = exhaustivenessDataForTesting {
+    exhaustivenessCache = new CfeExhaustivenessCache(constantEvaluator);
+  }
 
   /// Whether to preserve constant [Field]s. All use-sites will be rewritten.
   bool get keepFields => backend.keepFields;
@@ -790,6 +803,13 @@ class ConstantsTransformer extends RemovingTransformer {
         node, () => super.visitBlock(node, removalSentinel));
   }
 
+  @override
+  TreeNode visitBlockExpression(
+      BlockExpression node, TreeNode? removalSentinel) {
+    return _handleExhaustiveness(
+        node, () => super.visitBlockExpression(node, removalSentinel));
+  }
+
   TreeNode _handleExhaustiveness(TreeNode node, TreeNode Function() f) {
     TreeNode result;
     SwitchInfo? switchInfo = exhaustivenessInfo?.getSwitchInfo(node);
@@ -810,24 +830,28 @@ class ConstantsTransformer extends RemovingTransformer {
       if (_exhaustivenessDataForTesting != null) {
         remainingSpaces = [];
       }
-      for (ExhaustivenessError error
-          in reportErrors(type, cases, remainingSpaces)) {
-        if (error is UnreachableCaseError) {
-          constantEvaluator.errorReporter.report(
-              constantEvaluator.createLocatedMessageWithOffset(
-                  node,
-                  switchInfo.cases[error.index].fileOffset,
-                  messageUnreachableSwitchCase));
-        } else if (error is NonExhaustiveError && switchInfo.mustBeExhaustive) {
-          Library library = constantEvaluator.libraryOf(node);
-          constantEvaluator.errorReporter.report(
-              constantEvaluator.createLocatedMessageWithOffset(
-                  node,
-                  switchInfo.fileOffset,
-                  templateNonExhaustiveSwitch.withArguments(
-                      switchInfo.expressionType,
-                      '${error.remaining}',
-                      library.isNonNullableByDefault)));
+      List<ExhaustivenessError> errors =
+          reportErrors(type, cases, remainingSpaces);
+      if (!useFallbackExhaustivenessAlgorithm) {
+        for (ExhaustivenessError error in errors) {
+          if (error is UnreachableCaseError) {
+            constantEvaluator.errorReporter.report(
+                constantEvaluator.createLocatedMessageWithOffset(
+                    node,
+                    switchInfo.cases[error.index].fileOffset,
+                    messageUnreachableSwitchCase));
+          } else if (error is NonExhaustiveError &&
+              switchInfo.mustBeExhaustive) {
+            Library library = constantEvaluator.libraryOf(node);
+            constantEvaluator.errorReporter.report(
+                constantEvaluator.createLocatedMessageWithOffset(
+                    node,
+                    switchInfo.fileOffset,
+                    templateNonExhaustiveSwitch.withArguments(
+                        switchInfo.expressionType,
+                        '${error.witness}',
+                        library.isNonNullableByDefault)));
+          }
         }
       }
       if (_exhaustivenessDataForTesting != null) {
@@ -838,7 +862,8 @@ class ConstantsTransformer extends RemovingTransformer {
                 switchInfo.cases
                     .map((SwitchCaseInfo info) => info.fileOffset)
                     .toList(),
-                remainingSpaces!);
+                remainingSpaces!,
+                errors);
       }
 
       constantEvaluator.constantPatternValues = previousConstantPatternValues;
@@ -3144,7 +3169,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   /// This compute the constant as seen in the current evaluation mode even when
   /// the constant is defined in a library compiled with the agnostic evaluation
   /// mode.
-  Constant _evaluateExpressionInContext(Member member, Expression expression) {
+  Constant evaluateExpressionInContext(Member member, Expression expression) {
     StaticTypeContext? oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext(member, typeEnvironment);
     Constant constant = _evaluateSubexpression(expression);
@@ -3166,7 +3191,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       visitedLibraries.add(target.enclosingLibrary);
       if (target is Field) {
         if (target.isConst) {
-          return _evaluateExpressionInContext(target, target.initializer!);
+          return evaluateExpressionInContext(target, target.initializer!);
         }
         return createEvaluationErrorConstant(
             node,
@@ -3241,7 +3266,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant _getFromEnvironmentDefaultValue(Procedure target) {
     VariableDeclaration variable = target.function.namedParameters
         .singleWhere((v) => v.name == 'defaultValue');
-    return _evaluateExpressionInContext(target, variable.initializer!);
+    return evaluateExpressionInContext(target, variable.initializer!);
   }
 
   Constant _handleFromEnvironment(

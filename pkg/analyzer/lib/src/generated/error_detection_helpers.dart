@@ -82,6 +82,21 @@ mixin ErrorDetectionHelpers {
         return node;
       }
 
+      if (expectedStaticType is RecordType) {
+        if (actualStaticType is! RecordType &&
+            expectedStaticType.positionalFields.length == 1) {
+          var field = expectedStaticType.positionalFields.first;
+          if (typeSystem.isAssignableTo(field.type, actualStaticType)) {
+            errorReporter.reportErrorForNode(
+              WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+              expression,
+              [],
+            );
+            return;
+          }
+        }
+      }
+
       errorReporter.reportErrorForNode(
         errorCode,
         getErrorNode(expression),

@@ -65,11 +65,6 @@ class AllocationProfileElement extends CustomElement implements Renderable {
       M.NotificationRepository notifications,
       M.AllocationProfileRepository repository,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(repository != null);
     AllocationProfileElement e = new AllocationProfileElement.created();
     e._r = new RenderingScheduler<AllocationProfileElement>(e, queue: queue);
     e._vm = vm;
@@ -453,10 +448,6 @@ class AllocationProfileElement extends CustomElement implements Renderable {
     final collections = '${space.collections}';
     final avgCollectionTime =
         '${Utils.formatDurationInMilliseconds(space.avgCollectionTime)} ms';
-    final totalCollectionTime =
-        '${Utils.formatDurationInSeconds(space.totalCollectionTime)} secs';
-    final avgCollectionPeriod =
-        '${Utils.formatDurationInMilliseconds(space.avgCollectionPeriod)} ms';
     return [
       new DivElement()
         ..classes = ['memberItem']

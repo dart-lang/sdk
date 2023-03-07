@@ -125,218 +125,224 @@ class Keyword extends TokenType {
   static const Keyword AWAIT =
       const Keyword(/* index = */ 84, "await", "AWAIT", KeywordStyle.pseudo);
 
+  static const Keyword BASE =
+      const Keyword(/* index = */ 85, "base", "BASE", KeywordStyle.pseudo);
+
   static const Keyword BREAK =
-      const Keyword(/* index = */ 85, "break", "BREAK", KeywordStyle.reserved);
+      const Keyword(/* index = */ 86, "break", "BREAK", KeywordStyle.reserved);
 
   static const Keyword CASE =
-      const Keyword(/* index = */ 86, "case", "CASE", KeywordStyle.reserved);
+      const Keyword(/* index = */ 87, "case", "CASE", KeywordStyle.reserved);
 
   static const Keyword CATCH =
-      const Keyword(/* index = */ 87, "catch", "CATCH", KeywordStyle.reserved);
+      const Keyword(/* index = */ 88, "catch", "CATCH", KeywordStyle.reserved);
 
   static const Keyword CLASS = const Keyword(
-      /* index = */ 88, "class", "CLASS", KeywordStyle.reserved,
+      /* index = */ 89, "class", "CLASS", KeywordStyle.reserved,
       isTopLevelKeyword: true);
 
   static const Keyword CONST = const Keyword(
-      /* index = */ 89, "const", "CONST", KeywordStyle.reserved,
+      /* index = */ 90, "const", "CONST", KeywordStyle.reserved,
       isModifier: true);
 
   static const Keyword CONTINUE = const Keyword(
-      /* index = */ 90, "continue", "CONTINUE", KeywordStyle.reserved);
+      /* index = */ 91, "continue", "CONTINUE", KeywordStyle.reserved);
 
   static const Keyword COVARIANT = const Keyword(
-      /* index = */ 91, "covariant", "COVARIANT", KeywordStyle.builtIn,
+      /* index = */ 92, "covariant", "COVARIANT", KeywordStyle.builtIn,
       isModifier: true);
 
   static const Keyword DEFAULT = const Keyword(
-      /* index = */ 92, "default", "DEFAULT", KeywordStyle.reserved);
+      /* index = */ 93, "default", "DEFAULT", KeywordStyle.reserved);
 
   static const Keyword DEFERRED = const Keyword(
-      /* index = */ 93, "deferred", "DEFERRED", KeywordStyle.builtIn);
+      /* index = */ 94, "deferred", "DEFERRED", KeywordStyle.builtIn);
 
   static const Keyword DO =
-      const Keyword(/* index = */ 94, "do", "DO", KeywordStyle.reserved);
+      const Keyword(/* index = */ 95, "do", "DO", KeywordStyle.reserved);
 
   static const Keyword DYNAMIC = const Keyword(
-      /* index = */ 95, "dynamic", "DYNAMIC", KeywordStyle.builtIn);
+      /* index = */ 96, "dynamic", "DYNAMIC", KeywordStyle.builtIn);
 
   static const Keyword ELSE =
-      const Keyword(/* index = */ 96, "else", "ELSE", KeywordStyle.reserved);
+      const Keyword(/* index = */ 97, "else", "ELSE", KeywordStyle.reserved);
 
   static const Keyword ENUM = const Keyword(
-      /* index = */ 97, "enum", "ENUM", KeywordStyle.reserved,
+      /* index = */ 98, "enum", "ENUM", KeywordStyle.reserved,
       isTopLevelKeyword: true);
 
   static const Keyword EXPORT = const Keyword(
-      /* index = */ 98, "export", "EXPORT", KeywordStyle.builtIn,
+      /* index = */ 99, "export", "EXPORT", KeywordStyle.builtIn,
       isTopLevelKeyword: true);
 
   static const Keyword EXTENDS = const Keyword(
-      /* index = */ 99, "extends", "EXTENDS", KeywordStyle.reserved);
+      /* index = */ 100, "extends", "EXTENDS", KeywordStyle.reserved);
 
   static const Keyword EXTENSION = const Keyword(
-      /* index = */ 100, "extension", "EXTENSION", KeywordStyle.builtIn,
+      /* index = */ 101, "extension", "EXTENSION", KeywordStyle.builtIn,
       isTopLevelKeyword: true);
 
   static const Keyword EXTERNAL = const Keyword(
-      /* index = */ 101, "external", "EXTERNAL", KeywordStyle.builtIn,
+      /* index = */ 102, "external", "EXTERNAL", KeywordStyle.builtIn,
       isModifier: true);
 
   static const Keyword FACTORY = const Keyword(
-      /* index = */ 102, "factory", "FACTORY", KeywordStyle.builtIn);
+      /* index = */ 103, "factory", "FACTORY", KeywordStyle.builtIn);
 
   static const Keyword FALSE =
-      const Keyword(/* index = */ 103, "false", "FALSE", KeywordStyle.reserved);
+      const Keyword(/* index = */ 104, "false", "FALSE", KeywordStyle.reserved);
 
   static const Keyword FINAL = const Keyword(
-      /* index = */ 104, "final", "FINAL", KeywordStyle.reserved,
+      /* index = */ 105, "final", "FINAL", KeywordStyle.reserved,
       isModifier: true);
 
   static const Keyword FINALLY = const Keyword(
-      /* index = */ 105, "finally", "FINALLY", KeywordStyle.reserved);
+      /* index = */ 106, "finally", "FINALLY", KeywordStyle.reserved);
 
   static const Keyword FOR =
-      const Keyword(/* index = */ 106, "for", "FOR", KeywordStyle.reserved);
+      const Keyword(/* index = */ 107, "for", "FOR", KeywordStyle.reserved);
 
   static const Keyword FUNCTION = const Keyword(
-      /* index = */ 107, "Function", "FUNCTION", KeywordStyle.builtIn);
+      /* index = */ 108, "Function", "FUNCTION", KeywordStyle.builtIn);
 
   static const Keyword GET =
-      const Keyword(/* index = */ 108, "get", "GET", KeywordStyle.builtIn);
+      const Keyword(/* index = */ 109, "get", "GET", KeywordStyle.builtIn);
 
   static const Keyword HIDE =
-      const Keyword(/* index = */ 109, "hide", "HIDE", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 110, "hide", "HIDE", KeywordStyle.pseudo);
 
   static const Keyword IF =
-      const Keyword(/* index = */ 110, "if", "IF", KeywordStyle.reserved);
+      const Keyword(/* index = */ 111, "if", "IF", KeywordStyle.reserved);
 
   static const Keyword IMPLEMENTS = const Keyword(
-      /* index = */ 111, "implements", "IMPLEMENTS", KeywordStyle.builtIn);
+      /* index = */ 112, "implements", "IMPLEMENTS", KeywordStyle.builtIn);
 
   static const Keyword IMPORT = const Keyword(
-      /* index = */ 112, "import", "IMPORT", KeywordStyle.builtIn,
+      /* index = */ 113, "import", "IMPORT", KeywordStyle.builtIn,
       isTopLevelKeyword: true);
 
   static const Keyword IN =
-      const Keyword(/* index = */ 113, "in", "IN", KeywordStyle.reserved);
+      const Keyword(/* index = */ 114, "in", "IN", KeywordStyle.reserved);
 
   static const Keyword INOUT =
-      const Keyword(/* index = */ 114, "inout", "INOUT", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 115, "inout", "INOUT", KeywordStyle.pseudo);
 
   static const Keyword INTERFACE = const Keyword(
-      /* index = */ 115, "interface", "INTERFACE", KeywordStyle.builtIn);
+      /* index = */ 116, "interface", "INTERFACE", KeywordStyle.builtIn);
 
   static const Keyword IS = const Keyword(
-      /* index = */ 116, "is", "IS", KeywordStyle.reserved,
+      /* index = */ 117, "is", "IS", KeywordStyle.reserved,
       precedence: RELATIONAL_PRECEDENCE);
 
   static const Keyword LATE = const Keyword(
-      /* index = */ 117, "late", "LATE", KeywordStyle.builtIn,
+      /* index = */ 118, "late", "LATE", KeywordStyle.builtIn,
       isModifier: true);
 
   static const Keyword LIBRARY = const Keyword(
-      /* index = */ 118, "library", "LIBRARY", KeywordStyle.builtIn,
+      /* index = */ 119, "library", "LIBRARY", KeywordStyle.builtIn,
       isTopLevelKeyword: true);
 
   static const Keyword MIXIN = const Keyword(
-      /* index = */ 119, "mixin", "MIXIN", KeywordStyle.builtIn,
+      /* index = */ 120, "mixin", "MIXIN", KeywordStyle.builtIn,
       isTopLevelKeyword: true);
 
   static const Keyword NATIVE =
-      const Keyword(/* index = */ 120, "native", "NATIVE", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 121, "native", "NATIVE", KeywordStyle.pseudo);
 
   static const Keyword NEW =
-      const Keyword(/* index = */ 121, "new", "NEW", KeywordStyle.reserved);
+      const Keyword(/* index = */ 122, "new", "NEW", KeywordStyle.reserved);
 
   static const Keyword NULL =
-      const Keyword(/* index = */ 122, "null", "NULL", KeywordStyle.reserved);
+      const Keyword(/* index = */ 123, "null", "NULL", KeywordStyle.reserved);
 
   static const Keyword OF =
-      const Keyword(/* index = */ 123, "of", "OF", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 124, "of", "OF", KeywordStyle.pseudo);
 
   static const Keyword ON =
-      const Keyword(/* index = */ 124, "on", "ON", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 125, "on", "ON", KeywordStyle.pseudo);
 
   static const Keyword OPERATOR = const Keyword(
-      /* index = */ 125, "operator", "OPERATOR", KeywordStyle.builtIn);
+      /* index = */ 126, "operator", "OPERATOR", KeywordStyle.builtIn);
 
   static const Keyword OUT =
-      const Keyword(/* index = */ 126, "out", "OUT", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 127, "out", "OUT", KeywordStyle.pseudo);
 
   static const Keyword PART = const Keyword(
-      /* index = */ 127, "part", "PART", KeywordStyle.builtIn,
+      /* index = */ 128, "part", "PART", KeywordStyle.builtIn,
       isTopLevelKeyword: true);
 
   static const Keyword PATCH =
-      const Keyword(/* index = */ 128, "patch", "PATCH", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 129, "patch", "PATCH", KeywordStyle.pseudo);
 
   static const Keyword REQUIRED = const Keyword(
-      /* index = */ 129, "required", "REQUIRED", KeywordStyle.builtIn,
+      /* index = */ 130, "required", "REQUIRED", KeywordStyle.builtIn,
       isModifier: true);
 
   static const Keyword RETHROW = const Keyword(
-      /* index = */ 130, "rethrow", "RETHROW", KeywordStyle.reserved);
+      /* index = */ 131, "rethrow", "RETHROW", KeywordStyle.reserved);
 
   static const Keyword RETURN = const Keyword(
-      /* index = */ 131, "return", "RETURN", KeywordStyle.reserved);
+      /* index = */ 132, "return", "RETURN", KeywordStyle.reserved);
+
+  static const Keyword SEALED =
+      const Keyword(/* index = */ 133, "sealed", "SEALED", KeywordStyle.pseudo);
 
   static const Keyword SET =
-      const Keyword(/* index = */ 132, "set", "SET", KeywordStyle.builtIn);
+      const Keyword(/* index = */ 134, "set", "SET", KeywordStyle.builtIn);
 
   static const Keyword SHOW =
-      const Keyword(/* index = */ 133, "show", "SHOW", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 135, "show", "SHOW", KeywordStyle.pseudo);
 
   static const Keyword SOURCE =
-      const Keyword(/* index = */ 134, "source", "SOURCE", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 136, "source", "SOURCE", KeywordStyle.pseudo);
 
   static const Keyword STATIC = const Keyword(
-      /* index = */ 135, "static", "STATIC", KeywordStyle.builtIn,
+      /* index = */ 137, "static", "STATIC", KeywordStyle.builtIn,
       isModifier: true);
 
   static const Keyword SUPER =
-      const Keyword(/* index = */ 136, "super", "SUPER", KeywordStyle.reserved);
+      const Keyword(/* index = */ 138, "super", "SUPER", KeywordStyle.reserved);
 
   static const Keyword SWITCH = const Keyword(
-      /* index = */ 137, "switch", "SWITCH", KeywordStyle.reserved);
+      /* index = */ 139, "switch", "SWITCH", KeywordStyle.reserved);
 
   static const Keyword SYNC =
-      const Keyword(/* index = */ 138, "sync", "SYNC", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 140, "sync", "SYNC", KeywordStyle.pseudo);
 
   static const Keyword THIS =
-      const Keyword(/* index = */ 139, "this", "THIS", KeywordStyle.reserved);
+      const Keyword(/* index = */ 141, "this", "THIS", KeywordStyle.reserved);
 
   static const Keyword THROW =
-      const Keyword(/* index = */ 140, "throw", "THROW", KeywordStyle.reserved);
+      const Keyword(/* index = */ 142, "throw", "THROW", KeywordStyle.reserved);
 
   static const Keyword TRUE =
-      const Keyword(/* index = */ 141, "true", "TRUE", KeywordStyle.reserved);
+      const Keyword(/* index = */ 143, "true", "TRUE", KeywordStyle.reserved);
 
   static const Keyword TRY =
-      const Keyword(/* index = */ 142, "try", "TRY", KeywordStyle.reserved);
+      const Keyword(/* index = */ 144, "try", "TRY", KeywordStyle.reserved);
 
   static const Keyword TYPEDEF = const Keyword(
-      /* index = */ 143, "typedef", "TYPEDEF", KeywordStyle.builtIn,
+      /* index = */ 145, "typedef", "TYPEDEF", KeywordStyle.builtIn,
       isTopLevelKeyword: true);
 
   static const Keyword VAR = const Keyword(
-      /* index = */ 144, "var", "VAR", KeywordStyle.reserved,
+      /* index = */ 146, "var", "VAR", KeywordStyle.reserved,
       isModifier: true);
 
   static const Keyword VOID =
-      const Keyword(/* index = */ 145, "void", "VOID", KeywordStyle.reserved);
+      const Keyword(/* index = */ 147, "void", "VOID", KeywordStyle.reserved);
 
   static const Keyword WHEN =
-      const Keyword(/* index = */ 146, "when", 'WHEN', KeywordStyle.pseudo);
+      const Keyword(/* index = */ 148, "when", 'WHEN', KeywordStyle.pseudo);
 
   static const Keyword WHILE =
-      const Keyword(/* index = */ 147, "while", "WHILE", KeywordStyle.reserved);
+      const Keyword(/* index = */ 149, "while", "WHILE", KeywordStyle.reserved);
 
   static const Keyword WITH =
-      const Keyword(/* index = */ 148, "with", "WITH", KeywordStyle.reserved);
+      const Keyword(/* index = */ 150, "with", "WITH", KeywordStyle.reserved);
 
   static const Keyword YIELD =
-      const Keyword(/* index = */ 149, "yield", "YIELD", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 151, "yield", "YIELD", KeywordStyle.pseudo);
 
   static const List<Keyword> values = const <Keyword>[
     ABSTRACT,
@@ -345,6 +351,7 @@ class Keyword extends TokenType {
     ASYNC,
     AUGMENT,
     AWAIT,
+    BASE,
     BREAK,
     CASE,
     CATCH,
@@ -392,6 +399,7 @@ class Keyword extends TokenType {
     REQUIRED,
     RETHROW,
     RETURN,
+    SEALED,
     SET,
     SHOW,
     SOURCE,
@@ -1921,6 +1929,7 @@ const List<TokenType> _tokenTypesByIndex = [
   Keyword.ASYNC,
   Keyword.AUGMENT,
   Keyword.AWAIT,
+  Keyword.BASE,
   Keyword.BREAK,
   Keyword.CASE,
   Keyword.CATCH,
@@ -1968,6 +1977,7 @@ const List<TokenType> _tokenTypesByIndex = [
   Keyword.REQUIRED,
   Keyword.RETHROW,
   Keyword.RETURN,
+  Keyword.SEALED,
   Keyword.SET,
   Keyword.SHOW,
   Keyword.SOURCE,

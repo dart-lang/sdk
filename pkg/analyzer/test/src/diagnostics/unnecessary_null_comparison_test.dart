@@ -77,6 +77,32 @@ f(int? a) {
 }
 ''');
   }
+
+  test_implicitlyAssigned_false() async {
+    await assertErrorsInCode('''
+f() {
+  int? i;
+  i != null;
+  null != i;
+}
+''', [
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 18, 4),
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 36, 4),
+    ]);
+  }
+
+  test_implicitlyAssigned_true() async {
+    await assertErrorsInCode('''
+f() {
+  int? i;
+  i == null;
+  null == i;
+}
+''', [
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 18, 4),
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 36, 4),
+    ]);
+  }
 }
 
 @reflectiveTest

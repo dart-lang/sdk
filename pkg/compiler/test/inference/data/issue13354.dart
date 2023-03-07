@@ -27,5 +27,5 @@ class B extends A {
 /*member: main:[null]*/
 main() {
   baz();
-  new B(). /*invoke: [exact=B]*/ foo();
+  B(). /*invoke: [exact=B]*/ foo();
 }

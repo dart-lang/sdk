@@ -32,6 +32,7 @@ class NamedLookup<E> with IterableMixin<E> {
 
   String? keyOf(E e) => _ids[e];
 
+  @override
   Iterator<E> get iterator => _ids.keys.iterator;
 }
 

@@ -49,7 +49,7 @@ Future<TestRoot> computeTestRoot(String? configurationPath, Uri? base) {
 /// The optional argument [configurationPath] should be used when
 /// `testing.json` isn't located in the current working directory and is a path
 /// relative to [me] which defaults to `Platform.script`.
-Future<Null> runMe(List<String> arguments, CreateContext f,
+Future<void> runMe(List<String> arguments, CreateContext f,
     {String? configurationPath,
     Uri? me,
     int shards = 1,
@@ -96,15 +96,15 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
 /// The optional argument [configurationPath] should be used when
 /// `testing.json` isn't located in the current working directory and is a path
 /// relative to `Uri.base`.
-Future<Null> run(List<String> arguments, List<String> suiteNames,
+Future<void> run(List<String> arguments, List<String> suiteNames,
     [String? configurationPath]) {
   return withErrorHandling(() async {
     TestRoot root = await computeTestRoot(configurationPath, Uri.base);
     List<Suite> suites = root.suites
         .where((Suite suite) => suiteNames.contains(suite.name))
         .toList();
-    SuiteRunner runner = SuiteRunner(suites, <String, String>{},
-        const <String>[], Set<String>(), Set<String>());
+    SuiteRunner runner = SuiteRunner(
+        suites, <String, String>{}, const <String>[], <String>{}, <String>{});
     String? program = await runner.generateDartProgram();
     await runner.analyze(root.packages);
     if (program != null) {
@@ -113,7 +113,7 @@ Future<Null> run(List<String> arguments, List<String> suiteNames,
   });
 }
 
-Future<Null> runProgram(String program, Uri packages) async {
+Future<void> runProgram(String program, Uri packages) async {
   const StdoutLogger().logMessage("Running:");
   const StdoutLogger().logNumberedLines(program);
   Uri dataUri = Uri.dataFromString(program);
@@ -136,7 +136,7 @@ Future<Null> runProgram(String program, Uri packages) async {
   subscription.cancel();
   return error == null
       ? null
-      : Future<Null>.error(error![0], StackTrace.fromString(error![1]));
+      : Future.error(error![0], StackTrace.fromString(error![1]));
 }
 
 class SuiteRunner {

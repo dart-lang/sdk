@@ -30,8 +30,6 @@ class NavLibraryMenuElement extends CustomElement implements Renderable {
 
   factory NavLibraryMenuElement(M.IsolateRef isolate, M.LibraryRef library,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(library != null);
     NavLibraryMenuElement e = new NavLibraryMenuElement.created();
     e._r = new RenderingScheduler<NavLibraryMenuElement>(e, queue: queue);
     e._isolate = isolate;

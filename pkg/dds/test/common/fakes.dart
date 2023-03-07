@@ -20,6 +20,7 @@ class FakePeer extends Fake implements json_rpc.Peer {
   Future<void> get done => doneCompleter.future;
   final Completer<void> doneCompleter = Completer<void>();
 
+  @override
   bool get isClosed => doneCompleter.isCompleted;
 
   @override

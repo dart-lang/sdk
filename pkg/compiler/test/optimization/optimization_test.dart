@@ -20,9 +20,9 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     bool strict = args.contains('-s');
-    await checkTests(dataDir, new OptimizationDataComputer(strict: strict),
+    await checkTests(dataDir, OptimizationDataComputer(strict: strict),
         options: [], args: args);
   });
 }
@@ -35,7 +35,7 @@ class OptimizationDataValidator
 
   @override
   String getText(OptimizationTestLog actualData, [String? indentation]) {
-    Features features = new Features();
+    Features features = Features();
     for (OptimizationLogEntry entry in actualData.entries) {
       features.addElement(
           entry.tag, entry.features.getText().replaceAll(',', '&'));
@@ -139,14 +139,14 @@ class OptimizationDataComputer extends DataComputer<OptimizationTestLog> {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new OptimizationIrComputer(compiler.reporter, actualMap, elementMap, member,
+    OptimizationIrComputer(compiler.reporter, actualMap, elementMap, member,
             compiler.backendStrategy, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
   @override
   DataInterpreter<OptimizationTestLog> get dataValidator =>
-      new OptimizationDataValidator(strict: strict);
+      OptimizationDataValidator(strict: strict);
 }
 
 /// AST visitor for computing inference data for a member.

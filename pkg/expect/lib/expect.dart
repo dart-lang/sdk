@@ -360,7 +360,7 @@ class Expect {
         'Expect.stringEquals(expected: <$expected>", <$actual>$msg) fails';
 
     if ((expected as dynamic) == null || (actual as dynamic) == null) {
-      _fail('$defaultMessage');
+      _fail(defaultMessage);
     }
 
     // Scan from the left until we find the mismatch.
@@ -409,14 +409,12 @@ class Expect {
 
     // If snippets are long, elide the middle.
     if (eSnippet.length > 43) {
-      eSnippet = eSnippet.substring(0, 20) +
-          "..." +
-          eSnippet.substring(eSnippet.length - 20);
+      eSnippet = '${eSnippet.substring(0, 20)}...'
+          '${eSnippet.substring(eSnippet.length - 20)}';
     }
     if (aSnippet.length > 43) {
-      aSnippet = aSnippet.substring(0, 20) +
-          "..." +
-          aSnippet.substring(aSnippet.length - 20);
+      aSnippet = '${aSnippet.substring(0, 20)}...'
+          '${aSnippet.substring(aSnippet.length - 20)}';
     }
     // Add "..." before and after, unless the snippets reach the end.
     String leftLead = "...";
@@ -462,8 +460,8 @@ class Expect {
     for (var s in substrings) {
       start = actual.indexOf(s, start);
       if (start < 0) {
-        _fail("String '$actual' did not contain '$s' in the expected order: " +
-            substrings.map((s) => "'$s'").join(", "));
+        _fail("String '$actual' did not contain '$s' in the expected order: "
+            "${substrings.map((s) => "'$s'").join(", ")}");
       }
     }
   }
@@ -606,39 +604,40 @@ class Expect {
     _fail('Expect.throws$msg fails: Did not throw');
   }
 
-  static ArgumentError throwsArgumentError(void f(),
+  static ArgumentError throwsArgumentError(void Function() f,
           [String reason = "ArgumentError"]) =>
       Expect.throws<ArgumentError>(f, _defaultCheck, reason);
 
-  static AssertionError throwsAssertionError(void f(),
+  static AssertionError throwsAssertionError(void Function() f,
           [String reason = "AssertionError"]) =>
       Expect.throws<AssertionError>(f, _defaultCheck, reason);
 
-  static FormatException throwsFormatException(void f(),
+  static FormatException throwsFormatException(void Function() f,
           [String reason = "FormatException"]) =>
       Expect.throws<FormatException>(f, _defaultCheck, reason);
 
-  static NoSuchMethodError throwsNoSuchMethodError(void f(),
+  static NoSuchMethodError throwsNoSuchMethodError(void Function() f,
           [String reason = "NoSuchMethodError"]) =>
       Expect.throws<NoSuchMethodError>(f, _defaultCheck, reason);
 
-  static Error throwsReachabilityError(void f(),
+  static Error throwsReachabilityError(void Function() f,
           [String reason = "ReachabilityError"]) =>
       Expect.throws<Error>(f,
           (error) => error.toString().startsWith('ReachabilityError'), reason);
 
-  static RangeError throwsRangeError(void f(),
+  static RangeError throwsRangeError(void Function() f,
           [String reason = "RangeError"]) =>
       Expect.throws<RangeError>(f, _defaultCheck, reason);
 
-  static StateError throwsStateError(void f(),
+  static StateError throwsStateError(void Function() f,
           [String reason = "StateError"]) =>
       Expect.throws<StateError>(f, _defaultCheck, reason);
 
-  static TypeError throwsTypeError(void f(), [String reason = "TypeError"]) =>
+  static TypeError throwsTypeError(void Function() f,
+          [String reason = "TypeError"]) =>
       Expect.throws<TypeError>(f, _defaultCheck, reason);
 
-  static UnsupportedError throwsUnsupportedError(void f(),
+  static UnsupportedError throwsUnsupportedError(void Function() f,
           [String reason = "UnsupportedError"]) =>
       Expect.throws<UnsupportedError>(f, _defaultCheck, reason);
 
@@ -721,6 +720,7 @@ class ExpectException {
 
   ExpectException(this.message) : name = _getTestName();
 
+  @override
   String toString() {
     if (name != "") return 'In test "$name" $message';
     return message;

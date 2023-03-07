@@ -48,6 +48,11 @@ abstract class StaticType {
   /// one of those two types*.
   bool get isSealed;
 
+  /// Returns `true` if this is a record type.
+  ///
+  /// This is only used for print the type as part of a [Space].
+  bool get isRecord;
+
   /// Returns the name of this static type.
   ///
   /// This is used for printing [Space]s.
@@ -56,12 +61,18 @@ abstract class StaticType {
   /// Returns the nullable static type corresponding to this type.
   StaticType get nullable;
 
+  /// Returns the non-nullable static type corresponding to this type.
+  StaticType get nonNullable;
+
   /// The immediate subtypes of this type.
   Iterable<StaticType> get subtypes;
 }
 
 abstract class _BaseStaticType implements StaticType {
   const _BaseStaticType();
+
+  @override
+  bool get isRecord => false;
 
   @override
   Map<String, StaticType> get fields => const {};
@@ -90,6 +101,9 @@ class _NonNullableObject extends _BaseStaticType {
 
   @override
   StaticType get nullable => StaticType.nullableObject;
+
+  @override
+  StaticType get nonNullable => this;
 }
 
 class _NeverType extends _BaseStaticType {
@@ -109,6 +123,9 @@ class _NeverType extends _BaseStaticType {
 
   @override
   StaticType get nullable => StaticType.nullType;
+
+  @override
+  StaticType get nonNullable => this;
 }
 
 class _NullType extends NullableStaticType {
@@ -128,75 +145,6 @@ class _NullType extends NullableStaticType {
 
   @override
   String get name => 'Null';
-}
-
-class StaticTypeImpl extends NonNullableStaticType {
-  @override
-  final String name;
-
-  @override
-  final bool isSealed;
-
-  final Map<String, StaticType> _fields;
-
-  final List<StaticType> _supertypes = [];
-
-  final List<StaticTypeImpl> _subtypes = [];
-
-  StaticTypeImpl(this.name,
-      {this.isSealed = false,
-      List<StaticTypeImpl>? inherits,
-      Map<String, StaticType> fields = const {}})
-      : _fields = fields {
-    if (inherits != null) {
-      for (StaticTypeImpl type in inherits) {
-        _supertypes.add(type);
-        type._subtypes.add(this);
-      }
-    } else {
-      _supertypes.add(StaticType.nonNullableObject);
-    }
-
-    int sealed = 0;
-    for (StaticType supertype in _supertypes) {
-      if (supertype.isSealed) sealed++;
-    }
-
-    // We don't allow a sealed type's subtypes to be shared with some other
-    // sibling supertype, as in D here:
-    //
-    //   (A) (B)
-    //   / \ / \
-    //  C   D   E
-    //
-    // We could remove this restriction but doing so will require
-    // expandTypes() to be more complex. In the example here, if we subtract
-    // E from A, the result should be C|D. That requires knowing that B should
-    // be expanded, which expandTypes() doesn't currently handle.
-    if (sealed > 1) {
-      throw new ArgumentError('Can only have one sealed supertype.');
-    }
-  }
-
-  @override
-  Map<String, StaticType> get fields {
-    return {
-      for (StaticType supertype in _supertypes) ...supertype.fields,
-      ..._fields
-    };
-  }
-
-  @override
-  Iterable<StaticType> get subtypes => _subtypes;
-
-  @override
-  bool isSubtypeOfInternal(StaticType other) {
-    for (StaticType supertype in _supertypes) {
-      if (supertype.isSubtypeOf(other)) return true;
-    }
-
-    return false;
-  }
 }
 
 class NullableStaticType extends _BaseStaticType {
@@ -222,11 +170,26 @@ class NullableStaticType extends _BaseStaticType {
 
   @override
   StaticType get nullable => this;
+
+  @override
+  StaticType get nonNullable => underlying;
+
+  @override
+  int get hashCode => underlying.hashCode * 11;
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    return other is NullableStaticType && underlying == other.underlying;
+  }
 }
 
 abstract class NonNullableStaticType extends _BaseStaticType {
   @override
   late final StaticType nullable = new NullableStaticType(this);
+
+  @override
+  StaticType get nonNullable => this;
 
   @override
   bool isSubtypeOf(StaticType other) {
@@ -244,11 +207,60 @@ abstract class NonNullableStaticType extends _BaseStaticType {
       return isSubtypeOf(other.underlying);
     }
 
-    return isSubtypeOfInternal(other);
+    if (isSubtypeOfInternal(other)) {
+      return true;
+    }
+
+    if (other is WrappedStaticType) {
+      return isSubtypeOf(other.wrappedType) && isSubtypeOf(other.impliedType);
+    }
+
+    return false;
   }
 
   bool isSubtypeOfInternal(StaticType other);
 
   @override
   String toString() => name;
+}
+
+/// Static type the behaves like [wrappedType] but is also a subtype of
+/// [impliedType].
+class WrappedStaticType extends NonNullableStaticType {
+  final StaticType wrappedType;
+  final StaticType impliedType;
+
+  WrappedStaticType(this.wrappedType, this.impliedType);
+
+  @override
+  Map<String, StaticType> get fields => wrappedType.fields;
+
+  @override
+  bool get isRecord => wrappedType.isRecord;
+
+  @override
+  bool get isSealed => wrappedType.isSealed;
+
+  @override
+  String get name => wrappedType.name;
+
+  @override
+  Iterable<StaticType> get subtypes =>
+      wrappedType.subtypes.map((e) => new WrappedStaticType(e, impliedType));
+
+  @override
+  bool isSubtypeOfInternal(StaticType other) {
+    return wrappedType.isSubtypeOf(other) || impliedType.isSubtypeOf(other);
+  }
+
+  @override
+  int get hashCode => Object.hash(wrappedType, impliedType);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    return other is WrappedStaticType &&
+        wrappedType == other.wrappedType &&
+        impliedType == other.impliedType;
+  }
 }

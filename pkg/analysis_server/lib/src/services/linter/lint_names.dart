@@ -68,6 +68,7 @@ class LintNames {
   static const String exhaustive_cases = 'exhaustive_cases';
   static const String hash_and_equals = 'hash_and_equals';
   static const String implicit_call_tearoffs = 'implicit_call_tearoffs';
+  static const String invalid_case_patterns = 'invalid_case_patterns';
   static const String leading_newlines_in_multiline_strings =
       'leading_newlines_in_multiline_strings';
   static const String library_annotations = 'library_annotations';
@@ -78,6 +79,7 @@ class LintNames {
       'no_leading_underscores_for_local_identifiers';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
+  static const String noop_primitive_operations = 'noop_primitive_operations';
   static const String null_check_on_nullable_type_parameter =
       'null_check_on_nullable_type_parameter';
   static const String null_closures = 'null_closures';
@@ -165,6 +167,7 @@ class LintNames {
   static const String unnecessary_string_interpolations =
       'unnecessary_string_interpolations';
   static const String unnecessary_this = 'unnecessary_this';
+  static const String use_decorated_box = 'use_decorated_box';
   static const String use_enums = 'use_enums';
   static const String use_full_hex_values_for_flutter_colors =
       'use_full_hex_values_for_flutter_colors';

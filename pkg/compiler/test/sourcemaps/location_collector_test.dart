@@ -12,10 +12,10 @@ import 'package:kernel/ast.dart' show Location;
 import '../../lib/src/util/output_collector.dart';
 
 test(List events, Map<int, List<int>?> expectedPositions) {
-  BufferedOutputSink sink = new BufferedOutputSink();
-  LocationCollector locationProvider = new LocationCollector();
+  BufferedOutputSink sink = BufferedOutputSink();
+  LocationCollector locationProvider = LocationCollector();
   CodeOutput output =
-      new StreamCodeOutput(sink, <CodeOutputListener>[locationProvider]);
+      StreamCodeOutput(sink, <CodeOutputListener>[locationProvider]);
   for (var event in events) {
     if (event is String) {
       output.add(event);
@@ -94,19 +94,19 @@ main() {
 
   test(["a", "\n", "b\nc"], positions);
 
-  CodeBuffer buffer1 = new CodeBuffer();
+  CodeBuffer buffer1 = CodeBuffer();
   buffer1.add("a\nb\nc");
   test([buffer1], positions);
 
-  CodeBuffer buffer2 = new CodeBuffer();
+  CodeBuffer buffer2 = CodeBuffer();
   buffer2.add("\nb\nc");
   test(["a", buffer2], positions);
 
-  CodeBuffer buffer3 = new CodeBuffer();
+  CodeBuffer buffer3 = CodeBuffer();
   buffer3.add("a");
   test([buffer3, buffer2], positions);
 
-  CodeBuffer buffer4 = new CodeBuffer();
+  CodeBuffer buffer4 = CodeBuffer();
   buffer4.addBuffer(buffer3);
   test([buffer4, buffer2], positions);
 }

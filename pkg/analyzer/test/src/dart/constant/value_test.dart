@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -11,6 +12,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/test_analysis_context.dart';
+import '../../../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -27,6 +29,7 @@ final Matcher throwsEvaluationException =
 class DartObjectImplTest {
   late final TypeProvider _typeProvider;
   late final TypeSystemImpl _typeSystem;
+  FeatureSet _featureSet = FeatureSets.latestWithExperiments;
 
   void setUp() {
     var analysisContext = TestAnalysisContext();
@@ -358,11 +361,26 @@ class DartObjectImplTest {
     _assertEqualEqual(_boolValue(false), _doubleValue(2.0), _doubleValue(4.0));
   }
 
+  void test_equalEqual_double_false_language219() {
+    _featureSet = FeatureSets.language_2_19;
+    _assertEqualEqual(_boolValue(false), _doubleValue(2.0), _doubleValue(4.0));
+  }
+
   void test_equalEqual_double_true() {
     _assertEqualEqual(_boolValue(true), _doubleValue(2.0), _doubleValue(2.0));
   }
 
+  void test_equalEqual_double_true_language219() {
+    _featureSet = FeatureSets.language_2_19;
+    _assertEqualEqual(_boolValue(true), _doubleValue(2.0), _doubleValue(2.0));
+  }
+
   void test_equalEqual_double_unknown() {
+    _assertEqualEqual(_boolValue(null), _doubleValue(1.0), _doubleValue(null));
+  }
+
+  void test_equalEqual_double_unknown_language219() {
+    _featureSet = FeatureSets.language_2_19;
     _assertEqualEqual(_boolValue(null), _doubleValue(1.0), _doubleValue(null));
   }
 
@@ -378,7 +396,8 @@ class DartObjectImplTest {
     _assertEqualEqual(_boolValue(null), _intValue(null), _intValue(3));
   }
 
-  void test_equalEqual_list_empty() {
+  void test_equalEqual_list_error_language219() {
+    _featureSet = FeatureSets.language_2_19;
     _assertEqualEqual(
       null,
       _listValue(_typeProvider.intType, []),
@@ -386,15 +405,16 @@ class DartObjectImplTest {
     );
   }
 
-  void test_equalEqual_list_false() {
+  void test_equalEqual_list_true() {
     _assertEqualEqual(
-      null,
+      _boolValue(true),
       _listValue(_typeProvider.intType, []),
       _listValue(_typeProvider.intType, []),
     );
   }
 
-  void test_equalEqual_map_empty() {
+  void test_equalEqual_map_error_language219() {
+    _featureSet = FeatureSets.language_2_19;
     _assertEqualEqual(
       null,
       _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
@@ -402,9 +422,9 @@ class DartObjectImplTest {
     );
   }
 
-  void test_equalEqual_map_false() {
+  void test_equalEqual_map_true() {
     _assertEqualEqual(
-      null,
+      _boolValue(true),
       _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
       _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
     );
@@ -1582,15 +1602,30 @@ class DartObjectImplTest {
     _assertNotEqual(_boolValue(null), _boolValue(null), _boolValue(false));
   }
 
-  void test_notEqual_double_false() {
+  void test_notEqual_double_double_false() {
     _assertNotEqual(_boolValue(false), _doubleValue(2.0), _doubleValue(2.0));
   }
 
-  void test_notEqual_double_true() {
+  void test_notEqual_double_double_false_language219() {
+    _featureSet = FeatureSets.language_2_19;
+    _assertNotEqual(_boolValue(false), _doubleValue(2.0), _doubleValue(2.0));
+  }
+
+  void test_notEqual_double_double_true() {
+    _assertNotEqual(_boolValue(true), _doubleValue(2.0), _doubleValue(4.0));
+  }
+
+  void test_notEqual_double_double_true_language219() {
+    _featureSet = FeatureSets.language_2_19;
     _assertNotEqual(_boolValue(true), _doubleValue(2.0), _doubleValue(4.0));
   }
 
   void test_notEqual_double_unknown() {
+    _assertNotEqual(_boolValue(null), _doubleValue(1.0), _doubleValue(null));
+  }
+
+  void test_notEqual_double_unknown_language219() {
+    _featureSet = FeatureSets.language_2_19;
     _assertNotEqual(_boolValue(null), _doubleValue(1.0), _doubleValue(null));
   }
 
@@ -1996,10 +2031,10 @@ class DartObjectImplTest {
       DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.equalEqual(_typeSystem, right);
+        return left.equalEqual(_typeSystem, _featureSet, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.equalEqual(_typeSystem, right);
+      DartObjectImpl result = left.equalEqual(_typeSystem, _featureSet, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -2189,10 +2224,10 @@ class DartObjectImplTest {
       DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.notEqual(_typeSystem, right);
+        left.notEqual(_typeSystem, _featureSet, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.notEqual(_typeSystem, right);
+      DartObjectImpl result = left.notEqual(_typeSystem, _featureSet, right);
       expect(result, isNotNull);
       expect(result, expected);
     }

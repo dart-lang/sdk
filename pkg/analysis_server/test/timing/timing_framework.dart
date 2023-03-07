@@ -96,7 +96,7 @@ class TimingResult {
 
 /// The abstract class [TimingTest] defines the behavior of objects that measure
 /// the time required to perform some sequence of server operations.
-abstract class TimingTest extends IntegrationTestMixin {
+abstract class TimingTest extends IntegrationTest {
   /// The number of times the test will be performed in order to warm up the VM.
   static final int DEFAULT_WARMUP_COUNT = 10;
 
@@ -125,9 +125,6 @@ abstract class TimingTest extends IntegrationTestMixin {
   /// shutdown.
   bool skipShutdown = false;
 
-  /// Initialize a newly created test.
-  TimingTest();
-
   /// Return the number of iterations that should be performed in order to
   /// compute a time.
   int get timingCount => DEFAULT_TIMING_COUNT;
@@ -138,11 +135,10 @@ abstract class TimingTest extends IntegrationTestMixin {
 
   /// Perform any operations that need to be performed once before any
   /// iterations.
-  Future oneTimeSetUp() {
-    initializeInttestMixin();
+  Future<void> oneTimeSetUp() {
     server = Server();
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
-    var serverConnected = Completer();
+    var serverConnected = Completer<void>();
     onServerConnected.listen((_) {
       serverConnected.complete();
     });
@@ -159,7 +155,7 @@ abstract class TimingTest extends IntegrationTestMixin {
 
   /// Perform any operations that need to be performed once after all
   /// iterations.
-  Future oneTimeTearDown() {
+  Future<void> oneTimeTearDown() {
     return _shutdownIfNeeded().then((_) {
       sourceDirectory.deleteSync(recursive: true);
     });
@@ -213,7 +209,7 @@ abstract class TimingTest extends IntegrationTestMixin {
 
   /// Repeatedly execute this test [count] times, adding timing information to
   /// the given list of [times] if it is non-`null`.
-  Future _repeat(int count, List<int>? times) {
+  Future<void> _repeat(int count, List<int>? times) {
     var stopwatch = Stopwatch();
     return setUp().then((_) {
       stopwatch.start();
@@ -234,7 +230,7 @@ abstract class TimingTest extends IntegrationTestMixin {
   }
 
   /// Shut the server down unless [skipShutdown] is `true`.
-  Future _shutdownIfNeeded() {
+  Future<void> _shutdownIfNeeded() {
     if (skipShutdown) {
       return Future.value();
     }

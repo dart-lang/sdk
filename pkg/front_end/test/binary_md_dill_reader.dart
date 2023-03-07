@@ -359,17 +359,17 @@ class BinaryMdDillReader {
     if (s.trim().startsWith("Byte tag = ")) {
       String tag = s.trim().substring("Byte tag = ".length);
       if (tag.endsWith(";")) tag = tag.substring(0, tag.length - 1);
-      if (tag == "128 + N; // Where 0 <= N < 8.") {
+      if (tag == "224 + N; // Where 0 <= N < 8.") {
         for (int n = 0; n < 8; ++n) {
-          tagToName[128 + n] = _binaryMdCurrentClass;
+          tagToName[224 + n] = _binaryMdCurrentClass;
         }
-      } else if (tag == "136 + N; // Where 0 <= N < 8.") {
+      } else if (tag == "232 + N; // Where 0 <= N < 8.") {
         for (int n = 0; n < 8; ++n) {
-          tagToName[136 + n] = _binaryMdCurrentClass;
+          tagToName[232 + n] = _binaryMdCurrentClass;
         }
-      } else if (tag == "144 + N; // Where 0 <= N < 8.") {
+      } else if (tag == "240 + N; // Where 0 <= N < 8.") {
         for (int n = 0; n < 8; ++n) {
-          tagToName[144 + n] = _binaryMdCurrentClass;
+          tagToName[240 + n] = _binaryMdCurrentClass;
         }
       } else {
         if (tag.contains("; // Note: tag is out of order")) {

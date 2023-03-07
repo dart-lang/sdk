@@ -25,7 +25,7 @@ class Class1 {
 /*member: forceInlineConstructor:[]*/
 @pragma('dart2js:noInline')
 forceInlineConstructor() {
-  new Class1();
+  Class1();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ class Class2 {
 /*member: forceInlineConstructorBody:[]*/
 @pragma('dart2js:noInline')
 forceInlineConstructorBody() {
-  new Class2();
+  Class2();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ class Class3<T> {
 /*member: forceInlineGenericConstructor:[]*/
 @pragma('dart2js:noInline')
 forceInlineGenericConstructor() {
-  new Class3<int>();
+  Class3<int>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,11 +75,11 @@ class Class4a<T> implements Class4b<T> {
 class Class4b<T> {
   @pragma('dart2js:tryInline')
   /*member: Class4b.:[forceInlineGenericFactory:Class4b<int*>]*/
-  factory Class4b() => new Class4a<T>();
+  factory Class4b() => Class4a<T>();
 }
 
 /*member: forceInlineGenericFactory:[]*/
 @pragma('dart2js:noInline')
 forceInlineGenericFactory() {
-  new Class4b<int>();
+  Class4b<int>();
 }

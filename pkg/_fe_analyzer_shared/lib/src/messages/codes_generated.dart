@@ -4050,8 +4050,8 @@ const Code<Null> codeExtendFunction = messageExtendFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtendFunction = const MessageCode("ExtendFunction",
-    severity: Severity.ignored,
-    problemMessage: r"""Extending 'Function' is deprecated.""",
+    problemMessage:
+        r"""Extending 'Function' is deprecated because 'Function' is final class.""",
     correctionMessage:
         r"""Try removing 'Function' from the 'extends' clause.""");
 
@@ -5297,6 +5297,15 @@ Message _withArgumentsFinalFieldWithoutInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFinalMixinClass = messageFinalMixinClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFinalMixinClass = const MessageCode("FinalMixinClass",
+    index: 142,
+    problemMessage: r"""A mixin class can't be declared 'final'.""",
+    correctionMessage: r"""Try removing the 'final' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -5659,8 +5668,8 @@ const Code<Null> codeImplementFunction = messageImplementFunction;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementFunction = const MessageCode(
     "ImplementFunction",
-    severity: Severity.ignored,
-    problemMessage: r"""Implementing 'Function' is deprecated.""",
+    problemMessage:
+        r"""Implementing 'Function' is deprecated because 'Function' is final class.""",
     correctionMessage:
         r"""Try removing 'Function' from the 'implements' clause.""");
 
@@ -6419,6 +6428,16 @@ Message _withArgumentsInterfaceClassExtendedOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInterfaceMixinClass = messageInterfaceMixinClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInterfaceMixinClass = const MessageCode(
+    "InterfaceMixinClass",
+    index: 143,
+    problemMessage: r"""A mixin class can't be declared 'interface'.""",
+    correctionMessage: r"""Try removing the 'interface' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -6924,6 +6943,122 @@ const MessageCode messageInvalidCodePoint = const MessageCode(
     analyzerCodes: <String>["INVALID_CODE_POINT"],
     problemMessage:
         r"""The escape sequence starting with '\u' isn't a valid code point.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateInvalidConstantPatternBinary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The binary operator #name is not supported as a constant pattern.""",
+    correctionMessageTemplate:
+        r"""Try wrapping the expression in 'const ( ... )'.""",
+    withArguments: _withArgumentsInvalidConstantPatternBinary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInvalidConstantPatternBinary =
+    const Code<Message Function(String name)>("InvalidConstantPatternBinary",
+        index: 141);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidConstantPatternBinary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInvalidConstantPatternBinary,
+      problemMessage:
+          """The binary operator ${name} is not supported as a constant pattern.""",
+      correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidConstantPatternConstPrefix =
+    messageInvalidConstantPatternConstPrefix;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidConstantPatternConstPrefix = const MessageCode(
+    "InvalidConstantPatternConstPrefix",
+    index: 140,
+    problemMessage:
+        r"""The expression can't be prefixed by 'const' to form a constant pattern.""",
+    correctionMessage:
+        r"""Try wrapping the expression in 'const ( ... )' instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidConstantPatternDuplicateConst =
+    messageInvalidConstantPatternDuplicateConst;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidConstantPatternDuplicateConst =
+    const MessageCode("InvalidConstantPatternDuplicateConst",
+        index: 137,
+        problemMessage:
+            r"""Duplicate 'const' keyword in constant expression.""",
+        correctionMessage: r"""Try removing one of the 'const' keywords.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidConstantPatternEmptyRecordLiteral =
+    messageInvalidConstantPatternEmptyRecordLiteral;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidConstantPatternEmptyRecordLiteral =
+    const MessageCode("InvalidConstantPatternEmptyRecordLiteral",
+        index: 138,
+        problemMessage:
+            r"""The empty record literal is not supported as a constant pattern.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidConstantPatternGeneric =
+    messageInvalidConstantPatternGeneric;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidConstantPatternGeneric = const MessageCode(
+    "InvalidConstantPatternGeneric",
+    index: 139,
+    problemMessage:
+        r"""This expression is not supported as a constant pattern.""",
+    correctionMessage: r"""Try wrapping the expression in 'const ( ... )'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidConstantPatternNegation =
+    messageInvalidConstantPatternNegation;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidConstantPatternNegation = const MessageCode(
+    "InvalidConstantPatternNegation",
+    index: 135,
+    problemMessage:
+        r"""Only negation of a numeric literal is supported as a constant pattern.""",
+    correctionMessage: r"""Try wrapping the expression in 'const ( ... )'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateInvalidConstantPatternUnary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The unary operator #name is not supported as a constant pattern.""",
+    correctionMessageTemplate:
+        r"""Try wrapping the expression in 'const ( ... )'.""",
+    withArguments: _withArgumentsInvalidConstantPatternUnary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInvalidConstantPatternUnary =
+    const Code<Message Function(String name)>("InvalidConstantPatternUnary",
+        index: 136);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidConstantPatternUnary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInvalidConstantPatternUnary,
+      problemMessage:
+          """The unary operator ${name} is not supported as a constant pattern.""",
+      correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInvalidContinueTarget =
@@ -8876,8 +9011,8 @@ const Code<Null> codeMixinFunction = messageMixinFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMixinFunction = const MessageCode("MixinFunction",
-    severity: Severity.ignored,
-    problemMessage: r"""Mixing in 'Function' is deprecated.""",
+    problemMessage:
+        r"""Mixing in 'Function' is deprecated because 'Function' is final class.""",
     correctionMessage: r"""Try removing 'Function' from the 'with' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11191,6 +11326,16 @@ Message _withArgumentsSealedClassSubtypeOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSealedMixinClass = messageSealedMixinClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSealedMixinClass = const MessageCode(
+    "SealedMixinClass",
+    index: 144,
+    problemMessage: r"""A mixin class can't be declared 'sealed'.""",
+    correctionMessage: r"""Try removing the 'sealed' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -11521,6 +11666,41 @@ const MessageCode messageStrongWithWeakDillLibrary = const MessageCode(
     "StrongWithWeakDillLibrary",
     problemMessage:
         r"""Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2, String string)>
+    templateSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed =
+    const Template<Message Function(String name, String name2, String string)>(
+        problemMessageTemplate:
+            r"""The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is '#string'.""",
+        correctionMessageTemplate:
+            r"""Try adding 'base', 'final', or 'sealed' to the type.""",
+        withArguments:
+            _withArgumentsSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String string)>
+    codeSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed =
+    const Code<Message Function(String name, String name2, String string)>(
+        "SubtypeOfBaseOrFinalIsNotBaseFinalOrSealed",
+        analyzerCodes: <String>[
+      "SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed(
+    String name, String name2, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed,
+      problemMessage:
+          """The type '${name}' must be 'base', 'final' or 'sealed' because the supertype '${name2}' is '${string}'.""",
+      correctionMessage: """Try adding 'base', 'final', or 'sealed' to the type.""",
+      arguments: {'name': name, 'name2': name2, 'string': string});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
@@ -12867,12 +13047,62 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
     correctionMessage: r"""Try removing the type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeWasmSyncStar = messageWasmSyncStar;
+const Code<Null> codeWeakReferenceMismatchReturnAndArgumentTypes =
+    messageWeakReferenceMismatchReturnAndArgumentTypes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWasmSyncStar = const MessageCode("WasmSyncStar",
-    severity: Severity.warning,
-    problemMessage: r"""Compilation to Wasm does not support 'sync*'.""");
+const MessageCode messageWeakReferenceMismatchReturnAndArgumentTypes =
+    const MessageCode("WeakReferenceMismatchReturnAndArgumentTypes",
+        problemMessage:
+            r"""Return and argument types of a weak reference should match.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceNotOneArgument =
+    messageWeakReferenceNotOneArgument;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceNotOneArgument = const MessageCode(
+    "WeakReferenceNotOneArgument",
+    problemMessage:
+        r"""Weak reference should take one required positional argument.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceNotStatic = messageWeakReferenceNotStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceNotStatic = const MessageCode(
+    "WeakReferenceNotStatic",
+    problemMessage:
+        r"""Weak reference pragma can be used on a static method only.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceReturnTypeNotNullable =
+    messageWeakReferenceReturnTypeNotNullable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceReturnTypeNotNullable = const MessageCode(
+    "WeakReferenceReturnTypeNotNullable",
+    problemMessage: r"""Return type of a weak reference should be nullable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceTargetHasParameters =
+    messageWeakReferenceTargetHasParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceTargetHasParameters = const MessageCode(
+    "WeakReferenceTargetHasParameters",
+    problemMessage:
+        r"""The target of weak reference should not take parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakReferenceTargetNotStaticTearoff =
+    messageWeakReferenceTargetNotStaticTearoff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakReferenceTargetNotStaticTearoff = const MessageCode(
+    "WeakReferenceTargetNotStaticTearoff",
+    problemMessage:
+        r"""The target of weak reference should be a tearoff of a static method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeWeakWithStrongDillLibrary =

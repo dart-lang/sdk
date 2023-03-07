@@ -98,7 +98,7 @@ constants  {
   #C8 = <core::int*>[#C4]
   #C9 = <core::int*>{#C4}
   #C10 = "foo"
-  #C11 = <core::int*, core::String*>{#C4:#C10)
+  #C11 = <core::int*, core::String*>{#C4:#C10}
   #C12 = true
   #C13 = static-tearoff core::identical
 }

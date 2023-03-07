@@ -76,7 +76,7 @@ class ImplementationHandler
                 // Filter based on type, so when searching for members we don't
                 // include any intermediate classes that don't have
                 // implementations for the method.
-                var member = helper.findMemberElement(e);
+                var member = helper.findMemberElement(e)?.nonSynthetic;
                 if (member == null) return null;
                 offset = member.nameOffset;
                 length = member.nameLength;

@@ -46,5 +46,5 @@ class Class1 extends Super1 {
 
 /*member: superIndexPostfixIncrement:[null]*/
 superIndexPostfixIncrement() {
-  new Class1(). /*invoke: [exact=Class1]*/ method();
+  Class1(). /*invoke: [exact=Class1]*/ method();
 }

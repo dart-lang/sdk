@@ -1640,6 +1640,7 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType representationType = readDartType();
     String representationName = readStringReference();
+    List<InlineType> implements = _readInlineClassImplementsList();
     typeParameterStack.length = 0;
 
     node.name = name;
@@ -1647,9 +1648,22 @@ class BinaryBuilder {
     node.declaredRepresentationType = representationType;
     node.representationName = representationName;
 
+    node.implements = implements;
     node.members = _readInlineClassMemberDescriptorList();
 
     return node;
+  }
+
+  List<InlineType> _readInlineClassImplementsList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return emptyListOfInlineType;
+    }
+    return new List<InlineType>.generate(
+        length, (_) => readDartType() as InlineType,
+        growable: useGrowableLists);
   }
 
   List<InlineClassMemberDescriptor> _readInlineClassMemberDescriptorList() {
@@ -2153,9 +2167,9 @@ class BinaryBuilder {
 
   Expression readExpression() {
     int tagByte = readByte();
-    int tag = tagByte & Tag.SpecializedTagHighBit == 0
-        ? tagByte
-        : (tagByte & Tag.SpecializedTagMask);
+    int tag = tagByte & Tag.SpecializedTagHighBits == Tag.SpecializedTagHighBits
+        ? (tagByte & Tag.SpecializedTagMask)
+        : tagByte;
     switch (tag) {
       // 18.57% (13.56% - 23.28%).
       case Tag.SpecializedVariableGet:

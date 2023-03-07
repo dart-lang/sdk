@@ -28,7 +28,9 @@ ParenthesizedPattern
     expression: IntegerLiteral
       literal: 0
       staticType: int
+    matchedValueType: dynamic
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -49,7 +51,9 @@ ParenthesizedPattern
     expression: IntegerLiteral
       literal: 0
       staticType: int
+    matchedValueType: dynamic
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 }

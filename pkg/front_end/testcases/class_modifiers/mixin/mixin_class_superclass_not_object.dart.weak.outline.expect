@@ -17,11 +17,11 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class NotObject extends core::Object {
+mixin class NotObject extends core::Object {
   synthetic constructor •() → self::NotObject
     ;
 }
-class AlsoNotObject extends core::Object {
+mixin class AlsoNotObject extends core::Object {
   synthetic constructor •() → self::AlsoNotObject
     ;
 }

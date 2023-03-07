@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import 'dart:convert' show base64Decode;
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
-import 'service_test_common.dart';
 import 'test_helper.dart';
 
 abstract class _DummyAbstractBaseClass {

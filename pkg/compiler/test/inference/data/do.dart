@@ -105,8 +105,8 @@ _doUnion(/*[exact=Class1]*/ o) {
 
 /*member: doUnion:[null]*/
 doUnion() {
-  var c1 = new Class1();
-  var c2 = new Class2();
+  var c1 = Class1();
+  var c2 = Class2();
   c1. /*update: [exact=Class1]*/ field = c2;
   c2. /*update: [exact=Class2]*/ field = c1;
   _doUnion(c1);

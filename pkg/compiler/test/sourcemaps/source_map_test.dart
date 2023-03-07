@@ -33,7 +33,7 @@ void find(String text, String substring, bool expected) {
 }
 
 test({String? out, String? sourceMap, String? mapping, String? file}) async {
-  OutputCollector collector = new OutputCollector();
+  OutputCollector collector = OutputCollector();
   List<String> options = <String>[];
   if (out != null) {
     options.add("--out=$out");

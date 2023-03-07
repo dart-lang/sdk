@@ -15,10 +15,10 @@ import 'package:compiler/src/util/testing.dart';
 /*prod.class: global#KeyboardEvent:checks=[$isKeyboardEvent],instance,typeArgument*/
 
 void main() {
-  var i = new InputElement();
+  var i = InputElement();
   i.onKeyPress.listen(onEvent);
   i.onClick.listen(onEvent);
-  var e = new TextAreaElement();
+  var e = TextAreaElement();
   e.onKeyPress.listen(onEvent);
   e.onClick.listen(onEvent);
 }

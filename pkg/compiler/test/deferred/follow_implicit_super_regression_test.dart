@@ -46,10 +46,10 @@ import "lib.dart" deferred as lib;
 
 void main() {
   lib.loadLibrary().then((_) {
-    new lib.A2();
-    new lib.B2();
-    new lib.C3();
-    new lib.D3(10);
+    lib.A2();
+    lib.B2();
+    lib.C3();
+    lib.D3(10);
   });
 }
 """,

@@ -419,7 +419,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
       final nativeTypeAnnos = _getNativeTypeAnnotations(f).toList();
       final type = _compoundMemberType(f);
-      if (type is NullType) {
+      if (type is NullType ||
+          type.declaredNullability == Nullability.nullable ||
+          type.declaredNullability == Nullability.undetermined) {
         diagnosticReporter.report(
             templateFfiFieldNull.withArguments(f.name.text),
             f.fileOffset,

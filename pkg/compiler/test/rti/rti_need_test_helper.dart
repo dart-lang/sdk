@@ -31,7 +31,7 @@ main(List<String> args) {
 
 runTests(List<String> args, [int? shardIndex]) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const RtiNeedDataComputer(),
         args: args,
         shardIndex: shardIndex ?? 0,
@@ -68,8 +68,8 @@ abstract class ComputeValueMixin {
 
   void findChecks(
       Features features, String key, Entity? entity, Set<DartType> checks) {
-    Set<DartType> types = new Set<DartType>();
-    FindTypeVisitor finder = new FindTypeVisitor(entity);
+    Set<DartType> types = Set<DartType>();
+    FindTypeVisitor finder = FindTypeVisitor(entity);
     for (DartType type in checks) {
       if (type.accept(finder, null)) {
         types.add(type);
@@ -99,7 +99,7 @@ abstract class ComputeValueMixin {
   }
 
   String getClassValue(ClassEntity backendClass) {
-    Features features = new Features();
+    Features features = Features();
 
     if (rtiNeed.classNeedsTypeArguments(backendClass)) {
       features.add(Tags.needsTypeArguments);
@@ -125,7 +125,7 @@ abstract class ComputeValueMixin {
     MemberEntity? frontendMember = getFrontendMember(backendMember);
     Local? frontendClosure = getFrontendClosure(backendMember);
 
-    Features features = new Features();
+    Features features = Features();
 
     if (backendMember is FunctionEntity) {
       if (rtiNeed.methodNeedsTypeArguments(backendMember)) {
@@ -254,7 +254,7 @@ class RtiNeedDataComputer extends DataComputer<String> {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
+    RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
             closedWorld.closureDataLookup)
         .run(definition.node);
   }
@@ -268,7 +268,7 @@ class RtiNeedDataComputer extends DataComputer<String> {
       {bool verbose = false}) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
-    new RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
+    RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
             closedWorld.closureDataLookup)
         .computeForClass(elementMap.getClassDefinition(cls).node as ir.Class);
   }
@@ -344,7 +344,7 @@ class RtiClassNeedIrComputer
   DiagnosticReporter get reporter => compiler.reporter;
 
   void computeClassValue(ClassEntity cls) {
-    Id id = new ClassId(cls.name);
+    Id id = ClassId(cls.name);
     final node = _elementMap.getClassDefinition(cls).node as ir.TreeNode;
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
     registerValue(nodeWithOffset.location!.file, nodeWithOffset.fileOffset, id,

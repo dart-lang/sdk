@@ -47,7 +47,7 @@ class B extends A {
 
   Future<void> test_classTypeAlias() async {
     await resolveTestCode('''
-abstract class A {
+abstract mixin class A {
   m();
 }
 

@@ -7,12 +7,6 @@ import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
-class _TestClass {
-  _TestClass();
-  var x;
-  var y;
-}
-
 @pragma("vm:entry-point") // Prevent obfuscation
 class _TestConst {
   const _TestConst();

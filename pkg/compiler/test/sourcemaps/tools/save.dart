@@ -21,13 +21,13 @@ Usage: save <dir-containing 'out.js.map2'>
 
   File humanReadableSourceMapFile;
   File? sourceMapFile;
-  if (args.length == 1 && new Directory(args[0]).existsSync()) {
-    humanReadableSourceMapFile = new File('${args[0]}/out.js.map2');
-    sourceMapFile = new File('${args[0]}/out.js.map');
+  if (args.length == 1 && Directory(args[0]).existsSync()) {
+    humanReadableSourceMapFile = File('${args[0]}/out.js.map2');
+    sourceMapFile = File('${args[0]}/out.js.map');
   } else {
-    humanReadableSourceMapFile = new File(args[0]);
+    humanReadableSourceMapFile = File(args[0]);
     if (args.length > 1) {
-      sourceMapFile = new File(args[1]);
+      sourceMapFile = File(args[1]);
     }
   }
 
@@ -68,19 +68,19 @@ SingleMapping convertFromHumanReadableSourceMap(String json) {
     int commaPos = targetString.indexOf(',');
     final lineNo = int.parse(targetString.substring(0, commaPos)) - 1;
     if (lineNo < 0) {
-      throw new ArgumentError('target line must be > 0: $lineNo');
+      throw ArgumentError('target line must be > 0: $lineNo');
     }
     targetString = targetString.substring(commaPos + 1);
     int dashPos = targetString.indexOf('-');
     final columnStart = int.parse(targetString.substring(0, dashPos)) - 1;
     if (columnStart < 0) {
-      throw new ArgumentError('target column start must be > 0: $columnStart');
+      throw ArgumentError('target column start must be > 0: $columnStart');
     }
     targetString = targetString.substring(dashPos + 1);
     if (!targetString.isEmpty) {
       columnEnd = int.parse(targetString) - 1;
       if (columnEnd < 0) {
-        throw new ArgumentError('target column end must be > 0: $columnEnd');
+        throw ArgumentError('target column end must be > 0: $columnEnd');
       }
     }
 
@@ -91,9 +91,9 @@ SingleMapping convertFromHumanReadableSourceMap(String json) {
       int colonPos = sourceString.indexOf(':');
       sourceUrlId = int.parse(sourceString.substring(0, colonPos));
       if (sourceUrlId < 0) {
-        throw new ArgumentError('source url id end must be > 0: $sourceUrlId');
+        throw ArgumentError('source url id end must be > 0: $sourceUrlId');
       } else if (sourceUrlId >= sources.length) {
-        throw new ArgumentError(
+        throw ArgumentError(
             'source url id end must be < ${sources.length}: $sourceUrlId');
       }
 
@@ -101,17 +101,17 @@ SingleMapping convertFromHumanReadableSourceMap(String json) {
       int commaPos = sourceString.indexOf(',');
       sourceLine = int.parse(sourceString.substring(0, commaPos)) - 1;
       if (sourceLine < 0) {
-        throw new ArgumentError('source line end must be > 0: $sourceLine');
+        throw ArgumentError('source line end must be > 0: $sourceLine');
       }
       sourceString = sourceString.substring(commaPos + 1);
       sourceColumn = int.parse(sourceString) - 1;
       if (sourceColumn < 0) {
-        throw new ArgumentError('source column must be > 0: $sourceColumn');
+        throw ArgumentError('source column must be > 0: $sourceColumn');
       }
     }
 
     TargetLineEntry lineEntry =
-        lineEntryMap.putIfAbsent(lineNo, () => new TargetLineEntry(lineNo, []));
+        lineEntryMap.putIfAbsent(lineNo, () => TargetLineEntry(lineNo, []));
     lineEntry.entries.add(TargetEntry(
         columnStart, sourceUrlId, sourceLine, sourceColumn, nameIndex));
     if (columnEnd != null) {
@@ -121,7 +121,7 @@ SingleMapping convertFromHumanReadableSourceMap(String json) {
 
   List<TargetLineEntry> lineEntries = lineEntryMap.values.toList();
 
-  Map outputMap = {
+  var outputMap = <String, dynamic>{
     'version': 3,
     'sourceRoot': inputMap['sourceRoot'],
     'file': inputMap['file'],
@@ -130,7 +130,7 @@ SingleMapping convertFromHumanReadableSourceMap(String json) {
     'mappings': '',
   };
 
-  SingleMapping mapping = new SingleMapping.fromJson(outputMap);
+  SingleMapping mapping = SingleMapping.fromJson(outputMap);
   mapping.lines.addAll(lineEntries);
   return mapping;
 }

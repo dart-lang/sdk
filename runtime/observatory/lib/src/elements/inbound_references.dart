@@ -6,7 +6,6 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/curly_block.dart';
-import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
@@ -30,10 +29,6 @@ class InboundReferencesElement extends CustomElement implements Renderable {
   factory InboundReferencesElement(M.IsolateRef isolate, M.ObjectRef object,
       M.InboundReferencesRepository references, M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(object != null);
-    assert(references != null);
-    assert(objects != null);
     InboundReferencesElement e = new InboundReferencesElement.created();
     e._r = new RenderingScheduler<InboundReferencesElement>(e, queue: queue);
     e._isolate = isolate;

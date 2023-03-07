@@ -18,7 +18,6 @@ import 'package:observatory/src/elements/isolate/location.dart';
 import 'package:observatory/src/elements/isolate/run_state.dart';
 import 'package:observatory/src/elements/isolate/shared_summary.dart';
 import 'package:observatory/src/elements/library_ref.dart';
-import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -27,7 +26,6 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 import 'package:observatory/src/elements/source_inset.dart';
-import 'package:observatory/utils.dart';
 
 class IsolateViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<IsolateViewElement> _r;
@@ -64,16 +62,6 @@ class IsolateViewElement extends CustomElement implements Renderable {
       M.ObjectRepository objects,
       M.EvalRepository eval,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(isolates != null);
-    assert(scripts != null);
-    assert(functions != null);
-    assert(objects != null);
-    assert(eval != null);
-    assert(libraries != null);
     IsolateViewElement e = new IsolateViewElement.created();
     e._r = new RenderingScheduler<IsolateViewElement>(e, queue: queue);
     e._vm = vm;

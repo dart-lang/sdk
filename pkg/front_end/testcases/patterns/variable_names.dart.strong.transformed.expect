@@ -45,7 +45,7 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
     function ##3#7#initializer() → core::num
       return #3#0{self::A}.{self::A::boz}{core::num};
     late final core::num #3#7 = ##3#7#initializer(){() → core::num};
-    if(#3#0 is{ForNonNullableByDefault} self::A && (let final core::int? #t1 = #3#2! in let final core::int? #t2 = foo = #3#2! in true) && (let final core::int #t3 = bar = #3#0{self::A}.{self::A::bar}{core::int} in true) && (!(#3#5 == null) ?{core::bool} let final core::int? #t4 = baz = #3#5 in true : false) && (let final core::double #t5 = #3#7 as{ForNonNullableByDefault} core::double in let final core::double #t6 = boz = #3#7 as{ForNonNullableByDefault} core::double in true) && (let final core::int #t7 = foobar = #3#0{self::A}.{self::A::foobar}{core::int} in true)) {
+    if(#3#0 is{ForNonNullableByDefault} self::A && (let final core::int? #t1 = #3#2! in let final core::int? #t2 = foo = #3#2! in true) && (let final core::int #t3 = bar = #3#0{self::A}.{self::A::bar}{core::int} in true) && (!(#3#5 == null) ?{core::bool} let final core::int #t4 = baz = #3#5{core::int} in true : false) && (let final core::double #t5 = #3#7 as{ForNonNullableByDefault} core::double in let final core::double #t6 = boz = #3#7 as{ForNonNullableByDefault} core::double in true) && (let final core::int #t7 = foobar = #3#0{self::A}.{self::A::foobar}{core::int} in true)) {
       return 0;
     }
     else {

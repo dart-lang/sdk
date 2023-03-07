@@ -10,7 +10,7 @@ import 'package:compiler/src/js/js_debug.dart' as js;
 import 'package:js_ast/js_ast.dart' as js;
 
 bool areJsNodesEquivalent(js.Node node1, js.Node node2) {
-  return new JsEquivalenceVisitor().testNodes(node1, node2);
+  return JsEquivalenceVisitor().testNodes(node1, node2);
 }
 
 class JsEquivalenceVisitor extends js.EquivalenceVisitor {

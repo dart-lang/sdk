@@ -22,5 +22,5 @@ method2<T>(t, s) => t;
 main() {
   makeLive('${method1.runtimeType}');
   method2(0, '');
-  new Class();
+  Class();
 }

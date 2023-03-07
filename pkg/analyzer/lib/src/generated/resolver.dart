@@ -4,12 +4,14 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart'
+    as shared_exhaustive;
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordPatternField, RecordType;
+    hide NamedType, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
@@ -72,6 +74,7 @@ import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/variable_declaration_resolver.dart';
 import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/error/base_or_final_type_verifier.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
@@ -80,8 +83,6 @@ import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
-import 'package:analyzer/src/generated/exhaustiveness.dart' as exhaustiveness
-    show isAlwaysExhaustiveType;
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -96,8 +97,8 @@ import 'package:meta/meta.dart';
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
     DartPattern, DartType, PromotableElement>;
 
-typedef SharedRecordPatternField
-    = shared.RecordPatternField<RecordPatternFieldImpl, DartPatternImpl>;
+typedef SharedPatternField
+    = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
 
 /// A function which returns [NonPromotionReason]s that various types are not
 /// promoted.
@@ -203,6 +204,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   final MigratableAstInfoProvider _migratableAstInfoProvider;
 
   final MigrationResolutionHooks? migrationResolutionHooks;
+
+  /// Helper for checking that subtypes of a base or final type must be base,
+  /// final, or sealed.
+  late final BaseOrFinalTypeVerifier baseOrFinalTypeVerifier;
 
   /// Helper for checking expression that should have the `bool` type.
   late final BoolExpressionVerifier boolExpressionVerifier;
@@ -374,6 +379,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       errorReporter: errorReporter,
       resolver: this,
     );
+    baseOrFinalTypeVerifier = BaseOrFinalTypeVerifier(
+        definingLibrary: definingLibrary, errorReporter: errorReporter);
     boolExpressionVerifier = BoolExpressionVerifier(
       resolver: this,
       errorReporter: errorReporter,
@@ -517,12 +524,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return null;
   }
 
-  List<SharedRecordPatternField> buildSharedRecordPatternFields(
-    List<RecordPatternFieldImpl> fields,
+  List<SharedPatternField> buildSharedPatternFields(
+    List<PatternFieldImpl> fields,
   ) {
     return fields.map((field) {
       Token? nameToken;
-      var fieldName = field.fieldName;
+      var fieldName = field.name;
       if (fieldName != null) {
         nameToken = fieldName.name;
         if (nameToken == null) {
@@ -801,6 +808,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void dispatchPattern(SharedMatchContext context, AstNode node) {
     if (node is DartPatternImpl) {
+      node.matchedValueType = flow.getMatchedValueType();
       node.resolvePattern(this, context);
     } else {
       // This can occur inside conventional switch statements, since
@@ -870,7 +878,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant SwitchExpressionImpl node,
     int caseIndex,
   ) {
-    node.cases[caseIndex].expression = popRewrite()!;
+    final case_ = node.cases[caseIndex];
+    case_.expression = popRewrite()!;
+    nullSafetyDeadCodeVerifier.flowEnd(case_);
   }
 
   @override
@@ -1050,6 +1060,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void handle_logicalOrPattern_afterLhs(covariant LogicalOrPatternImpl node) {
+    checkUnreachableNode(node.rightOperand);
+  }
+
+  @override
   void handleCase_afterCaseHeads(
       AstNode node, int caseIndex, Iterable<PromotableElement> variables) {}
 
@@ -1063,15 +1078,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite(); // "when" expression
     // Stack: ()
     if (node is SwitchStatementImpl) {
+      final group = node.memberGroups[caseIndex];
+      legacySwitchExhaustiveness?.visitSwitchMember(group);
+      nullSafetyDeadCodeVerifier.flowEnd(group.members[subIndex]);
+    } else if (node is SwitchExpressionImpl) {
       legacySwitchExhaustiveness
-          ?.visitSwitchMember(node.memberGroups[caseIndex]);
+          ?.visitSwitchExpressionCase(node.cases[caseIndex]);
     }
-    // TODO(scheglov) Exhaustiveness for SwitchExpressions?
   }
 
   @override
-  void handleDefault(covariant SwitchStatementImpl node, int caseIndex) {
-    legacySwitchExhaustiveness?.visitSwitchMember(node.memberGroups[caseIndex]);
+  void handleDefault(
+    covariant SwitchStatementImpl node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {
+    final group = node.memberGroups[caseIndex];
+    legacySwitchExhaustiveness?.visitSwitchMember(group);
+    nullSafetyDeadCodeVerifier.flowEnd(group.members[subIndex]);
   }
 
   @override
@@ -1117,8 +1141,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void handleNoStatement(Statement node) {}
 
   @override
+  void handleSwitchBeforeAlternative(
+    covariant AstNodeImpl node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {
+    if (node is SwitchExpressionImpl) {
+      final case_ = node.cases[caseIndex];
+      checkUnreachableNode(case_);
+    } else if (node is SwitchStatementImpl) {
+      final member = node.memberGroups[caseIndex].members[subIndex];
+      checkUnreachableNode(member);
+    }
+  }
+
+  @override
   void handleSwitchScrutinee(DartType type) {
-    if (!options.patternsEnabled) {
+    if (!options.patternsEnabled ||
+        shared_exhaustive.useFallbackExhaustivenessAlgorithm) {
       legacySwitchExhaustiveness = SwitchExhaustiveness(type);
     }
   }
@@ -1181,7 +1221,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   bool isAlwaysExhaustiveType(DartType type) {
-    return exhaustiveness.isAlwaysExhaustiveType(type);
+    return typeSystem.isAlwaysExhaustive(type);
   }
 
   @override
@@ -1513,10 +1553,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType resolveObjectPatternPropertyGet({
     required DartType receiverType,
-    required covariant SharedRecordPatternField field,
+    required covariant SharedPatternField field,
   }) {
     var fieldNode = field.node;
-    var nameToken = fieldNode.fieldName?.name;
+    var nameToken = fieldNode.name?.name;
     nameToken ??= field.pattern.variablePattern?.name;
     if (nameToken == null) {
       errorReporter.reportErrorForNode(
@@ -1544,7 +1584,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var getter = result.getter;
     if (getter != null) {
-      fieldNode.fieldElement = getter;
+      fieldNode.element = getter;
       if (getter is PropertyAccessorElement) {
         return getter.returnType;
       } else {
@@ -1729,6 +1769,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
   }
 
+  @override
+  DartType streamType(DartType elementType) {
+    return typeProvider.streamType(elementType);
+  }
+
   /// Returns the result of an implicit `this.` lookup for the identifier string
   /// [id] in a getter context, or `null` if no match was found.
   LexicalLookupResult? thisLookupGetter(SimpleIdentifier node) {
@@ -1821,7 +1866,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           typeSystem.isNonNullable(staticType) &&
           flowAnalysis.isDefinitelyUnassigned(simpleIdentifier, element)) {
         errorReporter.reportErrorForNode(
-          HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS,
+          WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS,
           simpleIdentifier,
           [simpleIdentifier.name],
         );
@@ -1996,6 +2041,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } finally {
       enclosingClass = outerType;
     }
+
+    baseOrFinalTypeVerifier
+        .checkElement(node.declaredElement as ClassOrMixinElementImpl);
   }
 
   @override
@@ -2921,6 +2969,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } finally {
       enclosingClass = outerType;
     }
+
+    baseOrFinalTypeVerifier
+        .checkElement(node.declaredElement as ClassOrMixinElementImpl);
   }
 
   @override
@@ -3047,7 +3098,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     final rewrittenPropertyAccess =
         _prefixedIdentifierResolver.resolve(node, contextType: contextType);
     if (rewrittenPropertyAccess != null) {
-      rewrittenPropertyAccess.accept(this);
+      visitPropertyAccess(rewrittenPropertyAccess, contextType: contextType);
+      // We did record that `node` was replaced with `rewrittenPropertyAccess`.
+      // But if `rewrittenPropertyAccess` was itself rewritten, replace the
+      // rewrite result of `node`.
+      assert(() {
+        final rewrite = _replacements[rewrittenPropertyAccess];
+        if (rewrite != null) {
+          _replacements[node] = rewrite;
+        }
+        return true;
+      }());
       return;
     }
     _insertImplicitCallReference(
@@ -3309,6 +3370,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitSuperFormalParameter(SuperFormalParameter node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
+  }
+
+  @override
+  void visitSwitchExpression(
+    covariant SwitchExpressionImpl node, {
+    DartType? contextType,
+  }) {
+    analyzeExpression(node, contextType);
+    popRewrite();
   }
 
   @override
@@ -5043,6 +5113,20 @@ class SwitchExhaustiveness {
 
   SwitchExhaustiveness._(this._enumConstants, this._isNullEnumValueCovered);
 
+  void visitSwitchExpressionCase(SwitchExpressionCaseImpl node) {
+    if (_enumConstants != null) {
+      ExpressionImpl? caseConstant;
+      var guardedPattern = node.guardedPattern;
+      if (guardedPattern.whenClause == null) {
+        var pattern = guardedPattern.pattern.unParenthesized;
+        if (pattern is ConstantPatternImpl) {
+          caseConstant = pattern.expression;
+        }
+      }
+      _handleCaseConstant(caseConstant);
+    }
+  }
+
   void visitSwitchMember(SwitchStatementCaseGroup group) {
     for (var node in group.members) {
       if (_enumConstants != null) {
@@ -5058,19 +5142,23 @@ class SwitchExhaustiveness {
             }
           }
         }
-        if (caseConstant != null) {
-          var element = _referencedElement(caseConstant);
-          if (element is PropertyAccessorElement) {
-            _enumConstants!.remove(element.variable);
-          }
-          if (caseConstant is NullLiteral) {
-            _isNullEnumValueCovered = true;
-          }
-          if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
-            isExhaustive = true;
-          }
-        }
+        _handleCaseConstant(caseConstant);
       } else if (node is SwitchDefault) {
+        isExhaustive = true;
+      }
+    }
+  }
+
+  void _handleCaseConstant(ExpressionImpl? caseConstant) {
+    if (caseConstant != null) {
+      var element = _referencedElement(caseConstant);
+      if (element is PropertyAccessorElement) {
+        _enumConstants!.remove(element.variable);
+      }
+      if (caseConstant is NullLiteral) {
+        _isNullEnumValueCovered = true;
+      }
+      if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
         isExhaustive = true;
       }
     }

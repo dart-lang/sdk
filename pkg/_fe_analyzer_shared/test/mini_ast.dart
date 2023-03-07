@@ -321,11 +321,15 @@ Pattern objectPattern({
 ///       for (var (a, b) in iterable) { ... }
 ///     }
 Statement patternForIn(
-    Pattern pattern, Expression expression, List<Statement> body) {
+  Pattern pattern,
+  Expression expression,
+  List<Statement> body, {
+  bool hasAwait = false,
+}) {
   var location = computeLocation();
   return new _PatternForIn(
       pattern, expression, _Block(body, location: location),
-      location: location);
+      hasAwait: hasAwait, location: location);
 }
 
 /// Creates a "pattern-for-in" element.
@@ -335,10 +339,14 @@ Statement patternForIn(
 ///       [for (var (a, b) in iterable) '$a $b']
 ///     }
 CollectionElement patternForInElement(
-    Pattern pattern, Expression expression, CollectionElement body) {
+  Pattern pattern,
+  Expression expression,
+  CollectionElement body, {
+  bool hasAwait = false,
+}) {
   var location = computeLocation();
   return new _PatternForInElement(pattern, expression, body,
-      location: location);
+      hasAwait: hasAwait, location: location);
 }
 
 Pattern recordPattern(List<RecordPatternField> fields) =>
@@ -372,8 +380,10 @@ Statement switch_(Expression expression, List<_SwitchStatementMember> cases,
             expectRequiresExhaustivenessValidation,
         expectScrutineeType: expectScrutineeType);
 
-Expression switchExpr(Expression expression, List<ExpressionCase> cases) =>
-    new _SwitchExpression(expression, cases, location: computeLocation());
+Expression switchExpr(Expression expression, List<ExpressionCase> cases,
+        {bool? isLegacyExhaustive}) =>
+    new _SwitchExpression(expression, cases, isLegacyExhaustive,
+        location: computeLocation());
 
 _SwitchStatementMember switchStatementMember(
   List<SwitchHead> cases,
@@ -621,6 +631,8 @@ class Harness {
 
   bool? _patternsEnabled;
 
+  bool errorOnSwitchExhaustiveness = false;
+
   Type? _thisType;
 
   late final Map<String, _PropertyElement?> _members = {
@@ -632,7 +644,8 @@ class Harness {
       this,
       TypeAnalyzerOptions(
           nullSafetyEnabled: !_operations.legacy,
-          patternsEnabled: patternsEnabled));
+          patternsEnabled: patternsEnabled,
+          errorOnSwitchExhaustiveness: errorOnSwitchExhaustiveness));
 
   /// Indicates whether initializers of implicitly typed variables should be
   /// accounted for by SSA analysis.  (In an ideal world, they always would be,
@@ -853,6 +866,8 @@ class MiniAstOperations
     implements Operations<Var, Type> {
   static const Map<String, bool> _coreExhaustiveness = const {
     '()': true,
+    '(int, int?)': false,
+    'bool': true,
     'dynamic': false,
     'int': false,
     'int?': false,
@@ -865,11 +880,13 @@ class MiniAstOperations
   };
 
   static final Map<String, Type> _coreGlbs = {
+    '?, int': Type('int'),
     'Object?, double': Type('double'),
     'Object?, int': Type('int'),
     'double, int': Type('Never'),
     'double?, int?': Type('Null'),
     'int?, num': Type('int'),
+    'Null, int': Type('Never'),
   };
 
   static final Map<String, Type> _coreLubs = {
@@ -884,13 +901,17 @@ class MiniAstOperations
   };
 
   static final Map<String, Type> _coreDownwardInferenceResults = {
+    'bool <: bool': Type('bool'),
     'dynamic <: int': Type('dynamic'),
+    'int <: dynamic': Type('int'),
     'int <: num': Type('int'),
     'int <: Object?': Type('int'),
     'List <: Iterable<int>': Type('List<int>'),
     'Never <: int': Type('Never'),
     'num <: int': Type('num'),
     'num <: Object': Type('num'),
+    'Object <: num': Type('Object'),
+    'String <: num': Type('String'),
   };
 
   static final Map<String, Type> _coreNormalizeResults = {
@@ -1095,6 +1116,16 @@ class MiniAstOperations
   }
 
   @override
+  Type? matchStreamType(Type type) {
+    if (type is PrimaryType && type.args.length == 1) {
+      if (type.name == 'Stream') {
+        return type.args[0];
+      }
+    }
+    return null;
+  }
+
+  @override
   Type normalize(Type type) {
     var query = '$type';
     return _normalizeResults[query] ?? fail('Unknown query: $query');
@@ -1202,6 +1233,9 @@ abstract class Pattern extends Node
 
   Pattern get nullCheck =>
       _NullCheckOrAssertPattern(this, false, location: computeLocation());
+
+  Pattern get parenthesized =>
+      _ParenthesizedPattern(this, location: computeLocation());
 
   @override
   GuardedPattern get _asGuardedPattern {
@@ -3088,13 +3122,19 @@ class _MiniAstErrors
   }
 
   @override
-  void nonBooleanCondition(Expression node) {
-    _recordError('nonBooleanCondition', {}, unnamed: [node]);
+  void nonBooleanCondition({required Expression node}) {
+    _recordError('nonBooleanCondition', {'node': node});
   }
 
   @override
-  void patternDoesNotAllowLate(Node pattern) {
-    _recordError('patternDoesNotAllowLate', {}, unnamed: [pattern]);
+  void nonExhaustiveSwitch({required Node node, required Type scrutineeType}) {
+    _recordError(
+        'nonExhaustiveSwitch', {'node': node, 'scrutineeType': scrutineeType});
+  }
+
+  @override
+  void patternDoesNotAllowLate({required Node pattern}) {
+    _recordError('patternDoesNotAllowLate', {'pattern': pattern});
   }
 
   @override
@@ -3125,12 +3165,10 @@ class _MiniAstErrors
   }
 
   @override
-  void refutablePatternInIrrefutableContext(Node pattern, Node context) {
-    _recordError(
-      'refutablePatternInIrrefutableContext',
-      const {},
-      unnamed: [pattern, context],
-    );
+  void refutablePatternInIrrefutableContext(
+      {required Node pattern, required Node context}) {
+    _recordError('refutablePatternInIrrefutableContext',
+        {'pattern': pattern, 'context': context});
   }
 
   @override
@@ -3145,43 +3183,43 @@ class _MiniAstErrors
   }
 
   @override
-  void restPatternNotLastInMap(Pattern node, Node element) {
-    _recordError(
-      'restPatternNotLastInMap',
-      const {},
-      unnamed: [node, element],
-    );
+  void restPatternNotLastInMap({required Pattern node, required Node element}) {
+    _recordError('restPatternNotLastInMap', {'node': node, 'element': element});
   }
 
   @override
-  void restPatternWithSubPatternInMap(Pattern node, Node element) {
+  void restPatternWithSubPatternInMap(
+      {required Pattern node, required Node element}) {
     _recordError(
-      'restPatternWithSubPatternInMap',
-      const {},
-      unnamed: [node, element],
-    );
+        'restPatternWithSubPatternInMap', {'node': node, 'element': element});
   }
 
   @override
   void switchCaseCompletesNormally(
-      covariant _SwitchStatement node, int caseIndex, int numHeads) {
+      {required covariant _SwitchStatement node, required int caseIndex}) {
     _recordError(
-      'switchCaseCompletesNormally',
-      const {},
-      unnamed: [node, caseIndex, numHeads],
-    );
+        'switchCaseCompletesNormally', {'node': node, 'caseIndex': caseIndex});
   }
 
-  void _recordError(
-    String name,
-    Map<String, Object?> namedArguments, {
-    List<Object?>? unnamed,
+  @override
+  void unnecessaryWildcardPattern({
+    required Pattern pattern,
+    required UnnecessaryWildcardKind kind,
   }) {
+    _recordError('unnecessaryWildcardPattern', {
+      'pattern': pattern,
+      'kind': kind,
+    });
+  }
+
+  void _recordError(String name, Map<String, Object?> namedArguments) {
     String argumentStr(Object? argument) {
       if (argument is bool) {
         return '$argument';
       } else if (argument is int) {
         return '$argument';
+      } else if (argument is Enum) {
+        return argument.name;
       } else if (argument is Node) {
         return argument.errorId;
       } else if (argument is Type) {
@@ -3191,14 +3229,9 @@ class _MiniAstErrors
       }
     }
 
-    String argumentsStr;
-    if (unnamed != null) {
-      argumentsStr = unnamed.map(argumentStr).join(', ');
-    } else {
-      argumentsStr = namedArguments.entries.map((entry) {
-        return '${entry.key}: ${argumentStr(entry.value)}';
-      }).join(', ');
-    }
+    String argumentsStr = namedArguments.entries.map((entry) {
+      return '${entry.key}: ${argumentStr(entry.value)}';
+    }).join(', ');
 
     var errorText = '$name($argumentsStr)';
 
@@ -3724,7 +3757,11 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleDefault(Node node, int caseIndex) {
+  void handleDefault(
+    Node node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {
     _irBuilder.atom('default', Kind.caseHead, location: node.location);
   }
 
@@ -3807,6 +3844,13 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  void handleSwitchBeforeAlternative(
+    Node node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {}
+
+  @override
   void handleSwitchScrutinee(Type type) {}
 
   @override
@@ -3814,8 +3858,7 @@ class _MiniAstTypeAnalyzer
       operations.isAlwaysExhaustiveType(type);
 
   @override
-  bool isLegacySwitchExhaustive(
-      covariant _SwitchStatement node, Type expressionType) {
+  bool isLegacySwitchExhaustive(covariant _Switch node, Type expressionType) {
     return node.isLegacyExhaustive!;
   }
 
@@ -3883,6 +3926,11 @@ class _MiniAstTypeAnalyzer
   @override
   void setVariableType(Var variable, Type type) {
     variable.type = type;
+  }
+
+  @override
+  Type streamType(Type elementType) {
+    return PrimaryType('Stream', args: [elementType]);
   }
 
   @override
@@ -4129,6 +4177,29 @@ class _ParenthesizedExpression extends Expression {
   }
 }
 
+class _ParenthesizedPattern extends Pattern {
+  final Pattern _inner;
+
+  _ParenthesizedPattern(this._inner, {required super.location}) : super._();
+
+  @override
+  Type computeSchema(Harness h) => _inner.computeSchema(h);
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+          {required bool isInAssignment}) =>
+      _inner.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+
+  @override
+  void visit(Harness h, SharedMatchContext context) {
+    _inner.visit(h, context);
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) =>
+      '(${_inner._debugString(needsKeywordOrType: false)})';
+}
+
 class _PatternAssignment extends Expression {
   final Pattern _pattern;
   final Expression _rhs;
@@ -4156,12 +4227,13 @@ class _PatternAssignment extends Expression {
 }
 
 class _PatternForIn extends Statement {
+  final bool hasAwait;
   final Pattern pattern;
   final Expression expression;
   final Statement body;
 
   _PatternForIn(this.pattern, this.expression, this.body,
-      {required super.location});
+      {required this.hasAwait, required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -4187,6 +4259,7 @@ class _PatternForIn extends Statement {
   void visit(Harness h) {
     h.typeAnalyzer.analyzePatternForIn(
         node: this,
+        hasAwait: hasAwait,
         pattern: pattern,
         expression: expression,
         dispatchBody: () {
@@ -4202,12 +4275,13 @@ class _PatternForIn extends Statement {
 }
 
 class _PatternForInElement extends CollectionElement {
+  final bool hasAwait;
   final Pattern pattern;
   final Expression expression;
   final CollectionElement body;
 
   _PatternForInElement(this.pattern, this.expression, this.body,
-      {required super.location});
+      {required this.hasAwait, required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -4228,6 +4302,7 @@ class _PatternForInElement extends CollectionElement {
   void visit(Harness h, covariant _CollectionElementContext context) {
     h.typeAnalyzer.analyzePatternForIn(
         node: this,
+        hasAwait: hasAwait,
         pattern: pattern,
         expression: expression,
         dispatchBody: () {
@@ -4421,12 +4496,20 @@ class _Return extends Statement {
   }
 }
 
-class _SwitchExpression extends Expression {
+abstract class _Switch implements Node {
+  bool? get isLegacyExhaustive;
+}
+
+class _SwitchExpression extends Expression implements _Switch {
   final Expression scrutinee;
 
   final List<ExpressionCase> cases;
 
-  _SwitchExpression(this.scrutinee, this.cases, {required super.location});
+  @override
+  final bool? isLegacyExhaustive;
+
+  _SwitchExpression(this.scrutinee, this.cases, this.isLegacyExhaustive,
+      {required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -4438,6 +4521,12 @@ class _SwitchExpression extends Expression {
 
   @override
   String toString() {
+    var isLegacyExhaustive = this.isLegacyExhaustive;
+    var exhaustiveness = isLegacyExhaustive == null
+        ? ''
+        : isLegacyExhaustive
+            ? '<exhaustive>'
+            : '<non-exhaustive>';
     String body;
     if (cases.isEmpty) {
       body = '{}';
@@ -4445,11 +4534,17 @@ class _SwitchExpression extends Expression {
       var contents = cases.join(' ');
       body = '{ $contents }';
     }
-    return 'switch ($scrutinee) $body';
+    return 'switch$exhaustiveness ($scrutinee) $body';
   }
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    bool needsLegacyExhaustive = h.errorOnSwitchExhaustiveness;
+    if (!needsLegacyExhaustive && isLegacyExhaustive != null) {
+      fail('isLegacyExhaustive should not be specified at $location');
+    } else if (needsLegacyExhaustive && isLegacyExhaustive == null) {
+      fail('isLegacyExhaustive should be specified at $location');
+    }
     var result = h.typeAnalyzer
         .analyzeSwitchExpression(this, scrutinee, cases.length, context);
     h.irBuilder.apply(
@@ -4471,11 +4566,12 @@ class _SwitchHeadDefault extends SwitchHead {
   _SwitchHeadDefault({required super.location}) : super._();
 }
 
-class _SwitchStatement extends Statement {
+class _SwitchStatement extends Statement implements _Switch {
   final Expression scrutinee;
 
   final List<_SwitchStatementMember> cases;
 
+  @override
   final bool? isLegacyExhaustive;
 
   final bool? expectHasDefault;
@@ -4526,12 +4622,12 @@ class _SwitchStatement extends Statement {
 
   @override
   void visit(Harness h) {
-    if (h.patternsEnabled && isLegacyExhaustive != null) {
-      fail('isLegacyExhaustive should not be specified when patterns enabled, '
-          'at $location');
-    } else if (!h.patternsEnabled && isLegacyExhaustive == null) {
-      fail('isLegacyExhaustive should be specified when patterns disabled, '
-          'at $location');
+    bool needsLegacyExhaustive =
+        !h.patternsEnabled || h.errorOnSwitchExhaustiveness;
+    if (!needsLegacyExhaustive && isLegacyExhaustive != null) {
+      fail('isLegacyExhaustive should not be specified at $location');
+    } else if (needsLegacyExhaustive && isLegacyExhaustive == null) {
+      fail('isLegacyExhaustive should be specified at $location');
     }
     var previousBreakTarget = h.typeAnalyzer._currentBreakTarget;
     h.typeAnalyzer._currentBreakTarget = this;

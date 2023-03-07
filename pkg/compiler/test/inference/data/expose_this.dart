@@ -36,7 +36,7 @@ class Class1 {
 }
 
 /*member: exposeThis1:[exact=Class1]*/
-exposeThis1() => new Class1();
+exposeThis1() => Class1();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Expose this trough a instance method invocation on this.
@@ -57,7 +57,7 @@ class Class2 {
 }
 
 /*member: exposeThis2:[exact=Class2]*/
-exposeThis2() => new Class2();
+exposeThis2() => Class2();
 
 ////////////////////////////////////////////////////////////////////////////////
 // A this expression itself does _not_ expose this.
@@ -75,7 +75,7 @@ class Class3 {
 }
 
 /*member: exposeThis3:[exact=Class3]*/
-exposeThis3() => new Class3();
+exposeThis3() => Class3();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Expose this through a static field assignment.
@@ -96,7 +96,7 @@ class Class4 {
 }
 
 /*member: exposeThis4:[exact=Class4]*/
-exposeThis4() => new Class4();
+exposeThis4() => Class4();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Expose this through an instance field assignment.
@@ -114,7 +114,7 @@ class Class5 {
 }
 
 /*member: exposeThis5:[exact=Class5]*/
-exposeThis5() => new Class5(null);
+exposeThis5() => Class5(null);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Expose this through a local variable assignment.
@@ -134,7 +134,7 @@ class Class6 {
 }
 
 /*member: exposeThis6:[exact=Class6]*/
-exposeThis6() => new Class6();
+exposeThis6() => Class6();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Expose this through a local variable initializer.
@@ -153,4 +153,4 @@ class Class7 {
 }
 
 /*member: exposeThis7:[exact=Class7]*/
-exposeThis7() => new Class7();
+exposeThis7() => Class7();

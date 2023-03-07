@@ -14,7 +14,7 @@ import 'package:compiler/src/util/memory_compiler.dart';
 
 void main() {
   runTest() async {
-    OutputCollector collector = new OutputCollector();
+    OutputCollector collector = OutputCollector();
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
@@ -55,7 +55,7 @@ class A<T> {}
 
 class B<T> implements A<T> {}
 
-B<B> instance = new B<B>();
+B<B> instance = B<B>();
 
 bool f (Object o) {
   return o is A<A>;

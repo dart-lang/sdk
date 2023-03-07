@@ -46,7 +46,7 @@ class Class3<T> {
 }
 
 main() {
-  new Class1<int>().method1(0).call();
-  new Class2<int>().method2(0).call();
-  new Class3<int>().method3(0).call();
+  Class1<int>().method1(0).call();
+  Class2<int>().method2(0).call();
+  Class3<int>().method3(0).call();
 }

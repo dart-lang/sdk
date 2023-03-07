@@ -159,15 +159,6 @@ class VmTarget extends Target {
     if (transitiveImportingDartFfi == null) {
       logger?.call("Skipped ffi transformation");
     } else {
-      // Transform @FfiNative(..) functions into FFI native call functions.
-      // Pass instance method receivers as implicit first argument to the static
-      // native function.
-      // Transform arguments that extend NativeFieldWrapperClass1 to Pointer if
-      // the native function expects Pointer (to avoid Handle overhead).
-      transformFfiNative.transformLibraries(component, coreTypes, hierarchy,
-          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
-      logger?.call("Transformed ffi natives");
-
       transformFfiDefinitions.transformLibraries(
           component,
           coreTypes,
@@ -179,10 +170,20 @@ class VmTarget extends Target {
       transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
           transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi annotations");
+
+      // Transform @FfiNative(..) functions into FFI native call functions.
+      // Pass instance method receivers as implicit first argument to the static
+      // native function.
+      // Transform arguments that extend NativeFieldWrapperClass1 to Pointer if
+      // the native function expects Pointer (to avoid Handle overhead).
+      transformFfiNative.transformLibraries(component, coreTypes, hierarchy,
+          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
+      logger?.call("Transformed ffi natives");
     }
 
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
-    lowering.transformLibraries(libraries, coreTypes, hierarchy,
+    lowering.transformLibraries(
+        libraries, coreTypes, hierarchy, this, diagnosticReporter,
         nullSafety: flags.soundNullSafety, productMode: productMode);
     logger?.call("Lowering transformations performed");
 
@@ -199,7 +200,7 @@ class VmTarget extends Target {
       Map<String, String>? environmentDefines,
       {void Function(String msg)? logger}) {
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
-    lowering.transformProcedure(procedure, coreTypes, hierarchy,
+    lowering.transformProcedure(procedure, coreTypes, hierarchy, this,
         nullSafety: flags.soundNullSafety, productMode: productMode);
     logger?.call("Lowering transformations performed");
   }

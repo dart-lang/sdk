@@ -17,7 +17,6 @@ class NotificationRepository implements M.NotificationRepository {
   Stream<M.NotificationChangeEvent> get onChange => _onChange.stream;
 
   void add(M.Notification notification) {
-    assert(notification != null);
     _list.add(notification);
     _notify();
   }

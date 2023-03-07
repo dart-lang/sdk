@@ -26,5 +26,5 @@ class A {
 
 /*member: main:[null]*/
 main() {
-  new A();
+  A();
 }

@@ -44,7 +44,7 @@ static method test2(core::num x) → dynamic {
   {
     core::int y;
     final core::num #1#0 = x;
-    if(!(#1#0 == null) ?{core::bool} #1#0 is{ForNonNullableByDefault} core::int && (let final core::num #t4 = y = #1#0 in true) : false) {
+    if(!(#1#0 == null) ?{core::bool} #1#0 is{ForNonNullableByDefault} core::int && (let final core::int #t4 = y = #1#0{core::int} in true) : false) {
     }
   }
   {

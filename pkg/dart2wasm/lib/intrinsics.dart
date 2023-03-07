@@ -1051,6 +1051,10 @@ class Intrinsifier {
           codeGen.wrap(value, w.RefType.extern(nullable: true));
           b.extern_internalize();
           return w.RefType.any(nullable: true);
+        case "_wasmExternRefIsNull":
+          codeGen.wrap(value, w.RefType.extern(nullable: true));
+          b.ref_is_null();
+          return w.NumType.i32;
       }
     }
 
@@ -1734,8 +1738,13 @@ class Intrinsifier {
       b.end(); // errorBlock
 
       b.local_get(errorLocal);
+      b.struct_get(errorClassInfo.struct, stackTraceFieldIndex);
+      b.ref_is_null();
+      b.if_();
+      b.local_get(errorLocal);
       b.local_get(stackTraceLocal);
       b.struct_set(errorClassInfo.struct, stackTraceFieldIndex);
+      b.end();
 
       b.local_get(objectLocal);
       b.end(); // notErrorBlock
@@ -1743,6 +1752,12 @@ class Intrinsifier {
       b.local_get(stackTraceLocal);
       b.throw_(translator.exceptionTag);
 
+      return true;
+    }
+
+    if (member.enclosingClass == translator.wasmExternRefClass &&
+        name == "nullRef") {
+      b.ref_null(w.HeapType.noextern);
       return true;
     }
 

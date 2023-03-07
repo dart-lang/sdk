@@ -19,7 +19,7 @@ class BuiltInIdentifierAsTypedefNameTest extends PubPackageResolutionTest {
   test_classTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
-class B {}
+mixin B {}
 class as = A with B;
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 28, 2),

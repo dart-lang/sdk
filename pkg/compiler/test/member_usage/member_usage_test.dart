@@ -18,7 +18,7 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     print('------------------------------------------------------------------');
     print(' Test with enqueuer checks');
     print('------------------------------------------------------------------');
@@ -56,7 +56,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
   /// not implied by dynamic or super access.
   String computeAccessText(MemberEntity member, EnumSet<Access> access,
       [String? prefix]) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     String delimiter = '';
     if (prefix != null) {
       sb.write(prefix);
@@ -82,7 +82,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
     ResolutionWorldBuilder resolutionWorldBuilder =
         compiler.resolutionWorldBuilderForTesting!;
     ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
-    Features features = new Features();
+    Features features = Features();
     MemberUsage? memberUsage =
         resolutionWorldBuilder.memberUsageForTesting[member];
     if (memberUsage != null) {
@@ -108,7 +108,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
     }
     Id id = computeMemberId(node);
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
-    actualMap[id] = new ActualData<Features>(id, features,
+    actualMap[id] = ActualData<Features>(id, features,
         nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
   }
 

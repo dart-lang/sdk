@@ -202,6 +202,10 @@ abstract class ObjectAccessTarget {
   bool get isInlineClassRepresentation =>
       kind == ObjectAccessTargetKind.inlineClassRepresentation;
 
+  bool get isRecordNamedAccess => kind == ObjectAccessTargetKind.recordNamed;
+  bool get isRecordIndexedAccess =>
+      kind == ObjectAccessTargetKind.recordIndexed;
+
   /// Returns `true` if this is an access to the 'call' method on a function.
   bool get isCallFunction => kind == ObjectAccessTargetKind.callFunction;
 

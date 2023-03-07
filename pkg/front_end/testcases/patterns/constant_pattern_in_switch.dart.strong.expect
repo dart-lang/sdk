@@ -104,8 +104,8 @@ constants  {
   #C4 = <core::int>{#C1}
   #C5 = <core::num>{#C1}
   #C6 = "foo"
-  #C7 = <core::int, core::String>{#C1:#C6)
-  #C8 = <core::num, core::Object>{#C1:#C6)
+  #C7 = <core::int, core::String>{#C1:#C6}
+  #C8 = <core::num, core::Object>{#C1:#C6}
   #C9 = self::Const<core::int> {value:#C1}
   #C10 = self::Const<core::num> {value:#C1}
 }

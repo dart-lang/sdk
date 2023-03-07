@@ -108,7 +108,7 @@ void testParseOtherOptions() {
   /\/ SharedOptions=shared options
   /\/ dart2jsOptions=dart2js options
   /\/ dart2wasmOptions=dart2wasm options
-  /\/ dartdevcOptions=ddc options
+  /\/ ddcOptions=ddc options
   /\/ OtherResources=other resources
   /\/ SharedObjects=shared objects
   /\/ Requirements=nnbd nnbd-strong
@@ -139,8 +139,8 @@ void testParseOtherOptions() {
   /\/ dart2wasmOptions=second
   """);
   expectParseThrows("""
-  /\/ dartdevcOptions=first
-  /\/ dartdevcOptions=second
+  /\/ ddcOptions=first
+  /\/ ddcOptions=second
   """);
   expectParseThrows("""
   /\/ Requirements=nnbd

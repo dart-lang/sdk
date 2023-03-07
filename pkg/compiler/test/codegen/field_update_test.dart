@@ -15,7 +15,7 @@ class A {
 }
 
 void main() {
-  var a = new A();
+  var a = A();
   print(a.foo());
 }
 """;
@@ -27,7 +27,7 @@ class A {
 }
 
 void main() {
-  var a = new A();
+  var a = A();
   print(a.foo());
 }
 """;
@@ -39,7 +39,7 @@ class A {
 }
 
 void main() {
-  var a = new A();
+  var a = A();
   print(a.foo());
 }
 """;
@@ -51,7 +51,7 @@ class A {
 }
 
 void main() {
-  var a = new A();
+  var a = A();
   print(a.foo());
 }
 """;
@@ -63,7 +63,7 @@ class A {
 }
 
 void main() {
-  var a = new A();
+  var a = A();
   print(a.foo());
 }
 """;
@@ -75,7 +75,7 @@ class A {
 }
 
 void main() {
-  var a = new A();
+  var a = A();
   print(a.foo());
 }
 """;

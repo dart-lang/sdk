@@ -31,7 +31,7 @@ class B<S extends num> {}
 
 class S {}
 
-class M {}
+mixin M {}
 
 class MA extends S with M {}
 
@@ -282,11 +282,6 @@ class Typed {
   var byteData = new ByteData(8);
 
   Typed() {
-    float32List[0] = 3.14;
-    int8List[0] = 5;
-  }
-
-  Typed._named() {
     float32List[0] = 3.14;
     int8List[0] = 5;
   }

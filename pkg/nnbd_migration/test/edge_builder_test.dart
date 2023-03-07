@@ -3274,9 +3274,9 @@ void f(List<int> l) {
   Future<void> test_for_each_element_with_declaration_implicit_type() async {
     await analyze('''
 void f(List<int> l) {
-  [for (var i in l) g(i)];
+  [for (var i in l) _g(i)];
 }
-int g(int j) => 0;
+int _g(int j) => 0;
 ''');
     var jNode = decoratedTypeAnnotation('int j').node;
     var iMatcher = anyNode;
@@ -3355,10 +3355,10 @@ void f(List<int> l) {
     await analyze('''
 void f(List<int> l) {
   for (var i in l) {
-    g(i);
+    _g(i);
   }
 }
-void g(int j) {}
+void _g(int j) {}
 ''');
     var jNode = decoratedTypeAnnotation('int j').node;
     var iMatcher = anyNode;
@@ -3659,9 +3659,9 @@ void test(int/*2*/ i) {
 
   Future<void> test_functionInvocation_parameter_functionTyped() async {
     await analyze('''
-void f(void g()) {}
+void _f(void g()) {}
 void test() {
-  f(null);
+  _f(null);
 }
 ''');
 
@@ -3740,9 +3740,9 @@ void g() {
 
   Future<void> test_functionInvocation_parameter_null() async {
     await analyze('''
-void f(int i) {}
+void _f(int i) {}
 void test() {
-  f(null);
+  _f(null);
 }
 ''');
 
@@ -4750,7 +4750,7 @@ class C {
 }
 ''');
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
-    assertNoEdge(always, decoratedTypeAnnotation('int j').node);
+    assertEdge(decoratedTypeAnnotation('int j').node, never, hard: true);
     assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
   }
 
@@ -4758,18 +4758,19 @@ class C {
       test_methodDeclaration_resets_unconditional_control_flow() async {
     await analyze('''
 class C {
-  void f(bool b, int i, int j) {
+  void _f(bool b, int i, int j) {
     assert(i != null);
     if (b) return;
     assert(j != null);
   }
-  void g(int k) {
+  void _g(int k) {
     assert(k != null);
   }
 }
 ''');
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
-    assertNoEdge(always, decoratedTypeAnnotation('int j').node);
+    assertNoEdge(decoratedTypeAnnotation('int j').node, never);
+    assertEdge(always, decoratedTypeAnnotation('int j').node, hard: false);
     assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
   }
 
@@ -8072,7 +8073,11 @@ void f<T extends Foo>(T t) {
     assertEdge(decoratedTypeAnnotation('T t').node, never, hard: true);
     // TODO(mfairhurst): fix this: https://github.com/dart-lang/sdk/issues/39852
     //assertEdge(decoratedTypeAnnotation('Foo>').node, never, hard: true);
-    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int x').node,
+    // There is a direct soft edge from always, since it's a public method,
+    // but we want to test there is also an edge resulting from t.bar(null)
+    // usage in f.
+    assertEdge(inSet(alwaysPlus.difference({always})),
+        decoratedTypeAnnotation('int x').node,
         hard: false);
   }
 
@@ -8089,7 +8094,11 @@ void f<T extends R, R extends Foo>(T t) {
     assertEdge(decoratedTypeAnnotation('T t').node, never, hard: true);
     // TODO(mfairhurst): fix this: https://github.com/dart-lang/sdk/issues/39852
     //assertEdge(decoratedTypeAnnotation('Foo>').node, never, hard: true);
-    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int x').node,
+    // There is a direct soft edge from always, since it's a public method,
+    // but we want to test there is also an edge resulting from t.bar(null)
+    // usage in f.
+    assertEdge(inSet(alwaysPlus.difference({always})),
+        decoratedTypeAnnotation('int x').node,
         hard: false);
   }
 
@@ -8106,7 +8115,11 @@ void f<T extends Foo<dynamic>>(T t) {
     assertEdge(decoratedTypeAnnotation('T t').node, never, hard: true);
     // TODO(mfairhurst): fix this: https://github.com/dart-lang/sdk/issues/39852
     //assertEdge(decoratedTypeAnnotation('Foo>').node, never, hard: true);
-    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int x').node,
+    // There is a direct soft edge from always, since it's a public method,
+    // but we want to test there is also an edge resulting from t.bar(null)
+    // usage in f.
+    assertEdge(inSet(alwaysPlus.difference({always})),
+        decoratedTypeAnnotation('int x').node,
         hard: false);
   }
 

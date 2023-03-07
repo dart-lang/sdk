@@ -45,7 +45,7 @@ import 'package:meta/meta.dart';
 
 abstract class A {}
 
-abstract class B {}
+mixin B {}
 
 @sealed abstract class M = A with B;
 ''');

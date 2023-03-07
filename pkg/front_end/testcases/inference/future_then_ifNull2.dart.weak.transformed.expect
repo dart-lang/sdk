@@ -86,7 +86,7 @@ constants  {
   #C3 = <core::Type*>[]
   #C4 = #test
   #C5 = #whenComplete
-  #C6 = <core::Symbol*, dynamic>{)
+  #C6 = <core::Symbol*, dynamic>{}
   #C7 = #asStream
   #C8 = <dynamic>[]
   #C9 = #timeout

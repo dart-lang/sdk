@@ -7051,7 +7051,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitLoadLibrary(LoadLibrary node) =>
       runtimeCall('loadLibrary(#, #)', [
-        js.string(jsLibraryName(node.import.enclosingLibrary)),
+        js.string(node.import.enclosingLibrary.importUri.toString()),
         js.string(node.import.name!)
       ]);
 
@@ -7062,7 +7062,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       runtimeCall('checkDeferredIsLoaded(#, #)', [
-        js.string(jsLibraryName(node.import.enclosingLibrary)),
+        js.string(node.import.enclosingLibrary.importUri.toString()),
         js.string(node.import.name!)
       ]);
 

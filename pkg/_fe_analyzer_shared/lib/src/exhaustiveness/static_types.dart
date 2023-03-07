@@ -13,6 +13,10 @@ abstract class TypeOperations<Type extends Object> {
   /// Returns `true` if [s] is a subtype of [t].
   bool isSubtypeOf(Type s, Type t);
 
+  /// Returns a type that overapproximates the possible values of [type] by
+  /// replacing all type variables with the default types.
+  Type overapproximate(Type type);
+
   /// Returns `true` if [type] is a potentially nullable type.
   bool isNullable(Type type);
 
@@ -33,11 +37,26 @@ abstract class TypeOperations<Type extends Object> {
   /// Returns `true` if [type] is the `Object` type.
   bool isNonNullableObject(Type type);
 
+  /// Returns `true` if [type] is the `dynamic` type.
+  bool isDynamic(Type type);
+
   /// Returns `true` if [type] is the `bool` type.
   bool isBoolType(Type type);
 
   /// Returns the `bool` type.
   Type get boolType;
+
+  /// Returns `true` if [type] is a record type.
+  bool isRecordType(Type type);
+
+  /// Returns `true` if [type] is a generic interface type.
+  bool isGeneric(Type type);
+
+  /// Returns the type `T` if [type] is `FutureOr<T>`. Returns `null` otherwise.
+  Type? getFutureOrTypeArgument(Type type);
+
+  /// Returns the non-nullable type `Future<T>` for [type] `T`.
+  Type instantiateFuture(Type type);
 
   /// Returns a map of the field names and corresponding types available on
   /// [type]. For an interface type, these are the fields and getters, and for
@@ -96,8 +115,6 @@ abstract class SealedClassOperations<Type extends Object,
   /// It is assumed that `TypeOperations.isSealedClass` is `true` for
   /// [sealedClassType] and that [subClass] is in `getDirectSubclasses` for
   /// `getSealedClass` of [sealedClassType].
-  ///
-  // TODO(johnniwinther): What should this return for generic types?
   Type? getSubclassAsInstanceOf(Class subClass, Type sealedClassType);
 }
 
@@ -164,7 +181,7 @@ class ExhaustivenessCache<
     return value ? _boolStaticType.trueType : _boolStaticType.falseType;
   }
 
-  /// Returns the [StaticType]  for [type].
+  /// Returns the [StaticType] for [type].
   StaticType getStaticType(Type type) {
     if (_typeOperations.isNeverType(type)) {
       return StaticType.neverType;
@@ -172,7 +189,8 @@ class ExhaustivenessCache<
       return StaticType.nullType;
     } else if (_typeOperations.isNonNullableObject(type)) {
       return StaticType.nonNullableObject;
-    } else if (_typeOperations.isNullableObject(type)) {
+    } else if (_typeOperations.isNullableObject(type) ||
+        _typeOperations.isDynamic(type)) {
       return StaticType.nullableObject;
     }
 
@@ -180,24 +198,37 @@ class ExhaustivenessCache<
     Type nonNullable = _typeOperations.getNonNullable(type);
     if (_typeOperations.isBoolType(nonNullable)) {
       staticType = _boolStaticType;
+    } else if (_typeOperations.isRecordType(nonNullable)) {
+      staticType = new RecordStaticType(_typeOperations, this, nonNullable);
     } else {
-      EnumClass? enumClass = enumOperations.getEnumClass(nonNullable);
-      if (enumClass != null) {
-        staticType = new EnumStaticType(
-            _typeOperations, this, nonNullable, _getEnumInfo(enumClass));
+      Type? futureOrTypeArgument =
+          _typeOperations.getFutureOrTypeArgument(nonNullable);
+      if (futureOrTypeArgument != null) {
+        StaticType typeArgument = getStaticType(futureOrTypeArgument);
+        StaticType futureType = getStaticType(
+            _typeOperations.instantiateFuture(futureOrTypeArgument));
+        staticType = new FutureOrStaticType(
+            _typeOperations, this, nonNullable, typeArgument, futureType);
       } else {
-        Class? sealedClass = _sealedClassOperations.getSealedClass(nonNullable);
-        if (sealedClass != null) {
-          staticType = new SealedClassStaticType(
-              _typeOperations,
-              this,
-              nonNullable,
-              this,
-              _sealedClassOperations,
-              _getSealedClassInfo(sealedClass));
+        EnumClass? enumClass = enumOperations.getEnumClass(nonNullable);
+        if (enumClass != null) {
+          staticType = new EnumStaticType(
+              _typeOperations, this, nonNullable, _getEnumInfo(enumClass));
         } else {
-          staticType =
-              new TypeBasedStaticType(_typeOperations, this, nonNullable);
+          Class? sealedClass =
+              _sealedClassOperations.getSealedClass(nonNullable);
+          if (sealedClass != null) {
+            staticType = new SealedClassStaticType(
+                _typeOperations,
+                this,
+                nonNullable,
+                this,
+                _sealedClassOperations,
+                _getSealedClassInfo(sealedClass));
+          } else {
+            staticType =
+                new TypeBasedStaticType(_typeOperations, this, nonNullable);
+          }
         }
       }
     }
@@ -340,6 +371,19 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
 
   @override
   String get name => _typeOperations.typeToString(_type);
+
+  @override
+  int get hashCode => Object.hash(_type, identity);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    return other is TypeBasedStaticType<Type> &&
+        _type == other._type &&
+        identity == other.identity;
+  }
+
+  Type get typeForTesting => _type;
 }
 
 /// [StaticType] for an instantiation of an enum that support access to the
@@ -347,7 +391,7 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
 class EnumStaticType<Type extends Object, EnumElement extends Object>
     extends TypeBasedStaticType<Type> {
   final EnumInfo<Type, Object, EnumElement, Object> _enumInfo;
-  List<EnumElementStaticType<Type, EnumElement>>? _enumElements;
+  List<StaticType>? _enumElements;
 
   EnumStaticType(
       super.typeOperations, super.fieldLookup, super.type, this._enumInfo);
@@ -358,15 +402,42 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
   @override
   Iterable<StaticType> get subtypes => enumElements;
 
-  List<EnumElementStaticType<Type, EnumElement>> get enumElements =>
-      _enumElements ??= _createEnumElements();
+  List<StaticType> get enumElements => _enumElements ??= _createEnumElements();
 
-  List<EnumElementStaticType<Type, EnumElement>> _createEnumElements() {
-    List<EnumElementStaticType<Type, EnumElement>> elements = [];
+  List<StaticType> _createEnumElements() {
+    List<StaticType> elements = [];
     for (EnumElementStaticType<Type, EnumElement> enumElement
         in _enumInfo.enumElements.values) {
-      if (_typeOperations.isSubtypeOf(enumElement._type, _type)) {
-        elements.add(enumElement);
+      // For generic enums, the individual enum elements might not be subtypes
+      // of the concrete enum type. For instance
+      //
+      //    enum E<T> {
+      //      a<int>(),
+      //      b<String>(),
+      //      c<bool>(),
+      //    }
+      //
+      //    method<T extends num>(E<T> e) {
+      //      switch (e) { ... }
+      //    }
+      //
+      // Here the enum elements `E.b` and `E.c` cannot be actual values of `e`
+      // because of the bound `num` on `T`.
+      //
+      // We detect this by checking whether the enum element type is a subtype
+      // of the overapproximation of [_type], in this case whether the element
+      // types are subtypes of `E<num>`.
+      //
+      // Since all type arguments on enum values are fixed, we don't have to
+      // avoid the trivial subtype instantiation `E<Never>`.
+      if (_typeOperations.isSubtypeOf(
+          enumElement._type, _typeOperations.overapproximate(_type))) {
+        // Since the type of the enum element might not itself be a subtype of
+        // [_type], for instance in the example above the type of `Enum.a`,
+        // `Enum<int>`, is not a subtype of `Enum<T>`, we wrap the static type
+        // to establish the subtype relation between the [StaticType] for the
+        // enum element and this [StaticType].
+        elements.add(new WrappedStaticType(enumElement, this));
       }
     }
     return elements;
@@ -378,17 +449,9 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
 /// In the [StaticType] model, individual enum elements are represented as
 /// unique subtypes of the enum type, modelled using [EnumStaticType].
 class EnumElementStaticType<Type extends Object, EnumElement extends Object>
-    extends TypeBasedStaticType<Type> {
-  final EnumElement enumElement;
-
-  @override
-  final String name;
-
+    extends UniqueStaticType<Type> {
   EnumElementStaticType(super.typeOperations, super.fieldLookup, super.type,
-      this.enumElement, this.name);
-
-  @override
-  Object? get identity => enumElement;
+      EnumElement super.enumElement, super.name);
 }
 
 /// [StaticType] for a sealed class type.
@@ -414,8 +477,35 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
       Type? subtype =
           _sealedClassOperations.getSubclassAsInstanceOf(subClass, _type);
       if (subtype != null) {
-        assert(_typeOperations.isSubtypeOf(subtype, _type));
-        subtypes.add(_cache.getStaticType(subtype));
+        if (!_typeOperations.isGeneric(subtype)) {
+          // If the subtype is not generic, we can test whether it can be an
+          // actual value of [_type] by testing whether it is a subtype of the
+          // overapproximation of [_type].
+          //
+          // For instance
+          //
+          //     sealed class A<T> {}
+          //     class B extends A<num> {}
+          //     class C<T extends num> A<T> {}
+          //
+          //     method<T extends String>(A<T> a) {
+          //       switch (a) {
+          //         case B: // Not needed, B cannot inhabit A<T>.
+          //         case C: // Needed, C<Never> inhabits A<T>.
+          //       }
+          //     }
+          if (!_typeOperations.isSubtypeOf(
+              subtype, _typeOperations.overapproximate(_type))) {
+            continue;
+          }
+        }
+        StaticType staticType = _cache.getStaticType(subtype);
+        // Since the type of the [subtype] might not itself be a subtype of
+        // [_type], for instance in the example above the type of `case C:`,
+        // `C<num>`, is not a subtype of `A<T>`, we wrap the static type
+        // to establish the subtype relation between the [StaticType] for the
+        // enum element and this [StaticType].
+        subtypes.add(new WrappedStaticType(staticType, this));
       }
     }
     return subtypes;
@@ -449,4 +539,68 @@ class BoolStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
 
   @override
   Iterable<StaticType> get subtypes => [trueType, falseType];
+}
+
+/// [StaticType] for a record type.
+///
+/// This models that type aspect of the record using only the structure of the
+/// record type. This means that the type for `(Object, String)` and
+/// `(String, int)` will be subtypes of each other.
+///
+/// This is necessary to avoid invalid conclusions on the disjointness of
+/// spaces base on the their types. For instance in
+///
+///     method((String, Object) o) {
+///       if (o case (Object _, String s)) {}
+///     }
+///
+/// the case is not empty even though `(String, Object)` and `(Object, String)`
+/// are not related type-wise.
+///
+/// Not that the fields of the record types _are_ using the type, so that
+/// the `$1` field of `(String, Object)` is known to contain only `String`s.
+class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
+  RecordStaticType(super.typeOperations, super.fieldLookup, super.type);
+
+  @override
+  bool get isRecord => true;
+
+  @override
+  bool isSubtypeOfInternal(StaticType other) {
+    if (other is! RecordStaticType<Type>) {
+      return false;
+    }
+    assert(identity == null);
+    if (fields.length != other.fields.length) {
+      return false;
+    }
+    for (MapEntry<String, StaticType> field in fields.entries) {
+      StaticType? type = other.fields[field.key];
+      if (type == null) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+/// [StaticType] for a `FutureOr<T>` type for some type `T`.
+///
+/// This is a sealed type where the subtypes for are `T` and `Future<T>`.
+class FutureOrStaticType<Type extends Object>
+    extends TypeBasedStaticType<Type> {
+  /// The type for `T`.
+  final StaticType _typeArgument;
+
+  /// The type for `Future<T>`.
+  final StaticType _futureType;
+
+  FutureOrStaticType(super.typeOperations, super.fieldLookup, super.type,
+      this._typeArgument, this._futureType);
+
+  @override
+  bool get isSealed => true;
+
+  @override
+  Iterable<StaticType> get subtypes => [_typeArgument, _futureType];
 }

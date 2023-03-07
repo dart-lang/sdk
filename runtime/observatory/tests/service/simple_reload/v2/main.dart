@@ -9,6 +9,6 @@ test() => 'orange';
 class Foo<T> {}
 
 main() {
-  RawReceivePort keepAlive = new RawReceivePort();
+  RawReceivePort _ = new RawReceivePort();
   print('spawned isolate running');
 }

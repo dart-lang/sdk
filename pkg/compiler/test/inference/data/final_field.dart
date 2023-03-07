@@ -28,7 +28,7 @@ class A {
   A.bar()
       : intField = 54,
         giveUpField1 = 42,
-        giveUpField2 = new A(),
+        giveUpField2 = A(),
         fieldParameter = 87;
 
   /*member: A.foo:[exact=A]*/
@@ -40,7 +40,7 @@ class A {
 
 /*member: main:[null]*/
 main() {
-  new A();
-  new A.bar();
-  new A.foo(42);
+  A();
+  A.bar();
+  A.foo(42);
 }

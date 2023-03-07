@@ -87,10 +87,10 @@ class AddExplicitCast extends CorrectionProducer {
 
     var needsParentheses = target.precedence < Precedence.postfix;
     if (toType is InterfaceType &&
-        (((fromType.isDartCoreIterable || fromType.isDartCoreList) &&
-                toType.isDartCoreList) ||
-            (fromType.isDartCoreIterable || fromType.isDartCoreSet) &&
-                toType.isDartCoreSet)) {
+        (fromType.isDartCoreIterable ||
+            fromType.isDartCoreList ||
+            fromType.isDartCoreSet) &&
+        (toType.isDartCoreList || toType.isDartCoreSet)) {
       final toType_final = toType;
       if (target.isCastMethodInvocation) {
         var typeArguments = (target as MethodInvocation).typeArguments;

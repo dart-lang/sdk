@@ -21,6 +21,24 @@ Mutex* OSThread::thread_list_lock_ = NULL;
 bool OSThread::creation_enabled_ = false;
 
 thread_local ThreadState* OSThread::current_vm_thread_ = NULL;
+#if defined(DEBUG)
+thread_local bool ThreadInterruptScope::in_thread_interrupt_scope_ = false;
+#endif
+
+#if defined(SUPPORT_TIMELINE)
+inline void UpdateTimelineTrackMetadata(const OSThread& thread) {
+  RecorderSynchronizationLockScope ls;
+  if (!ls.IsActive()) {
+    return;
+  }
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder != nullptr) {
+    recorder->AddTrackMetadataBasedOnThread(
+        OS::ProcessId(), OSThread::ThreadIdToIntPtr(thread.trace_id()),
+        thread.name());
+  }
+}
+#endif  // defined(SUPPORT_TIMELINE)
 
 OSThread::OSThread()
     : BaseThread(true),
@@ -54,6 +72,10 @@ OSThread::OSThread()
   ASSERT(stack_base_ > GetCurrentStackPointer());
   ASSERT(stack_limit_ < GetCurrentStackPointer());
   RELEASE_ASSERT(HasStackHeadroom());
+
+#if defined(SUPPORT_TIMELINE)
+  UpdateTimelineTrackMetadata(*this);
+#endif  // defined(SUPPORT_TIMELINE)
 }
 
 OSThread* OSThread::CreateOSThread() {
@@ -96,6 +118,10 @@ void OSThread::SetName(const char* name) {
   ASSERT(OSThread::Current() == this);
   ASSERT(name != nullptr);
   name_ = Utils::StrDup(name);
+
+#if defined(SUPPORT_TIMELINE)
+  UpdateTimelineTrackMetadata(*this);
+#endif  // defined(SUPPORT_TIMELINE)
 }
 
 // Disable AddressSanitizer and SafeStack transformation on this function. In

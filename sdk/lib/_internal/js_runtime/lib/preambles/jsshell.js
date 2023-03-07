@@ -18,6 +18,9 @@
 
   self.location = { href: "file://" + workingDirectory + "/" };
 
+  // Some js-interop code accesses 'window' as 'self.window'
+  if (typeof self.window == "undefined") self.window = self;
+
   // Event loop.
 
   // Task queue as cyclic list queue.
@@ -272,6 +275,7 @@
   self.setInterval = addInterval;
   self.clearInterval = cancelTimer;
   self.scheduleImmediate = addTask;
+  self.dartUseDateNowForTicks = true;
 
   function computeCurrentScript() {
     try {

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../exhaustiveness/exhaustive.dart';
 import '../flow_analysis/flow_analysis.dart';
 import 'type_analysis_result.dart';
 import 'type_operations.dart';
@@ -314,6 +315,8 @@ mixin TypeAnalyzer<
           matchedType: matchedType,
           requiredType: variableDeclaredType);
     }
+    flow.promoteForPattern(
+        matchedType: matchedType, knownType: variableDeclaredType);
     flow.assignedVariablePattern(node, variable, matchedType);
   }
 
@@ -335,8 +338,10 @@ mixin TypeAnalyzer<
     required Type requiredType,
   }) {
     Type matchedValueType = flow.getMatchedValueType();
-    bool matchedTypeIsSubtypeOfRequired = flow.patternRequiredType(
-        matchedType: matchedValueType, requiredType: requiredType);
+    bool matchedTypeIsSubtypeOfRequired = flow.promoteForPattern(
+        matchedType: matchedValueType,
+        knownType: requiredType,
+        matchFailsIfWrongType: false);
     if (matchedTypeIsSubtypeOfRequired) {
       errors?.matchedTypeIsSubtypeOfRequired(
         pattern: pattern,
@@ -351,7 +356,7 @@ mixin TypeAnalyzer<
     // promotions triggered by the inner pattern have no effect outside the
     // cast.
     flow.pushSubpattern(requiredType);
-    dispatchPattern(context, innerPattern);
+    dispatchPattern(context.withUnnecessaryWildcardKind(null), innerPattern);
     // Stack: (Pattern)
     flow.popSubpattern();
   }
@@ -367,8 +372,10 @@ mixin TypeAnalyzer<
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
+  /// Returns the static type of [expression].
+  ///
   /// Stack effect: pushes (Expression).
-  void analyzeConstantPattern(
+  Type analyzeConstantPattern(
       MatchContext<Node, Expression, Pattern, Type, Variable> context,
       Node node,
       Expression expression) {
@@ -377,30 +384,32 @@ mixin TypeAnalyzer<
         errors = this.errors;
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null) {
-      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+      errors?.refutablePatternInIrrefutableContext(
+          pattern: node, context: irrefutableContext);
     }
     Type matchedType = flow.getMatchedValueType();
-    Type staticType = analyzeExpression(expression, matchedType);
-    flow.constantPattern_end(expression, staticType,
+    Type expressionType = analyzeExpression(expression, matchedType);
+    flow.constantPattern_end(expression, expressionType,
         patternsEnabled: options.patternsEnabled);
     // Stack: (Expression)
     if (errors != null && !options.patternsEnabled) {
-      Expression? switchScrutinee = context.getSwitchScrutinee(node);
+      Expression? switchScrutinee = context.switchScrutinee;
       if (switchScrutinee != null) {
         bool nullSafetyEnabled = options.nullSafetyEnabled;
         bool matches = nullSafetyEnabled
-            ? operations.isSubtypeOf(staticType, matchedType)
-            : operations.isAssignableTo(staticType, matchedType);
+            ? operations.isSubtypeOf(expressionType, matchedType)
+            : operations.isAssignableTo(expressionType, matchedType);
         if (!matches) {
           errors.caseExpressionTypeMismatch(
               caseExpression: expression,
               scrutinee: switchScrutinee,
-              caseExpressionType: staticType,
+              caseExpressionType: expressionType,
               scrutineeType: matchedType,
               nullSafetyEnabled: nullSafetyEnabled);
         }
       }
     }
+    return expressionType;
   }
 
   /// Computes the type schema for a constant pattern.
@@ -445,15 +454,13 @@ mixin TypeAnalyzer<
           matchedType: matchedType,
           requiredType: staticType);
     }
-    flow.patternRequiredType(
-        matchedType: matchedType, requiredType: staticType);
+    flow.promoteForPattern(matchedType: matchedType, knownType: staticType);
     bool isImplicitlyTyped = declaredType == null;
     // TODO(paulberry): are we handling _isFinal correctly?
     int promotionKey = context.patternVariablePromotionKeys[variableName] =
         flow.declaredVariablePattern(
             matchedType: matchedType,
             staticType: staticType,
-            initializerExpression: context.getInitializer(node),
             isFinal: context.isFinal || isVariableFinal(variable),
             isLate: context.isLate,
             isImplicitlyTyped: isImplicitlyTyped);
@@ -526,12 +533,13 @@ mixin TypeAnalyzer<
     Map<String, int> patternVariablePromotionKeys = {};
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
-        new MatchContext<Node, Expression, Pattern, Type, Variable>(
-            isFinal: false,
-            topPattern: pattern,
-            componentVariables: componentVariables,
-            patternVariablePromotionKeys: patternVariablePromotionKeys),
-        pattern);
+      new MatchContext<Node, Expression, Pattern, Type, Variable>(
+        isFinal: false,
+        componentVariables: componentVariables,
+        patternVariablePromotionKeys: patternVariablePromotionKeys,
+      ),
+      pattern,
+    );
     // Stack: (Expression, Pattern)
     _finishJoinedPatternVariables(
         variables, componentVariables, patternVariablePromotionKeys,
@@ -580,7 +588,6 @@ mixin TypeAnalyzer<
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: false,
-        topPattern: pattern,
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,
       ),
@@ -693,8 +700,10 @@ mixin TypeAnalyzer<
       }
     }
     Type requiredType = listType(valueType);
-    flow.patternRequiredType(
-        matchedType: matchedType, requiredType: requiredType);
+    flow.promoteForPattern(
+        matchedType: matchedType,
+        knownType: requiredType,
+        matchMayFailEvenIfCorrectType: true);
     // Stack: ()
     Node? previousRestPattern;
     for (Node element in elements) {
@@ -711,13 +720,14 @@ mixin TypeAnalyzer<
         if (subPattern != null) {
           Type subPatternMatchedType = requiredType;
           flow.pushSubpattern(subPatternMatchedType);
-          dispatchPattern(context, subPattern);
+          dispatchPattern(
+              context.withUnnecessaryWildcardKind(null), subPattern);
           flow.popSubpattern();
         }
         handleListPatternRestElement(node, element);
       } else {
         flow.pushSubpattern(valueType);
-        dispatchPattern(context, element);
+        dispatchPattern(context.withUnnecessaryWildcardKind(null), element);
         flow.popSubpattern();
       }
     }
@@ -787,9 +797,19 @@ mixin TypeAnalyzer<
       Node lhs,
       Node rhs) {
     // Stack: ()
-    dispatchPattern(context, lhs);
+    dispatchPattern(
+      context.withUnnecessaryWildcardKind(
+        UnnecessaryWildcardKind.logicalAndPatternOperand,
+      ),
+      lhs,
+    );
     // Stack: (Pattern left)
-    dispatchPattern(context, rhs);
+    dispatchPattern(
+      context.withUnnecessaryWildcardKind(
+        UnnecessaryWildcardKind.logicalAndPatternOperand,
+      ),
+      rhs,
+    );
     // Stack: (Pattern left, Pattern right)
   }
 
@@ -815,14 +835,20 @@ mixin TypeAnalyzer<
       Node rhs) {
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null) {
-      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+      errors?.refutablePatternInIrrefutableContext(
+          pattern: node, context: irrefutableContext);
       // Avoid cascading errors
       context = context.makeRefutable();
     }
     // Stack: ()
     flow.logicalOrPattern_begin();
     Map<String, int> leftPromotionKeys = {};
-    dispatchPattern(context.withPromotionKeys(leftPromotionKeys), lhs);
+    dispatchPattern(
+      context
+          .withPromotionKeys(leftPromotionKeys)
+          .withUnnecessaryWildcardKind(null),
+      lhs,
+    );
     // Stack: (Pattern left)
     // We'll use the promotion keys allocated during processing of the LHS as
     // the merged keys.
@@ -833,8 +859,14 @@ mixin TypeAnalyzer<
       context.patternVariablePromotionKeys[variableName] = promotionKey;
     }
     flow.logicalOrPattern_afterLhs();
+    handle_logicalOrPattern_afterLhs(node);
     Map<String, int> rightPromotionKeys = {};
-    dispatchPattern(context.withPromotionKeys(rightPromotionKeys), rhs);
+    dispatchPattern(
+      context
+          .withPromotionKeys(rightPromotionKeys)
+          .withUnnecessaryWildcardKind(null),
+      rhs,
+    );
     // Stack: (Pattern left, Pattern right)
     for (MapEntry<String, int> entry in rightPromotionKeys.entries) {
       String variableName = entry.key;
@@ -915,8 +947,10 @@ mixin TypeAnalyzer<
       keyType: keyType,
       valueType: valueType,
     );
-    flow.patternRequiredType(
-        matchedType: matchedType, requiredType: requiredType);
+    flow.promoteForPattern(
+        matchedType: matchedType,
+        knownType: requiredType,
+        matchMayFailEvenIfCorrectType: true);
     // Stack: ()
 
     bool hasDuplicateRestPatternReported = false;
@@ -941,21 +975,27 @@ mixin TypeAnalyzer<
       if (entry != null) {
         analyzeExpression(entry.key, keyContext);
         flow.pushSubpattern(valueType);
-        dispatchPattern(context, entry.value);
+        dispatchPattern(
+          context.withUnnecessaryWildcardKind(null),
+          entry.value,
+        );
         handleMapPatternEntry(node, element);
         flow.popSubpattern();
       } else {
         assert(isRestPatternElement(element));
         if (!hasDuplicateRestPatternReported) {
           if (i != elements.length - 1) {
-            errors?.restPatternNotLastInMap(node, element);
+            errors?.restPatternNotLastInMap(node: node, element: element);
           }
         }
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
-          errors?.restPatternWithSubPatternInMap(node, element);
+          errors?.restPatternWithSubPatternInMap(node: node, element: element);
           flow.pushSubpattern(dynamicType);
-          dispatchPattern(context, subPattern);
+          dispatchPattern(
+            context.withUnnecessaryWildcardKind(null),
+            subPattern,
+          );
           flow.popSubpattern();
         }
         handleMapPatternRestElement(node, element);
@@ -1026,7 +1066,8 @@ mixin TypeAnalyzer<
     bool matchedTypeIsStrictlyNonNullable =
         flow.nullCheckOrAssertPattern_begin(isAssert: isAssert);
     if (irrefutableContext != null && !isAssert) {
-      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+      errors?.refutablePatternInIrrefutableContext(
+          pattern: node, context: irrefutableContext);
       // Avoid cascading errors
       context = context.makeRefutable();
     } else if (matchedTypeIsStrictlyNonNullable) {
@@ -1035,7 +1076,10 @@ mixin TypeAnalyzer<
         matchedType: flow.getMatchedValueType(),
       );
     }
-    dispatchPattern(context, innerPattern);
+    dispatchPattern(
+      context.withUnnecessaryWildcardKind(null),
+      innerPattern,
+    );
     // Stack: (Pattern)
     flow.nullCheckOrAssertPattern_end();
   }
@@ -1078,8 +1122,7 @@ mixin TypeAnalyzer<
       matchedType: matchedType,
       pattern: node,
     );
-    flow.patternRequiredType(
-        matchedType: matchedType, requiredType: requiredType);
+    flow.promoteForPattern(matchedType: matchedType, knownType: requiredType);
 
     // If the required type is `dynamic` or `Never`, then every getter is
     // treated as having the same type.
@@ -1108,7 +1151,10 @@ mixin TypeAnalyzer<
             field: field,
           );
       flow.pushSubpattern(propertyType);
-      dispatchPattern(context, field.pattern);
+      dispatchPattern(
+        context.withUnnecessaryWildcardKind(null),
+        field.pattern,
+      );
       flow.popSubpattern();
     }
     // Stack: (n * Pattern) where n = fields.length
@@ -1142,9 +1188,7 @@ mixin TypeAnalyzer<
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: false,
-        initializer: rhs,
         irrefutableContext: node,
-        topPattern: pattern,
         assignedVariables: <Variable, Pattern>{},
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,
@@ -1175,17 +1219,22 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression, Pattern).
   void analyzePatternForIn({
     required Node node,
+    required bool hasAwait,
     required Pattern pattern,
     required Expression expression,
     required void Function() dispatchBody,
   }) {
     // Stack: ()
     Type patternTypeSchema = dispatchPatternSchema(pattern);
-    Type expressionTypeSchema = iterableType(patternTypeSchema);
+    Type expressionTypeSchema = hasAwait
+        ? streamType(patternTypeSchema)
+        : iterableType(patternTypeSchema);
     Type expressionType = analyzeExpression(expression, expressionTypeSchema);
     // Stack: (Expression)
 
-    Type? elementType = operations.matchIterableType(expressionType);
+    Type? elementType = hasAwait
+        ? operations.matchStreamType(expressionType)
+        : operations.matchIterableType(expressionType);
     if (elementType == null) {
       if (operations.isDynamic(expressionType)) {
         elementType = dynamicType;
@@ -1206,7 +1255,6 @@ mixin TypeAnalyzer<
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: false,
         irrefutableContext: node,
-        topPattern: pattern,
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,
       ),
@@ -1240,7 +1288,7 @@ mixin TypeAnalyzer<
       {required bool isFinal, required bool isLate}) {
     // Stack: ()
     if (isLate && !isVariablePattern(pattern)) {
-      errors?.patternDoesNotAllowLate(pattern);
+      errors?.patternDoesNotAllowLate(pattern: pattern);
     }
     if (isLate) {
       flow.lateInitializer_begin(node);
@@ -1259,9 +1307,7 @@ mixin TypeAnalyzer<
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: isFinal,
         isLate: isLate,
-        initializer: initializer,
         irrefutableContext: node,
-        topPattern: pattern,
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,
       ),
@@ -1286,12 +1332,24 @@ mixin TypeAnalyzer<
     Pattern node, {
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
+    List<Type> demonstratedPositionalTypes = [];
+    List<NamedType<Type>> demonstratedNamedTypes = [];
     void dispatchField(
       RecordPatternField<Node, Pattern> field,
       Type matchedType,
     ) {
       flow.pushSubpattern(matchedType);
-      dispatchPattern(context, field.pattern);
+      dispatchPattern(
+        context.withUnnecessaryWildcardKind(null),
+        field.pattern,
+      );
+      Type demonstratedType = flow.getMatchedValueType();
+      String? name = field.name;
+      if (name == null) {
+        demonstratedPositionalTypes.add(demonstratedType);
+      } else {
+        demonstratedNamedTypes.add(new NamedType(name, demonstratedType));
+      }
       flow.popSubpattern();
     }
 
@@ -1324,8 +1382,7 @@ mixin TypeAnalyzer<
       named: requiredTypeNamedTypes,
     );
     Type matchedType = flow.getMatchedValueType();
-    flow.patternRequiredType(
-        matchedType: matchedType, requiredType: requiredType);
+    flow.promoteForPattern(matchedType: matchedType, knownType: requiredType);
 
     // Stack: ()
     RecordType<Type>? matchedRecordType = asRecordType(matchedType);
@@ -1356,6 +1413,13 @@ mixin TypeAnalyzer<
         requiredType: requiredType,
       );
     }
+
+    Type demonstratedType = recordType(
+        positional: demonstratedPositionalTypes, named: demonstratedNamedTypes);
+    flow.promoteForPattern(
+        matchedType: matchedType,
+        knownType: demonstratedType,
+        matchFailsIfWrongType: false);
     return requiredType;
   }
 
@@ -1400,7 +1464,8 @@ mixin TypeAnalyzer<
         errors = this.errors;
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null) {
-      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+      errors?.refutablePatternInIrrefutableContext(
+          pattern: node, context: irrefutableContext);
     }
     Type matchedValueType = flow.getMatchedValueType();
     RelationalOperatorResolution<Type>? operator =
@@ -1476,6 +1541,7 @@ mixin TypeAnalyzer<
           getSwitchExpressionMemberInfo(node, i);
       flow.switchStatement_beginAlternatives();
       flow.switchStatement_beginAlternative();
+      handleSwitchBeforeAlternative(node, caseIndex: i, subIndex: 0);
       Node? pattern = memberInfo.head.pattern;
       Expression? guard;
       if (pattern != null) {
@@ -1485,7 +1551,6 @@ mixin TypeAnalyzer<
           new MatchContext<Node, Expression, Pattern, Type, Variable>(
             isFinal: false,
             switchScrutinee: scrutinee,
-            topPattern: pattern,
             componentVariables: componentVariables,
             patternVariablePromotionKeys: patternVariablePromotionKeys,
           ),
@@ -1509,9 +1574,9 @@ mixin TypeAnalyzer<
         }
         handleCaseHead(node, caseIndex: i, subIndex: 0);
       } else {
-        handleDefault(node, i);
+        handleDefault(node, caseIndex: i, subIndex: 0);
       }
-      flow.switchStatement_endAlternative(guard);
+      flow.switchStatement_endAlternative(guard, {});
       flow.switchStatement_endAlternatives(null, hasLabels: false);
       // Stack: (Expression, i * ExpressionCase, CaseHead)
       Type type = analyzeExpression(memberInfo.expression, context);
@@ -1527,7 +1592,12 @@ mixin TypeAnalyzer<
     }
     lubType ??= dynamicType;
     // Stack: (Expression, numCases * ExpressionCase)
-    flow.switchStatement_end(true);
+    bool isProvenExhaustive = flow.switchStatement_end(true);
+    if (options.errorOnSwitchExhaustiveness &&
+        !isProvenExhaustive &&
+        !isLegacySwitchExhaustive(node, expressionType)) {
+      errors?.nonExhaustiveSwitch(node: node, scrutineeType: expressionType);
+    }
     return new SimpleTypeAnalysisResult<Type>(type: lubType);
   }
 
@@ -1545,8 +1615,6 @@ mixin TypeAnalyzer<
     bool hasDefault = false;
     bool lastCaseTerminates = true;
     for (int caseIndex = 0; caseIndex < numCases; caseIndex++) {
-      Map<String, List<Variable>> outerComponentVariables = {};
-      Map<String, int> outerPatternVariablePromotionKeys = {};
       // Stack: (Expression, numExecutionPaths * StatementCase)
       flow.switchStatement_beginAlternatives();
       // Stack: (Expression, numExecutionPaths * StatementCase,
@@ -1560,6 +1628,8 @@ mixin TypeAnalyzer<
             heads[headIndex];
         Node? pattern = head.pattern;
         flow.switchStatement_beginAlternative();
+        handleSwitchBeforeAlternative(node,
+            caseIndex: caseIndex, subIndex: headIndex);
         Expression? guard;
         if (pattern != null) {
           Map<String, List<Variable>> componentVariables = {};
@@ -1568,7 +1638,6 @@ mixin TypeAnalyzer<
             new MatchContext<Node, Expression, Pattern, Type, Variable>(
               isFinal: false,
               switchScrutinee: scrutinee,
-              topPattern: pattern,
               componentVariables: componentVariables,
               patternVariablePromotionKeys: patternVariablePromotionKeys,
             ),
@@ -1579,9 +1648,6 @@ mixin TypeAnalyzer<
             componentVariables,
             patternVariablePromotionKeys,
             location: JoinedPatternVariableLocation.singlePattern,
-            outerComponentVariables: outerComponentVariables,
-            outerPatternVariablePromotionKeys:
-                outerPatternVariablePromotionKeys,
           );
           // Stack: (Expression, numExecutionPaths * StatementCase,
           //         numHeads * CaseHead, Pattern),
@@ -1596,22 +1662,23 @@ mixin TypeAnalyzer<
           handleCaseHead(node, caseIndex: caseIndex, subIndex: headIndex);
         } else {
           hasDefault = true;
-          handleDefault(node, caseIndex);
+          handleDefault(node, caseIndex: caseIndex, subIndex: headIndex);
         }
         // Stack: (Expression, numExecutionPaths * StatementCase,
         //         numHeads * CaseHead),
-        flow.switchStatement_endAlternative(guard);
+        flow.switchStatement_endAlternative(guard, head.variables);
       }
       // Stack: (Expression, numExecutionPaths * StatementCase,
       //         numHeads * CaseHead)
-      flow.switchStatement_endAlternatives(node,
-          hasLabels: memberInfo.hasLabels);
+      PatternVariableInfo<Variable> patternVariableInfo =
+          flow.switchStatement_endAlternatives(node,
+              hasLabels: memberInfo.hasLabels);
       Map<String, Variable> variables = memberInfo.variables;
       if (memberInfo.hasLabels || heads.length > 1) {
         _finishJoinedPatternVariables(
           variables,
-          outerComponentVariables,
-          outerPatternVariablePromotionKeys,
+          patternVariableInfo.componentVariables,
+          patternVariableInfo.patternVariablePromotionKeys,
           location: JoinedPatternVariableLocation.sharedCaseScope,
         );
       }
@@ -1628,7 +1695,7 @@ mixin TypeAnalyzer<
           options.nullSafetyEnabled &&
           !options.patternsEnabled &&
           !lastCaseTerminates) {
-        errors?.switchCaseCompletesNormally(node, caseIndex, 1);
+        errors?.switchCaseCompletesNormally(node: node, caseIndex: caseIndex);
       }
       handleMergedStatementCase(node,
           caseIndex: caseIndex, isTerminating: lastCaseTerminates);
@@ -1647,7 +1714,13 @@ mixin TypeAnalyzer<
       isExhaustive = isLegacySwitchExhaustive(node, scrutineeType);
       requiresExhaustivenessValidation = false;
     }
-    flow.switchStatement_end(isExhaustive);
+    bool isProvenExhaustive = flow.switchStatement_end(isExhaustive);
+    if (options.errorOnSwitchExhaustiveness &&
+        requiresExhaustivenessValidation &&
+        !isProvenExhaustive &&
+        !isLegacySwitchExhaustive(node, scrutineeType)) {
+      errors?.nonExhaustiveSwitch(node: node, scrutineeType: scrutineeType);
+    }
     return new SwitchStatementTypeAnalysisResult<Type>(
       hasDefault: hasDefault,
       isExhaustive: isExhaustive,
@@ -1699,9 +1772,22 @@ mixin TypeAnalyzer<
         );
       }
     }
+
+    bool isAlwaysMatching;
     if (declaredType != null) {
-      flow.patternRequiredType(
-          matchedType: matchedType, requiredType: declaredType);
+      isAlwaysMatching = flow.promoteForPattern(
+          matchedType: matchedType, knownType: declaredType);
+    } else {
+      isAlwaysMatching = true;
+    }
+
+    UnnecessaryWildcardKind? unnecessaryWildcardKind =
+        context.unnecessaryWildcardKind;
+    if (isAlwaysMatching && unnecessaryWildcardKind != null) {
+      errors?.unnecessaryWildcardPattern(
+        pattern: node,
+        kind: unnecessaryWildcardKind,
+      );
     }
   }
 
@@ -1838,6 +1924,9 @@ mixin TypeAnalyzer<
   /// Called after visiting the `then` statement of an `if` statement.
   void handle_ifStatement_thenEnd(Statement node, Statement ifTrue) {}
 
+  /// Called after visiting the left hand side of a logical-or (`||`) pattern.
+  void handle_logicalOrPattern_afterLhs(Pattern node) {}
+
   /// Called after visiting a merged set of `case` / `default` clauses.
   ///
   /// [node] is the enclosing switch statement, [caseIndex] is the index of the
@@ -1861,9 +1950,14 @@ mixin TypeAnalyzer<
   ///
   /// [node] is the enclosing switch statement or switch expression and
   /// [caseIndex] is the index of the `default` clause.
+  /// [subIndex] is the index of the case head.
   ///
   /// Stack effect: pushes (CaseHead).
-  void handleDefault(Node node, int caseIndex);
+  void handleDefault(
+    Node node, {
+    required int caseIndex,
+    required int subIndex,
+  });
 
   /// Called after visiting a rest element in a list pattern.
   ///
@@ -1918,6 +2012,14 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Statement).
   void handleNoStatement(Statement node);
+
+  /// Called before visiting a single `case` or `default` clause.
+  ///
+  /// [node] is the enclosing switch statement or switch expression and
+  /// [caseIndex] is the index of the `case` or `default` clause.
+  /// [subIndex] is the index of the case head.
+  void handleSwitchBeforeAlternative(Node node,
+      {required int caseIndex, required int subIndex});
 
   /// Called after visiting the scrutinee part of a switch statement or switch
   /// expression.  This is a hook to allow the client to start exhaustiveness
@@ -1990,6 +2092,9 @@ mixin TypeAnalyzer<
   /// explicit or inferred.
   void setVariableType(Variable variable, Type type);
 
+  /// Returns the type `Stream`, with type argument [elementType].
+  Type streamType(Type elementType);
+
   /// Computes the type that should be inferred for an implicitly typed variable
   /// whose initializer expression has static type [type].
   Type variableTypeFromInitializerType(Type type);
@@ -2044,7 +2149,7 @@ mixin TypeAnalyzer<
     // logic permits `T extends bool`, `T promoted to bool`, or `Never`.  What
     // do we want?
     if (!operations.isAssignableTo(type, boolType)) {
-      errors?.nonBooleanCondition(expression);
+      errors?.nonBooleanCondition(node: expression);
     }
   }
 
@@ -2053,8 +2158,6 @@ mixin TypeAnalyzer<
     Map<String, List<Variable>> componentVariables,
     Map<String, int> patternVariablePromotionKeys, {
     required JoinedPatternVariableLocation location,
-    Map<String, List<Variable>>? outerComponentVariables,
-    Map<String, int>? outerPatternVariablePromotionKeys,
   }) {
     assert(() {
       // Every entry in `variables` should match a variable we know about.
@@ -2111,28 +2214,7 @@ mixin TypeAnalyzer<
                   typeIfConsistent != null && isFinalIfConsistent != null,
               isFinal: isFinalIfConsistent ?? false,
               type: typeIfConsistent ?? errorType);
-          flow.assignMatchedPatternVariable(
-              variable, patternVariablePromotionKeys[variableName]!);
-        }
-        (outerComponentVariables?[variableName] ??= [])?.add(variable);
-      }
-      if (outerPatternVariablePromotionKeys != null) {
-        // We're finishing the pattern for one of the cases of a switch
-        // statement.  See if this variable appeared in any previous patterns
-        // that share the same case body.
-        int? previousPromotionKey =
-            outerPatternVariablePromotionKeys[variableName];
-        if (previousPromotionKey == null) {
-          // This variable hasn't been seen in any previous patterns that share
-          // the same body.  So we can safely use the promotion key we have to
-          // store information about this variable.
-          outerPatternVariablePromotionKeys[variableName] = promotionKey;
-        } else {
-          // This variable has been seen in previous patterns, so we have to
-          // copy promotion data into the previously-used promotion key, to
-          // ensure that the promotion information is properly joined.
-          flow.copyPromotionData(
-              sourceKey: promotionKey, destinationKey: previousPromotionKey);
+          flow.assignMatchedPatternVariable(variable, promotionKey);
         }
       }
     }
@@ -2284,7 +2366,16 @@ abstract class TypeAnalyzerErrors<
   });
 
   /// Called if the static type of a condition is not assignable to `bool`.
-  void nonBooleanCondition(Expression node);
+  void nonBooleanCondition({required Expression node});
+
+  /// Called if [TypeAnalyzerOptions.errorOnSwitchExhaustiveness] is `true`, and
+  /// a switch that is required to be exhaustive cannot be proven by flow
+  /// analysis to be exhaustive.
+  ///
+  /// [node] is the offending switch expression or switch statement, and
+  /// [scrutineeType] is the static type of the switch statement's scrutinee
+  /// expression.
+  void nonExhaustiveSwitch({required Node node, required Type scrutineeType});
 
   /// Called if a pattern is illegally used in a variable declaration statement
   /// that is marked `late`, and that pattern is not allowed in such a
@@ -2292,7 +2383,7 @@ abstract class TypeAnalyzerErrors<
   /// declaration is a variable pattern.
   ///
   /// [pattern] is the AST node of the illegal pattern.
-  void patternDoesNotAllowLate(Node pattern);
+  void patternDoesNotAllowLate({required Node pattern});
 
   /// Called if in a pattern `for-in` statement or element, the [expression]
   /// that should be an `Iterable` (or dynamic) is actually not.
@@ -2323,7 +2414,8 @@ abstract class TypeAnalyzerErrors<
   /// containing AST node that established an irrefutable context.
   ///
   /// TODO(paulberry): move this error reporting to the parser.
-  void refutablePatternInIrrefutableContext(Node pattern, Node context);
+  void refutablePatternInIrrefutableContext(
+      {required Node pattern, required Node context});
 
   /// Called if the [returnType] of the invoked relational operator is not
   /// assignable to `bool`.
@@ -2335,22 +2427,30 @@ abstract class TypeAnalyzerErrors<
   /// Called if a rest pattern inside a map pattern is not the last element.
   ///
   /// [node] is the map pattern.  [element] is the rest pattern.
-  void restPatternNotLastInMap(Pattern node, Node element);
+  void restPatternNotLastInMap({required Pattern node, required Node element});
 
   /// Called if a rest pattern inside a map pattern has a subpattern.
   ///
   /// [node] is the map pattern.  [element] is the rest pattern.
-  void restPatternWithSubPatternInMap(Pattern node, Node element);
+  void restPatternWithSubPatternInMap(
+      {required Pattern node, required Node element});
 
   /// Called if one of the case bodies of a switch statement completes normally
   /// (other than the last case body), and the "patterns" feature is not
   /// enabled.
   ///
   /// [node] is the AST node of the switch statement.  [caseIndex] is the index
-  /// of the first case sharing the erroneous case body.  [numMergedCases] is
-  /// the number of case heads sharing the erroneous case body.
+  /// of the merged case with the erroneous case body.
   void switchCaseCompletesNormally(
-      Statement node, int caseIndex, int numMergedCases);
+      {required Statement node, required int caseIndex});
+
+  /// Called when a wildcard pattern appears in the context where it is not
+  /// necessary, e.g. `0 && var _` vs. `[var _]`, and does not add anything
+  /// to type promotion, e.g. `final x = 0; if (x case int _ && > 0) {}`.
+  void unnecessaryWildcardPattern({
+    required Pattern pattern,
+    required UnnecessaryWildcardKind kind,
+  });
 }
 
 /// Base class for error reporting callbacks that might be reported either in
@@ -2374,6 +2474,21 @@ class TypeAnalyzerOptions {
 
   final bool patternsEnabled;
 
+  /// If `true`, the type analyzer should generate errors if it encounters a
+  /// switch that is required to be exhaustive, but cannot be proven to be
+  /// exhaustive by flow analysis.
+  ///
+  /// This option is intended as a temporary workaround if we want to ship an
+  /// early beta of the "patterns" feature before exhaustiveness checking is
+  /// sufficiently ready.
+  ///
+  /// TODO(paulberry): remove this option when it is no longer needed.
+  final bool errorOnSwitchExhaustiveness;
+
   TypeAnalyzerOptions(
-      {required this.nullSafetyEnabled, required this.patternsEnabled});
+      {required this.nullSafetyEnabled,
+      required this.patternsEnabled,
+      bool? errorOnSwitchExhaustiveness})
+      : errorOnSwitchExhaustiveness =
+            errorOnSwitchExhaustiveness ?? useFallbackExhaustivenessAlgorithm;
 }

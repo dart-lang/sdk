@@ -417,7 +417,7 @@ f(A<V> p) {
   test_typePromotion_if_with_notMoreSpecific_dynamic() async {
     await assertErrorsInCode(r'''
 class V {}
-class A<T> {}
+mixin A<T> {}
 class B<S> extends Object with A<S> {
   var b;
 }

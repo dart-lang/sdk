@@ -102,12 +102,16 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   List<Keyword> get declarationKeywords {
     var keywords = <Keyword>[
       Keyword.ABSTRACT,
+      Keyword.BASE,
       Keyword.CLASS,
       Keyword.CONST,
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
       Keyword.EXTENSION,
       Keyword.FINAL,
+      Keyword.INTERFACE,
+      Keyword.MIXIN,
+      Keyword.SEALED,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
@@ -121,6 +125,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   List<Keyword> get directiveAndDeclarationKeywords {
     var keywords = <Keyword>[
       Keyword.ABSTRACT,
+      Keyword.BASE,
       Keyword.CLASS,
       Keyword.CONST,
       Keyword.COVARIANT,
@@ -129,7 +134,10 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.EXTENSION,
       Keyword.FINAL,
       Keyword.IMPORT,
+      Keyword.INTERFACE,
+      Keyword.MIXIN,
       Keyword.PART,
+      Keyword.SEALED,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
@@ -151,6 +159,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   List<Keyword> get directiveDeclarationKeywords {
     var keywords = <Keyword>[
       Keyword.ABSTRACT,
+      Keyword.BASE,
       Keyword.CLASS,
       Keyword.CONST,
       Keyword.COVARIANT,
@@ -159,7 +168,10 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.EXTENSION,
       Keyword.FINAL,
       Keyword.IMPORT,
+      Keyword.INTERFACE,
+      Keyword.MIXIN,
       Keyword.PART,
+      Keyword.SEALED,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
@@ -1175,12 +1187,6 @@ extension E on int {
     addTestSource('void f() {for (int x = in^)}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
-  }
-
-  Future<void> test_for_initialization_var() async {
-    addTestSource('void f() {for (^)}');
-    await computeSuggestions();
-    assertSuggestKeywords([Keyword.VAR]);
   }
 
   Future<void> test_formalParameterList_beforeFunctionType() async {

@@ -24,13 +24,13 @@ class C extends B {
 }
 
 /*member: a:[null|subclass=B]*/
-dynamic a = [new B(), new C()]
+dynamic a = [new B(), C()]
     /*Container([exact=JSExtendableArray], element: [subclass=B], length: 2)*/
     [0];
 
 /*member: test1:[empty]*/
 test1() {
-  dynamic e = new A();
+  dynamic e = A();
   return e. /*invoke: [exact=A]*/ foo();
 }
 
@@ -38,19 +38,19 @@ test1() {
 test2() => a. /*invoke: [null|subclass=B]*/ foo();
 
 /*member: test3:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
-test3() => new B(). /*invoke: [exact=B]*/ foo();
+test3() => B(). /*invoke: [exact=B]*/ foo();
 
 /*member: test4:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
-test4() => new C(). /*invoke: [exact=C]*/ foo();
+test4() => C(). /*invoke: [exact=C]*/ foo();
 
 /*member: test5:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
 test5() {
-  dynamic e = (a ? new A() : new B());
+  dynamic e = (a ? A() : B());
   return e. /*invoke: [subclass=A]*/ foo();
 }
 
 /*member: test6:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
-test6() => (a ? new B() : new C()). /*invoke: [subclass=B]*/ foo();
+test6() => (a ? B() : C()). /*invoke: [subclass=B]*/ foo();
 
 /*member: main:[null]*/
 main() {

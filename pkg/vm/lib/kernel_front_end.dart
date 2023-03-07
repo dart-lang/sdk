@@ -46,6 +46,7 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:package_config/package_config.dart' show loadPackageConfigUri;
 
 import 'http_filesystem.dart' show HttpAwareFileSystem;
+import 'target_os.dart';
 import 'native_assets/synthesizer.dart';
 import 'target/install.dart' show installAdditionalTargets;
 import 'transformations/devirtualization.dart' as devirtualization
@@ -61,6 +62,7 @@ import 'transformations/obfuscation_prohibitions_annotator.dart'
 import 'transformations/call_site_annotator.dart' as call_site_annotator;
 import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
+import 'transformations/vm_constant_evaluator.dart' as vm_constant_evaluator;
 import 'transformations/deferred_loading.dart' as deferred_loading;
 import 'transformations/to_string_transformer.dart' as to_string_transformer;
 
@@ -111,6 +113,9 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: true);
+  args.addOption('target-os',
+      help: 'Compile for a specific target operating system when in AOT mode.',
+      allowed: TargetOS.names);
   args.addFlag('rta',
       help: 'Use rapid type analysis for faster compilation in AOT mode.',
       defaultsTo: true);
@@ -193,6 +198,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String? depfile = options['depfile'];
   final String? fromDillFile = options['from-dill'];
   final List<String>? fileSystemRoots = options['filesystem-root'];
+  final String? targetOS = options['target-os'];
   final bool aot = options['aot'];
   final bool tfa = options['tfa'];
   final bool rta = options['rta'];
@@ -305,34 +311,39 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       useProtobufTreeShakerV2: useProtobufTreeShakerV2,
       minimalKernel: minimalKernel,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
+      targetOS: targetOS,
       fromDillFile: fromDillFile);
 
   errorPrinter.printCompilationMessages();
 
   final Component? component = results.component;
   final Library? nativeAssetsLibrary = results.nativeAssetsLibrary;
-  if (errorDetector.hasCompilationErrors || (component == null)) {
+  if (errorDetector.hasCompilationErrors ||
+      (component == null && nativeAssetsLibrary == null)) {
     return compileTimeErrorExitCode;
   }
 
   final IOSink sink = new File(outputFileName).openWrite();
-  final BinaryPrinter printer = new BinaryPrinter(sink,
-      libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
-  if (aot && nativeAssetsLibrary != null && aot) {
-    // If Dart component in  AOT, write the vm:native-assets library _inside_
-    // the Dart component.
-    component.libraries.add(nativeAssetsLibrary);
-    nativeAssetsLibrary.parent = component;
+  if (component != null) {
+    final BinaryPrinter printer = new BinaryPrinter(sink,
+        libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
+    if (aot && nativeAssetsLibrary != null) {
+      // If Dart component in AOT, write the vm:native-assets library _inside_
+      // the Dart component.
+      // TODO(https://dartbug.com/50152): Support AOT dill concatenation.
+      component.libraries.add(nativeAssetsLibrary);
+      nativeAssetsLibrary.parent = component;
+    }
+    printer.writeComponentFile(component);
   }
-  printer.writeComponentFile(component);
-  if (nativeAssetsLibrary != null && !aot) {
+  if ((nativeAssetsLibrary != null && (!aot || component == null))) {
     // If no Dart component, write as separate dill.
     // If Dart component in JIT, write as concatenated dill, to not mess with
     // the incremental compiler.
     final BinaryPrinter printer = new BinaryPrinter(sink);
     printer.writeComponentFile(Component(
       libraries: [nativeAssetsLibrary],
-      mode: NonNullableByDefaultCompiledMode.Strong,
+      mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
     ));
   }
   await sink.close();
@@ -391,8 +402,9 @@ class KernelCompilationResults {
 ///
 /// VM-specific replacement of [kernelForProgram].
 ///
+/// Either [source], or [nativeAssets], or both must be non-null.
 Future<KernelCompilationResults> compileToKernel(
-  Uri source,
+  Uri? source,
   CompilerOptions options, {
   List<Uri> additionalSources = const <Uri>[],
   Uri? nativeAssets,
@@ -406,6 +418,7 @@ Future<KernelCompilationResults> compileToKernel(
   bool useProtobufTreeShakerV2 = false,
   bool minimalKernel = false,
   bool treeShakeWriteOnlyFields = false,
+  String? targetOS = null,
   String? fromDillFile = null,
 }) async {
   // Replace error handler to detect if there are compilation errors.
@@ -421,6 +434,11 @@ Future<KernelCompilationResults> compileToKernel(
         ? NonNullableByDefaultCompiledMode.Strong
         : NonNullableByDefaultCompiledMode.Weak,
   );
+  if (source == null) {
+    return KernelCompilationResults.named(
+      nativeAssetsLibrary: nativeAssetsLibrary,
+    );
+  }
 
   final target = options.target!;
   options.environmentDefines =
@@ -450,6 +468,9 @@ Future<KernelCompilationResults> compileToKernel(
   if ((aot || minimalKernel) && component != null) {
     await runGlobalTransformations(target, component, useGlobalTypeFlowAnalysis,
         enableAsserts, useProtobufTreeShakerV2, errorDetector,
+        environmentDefines: options.environmentDefines,
+        nnbdMode: options.nnbdMode,
+        targetOS: targetOS,
         minimalKernel: minimalKernel,
         treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
         useRapidTypeAnalysis: useRapidTypeAnalysis);
@@ -512,7 +533,10 @@ Future runGlobalTransformations(
     ErrorDetector errorDetector,
     {bool minimalKernel = false,
     bool treeShakeWriteOnlyFields = false,
-    bool useRapidTypeAnalysis = true}) async {
+    bool useRapidTypeAnalysis = true,
+    NnbdMode nnbdMode = NnbdMode.Weak,
+    Map<String, String>? environmentDefines,
+    String? targetOS}) async {
   assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
 
@@ -526,9 +550,14 @@ Future runGlobalTransformations(
   // when building a platform dill file for VM/JIT case.
   mixin_deduplication.transformComponent(component);
 
-  // Unreachable code elimination transformation should be performed
-  // before type flow analysis so TFA won't take unreachable code into account.
-  unreachable_code_elimination.transformComponent(component, enableAsserts);
+  // Perform unreachable code elimination, which should be performed before
+  // type flow analysis so TFA won't take unreachable code into account.
+  final os = targetOS != null ? TargetOS.fromString(targetOS)! : null;
+  final evaluator = vm_constant_evaluator.VMConstantEvaluator.create(
+      target, component, os, nnbdMode,
+      environmentDefines: environmentDefines, coreTypes: coreTypes);
+  unreachable_code_elimination.transformComponent(
+      component, enableAsserts, evaluator);
 
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(target, coreTypes, component,

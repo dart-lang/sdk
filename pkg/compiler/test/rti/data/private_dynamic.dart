@@ -10,6 +10,6 @@ class C {
 }
 
 main() {
-  dynamic c = new C();
+  dynamic c = C();
   c._private<int>(0);
 }

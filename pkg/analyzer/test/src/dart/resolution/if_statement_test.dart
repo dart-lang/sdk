@@ -38,6 +38,7 @@ IfStatement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: dynamic
   rightParenthesis: )
   thenStatement: Block
     leftBracket: {
@@ -77,6 +78,7 @@ IfStatement
           name: a
           declaredElement: a@37
             type: int
+          matchedValueType: Object?
         operator: ||
         rightOperand: ListPattern
           leftBracket: [
@@ -91,8 +93,11 @@ IfStatement
               name: a
               declaredElement: a@47
                 type: int
+              matchedValueType: Object?
           rightBracket: ]
+          matchedValueType: Object?
           requiredType: List<Object?>
+        matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -123,13 +128,15 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr2_nested() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   if (x case <int>[var a || var a] when a > 0) {
     a;
   }
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 45, 8),
+    ]);
 
     final node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
@@ -162,13 +169,17 @@ IfStatement
               name: a
               declaredElement: hasImplicitType a@43
                 type: int
+              matchedValueType: int
             operator: ||
             rightOperand: DeclaredVariablePattern
               keyword: var
               name: a
               declaredElement: hasImplicitType a@52
                 type: int
+              matchedValueType: int
+            matchedValueType: int
         rightBracket: ]
+        matchedValueType: Object?
         requiredType: List<int>
       whenClause: WhenClause
         whenKeyword: when
@@ -234,6 +245,7 @@ IfStatement
           name: a
           declaredElement: a@37
             type: int
+          matchedValueType: Object?
         operator: ||
         rightOperand: ListPattern
           leftBracket: [
@@ -249,8 +261,11 @@ IfStatement
               name: a
               declaredElement: isFinal a@53
                 type: int
+              matchedValueType: Object?
           rightBracket: ]
+          matchedValueType: Object?
           requiredType: List<Object?>
+        matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -315,6 +330,7 @@ IfStatement
           name: a
           declaredElement: a@37
             type: int
+          matchedValueType: Object?
         operator: ||
         rightOperand: ListPattern
           leftBracket: [
@@ -329,8 +345,11 @@ IfStatement
               name: a
               declaredElement: a@50
                 type: double
+              matchedValueType: Object?
           rightBracket: ]
+          matchedValueType: Object?
           requiredType: List<Object?>
+        matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -396,16 +415,21 @@ IfStatement
             name: a
             declaredElement: a@37
               type: int
+            matchedValueType: Object?
           operator: ||
           rightOperand: ConstantPattern
             expression: IntegerLiteral
               literal: 2
               staticType: int
+            matchedValueType: Object?
+          matchedValueType: Object?
         operator: ||
         rightOperand: ConstantPattern
           expression: IntegerLiteral
             literal: 3
             staticType: int
+          matchedValueType: Object?
+        matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -470,6 +494,7 @@ IfStatement
             name: a
             declaredElement: a@37
               type: int
+            matchedValueType: Object?
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
@@ -481,11 +506,15 @@ IfStatement
             name: a
             declaredElement: a@46
               type: int
+            matchedValueType: Object?
+          matchedValueType: Object?
         operator: ||
         rightOperand: ConstantPattern
           expression: IntegerLiteral
             literal: 3
             staticType: int
+          matchedValueType: Object?
+        matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -548,6 +577,7 @@ IfStatement
             name: a
             declaredElement: a@37
               type: int
+            matchedValueType: Object?
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
@@ -559,6 +589,8 @@ IfStatement
             name: a
             declaredElement: a@46
               type: int
+            matchedValueType: Object?
+          matchedValueType: Object?
         operator: ||
         rightOperand: DeclaredVariablePattern
           type: NamedType
@@ -570,6 +602,8 @@ IfStatement
           name: a
           declaredElement: a@55
             type: int
+          matchedValueType: Object?
+        matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -634,11 +668,14 @@ IfStatement
             name: a
             declaredElement: a@37
               type: int
+            matchedValueType: Object?
           operator: ||
           rightOperand: ConstantPattern
             expression: IntegerLiteral
               literal: 2
               staticType: int
+            matchedValueType: Object?
+          matchedValueType: Object?
         operator: ||
         rightOperand: DeclaredVariablePattern
           type: NamedType
@@ -650,6 +687,8 @@ IfStatement
           name: a
           declaredElement: a@51
             type: int
+          matchedValueType: Object?
+        matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -709,6 +748,7 @@ IfStatement
             expression: IntegerLiteral
               literal: 1
               staticType: int
+            matchedValueType: Object?
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
@@ -720,11 +760,15 @@ IfStatement
             name: a
             declaredElement: a@42
               type: int
+            matchedValueType: Object?
+          matchedValueType: Object?
         operator: ||
         rightOperand: ConstantPattern
           expression: IntegerLiteral
             literal: 3
             staticType: int
+          matchedValueType: Object?
+        matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -783,6 +827,7 @@ IfStatement
             expression: IntegerLiteral
               literal: 1
               staticType: int
+            matchedValueType: Object?
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
@@ -794,6 +839,8 @@ IfStatement
             name: a
             declaredElement: a@42
               type: int
+            matchedValueType: Object?
+          matchedValueType: Object?
         operator: ||
         rightOperand: DeclaredVariablePattern
           type: NamedType
@@ -805,6 +852,8 @@ IfStatement
           name: a
           declaredElement: a@51
             type: int
+          matchedValueType: Object?
+        matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -882,6 +931,7 @@ IfStatement
             name: a
             declaredElement: a@51
               type: int
+            matchedValueType: Object?
           RelationalPattern
             operator: ==
             operand: SimpleIdentifier
@@ -889,7 +939,9 @@ IfStatement
               staticElement: a@51
               staticType: int
             element: dart:core::@class::Object::@method::==
+            matchedValueType: Object?
         rightBracket: ]
+        matchedValueType: Object?
         requiredType: List<Object?>
       whenClause: WhenClause
         whenKeyword: when
@@ -966,6 +1018,7 @@ IfStatement
         name: a
         declaredElement: a@37
           type: int
+        matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -1044,6 +1097,7 @@ IfStatement
             leftParenthesis: (
             rightParenthesis: )
           staticType: A
+        matchedValueType: dynamic
   rightParenthesis: )
   thenStatement: Block
     leftBracket: {
@@ -1111,6 +1165,7 @@ IfStatement
         expression: IntegerLiteral
           literal: 42
           staticType: int
+        matchedValueType: int
   rightParenthesis: )
   thenStatement: Block
     leftBracket: {
@@ -1141,6 +1196,7 @@ IfStatement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: dynamic
       whenClause: WhenClause
         whenKeyword: when
         expression: FunctionExpressionInvocation
@@ -1184,6 +1240,7 @@ IfStatement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: dynamic
       whenClause: WhenClause
         whenKeyword: when
         expression: BooleanLiteral

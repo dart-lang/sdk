@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 // ignore_for_file: avoid_dynamic_calls
 
 /// A script to track the high water-mark of memory usage of an application.
@@ -21,7 +19,7 @@ import 'dart:async';
 import 'dart:convert';
 
 /// Socket to connect to the vm observatory service.
-WebSocket socket;
+late WebSocket socket;
 
 main(args) async {
   _printHeader();
@@ -80,8 +78,8 @@ Future _sendMessage(String method, [Map args = const {}]) {
 }
 
 /// Handle all responses
-void _handleResponse(Object s) {
-  var json = jsonDecode(s);
+void _handleResponse(Object? s) {
+  var json = jsonDecode(s as String);
   if (json['method'] != 'streamNotify') {
     var id = json['id'];
     if (id is String) id = int.parse(id);
@@ -177,7 +175,7 @@ _writeNumber(sb, before, now, {color = false}) {
         : before > now
             ? _GREEN
             : '');
-  var string;
+  String string;
   if (now < 1024) {
     string = ' ${now}b';
   } else if (now < mega) {

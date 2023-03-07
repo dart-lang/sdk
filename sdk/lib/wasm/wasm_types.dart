@@ -46,10 +46,15 @@ extension ExternalizeNullable on WasmAnyRef? {
 /// The Wasm `externref` type.
 @pragma("wasm:entry-point")
 class WasmExternRef extends _WasmBase {
+  // To avoid conflating the null externref with Dart's null, we provide a
+  // special getter for the null externref.
+  external static WasmExternRef? get nullRef;
+
   WasmAnyRef internalize() => _internalizeNonNullable(this);
 }
 
 extension InternalizeNullable on WasmExternRef? {
+  bool get isNull => _wasmExternRefIsNull(this);
   WasmAnyRef? internalize() => _internalizeNullable(this);
 }
 
@@ -57,6 +62,7 @@ external WasmExternRef _externalizeNonNullable(WasmAnyRef ref);
 external WasmExternRef? _externalizeNullable(WasmAnyRef? ref);
 external WasmAnyRef _internalizeNonNullable(WasmExternRef ref);
 external WasmAnyRef? _internalizeNullable(WasmExternRef? ref);
+external bool _wasmExternRefIsNull(WasmExternRef? ref);
 
 /// The Wasm `funcref` type.
 @pragma("wasm:entry-point")

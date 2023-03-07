@@ -45,8 +45,8 @@ Iterable<int> throwFromSyncStar() sync* {
 
 testMain() async {
   throwFromAsync();
-  await for (var e in throwFromAsyncStar()) {/*ignore*/}
-  for (var e in throwFromSyncStar()) {/*ignore*/}
+  await for (var _ in throwFromAsyncStar()) {/*ignore*/}
+  for (var _ in throwFromSyncStar()) {/*ignore*/}
 }
 
 final tests = <IsolateTest>[

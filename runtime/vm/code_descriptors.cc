@@ -509,7 +509,10 @@ CodeSourceMapPtr CodeSourceMapBuilder::Finalize() {
   intptr_t length = stream_.bytes_written();
   const auto& map = CodeSourceMap::Handle(zone_, CodeSourceMap::New(length));
   NoSafepointScope no_safepoint;
-  memmove(map.Data(), stream_.buffer(), length);
+  if (length > 0) {
+    ASSERT(stream_.buffer() != nullptr);
+    memmove(map.Data(), stream_.buffer(), length);
+  }
   return map.ptr();
 }
 

@@ -17,6 +17,18 @@ main() {
 
 @reflectiveTest
 class ElementLocatorTest extends PubPackageResolutionTest {
+  test_locate_AssignedVariablePattern() async {
+    await resolveTestCode(r'''
+void f() {
+  int foo;
+  (foo, _) = (0, 1);
+}
+''');
+    var node = findNode.assignedVariablePattern('foo,');
+    var element = ElementLocator.locate(node);
+    expect(element, findElement.localVar('foo'));
+  }
+
   test_locate_AssignmentExpression() async {
     await resolveTestCode(r'''
 int x = 0;
@@ -84,6 +96,17 @@ enum E {
     var node = findNode.constructorSelector('named(); // 0');
     var element = ElementLocator.locate(node);
     expect(element, findElement.constructor('named'));
+  }
+
+  test_locate_DeclaredVariablePattern() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case int foo) {}
+}
+''');
+    var node = findNode.declaredVariablePattern('foo');
+    var element = ElementLocator.locate(node);
+    expect(element, findElement.localVar('foo'));
   }
 
   test_locate_EnumConstantDeclaration() async {
@@ -321,6 +344,17 @@ part of my.lib;
     var node = findNode.partOf('part of');
     var element = ElementLocator.locate(node);
     expect(element, isLibraryElement);
+  }
+
+  test_locate_PatternField() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case int(isEven: true)) {}
+}
+''');
+    var node = findNode.patternField('isEven:');
+    var element = ElementLocator.locate(node);
+    expect(element, isPropertyAccessorElement);
   }
 
   test_locate_PostfixExpression() async {

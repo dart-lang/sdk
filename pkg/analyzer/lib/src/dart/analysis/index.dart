@@ -548,9 +548,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
       relNode = name as SimpleIdentifier;
     }
     recordRelation(element, kind, relNode, isQualified);
-    recordRelation(
-        element, IndexRelationKind.IS_REFERENCED_BY, relNode, isQualified);
-    namedType.typeArguments?.accept(this);
   }
 
   void recordUriReference(Element? element, StringLiteral uri) {
@@ -586,10 +583,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitClassTypeAlias(ClassTypeAlias node) {
     _addSubtypeForClassTypeAlis(node);
     recordIsAncestorOf(node.declaredElement!);
-    var superclassName = node.superclass.name;
-    if (superclassName is PrefixedIdentifier) {
-      visitPrefixedIdentifier(superclassName);
-    }
+    recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
     super.visitClassTypeAlias(node);
   }
 
@@ -721,10 +715,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitExtendsClause(ExtendsClause node) {
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
-    var superclassName = node.superclass.name;
-    if (superclassName is PrefixedIdentifier) {
-      visitPrefixedIdentifier(superclassName);
-    }
+    node.superclass.accept(this);
   }
 
   @override
@@ -744,10 +735,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitImplementsClause(ImplementsClause node) {
     for (NamedType namedType in node.interfaces) {
       recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
-      var supertypeName = namedType.name;
-      if (supertypeName is PrefixedIdentifier) {
-        visitPrefixedIdentifier(supertypeName);
-      }
+      namedType.accept(this);
     }
   }
 
@@ -798,19 +786,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitNamedType(NamedType node) {
-    AstNode parent = node.parent!;
-    if (parent is ClassTypeAlias && parent.superclass == node) {
-      recordSuperType(node, IndexRelationKind.IS_EXTENDED_BY);
-    } else {
-      super.visitNamedType(node);
-    }
-  }
-
-  @override
   void visitOnClause(OnClause node) {
     for (NamedType namedType in node.superclassConstraints) {
       recordSuperType(namedType, IndexRelationKind.CONSTRAINS);
+      namedType.accept(this);
     }
   }
 
@@ -824,6 +803,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
     }
     super.visitPartDirective(node);
+  }
+
+  @override
+  visitPatternField(PatternField node) {
+    final nameNode = node.name;
+    if (nameNode != null) {
+      final nameToken = nameNode.name;
+      final int offset;
+      final int length;
+      if (nameToken != null) {
+        offset = nameToken.offset;
+        length = nameToken.length;
+      } else {
+        offset = nameNode.offset;
+        length = 0;
+      }
+      recordRelationOffset(node.element, IndexRelationKind.IS_REFERENCED_BY,
+          offset, length, true);
+    }
+    return super.visitPatternField(node);
   }
 
   @override
@@ -945,10 +944,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitWithClause(WithClause node) {
     for (NamedType namedType in node.mixinTypes) {
       recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);
-      var supertypeName = namedType.name;
-      if (supertypeName is PrefixedIdentifier) {
-        visitPrefixedIdentifier(supertypeName);
-      }
+      namedType.accept(this);
     }
   }
 

@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A contributor that produces suggestions for field formal parameters that are
 /// based on the fields declared directly by the enclosing class that are not
@@ -14,7 +15,9 @@ class FieldFormalContributor extends DartCompletionContributor {
   FieldFormalContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     var node = request.target.containingNode;
     // TODO(brianwilkerson) We should suggest field formal parameters even if
     //  the user hasn't already typed the `this.` prefix, by including the

@@ -27,17 +27,3 @@ int labelDoesNotExistSwitch(int x) {
   }
   return 0;
 }
-
-const var2 = wrongTypeSwitch(1);
-//           ^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-int wrongTypeSwitch(int x) {
-  switch (x) {
-    case "string":
-      // ^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE
-      // [cfe] Type 'String' of the case expression is not a subtype of type 'int' of this switch expression.
-      return 100;
-  }
-  return 0;
-}

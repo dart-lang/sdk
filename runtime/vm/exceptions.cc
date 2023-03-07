@@ -912,10 +912,14 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     pieces.Add(String::Handle(zone, dst_type.UserVisibleName()));
     pieces.Add(Symbols::SingleQuote());
     if (dst_name.Length() > 0) {
-      pieces.Add(Symbols::SpaceOfSpace());
-      pieces.Add(Symbols::SingleQuote());
-      pieces.Add(dst_name);
-      pieces.Add(Symbols::SingleQuote());
+      if (dst_name.ptr() == Symbols::InTypeCast().ptr()) {
+        pieces.Add(dst_name);
+      } else {
+        pieces.Add(Symbols::SpaceOfSpace());
+        pieces.Add(Symbols::SingleQuote());
+        pieces.Add(dst_name);
+        pieces.Add(Symbols::SingleQuote());
+      }
     }
     // Print ambiguous URIs of src and dst types.
     URIs uris(zone, 12);

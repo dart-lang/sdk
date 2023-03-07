@@ -87,9 +87,8 @@ abstract class CompilerConfiguration {
         return Dart2WasmCompilerConfiguration(configuration);
 
       case Compiler.dartdevc:
-        return DevCompilerConfiguration(configuration);
-
       case Compiler.dartdevk:
+      case Compiler.ddc:
         return DevCompilerConfiguration(configuration);
 
       case Compiler.appJitk:
@@ -586,16 +585,17 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-/// Configuration for `dartdevc` and `dartdevk` (DDC with Kernel)
+/// Configuration for "dartdevc", "dartdevk", and "ddc".
+// TODO(nshahan): Cleanup mulitple aliases for the compiler.
 class DevCompilerConfiguration extends CompilerConfiguration {
   DevCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() {
-    // The compiler is a Dart program and not an executable itself, so the
-    // command to spawn as a subprocess is a Dart VM. Internally the
-    // [DevCompilerCompilationCommand] will prepend the snapshot or Dart library
-    // entrypoint that is executed by the VM.
+    // DDC is a Dart program and not an executable itself, so the command to
+    // spawn as a subprocess is a Dart VM.
+    // Internally the [DevCompilerCompilationCommand] will prepend the snapshot
+    // or Dart library entrypoint that is executed by the VM.
     // This will change once we update the DDC to use AOT instead of a snapshot.
     var dir = _useSdk ? '${_configuration.buildDirectory}/dart-sdk' : 'sdk';
     return '$dir/bin/dart$executableExtension';
@@ -1008,43 +1008,40 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ldFlags.add('-Wl,-undefined,error');
       // Tell Mac linker to give up generating eh_frame from dwarf.
       ldFlags.add('-Wl,-no_compact_unwind');
-      if ({Architecture.arm64, Architecture.arm64c}
-          .contains(_configuration.architecture)) {
-        target = ['-arch', 'arm64'];
+      switch (_configuration.architecture) {
+        case Architecture.ia32:
+          target = ['-arch', 'i386'];
+          break;
+        case Architecture.x64:
+        case Architecture.x64c:
+        case Architecture.simx64:
+        case Architecture.simx64c:
+          target = ['-arch', 'x86_64'];
+          break;
+        case Architecture.simarm:
+        case Architecture.arm:
+        case Architecture.arm_x64:
+          target = ['-arch', 'armv7'];
+          break;
+        case Architecture.simarm64:
+        case Architecture.simarm64c:
+          target = ['-arch', 'arm64'];
+          break;
+        case Architecture.riscv32:
+        case Architecture.simriscv32:
+          target = ['-arch', 'riscv32'];
+          break;
+        case Architecture.riscv64:
+        case Architecture.simriscv64:
+          target = ['-arch', 'riscv64'];
+          break;
       }
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
     }
 
-    String? ccFlags;
-    switch (_configuration.architecture) {
-      case Architecture.x64:
-      case Architecture.x64c:
-      case Architecture.simx64:
-      case Architecture.simx64c:
-        ccFlags = "-m64";
-        break;
-      case Architecture.simarm64:
-      case Architecture.simarm64c:
-      case Architecture.ia32:
-      case Architecture.simarm:
-      case Architecture.arm:
-      case Architecture.arm_x64:
-      case Architecture.arm64:
-      case Architecture.arm64c:
-      case Architecture.riscv32:
-      case Architecture.riscv64:
-      case Architecture.simriscv32:
-      case Architecture.simriscv64:
-        ccFlags = null;
-        break;
-      default:
-        throw "Architecture not supported: ${_configuration.architecture.name}";
-    }
-
     var args = [
       if (target != null) ...target,
-      if (ccFlags != null) ccFlags,
       ...ldFlags,
       shared,
       '-o',

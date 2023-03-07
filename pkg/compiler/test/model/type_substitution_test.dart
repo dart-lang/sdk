@@ -53,12 +53,12 @@ testAsInstanceOf() async {
       class F<T, U> extends B<F<T, String>> implements A<F<B<U>, int>> {}
 
       main() {
-        new A();
-        new B();
-        new C();
-        new D();
-        new E();
-        new F();
+        A();
+        B();
+        C();
+        D();
+        E();
+        F();
       }
       ''', options: [Flags.noSoundNullSafety]);
   var types = env.types;
@@ -123,7 +123,7 @@ testTypeSubstitution() async {
   var env = await TypeEnvironment.create(r"""
       class Class<T,S> {}
 
-      main() => new Class();
+      main() => Class();
       """, options: [Flags.noSoundNullSafety]);
   var types = env.types;
   final Class_T_S = env["Class"];

@@ -10,7 +10,7 @@
 class Class<T> {}
 
 /*member: create:deps=[test]*/
-Class<T> create<T>() => new Class<T>();
+Class<T> create<T>() => Class<T>();
 
 equals(a, b) {
   if (a != b) throw '$a != $b';

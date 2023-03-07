@@ -30,7 +30,7 @@ bool _initialized = false;
 int _asyncLevel = 0;
 
 Exception _buildException(String msg) {
-  return new Exception('Fatal: $msg. This is most likely a bug in your test.');
+  return Exception('Fatal: $msg. This is most likely a bug in your test.');
 }
 
 /// Call this method before an asynchronous test is created.
@@ -65,26 +65,22 @@ void asyncEnd() {
   }
 }
 
-/**
- * Call this after an asynchronous test has ended successfully. This is a helper
- * for calling [asyncEnd].
- *
- * This method intentionally has a signature that matches [:Future.then:] as a
- * convenience for calling [asyncEnd] when a [:Future:] completes without error,
- * like this:
- *
- *     asyncStart();
- *     Future result = test();
- *     result.then(asyncSuccess);
- */
+/// Call this after an asynchronous test has ended successfully. This is a helper
+/// for calling [asyncEnd].
+///
+/// This method intentionally has a signature that matches [:Future.then:] as a
+/// convenience for calling [asyncEnd] when a [:Future:] completes without error,
+/// like this:
+///
+///     asyncStart();
+///     Future result = test();
+///     result.then(asyncSuccess);
 void asyncSuccess(_) => asyncEnd();
 
-/**
- * Helper method for performing asynchronous tests involving [:Future:].
- *
- * [f] must return a [:Future:] for the test computation.
- */
-Future<void> asyncTest(f()) {
+/// Helper method for performing asynchronous tests involving [:Future:].
+///
+/// [f] must return a [:Future:] for the test computation.
+Future<void> asyncTest(Function() f) {
   asyncStart();
   return f().then(asyncSuccess);
 }

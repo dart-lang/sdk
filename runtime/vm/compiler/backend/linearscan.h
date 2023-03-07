@@ -181,6 +181,8 @@ class FlowGraphAllocator : public ValueObject {
   // Connect split siblings over non-linear control flow edges.
   void ResolveControlFlow();
 
+  void ScheduleParallelMoves();
+
   // Returns true if the target location is the spill slot for the given range.
   bool TargetLocationIsSpillSlot(LiveRange* range, Location target);
 
@@ -286,6 +288,11 @@ class FlowGraphAllocator : public ValueObject {
                                     ParameterInstr* param,
                                     Register base_reg,
                                     intptr_t pair_index);
+
+  // Assign locations for each outgoing argument. Outgoing argumenst are
+  // currently stored at the top of the stack in direct order (last argument
+  // at the top of the stack).
+  void AllocateOutgoingArguments();
 
   const FlowGraph& flow_graph_;
 

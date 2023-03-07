@@ -113,13 +113,13 @@ void _stampPubspec(Version version) {
       String? build = v.build.isEmpty ? null : v.build.join('+');
       v = Version(version.major, version.minor, v.patch,
           pre: pre, build: build);
-      return '${pattern}${v.toString()}';
+      return '$pattern${v.toString()}';
     } else {
       return line;
     }
   }).join('\n');
 
-  if (!found) throw '`${pattern}` not found';
+  if (!found) throw '`$pattern` not found';
 
   file.writeAsStringSync(text);
 }
@@ -133,6 +133,6 @@ void _checkUpdateChangelog(Version version) {
   bool containsReleaseNotes =
       text.split('\n').any((line) => line.startsWith(check));
   if (!containsReleaseNotes) {
-    throw '`${check}` not found in the CHANGELOG.md file';
+    throw '`$check` not found in the CHANGELOG.md file';
   }
 }

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 import 'package:collection/collection.dart';
 
@@ -21,7 +22,9 @@ class TypeMemberContributor extends DartCompletionContributor {
   TypeMemberContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     // Recompute the target because resolution might have changed it.
     var expression = request.target.dotTarget;
     if (expression == null ||
@@ -34,7 +37,7 @@ class TypeMemberContributor extends DartCompletionContributor {
         //  contributor this way, and we should look into better ways to
         //  structure the code.
         var excludedGetters = containingNode.fields
-            .map((field) => field.fieldName?.name?.lexeme)
+            .map((field) => field.name?.name?.lexeme)
             .whereNotNull()
             .toSet();
         _suggestFromType(

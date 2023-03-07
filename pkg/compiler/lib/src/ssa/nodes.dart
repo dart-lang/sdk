@@ -255,6 +255,7 @@ class HGraph {
   // store it on HInstruction, or maybe this can be computed on demand).
   final Set<HInstruction> allocatedFixedLists = {};
 
+  /// SourceInformation for the 'graph' is the location of the entry
   SourceInformation? sourceInformation;
 
   // We canonicalize all constants used within a graph so we do not

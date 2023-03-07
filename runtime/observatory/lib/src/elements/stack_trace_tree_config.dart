@@ -69,12 +69,6 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
       ProfileTreeMode mode = ProfileTreeMode.function,
       M.ProfileTreeDirection direction = M.ProfileTreeDirection.exclusive,
       RenderingQueue? queue}) {
-    assert(showMode != null);
-    assert(showDirection != null);
-    assert(showFilter != null);
-    assert(mode != null);
-    assert(direction != null);
-    assert(filter != null);
     StackTraceTreeConfigElement e = new StackTraceTreeConfigElement.created();
     e._r = new RenderingScheduler<StackTraceTreeConfigElement>(e, queue: queue);
     e._showMode = showMode;
@@ -239,7 +233,6 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
       case ProfileTreeMode.function:
         return 'Function';
     }
-    throw new Exception('Unknown ProfileTreeMode');
   }
 
   static String directionToString(M.ProfileTreeDirection direction) {
@@ -249,7 +242,6 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
       case M.ProfileTreeDirection.exclusive:
         return 'Bottom up';
     }
-    throw new Exception('Unknown ProfileTreeDirection');
   }
 
   StackTraceTreeConfigChangedEvent _toEvent(_) {

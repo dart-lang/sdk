@@ -1170,6 +1170,25 @@ class Assembler : public AssemblerBase {
     EmitLoadStoreExclusive(STLR, R31, rn, rt, sz);
   }
 
+  void ldclr(Register rs,
+             Register rt,
+             Register rn,
+             OperandSize sz = kEightBytes) {
+    // rs = value in
+    // rt = value out
+    // rn = address
+    EmitAtomicMemory(LDCLR, rs, rn, rt, sz);
+  }
+  void ldset(Register rs,
+             Register rt,
+             Register rn,
+             OperandSize sz = kEightBytes) {
+    // rs = value in
+    // rt = value out
+    // rn = address
+    EmitAtomicMemory(LDSET, rs, rn, rt, sz);
+  }
+
   // Conditional select.
   void csel(Register rd, Register rn, Register rm, Condition cond) {
     EmitConditionalSelect(CSEL, rd, rn, rm, cond, kEightBytes);
@@ -1890,7 +1909,10 @@ class Assembler : public AssemblerBase {
                         int64_t imm,
                         OperandSize sz = kEightBytes) override;
 
-  Address PrepareLargeOffset(Register base, int32_t offset, OperandSize sz);
+  Address PrepareLargeOffset(Register base,
+                             int32_t offset,
+                             OperandSize sz,
+                             Address::AddressType addr_type = Address::Offset);
   void LoadFromOffset(Register dest,
                       const Address& address,
                       OperandSize sz = kEightBytes) override;
@@ -1967,6 +1989,12 @@ class Assembler : public AssemblerBase {
   void StoreZero(const Address& address, Register temp = kNoRegister) {
     StoreToOffset(ZR, address);
   }
+
+  void StorePairToOffset(Register low,
+                         Register high,
+                         Register base,
+                         int32_t offset,
+                         OperandSize sz = kEightBytes);
 
   void StoreSToOffset(VRegister src, Register base, int32_t offset);
   void StoreDToOffset(VRegister src, Register base, int32_t offset);
@@ -2809,7 +2837,23 @@ class Assembler : public AssemblerBase {
     const int32_t encoding = op | size | Arm64Encode::Rs(rs) |
                              Arm64Encode::Rt2(R31) | Arm64Encode::Rn(rn) |
                              Arm64Encode::Rt(rt);
+    Emit(encoding);
+  }
 
+  void EmitAtomicMemory(AtomicMemoryOp op,
+                        Register rs,
+                        Register rn,
+                        Register rt,
+                        OperandSize sz = kEightBytes) {
+    ASSERT(sz == kEightBytes || sz == kFourBytes);
+    const int32_t size = B31 | (sz == kEightBytes ? B30 : 0);
+
+    ASSERT((rs != kNoRegister) && (rs != CSP));
+    ASSERT((rn != kNoRegister) && (rn != ZR));
+    ASSERT((rt != kNoRegister) && (rt != CSP));
+
+    const int32_t encoding = op | size | Arm64Encode::Rs(rs) |
+                             Arm64Encode::Rn(rn) | Arm64Encode::Rt(rt);
     Emit(encoding);
   }
 

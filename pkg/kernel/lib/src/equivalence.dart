@@ -1752,6 +1752,9 @@ class EquivalenceStrategy {
     if (!checkInlineClass_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkInlineClass_implements(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkInlineClass_flags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -5313,6 +5316,12 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
     return visitor.checkLists(
         node.annotations, other.annotations, visitor.checkNodes, 'annotations');
+  }
+
+  bool checkInlineClass_implements(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
+    return visitor.checkLists(
+        node.implements, other.implements, visitor.checkNodes, 'implements');
   }
 
   bool checkInlineClass_flags(

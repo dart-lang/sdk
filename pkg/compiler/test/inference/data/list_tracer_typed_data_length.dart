@@ -10,15 +10,15 @@ import 'dart:typed_data';
 // [empty].
 
 /*member: myList:Container([null|exact=NativeFloat32List], element: [subclass=JSNumber], length: 42)*/
-var myList = new Float32List(42);
+var myList = Float32List(42);
 
 /*member: myOtherList:Container([null|exact=NativeUint8List], element: [exact=JSUInt31], length: 32)*/
-var myOtherList = new Uint8List(32);
+var myOtherList = Uint8List(32);
 
 /*member: main:[subclass=JSNumber]*/
 main() {
   // ignore: unused_local_variable
-  var a = new Float32List(9);
+  var a = Float32List(9);
   return myList
           /*Container([null|exact=NativeFloat32List], element: [subclass=JSNumber], length: 42)*/
           [0]

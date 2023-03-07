@@ -4631,6 +4631,9 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectFunction) {
 }
 
 TEST_CASE(IsolateReload_TypedefToNotTypedef) {
+  // The CFE lowers typedefs to function types and as such the VM will not see
+  // any name collision between a class and a typedef class (which doesn't exist
+  // anymore).
   const char* kScript =
       "typedef bool Predicate(dynamic x);\n"
       "main() {\n"
@@ -4650,8 +4653,7 @@ TEST_CASE(IsolateReload_TypedefToNotTypedef) {
       "}\n";
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(result,
-               "Typedef class cannot be redefined to be a non-typedef class");
+  EXPECT_VALID(result);
 }
 
 TEST_CASE(IsolateReload_NotTypedefToTypedef) {
@@ -4667,6 +4669,9 @@ TEST_CASE(IsolateReload_NotTypedefToTypedef) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("false", SimpleInvokeStr(lib, "main"));
 
+  // The CFE lowers typedefs to function types and as such the VM will not see
+  // any name collision between a class and a typedef class (which doesn't exist
+  // anymore).
   const char* kReloadScript =
       "typedef bool Predicate(dynamic x);\n"
       "main() {\n"
@@ -4674,7 +4679,7 @@ TEST_CASE(IsolateReload_NotTypedefToTypedef) {
       "}\n";
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(result, "Class cannot be redefined to be a typedef class");
+  EXPECT_VALID(result);
 }
 
 TEST_CASE(IsolateReload_TypedefAddParameter) {
@@ -5005,6 +5010,63 @@ TEST_CASE(IsolateReload_GenericConstructorTearOff) {
   lib = TestCase::ReloadTestScript(kScript);
   EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/51215.
+TEST_CASE(IsolateReload_ImplicitGetterWithLoadGuard) {
+  const char* kLibScript = R"(
+    import 'file:///test:isolate_reload_helper';
+
+    class A {
+      int x;
+      A(this.x);
+      A.withUinitializedObject(int Function() callback) : x = callback();
+    }
+
+    A a = A(3);
+
+    main() {
+      int sum = 0;
+      // Trigger OSR and optimize this function.
+      for (int i = 0; i < 30000; ++i) {
+        sum += i;
+      }
+      // Make sure A.get:x is compiled.
+      int y = a.x;
+      // Reload while having an uninitialized
+      // object A on the stack. This should result in
+      // a load guard for A.x.
+      A.withUinitializedObject(() {
+         reloadTest();
+         return 4;
+      });
+      // Trigger OSR and optimize this function once again.
+      for (int i = 0; i < 30000; ++i) {
+        sum += i;
+      }
+      // Trigger deoptimization in A.get:x.
+      // It should correctly deoptimize into an implicit
+      // getter with a load guard.
+      a.x = 0x8070605040302010;
+      int z = a.x & 0xffff;
+      return "y: $y, z: $z";
+    }
+  )";
+
+  Dart_Handle lib1 =
+      TestCase::LoadTestLibrary("test_lib1.dart", kLibScript, nullptr);
+  EXPECT_VALID(lib1);
+
+  const char* kMainScript = R"(
+    main() {}
+  )";
+
+  // Trigger hot reload during execution of 'main' from test_lib1
+  // without reloading test_lib1, so its unoptimized code is retained.
+  EXPECT_VALID(TestCase::LoadTestScript(kMainScript, nullptr));
+  EXPECT_VALID(TestCase::SetReloadTestScript(kMainScript));
+
+  EXPECT_STREQ("y: 3, z: 8208", SimpleInvokeStr(lib1, "main"));
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

@@ -12,7 +12,7 @@ class B<T> {}
 
 main() {
   /*needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
-  closure<T>() => new B<T>();
+  closure<T>() => B<T>();
 
   closure<A>() is B<A>;
 }

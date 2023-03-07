@@ -96,7 +96,7 @@ class Constants {
   }
 
   /// Makes a type list [ListConstant].
-  ListConstant makeTypeList(List<DartType> types) => ListConstant(
+  ListConstant makeTypeList(Iterable<DartType> types) => ListConstant(
       InterfaceType(translator.typeClass, Nullability.nonNullable),
       types.map((t) => TypeLiteralConstant(t)).toList());
 
@@ -715,8 +715,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   ConstantInfo? _makeFunctionType(
       TypeLiteralConstant constant, FunctionType type, ClassInfo info) {
     int typeParameterOffset = types.computeFunctionTypeParameterOffset(type);
-    ListConstant typeParameterBoundsConstant = constants
-        .makeTypeList(type.typeParameters.map((p) => p.bound).toList());
+    ListConstant typeParameterBoundsConstant =
+        constants.makeTypeList(type.typeParameters.map((p) => p.bound));
+    ListConstant typeParameterDefaultsConstant =
+        constants.makeTypeList(type.typeParameters.map((p) => p.defaultType));
     TypeLiteralConstant returnTypeConstant =
         TypeLiteralConstant(type.returnType);
     ListConstant positionalParametersConstant =
@@ -726,6 +728,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     ListConstant namedParametersConstant =
         constants.makeNamedParametersList(type);
     ensureConstant(typeParameterBoundsConstant);
+    ensureConstant(typeParameterDefaultsConstant);
     ensureConstant(returnTypeConstant);
     ensureConstant(positionalParametersConstant);
     ensureConstant(requiredParameterCountConstant);
@@ -737,6 +740,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i64_const(typeParameterOffset);
       constants.instantiateConstant(
           function, b, typeParameterBoundsConstant, types.typeListExpectedType);
+      constants.instantiateConstant(function, b, typeParameterDefaultsConstant,
+          types.typeListExpectedType);
       constants.instantiateConstant(
           function, b, returnTypeConstant, types.nonNullableTypeType);
       constants.instantiateConstant(function, b, positionalParametersConstant,
@@ -789,6 +794,28 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         b.i64_const(environmentIndex);
         b.struct_new(info.struct);
       });
+    } else if (type is RecordType) {
+      final names = ListConstant(
+          InterfaceType(
+              translator.coreTypes.stringClass, Nullability.nonNullable),
+          type.named.map((t) => StringConstant(t.name)).toList());
+      ensureConstant(names);
+      final fieldTypes = constants.makeTypeList(
+          type.positional.followedBy(type.named.map((n) => n.type)));
+      ensureConstant(fieldTypes);
+      return createConstant(constant, info.nonNullableType, (function, b) {
+        b.i32_const(info.classId);
+        b.i32_const(initialIdentityHash);
+        b.i32_const(types.encodedNullability(type));
+        final namesExpectedType =
+            info.struct.fields[FieldIndex.recordTypeNames].type.unpacked;
+        constants.instantiateConstant(function, b, names, namesExpectedType);
+        final typeListExpectedType =
+            info.struct.fields[FieldIndex.recordTypeFieldTypes].type.unpacked;
+        constants.instantiateConstant(
+            function, b, fieldTypes, typeListExpectedType);
+        b.struct_new(info.struct);
+      });
     } else {
       assert(type is VoidType ||
           type is NeverType ||
@@ -817,6 +844,31 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i32_const(initialIdentityHash);
       constants.instantiateConstant(function, b, nameConstant, stringType);
       b.struct_new(info.struct);
+    });
+  }
+
+  @override
+  ConstantInfo? visitRecordConstant(RecordConstant constant) {
+    final ClassInfo recordClassInfo =
+        translator.getRecordClassInfo(constant.recordType);
+    translator.functions.allocateClass(recordClassInfo.classId);
+
+    final List<Constant> arguments = constant.positional.toList();
+    arguments.addAll(constant.named.values);
+
+    for (Constant argument in arguments) {
+      ensureConstant(argument);
+    }
+
+    return createConstant(constant, recordClassInfo.nonNullableType,
+        lazy: false, (function, b) {
+      b.i32_const(recordClassInfo.classId);
+      b.i32_const(initialIdentityHash);
+      for (Constant argument in arguments) {
+        constants.instantiateConstant(
+            function, b, argument, translator.topInfo.nullableType);
+      }
+      b.struct_new(recordClassInfo.struct);
     });
   }
 }

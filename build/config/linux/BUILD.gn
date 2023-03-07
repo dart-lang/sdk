@@ -13,6 +13,13 @@ config("sdk") {
     ldflags += [ "-Wl,--exclude-libs=libc++.a" ]
   }
 
+  # Explicitly use static linking for libstdc++ and libgcc to minimize
+  # dependencies.
+  ldflags += [
+    "-static-libgcc",
+    "-static-libstdc++",
+  ]
+
   if (sysroot != "") {
     cflags += [ "--sysroot=" + sysroot ]
     ldflags += [ "--sysroot=" + sysroot ]
@@ -31,13 +38,6 @@ config("sdk") {
       if (is_clang) {
         ldflags += [ "-fuse-ld=lld" ]
       }
-
-      # Statically link libstdc++ and libgcc as minimal alpine installation
-      # do not have them by default.
-      ldflags += [
-        "-static-libgcc",
-        "-static-libstdc++",
-      ]
     }
 
     # When using the pulled Debian sysroot with gcc, we have to specify these

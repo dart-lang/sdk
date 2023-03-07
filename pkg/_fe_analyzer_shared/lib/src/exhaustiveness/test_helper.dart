@@ -2,15 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+
 import 'space.dart';
 import 'static_type.dart';
 
 /// Tags used for id-testing of exhaustiveness.
 class Tags {
+  static const String error = 'error';
   static const String scrutineeType = 'type';
   static const String scrutineeFields = 'fields';
   static const String space = 'space';
   static const String subtypes = 'subtypes';
+  static const String expandedSubtypes = 'expandedSubtypes';
   static const String remaining = 'remaining';
 }
 
@@ -45,18 +49,26 @@ String fieldsToText(Map<String, StaticType> fields) {
 String staticTypeToText(StaticType type) => type.toString();
 
 /// Returns a textual representation of the subtypes of [type] used for testing.
-String? subtypesToText(StaticType type) {
-  List<StaticType> subtypes = type.subtypes.toList();
-  if (subtypes.isEmpty) return null;
-  // TODO(johnniwinther): Sort subtypes.
+String? typesToText(Iterable<StaticType> types) {
+  if (types.isEmpty) return null;
+  // TODO(johnniwinther): Sort types.
   StringBuffer sb = new StringBuffer();
   String comma = '';
   sb.write('{');
-  for (StaticType subtype in subtypes) {
+  for (StaticType subtype in types) {
     sb.write(comma);
     sb.write(staticTypeToText(subtype));
     comma = ',';
   }
   sb.write('}');
   return sb.toString();
+}
+
+String errorToText(ExhaustivenessError error) {
+  if (error is NonExhaustiveError) {
+    return 'non-exhaustive:${error.witness}';
+  } else {
+    assert(error is UnreachableCaseError);
+    return 'unreachable';
+  }
 }

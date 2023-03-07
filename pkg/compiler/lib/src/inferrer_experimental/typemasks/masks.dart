@@ -51,8 +51,9 @@ class CommonMasks with AbstractValueDomain {
 
   /// Cache of [FlatTypeMask]s grouped by the possible values of the
   /// `FlatTypeMask.flags` property.
-  final List<Map<ClassEntity, TypeMask>?> _canonicalizedTypeMasks = List.filled(
-      _FlatTypeMaskKind.values.length << FlatTypeMask._USED_INDICES, null);
+  final List<Map<ClassEntity?, TypeMask>?> _canonicalizedTypeMasks =
+      List.filled(
+          _FlatTypeMaskKind.values.length << FlatTypeMask._USED_INDICES, null);
 
   /// Return the cached mask for [base] with the given flags, or
   /// calls [createMask] to create the mask and cache it.
@@ -110,8 +111,15 @@ class CommonMasks with AbstractValueDomain {
       TypeMask.nonNullSubtype(commonElements.functionClass, _closedWorld);
 
   @override
-  late final TypeMask recordType =
-      TypeMask.nonNullSubtype(commonElements.recordClass, _closedWorld);
+  // TODO(50701): Use:
+  //
+  //     TypeMask.nonNullSubtype(commonElements.recordClass, _closedWorld);
+  //
+  // This will require either (1) open reasoning on the as-yet undefined
+  // subtypes of Record or (2) several live subtypes of Record. Everything
+  // 'works' for the similar interface `Function` because there are multiple
+  // live subclasses of `Closure`.
+  late final TypeMask recordType = dynamicType;
 
   @override
   late final TypeMask listType =

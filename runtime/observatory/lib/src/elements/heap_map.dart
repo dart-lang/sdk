@@ -13,7 +13,6 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -36,10 +35,6 @@ class HeapMapElement extends CustomElement implements Renderable {
   factory HeapMapElement(M.VM vm, M.IsolateRef isolate,
       M.EventRepository events, M.NotificationRepository notifications,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
     HeapMapElement e = new HeapMapElement.created();
     e._r = new RenderingScheduler<HeapMapElement>(e, queue: queue);
     e._vm = vm;

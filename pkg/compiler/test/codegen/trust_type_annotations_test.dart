@@ -37,7 +37,7 @@ class A {
 }
 
 main () {
-  var a = new A("42" as dynamic);
+  var a = A("42" as dynamic);
   print(a.aField);
   print(a.foo("42"));
   print(a.foo(42));
@@ -79,7 +79,7 @@ void main() {
     }
 
     var intMask =
-        new TypeMask.subtype(closedWorld.commonElements.intClass, closedWorld);
+        TypeMask.subtype(closedWorld.commonElements.intClass, closedWorld);
 
     checkReturn('foo', intMask);
     checkReturn('faa', intMask);

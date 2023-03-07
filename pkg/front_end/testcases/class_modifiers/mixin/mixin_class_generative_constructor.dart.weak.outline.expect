@@ -2,54 +2,92 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:5:13: Error: Can't use 'MultipleConstructors' as a mixin because it has constructors.
-// mixin class MultipleConstructors {
-//             ^
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:7:3: Context: This constructor prevents using 'MultipleConstructors' as a mixin.
-//   MultipleConstructors(this.foo);
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:7:3: Error: Can't use 'ErrorMixinClass' as a mixin because it has constructors.
+//   ErrorMixinClass(this.foo); /* Error */
 //   ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:11:13: Error: Can't use 'SingleConstructor' as a mixin because it has constructors.
-// mixin class SingleConstructor {
-//             ^
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:13:3: Context: This constructor prevents using 'SingleConstructor' as a mixin.
-//   SingleConstructor.named(this.foo);
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:12:3: Error: Can't use 'ErrorMixinClassNamed' as a mixin because it has constructors.
+//   ErrorMixinClassNamed.named(this.foo); /* Error */
 //   ^
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:17:3: Error: Can't use 'ErrorMixinClassRedirect' as a mixin because it has constructors.
+//   ErrorMixinClassRedirect.named(int f) { this.foo = f; } /* Error */
+//   ^
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:18:3: Error: Can't use 'ErrorMixinClassRedirect' as a mixin because it has constructors.
+//   ErrorMixinClassRedirect.x(int f) : this.named(f); /* Error */
+//   ^
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:23:12: Error: Can't use 'ErrorMixinClassExternal' as a mixin because it has constructors.
+//   external ErrorMixinClassExternal(); /* Error */
+//            ^
 //
 import self as self;
 import "dart:core" as core;
 
-mixin class MultipleConstructors extends core::Object {
-  final field core::bool foo;
-  constructor •(core::bool foo) → self::MultipleConstructors
-    ;
-  constructor named(core::bool foo) → self::MultipleConstructors
+mixin class ErrorMixinClass extends core::Object {
+  final field core::int foo;
+  constructor •(core::int foo) → self::ErrorMixinClass
     ;
 }
-mixin class SingleConstructor extends core::Object {
-  final field core::bool foo;
-  constructor named(core::bool foo) → self::SingleConstructor
+mixin class ErrorMixinClassNamed extends core::Object {
+  final field core::int foo;
+  constructor named(core::int foo) → self::ErrorMixinClassNamed
     ;
 }
-abstract class _NoErrorWithMixinClass&Object&SingleConstructor = core::Object with self::SingleConstructor /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_NoErrorWithMixinClass&Object&SingleConstructor
+mixin class ErrorMixinClassRedirect extends core::Object {
+  field core::int foo;
+  constructor named(core::int f) → self::ErrorMixinClassRedirect
+    ;
+  constructor x(core::int f) → self::ErrorMixinClassRedirect
+    ;
+  constructor •() → self::ErrorMixinClassRedirect
+    ;
+}
+mixin class ErrorMixinClassExternal extends core::Object {
+  external constructor •() → self::ErrorMixinClassExternal;
+}
+mixin class ErrorMixinClassSuper extends core::Object {
+  constructor •() → self::ErrorMixinClassSuper
+    ;
+}
+mixin class ErrorMixinClassBody extends core::Object {
+  constructor •() → self::ErrorMixinClassBody
+    ;
+}
+mixin class MixinClassConstructor extends core::Object {
+  field core::int foo;
+  constructor •() → self::MixinClassConstructor
+    ;
+  constructor named() → self::MixinClassConstructor
+    ;
+}
+mixin class ConstMixinClassConstructor extends core::Object /*hasConstConstructor*/  {
+  final field core::int foo = 0;
+  const constructor •() → self::ConstMixinClassConstructor
     : super core::Object::•()
     ;
-  mixin-super-stub get foo() → core::bool
-    return super.{self::SingleConstructor::foo};
-}
-class NoErrorWithMixinClass extends self::_NoErrorWithMixinClass&Object&SingleConstructor {
-  synthetic constructor •() → self::NoErrorWithMixinClass
-    ;
-}
-abstract class _NoErrorWithMixinClass2&Object&MultipleConstructors = core::Object with self::MultipleConstructors /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_NoErrorWithMixinClass2&Object&MultipleConstructors
+  const constructor named() → self::ConstMixinClassConstructor
     : super core::Object::•()
     ;
-  mixin-super-stub get foo() → core::bool
-    return super.{self::MultipleConstructors::foo};
 }
-class NoErrorWithMixinClass2 extends self::_NoErrorWithMixinClass2&Object&MultipleConstructors {
-  synthetic constructor •() → self::NoErrorWithMixinClass2
+mixin class MixinClassFactory extends core::Object {
+  field core::int foo;
+  static final field dynamic _redirecting# = <dynamic>[self::MixinClassFactory::x, self::MixinClassFactory::y]/*isLegacy*/;
+  constructor •() → self::MixinClassFactory
+    ;
+  constructor named() → self::MixinClassFactory
+    ;
+  static factory x() → self::MixinClassFactory
+    return new self::MixinClassFactory::named();
+  static factory y() → self::MixinClassFactory
+    return new self::MixinClassFactory::•();
+  static factory z() → self::MixinClassFactory
     ;
 }
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///mixin_class_generative_constructor.dart:46:13 -> ConstructorTearOffConstant(MixinClassFactory.x)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///mixin_class_generative_constructor.dart:46:13 -> ConstructorTearOffConstant(MixinClassFactory.y)
+Extra constant evaluation: evaluated: 5, effectively constant: 2

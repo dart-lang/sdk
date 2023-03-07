@@ -569,14 +569,20 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
 Fragment FlowGraphBuilder::NativeCall(const String& name,
                                       const Function& function) {
   InlineBailout("kernel::FlowGraphBuilder::NativeCall");
+  // +1 for result placeholder.
   const intptr_t num_args =
-      function.NumParameters() + (function.IsGeneric() ? 1 : 0);
+      function.NumParameters() + (function.IsGeneric() ? 1 : 0) + 1;
+
+  Fragment instructions;
+  instructions += NullConstant();  // Placeholder for the result.
+
   InputsArray arguments = GetArguments(num_args);
   NativeCallInstr* call = new (Z) NativeCallInstr(
       name, function, FLAG_link_natives_lazily,
       InstructionSource(function.end_token_pos()), std::move(arguments));
   Push(call);
-  return Fragment(call);
+  instructions <<= call;
+  return instructions;
 }
 
 Fragment FlowGraphBuilder::Return(TokenPosition position,
@@ -870,6 +876,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(FinalizerEntry_getValue, FinalizerEntry_value)                             \
   V(NativeFinalizer_getCallback, NativeFinalizer_callback)                     \
   V(GrowableArrayLength, GrowableObjectArray_length)                           \
+  V(ReceivePort_getSendPort, ReceivePort_send_port)                            \
+  V(ReceivePort_getHandler, ReceivePort_handler)                               \
   V(ImmutableLinkedHashBase_getData, ImmutableLinkedHashBase_data)             \
   V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)           \
   V(LinkedHashBase_getData, LinkedHashBase_data)                               \
@@ -895,6 +903,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(FinalizerBase_setDetachments, FinalizerBase_detachments)                   \
   V(FinalizerEntry_setToken, FinalizerEntry_token)                             \
   V(NativeFinalizer_setCallback, NativeFinalizer_callback)                     \
+  V(ReceivePort_setHandler, ReceivePort_handler)                               \
   V(LinkedHashBase_setData, LinkedHashBase_data)                               \
   V(LinkedHashBase_setIndex, LinkedHashBase_index)                             \
   V(SuspendState_setFunctionData, SuspendState_function_data)                  \
@@ -3862,44 +3871,44 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       }
     }
     body += NullConstant();
-  } else if (is_getter && is_method) {
-    ASSERT(!field.needs_load_guard()
-                NOT_IN_PRODUCT(|| IG->HasAttemptedReload()));
-    body += LoadLocal(parsed_function_->ParameterVariable(0));
-    body += LoadField(
-        field, /*calls_initializer=*/field.NeedsInitializationCheckOnLoad());
-    if (field.needs_load_guard()) {
-#if defined(PRODUCT)
-      UNREACHABLE();
-#else
-      body += CheckAssignable(AbstractType::Handle(Z, field.type()),
-                              Symbols::FunctionResult());
-#endif
-    }
-  } else if (field.is_const()) {
-    const auto& value = Object::Handle(Z, field.StaticConstFieldValue());
-    if (value.IsError()) {
-      Report::LongJump(Error::Cast(value));
-    }
-    body += Constant(Instance::ZoneHandle(Z, Instance::RawCast(value.ptr())));
   } else {
-    // Static fields
-    //  - with trivial initializer
-    //  - without initializer if they are not late
-    // are initialized eagerly and do not have implicit getters.
-    // Static fields with non-trivial initializer need getter to perform
-    // lazy initialization. Late fields without initializer need getter
-    // to make sure they are already initialized.
-    ASSERT(field.has_nontrivial_initializer() ||
-           (field.is_late() && !field.has_initializer()));
-    body += LoadStaticField(field, /*calls_initializer=*/true);
-    if (field.needs_load_guard()) {
+    ASSERT(is_getter);
+    if (is_method) {
+      body += LoadLocal(parsed_function_->ParameterVariable(0));
+      body += LoadField(
+          field, /*calls_initializer=*/field.NeedsInitializationCheckOnLoad());
+    } else if (field.is_const()) {
+      const auto& value = Object::Handle(Z, field.StaticConstFieldValue());
+      if (value.IsError()) {
+        Report::LongJump(Error::Cast(value));
+      }
+      body += Constant(Instance::ZoneHandle(Z, Instance::RawCast(value.ptr())));
+    } else {
+      // Static fields
+      //  - with trivial initializer
+      //  - without initializer if they are not late
+      // are initialized eagerly and do not have implicit getters.
+      // Static fields with non-trivial initializer need getter to perform
+      // lazy initialization. Late fields without initializer need getter
+      // to make sure they are already initialized.
+      ASSERT(field.has_nontrivial_initializer() ||
+             (field.is_late() && !field.has_initializer()));
+      body += LoadStaticField(field, /*calls_initializer=*/true);
+    }
+
+    if (is_method || !field.is_const()) {
 #if defined(PRODUCT)
-      UNREACHABLE();
+      RELEASE_ASSERT(!field.needs_load_guard());
 #else
-      ASSERT(IsolateGroup::Current()->HasAttemptedReload());
-      body += CheckAssignable(AbstractType::Handle(Z, field.type()),
-                              Symbols::FunctionResult());
+      // Always build fragment for load guard to maintain stable deopt_id
+      // numbering, but link it into the graph only if field actually
+      // needs load guard.
+      Fragment load_guard = CheckAssignable(
+          AbstractType::Handle(Z, field.type()), Symbols::FunctionResult());
+      if (field.needs_load_guard()) {
+        ASSERT(IG->HasAttemptedReload());
+        body += load_guard;
+      }
 #endif
     }
   }

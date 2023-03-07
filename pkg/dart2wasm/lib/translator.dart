@@ -14,6 +14,7 @@ import 'package:dart2wasm/functions.dart';
 import 'package:dart2wasm/globals.dart';
 import 'package:dart2wasm/kernel_nodes.dart';
 import 'package:dart2wasm/param_info.dart';
+import 'package:dart2wasm/records.dart';
 import 'package:dart2wasm/reference_extensions.dart';
 import 'package:dart2wasm/types.dart';
 
@@ -99,6 +100,10 @@ class Translator with KernelNodes {
   late final w.Memory ffiMemory = m.importMemory("ffi", "memory",
       options.importSharedMemory, 0, options.sharedMemoryMaxPages);
 
+  /// Maps record shapes to the record class for the shape. Classes generated
+  /// by `record_class_generator` library.
+  final Map<RecordShape, Class> recordClasses;
+
   // Caches for when identical source constructs need a common representation.
   final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
   final Map<w.BaseFunction, w.DefinedGlobal> functionRefCache = {};
@@ -109,6 +114,7 @@ class Translator with KernelNodes {
   late final ClassInfo objectInfo = classInfo[coreTypes.objectClass]!;
   late final ClassInfo closureInfo = classInfo[closureClass]!;
   late final ClassInfo stackTraceInfo = classInfo[stackTraceClass]!;
+  late final ClassInfo recordInfo = classInfo[coreTypes.recordClass]!;
   late final w.ArrayType listArrayType = (classInfo[listBaseClass]!
           .struct
           .fields[FieldIndex.listArray]
@@ -203,7 +209,7 @@ class Translator with KernelNodes {
     topInfo.nullableType
   ]);
 
-  Translator(this.component, this.coreTypes, this.options)
+  Translator(this.component, this.coreTypes, this.recordClasses, this.options)
       : libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
@@ -319,18 +325,20 @@ class Translator with KernelNodes {
       if (options.exportAll && exportName == null) {
         m.exportFunction(canonicalName, function);
       }
-      var codeGen = CodeGenerator(this, function, reference);
+
+      final CodeGenerator codeGen =
+          CodeGenerator.forFunction(this, member.function, function, reference);
       codeGen.generate();
 
       if (options.printWasm) {
-        print(function.type);
-        print(function.body.trace);
+        print(codeGen.function.type);
+        print(codeGen.function.body.trace);
       }
 
       for (Lambda lambda in codeGen.closures.lambdas.values) {
-        w.DefinedFunction lambdaFunction =
-            CodeGenerator(this, lambda.function, reference)
-                .generateLambda(lambda, codeGen.closures);
+        w.DefinedFunction lambdaFunction = CodeGenerator.forFunction(
+                this, lambda.functionNode, lambda.function, reference)
+            .generateLambda(lambda, codeGen.closures);
         _printFunction(lambdaFunction, "$canonicalName (closure)");
       }
 
@@ -370,7 +378,7 @@ class Translator with KernelNodes {
 
   w.DefinedFunction generateGetMain(Procedure mainFunction) {
     w.DefinedFunction getMain = m.addFunction(
-        m.addFunctionType(const [], const [w.RefType.extern(nullable: true)]));
+        m.addFunctionType(const [], const [w.RefType.any(nullable: true)]));
     constants.instantiateConstant(getMain, getMain.body,
         StaticTearOffConstant(mainFunction), getMain.type.outputs.single);
     getMain.body.end();
@@ -549,6 +557,9 @@ class Translator with KernelNodes {
     if (type is InlineType) {
       return translateStorageType(type.instantiatedRepresentationType);
     }
+    if (type is RecordType) {
+      return typeForInfo(getRecordClassInfo(type), type.isPotentiallyNullable);
+    }
     throw "Unsupported type ${type.runtimeType}";
   }
 
@@ -566,17 +577,22 @@ class Translator with KernelNodes {
   }
 
   /// Translate a Dart type as it should appear on parameters and returns of
-  /// imported and exported functions. The only reference types allowed here
-  /// for JS interop are `externref` and `funcref`.
-  ///
+  /// imported and exported functions. All wasm types are allowed on the interop
+  /// boundary, but in order to be compatible with the `--closed-world` mode of
+  /// Binaryen, we coerce all reference types to abstract reference types
+  /// (`anyref`, `funcref` or `externref`).
   /// This function can be called before the class info is built.
   w.ValueType translateExternalType(DartType type) {
+    bool isPotentiallyNullable = type.isPotentiallyNullable;
     if (type is InterfaceType) {
       Class cls = type.classNode;
       if (cls == wasmFuncRefClass || cls == wasmFunctionClass) {
-        return w.RefType.func(nullable: true);
+        return w.RefType.func(nullable: isPotentiallyNullable);
       }
-      if (!type.isPotentiallyNullable) {
+      if (cls == wasmExternRefClass) {
+        return w.RefType.extern(nullable: isPotentiallyNullable);
+      }
+      if (!isPotentiallyNullable) {
         w.StorageType? builtin = builtinTypes[cls];
         if (builtin != null && builtin.isPrimitive) {
           return builtin as w.ValueType;
@@ -586,7 +602,9 @@ class Translator with KernelNodes {
         }
       }
     }
-    return w.RefType.extern(nullable: true);
+    // TODO(joshualitt): We'd like to use the potential nullability here too,
+    // but unfortunately this seems to break things.
+    return w.RefType.any(nullable: true);
   }
 
   w.DefinedGlobal makeFunctionRef(w.BaseFunction f) {
@@ -771,16 +789,6 @@ class Translator with KernelNodes {
       }
     }
 
-    bool fromIsExtern = from.isSubtypeOf(w.RefType.extern(nullable: true));
-    bool toIsExtern = to.isSubtypeOf(w.RefType.extern(nullable: true));
-    if (fromIsExtern && !toIsExtern) {
-      b.extern_internalize();
-      from = w.RefType.any(nullable: from.nullable);
-    }
-    if (!fromIsExtern && toIsExtern) {
-      to = w.RefType.any(nullable: to.nullable);
-    }
-
     if (!from.isSubtypeOf(to)) {
       if (from is w.RefType && to is w.RefType) {
         if (from.withNullability(false).isSubtypeOf(to)) {
@@ -810,10 +818,6 @@ class Translator with KernelNodes {
       } else {
         throw "Conversion between non-reference types";
       }
-    }
-
-    if (!fromIsExtern && toIsExtern) {
-      b.extern_externalize();
     }
   }
 
@@ -874,6 +878,7 @@ class Translator with KernelNodes {
   bool shouldInline(Reference target) {
     if (!options.inlining) return false;
     Member member = target.asMember;
+    if (member.function?.asyncMarker == AsyncMarker.SyncStar) return false;
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) return false;
     if (member is Field) return true;
@@ -968,6 +973,9 @@ class Translator with KernelNodes {
     b.struct_get(info.struct, FieldIndex.listLength);
     b.i32_wrap_i64();
   }
+
+  ClassInfo getRecordClassInfo(RecordType recordType) =>
+      classInfo[recordClasses[RecordShape.fromType(recordType)]!]!;
 }
 
 abstract class _FunctionGenerator {

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:test/test.dart';
 
 /// Test that [spaces] is exhaustive over [value].
@@ -39,24 +39,12 @@ Space parseSpace(Object object) {
   if (object is List<Object>) {
     return Space.union(object.map(parseSpace).toList());
   }
-  if (object is Map<String, Object>) {
-    return Space.record(fieldsToSpace(object));
-  }
-
   throw ArgumentError('Invalid space $object');
 }
 
 /// Parse a list of spaces using [parseSpace].
 List<Space> parseSpaces(List<Object> objects) =>
     objects.map(parseSpace).toList();
-
-/// Make a record space with the given fields.
-Space rec({Object? w, Object? x, Object? y, Object? z}) => Space.record({
-      if (w != null) 'w': parseSpace(w),
-      if (x != null) 'x': parseSpace(x),
-      if (y != null) 'y': parseSpace(y),
-      if (z != null) 'z': parseSpace(z)
-    });
 
 /// Make a [Space] with [type] and [fields].
 Space ty(StaticType type, Map<String, Object> fields) =>

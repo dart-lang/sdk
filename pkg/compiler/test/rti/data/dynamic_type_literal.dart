@@ -10,6 +10,6 @@ class A {
 }
 
 main() {
-  var a = new A();
+  var a = A();
   a.instanceMethod<int>();
 }

@@ -25,7 +25,7 @@ class Class {
 
 /*member: closurizedCallToString:[exact=JSString]*/
 closurizedCallToString() {
-  var c = new Class();
+  var c = Class();
   c. /*invoke: [null|exact=Class]*/ call(); // Make `Class.call` live.
   var local = c. /*[exact=Class]*/ method;
   local. /*invoke: [subclass=Closure]*/ toString();

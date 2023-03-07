@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  new Class1();
-  new Class2();
+  Class1();
+  Class2();
 }
 
 const bool const1 = true;

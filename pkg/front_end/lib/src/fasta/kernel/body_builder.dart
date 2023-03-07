@@ -688,14 +688,14 @@ class BodyBuilder extends StackListenerImpl
     if (node is Pattern) {
       return node;
     } else if (node is Generator) {
-      return new ExpressionPattern(node.buildSimpleRead());
+      return new ConstantPattern(node.buildSimpleRead());
     } else if (node is Expression) {
-      return new ExpressionPattern(node);
+      return new ConstantPattern(node);
     } else if (node is ProblemBuilder) {
       // ignore: unused_local_variable
       Expression expression =
           buildProblem(node.message, node.charOffset, noLength);
-      return new ExpressionPattern(expression);
+      return new ConstantPattern(expression);
     } else {
       return unhandled("${node.runtimeType}", "toPattern", -1, uri);
     }
@@ -2024,6 +2024,15 @@ class BodyBuilder extends StackListenerImpl
 
     List<Initializer>? initializers = _initializers;
     if (initializers != null && initializers.isNotEmpty) {
+      if (sourceClassBuilder != null && sourceClassBuilder!.isMixinClass) {
+        // Report an error if a mixin class has a constructor with an
+        // initializer.
+        buildProblem(
+            fasta.templateIllegalMixinDueToConstructors
+                .withArguments(sourceClassBuilder!.fullNameForErrors),
+            constructorDeclaration.charOffset,
+            noLength);
+      }
       if (initializers.last is SuperInitializer) {
         SuperInitializer superInitializer =
             initializers.last as SuperInitializer;
@@ -2179,6 +2188,17 @@ class BodyBuilder extends StackListenerImpl
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
       function.body = new EmptyStatement()..parent = function;
+    } else if (body != null &&
+        sourceClassBuilder != null &&
+        sourceClassBuilder!.isMixinClass &&
+        !constructorDeclaration.isFactory) {
+      // Report an error if a mixin class has a non-factory constructor with a
+      // body.
+      buildProblem(
+          fasta.templateIllegalMixinDueToConstructors
+              .withArguments(sourceClassBuilder!.fullNameForErrors),
+          constructorDeclaration.charOffset,
+          noLength);
     }
   }
 
@@ -3558,7 +3578,7 @@ class BodyBuilder extends StackListenerImpl
       assert(checkState(token, [ValueKinds.Scope]));
       Scope thenScope = scope.createNestedScope(
           debugName: "then body", kind: ScopeKind.statementLocalScope);
-      exitLocalScope();
+      exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
       push(condition);
       enterLocalScope(thenScope);
     } else {
@@ -3978,6 +3998,10 @@ class BodyBuilder extends StackListenerImpl
         variables.addAll(_buildForLoopVariableDeclarations(v)!);
       }
       return variables;
+    } else if (variableOrExpression is PatternVariableDeclaration) {
+      return <VariableDeclaration>[];
+    } else if (variableOrExpression is ParserRecovery) {
+      return <VariableDeclaration>[];
     } else if (variableOrExpression == null) {
       return <VariableDeclaration>[];
     }
@@ -4021,6 +4045,69 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  void handleForInitializerPatternVariableAssignment(
+      Token keyword, Token equals) {
+    debugEvent("handleForInitializerPatternVariableAssignment");
+    assert(checkState(keyword, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern,
+      ]),
+    ]));
+
+    Object expression = pop() as Object;
+    Object pattern = pop() as Object;
+
+    if (pattern is Pattern) {
+      pop(); // Metadata.
+      for (VariableDeclaration variable in pattern.declaredVariables) {
+        declareVariable(variable, scope);
+        typeInferrer.assignedVariables.declare(variable);
+      }
+      Scope forScope = scope.createNestedScope(
+          debugName: "pattern-for internal variables",
+          kind: ScopeKind.forStatement);
+      exitLocalScope();
+      enterLocalScope(forScope);
+      // We use intermediate variables to transfer values between the pattern
+      // variables and the replacement internal variables. It allows to avoid
+      // using the variables with the same name within the same block.
+      List<VariableDeclaration> intermediateVariables = [];
+      List<VariableDeclaration> internalVariables = [];
+      for (VariableDeclaration variable in pattern.declaredVariables) {
+        VariableDeclaration intermediateVariable =
+            forest.createVariableDeclarationForValue(
+                forest.createVariableGet(variable.fileOffset, variable));
+        intermediateVariables.add(intermediateVariable);
+
+        VariableDeclaration internalVariable = forest.createVariableDeclaration(
+            variable.fileOffset, variable.name,
+            initializer: forest.createVariableGet(
+                variable.fileOffset, intermediateVariable));
+        internalVariables.add(internalVariable);
+
+        declareVariable(internalVariable, scope);
+        typeInferrer.assignedVariables.declare(internalVariable);
+      }
+      push(intermediateVariables);
+      push(internalVariables);
+      push(new PatternVariableDeclaration(pattern, toValue(expression),
+          fileOffset: offsetForToken(keyword),
+          isFinal: keyword.lexeme == "final"));
+    }
+
+    // This is matched by the call to [deferNode] in [endForStatement].
+    typeInferrer.assignedVariables.beginNode();
+  }
+
+  @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
       Token leftSeparator, int updateExpressionCount) {
     push(forKeyword);
@@ -4031,12 +4118,33 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void endForControlFlow(Token token) {
+    assert(checkState(token, <ValueKind>[
+      /* entry = */ unionOfKinds(<ValueKind>[
+        ValueKinds.Generator,
+        ValueKinds.ExpressionOrNull,
+        ValueKinds.Statement,
+        ValueKinds.ParserRecovery,
+        ValueKinds.MapLiteralEntry,
+      ]),
+      /* update expression count = */ ValueKinds.Integer,
+      /* left separator = */ ValueKinds.Token,
+      /* left parenthesis = */ ValueKinds.Token,
+      /* for keyword = */ ValueKinds.Token,
+    ]));
     debugEvent("ForControlFlow");
     Object? entry = pop();
     int updateExpressionCount = pop() as int;
     pop(); // left separator
     pop(); // left parenthesis
     Token forToken = pop() as Token;
+
+    assert(checkState(token, <ValueKind>[
+      /* updates = */ ...repeatedKind(
+          unionOfKinds(
+              <ValueKind>[ValueKinds.Expression, ValueKinds.Generator]),
+          updateExpressionCount),
+      /* condition = */ ValueKinds.Statement,
+    ]));
     List<Expression> updates = popListForEffect(updateExpressionCount);
     Statement conditionStatement = popStatement(); // condition
 
@@ -4055,16 +4163,23 @@ class BodyBuilder extends StackListenerImpl
 
     // This is matched by the call to [beginNode] in
     // [handleForInitializerEmptyStatement],
+    // [handleForInitializerPatternVariableAssignment],
     // [handleForInitializerExpressionStatement], and
     // [handleForInitializerLocalVariableDeclaration].
     AssignedVariablesNodeInfo assignedVariablesNodeInfo =
         typeInferrer.assignedVariables.popNode();
 
     Object? variableOrExpression = pop();
+    List<VariableDeclaration>? variables;
+    List<VariableDeclaration>? intermediateVariables;
+    if (variableOrExpression is PatternVariableDeclaration) {
+      variables = pop() as List<VariableDeclaration>; // Internal variables.
+      intermediateVariables = pop() as List<VariableDeclaration>;
+    } else {
+      variables = _buildForLoopVariableDeclarations(variableOrExpression)!;
+    }
     exitLocalScope();
 
-    List<VariableDeclaration> variables =
-        _buildForLoopVariableDeclarations(variableOrExpression)!;
     typeInferrer.assignedVariables.pushNode(assignedVariablesNodeInfo);
     Expression? condition;
     if (conditionStatement is ExpressionStatement) {
@@ -4073,13 +4188,35 @@ class BodyBuilder extends StackListenerImpl
       assert(conditionStatement is EmptyStatement);
     }
     if (entry is MapLiteralEntry) {
-      ForMapEntry result = forest.createForMapEntry(
-          offsetForToken(forToken), variables, condition, updates, entry);
+      ForMapEntry result;
+      if (variableOrExpression is PatternVariableDeclaration) {
+        result = forest.createPatternForMapEntry(offsetForToken(forToken),
+            patternVariableDeclaration: variableOrExpression,
+            prelude: intermediateVariables!,
+            variables: variables,
+            condition: condition,
+            updates: updates,
+            body: entry);
+      } else {
+        result = forest.createForMapEntry(
+            offsetForToken(forToken), variables, condition, updates, entry);
+      }
       typeInferrer.assignedVariables.endNode(result);
       push(result);
     } else {
-      ForElement result = forest.createForElement(offsetForToken(forToken),
-          variables, condition, updates, toValue(entry));
+      ForElement result;
+      if (variableOrExpression is PatternVariableDeclaration) {
+        result = forest.createPatternForElement(offsetForToken(forToken),
+            patternVariableDeclaration: variableOrExpression,
+            prelude: intermediateVariables!,
+            variables: variables,
+            condition: condition,
+            updates: updates,
+            body: toValue(entry));
+      } else {
+        result = forest.createForElement(offsetForToken(forToken), variables,
+            condition, updates, toValue(entry));
+      }
       typeInferrer.assignedVariables.endNode(result);
       push(result);
     }
@@ -4121,14 +4258,21 @@ class BodyBuilder extends StackListenerImpl
     Statement conditionStatement = popStatement();
     // This is matched by the call to [beginNode] in
     // [handleForInitializerEmptyStatement],
+    // [handleForInitializerPatternVariableAssignment],
     // [handleForInitializerExpressionStatement], and
     // [handleForInitializerLocalVariableDeclaration].
     AssignedVariablesNodeInfo assignedVariablesNodeInfo =
         typeInferrer.assignedVariables.deferNode();
 
     Object? variableOrExpression = pop();
-    List<VariableDeclaration>? variables =
-        _buildForLoopVariableDeclarations(variableOrExpression);
+    List<VariableDeclaration>? variables;
+    List<VariableDeclaration>? intermediateVariables;
+    if (variableOrExpression is PatternVariableDeclaration) {
+      variables = pop() as List<VariableDeclaration>;
+      intermediateVariables = pop() as List<VariableDeclaration>;
+    } else {
+      variables = _buildForLoopVariableDeclarations(variableOrExpression);
+    }
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget() as JumpTarget;
     JumpTarget breakTarget = exitBreakTarget() as JumpTarget;
@@ -4159,6 +4303,10 @@ class BodyBuilder extends StackListenerImpl
       LabeledStatement labeledStatement = forest.createLabeledStatement(result);
       breakTarget.resolveBreaks(forest, labeledStatement, forStatement);
       result = labeledStatement;
+    }
+    if (variableOrExpression is PatternVariableDeclaration) {
+      result = forest.createBlock(result.fileOffset, result.fileOffset,
+          <Statement>[variableOrExpression, ...intermediateVariables!, result]);
     }
     if (variableOrExpression is ParserRecovery) {
       problemInLoopOrSwitch ??= buildProblemStatement(
@@ -4239,8 +4387,8 @@ class BodyBuilder extends StackListenerImpl
         typeArgument = buildDartType(
             typeArguments.single, TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
-        typeArgument = instantiateToBounds(
-            typeArgument, coreTypes.objectClass, libraryBuilder.library);
+        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass,
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
       }
     } else {
       typeArgument = implicitTypeArgument;
@@ -4293,8 +4441,8 @@ class BodyBuilder extends StackListenerImpl
         typeArgument = buildDartType(
             typeArguments.single, TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
-        typeArgument = instantiateToBounds(
-            typeArgument, coreTypes.objectClass, libraryBuilder.library);
+        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass,
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
       }
     }
 
@@ -4312,6 +4460,7 @@ class BodyBuilder extends StackListenerImpl
               ValueKinds.Expression,
               ValueKinds.ProblemBuilder,
               ValueKinds.NamedExpression,
+              ValueKinds.ParserRecovery,
             ]),
             count)));
 
@@ -4426,8 +4575,8 @@ class BodyBuilder extends StackListenerImpl
       typeArgument = buildDartType(
           typeArguments.single, TypeUse.literalTypeArgument,
           allowPotentiallyConstantType: false);
-      typeArgument = instantiateToBounds(
-          typeArgument, coreTypes.objectClass, libraryBuilder.library);
+      typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass,
+          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
     } else {
       typeArgument = implicitTypeArgument;
     }
@@ -4608,7 +4757,7 @@ class BodyBuilder extends StackListenerImpl
       entries[j] = entry;
     }
     if (restPatternPreviousOffset != TreeNode.noOffset) {
-      entries.add(restMapPatternEntry);
+      entries.add(new MapPatternRestEntry(restPatternPreviousOffset));
     }
 
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
@@ -4625,10 +4774,10 @@ class BodyBuilder extends StackListenerImpl
             allowPotentiallyConstantType: false);
         valueType = buildDartType(typeArguments[1], TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
-        keyType = instantiateToBounds(
-            keyType, coreTypes.objectClass, libraryBuilder.library);
-        valueType = instantiateToBounds(
-            valueType, coreTypes.objectClass, libraryBuilder.library);
+        keyType = instantiateToBounds(keyType, coreTypes.objectClass,
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        valueType = instantiateToBounds(valueType, coreTypes.objectClass,
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
       }
     }
 
@@ -4669,10 +4818,10 @@ class BodyBuilder extends StackListenerImpl
             allowPotentiallyConstantType: false);
         valueType = buildDartType(typeArguments[1], TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
-        keyType = instantiateToBounds(
-            keyType, coreTypes.objectClass, libraryBuilder.library);
-        valueType = instantiateToBounds(
-            valueType, coreTypes.objectClass, libraryBuilder.library);
+        keyType = instantiateToBounds(keyType, coreTypes.objectClass,
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        valueType = instantiateToBounds(valueType, coreTypes.objectClass,
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
       }
     } else {
       keyType = implicitTypeArgument;
@@ -6012,7 +6161,8 @@ class BodyBuilder extends StackListenerImpl
       Token nameToken, int offset, Constness constness,
       {required bool inMetadata, required bool inImplicitCreationContext}) {
     assert(checkState(nameToken, [
-      /*arguments*/ ValueKinds.Arguments,
+      /*arguments*/ unionOfKinds(
+          [ValueKinds.Arguments, ValueKinds.ParserRecovery]),
       /*constructor name identifier*/ ValueKinds.IdentifierOrNull,
       /*constructor name*/ ValueKinds.Name,
       /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
@@ -6024,7 +6174,7 @@ class BodyBuilder extends StackListenerImpl
       ]),
       /*previous constant context*/ ValueKinds.ConstantContext,
     ]));
-    Arguments arguments = pop() as Arguments;
+    Object? arguments = pop();
     Identifier? nameLastIdentifier = pop(NullValues.Identifier) as Identifier?;
     Token nameLastToken = nameLastIdentifier?.token ?? nameToken;
     String name = pop() as String;
@@ -6039,7 +6189,12 @@ class BodyBuilder extends StackListenerImpl
     Object? type = pop();
 
     ConstantContext savedConstantContext = pop() as ConstantContext;
-    if (type is Generator) {
+
+    if (arguments is! Arguments) {
+      push(new ParserErrorGenerator(
+          this, nameToken, fasta.messageSyntheticToken));
+      arguments = forest.createArguments(offset, []);
+    } else if (type is Generator) {
       push(type.invokeConstructor(
           typeArguments, name, arguments, nameToken, nameLastToken, constness,
           inImplicitCreationContext: inImplicitCreationContext));
@@ -6441,24 +6596,67 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void handleThenControlFlow(Token token) {
+    assert(checkState(token, [ValueKinds.Condition]));
     // This is matched by the call to [deferNode] in
     // [handleElseControlFlow] and by the call to [endNode] in
     // [endIfControlFlow].
     typeInferrer.assignedVariables.beginNode();
+
+    Condition condition = pop() as Condition;
+    PatternGuard? patternGuard = condition.patternGuard;
+    if (patternGuard != null) {
+      if (patternGuard.guard != null) {
+        Scope thenScope = scope.createNestedScope(
+            debugName: "then-control-flow", kind: ScopeKind.ifElement);
+        exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
+        enterLocalScope(thenScope);
+      } else {
+        createAndEnterLocalScope(
+            debugName: "if-case-head", kind: ScopeKind.ifCaseHead);
+        for (VariableDeclaration variable
+            in patternGuard.pattern.declaredVariables) {
+          declareVariable(variable, scope);
+          typeInferrer.assignedVariables.declare(variable);
+        }
+        Scope thenScope = scope.createNestedScope(
+            debugName: "then-control-flow", kind: ScopeKind.ifElement);
+        exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
+        enterLocalScope(thenScope);
+      }
+    } else {
+      createAndEnterLocalScope(
+          debugName: "then-control-flow", kind: ScopeKind.ifElement);
+    }
+    push(condition);
+
     super.handleThenControlFlow(token);
   }
 
   @override
   void handleElseControlFlow(Token elseToken) {
+    assert(checkState(elseToken, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.MapLiteralEntry,
+      ]),
+      ValueKinds.Condition,
+    ]));
     // Resolve the top of the stack so that if it's a delayed assignment it
     // happens before we go into the else block.
-    Object? node = pop();
-    if (node is! MapLiteralEntry) node = toValue(node);
+    Object then = pop() as Object;
+    if (then is! MapLiteralEntry) then = toValue(then);
+
+    Object condition = pop() as Condition;
+    exitLocalScope(expectedScopeKinds: const [ScopeKind.ifElement]);
+    push(condition);
+
     // This is matched by the call to [beginNode] in
     // [handleThenControlFlow] and by the call to [storeInfo] in
     // [endIfElseControlFlow].
     push(typeInferrer.assignedVariables.deferNode());
-    push(node);
+    push(then);
   }
 
   @override
@@ -6472,22 +6670,39 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.MapLiteralEntry,
       ]),
       ValueKinds.Condition,
+      ValueKinds.Scope,
       ValueKinds.Token,
     ]));
 
     Object? entry = pop();
     Condition condition = pop() as Condition;
-    assert(condition.patternGuard == null,
-        "Unexpected pattern in control flow if: ${condition.patternGuard}.");
+    exitLocalScope(expectedScopeKinds: const [ScopeKind.ifElement]);
     Token ifToken = pop() as Token;
 
+    PatternGuard? patternGuard = condition.patternGuard;
     TreeNode node;
     if (entry is MapLiteralEntry) {
-      node = forest.createIfMapEntry(
-          offsetForToken(ifToken), condition.expression, entry);
+      if (patternGuard == null) {
+        node = forest.createIfMapEntry(
+            offsetForToken(ifToken), condition.expression, entry);
+      } else {
+        node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
+            prelude: [],
+            expression: condition.expression,
+            patternGuard: patternGuard,
+            then: entry);
+      }
     } else {
-      node = forest.createIfElement(
-          offsetForToken(ifToken), condition.expression, toValue(entry));
+      if (patternGuard == null) {
+        node = forest.createIfElement(
+            offsetForToken(ifToken), condition.expression, toValue(entry));
+      } else {
+        node = forest.createIfCaseElement(offsetForToken(ifToken),
+            prelude: [],
+            expression: condition.expression,
+            patternGuard: patternGuard,
+            then: toValue(entry));
+      }
     }
     push(node);
     // This is matched by the call to [beginNode] in
@@ -6521,21 +6736,38 @@ class BodyBuilder extends StackListenerImpl
     AssignedVariablesNodeInfo assignedVariablesInfo =
         pop() as AssignedVariablesNodeInfo;
     Condition condition = pop() as Condition; // parenthesized expression
-    assert(condition.patternGuard == null,
-        "Unexpected pattern in control flow if: ${condition.patternGuard}.");
     Token ifToken = pop() as Token;
 
+    PatternGuard? patternGuard = condition.patternGuard;
     TreeNode node;
     if (thenEntry is MapLiteralEntry) {
       if (elseEntry is MapLiteralEntry) {
-        node = forest.createIfMapEntry(offsetForToken(ifToken),
-            condition.expression, thenEntry, elseEntry);
+        if (patternGuard == null) {
+          node = forest.createIfMapEntry(offsetForToken(ifToken),
+              condition.expression, thenEntry, elseEntry);
+        } else {
+          node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
+              prelude: [],
+              expression: condition.expression,
+              patternGuard: patternGuard,
+              then: thenEntry,
+              otherwise: elseEntry);
+        }
       } else if (elseEntry is ControlFlowElement) {
         MapLiteralEntry? elseMapEntry = elseEntry
             .toMapLiteralEntry(typeInferrer.assignedVariables.reassignInfo);
         if (elseMapEntry != null) {
-          node = forest.createIfMapEntry(offsetForToken(ifToken),
-              condition.expression, thenEntry, elseMapEntry);
+          if (patternGuard == null) {
+            node = forest.createIfMapEntry(offsetForToken(ifToken),
+                condition.expression, thenEntry, elseMapEntry);
+          } else {
+            node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
+                prelude: [],
+                expression: condition.expression,
+                patternGuard: patternGuard,
+                then: thenEntry,
+                otherwise: elseMapEntry);
+          }
         } else {
           int offset = elseEntry.fileOffset;
           node = new MapLiteralEntry(
@@ -6559,8 +6791,17 @@ class BodyBuilder extends StackListenerImpl
         MapLiteralEntry? thenMapEntry = thenEntry
             .toMapLiteralEntry(typeInferrer.assignedVariables.reassignInfo);
         if (thenMapEntry != null) {
-          node = forest.createIfMapEntry(offsetForToken(ifToken),
-              condition.expression, thenMapEntry, elseEntry);
+          if (patternGuard == null) {
+            node = forest.createIfMapEntry(offsetForToken(ifToken),
+                condition.expression, thenMapEntry, elseEntry);
+          } else {
+            node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
+                prelude: [],
+                expression: condition.expression,
+                patternGuard: patternGuard,
+                then: thenMapEntry,
+                otherwise: elseEntry);
+          }
         } else {
           int offset = thenEntry.fileOffset;
           node = new MapLiteralEntry(
@@ -6580,8 +6821,17 @@ class BodyBuilder extends StackListenerImpl
           ..fileOffset = offsetForToken(ifToken);
       }
     } else {
-      node = forest.createIfElement(offsetForToken(ifToken),
-          condition.expression, toValue(thenEntry), toValue(elseEntry));
+      if (condition.patternGuard == null) {
+        node = forest.createIfElement(offsetForToken(ifToken),
+            condition.expression, toValue(thenEntry), toValue(elseEntry));
+      } else {
+        node = forest.createIfCaseElement(offsetForToken(ifToken),
+            prelude: [],
+            expression: condition.expression,
+            patternGuard: condition.patternGuard!,
+            then: toValue(thenEntry),
+            otherwise: toValue(elseEntry));
+      }
     }
     push(node);
     // This is matched by the call to [deferNode] in
@@ -6843,7 +7093,8 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(fasta.messageNamedFunctionExpression,
                 declaration.fileOffset, noLength,
                 // Error has already been reported by the parser.
-                suppressMessage: true)));
+                suppressMessage: true))
+          ..fileOffset = declaration.fileOffset);
       } else {
         push(statement);
       }
@@ -7585,6 +7836,10 @@ class BodyBuilder extends StackListenerImpl
             }
             jointPatternVariables = sharedVariables;
           }
+        } else {
+          // It's a non-pattern head, so no variables can be joined.
+          jointPatternVariables = null;
+          break;
         }
       }
       if (jointPatternVariables != null) {
@@ -7822,7 +8077,7 @@ class BodyBuilder extends StackListenerImpl
           List<PatternGuard> patterns = new List<PatternGuard>.generate(
               switchCase.expressions.length, (int index) {
             return new PatternGuard(
-                new ExpressionPattern(switchCase.expressions[index]));
+                new ConstantPattern(switchCase.expressions[index]));
           });
           patternSwitchCase = new PatternSwitchCase(
               switchCase.fileOffset,
@@ -9093,7 +9348,12 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
       ]),
-      ValueKinds.Pattern,
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern
+      ]),
       ValueKinds.AnnotationListOrNull,
     ]));
     Expression initializer = popForValue();
@@ -9417,7 +9677,10 @@ Block combineStatements(Statement statement, Statement body) {
     }
     return body;
   } else {
-    return new Block(<Statement>[statement, body])
+    return new Block(<Statement>[
+      if (statement is Block) ...statement.statements else statement,
+      body
+    ])
       ..fileOffset = statement.fileOffset;
   }
 }

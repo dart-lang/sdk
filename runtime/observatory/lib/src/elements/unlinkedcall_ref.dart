@@ -23,8 +23,6 @@ class UnlinkedCallRefElement extends CustomElement implements Renderable {
   factory UnlinkedCallRefElement(
       M.IsolateRef isolate, M.UnlinkedCallRef unlinkedcall,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(unlinkedcall != null);
     UnlinkedCallRefElement e = new UnlinkedCallRefElement.created();
     e._r = new RenderingScheduler<UnlinkedCallRefElement>(e, queue: queue);
     e._isolate = isolate;

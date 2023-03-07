@@ -141,21 +141,21 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateField] reuses a name
   /// already used by [originalField].
-  AnalysisError duplicateRecordPatternField({
+  AnalysisError duplicatePatternField({
     required Source source,
     required String name,
-    required RecordPatternField duplicateField,
-    required RecordPatternField originalField,
+    required PatternField duplicateField,
+    required PatternField originalField,
   }) {
-    var originalNode = originalField.fieldName!;
+    var originalNode = originalField.name!;
     var originalTarget = originalNode.name ?? originalNode.colon;
-    var duplicateNode = duplicateField.fieldName!;
+    var duplicateNode = duplicateField.name!;
     var duplicateTarget = duplicateNode.name ?? duplicateNode.colon;
     return AnalysisError(
       source,
       duplicateTarget.offset,
       duplicateTarget.length,
-      CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD,
+      CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
       [name],
       [
         DiagnosticMessageImpl(

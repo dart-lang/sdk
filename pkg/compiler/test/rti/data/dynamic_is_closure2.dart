@@ -12,7 +12,7 @@ class A {
 main() {
   /*implicit=[local.T],needsArgs,selectors=[Selector(call, call, arity=1, types=1)],test*/
   local<T>(t) {
-    var a = new A();
+    var a = A();
     a.instanceMethod<T>(t);
   }
 

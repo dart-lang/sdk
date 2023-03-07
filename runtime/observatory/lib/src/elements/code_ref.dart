@@ -25,7 +25,6 @@ class CodeRefElement extends CustomElement implements Renderable {
 
   factory CodeRefElement(M.IsolateRef? isolate, M.CodeRef code,
       {RenderingQueue? queue}) {
-    assert(code != null);
     CodeRefElement e = new CodeRefElement.created();
     e._r = new RenderingScheduler<CodeRefElement>(e, queue: queue);
     e._isolate = isolate;

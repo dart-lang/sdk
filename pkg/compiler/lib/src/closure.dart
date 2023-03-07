@@ -225,7 +225,7 @@ class CapturedLoopScope extends CapturedScope {
 ///
 ///  and then to execute this closure, for example:
 ///
-///     var foo = new FooClosure(1);
+///     var foo = FooClosure(1);
 ///     foo.call(2);
 ///
 /// if `y` is modified elsewhere within its scope, accesses to y anywhere in the

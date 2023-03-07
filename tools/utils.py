@@ -9,6 +9,7 @@ from __future__ import print_function
 
 import contextlib
 import datetime
+from functools import total_ordering
 import glob
 import imp
 import json
@@ -27,6 +28,8 @@ try:
     import resource
 except:
     pass
+
+SEMANTIC_VERSION_PATTERN = r'^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
 
 
 # To eliminate clashing with older archived builds on bleeding edge we add
@@ -120,16 +123,88 @@ def GetMinidumpUtils(repo_path=DART_DIR):
                            os.path.join(repo_path, 'tools', 'minidump.py'))
 
 
+@total_ordering
 class Version(object):
 
-    def __init__(self, channel, major, minor, patch, prerelease,
-                 prerelease_patch):
+    def __init__(self,
+                 channel=None,
+                 major=None,
+                 minor=None,
+                 patch=None,
+                 prerelease=None,
+                 prerelease_patch=None,
+                 version=None):
         self.channel = channel
         self.major = major
         self.minor = minor
         self.patch = patch
         self.prerelease = prerelease
         self.prerelease_patch = prerelease_patch
+        if version:
+            self.set_version(version)
+
+    def set_version(self, version):
+        match = re.match(SEMANTIC_VERSION_PATTERN, version)
+        assert match, '%s must be a valid version' % version
+        self.channel = 'stable'
+        self.major = match['major']
+        self.minor = match['minor']
+        self.patch = match['patch']
+        self.prerelease = '0'
+        self.prerelease_patch = '0'
+        if match['prerelease']:
+            subversions = match['prerelease'].split('.')
+            self.prerelease = subversions[0]
+            self.prerelease_patch = subversions[1]
+            self.channel = subversions[2]
+
+    def __str__(self):
+        result = '%s.%s.%s' % (self.major, self.minor, self.patch)
+        if self.channel != 'stable':
+            result += '-%s.%s.%s' % (self.prerelease, self.prerelease_patch,
+                                     self.channel)
+        return result
+
+    def __eq__(self, other):
+        return self.channel == other.channel and \
+               self.major == other.major and \
+               self.minor == other.minor and \
+               self.patch == other.patch and \
+               self.prerelease == other.prerelease and \
+               self.prerelease_patch == other.prerelease_patch
+
+    def __lt__(self, other):
+        if int(self.major) < int(other.major):
+            return True
+        if int(self.major) > int(other.major):
+            return False
+        if int(self.minor) < int(other.minor):
+            return True
+        if int(self.minor) > int(other.minor):
+            return False
+        if int(self.patch) < int(other.patch):
+            return True
+        if int(self.patch) > int(other.patch):
+            return False
+        # The stable channel is ahead of the other channels on the same triplet.
+        if self.channel != 'stable' and other.channel == 'stable':
+            return True
+        if self.channel == 'stable' and other.channel != 'stable':
+            return False
+        # The be channel is ahead of the other channels on the same triplet.
+        if self.channel != 'be' and other.channel == 'be':
+            return True
+        if self.channel == 'be' and other.channel != 'be':
+            return False
+        if int(self.prerelease_patch) < int(other.prerelease_patch):
+            return True
+        if int(self.prerelease_patch) > int(other.prerelease_patch):
+            return False
+        if int(self.prerelease) < int(other.prerelease):
+            return True
+        if int(self.prerelease) > int(other.prerelease):
+            return False
+        return False
 
 
 # Try to guess the host operating system.

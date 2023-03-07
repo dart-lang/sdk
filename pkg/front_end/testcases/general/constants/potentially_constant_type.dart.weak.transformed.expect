@@ -637,7 +637,7 @@ constants  {
   #C1 = TypeLiteralConstant(invalid-type)
   #C2 = <invalid-type>[]
   #C3 = <invalid-type>{}
-  #C4 = <invalid-type, invalid-type>{)
+  #C4 = <invalid-type, invalid-type>{}
   #C5 = true
   #C6 = false
   #C7 = null

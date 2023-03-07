@@ -250,7 +250,7 @@ class MessageSerializer : public BaseSerializer {
 
   void Push(ObjectPtr object);
 
-  void Trace(Object* object);
+  void Trace(const Object& root, Object* object);
 
   void IllegalObject(const Object& object, const char* message);
 
@@ -2803,7 +2803,7 @@ void ApiMessageSerializer::Push(Dart_CObject* object) {
   }
 }
 
-void MessageSerializer::Trace(Object* object) {
+void MessageSerializer::Trace(const Object& root, Object* object) {
   intptr_t cid;
   bool is_canonical;
   if (!object->ptr()->IsHeapObject()) {
@@ -2823,39 +2823,59 @@ void MessageSerializer::Trace(Object* object) {
   }
   if (cluster == nullptr) {
     if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
-      IllegalObject(*object, "is a regular instance");
+      // Will stomp over forward_table_new/old WeakTables, which should be ok,
+      // as they are not going to be used again here.
+      const char* message = OS::SCreate(
+          zone_, "is a regular instance reachable via %s",
+          FindRetainingPath(zone_, isolate(), root, *object,
+                            TraversalRules::kExternalBetweenIsolateGroups));
+      IllegalObject(*object, message);
     }
 
-    // Keep the list in sync with the one in lib/isolate.cc
+    const char* illegal_cid_string = nullptr;
+    // Keep the list in sync with the one in lib/isolate.cc,
+    // vm/object_graph_copy.cc
 #define ILLEGAL(type)                                                          \
-  if (cid == k##type##Cid) {                                                   \
-    IllegalObject(*object, "is a " #type);                                     \
-  }
+  case k##type##Cid:                                                           \
+    illegal_cid_string = #type;                                                \
+    break;
 
-    ILLEGAL(Closure)
-    ILLEGAL(Finalizer)
-    ILLEGAL(FinalizerEntry)
-    ILLEGAL(FunctionType)
-    ILLEGAL(MirrorReference)
-    ILLEGAL(NativeFinalizer)
-    ILLEGAL(ReceivePort)
-    ILLEGAL(Record)
-    ILLEGAL(RecordType)
-    ILLEGAL(RegExp)
-    ILLEGAL(StackTrace)
-    ILLEGAL(SuspendState)
-    ILLEGAL(UserTag)
-    ILLEGAL(WeakProperty)
-    ILLEGAL(WeakReference)
-    ILLEGAL(WeakArray)
+    switch (cid) {
+      ILLEGAL(Closure)
+      ILLEGAL(Finalizer)
+      ILLEGAL(FinalizerEntry)
+      ILLEGAL(FunctionType)
+      ILLEGAL(MirrorReference)
+      ILLEGAL(NativeFinalizer)
+      ILLEGAL(ReceivePort)
+      ILLEGAL(Record)
+      ILLEGAL(RecordType)
+      ILLEGAL(RegExp)
+      ILLEGAL(StackTrace)
+      ILLEGAL(SuspendState)
+      ILLEGAL(UserTag)
+      ILLEGAL(WeakProperty)
+      ILLEGAL(WeakReference)
+      ILLEGAL(WeakArray)
 
-    // From "dart:ffi" we handle only Pointer/DynamicLibrary specially, since
-    // those are the only non-abstract classes (so we avoid checking more cids
-    // here that cannot happen in reality)
-    ILLEGAL(DynamicLibrary)
-    ILLEGAL(Pointer)
+      // From "dart:ffi" we handle only Pointer/DynamicLibrary specially, since
+      // those are the only non-abstract classes (so we avoid checking more cids
+      // here that cannot happen in reality)
+      ILLEGAL(DynamicLibrary)
+      ILLEGAL(Pointer)
 
 #undef ILLEGAL
+    }
+
+    if (illegal_cid_string != nullptr) {
+      // Will stomp over forward_table_new/old WeakTables, which should be ok,
+      // as they are not going to be used again here.
+      const char* message = OS::SCreate(
+          zone_, "is a %s reachable via %s", illegal_cid_string,
+          FindRetainingPath(zone_, isolate(), root, *object,
+                            TraversalRules::kExternalBetweenIsolateGroups));
+      IllegalObject(*object, message);
+    }
 
     cluster = NewClusterForClass(cid, is_canonical);
     clusters_.Add(cluster);
@@ -3319,7 +3339,7 @@ void MessageSerializer::Serialize(const Object& root) {
   Push(root.ptr());
 
   while (stack_.length() > 0) {
-    Trace(stack_.RemoveLast());
+    Trace(root, stack_.RemoveLast());
   }
 
   intptr_t num_objects = num_base_objects_ + num_written_objects_;

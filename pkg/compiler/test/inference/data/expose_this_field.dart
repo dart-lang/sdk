@@ -32,7 +32,7 @@ class Class1 {
 }
 
 /*member: exposeThis1:[exact=Class1]*/
-exposeThis1() => new Class1();
+exposeThis1() => Class1();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class with self-assigning initializer in constructor body.
@@ -51,7 +51,7 @@ class Class2 {
 }
 
 /*member: exposeThis2:[exact=Class2]*/
-exposeThis2() => new Class2();
+exposeThis2() => Class2();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class with prior self-assigning initializer in constructor body.
@@ -69,7 +69,7 @@ class Class3 {
 }
 
 /*member: exposeThis3:[exact=Class3]*/
-exposeThis3() => new Class3();
+exposeThis3() => Class3();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class with access prior to initializer in constructor body.
@@ -88,7 +88,7 @@ class Class4 {
 }
 
 /*member: exposeThis4:[exact=Class4]*/
-exposeThis4() => new Class4();
+exposeThis4() => Class4();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class with postfix prior to initializer in constructor body.
@@ -106,7 +106,7 @@ class Class5 {
 }
 
 /*member: exposeThis5:[exact=Class5]*/
-exposeThis5() => new Class5();
+exposeThis5() => Class5();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class with postfix after initializer in constructor body.
@@ -124,7 +124,7 @@ class Class6 {
 }
 
 /*member: exposeThis6:[exact=Class6]*/
-exposeThis6() => new Class6();
+exposeThis6() => Class6();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class with accesses prior to initializers in constructor body.
@@ -149,4 +149,4 @@ class Class7 {
 }
 
 /*member: exposeThis7:[exact=Class7]*/
-exposeThis7() => new Class7();
+exposeThis7() => Class7();

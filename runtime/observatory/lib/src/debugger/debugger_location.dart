@@ -177,9 +177,6 @@ class DebuggerLocation {
 
   static Future<List<Class>> _lookupClass(Isolate isolate, String name,
       {bool allowPrefix = false}) async {
-    if (isolate == null) {
-      return [];
-    }
     var pending = <Future>[];
     for (var lib in isolate.libraries) {
       assert(lib.loaded);
@@ -224,7 +221,6 @@ class DebuggerLocation {
     Isolate isolate = debugger.isolate;
     var base = match.group(1)!;
     var qualifier = match.group(2);
-    assert(base != null);
 
     return _lookupClass(isolate, base).then((classes) {
       var functions = [];

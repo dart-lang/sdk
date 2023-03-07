@@ -110,8 +110,8 @@ _whileUnion1(/*[exact=Class1]*/ o) {
 
 /*member: whileUnion1:[null]*/
 whileUnion1() {
-  var c1 = new Class1();
-  var c2 = new Class2();
+  var c1 = Class1();
+  var c2 = Class2();
   c1. /*update: [exact=Class1]*/ field = c2;
   c2. /*update: [exact=Class2]*/ field = c1;
   _whileUnion1(c1);
@@ -144,8 +144,8 @@ _whileUnion2(/*[exact=Class4]*/ o) {
 
 /*member: whileUnion2:[null]*/
 whileUnion2() {
-  var c1 = new Class3();
-  var c2 = new Class4();
+  var c1 = Class3();
+  var c2 = Class4();
   c1. /*update: [exact=Class3]*/ field = c2;
   c2. /*update: [exact=Class4]*/ field = c1;
   _whileUnion2(c2);
@@ -178,8 +178,8 @@ _whileUnion3(/*Union([exact=Class5], [exact=Class6])*/ o) {
 
 /*member: whileUnion3:[null]*/
 whileUnion3() {
-  var c1 = new Class5();
-  var c2 = new Class6();
+  var c1 = Class5();
+  var c2 = Class6();
   c1. /*update: [exact=Class5]*/ field = c2;
   c2. /*update: [exact=Class6]*/ field = c1;
   _whileUnion3(c1);
@@ -212,8 +212,8 @@ _whileIs(/*[exact=Class7]*/ o) {
 
 /*member: whileIs:[null]*/
 whileIs() {
-  var c1 = new Class7();
-  var c2 = new Class8();
+  var c1 = Class7();
+  var c2 = Class8();
   c1. /*update: [exact=Class7]*/ field = c2;
   c2. /*update: [exact=Class8]*/ field = c1;
   _whileIs(c1);
@@ -245,8 +245,8 @@ _whileIsNot(/*[exact=Class9]*/ o) {
 
 /*member: whileIsNot:[null]*/
 whileIsNot() {
-  var c1 = new Class9();
-  var c2 = new Class10();
+  var c1 = Class9();
+  var c2 = Class10();
   c1. /*update: [exact=Class9]*/ field = c2;
   c2. /*update: [exact=Class10]*/ field = c1;
   _whileIsNot(c1);

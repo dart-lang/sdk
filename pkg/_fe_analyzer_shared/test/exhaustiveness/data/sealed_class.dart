@@ -12,26 +12,20 @@ enum Enum {a, b}
 void exhaustiveSwitch1(A a) {
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=∅,
    subtypes={B,C,D},
    type=A
-  */switch (a) {
-    /*
-     remaining=A,
-     space=B
-    */case B b:
+  */
+  switch (a) {
+    /*space=B*/
+    case B b:
       print('B');
       break;
-    /*
-     remaining=C|D,
-     space=C
-    */case C c:
+    /*space=C*/
+    case C c:
       print('C');
       break;
-    /*
-     remaining=D,
-     space=D
-    */case D d:
+    /*space=D*/
+    case D d:
       print('D');
       break;
   }
@@ -40,20 +34,16 @@ void exhaustiveSwitch1(A a) {
 void exhaustiveSwitch2(A a) {
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=∅,
    subtypes={B,C,D},
    type=A
-  */switch (a) {
-    /*
-     remaining=A,
-     space=B
-    */case B b:
+  */
+  switch (a) {
+    /*space=B*/
+    case B b:
       print('B');
       break;
-    /*
-     remaining=C|D,
-     space=A
-    */case A a:
+    /*space=A*/
+    case A a:
       print('A');
       break;
   }
@@ -61,21 +51,18 @@ void exhaustiveSwitch2(A a) {
 
 void nonExhaustiveSwitch1(A a) {
   /*
+   error=non-exhaustive:D,
    fields={hashCode:int,runtimeType:Type},
-   remaining=D,
    subtypes={B,C,D},
    type=A
-  */switch (a) {
-    /*
-     remaining=A,
-     space=B
-    */case B b:
+  */
+  switch (a) {
+    /*space=B*/
+    case B b:
       print('B');
       break;
-    /*
-     remaining=C|D,
-     space=C
-    */case C c:
+    /*space=C*/
+    case C c:
       print('C');
       break;
   }
@@ -83,21 +70,18 @@ void nonExhaustiveSwitch1(A a) {
 
 void nonExhaustiveSwitch2(A a) {
   /*
+   error=non-exhaustive:B,
    fields={hashCode:int,runtimeType:Type},
-   remaining=B,
    subtypes={B,C,D},
    type=A
-  */switch (a) {
-    /*
-     remaining=A,
-     space=C
-    */case C c:
+  */
+  switch (a) {
+    /*space=C*/
+    case C c:
       print('C');
       break;
-    /*
-     remaining=B|D,
-     space=D
-    */case D d:
+    /*space=D*/
+    case D d:
       print('D');
       break;
   }
@@ -105,21 +89,18 @@ void nonExhaustiveSwitch2(A a) {
 
 void nonExhaustiveSwitch3(A a) {
   /*
+   error=non-exhaustive:C,
    fields={hashCode:int,runtimeType:Type},
-   remaining=C,
    subtypes={B,C,D},
    type=A
-  */switch (a) {
-    /*
-     remaining=A,
-     space=B
-    */case B b:
+  */
+  switch (a) {
+    /*space=B*/
+    case B b:
       print('B');
       break;
-    /*
-     remaining=C|D,
-     space=D
-    */case D d:
+    /*space=D*/
+    case D d:
       print('D');
       break;
   }
@@ -127,15 +108,14 @@ void nonExhaustiveSwitch3(A a) {
 
 void nonExhaustiveSwitchWithDefault(A a) {
   /*
+   error=non-exhaustive:C,
    fields={hashCode:int,runtimeType:Type},
-   remaining=C|D,
    subtypes={B,C,D},
    type=A
-  */switch (a) {
-    /*
-     remaining=A,
-     space=B
-    */case B b:
+  */
+  switch (a) {
+    /*space=B*/
+    case B b:
       print('B');
       break;
     default:
@@ -146,33 +126,25 @@ void nonExhaustiveSwitchWithDefault(A a) {
 
 void exhaustiveNullableSwitch(A? a) {
   /*
+   expandedSubtypes={B,C,D,Null},
    fields={},
-   remaining=∅,
    subtypes={A,Null},
    type=A?
   */switch (a) {
-    /*
-     remaining=A?,
-     space=B
-    */case B b:
+    /*space=B*/
+    case B b:
       print('B');
       break;
-    /*
-     remaining=C|D|Null,
-     space=C
-    */case C c:
+    /*space=C*/
+    case C c:
       print('C');
       break;
-    /*
-     remaining=D?,
-     space=D
-    */case D d:
+    /*space=D*/
+    case D d:
       print('D');
       break;
-    /*
-     remaining=Null,
-     space=Null
-    */case null:
+    /*space=Null*/
+    case null:
       print('null');
       break;
   }
@@ -180,15 +152,15 @@ void exhaustiveNullableSwitch(A? a) {
 
 void nonExhaustiveNullableSwitch1(A? a) {
   /*
+   error=non-exhaustive:Null,
+   expandedSubtypes={B,C,D,Null},
    fields={},
-   remaining=Null,
    subtypes={A,Null},
    type=A?
-  */switch (a) {
-    /*
-     remaining=A?,
-     space=A
-    */case A a:
+  */
+  switch (a) {
+    /*space=A*/
+    case A a:
       print('A');
       break;
   }
@@ -196,27 +168,23 @@ void nonExhaustiveNullableSwitch1(A? a) {
 
 void nonExhaustiveNullableSwitch2(A? a) {
   /*
+   error=non-exhaustive:D,
+   expandedSubtypes={B,C,D,Null},
    fields={},
-   remaining=D,
    subtypes={A,Null},
    type=A?
-  */switch (a) {
-    /*
-     remaining=A?,
-     space=B
-    */case B b:
+  */
+  switch (a) {
+    /*space=B*/
+    case B b:
       print('B');
       break;
-    /*
-     remaining=C|D|Null,
-     space=C
-    */case C c:
+    /*space=C*/
+    case C c:
       print('C');
       break;
-    /*
-     remaining=D?,
-     space=Null
-    */case null:
+    /*space=Null*/
+    case null:
       print('null');
       break;
   }
@@ -225,32 +193,27 @@ void nonExhaustiveNullableSwitch2(A? a) {
 void unreachableCase1(A a) {
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=∅,
    subtypes={B,C,D},
    type=A
-  */switch (a) {
-    /*
-     remaining=A,
-     space=B
-    */case B b:
+  */
+  switch (a) {
+    /*space=B*/
+    case B b:
       print('B');
       break;
-    /*
-     remaining=C|D,
-     space=C
-    */case C c:
+    /*space=C*/
+    case C c:
       print('C');
       break;
-    /*
-     remaining=D,
-     space=D
-    */case D d:
+    /*space=D*/
+    case D d:
       print('D');
       break;
     /*
-     remaining=∅,
+     error=unreachable,
      space=A
-    */case A a:
+    */
+    case A a:
       print('A');
       break;
   }
@@ -260,20 +223,16 @@ void unreachableCase2(A a) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   /*
    fields={hashCode:int,runtimeType:Type},
-   remaining=∅,
    subtypes={B,C,D},
    type=A
-  */switch (a) {
-    /*
-     remaining=A,
-     space=A
-    */case A a:
+  */
+  switch (a) {
+    /*space=A*/
+    case A a:
       print('A');
       break;
-    /*
-     remaining=∅,
-     space=Null
-    */case null:
+    /*space=Null*/
+    case null:
       print('null');
       break;
   }
@@ -281,27 +240,25 @@ void unreachableCase2(A a) {
 
 void unreachableCase3(A? a) {
   /*
+   expandedSubtypes={B,C,D,Null},
    fields={},
-   remaining=∅,
    subtypes={A,Null},
    type=A?
-  */switch (a) {
-    /*
-     remaining=A?,
-     space=A
-    */case A a:
+  */
+  switch (a) {
+    /*space=A*/
+    case A a:
       print('A');
       break;
-    /*
-     remaining=Null,
-     space=Null
-    */case null:
+    /*space=Null*/
+    case null:
       print('null #1');
       break;
     /*
-     remaining=∅,
+     error=unreachable,
      space=Null
-    */case null:
+    */
+    case null:
       print('null #2');
       break;
   }

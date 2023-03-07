@@ -544,7 +544,7 @@ static method main() → dynamic {
     function ##0#5#initializer() → core::int
       return #0#0.{self::A::[]}(1){(core::int) → core::int};
     late final core::int #0#5 = ##0#5#initializer(){() → core::int};
-    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && (#0#4 is{ForNonNullableByDefault} core::int && (let final core::int #t10 = x = #0#4 in true)) && (#0#5 is{ForNonNullableByDefault} core::int && (let final core::int #t11 = y = #0#5 in true))) {
+    if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && (#0#4 is{ForNonNullableByDefault} core::int && (let final core::int #t10 = x = #0#4 in true)) && (#0#5 is{ForNonNullableByDefault} core::int && (let final core::int #t11 = y = #0#5 in true))) {
       self::expectEquals(x, 0);
       self::expectEquals(y, 0);
     }

@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -13,8 +15,8 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:collection/collection.dart';
 
-typedef SharedRecordPatternField
-    = shared.RecordPatternField<RecordPatternFieldImpl, DartPattern>;
+typedef SharedPatternField
+    = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
 
 /// Implementation of [shared.TypeAnalyzerErrors] that reports errors using the
 /// analyzer's [ErrorReporter] class.
@@ -93,11 +95,11 @@ class SharedTypeAnalyzerErrors
   void duplicateRecordPatternField({
     required DartPattern objectOrRecordPattern,
     required String name,
-    required covariant SharedRecordPatternField original,
-    required covariant SharedRecordPatternField duplicate,
+    required covariant SharedPatternField original,
+    required covariant SharedPatternField duplicate,
   }) {
     _errorReporter.reportError(
-      DiagnosticFactory().duplicateRecordPatternField(
+      DiagnosticFactory().duplicatePatternField(
         source: _errorReporter.source,
         name: name,
         duplicateField: duplicate.node,
@@ -166,7 +168,7 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void nonBooleanCondition(Expression node) {
+  void nonBooleanCondition({required Expression node}) {
     _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.NON_BOOL_CONDITION,
       node,
@@ -174,7 +176,24 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void patternDoesNotAllowLate(AstNode pattern) {
+  void nonExhaustiveSwitch(
+      {required AstNode node, required DartType scrutineeType}) {
+    // Report the error on the `switch` token, to match what the full
+    // exhaustiveness algorithm does
+    Token errorToken;
+    if (node is SwitchStatement) {
+      errorToken = node.switchKeyword;
+    } else {
+      errorToken = (node as SwitchExpression).switchKeyword;
+    }
+    _errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
+        errorToken,
+        [scrutineeType, scrutineeType.toString()]);
+  }
+
+  @override
+  void patternDoesNotAllowLate({required AstNode pattern}) {
     throw UnimplementedError('TODO(paulberry)');
   }
 
@@ -206,7 +225,8 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void refutablePatternInIrrefutableContext(AstNode pattern, AstNode context) {
+  void refutablePatternInIrrefutableContext(
+      {required AstNode pattern, required AstNode context}) {
     _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
       pattern,
@@ -227,9 +247,8 @@ class SharedTypeAnalyzerErrors
 
   @override
   void restPatternNotLastInMap(
-    covariant MapPatternImpl node,
-    covariant RestPatternElementImpl element,
-  ) {
+      {required covariant MapPatternImpl node,
+      required covariant RestPatternElementImpl element}) {
     _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN,
       element,
@@ -238,9 +257,8 @@ class SharedTypeAnalyzerErrors
 
   @override
   void restPatternWithSubPatternInMap(
-    covariant MapPatternImpl node,
-    covariant RestPatternElementImpl element,
-  ) {
+      {required covariant MapPatternImpl node,
+      required covariant RestPatternElementImpl element}) {
     _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN,
       element.pattern!,
@@ -249,9 +267,24 @@ class SharedTypeAnalyzerErrors
 
   @override
   void switchCaseCompletesNormally(
-      covariant SwitchStatement node, int caseIndex, int numHeads) {
+      {required covariant SwitchStatement node, required int caseIndex}) {
     _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
-        node.members[caseIndex + numHeads - 1].keyword);
+        node.members[caseIndex].keyword);
+  }
+
+  @override
+  void unnecessaryWildcardPattern({
+    required covariant WildcardPatternImpl pattern,
+    required UnnecessaryWildcardKind kind,
+  }) {
+    switch (kind) {
+      case UnnecessaryWildcardKind.logicalAndPatternOperand:
+        _errorReporter.reportErrorForNode(
+          WarningCode.UNNECESSARY_WILDCARD_PATTERN,
+          pattern,
+        );
+        break;
+    }
   }
 }

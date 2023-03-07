@@ -1122,6 +1122,14 @@ class TransformSetParser {
       ElementKind.functionKind,
       ElementKind.methodKind,
     });
+    // Instance getters and methods can replace each other.
+    // Only a zero-parameter method can be replaced with a getter.
+    // Replacing a getter with a method can result in a compilation error if the
+    // required arguments are not added.
+    addSet({
+      ElementKind.getterKind,
+      ElementKind.methodKind,
+    });
     // Static getters and getter-inducing elements can replace each other.
     addSet({
       ElementKind.constantKind,

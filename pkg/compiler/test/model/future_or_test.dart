@@ -47,8 +47,8 @@ main() {
   futureOrFutureOrNum();
   futureNull();
   futureOrNull();
-  new C().futureT();
-  new C().futureOrT();
+  C().futureT();
+  C().futureOrT();
 }
 """, options: [Flags.noSoundNullSafety]);
     FunctionType getFunctionType(String name, String expectedType,

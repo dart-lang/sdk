@@ -15,7 +15,7 @@ import 'sourcemap_html_helper.dart';
 class TraceGraph {
   List<TraceStep> steps = <TraceStep>[];
   TraceStep? entry;
-  Queue<Object> stack = new Queue();
+  Queue<Object> stack = Queue();
   Map<int, TraceStep> offsetMap = {};
 
   void addStep(TraceStep step) {

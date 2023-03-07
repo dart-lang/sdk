@@ -11,5 +11,5 @@ class A<T> {}
 class B<T> extends A<T> {}
 
 main() {
-  new B<int>() is A<int>;
+  B<int>() is A<int>;
 }

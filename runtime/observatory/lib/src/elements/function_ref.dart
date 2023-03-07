@@ -34,8 +34,6 @@ class FunctionRefElement extends CustomElement implements Renderable {
 
   factory FunctionRefElement(M.IsolateRef? isolate, M.FunctionRef function,
       {bool qualified = true, RenderingQueue? queue}) {
-    assert(function != null);
-    assert(qualified != null);
     FunctionRefElement e = new FunctionRefElement.created();
     e._r = new RenderingScheduler<FunctionRefElement>(e, queue: queue);
     e._isolate = isolate;
@@ -71,22 +69,20 @@ class FunctionRefElement extends CustomElement implements Renderable {
     if (qualified) {
       M.ObjectRef? owner = _function.dartOwner;
       while (owner is M.FunctionRef) {
-        M.FunctionRef function = (owner as M.FunctionRef);
         content.addAll([
           new SpanElement()..text = '.',
           new AnchorElement(
-              href: (M.isSyntheticFunction(function.kind) || (_isolate == null))
+              href: (M.isSyntheticFunction(owner.kind) || (_isolate == null))
                   ? null
-                  : Uris.inspect(_isolate!, object: function))
-            ..text = function.name
+                  : Uris.inspect(_isolate!, object: owner))
+            ..text = owner.name
         ]);
-        owner = function.dartOwner;
+        owner = owner.dartOwner;
       }
       if (owner is M.ClassRef) {
         content.addAll([
           new SpanElement()..text = '.',
-          new ClassRefElement(_isolate!, owner as M.ClassRef, queue: _r.queue)
-              .element
+          new ClassRefElement(_isolate!, owner, queue: _r.queue).element
         ]);
       }
     }

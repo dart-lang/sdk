@@ -8,6 +8,7 @@
 /// library.
 library _js_types;
 
+import 'dart:_js_annotations';
 import 'dart:_interceptors' as interceptors;
 import 'dart:_internal' show patch;
 import 'dart:typed_data';
@@ -16,7 +17,7 @@ import 'dart:typed_data';
 /// backends. See `sdk/lib/_internal/wasm/lib/js_types.dart` for more details.
 
 /// For specific details of the JS type hierarchy, please see
-/// `sdk/lib/_js_interop/js_interop.dart`.
+/// `sdk/lib/js_interop/js_interop.dart`.
 /// TODO(joshualitt): Some users may want type safety instead of conflating Dart
 /// types and JS types. For those users, we should have an opt-in flag where we
 /// swap out these typedef for actual types that would not implicitly coerce
@@ -25,7 +26,7 @@ typedef JSAny = Object;
 typedef JSObject = interceptors.JSObject;
 typedef JSFunction = Function;
 typedef JSExportedDartFunction = Function;
-typedef JSArray = List;
+typedef JSArray = List<JSAny?>;
 typedef JSExportedDartObject = Object;
 typedef JSArrayBuffer = ByteBuffer;
 typedef JSDataView = ByteData;
@@ -42,3 +43,8 @@ typedef JSFloat64Array = Float64List;
 typedef JSNumber = double;
 typedef JSBoolean = bool;
 typedef JSString = String;
+typedef JSVoid = void;
+
+@JS()
+@staticInterop
+class JSPromise {}

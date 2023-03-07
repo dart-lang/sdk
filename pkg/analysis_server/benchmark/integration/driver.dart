@@ -13,28 +13,10 @@ import '../../test/integration/support/integration_test_methods.dart';
 import '../../test/integration/support/integration_tests.dart';
 import 'operation.dart';
 
-final SPACE = ' '.codeUnitAt(0);
-
-void _printColumn(StringBuffer sb, String text, int keyLen,
-    {bool rightJustified = false}) {
-  if (!rightJustified) {
-    sb.write(text);
-    sb.write(',');
-  }
-  for (var i = text.length; i < keyLen; ++i) {
-    sb.writeCharCode(SPACE);
-  }
-  if (rightJustified) {
-    sb.write(text);
-    sb.write(',');
-  }
-  sb.writeCharCode(SPACE);
-}
-
 /// [Driver] launches and manages an instance of analysis server,
 /// reads a stream of operations, sends requests to analysis server
 /// based upon those operations, and evaluates the results.
-class Driver extends IntegrationTestMixin {
+class Driver extends IntegrationTest {
   /// The amount of time to give the server to respond to a shutdown request
   /// before forcibly terminating it.
   static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 5);
@@ -63,30 +45,33 @@ class Driver extends IntegrationTestMixin {
   Future<Results> get runComplete => _runCompleter.future;
 
   /// Perform the given operation.
+  ///
   /// Return a [Future] that completes when the next operation can be performed,
   /// or `null` if the next operation can be performed immediately
   Future<void>? perform(Operation op) {
     return op.perform(this);
   }
 
-  /// Send a command to the server.  An 'id' will be automatically assigned.
-  /// The returned [Future] will be completed when the server acknowledges the
-  /// command with a response.  If the server acknowledges the command with a
-  /// normal (non-error) response, the future will be completed with the
-  /// 'result' field from the response.  If the server acknowledges the command
-  /// with an error response, the future will be completed with an error.
+  /// Send a command to the server.
+  ///
+  /// An 'id' will be automatically assigned. The returned [Future] will be
+  /// completed when the server acknowledges the command with a response.  If
+  /// the server acknowledges the command with a normal (non-error) response,
+  /// the future will be completed with the 'result' field from the response.
+  /// If the server acknowledges the command with an error response, the future
+  /// will be completed with an error.
   Future<Map<String, Object?>?> send(
       String method, Map<String, dynamic> params) {
     return server.send(method, params);
   }
 
   /// Launch the analysis server.
+  ///
   /// Return a [Future] that completes when analysis server has started.
-  Future startServer() async {
+  Future<void> startServer() async {
     logger.log(Level.FINE, 'starting server');
-    initializeInttestMixin();
     server = Server();
-    var serverConnected = Completer();
+    var serverConnected = Completer<void>();
     onServerConnected.listen((_) {
       logger.log(Level.FINE, 'connected to server');
       serverConnected.complete();
@@ -107,7 +92,7 @@ class Driver extends IntegrationTestMixin {
   }
 
   /// Shutdown the analysis server if it is running.
-  Future stopServer([Duration timeout = SHUTDOWN_TIMEOUT]) async {
+  Future<void> stopServer([Duration timeout = SHUTDOWN_TIMEOUT]) async {
     if (running) {
       logger.log(Level.FINE, 'requesting server shutdown');
       // Give the server a short time to comply with the shutdown request; if it
@@ -165,19 +150,19 @@ class Measurement {
     var variance = differenceFromMeanSquared / count;
     var standardDeviation = sqrt(variance).round();
 
-    var sb = StringBuffer();
-    _printColumn(sb, tag, keyLen);
-    _printColumn(sb, count.toString(), 6, rightJustified: true);
-    _printColumn(sb, errorCount.toString(), 6, rightJustified: true);
-    _printColumn(sb, unexpectedResultCount.toString(), 6, rightJustified: true);
-    _printDuration(sb, Duration(microseconds: meanTime));
-    _printDuration(sb, time90th);
-    _printDuration(sb, time99th);
-    _printDuration(sb, Duration(microseconds: standardDeviation));
-    _printDuration(sb, minTime);
-    _printDuration(sb, maxTime);
-    _printDuration(sb, Duration(microseconds: totalTimeMicros));
-    print(sb.toString());
+    var buffer = StringBuffer();
+    buffer.writePadRight(tag, keyLen);
+    buffer.writePadLeft(count.toString(), 6);
+    buffer.writePadLeft(errorCount.toString(), 6);
+    buffer.writePadLeft(unexpectedResultCount.toString(), 6);
+    buffer.writeDuration(Duration(microseconds: meanTime));
+    buffer.writeDuration(time90th);
+    buffer.writeDuration(time99th);
+    buffer.writeDuration(Duration(microseconds: standardDeviation));
+    buffer.writeDuration(minTime);
+    buffer.writeDuration(maxTime);
+    buffer.writeDuration(Duration(microseconds: totalTimeMicros));
+    print(buffer.toString());
   }
 
   void record(bool success, Duration elapsed) {
@@ -190,15 +175,10 @@ class Measurement {
   void recordUnexpectedResults() {
     ++unexpectedResultCount;
   }
-
-  void _printDuration(StringBuffer sb, Duration duration) {
-    _printColumn(sb, duration.inMilliseconds.toString(), 15,
-        rightJustified: true);
-  }
 }
 
-/// [Results] contains information gathered by [Driver]
-/// while running the analysis server
+/// [Results] contains information gathered by [Driver] while running the
+/// analysis server.
 class Results {
   Map<String, Measurement> measurements = <String, Measurement>{};
 
@@ -236,7 +216,7 @@ class Results {
       }
     }
 
-    /// TODO(danrubel) *** print warnings if driver caches are not empty ****
+    // TODO(danrubel): print warnings if driver caches are not empty.
     print('''
 
 (1) uxr = UneXpected Results or responses received from the server
@@ -259,31 +239,46 @@ class Results {
     measurements[tag]!.recordUnexpectedResults();
   }
 
-  void _printGroupHeader(String groupName, int keyLen) {
-    var sb = StringBuffer();
-    _printColumn(sb, groupName, keyLen);
-    _printColumn(sb, 'count', 6, rightJustified: true);
-    _printColumn(sb, 'error', 6, rightJustified: true);
-    _printColumn(sb, 'uxr(1)', 6, rightJustified: true);
-    sb.write('  ');
-    _printColumn(sb, 'mean(2)', 15);
-    _printColumn(sb, '90th', 15);
-    _printColumn(sb, '99th', 15);
-    _printColumn(sb, 'std-dev', 15);
-    _printColumn(sb, 'minimum', 15);
-    _printColumn(sb, 'maximum', 15);
-    _printColumn(sb, 'total', 15);
-    print(sb.toString());
+  static void _printGroupHeader(String groupName, int keyLength) {
+    var buffer = StringBuffer();
+    buffer.writePadRight(groupName, keyLength);
+    buffer.writePadLeft('count', 6);
+    buffer.writePadLeft('error', 6);
+    buffer.writePadLeft('uxr(1)', 6);
+    buffer.write('  ');
+    buffer.writePadRight('mean(2)', 15);
+    buffer.writePadRight('90th', 15);
+    buffer.writePadRight('99th', 15);
+    buffer.writePadRight('std-dev', 15);
+    buffer.writePadRight('minimum', 15);
+    buffer.writePadRight('maximum', 15);
+    buffer.writePadRight('total', 15);
+    print(buffer.toString());
   }
 
-  void _printTotals(int keyLen, int totalCount, int totalErrorCount,
+  static void _printTotals(int keyLength, int totalCount, int totalErrorCount,
       int totalUnexpectedResultCount) {
-    var sb = StringBuffer();
-    _printColumn(sb, 'Totals', keyLen);
-    _printColumn(sb, totalCount.toString(), 6, rightJustified: true);
-    _printColumn(sb, totalErrorCount.toString(), 6, rightJustified: true);
-    _printColumn(sb, totalUnexpectedResultCount.toString(), 6,
-        rightJustified: true);
-    print(sb.toString());
+    var buffer = StringBuffer();
+    buffer.writePadRight('Totals', keyLength);
+    buffer.writePadLeft(totalCount.toString(), 6);
+    buffer.writePadLeft(totalErrorCount.toString(), 6);
+    buffer.writePadLeft(totalUnexpectedResultCount.toString(), 6);
+    print(buffer.toString());
+  }
+}
+
+extension on StringBuffer {
+  void writeDuration(Duration duration) {
+    writePadLeft(duration.inMilliseconds.toString(), 15);
+  }
+
+  void writePadLeft(String text, int keyLength) {
+    write(text.padLeft(keyLength, ' '));
+    write(' ');
+  }
+
+  void writePadRight(String text, int keyLength) {
+    write(text.padRight(keyLength, ' '));
+    write(' ');
   }
 }

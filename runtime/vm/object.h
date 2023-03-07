@@ -395,41 +395,31 @@ class Object {
   bool IsNotTemporaryScopedHandle() const;
 #endif
 
-  static Object& Handle(Zone* zone, ObjectPtr ptr) {
-    Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(zone));
-    initializeHandle(obj, ptr);
-    return *obj;
+  static Object& Handle() {
+    return HandleImpl(Thread::Current()->zone(), null_, kObjectCid);
   }
-  static Object* ReadOnlyHandle() {
-    Object* obj = reinterpret_cast<Object*>(Dart::AllocateReadOnlyHandle());
-    initializeHandle(obj, Object::null());
-    return obj;
+  static Object& Handle(Zone* zone) {
+    return HandleImpl(zone, null_, kObjectCid);
   }
-
-  static Object& Handle() { return Handle(Thread::Current()->zone(), null_); }
-
-  static Object& Handle(Zone* zone) { return Handle(zone, null_); }
-
   static Object& Handle(ObjectPtr ptr) {
-    return Handle(Thread::Current()->zone(), ptr);
+    return HandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
   }
-
-  static Object& ZoneHandle(Zone* zone, ObjectPtr ptr) {
-    Object* obj =
-        reinterpret_cast<Object*>(VMHandles::AllocateZoneHandle(zone));
-    initializeHandle(obj, ptr);
-    return *obj;
+  static Object& Handle(Zone* zone, ObjectPtr ptr) {
+    return HandleImpl(zone, ptr, kObjectCid);
   }
-
-  static Object& ZoneHandle(Zone* zone) { return ZoneHandle(zone, null_); }
-
   static Object& ZoneHandle() {
-    return ZoneHandle(Thread::Current()->zone(), null_);
+    return ZoneHandleImpl(Thread::Current()->zone(), null_, kObjectCid);
   }
-
+  static Object& ZoneHandle(Zone* zone) {
+    return ZoneHandleImpl(zone, null_, kObjectCid);
+  }
   static Object& ZoneHandle(ObjectPtr ptr) {
-    return ZoneHandle(Thread::Current()->zone(), ptr);
+    return ZoneHandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
   }
+  static Object& ZoneHandle(Zone* zone, ObjectPtr ptr) {
+    return ZoneHandleImpl(zone, ptr, kObjectCid);
+  }
+  static Object* ReadOnlyHandle() { return ReadOnlyHandleImpl(kObjectCid); }
 
   static ObjectPtr null() { return null_; }
 
@@ -1653,6 +1643,23 @@ class Class : public Object {
   }
   void set_is_transformed_mixin_application() const;
 
+  bool is_sealed() const { return SealedBit::decode(state_bits()); }
+  void set_is_sealed() const;
+
+  bool is_mixin_class() const { return MixinClassBit::decode(state_bits()); }
+  void set_is_mixin_class() const;
+
+  bool is_base_class() const { return BaseClassBit::decode(state_bits()); }
+  void set_is_base_class() const;
+
+  bool is_interface_class() const {
+    return InterfaceClassBit::decode(state_bits());
+  }
+  void set_is_interface_class() const;
+
+  bool is_final() const { return FinalBit::decode(state_bits()); }
+  void set_is_final() const;
+
   bool is_fields_marked_nullable() const {
     return FieldsMarkedNullableBit::decode(state_bits());
   }
@@ -1914,6 +1921,11 @@ class Class : public Object {
     kIsLoadedBit,
     kHasPragmaBit,
     kImplementsFinalizableBit,
+    kSealedBit,
+    kMixinClassBit,
+    kBaseClassBit,
+    kInterfaceClassBit,
+    kFinalBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -1938,6 +1950,12 @@ class Class : public Object {
   class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
   class ImplementsFinalizableBit
       : public BitField<uint32_t, bool, kImplementsFinalizableBit, 1> {};
+  class SealedBit : public BitField<uint32_t, bool, kSealedBit, 1> {};
+  class MixinClassBit : public BitField<uint32_t, bool, kMixinClassBit, 1> {};
+  class BaseClassBit : public BitField<uint32_t, bool, kBaseClassBit, 1> {};
+  class InterfaceClassBit
+      : public BitField<uint32_t, bool, kInterfaceClassBit, 1> {};
+  class FinalBit : public BitField<uint32_t, bool, kFinalBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -3817,14 +3835,14 @@ class Function : public Object {
 // VM instantiation. It is independent from presence of type feedback
 // (ic_data_array) and code, which may be loaded from a snapshot.
 // 'WasExecuted' is true if the usage counter has ever been positive.
-// 'ProhibitsHoistingCheckClass' is true if this function deoptimized before on
-// a hoisted check class instruction.
+// 'ProhibitsInstructionHoisting' is true if this function deoptimized before on
+// a hoisted instruction.
 // 'ProhibitsBoundsCheckGeneralization' is true if this function deoptimized
 // before on a generalized bounds check.
 #define STATE_BITS_LIST(V)                                                     \
   V(WasCompiled)                                                               \
   V(WasExecutedBit)                                                            \
-  V(ProhibitsHoistingCheckClass)                                               \
+  V(ProhibitsInstructionHoisting)                                              \
   V(ProhibitsBoundsCheckGeneralization)
 
   enum StateBits {
@@ -10245,6 +10263,7 @@ class OneByteString : public AllStatic {
   friend class Utf8;
   friend class OneByteStringMessageSerializationCluster;
   friend class Deserializer;
+  friend class JSONWriter;
 };
 
 class TwoByteString : public AllStatic {
@@ -10363,6 +10382,7 @@ class TwoByteString : public AllStatic {
   friend class StringHasher;
   friend class Symbols;
   friend class TwoByteStringMessageSerializationCluster;
+  friend class JSONWriter;
 };
 
 class ExternalOneByteString : public AllStatic {
@@ -10455,6 +10475,7 @@ class ExternalOneByteString : public AllStatic {
   friend class StringHasher;
   friend class Symbols;
   friend class Utf8;
+  friend class JSONWriter;
 };
 
 class ExternalTwoByteString : public AllStatic {
@@ -10542,6 +10563,7 @@ class ExternalTwoByteString : public AllStatic {
   friend class String;
   friend class StringHasher;
   friend class Symbols;
+  friend class JSONWriter;
 };
 
 // Matches null_patch.dart / bool_patch.dart.
@@ -12149,10 +12171,18 @@ class Capability : public Instance {
 class ReceivePort : public Instance {
  public:
   SendPortPtr send_port() const { return untag()->send_port(); }
+  static intptr_t send_port_offset() {
+    return OFFSET_OF(UntaggedReceivePort, send_port_);
+  }
   Dart_Port Id() const { return send_port()->untag()->id_; }
 
   InstancePtr handler() const { return untag()->handler(); }
-  void set_handler(const Instance& value) const;
+  void set_handler(const Instance& value) const {
+    untag()->set_handler(value.ptr());
+  }
+  static intptr_t handler_offset() {
+    return OFFSET_OF(UntaggedReceivePort, handler_);
+  }
 
 #if !defined(PRODUCT)
   StackTracePtr allocation_location() const {
@@ -12939,7 +12969,6 @@ ClassPtr Object::clazz() const {
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
-  ASSERT(!IsolateGroup::Current()->compaction_in_progress());
   return IsolateGroup::Current()->class_table()->At(ptr()->GetClassId());
 }
 

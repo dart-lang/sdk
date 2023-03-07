@@ -1029,8 +1029,8 @@ class Namer extends ModularNamer {
   // This name is used as part of the name of a TypeConstant
   String uniqueNameForTypeConstantElement(
       LibraryEntity library, Entity element) {
-    // TODO(sra): If we replace the period with an identifier character,
-    // TypeConstants will have better names in unminified code.
+    // TODO(51473): Move the library naming to be as-needed in the context of
+    // the thing being named.
     String libraryName = _proposeNameForLibrary(library);
     return "${libraryName}.${element.name}";
   }
@@ -1087,11 +1087,12 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
   String _represent(DartType type) => visit(type, null);
 
   @override
-  String visitLegacyType(LegacyType type, _) => '${_represent(type.baseType)}*';
+  String visitLegacyType(LegacyType type, _) =>
+      'legacy_${_represent(type.baseType)}';
 
   @override
   String visitNullableType(NullableType type, _) =>
-      '${_represent(type.baseType)}?';
+      'nullable_${_represent(type.baseType)}';
 
   @override
   String visitNeverType(NeverType type, _) => 'Never';
@@ -1111,8 +1112,7 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
 
   @override
   String visitFunctionType(FunctionType type, _) {
-    // TODO(johnniwinther): Add naming scheme for function type literals.
-    // These currently only occur from kernel.
+    // TODO(51473): Add naming scheme for function type literals.
     return '()->';
   }
 
@@ -1120,13 +1120,9 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
   String visitInterfaceType(InterfaceType type, _) {
     String name = _namer.uniqueNameForTypeConstantElement(
         type.element.library, type.element);
-
-    // Type constants can currently only be raw types, so there is no point
-    // adding ground-term type parameters, as they would just be 'dynamic'.
-    // TODO(sra): Since the result string is used only in constructing constant
-    // names, it would result in more readable names if the final string was a
-    // legal JavaScript identifier.
     if (type.typeArguments.isEmpty) return name;
+    // TODO(51473): Use the structure of the type rather than assuming all
+    // `Type` constants for interface types are top types of the interface type.
     String arguments =
         List.filled(type.typeArguments.length, 'dynamic').join(', ');
     return '$name<$arguments>';
@@ -1134,10 +1130,15 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
 
   @override
   String visitRecordType(RecordType type, _) {
-    // TODO(49718): Test with
-    //    typedef X = (int,{String s});
-    //    print(X);
-    throw UnimplementedError();
+    // TODO(51473): Use full type, but only to the extent it distinguishes from
+    // other `Type` constants.
+    final sb = StringBuffer('Record_');
+    sb.write(type.shape.fieldCount);
+    for (final name in type.shape.fieldNames) {
+      sb.write('_');
+      sb.write(name);
+    }
+    return sb.toString();
   }
 
   @override
@@ -1155,7 +1156,7 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
 
   @override
   String visitFutureOrType(FutureOrType type, _) =>
-      'FutureOr<${_represent(type.typeArgument)}>';
+      'FutureOr_${_represent(type.typeArgument)}';
 }
 
 /// Generator of names for [ConstantValue] values.

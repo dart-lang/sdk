@@ -8,7 +8,7 @@ library dart.typed_data.implementation;
 
 import 'dart:collection';
 import 'dart:_internal';
-import 'dart:_interceptors' show JSIndexable;
+import 'dart:_interceptors' show JavaScriptObject, JSIndexable;
 import 'dart:_js_helper'
     show
         Creates,
@@ -24,7 +24,7 @@ import 'dart:math' as Math;
 import 'dart:typed_data';
 
 @Native('ArrayBuffer')
-class NativeByteBuffer implements ByteBuffer {
+class NativeByteBuffer extends JavaScriptObject implements ByteBuffer {
   @JSName('byteLength')
   external int get lengthInBytes;
 
@@ -308,7 +308,7 @@ class NativeFloat64x2List extends Object
 }
 
 @Native('ArrayBufferView')
-class NativeTypedData implements TypedData {
+class NativeTypedData extends JavaScriptObject implements TypedData {
   /// Returns the byte buffer associated with this object.
   @Creates('NativeByteBuffer')
   @Returns('NativeByteBuffer')

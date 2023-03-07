@@ -22,8 +22,8 @@ class C {
 
 @pragma('dart2js:disableFinal')
 main() {
-  B b = new B();
-  C c = new C();
+  B b = B();
+  C c = C();
   dynamic obj = c;
   obj.foo<A>(b);
 }

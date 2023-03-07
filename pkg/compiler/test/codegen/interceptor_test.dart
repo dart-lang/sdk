@@ -21,7 +21,7 @@ const String TEST_TWO = r"""
   }
   foo(a) {
     print([]); // Make sure the array class is instantiated.
-    return new A().length + a.length;
+    return A().length + a.length;
   }
 """;
 

@@ -51,6 +51,24 @@ class AddConst extends CorrectionProducer {
       }
       return;
     }
+    if (targetNode is BinaryExpression || targetNode is PrefixExpression) {
+      var node_final = targetNode?.parent;
+      if (node_final?.parent is ParenthesizedPattern) {
+        // add const
+        var offset = node_final!.parent!.offset;
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleInsertion(offset, 'const ');
+        });
+      } else {
+        // add const and parenthesis
+        var offset = node_final!.offset;
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleInsertion(offset + node_final.length, ')');
+          builder.addSimpleInsertion(offset, 'const (');
+        });
+      }
+      return;
+    }
 
     bool isParentConstant(
         DartFileEditBuilderImpl builder, Expression targetNode) {

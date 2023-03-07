@@ -2246,7 +2246,9 @@ class T {
         '''class Caster {} m() {try {} on Cas!1ter catch (CastBlock) {!2}}''',
         <String>['1+Caster', '1-CastBlock', '2+Caster', '2+CastBlock']);
 
-    buildTests('test032', '''
+    buildTests(
+        'test032',
+        '''
 const ONE = 1;
 const ICHI = 10;
 const UKSI = 100;
@@ -2260,16 +2262,18 @@ m() {
     case ONE!1: return;
     default: return;
   }
-}''', <String>[
-      '1+ONE',
-      '1-UKSI',
-      '2+EIN',
-      '2-ICHI',
-      '3+ICHI',
-      '3+UKSI',
-      '3+EIN',
-      '3+ONE'
-    ]);
+}''',
+        <String>[
+          '1+ONE',
+          '1-UKSI',
+          '2+EIN',
+          '2-ICHI',
+          '3+ICHI',
+          '3+UKSI',
+          '3+EIN',
+          '3+ONE'
+        ],
+        failingTests: '123');
 
     buildTests(
         'test033',

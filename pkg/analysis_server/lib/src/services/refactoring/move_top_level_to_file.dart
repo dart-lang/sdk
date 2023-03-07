@@ -4,6 +4,8 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
     show CommandParameter, SaveUriCommandParameter;
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
@@ -33,6 +35,9 @@ class MoveTopLevelToFile extends RefactoringProducer {
   /// Initialize a newly created refactoring producer to use the given
   /// [context].
   MoveTopLevelToFile(super.context);
+
+  @override
+  CodeActionKind get kind => DartCodeActionKind.RefactorMove;
 
   @override
   List<CommandParameter> get parameters => [
@@ -314,11 +319,12 @@ class _MemberGroup {
     var start = firstMember.offset;
     if (includePreceedingLine) {
       var startLine = lineInfo.getLocation(start).lineNumber;
-      var previousLine = lineInfo
-          .getLocation(firstMember.beginToken.previous!.offset)
-          .lineNumber;
-      if (previousLine + 1 < startLine) {
-        start = lineInfo.getOffsetOfLine(previousLine);
+      var previous = firstMember.beginToken.previous;
+      if (previous != null) {
+        var previousLine = lineInfo.getLocation(previous.offset).lineNumber;
+        if (previousLine + 1 < startLine) {
+          start = lineInfo.getOffsetOfLine(previousLine);
+        }
       }
     }
 

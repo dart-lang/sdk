@@ -5,7 +5,8 @@
 /// Helper functions for running code in a Zone.
 library testing.zone_helper;
 
-import 'dart:async' show Completer, Future, ZoneSpecification, runZonedGuarded;
+import 'dart:async'
+    show Completer, Future, PrintHandler, ZoneSpecification, runZonedGuarded;
 
 import 'dart:io' show exit, stderr;
 
@@ -13,14 +14,14 @@ import 'dart:isolate' show Capability, Isolate, ReceivePort;
 
 import 'log.dart' show StdoutLogger;
 
-Future runGuarded(Future f(),
-    {void Function(String)? printLineOnStdout,
-    void Function(dynamic, StackTrace)? handleLateError}) {
-  // ignore: prefer_typing_uninitialized_variables
-  var printWrapper;
+Future runGuarded(
+  Future Function() f, {
+  void Function(String)? printLineOnStdout,
+  void Function(dynamic, StackTrace)? handleLateError,
+}) {
+  PrintHandler? printWrapper;
   if (printLineOnStdout != null) {
-    // ignore: non_constant_identifier_names
-    printWrapper = (_1, _2, _3, String line) {
+    printWrapper = (_, __, ___, String line) {
       printLineOnStdout(line);
     };
   }
@@ -40,9 +41,7 @@ Future runGuarded(Future f(),
       } catch (_) {
         // Ignored.
       }
-      stderr
-          // ignore: unnecessary_null_comparison
-          .write("$errorString\n" + (stackTrace == null ? "" : "$stackTrace"));
+      stderr.write("$errorString\n$stackTrace");
       stderr.flush();
       exit(255);
     }
@@ -51,12 +50,11 @@ Future runGuarded(Future f(),
   ZoneSpecification specification = ZoneSpecification(print: printWrapper);
 
   ReceivePort errorPort = ReceivePort();
-  Future errorFuture = errorPort.listen((_errors) {
-    List errors = _errors;
+  Future errorFuture = errorPort.listen((errors) {
     Isolate.current.removeErrorListener(errorPort.sendPort);
     errorPort.close();
-    var error = errors[0];
-    var stackTrace = errors[1];
+    var error = (errors as List)[0];
+    var stackTrace = (errors)[1];
     if (stackTrace != null) {
       stackTrace = StackTrace.fromString(stackTrace);
     }

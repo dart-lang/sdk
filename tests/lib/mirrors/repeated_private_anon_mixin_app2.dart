@@ -6,9 +6,9 @@ library lib2;
 
 class _S {}
 
-class _M {}
+mixin _M {}
 
-class _M2 {}
+mixin _M2 {}
 
 class MA extends _S with _M {}
 

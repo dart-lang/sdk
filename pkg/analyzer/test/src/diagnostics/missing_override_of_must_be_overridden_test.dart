@@ -32,7 +32,7 @@ class A {
 
 class B extends A {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 86, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 86, 1),
     ]);
   }
 
@@ -50,7 +50,7 @@ class A {
 
 class B extends A {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO, 121, 1,
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO, 121, 1,
           messageContains: ["'f'", "'m'"]),
     ]);
   }
@@ -100,7 +100,7 @@ class B extends A {
   int get f => 0;
 }
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 86, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 86, 1),
     ]);
   }
 
@@ -130,7 +130,7 @@ class A {
 
 class B extends A {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 91, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 91, 1),
     ]);
   }
 
@@ -175,7 +175,7 @@ mixin M {
 
 class A with M {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
     ]);
   }
 
@@ -190,7 +190,7 @@ class A {
 
 class B extends A {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
     ]);
   }
 
@@ -211,7 +211,8 @@ class A {
 
 class B extends A {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS, 157, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS, 157,
+          1),
     ]);
   }
 
@@ -229,7 +230,7 @@ class A {
 
 class B extends A {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO, 122, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO, 122, 1),
     ]);
   }
 
@@ -246,7 +247,7 @@ abstract class B extends A {
   void m();
 }
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 96, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 96, 1),
     ]);
   }
 
@@ -295,7 +296,7 @@ class A with M {
 
 class B extends A {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 121, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 121, 1),
     ]);
   }
 
@@ -314,7 +315,7 @@ class B extends A {
 
 class C extends B {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 124, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 124, 1),
     ]);
   }
 
@@ -334,7 +335,7 @@ class B extends A {
 
 class C extends B {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 144, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 144, 1),
     ]);
   }
 
@@ -342,14 +343,14 @@ class C extends B {}
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
-class A {
+mixin A {
   @mustBeOverridden
   void m() {}
 }
 
 class B = Object with A;
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
     ]);
   }
 
@@ -369,7 +370,7 @@ class B {
 
 abstract class C implements A, B {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 143, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 143, 1),
     ]);
   }
 
@@ -401,7 +402,7 @@ class A {
 
 mixin M on A {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
     ]);
   }
 
@@ -416,7 +417,7 @@ class A {
 
 class B extends A {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 107, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 107, 1),
     ]);
   }
 
@@ -431,7 +432,7 @@ class A {
 
 class B extends A {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 100, 1),
+      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 100, 1),
     ]);
   }
 }

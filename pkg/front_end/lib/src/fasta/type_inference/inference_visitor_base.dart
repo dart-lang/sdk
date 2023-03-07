@@ -215,7 +215,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   int _matchCacheIndex = 0;
 
   MatchingCache createMatchingCache() {
-    return new MatchingCache(_matchCacheIndex++, this);
+    return new MatchingCache(_matchCacheIndex++, coreTypes,
+        useLowering: libraryBuilder.loader.target.backendTarget
+            .isLateLocalLoweringEnabled(
+                hasInitializer: true,
+                isFinal: true,
+                isPotentiallyNullable: true));
   }
 
   DartType computeGreatestClosure(DartType type) {
@@ -845,12 +850,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType onType = extension.onType;
     List<DartType> inferredTypes =
         new List<DartType>.filled(typeParameters.length, const UnknownType());
-    TypeConstraintGatherer gatherer =
-        typeSchemaEnvironment.setupGenericTypeInference(
-            null, typeParameters, null, libraryBuilder.library);
+    TypeConstraintGatherer gatherer = typeSchemaEnvironment
+        .setupGenericTypeInference(null, typeParameters, null,
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
     gatherer.constrainArguments([onType], [receiverType]);
     inferredTypes = typeSchemaEnvironment.upwardsInfer(
-        gatherer, typeParameters, inferredTypes, libraryBuilder.library);
+        gatherer, typeParameters, inferredTypes,
+        isNonNullableByDefault: isNonNullableByDefault);
     return inferredTypes;
   }
 
@@ -882,11 +888,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {required ObjectAccessTarget defaultTarget,
       required bool isSetter,
       required bool isReceiverTypePotentiallyNullable}) {
+    ObjectAccessTarget? target = _findDirectInlineTypeMemberInternal(
+        receiverType, inlineType, name, fileOffset,
+        isSetter: isSetter,
+        isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
+    return target ?? defaultTarget;
+  }
+
+  ObjectAccessTarget? _findDirectInlineTypeMemberInternal(
+      DartType receiverType, InlineType inlineType, Name name, int fileOffset,
+      {required bool isSetter,
+      required bool isReceiverTypePotentiallyNullable}) {
     if (name.text == inlineType.inlineClass.representationName) {
       if (isSetter ||
           name.isPrivate &&
               name.library != inlineType.inlineClass.enclosingLibrary) {
-        return defaultTarget;
+        return null;
       }
       return new ObjectAccessTarget.inlineClassRepresentation(
           receiverType, inlineType,
@@ -946,7 +963,20 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           targetMember, targetTearoff, targetKind!, inlineType.typeArguments,
           isPotentiallyNullable: isReceiverTypePotentiallyNullable);
     } else {
-      return defaultTarget;
+      for (InlineType implement in inlineType.inlineClass.implements) {
+        InlineType supertype = hierarchyBuilder.getInlineTypeAsInstanceOf(
+            inlineType, implement.inlineClass,
+            isNonNullableByDefault: isNonNullableByDefault)!;
+        ObjectAccessTarget? target = _findDirectInlineTypeMemberInternal(
+            receiverType, supertype, name, fileOffset,
+            isSetter: isSetter,
+            isReceiverTypePotentiallyNullable:
+                isReceiverTypePotentiallyNullable);
+        if (target != null) {
+          return target;
+        }
+      }
+      return null;
     }
   }
 
@@ -1080,7 +1110,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           onType = inferredSubstitution
               .substituteType(extensionBuilder.extension.onType);
           List<DartType> instantiateToBoundTypeArguments = calculateBounds(
-              typeParameters, coreTypes.objectClass, libraryBuilder.library);
+              typeParameters, coreTypes.objectClass,
+              isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
           Substitution instantiateToBoundsSubstitution = Substitution.fromPairs(
               typeParameters, instantiateToBoundTypeArguments);
           onTypeInstantiateToBounds = instantiateToBoundsSubstitution
@@ -1445,7 +1476,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // not spec'ed anywhere.
       return const DynamicType();
     } else {
-      return demoteTypeInLibrary(initializerType, libraryBuilder.library);
+      return demoteTypeInLibrary(initializerType,
+          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
     }
   }
 
@@ -1681,9 +1713,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               : legacyErasure(calleeType.returnType),
           calleeTypeParameters,
           typeContext,
-          libraryBuilder.library);
+          isNonNullableByDefault: isNonNullableByDefault);
       inferredTypes = typeSchemaEnvironment.partialInfer(
-          gatherer, calleeTypeParameters, null, libraryBuilder.library);
+          gatherer, calleeTypeParameters, null,
+          isNonNullableByDefault: isNonNullableByDefault);
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
     } else if (explicitTypeArguments != null &&
@@ -1858,8 +1891,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   : const [])
           .planReconciliationStages()) {
         if (gatherer != null && !isFirstStage) {
-          inferredTypes = typeSchemaEnvironment.partialInfer(gatherer,
-              calleeTypeParameters, inferredTypes, libraryBuilder.library);
+          inferredTypes = typeSchemaEnvironment.partialInfer(
+              gatherer, calleeTypeParameters, inferredTypes,
+              isNonNullableByDefault: isNonNullableByDefault);
           substitution =
               Substitution.fromPairs(calleeTypeParameters, inferredTypes);
         }
@@ -1964,8 +1998,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (inferenceNeeded) {
-      inferredTypes = typeSchemaEnvironment.upwardsInfer(gatherer!,
-          calleeTypeParameters, inferredTypes!, libraryBuilder.library);
+      inferredTypes = typeSchemaEnvironment.upwardsInfer(
+          gatherer!, calleeTypeParameters, inferredTypes!,
+          isNonNullableByDefault: isNonNullableByDefault);
       assert(inferredTypes.every((type) => isKnown(type)),
           "Unknown type(s) in inferred types: $inferredTypes.");
       assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
@@ -2181,7 +2216,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         }
         instrumentation?.record(uriForInstrumentation, formal.fileOffset,
             'type', new InstrumentationValueForType(inferredType));
-        formal.type = demoteTypeInLibrary(inferredType, libraryBuilder.library);
+        formal.type = demoteTypeInLibrary(inferredType,
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
         if (dataForTesting != null) {
           dataForTesting!.typeInferenceResult.inferredVariableTypes[formal] =
               formal.type;
@@ -3543,10 +3579,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             typeParameters.length, const UnknownType());
         FunctionType instantiatedType = functionType.withoutTypeParameters;
         TypeConstraintGatherer gatherer =
-            typeSchemaEnvironment.setupGenericTypeInference(instantiatedType,
-                typeParameters, context, libraryBuilder.library);
+            typeSchemaEnvironment.setupGenericTypeInference(
+                instantiatedType, typeParameters, context,
+                isNonNullableByDefault: isNonNullableByDefault);
         inferredTypes = typeSchemaEnvironment.upwardsInfer(
-            gatherer, typeParameters, inferredTypes, libraryBuilder.library);
+            gatherer, typeParameters, inferredTypes,
+            isNonNullableByDefault: isNonNullableByDefault);
         Substitution substitution =
             Substitution.fromPairs(typeParameters, inferredTypes);
         tearoffType = substitution.substituteType(instantiatedType);

@@ -23,6 +23,20 @@ void main() {
 
 @reflectiveTest
 class ParameterNameInlayHintTest extends _AbstractInlayHintTest {
+  Future<void> test_beforeTypes() async {
+    final content = '''
+void f(Object a) {
+  f([1, 2]);
+}
+''';
+    final expected = '''
+void f(Object a) {
+  f((Parameter:a:) (Type:<int>)[1, 2]);
+}
+''';
+    await _testHints(content, expected);
+  }
+
   Future<void> test_location() async {
     final code = TestCode.parse('''
 void f(int /*[0*/a/*0]*/) {}
@@ -96,6 +110,28 @@ class A {
     await _testHints(content, expected);
   }
 
+  Future<void> test_class_typeArguments() async {
+    final content = '''
+class A<T1, T2> {
+  A(T1 a, T2 b) {}
+}
+
+void f() {
+  final a = A('', 1);
+}
+''';
+    final expected = '''
+class A<T1, T2> {
+  A(T1 a, T2 b) {}
+}
+
+void f() {
+  final (Type:A<String, int>) a = A(Type:<String, int>)((Parameter:a:) '', (Parameter:b:) 1);
+}
+''';
+    await _testHints(content, expected);
+  }
+
   Future<void> test_documentUpdates() async {
     final content = '''
 final a = 1;
@@ -120,6 +156,24 @@ final a = 1;
 
     expect(hintsBeforeChange, isEmpty);
     expect(hintsAfterChange, isNotEmpty);
+  }
+
+  Future<void> test_function_typeArguments() async {
+    final content = '''
+void f1<T1, T2>(T1 a, T2 b) {}
+
+void f() {
+  f1('', 1);
+}
+''';
+    final expected = '''
+void f1<T1, T2>(T1 a, T2 b) {}
+
+void f() {
+  f1(Type:<String, int>)((Parameter:a:) '', (Parameter:b:) 1);
+}
+''';
+    await _testHints(content, expected);
   }
 
   Future<void> test_getter() async {
@@ -248,6 +302,45 @@ final a1 = '';
         location.range.start.character + 'String'.length);
   }
 
+  Future<void> test_location_typeArguments() async {
+    final code = TestCode.parse('''
+class /*[0*/A/*0]*/<T> {}
+class /*[1*/B/*1]*/<T> {}
+class /*[2*/C/*2]*/ {}
+final x = A<B<C>>();
+''');
+    final ranges = code.ranges.map((r) => r.range).toList();
+    final hints = await _fetchHints(code.code);
+    final parts = hints.single.labelParts;
+
+    // Check the parts of the label.
+    expect(
+      parts.map((p) => p.value),
+      equals([
+        'A',
+        '<',
+        'B',
+        '<',
+        'C',
+        '>',
+        '>',
+      ]),
+    );
+    // Ensure each part has the correct location.
+    expect(
+      parts.map((p) => p.location?.range),
+      equals([
+        ranges[0], // A
+        null,
+        ranges[1], // B
+        null,
+        ranges[2], // C
+        null,
+        null,
+      ]),
+    );
+  }
+
   Future<void> test_method_parameters() async {
     final content = '''
 class A {
@@ -286,6 +379,30 @@ class A {
     final expected = '''
 class A {
   (Type:dynamic) f() => '';
+}
+''';
+    await _testHints(content, expected);
+  }
+
+  Future<void> test_method_typeArguments() async {
+    final content = '''
+class A {
+  void m1<T1, T2>(T1 a, T2 b) {}
+}
+
+void f() {
+  final a = A();
+  a.m1('', 1);
+}
+''';
+    final expected = '''
+class A {
+  void m1<T1, T2>(T1 a, T2 b) {}
+}
+
+void f() {
+  final (Type:A) a = A();
+  a.m1(Type:<String, int>)((Parameter:a:) '', (Parameter:b:) 1);
 }
 ''';
     await _testHints(content, expected);
@@ -375,14 +492,14 @@ final l1 = [1, 2, 3];
 final l2 = [1, '', 3];
 final l3 = ['', null, ''];
 final l4 = <Object>[1, 2, 3];
-final List<Object> l5 = [1, 2, 3]; // already typed
+final List<Object> l5 = [1, 2, 3];
 ''';
     final expected = '''
-final (Type:List<int>) l1 = [1, 2, 3];
-final (Type:List<Object>) l2 = [1, '', 3];
-final (Type:List<String?>) l3 = ['', null, ''];
+final (Type:List<int>) l1 = (Type:<int>)[1, 2, 3];
+final (Type:List<Object>) l2 = (Type:<Object>)[1, '', 3];
+final (Type:List<String?>) l3 = (Type:<String?>)['', null, ''];
 final (Type:List<Object>) l4 = <Object>[1, 2, 3];
-final List<Object> l5 = [1, 2, 3]; // already typed
+final List<Object> l5 = (Type:<Object>)[1, 2, 3];
 ''';
     await _testHints(content, expected);
   }
@@ -393,14 +510,14 @@ final m1 = {1: '', 2: ''};
 final m2 = {'': [1]};
 final m3 = {'': null};
 final m4 = <Object, String>{1: '', 2: ''};
-final Map<int, String> m1 = {1: '', 2: ''}; // already typed
+final Map<int, String> m1 = {1: '', 2: ''};
 ''';
     final expected = '''
-final (Type:Map<int, String>) m1 = {1: '', 2: ''};
-final (Type:Map<String, List<int>>) m2 = {'': [1]};
-final (Type:Map<String, Null>) m3 = {'': null};
+final (Type:Map<int, String>) m1 = (Type:<int, String>){1: '', 2: ''};
+final (Type:Map<String, List<int>>) m2 = (Type:<String, List<int>>){'': (Type:<int>)[1]};
+final (Type:Map<String, Null>) m3 = (Type:<String, Null>){'': null};
 final (Type:Map<Object, String>) m4 = <Object, String>{1: '', 2: ''};
-final Map<int, String> m1 = {1: '', 2: ''}; // already typed
+final Map<int, String> m1 = (Type:<int, String>){1: '', 2: ''};
 ''';
     await _testHints(content, expected);
   }
@@ -411,14 +528,14 @@ final s1 = {1, 2, 3};
 final s2 = {1, '', 3};
 final s3 = {'', null, ''};
 final s4 = <Object>{1, 2, 3};
-final Set<Object> s5 = {1, 2, 3}; // already typed
+final Set<Object> s5 = {1, 2, 3};
 ''';
     final expected = '''
-final (Type:Set<int>) s1 = {1, 2, 3};
-final (Type:Set<Object>) s2 = {1, '', 3};
-final (Type:Set<String?>) s3 = {'', null, ''};
+final (Type:Set<int>) s1 = (Type:<int>){1, 2, 3};
+final (Type:Set<Object>) s2 = (Type:<Object>){1, '', 3};
+final (Type:Set<String?>) s3 = (Type:<String?>){'', null, ''};
 final (Type:Set<Object>) s4 = <Object>{1, 2, 3};
-final Set<Object> s5 = {1, 2, 3}; // already typed
+final Set<Object> s5 = (Type:<Object>){1, 2, 3};
 ''';
     await _testHints(content, expected);
   }

@@ -6,6 +6,8 @@ import "dart:convert" show utf8;
 import 'dart:io' show File, Platform;
 import "dart:typed_data" show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart'
+    as shared_exhaustive;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, getMessageCodeObject;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
@@ -119,7 +121,7 @@ class MessageTestSuite extends ChainContext {
   Set<Expectation> processExpectedOutcomes(
       Set<Expectation> outcomes, TestDescription description) {
     if (description.shortName.contains("/spelling")) {
-      return {Expectation.Pass};
+      return {Expectation.pass};
     }
     return outcomes;
   }
@@ -780,18 +782,24 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
     print("Compiling $main");
     List<DiagnosticMessage> messages = <DiagnosticMessage>[];
 
-    await suite.compiler.batchCompile(
-        example.configuration.apply(new CompilerOptions()
-          ..sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
-              .resolve("vm_platform_strong.dill")
-          ..explicitExperimentalFlags = example.experimentalFlags ?? {}
-          ..target = new VmTarget(new TargetFlags())
-          ..fileSystem = new HybridFileSystem(suite.fileSystem)
-          ..packagesFileUri = packageConfigUri
-          ..onDiagnostic = messages.add
-          ..environmentDefines = const {}),
-        main,
-        output);
+    var oldUseFallback = shared_exhaustive.useFallbackExhaustivenessAlgorithm;
+    shared_exhaustive.useFallbackExhaustivenessAlgorithm = false;
+    try {
+      await suite.compiler.batchCompile(
+          example.configuration.apply(new CompilerOptions()
+            ..sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
+                .resolve("vm_platform_strong.dill")
+            ..explicitExperimentalFlags = example.experimentalFlags ?? {}
+            ..target = new VmTarget(new TargetFlags())
+            ..fileSystem = new HybridFileSystem(suite.fileSystem)
+            ..packagesFileUri = packageConfigUri
+            ..onDiagnostic = messages.add
+            ..environmentDefines = const {}),
+          main,
+          output);
+    } finally {
+      shared_exhaustive.useFallbackExhaustivenessAlgorithm = oldUseFallback;
+    }
 
     List<DiagnosticMessage> unexpectedMessages = <DiagnosticMessage>[];
     if (example.allowMoreCodes) {

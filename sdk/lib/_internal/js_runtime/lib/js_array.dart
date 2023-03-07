@@ -14,7 +14,7 @@ const _ListConstructorSentinel = const _Growable();
 /// class as an interceptor, and changes references to [:this:] to
 /// actually use the receiver of the method, which is generated as an extra
 /// argument added to each member.
-class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
+class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   const JSArray();
 
   // This factory constructor is the redirection target of the List() factory

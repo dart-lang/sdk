@@ -805,7 +805,7 @@ class TypeUse {
 
   /// [type] used in an implicit cast in Dart 2, like `T` in
   ///
-  ///    dynamic foo = new Object();
+  ///    dynamic foo = Object();
   ///    T bar = foo; // Implicitly `T bar = foo as T`.
   ///
   factory TypeUse.implicitCast(DartType type) {

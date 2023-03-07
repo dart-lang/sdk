@@ -14,6 +14,9 @@ import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart';
+import 'package:vm/transformations/pragma.dart';
+import 'package:vm/transformations/static_weak_references.dart'
+    show StaticWeakReferences;
 
 import 'calls.dart';
 import 'native_code.dart';
@@ -22,7 +25,6 @@ import 'summary.dart';
 import 'summary_collector.dart';
 import 'types.dart';
 import 'utils.dart';
-import '../pragma.dart';
 
 // TODO(alexmarkov)
 // Unordered list of various improvements in type flow analysis,
@@ -1222,14 +1224,39 @@ class _ClassHierarchyCache extends TypeHierarchy {
             .getProcedure('dart:core', 'Object', 'noSuchMethod'),
         recordClass = _typeFlowAnalysis.target
                 .concreteRecordClass(environment.coreTypes) ??
-            Class(
-                name: "&&Record",
-                supertype: Supertype(environment.coreTypes.objectClass, []),
-                implementedTypes: [
-                  Supertype(environment.coreTypes.recordClass, [])
-                ],
-                fileUri: artificialNodeUri),
+            _createArtificialRecordClass(environment.coreTypes),
         super(environment.coreTypes, nullSafety);
+
+  static Class _createArtificialRecordClass(CoreTypes coreTypes) {
+    // Override Object methods in order to make sure they are
+    // not monomorphic.
+    final procedures = <Procedure>[];
+    List<VariableDeclaration> copyParameters(List<VariableDeclaration> list) =>
+        list.map((v) => VariableDeclaration(v.name, type: v.type)).toList();
+    for (final p in coreTypes.objectClass.procedures) {
+      if (p.isInstanceMember && !p.name.isPrivate) {
+        final f = p.function;
+        final proc = Procedure(
+            p.name,
+            p.kind,
+            FunctionNode(null,
+                positionalParameters: copyParameters(f.positionalParameters),
+                namedParameters: copyParameters(f.namedParameters),
+                requiredParameterCount: f.requiredParameterCount,
+                returnType: f.returnType),
+            isExternal: true,
+            fileUri: artificialNodeUri);
+        procedures.add(proc);
+      }
+    }
+    return Class(
+        name: "&&Record",
+        supertype: Supertype(coreTypes.objectClass, []),
+        implementedTypes: [Supertype(coreTypes.recordClass, [])],
+        procedures: procedures,
+        fileUri: artificialNodeUri)
+      ..parent = Library(artificialNodeUri, fileUri: artificialNodeUri);
+  }
 
   @override
   _TFClassImpl getTFClass(Class c) {
@@ -1588,6 +1615,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final ProtobufHandler? protobufHandler;
   late NativeCodeOracle nativeCodeOracle;
   late _ClassHierarchyCache hierarchyCache;
+  late StaticWeakReferences staticWeakReferences;
   late SummaryCollector summaryCollector;
   late _InvocationsCache _invocationsCache;
   late _WorkList workList;
@@ -1616,6 +1644,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
     hierarchyCache = new _ClassHierarchyCache(this, _genericInterfacesInfo,
         environment, target.flags.soundNullSafety);
+    staticWeakReferences = StaticWeakReferences(annotationMatcher);
     summaryCollector = new SummaryCollector(
         target,
         environment,
@@ -1624,6 +1653,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
         hierarchyCache,
         nativeCodeOracle,
         hierarchyCache,
+        staticWeakReferences,
         protobufHandler);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);

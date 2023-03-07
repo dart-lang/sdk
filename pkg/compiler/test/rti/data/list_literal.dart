@@ -11,7 +11,7 @@
 /*prod.class: global#JSArray:deps=[List],implicit=[JSArray.E],needsArgs,test*/
 
 main() {
-  var c = new Class();
+  var c = Class();
   var list = c.m<int>();
   var set = list.toSet();
   set is Set<String>;

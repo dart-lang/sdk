@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../fallback_exhaustiveness.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -18,6 +19,115 @@ main() {
 @reflectiveTest
 class DeadCodeTest extends PubPackageResolutionTest
     with DeadCodeTestCases, DeadCodeTestCases_Language212 {
+  test_deadPattern_ifCase_logicalOrPattern_leftAlwaysMatches() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  if (x case int() || 0) {}
+}
+''', [
+      error(HintCode.DEAD_CODE, 35, 4),
+    ]);
+  }
+
+  test_deadPattern_ifCase_logicalOrPattern_leftAlwaysMatches_nested() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  if (x case (int() || 0) && 1) {}
+}
+''', [
+      error(HintCode.DEAD_CODE, 36, 4),
+    ]);
+  }
+
+  test_deadPattern_ifCase_logicalOrPattern_leftAlwaysMatches_nested2() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case <int>[int() || 0, 1]) {}
+}
+''', [
+      error(HintCode.DEAD_CODE, 45, 4),
+    ]);
+  }
+
+  test_deadPattern_switchExpression_logicalOrPattern() async {
+    await assertErrorsInCode(r'''
+Object f(int x) {
+  return switch (x) {
+    int() || 0 => 0,
+  };
+}
+''', [
+      error(HintCode.DEAD_CODE, 50, 4),
+    ]);
+  }
+
+  test_deadPattern_switchExpression_logicalOrPattern_nextCases() async {
+    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
+Object f(int x) {
+  return switch (x) {
+    int() || 0 => 0,
+    int() => 1,
+    _ => 2,
+  };
+}
+''', [
+          error(HintCode.DEAD_CODE, 50, 4),
+          error(HintCode.DEAD_CODE, 65, 10),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 71, 2),
+          error(HintCode.DEAD_CODE, 81, 6),
+        ]));
+  }
+
+  test_deadPattern_switchStatement_logicalOrPattern() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case int() || 0:
+      break;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 46, 4),
+    ]);
+  }
+
+  test_deadPattern_switchStatement_nextCases() async {
+    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case int() || 0:
+    case 1:
+    default:
+      break;
+  }
+}
+''', [
+          error(HintCode.DEAD_CODE, 46, 4),
+          error(HintCode.DEAD_CODE, 56, 4),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 56, 4),
+          error(HintCode.DEAD_CODE, 68, 7),
+        ]));
+  }
+
+  test_deadPattern_switchStatement_nextCases2() async {
+    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case int() || 42:
+    case int() || 1:
+    case 2:
+      break;
+  }
+}
+''', [
+          error(HintCode.DEAD_CODE, 46, 5),
+          error(HintCode.DEAD_CODE, 57, 4),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 57, 4),
+          error(HintCode.DEAD_CODE, 78, 4),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 78, 4),
+        ]));
+  }
+
   test_ifElement_patternAssignment() async {
     await assertErrorsInCode(r'''
 void f(int a) {

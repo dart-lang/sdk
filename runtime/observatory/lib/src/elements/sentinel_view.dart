@@ -34,11 +34,6 @@ class SentinelViewElement extends CustomElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(sentinel != null);
-    assert(events != null);
-    assert(notifications != null);
     SentinelViewElement e = new SentinelViewElement.created();
     e._r = new RenderingScheduler<SentinelViewElement>(e, queue: queue);
     e._vm = vm;
@@ -103,6 +98,5 @@ class SentinelViewElement extends CustomElement implements Renderable {
       case M.SentinelKind.free:
         return '';
     }
-    throw new Exception('Unknown SentinelKind: $kind');
   }
 }

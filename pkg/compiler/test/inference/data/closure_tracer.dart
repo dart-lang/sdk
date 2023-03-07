@@ -46,7 +46,7 @@ class A {
 testStoredInInstance() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
-  var a = new A(closure);
+  var a = A(closure);
   a.field /*invoke: [exact=A]*/ (42);
   return res;
 }

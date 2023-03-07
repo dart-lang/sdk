@@ -6980,7 +6980,9 @@ library
           f @12
             typeParameters
               covariant T @14
+                defaultType: dynamic
               covariant U @17
+                defaultType: dynamic
             parameters
               requiredPositional u @22
                 type: U
@@ -7010,7 +7012,9 @@ library
           f @20
             typeParameters
               covariant V @22
+                defaultType: dynamic
               covariant W @25
+                defaultType: dynamic
             parameters
               requiredPositional t @30
                 type: T
@@ -7035,7 +7039,9 @@ library
           f @15
             typeParameters
               covariant T @17
+                defaultType: dynamic
               covariant U @20
+                defaultType: dynamic
             parameters
               requiredPositional x @25
                 type: T Function(U)
@@ -11960,6 +11966,7 @@ library
             codeOffset: 21
             codeLength: 13
             bound: num
+            defaultType: num
         returnType: void
 ''');
   }
@@ -12382,6 +12389,7 @@ library
       f @5
         typeParameters
           covariant T @7
+            defaultType: dynamic
         parameters
           requiredPositional a @12
             type: T
@@ -12427,6 +12435,7 @@ library
       f @5
         typeParameters
           covariant T @7
+            defaultType: dynamic
         parameters
           requiredPositional a @12
             type: T
@@ -14879,6 +14888,7 @@ library
       f @2
         typeParameters
           covariant T @4
+            defaultType: dynamic
         parameters
           requiredPositional a @9
             type: T
@@ -15741,7 +15751,9 @@ library
       foo @2
         typeParameters
           covariant P @6
+            defaultType: dynamic
           covariant R @9
+            defaultType: dynamic
         parameters
           requiredPositional p @14
             type: P
@@ -18686,6 +18698,7 @@ library
       defaultF @30
         typeParameters
           covariant T @39
+            defaultType: dynamic
         parameters
           requiredPositional v @44
             type: T
@@ -19287,6 +19300,7 @@ library
       foo @33
         typeParameters
           covariant T @37
+            defaultType: dynamic
         parameters
           optionalPositional b @46
             type: B<T>
@@ -19337,6 +19351,7 @@ library
           foo @45
             typeParameters
               covariant T @49
+                defaultType: dynamic
             parameters
               optionalPositional b @58
                 type: B<T>
@@ -19392,6 +19407,7 @@ library
           foo @54
             typeParameters
               covariant E2 @58
+                defaultType: dynamic
             parameters
               optionalPositional b @73
                 type: B<E1, E2>
@@ -21452,6 +21468,7 @@ library
           foo @23
             typeParameters
               covariant U @27
+                defaultType: dynamic
             parameters
               requiredPositional t @32
                 type: T
@@ -23878,7 +23895,9 @@ library
       f @2
         typeParameters
           covariant T @4
+            defaultType: dynamic
           covariant U @7
+            defaultType: dynamic
         parameters
           requiredPositional u @12
             type: U
@@ -23895,7 +23914,9 @@ library
       f @5
         typeParameters
           covariant T @7
+            defaultType: dynamic
           covariant U @10
+            defaultType: dynamic
         parameters
           requiredPositional x @15
             type: T Function(U)
@@ -24412,7 +24433,9 @@ library
           static m @30
             typeParameters
               covariant V @32
+                defaultType: dynamic
               covariant W @35
+                defaultType: dynamic
             parameters
               requiredPositional v @40
                 type: V
@@ -25956,6 +25979,7 @@ library
       f @96
         typeParameters
           covariant U @98
+            defaultType: dynamic
         returnType: D<int, U>
 ''');
   }
@@ -26025,6 +26049,7 @@ library
       f @79
         typeParameters
           covariant T @81
+            defaultType: dynamic
         returnType: D<T>
 ''');
   }
@@ -26270,7 +26295,9 @@ library
       f @0
         typeParameters
           covariant U @2
+            defaultType: dynamic
           covariant V @5
+            defaultType: dynamic
         returnType: dynamic
 ''');
   }
@@ -26360,7 +26387,9 @@ library
           f @15
             typeParameters
               covariant U @17
+                defaultType: dynamic
               covariant V @20
+                defaultType: dynamic
             returnType: dynamic
 ''');
   }
@@ -26414,6 +26443,7 @@ library
       f @0
         typeParameters
           covariant T @2
+            defaultType: dynamic
         returnType: dynamic
 ''');
   }
@@ -26433,6 +26463,7 @@ library
       f @0
         typeParameters
           covariant T @2
+            defaultType: dynamic
         returnType: dynamic
 ''');
   }
@@ -26541,6 +26572,7 @@ library
       m @4
         typeParameters
           covariant T @6
+            defaultType: dynamic
         returnType: int
 ''');
   }
@@ -32632,6 +32664,7 @@ library
                 element: self::@getter::foo
             typeParameters
               covariant T @52
+                defaultType: dynamic
                 metadata
                   Annotation
                     atSign: @ @47
@@ -33365,6 +33398,7 @@ library
             element: self::@getter::foo
         typeParameters
           covariant T @33
+            defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @28
@@ -33971,6 +34005,7 @@ library
       f @16
         typeParameters
           covariant T @21
+            defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @18
@@ -35529,6 +35564,7 @@ library
           foo @17
             typeParameters
               covariant T @21
+                defaultType: dynamic
             parameters
               requiredPositional a @28
                 type: int
@@ -35646,6 +35682,7 @@ library
       f @5
         typeParameters
           covariant T @7
+            defaultType: dynamic
         returnType: void
 ''');
   }
@@ -35744,7 +35781,9 @@ library
           g @23
             typeParameters
               covariant V @25
+                defaultType: dynamic
               covariant W @28
+                defaultType: dynamic
             returnType: void
 ''');
   }
@@ -35780,7 +35819,9 @@ library
           g @23
             typeParameters
               covariant V @25
+                defaultType: dynamic
               covariant W @28
+                defaultType: dynamic
             returnType: void
 ''');
   }
@@ -35801,7 +35842,9 @@ library
       f @5
         typeParameters
           covariant T @7
+            defaultType: dynamic
           covariant U @10
+            defaultType: dynamic
         returnType: void
 ''');
   }
@@ -35828,7 +35871,9 @@ library
       f @5
         typeParameters
           covariant T @7
+            defaultType: dynamic
           covariant U @10
+            defaultType: dynamic
         returnType: void
 ''');
   }
@@ -36993,6 +37038,7 @@ library
       f @9
         typeParameters
           covariant T @11
+            defaultType: dynamic
         returnType: (int, T)
 ''');
   }
@@ -37225,7 +37271,9 @@ library
       f @5
         typeParameters
           covariant T @7
+            defaultType: dynamic
           covariant U @10
+            defaultType: dynamic
         parameters
           requiredPositional b @18
             type: bool
@@ -37283,7 +37331,9 @@ library
       f @5
         typeParameters
           covariant T @7
+            defaultType: dynamic
           covariant U @10
+            defaultType: dynamic
         parameters
           requiredPositional b @18
             type: bool
@@ -41123,6 +41173,7 @@ library
       f @23
         typeParameters
           covariant U @25
+            defaultType: dynamic
         parameters
           requiredPositional a @33
             type: U

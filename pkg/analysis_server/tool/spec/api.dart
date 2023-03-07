@@ -63,7 +63,7 @@ class Domain extends ApiNode {
 }
 
 /// API visitor that visits the entire API hierarchically by default.
-class HierarchicalApiVisitor extends ApiVisitor {
+class HierarchicalApiVisitor extends ApiVisitor<void> {
   /// The API to visit.
   final Api api;
 

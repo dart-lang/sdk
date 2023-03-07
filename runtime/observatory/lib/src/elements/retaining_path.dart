@@ -6,7 +6,6 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/curly_block.dart';
-import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
@@ -29,10 +28,6 @@ class RetainingPathElement extends CustomElement implements Renderable {
   factory RetainingPathElement(M.IsolateRef isolate, M.ObjectRef object,
       M.RetainingPathRepository retainingPaths, M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(object != null);
-    assert(retainingPaths != null);
-    assert(objects != null);
     RetainingPathElement e = new RetainingPathElement.created();
     e._r = new RenderingScheduler<RetainingPathElement>(e, queue: queue);
     e._isolate = isolate;

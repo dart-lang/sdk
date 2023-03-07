@@ -55,7 +55,7 @@ class Check {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     printOn(sb, '');
     return sb.toString();
   }
@@ -68,8 +68,8 @@ bool equality(a, b) => a == b;
 /// [value2] respectively, are equal and throw otherwise.
 bool check<T>(var object1, var object2, String property, T value1, T value2,
     [bool equivalence(T a, T b) = equality, String toString(T a)?]) {
-  currentCheck = new Check(
-      currentCheck, object1, object2, property, value1, value2, toString);
+  currentCheck =
+      Check(currentCheck, object1, object2, property, value1, value2, toString);
   if (!equivalence(value1, value2)) {
     throw currentCheck!;
   }
@@ -88,8 +88,7 @@ bool checkListEquivalence<T>(
     Iterable<T> list1,
     Iterable<T> list2,
     void checkEquivalence(Object o1, Object o2, String property, T a, T b)) {
-  currentCheck =
-      new Check(currentCheck, object1, object2, property, list1, list2);
+  currentCheck = Check(currentCheck, object1, object2, property, list1, list2);
   for (int i = 0; i < list1.length && i < list2.length; i++) {
     checkEquivalence(
         object1, object2, property, list1.elementAt(i), list2.elementAt(i));
@@ -249,7 +248,7 @@ void checkLists<T>(List<T> list1, List<T> list2, String messagePrefix,
     }
     extra.add(element2);
   }
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.write("$messagePrefix:");
   if (verbose) {
     sb.write("\n Common: \n");
@@ -308,7 +307,7 @@ void checkSets<E>(Iterable<E> set1, Iterable<E> set2, String messagePrefix,
   if (onExtraElement != null) {
     remaining.forEach(onExtraElement);
   }
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.write("$messagePrefix:");
   if (verbose) {
     sb.write("\n Common: \n");
@@ -366,7 +365,7 @@ void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
       mismatch.add([k1, k2]);
     }
   });
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.write("$messagePrefix:");
   if (verbose) {
     sb.write("\n Common: \n");
@@ -425,7 +424,7 @@ void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
 }
 
 class DartTypePrinter implements DartTypeVisitor {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
 
   @override
   void visit(DartType type, [_]) {
@@ -548,7 +547,7 @@ class DartTypePrinter implements DartTypeVisitor {
 
 /// Normalized toString on types.
 String typeToString(DartType type) {
-  DartTypePrinter printer = new DartTypePrinter();
+  DartTypePrinter printer = DartTypePrinter();
   printer.visit(type);
   return printer.getText();
 }

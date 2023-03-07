@@ -11,13 +11,13 @@ bool isFoo(o) => lib.isFoo(o);
 bool isFunFunFoo(o) => lib.isFunFunFoo(o);
 
 /*member: createB2:member_unit=6{libC}*/
-createB2() => new lib.B2();
+createB2() => lib.B2();
 
 /*member: createC3:member_unit=6{libC}*/
-createC3() => new lib.C3();
+createC3() => lib.C3();
 
 /*member: createD3:member_unit=6{libC}*/
-createD3() => new lib.D3();
+createD3() => lib.D3();
 
 /*member: createDooFunFunFoo:member_unit=6{libC}*/
 createDooFunFunFoo() => lib.createDooFunFunFoo();

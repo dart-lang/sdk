@@ -8,7 +8,8 @@ library dart.typed_data.implementation;
 
 import 'dart:collection' show ListMixin;
 import 'dart:_internal' show FixedLengthListMixin hide Symbol;
-import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
+import 'dart:_interceptors'
+    show JavaScriptObject, JSIndexable, JSUInt32, JSUInt31;
 import 'dart:_js_helper'
     show
         checkNum,
@@ -25,7 +26,7 @@ import 'dart:math' as Math;
 import 'dart:typed_data';
 
 @Native('ArrayBuffer')
-class NativeByteBuffer implements ByteBuffer {
+class NativeByteBuffer extends JavaScriptObject implements ByteBuffer {
   @JSName('byteLength')
   int get lengthInBytes native;
 
@@ -309,7 +310,7 @@ class NativeFloat64x2List extends Object
 }
 
 @Native('ArrayBufferView')
-class NativeTypedData implements TypedData {
+class NativeTypedData extends JavaScriptObject implements TypedData {
   /// Returns the byte buffer associated with this object.
   @Creates('NativeByteBuffer')
   @Returns('NativeByteBuffer')

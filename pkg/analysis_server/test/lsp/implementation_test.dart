@@ -56,6 +56,16 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
+  Future<void> test_getter_overriddenByField() => _testMarkedContent('''
+      class B extends A {
+        final String? [[a]] = null;
+      }
+
+      abstract class A {
+        String? get a^;
+      }
+    ''');
+
   Future<void> test_method_excludesClassesWithoutImplementations() =>
       _testMarkedContent('''
       abstract class A {

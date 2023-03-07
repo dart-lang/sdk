@@ -46,6 +46,10 @@ class Types {
   late final w.ValueType namedParametersExpectedType = classAndFieldToType(
       translator.functionTypeClass, FieldIndex.functionTypeNamedParameters);
 
+  /// Wasm value type of `_RecordType.names` field.
+  late final w.ValueType recordTypeNamesFieldExpectedType = classAndFieldToType(
+      translator.recordTypeClass, FieldIndex.recordTypeNames);
+
   /// A mapping from concrete subclass `classID` to [Map]s of superclass
   /// `classID` and the necessary substitutions which must be performed to test
   /// for a valid subtyping relationship.
@@ -269,6 +273,9 @@ class Types {
             type.positionalParameters.every(_isTypeConstant) &&
             type.namedParameters.every((n) => _isTypeConstant(n.type))) ||
         type is InterfaceType && type.typeArguments.every(_isTypeConstant) ||
+        (type is RecordType &&
+            type.positional.every(_isTypeConstant) &&
+            type.named.every((n) => _isTypeConstant(n.type))) ||
         type is TypeParameterType && isFunctionTypeParameter(type) ||
         type is InlineType &&
             _isTypeConstant(type.instantiatedRepresentationType);
@@ -303,15 +310,22 @@ class Types {
       }
     } else if (type is InlineType) {
       return classForType(type.instantiatedRepresentationType);
+    } else if (type is RecordType) {
+      return translator.recordTypeClass;
     }
     throw "Unexpected DartType: $type";
   }
 
   /// Allocates a `List<_Type>` from [types] and pushes it to the stack.
-  void _makeTypeList(CodeGenerator codeGen, List<DartType> types) {
-    w.ValueType listType = codeGen.makeListFromExpressions(
-        types.map((t) => TypeLiteral(t)).toList(), typeType);
-    translator.convertType(codeGen.function, listType, typeListExpectedType);
+  void _makeTypeList(CodeGenerator codeGen, Iterable<DartType> types) {
+    if (types.every(_isTypeConstant)) {
+      translator.constants.instantiateConstant(codeGen.function, codeGen.b,
+          translator.constants.makeTypeList(types), typeListExpectedType);
+    } else {
+      w.ValueType listType = codeGen.makeListFromExpressions(
+          types.map((t) => TypeLiteral(t)).toList(), typeType);
+      translator.convertType(codeGen.function, listType, typeListExpectedType);
+    }
   }
 
   void _makeInterfaceType(CodeGenerator codeGen, InterfaceType type) {
@@ -320,6 +334,21 @@ class Types {
     b.i32_const(encodedNullability(type));
     b.i64_const(typeInfo.classId);
     _makeTypeList(codeGen, type.typeArguments);
+  }
+
+  void _makeRecordType(CodeGenerator codeGen, RecordType type) {
+    codeGen.b.i32_const(encodedNullability(type));
+    translator.constants.instantiateConstant(
+        codeGen.function,
+        codeGen.b,
+        ListConstant(
+          InterfaceType(
+              translator.coreTypes.stringClass, Nullability.nonNullable),
+          type.named.map((t) => StringConstant(t.name)).toList(),
+        ),
+        recordTypeNamesFieldExpectedType);
+    _makeTypeList(
+        codeGen, type.positional.followedBy(type.named.map((t) => t.type)));
   }
 
   /// Normalizes a Dart type. Many rules are already applied for us, but we
@@ -361,18 +390,23 @@ class Types {
     w.Instructions b = codeGen.b;
     b.i32_const(encodedNullability(type));
     b.i64_const(typeParameterOffset);
-    _makeTypeList(codeGen, type.typeParameters.map((p) => p.bound).toList());
+
+    // List<_Type> typeParameterBounds
+    _makeTypeList(codeGen, type.typeParameters.map((p) => p.bound));
+
+    // List<_Type> typeParameterDefaults
+    _makeTypeList(codeGen, type.typeParameters.map((p) => p.defaultType));
+
+    // _Type returnType
     makeType(codeGen, type.returnType);
-    if (type.positionalParameters.every(_isTypeConstant)) {
-      translator.constants.instantiateConstant(
-          codeGen.function,
-          b,
-          translator.constants.makeTypeList(type.positionalParameters),
-          typeListExpectedType);
-    } else {
-      _makeTypeList(codeGen, type.positionalParameters);
-    }
+
+    // List<_Type> positionalParameters
+    _makeTypeList(codeGen, type.positionalParameters);
+
+    // int requiredParameterCount
     b.i64_const(type.requiredParameterCount);
+
+    // List<_NamedParameter> namedParameters
     if (type.namedParameters.every((n) => _isTypeConstant(n.type))) {
       translator.constants.instantiateConstant(
           codeGen.function,
@@ -422,7 +456,8 @@ class Types {
         type is InlineType ||
         type is InterfaceType ||
         type is FutureOrType ||
-        type is FunctionType);
+        type is FunctionType ||
+        type is RecordType);
     if (type is TypeParameterType) {
       assert(!isFunctionTypeParameter(type));
       codeGen.instantiateTypeParameter(type.parameter);
@@ -449,6 +484,8 @@ class Types {
       _makeInterfaceType(codeGen, type);
     } else if (type is FunctionType) {
       _makeFunctionType(codeGen, type);
+    } else if (type is RecordType) {
+      _makeRecordType(codeGen, type);
     } else {
       throw '`$type` should have already been handled.';
     }

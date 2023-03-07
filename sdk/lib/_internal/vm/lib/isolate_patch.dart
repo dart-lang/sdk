@@ -135,9 +135,7 @@ Function _getIsolateScheduleImmediateClosure() {
 class _RawReceivePort implements RawReceivePort {
   factory _RawReceivePort(String debugName) {
     final port = _RawReceivePort._(debugName);
-    _portMap[port._get_id()] = <String, dynamic>{
-      'port': port,
-    };
+    _portMap[port._get_id()] = port;
     return port;
   }
 
@@ -149,9 +147,10 @@ class _RawReceivePort implements RawReceivePort {
     _portMap.remove(this._closeInternal());
   }
 
-  SendPort get sendPort {
-    return _get_sendport();
-  }
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "RawReceivePort_getSendPort")
+  external SendPort get sendPort;
 
   bool operator ==(var other) {
     return (other is _RawReceivePort) && (this._get_id() == other._get_id());
@@ -164,32 +163,30 @@ class _RawReceivePort implements RawReceivePort {
   /**** Internal implementation details ****/
   @pragma("vm:external-name", "RawReceivePort_get_id")
   external int _get_id();
-  @pragma("vm:external-name", "RawReceivePort_get_sendport")
-  external SendPort _get_sendport();
 
   // Called from the VM to retrieve the handler for a message.
   @pragma("vm:entry-point", "call")
   static _lookupHandler(int id) {
-    var result = _portMap[id]?['handler'];
-    return result;
+    return _portMap[id]?._handler;
   }
 
+  // Called from the VM service to enumerate ports.
   @pragma("vm:entry-point", "call")
   static _lookupOpenPorts() {
-    return _portMap.values.map((e) => e['port']).toList();
+    return _portMap.values.toList();
   }
 
-  // Called from the VM to retrieve  the handler and handle a message.
+  // Called from the VM to dispatch a message.
   @pragma("vm:entry-point", "call")
   static _handleMessage(int id, var message) {
-    final handler = _portMap[id]?['handler'];
+    final Function? handler = _portMap[id]?._handler;
     if (handler == null) {
       return null;
     }
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
     // so that we can run the immediate callbacks.
-    (handler as Function)(message);
+    handler(message);
     _runPendingImmediateCallback();
     return handler;
   }
@@ -205,17 +202,20 @@ class _RawReceivePort implements RawReceivePort {
   @pragma("vm:external-name", "RawReceivePort_setActive")
   external _setActive(bool active);
 
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "RawReceivePort_getHandler")
+  external Function? get _handler;
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "RawReceivePort_setHandler")
+  external set _handler(Function? handler);
+
   void set handler(Function? value) {
-    final int id = this._get_id();
-    if (!_portMap.containsKey(id)) {
-      _portMap[id] = <String, dynamic>{
-        'port': this,
-      };
-    }
-    _portMap[id]!['handler'] = value;
+    _handler = value;
   }
 
-  static final _portMap = <int, Map<String, dynamic>>{};
+  static final _portMap = <int, _RawReceivePort>{};
 }
 
 @pragma("vm:entry-point")

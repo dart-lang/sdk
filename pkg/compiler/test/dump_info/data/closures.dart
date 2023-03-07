@@ -404,7 +404,7 @@ class Class1<T> {
     {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call"},
     {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.setFunc"}]
   */
-  factory Class1.fact2() => new Class1.setFunc(() => new Set<T>());
+  factory Class1.fact2() => Class1.setFunc(() => Set<T>());
 
   /*member: Class1.method1:function=[{
   "id": "function/memory:sdk/tests/web/native/main.dart::Class1.method1",
@@ -876,7 +876,7 @@ class Class1<T> {
     }
 
     var local2 = (o) {
-      return () => new Map<T, S>();
+      return () => Map<T, S>();
     };
     return local2(local<double>());
   }
@@ -1259,7 +1259,7 @@ class Class1<T> {
     }
 
     var local2 = (o) {
-      return () => new Set<S>();
+      return () => Set<S>();
     };
     return local2(local<double>());
   }
@@ -1644,7 +1644,7 @@ topLevelMethod4<S>() {
   }
 
   var local2 = (o) {
-    return () => new Set<S>();
+    return () => Set<S>();
   };
   return local2(local<double>());
 }
@@ -2206,13 +2206,13 @@ dynamic siblings() {
   {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals"}]
 */
 main() {
-  new Class1<int>().method1();
-  new Class1<int>.fact().method2();
-  new Class1<int>.fact2().funcField() is Set;
-  new Class1<int>().method3<double>();
-  new Class1<int>().method4<double>();
-  new Class1<int>().method5();
-  new Class1<int>().method6<double>();
+  Class1<int>().method1();
+  Class1<int>.fact().method2();
+  Class1<int>.fact2().funcField() is Set;
+  Class1<int>().method3<double>();
+  Class1<int>().method4<double>();
+  Class1<int>().method5();
+  Class1<int>().method6<double>();
   Class1.staticMethod1<double>();
   Class1.staticMethod2<double>();
   Class1.staticMethod3();

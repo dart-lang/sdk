@@ -59,19 +59,18 @@ main() {
 
   Map<String, Impact> expectedImpactMap = <String, Impact>{
     'method1': const Impact(),
-    'method2': new Impact(implicitCasts: ['int*']),
-    'method3': new Impact(parameterChecks: ['int*']),
-    'method4': new Impact(asCasts: ['int*']),
+    'method2': Impact(implicitCasts: ['int*']),
+    'method3': Impact(parameterChecks: ['int*']),
+    'method4': Impact(asCasts: ['int*']),
     'method5': const Impact(),
     'method6': const Impact(),
     'method7': const Impact(),
     'method8': const Impact(),
-    'method9': new Impact(implicitCasts: ['int*']),
+    'method9': Impact(implicitCasts: ['int*']),
     'method10': const Impact(),
     'method11': const Impact(),
     'method12': const Impact(),
-    'method13':
-        new Impact(implicitCasts: ['int*'], parameterChecks: ['String*']),
+    'method13': Impact(implicitCasts: ['int*'], parameterChecks: ['String*']),
   };
 
   retainDataForTesting = true;
@@ -147,7 +146,7 @@ class Impact {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('Impact(');
     String comma = '';
     if (checkedModeChecks.isNotEmpty) {

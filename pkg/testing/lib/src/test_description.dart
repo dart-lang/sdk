@@ -11,6 +11,7 @@ abstract class TestDescription implements Comparable<TestDescription> {
 
   String get shortName;
 
+  @override
   int compareTo(TestDescription other) => "$uri".compareTo("${other.uri}");
 }
 

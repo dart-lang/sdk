@@ -920,6 +920,7 @@ class Closures {
         w.StructType struct = context.struct;
         if (context.parent != null) {
           assert(!context.containsThis);
+          assert(!context.parent!.isEmpty);
           struct.fields.add(w.FieldType(
               w.RefType.def(context.parent!.struct, nullable: true)));
         }
@@ -947,13 +948,23 @@ class CaptureFinder extends RecursiveVisitor {
   final Closures closures;
   final Member member;
   final Map<TreeNode, int> variableDepth = {};
-  int depth = 0;
+  final List<bool> functionIsSyncStar = [false];
+
+  int get depth => functionIsSyncStar.length - 1;
 
   CaptureFinder(this.closures, this.member);
 
   Translator get translator => closures.translator;
 
   w.Module get m => translator.m;
+
+  @override
+  void visitFunctionNode(FunctionNode node) {
+    assert(depth == 0); // Nested function nodes are skipped by [_visitLambda].
+    functionIsSyncStar[0] = node.asyncMarker == AsyncMarker.SyncStar;
+    node.visitChildren(this);
+    functionIsSyncStar[0] = false;
+  }
 
   @override
   void visitAssertStatement(AssertStatement node) {
@@ -983,8 +994,9 @@ class CaptureFinder extends RecursiveVisitor {
   void _visitVariableUse(TreeNode variable) {
     int declDepth = variableDepth[variable] ?? 0;
     assert(declDepth <= depth);
-    if (declDepth < depth) {
-      closures.captures[variable] = Capture(variable);
+    if (declDepth < depth || functionIsSyncStar[declDepth]) {
+      final capture = closures.captures[variable] ??= Capture(variable);
+      if (functionIsSyncStar[declDepth]) capture.written = true;
     } else if (variable is VariableDeclaration &&
         variable.parent is FunctionDeclaration) {
       closures.closurizedFunctions.add(variable.parent as FunctionDeclaration);
@@ -1004,7 +1016,7 @@ class CaptureFinder extends RecursiveVisitor {
   }
 
   void _visitThis() {
-    if (depth > 0) {
+    if (depth > 0 || functionIsSyncStar[0]) {
       closures.isThisCaptured = true;
     }
   }
@@ -1058,9 +1070,9 @@ class CaptureFinder extends RecursiveVisitor {
         m.addFunction(type, "$member closure at ${node.location}");
     closures.lambdas[node] = Lambda(node, function);
 
-    depth++;
+    functionIsSyncStar.add(node.asyncMarker == AsyncMarker.SyncStar);
     node.visitChildren(this);
-    depth--;
+    functionIsSyncStar.removeLast();
   }
 
   @override

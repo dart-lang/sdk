@@ -31,6 +31,7 @@ LogicalOrPattern
         staticType: null
       type: int
     name: _
+    matchedValueType: dynamic
   operator: ||
   rightOperand: WildcardPattern
     type: NamedType
@@ -40,6 +41,8 @@ LogicalOrPattern
         staticType: null
       type: double
     name: _
+    matchedValueType: dynamic
+  matchedValueType: dynamic
 ''');
   }
 
@@ -63,6 +66,7 @@ LogicalOrPattern
         staticType: null
       type: int
     name: _
+    matchedValueType: dynamic
   operator: ||
   rightOperand: WildcardPattern
     type: NamedType
@@ -72,6 +76,8 @@ LogicalOrPattern
         staticType: null
       type: double
     name: _
+    matchedValueType: dynamic
+  matchedValueType: dynamic
 ''');
   }
 }

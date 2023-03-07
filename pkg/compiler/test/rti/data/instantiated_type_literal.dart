@@ -20,8 +20,8 @@ class B<S, T> {
 }
 
 main() {
-  var a = new A<int>();
+  var a = A<int>();
   a.instanceMethod();
-  var b = new B<int, String>();
+  var b = B<int, String>();
   b.instanceMethod<bool>();
 }

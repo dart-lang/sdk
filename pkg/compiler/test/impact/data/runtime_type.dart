@@ -1541,13 +1541,13 @@ notEquals4(Class3 a, Class4 b) => a?.runtimeType != b?.runtimeType;
   unknown(1)]
 */
 main() {
-  Class1a<int> c1a = new Class1a<int>();
-  Class1b<int> c1b = new Class1b<int>();
-  Class1c<int> c1c = new Class1c<int>();
-  Class1d<int> c1d = new Class1d<int>();
-  Class2<int> c2 = new Class2<int>();
-  Class3 c3 = new Class3();
-  Class4 c4 = new Class4();
+  Class1a<int> c1a = Class1a<int>();
+  Class1b<int> c1b = Class1b<int>();
+  Class1c<int> c1c = Class1c<int>();
+  Class1d<int> c1d = Class1d<int>();
+  Class2<int> c2 = Class2<int>();
+  Class3 c3 = Class3();
+  Class4 c4 = Class4();
   print(c1a == c1b);
   print(c1a == c1c);
   print(c1a == c1d);

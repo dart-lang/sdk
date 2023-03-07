@@ -14,6 +14,7 @@ import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/universe/function_set.dart';
 import 'package:compiler/src/universe/selector.dart';
+import 'package:compiler/src/util/util.dart';
 
 class DynamicCallTarget {
   final MemberEntity member;
@@ -43,8 +44,8 @@ class DynamicCallTarget {
 class MemberHierarchyBuilder {
   final JClosedWorld closedWorld;
   final Map<SelectorMask, Iterable<DynamicCallTarget>> _callCache = {};
-  final Map<Selector, Set<MemberEntity>> _dynamicRoots = {};
-  final Map<MemberEntity, Set<MemberEntity>> _overrides = {};
+  final Map<Selector, Setlet<MemberEntity>> _dynamicRoots = {};
+  final Map<MemberEntity, Setlet<MemberEntity>> _overrides = {};
 
   MemberHierarchyBuilder(this.closedWorld);
 
@@ -127,7 +128,7 @@ class MemberHierarchyBuilder {
   Iterable<DynamicCallTarget> findMatchingAncestors(
       ClassEntity baseCls, Selector selector,
       {required bool isSubtype}) {
-    final Set<DynamicCallTarget> results = {};
+    final results = Setlet<DynamicCallTarget>();
     IterationStep handleEntity(entity) {
       final match = findSuperclassTarget(entity, selector, virtualResult: true);
       if (match != null) {
@@ -158,12 +159,11 @@ class MemberHierarchyBuilder {
     final roots = _dynamicRoots[_normalizeSelector(selector)];
     if (roots == null) return const [];
     final classHierarchy = closedWorld.classHierarchy;
-    return roots
+    return Setlet.of(roots
         .where((r) =>
             selector.appliesStructural(r) &&
             classHierarchy.isSubclassOf(r.enclosingClass!, cls))
-        .map((r) => DynamicCallTarget(r, isVirtual: _hasOverride(r)))
-        .toSet();
+        .map((r) => DynamicCallTarget(r, isVirtual: _hasOverride(r))));
   }
 
   /// Returns a set of common ancestors (not necessarily the smallest) for all
@@ -207,9 +207,8 @@ class MemberHierarchyBuilder {
     }
 
     final result = needsNoSuchMethod
-        ? targetsForReceiver
-            .followedBy(rootsForCall(receiverType, Selectors.noSuchMethod_))
-            .toSet()
+        ? Setlet.of(targetsForReceiver
+            .followedBy(rootsForCall(receiverType, Selectors.noSuchMethod_)))
         : targetsForReceiver;
 
     return _callCache[selectorMask] = result;
@@ -251,11 +250,12 @@ class MemberHierarchyBuilder {
       void Function(MemberEntity parent, MemberEntity override) join) {
     final elementEnv = closedWorld.elementEnvironment;
     final name = selector.memberName;
+    bool foundSuperclass = false;
 
     void addParent(MemberEntity child, ClassEntity childCls,
         MemberEntity parent, ClassEntity parentCls) {
       if (child == parent) return;
-      if ((_overrides[parent] ??= {}).add(child)) {
+      if ((_overrides[parent] ??= Setlet()).add(child)) {
         join(parent, child);
       }
     }
@@ -266,6 +266,7 @@ class MemberHierarchyBuilder {
       final match = elementEnv.lookupLocalClassMember(current, name);
       if (match != null && !MemberHierarchyBuilder._skipMemberInternal(match)) {
         addParent(member, cls, match, current);
+        foundSuperclass = true;
         break;
       }
       current = elementEnv.getSuperClass(current);
@@ -277,6 +278,10 @@ class MemberHierarchyBuilder {
       addParent(override, subtype, member, cls);
       return IterationStep.CONTINUE;
     }, ClassHierarchyNode.INSTANTIATED, strict: true);
+
+    if (!foundSuperclass) {
+      (_dynamicRoots[selector] ??= Setlet()).add(member);
+    }
   }
 
   void _processMember(MemberEntity member,
@@ -286,9 +291,6 @@ class MemberHierarchyBuilder {
     final mixinUses = closedWorld.mixinUsesOf(cls);
     // Process each selector matching member separately.
     for (final selector in _selectorsForMember(member)) {
-      if (!member.isAbstract) {
-        (_dynamicRoots[selector] ??= {}).add(member);
-      }
       for (final mixinUse in mixinUses) {
         _handleMember(member, mixinUse, selector, join);
       }

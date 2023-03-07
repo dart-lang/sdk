@@ -1212,6 +1212,16 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPatternFieldName(PatternFieldName node) {
+    final name = node.name;
+    if (name != null) {
+      computer._addRegion_token(
+          node.name, HighlightRegionType.INSTANCE_GETTER_REFERENCE);
+    }
+    super.visitPatternFieldName(node);
+  }
+
+  @override
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     super.visitPatternVariableDeclaration(node);
@@ -1233,16 +1243,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         field.accept(this);
       }
     }
-  }
-
-  @override
-  void visitRecordPatternFieldName(RecordPatternFieldName node) {
-    final name = node.name;
-    if (name != null) {
-      computer._addRegion_token(
-          node.name, HighlightRegionType.INSTANCE_GETTER_REFERENCE);
-    }
-    super.visitRecordPatternFieldName(node);
   }
 
   @override

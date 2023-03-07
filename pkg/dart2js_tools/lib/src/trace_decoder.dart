@@ -77,7 +77,7 @@ StackDeobfuscationResult deobfuscateStack(
     // inlined all the code into.
     Map<int, List<FrameEntry>> frames = mapping.frames;
     List<int> index = mapping.frameIndex;
-    int key = binarySearch(index, (i) => i > offset) - 1;
+    int key = binarySearch<int>(index, (i) => i > offset) - 1;
     int depth = 0;
     outer:
     while (key >= 0) {

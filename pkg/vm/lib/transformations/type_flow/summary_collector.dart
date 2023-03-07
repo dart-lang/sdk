@@ -15,6 +15,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, SubtypeCheckMode, TypeEnvironment;
 import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:vm/transformations/static_weak_references.dart'
+    show StaticWeakReferences;
 
 import 'calls.dart';
 import 'native_code.dart';
@@ -524,6 +526,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   final TypesBuilder _typesBuilder;
   final NativeCodeOracle _nativeCodeOracle;
   final GenericInterfacesInfo _genericInterfacesInfo;
+  final StaticWeakReferences _staticWeakReferences;
   final ProtobufHandler? _protobufHandler;
 
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
@@ -586,6 +589,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       this._typesBuilder,
       this._nativeCodeOracle,
       this._genericInterfacesInfo,
+      this._staticWeakReferences,
       this._protobufHandler) {
     constantAllocationCollector = new ConstantAllocationCollector(this);
     _nullMethodsAndGetters.addAll(getSelectors(
@@ -1913,6 +1917,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitStaticInvocation(StaticInvocation node) {
+    if (_staticWeakReferences.isWeakReference(node)) {
+      // Do not visit this StaticInvocation and its arguments as
+      // they are weakly reachable.
+      return _staticType(node);
+    }
     final args = _visitArguments(null, node.arguments,
         passTypeArguments: node.target.isFactory);
     final target = node.target;

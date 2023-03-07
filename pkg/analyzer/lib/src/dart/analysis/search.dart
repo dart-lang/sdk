@@ -738,6 +738,11 @@ class Search {
     PatternVariableElementImpl element,
     SearchedFiles searchedFiles,
   ) async {
+    String path = element.source.fullName;
+    if (!searchedFiles.add(path, this)) {
+      return const <SearchResult>[];
+    }
+
     var rootVariable = element.rootVariable;
     var transitiveVariables = rootVariable is JoinPatternVariableElementImpl
         ? rootVariable.transitiveVariables
@@ -1415,6 +1420,15 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   final CompilationUnitElement enclosingUnitElement;
 
   _LocalReferencesVisitor(this.elements, this.enclosingUnitElement);
+
+  @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    if (elements.contains(node.element)) {
+      _addResult(node, SearchResultKind.WRITE);
+    }
+
+    super.visitAssignedVariablePattern(node);
+  }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

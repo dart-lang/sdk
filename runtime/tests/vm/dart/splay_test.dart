@@ -9,30 +9,30 @@
 // objects, and between marked and unmarked objects.
 
 // VMOptions=
-// VMOptions=--no_concurrent_mark --no_concurrent_sweep
-// VMOptions=--no_concurrent_mark --concurrent_sweep
-// VMOptions=--no_concurrent_mark --use_compactor
-// VMOptions=--no_concurrent_mark --use_compactor --force_evacuation
-// VMOptions=--concurrent_mark --no_concurrent_sweep
-// VMOptions=--concurrent_mark --concurrent_sweep
-// VMOptions=--concurrent_mark --use_compactor
-// VMOptions=--concurrent_mark --use_compactor --force_evacuation
-// VMOptions=--scavenger_tasks=0
-// VMOptions=--scavenger_tasks=1
-// VMOptions=--scavenger_tasks=2
-// VMOptions=--scavenger_tasks=3
-// VMOptions=--verify_before_gc
-// VMOptions=--verify_after_gc
-// VMOptions=--verify_before_gc --verify_after_gc
-// VMOptions=--verify_store_buffer
-// VMOptions=--verify_after_marking
-// VMOptions=--stress_write_barrier_elimination
-// VMOptions=--old_gen_heap_size=100
-// VMOptions=--mark_when_idle
-// VMOptions=--no_load_cse
-// VMOptions=--no_dead_store_elimination
-// VMOptions=--no_load_cse --no_dead_store_elimination
-// VMOptions=--test_il_serialization
+// VMOptions=--profiler --no_concurrent_mark --no_concurrent_sweep
+// VMOptions=--profiler --no_concurrent_mark --concurrent_sweep
+// VMOptions=--profiler --no_concurrent_mark --use_compactor
+// VMOptions=--profiler --no_concurrent_mark --use_compactor --force_evacuation
+// VMOptions=--profiler --concurrent_mark --no_concurrent_sweep
+// VMOptions=--profiler --concurrent_mark --concurrent_sweep
+// VMOptions=--profiler --concurrent_mark --use_compactor
+// VMOptions=--profiler --concurrent_mark --use_compactor --force_evacuation
+// VMOptions=--profiler --scavenger_tasks=0
+// VMOptions=--profiler --scavenger_tasks=1
+// VMOptions=--profiler --scavenger_tasks=2
+// VMOptions=--profiler --scavenger_tasks=3
+// VMOptions=--profiler --verify_before_gc
+// VMOptions=--profiler --verify_after_gc
+// VMOptions=--profiler --verify_before_gc --verify_after_gc
+// VMOptions=--profiler --verify_store_buffer
+// VMOptions=--profiler --verify_after_marking
+// VMOptions=--profiler --stress_write_barrier_elimination
+// VMOptions=--profiler --old_gen_heap_size=100
+// VMOptions=--profiler --mark_when_idle
+// VMOptions=--profiler --no_load_cse
+// VMOptions=--profiler --no_dead_store_elimination
+// VMOptions=--profiler --no_load_cse --no_dead_store_elimination
+// VMOptions=--profiler --test_il_serialization
 
 import "splay_common.dart";
 

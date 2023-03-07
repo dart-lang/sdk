@@ -1486,7 +1486,6 @@ void Profile::Build(Thread* thread,
                     ProcessedSampleBufferBuilder* sample_buffer) {
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
-  ThreadInterrupter::SampleBufferReaderScope scope;
   ProfileBuilder builder(thread, filter, sample_buffer, this);
   builder.Build();
 }
@@ -1576,8 +1575,6 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
                          counters.bail_out_check_isolate);
     counts.AddProperty64("single_frame_sample_deoptimizing",
                          counters.single_frame_sample_deoptimizing);
-    counts.AddProperty64("single_frame_sample_register_check",
-                         counters.single_frame_sample_register_check);
     counts.AddProperty64(
         "single_frame_sample_get_and_validate_stack_bounds",
         counters.single_frame_sample_get_and_validate_stack_bounds);
@@ -1906,7 +1903,6 @@ void ProfilerService::ClearSamples() {
 
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
-  ThreadInterrupter::SampleBufferReaderScope scope;
 
   ClearProfileVisitor clear_profile(isolate);
   sample_block_buffer->VisitSamples(&clear_profile);

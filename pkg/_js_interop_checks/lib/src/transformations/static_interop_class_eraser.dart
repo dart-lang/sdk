@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: implementation_imports
+
+import 'package:_js_interop_checks/src/js_interop.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
@@ -9,7 +12,6 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/src/constant_replacer.dart';
 import 'package:kernel/src/replacement_visitor.dart';
-import 'package:_js_interop_checks/src/js_interop.dart';
 
 class _TypeSubstitutor extends ReplacementVisitor {
   final Class _javaScriptObject;
@@ -36,7 +38,7 @@ class StaticInteropClassEraser extends Transformer {
   // Visiting core libraries that don't contain `@staticInterop` adds overhead.
   // To avoid this, we use an allowlist that contains libraries that we know use
   // `@staticInterop`.
-  late Set<String> _erasableCoreLibraries = {'ui', '_engine'};
+  late final Set<String> _erasableCoreLibraries = {'ui', '_engine'};
 
   StaticInteropClassEraser(CoreTypes coreTypes, this.referenceFromIndex,
       {String libraryForJavaScriptObject = 'dart:_interceptors',
@@ -218,9 +220,9 @@ class StaticInteropClassEraser extends Transformer {
   }
 
   @override
-  DartType visitDartType(DartType type) {
-    var substitutedType = _getSubstitutedType(type);
-    return substitutedType != null ? substitutedType : type;
+  DartType visitDartType(DartType node) {
+    var substitutedType = _getSubstitutedType(node);
+    return substitutedType ?? node;
   }
 
   @override

@@ -69,20 +69,6 @@ class LibraryViewElement extends CustomElement implements Renderable {
       M.ObjectRepository objects,
       M.EvalRepository eval,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(library != null);
-    assert(libraries != null);
-    assert(fields != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(scripts != null);
-    assert(objects != null);
-    assert(eval != null);
     LibraryViewElement e = new LibraryViewElement.created();
     e._r = new RenderingScheduler<LibraryViewElement>(e, queue: queue);
     e._vm = vm;

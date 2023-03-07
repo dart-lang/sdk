@@ -42,17 +42,19 @@ import 'inferrer_experimental/types.dart' as experimentalInferrer
 import 'inferrer_experimental/typemasks/masks.dart' as experimentalInferrer
     show TypeMaskStrategy;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
-import 'ir/modular.dart';
+import 'ir/annotations.dart';
+import 'ir/modular.dart' hide reportLocatedMessage;
 import 'js_backend/codegen_inputs.dart' show CodegenInputs;
 import 'js_backend/enqueuer.dart';
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart';
 import 'js_model/locals.dart';
+import 'kernel/dart2js_target.dart';
+import 'kernel/element_map.dart';
 import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
 import 'kernel/kernel_world.dart';
-import 'kernel/transformations/const_conditional_simplifier.dart';
 import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions;
 import 'phase/load_kernel.dart' as load_kernel;
@@ -105,7 +107,7 @@ class Compiler {
   DiagnosticReporter get reporter => _reporter;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
 
-  final Environment environment;
+  late final Environment environment;
 
   late final List<CompilerTask> tasks;
   late final GenericTask loadKernelTask;
@@ -147,10 +149,10 @@ class Compiler {
       this.options)
       // NOTE: allocating measurer is done upfront to ensure the wallclock is
       // started before other computations.
-      : measurer = Measurer(enableTaskMeasurements: options.verbose),
-        this.environment = Environment(options.environment) {
+      : measurer = Measurer(enableTaskMeasurements: options.verbose) {
     options.deriveOptions();
     options.validate();
+    environment = Environment(options.environment);
 
     abstractValueStrategy = options.experimentalInferrer
         ? (options.useTrivialAbstractValueDomain
@@ -445,10 +447,33 @@ class Compiler {
 
   void simplifyConstConditionals(load_kernel.Output output) {
     if (options.readClosedWorldUri == null) {
+      void reportMessage(
+          fe.LocatedMessage message, List<fe.LocatedMessage>? context) {
+        reportLocatedMessage(reporter, message, context);
+      }
+
+      bool shouldNotInline(ir.TreeNode node) {
+        if (node is! ir.Annotatable) {
+          return false;
+        }
+        return computePragmaAnnotationDataFromIr(node).any((pragma) =>
+            pragma == const PragmaAnnotationData('noInline') ||
+            pragma == const PragmaAnnotationData('never-inline'));
+      }
+
       // No existing closed world means we're in phase 1, so run the
       // transformer.
-      ConstConditionalSimplifier(
-              output.component, environment, reporter, options)
+      fe.ConstConditionalSimplifier(
+              const Dart2jsDartLibrarySupport(),
+              const Dart2jsConstantsBackend(
+                  supportsUnevaluatedConstants: false),
+              output.component,
+              reportMessage,
+              environmentDefines: environment.definitions,
+              evaluationMode: options.useLegacySubtyping
+                  ? fe.EvaluationMode.weak
+                  : fe.EvaluationMode.strong,
+              shouldNotInline: shouldNotInline)
           .run();
     }
 

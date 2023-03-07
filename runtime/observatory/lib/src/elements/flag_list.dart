@@ -33,10 +33,6 @@ class FlagListElement extends CustomElement implements Renderable {
   factory FlagListElement(M.VMRef vm, M.EventRepository events,
       M.FlagsRepository repository, M.NotificationRepository notifications,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(events != null);
-    assert(repository != null);
-    assert(notifications != null);
     FlagListElement e = new FlagListElement.created();
     e._r = new RenderingScheduler<FlagListElement>(e, queue: queue);
     e._vm = vm;

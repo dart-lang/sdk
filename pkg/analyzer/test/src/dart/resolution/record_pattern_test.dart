@@ -49,8 +49,8 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -58,7 +58,8 @@ RecordPattern
         name: y
         declaredElement: hasImplicitType y@46
           type: dynamic
-      fieldElement: <null>
+        matchedValueType: dynamic
+      element: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -80,13 +81,14 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@41
           type: dynamic
-      fieldElement: <null>
+        matchedValueType: dynamic
+      element: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -124,15 +126,16 @@ void f(Object? x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -154,8 +157,8 @@ void f(Object? x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -168,7 +171,8 @@ RecordPattern
         name: y
         declaredElement: y@54
           type: int
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -190,8 +194,8 @@ void f(Object? x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -199,7 +203,8 @@ RecordPattern
         name: y
         declaredElement: hasImplicitType y@54
           type: Object?
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -219,12 +224,13 @@ void f(Object? x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -246,7 +252,7 @@ void f(Object? x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
@@ -257,7 +263,8 @@ RecordPattern
         name: y
         declaredElement: y@49
           type: int
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -279,13 +286,14 @@ void f(Object? x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@49
           type: Object?
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -308,8 +316,8 @@ void f(() x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: a
         colon: :
       pattern: DeclaredVariablePattern
@@ -317,7 +325,8 @@ RecordPattern
         name: b
         declaredElement: hasImplicitType b@47
           type: Object?
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: ()
 ''');
@@ -340,15 +349,16 @@ void f(() x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@46
           type: Object?
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: ()
 ''');
@@ -370,15 +380,16 @@ void f(({int b}) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@53
           type: Object?
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int b})
 ''');
@@ -400,15 +411,16 @@ void f(({int a, int b}) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@60
           type: Object?
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int a, int b})
 ''');
@@ -431,13 +443,14 @@ void f(() x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@44
           type: Object?
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: ()
 ''');
@@ -459,20 +472,21 @@ void f((int, String) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@55
           type: Object?
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: (int, String)
 ''');
   }
 
   test_recordType_sameShape_empty() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(() x) {
   switch (x) {
     case ():
@@ -480,7 +494,9 @@ void f(() x) {
     default:
   }
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 60, 7),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -508,15 +524,16 @@ void f((int, double, {String foo}) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@69
           type: int
-      fieldElement: <null>
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+        matchedValueType: int
+      element: <null>
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -524,14 +541,16 @@ RecordPattern
         name: b
         declaredElement: hasImplicitType b@81
           type: String
-      fieldElement: <null>
-    RecordPatternField
+        matchedValueType: String
+      element: <null>
+    PatternField
       pattern: DeclaredVariablePattern
         keyword: var
         name: c
         declaredElement: hasImplicitType c@88
           type: double
-      fieldElement: <null>
+        matchedValueType: double
+      element: <null>
   rightParenthesis: )
   matchedValueType: (int, double, {String foo})
 ''');
@@ -553,8 +572,8 @@ void f(({int foo}) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: bar
         colon: :
       pattern: DeclaredVariablePattern
@@ -562,7 +581,8 @@ RecordPattern
         name: a
         declaredElement: hasImplicitType a@58
           type: Object?
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -584,8 +604,8 @@ void f(({int foo}) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -593,7 +613,8 @@ RecordPattern
         name: y
         declaredElement: hasImplicitType y@58
           type: int
-      fieldElement: <null>
+        matchedValueType: int
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -615,14 +636,15 @@ void f(({int foo}) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
-      fieldElement: <null>
+        matchedValueType: Object?
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -644,15 +666,16 @@ void f(({int foo}) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: DeclaredVariablePattern
         keyword: var
         name: foo
         declaredElement: hasImplicitType foo@55
           type: int
-      fieldElement: <null>
+        matchedValueType: int
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -674,8 +697,8 @@ void f(({int? foo}) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: CastPattern
         pattern: DeclaredVariablePattern
@@ -683,6 +706,7 @@ RecordPattern
           name: foo
           declaredElement: hasImplicitType foo@56
             type: int
+          matchedValueType: int
         asToken: as
         type: NamedType
           name: SimpleIdentifier
@@ -690,7 +714,8 @@ RecordPattern
             staticElement: dart:core::@class::int
             staticType: null
           type: int
-      fieldElement: <null>
+        matchedValueType: int?
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
 ''');
@@ -712,8 +737,8 @@ void f(({int? foo}) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: NullAssertPattern
         pattern: DeclaredVariablePattern
@@ -721,8 +746,10 @@ RecordPattern
           name: foo
           declaredElement: hasImplicitType foo@56
             type: int
+          matchedValueType: int
         operator: !
-      fieldElement: <null>
+        matchedValueType: int?
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
 ''');
@@ -744,8 +771,8 @@ void f(({int? foo}) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: NullCheckPattern
         pattern: DeclaredVariablePattern
@@ -753,8 +780,10 @@ RecordPattern
           name: foo
           declaredElement: hasImplicitType foo@56
             type: int
+          matchedValueType: int
         operator: ?
-      fieldElement: <null>
+        matchedValueType: int?
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
 ''');
@@ -776,13 +805,14 @@ void f((int,) x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@48
           type: int
-      fieldElement: <null>
+        matchedValueType: int
+      element: <null>
   rightParenthesis: )
   matchedValueType: (int)
 ''');
@@ -804,18 +834,20 @@ PatternVariableDeclaration
   pattern: RecordPattern
     leftParenthesis: (
     fields
-      RecordPatternField
+      PatternField
         pattern: DeclaredVariablePattern
           name: a
           declaredElement: hasImplicitType a@33
             type: int
-        fieldElement: <null>
-      RecordPatternField
+          matchedValueType: int
+        element: <null>
+      PatternField
         pattern: DeclaredVariablePattern
           name: b
           declaredElement: hasImplicitType b@36
             type: String
-        fieldElement: <null>
+          matchedValueType: String
+        element: <null>
     rightParenthesis: )
     matchedValueType: (int, String)
   equals: =
@@ -845,7 +877,7 @@ PatternVariableDeclaration
   pattern: RecordPattern
     leftParenthesis: (
     fields
-      RecordPatternField
+      PatternField
         pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
@@ -856,8 +888,9 @@ PatternVariableDeclaration
           name: a
           declaredElement: a@22
             type: int
-        fieldElement: <null>
-      RecordPatternField
+          matchedValueType: int
+        element: <null>
+      PatternField
         pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
@@ -868,7 +901,8 @@ PatternVariableDeclaration
           name: b
           declaredElement: b@32
             type: String
-        fieldElement: <null>
+          matchedValueType: String
+        element: <null>
     rightParenthesis: )
     matchedValueType: (int, String)
   equals: =

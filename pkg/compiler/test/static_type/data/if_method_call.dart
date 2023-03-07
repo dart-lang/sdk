@@ -32,5 +32,5 @@ ifMethodCall(a) {
 
 main() {
   ifMethodCall(null);
-  new Class(). /*spec.invoke: [Class]->dynamic*/ test(null);
+  Class(). /*spec.invoke: [Class]->dynamic*/ test(null);
 }

@@ -137,7 +137,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       Result<TestDescription> expectMatch =
           await context.match<TestDescription>(
               filename, result!, description.uri, description);
-      if (expectMatch.outcome != Expectation.Pass) return expectMatch;
+      if (expectMatch.outcome != Expectation.pass) return expectMatch;
 
       if (formatterException != null) {
         return new Result(

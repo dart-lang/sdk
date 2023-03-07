@@ -119,7 +119,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       _extensionTearOff = new Procedure(
           dummyName, ProcedureKind.Method, new FunctionNode(null),
           isStatic: true,
-          isExtensionMember: true,
+          isExtensionMember: isExtensionInstanceMember,
+          isInlineClassMember: isInlineClassInstanceMember,
           reference: _tearOffReference,
           fileUri: fileUri)
         ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;

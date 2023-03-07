@@ -10,6 +10,7 @@
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
@@ -93,8 +94,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     return TypedData::null();
   }
 
-  intptr_t stack_height = compiler->StackSize();
-  AllocateIncomingParametersRecursive(deopt_env_, &stack_height);
+  AllocateOutgoingArguments(deopt_env_);
 
   intptr_t slot_ix = 0;
   Environment* current = deopt_env_;
@@ -462,7 +462,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
   __ LoadObject(RBX, ic_data);
   GenerateDartCall(deopt_id, source, stub,
                    UntaggedPcDescriptors::kUnoptStaticCall, locs, entry_kind);
-  __ Drop(size_with_type_args, RCX);
+  EmitDropArguments(size_with_type_args);
 }
 
 void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
@@ -501,7 +501,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   __ LoadUniqueObject(IC_DATA_REG, ic_data);
   GenerateDartCall(deopt_id, source, stub, UntaggedPcDescriptors::kIcCall, locs,
                    entry_kind);
-  __ Drop(ic_data.SizeWithTypeArgs(), RCX);
+  EmitDropArguments(ic_data.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
@@ -526,7 +526,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
   __ call(compiler::FieldAddress(CODE_REG, entry_point_offset));
   EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kIcCall, locs,
                        pending_deoptimization_env_);
-  __ Drop(ic_data.SizeWithTypeArgs(), RCX);
+  EmitDropArguments(ic_data.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitMegamorphicInstanceCall(
@@ -573,7 +573,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     }
   }
   RecordCatchEntryMoves(pending_deoptimization_env_);
-  __ Drop(args_desc.SizeWithTypeArgs(), RCX);
+  EmitDropArguments(args_desc.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
@@ -615,7 +615,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
 
   EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs,
                        pending_deoptimization_env_);
-  __ Drop(ic_data.SizeWithTypeArgs(), RCX);
+  EmitDropArguments(ic_data.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitOptimizedStaticCall(
@@ -640,7 +640,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   // we can record the outgoing edges to other code.
   GenerateStaticDartCall(deopt_id, source, UntaggedPcDescriptors::kOther, locs,
                          function, entry_kind);
-  __ Drop(size_with_type_args, RCX);
+  EmitDropArguments(size_with_type_args);
 }
 
 void FlowGraphCompiler::EmitDispatchTableCall(
@@ -1069,10 +1069,9 @@ void FlowGraphCompiler::LoadBSSEntry(BSS::Relocation relocation,
 #undef __
 #define __ compiler_->assembler()->
 
-void ParallelMoveResolver::EmitSwap(int index) {
-  MoveOperands* move = moves_[index];
-  const Location source = move->src();
-  const Location destination = move->dest();
+void ParallelMoveEmitter::EmitSwap(const MoveOperands& move) {
+  const Location source = move.src();
+  const Location destination = move.dest();
 
   if (source.IsRegister() && destination.IsRegister()) {
     __ xchgq(destination.reg(), source.reg());
@@ -1131,66 +1130,49 @@ void ParallelMoveResolver::EmitSwap(int index) {
   } else {
     UNREACHABLE();
   }
-
-  // The swap of source and destination has executed a move from source to
-  // destination.
-  move->Eliminate();
-
-  // Any unperformed (including pending) move with a source of either
-  // this move's source or destination needs to have their source
-  // changed to reflect the state of affairs after the swap.
-  for (int i = 0; i < moves_.length(); ++i) {
-    const MoveOperands& other_move = *moves_[i];
-    if (other_move.Blocks(source)) {
-      moves_[i]->set_src(destination);
-    } else if (other_move.Blocks(destination)) {
-      moves_[i]->set_src(source);
-    }
-  }
 }
 
-void ParallelMoveResolver::MoveMemoryToMemory(const compiler::Address& dst,
-                                              const compiler::Address& src) {
+void ParallelMoveEmitter::MoveMemoryToMemory(const compiler::Address& dst,
+                                             const compiler::Address& src) {
   __ MoveMemoryToMemory(dst, src);
 }
 
-void ParallelMoveResolver::Exchange(Register reg,
-                                    const compiler::Address& mem) {
+void ParallelMoveEmitter::Exchange(Register reg, const compiler::Address& mem) {
   __ Exchange(reg, mem);
 }
 
-void ParallelMoveResolver::Exchange(const compiler::Address& mem1,
-                                    const compiler::Address& mem2) {
+void ParallelMoveEmitter::Exchange(const compiler::Address& mem1,
+                                   const compiler::Address& mem2) {
   __ Exchange(mem1, mem2);
 }
 
-void ParallelMoveResolver::Exchange(Register reg,
-                                    Register base_reg,
-                                    intptr_t stack_offset) {
+void ParallelMoveEmitter::Exchange(Register reg,
+                                   Register base_reg,
+                                   intptr_t stack_offset) {
   UNREACHABLE();
 }
 
-void ParallelMoveResolver::Exchange(Register base_reg1,
-                                    intptr_t stack_offset1,
-                                    Register base_reg2,
-                                    intptr_t stack_offset2) {
+void ParallelMoveEmitter::Exchange(Register base_reg1,
+                                   intptr_t stack_offset1,
+                                   Register base_reg2,
+                                   intptr_t stack_offset2) {
   UNREACHABLE();
 }
 
-void ParallelMoveResolver::SpillScratch(Register reg) {
+void ParallelMoveEmitter::SpillScratch(Register reg) {
   __ pushq(reg);
 }
 
-void ParallelMoveResolver::RestoreScratch(Register reg) {
+void ParallelMoveEmitter::RestoreScratch(Register reg) {
   __ popq(reg);
 }
 
-void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::SpillFpuScratch(FpuRegister reg) {
   __ AddImmediate(RSP, compiler::Immediate(-kFpuRegisterSize));
   __ movups(compiler::Address(RSP, 0), reg);
 }
 
-void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::RestoreFpuScratch(FpuRegister reg) {
   __ movups(reg, compiler::Address(RSP, 0));
   __ AddImmediate(RSP, compiler::Immediate(kFpuRegisterSize));
 }

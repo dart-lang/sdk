@@ -260,6 +260,6 @@ constants  {
   #C2 = #extendedMethod
   #C3 = <core::Type*>[]
   #C4 = <dynamic>[]
-  #C5 = <core::Symbol*, dynamic>{)
+  #C5 = <core::Symbol*, dynamic>{}
   #C6 = #mixedInMethod
 }

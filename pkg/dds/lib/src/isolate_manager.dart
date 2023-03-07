@@ -37,8 +37,8 @@ enum _IsolateState {
   pausePostRequest,
 }
 
-class _RunningIsolate {
-  _RunningIsolate(this.isolateManager, this.id, this.name)
+class RunningIsolate {
+  RunningIsolate(this.isolateManager, this.id, this.name)
       : cpuSamplesManager = CpuSamplesManager(
           isolateManager.dds,
           id,
@@ -233,7 +233,7 @@ class IsolateManager {
           }
           final name = isolate['name'];
           if (isolate.containsKey('pauseEvent')) {
-            isolates[id] = _RunningIsolate(this, id, name);
+            isolates[id] = RunningIsolate(this, id, name);
             final eventKind = isolate['pauseEvent']['kind'];
             _updateIsolateState(id, name, eventKind);
           } else {
@@ -256,7 +256,7 @@ class IsolateManager {
 
   /// Initializes state for a newly started isolate.
   void isolateStarted(String id, String name) {
-    final isolate = _RunningIsolate(this, id, name);
+    final isolate = RunningIsolate(this, id, name);
     isolate.running();
     isolates[id] = isolate;
   }
@@ -324,5 +324,5 @@ class IsolateManager {
   bool _initialized = false;
   final DartDevelopmentServiceImpl dds;
   final _mutex = Mutex();
-  final Map<String, _RunningIsolate> isolates = {};
+  final Map<String, RunningIsolate> isolates = {};
 }

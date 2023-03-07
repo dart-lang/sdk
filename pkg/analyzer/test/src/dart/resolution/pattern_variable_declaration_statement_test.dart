@@ -40,7 +40,9 @@ PatternVariableDeclarationStatement
         name: a
         declaredElement: isFinal a@24
           type: num
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     equals: =
     expression: IntegerLiteral
       literal: 0
@@ -68,7 +70,9 @@ PatternVariableDeclarationStatement
         name: a
         declaredElement: hasImplicitType isFinal a@20
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     equals: =
     expression: IntegerLiteral
       literal: 0
@@ -99,7 +103,9 @@ PatternVariableDeclarationStatement
         name: a
         declaredElement: hasImplicitType a@18
           type: A
+        matchedValueType: A
       rightParenthesis: )
+      matchedValueType: A
     equals: =
     expression: InstanceCreationExpression
       constructorName: ConstructorName
@@ -143,7 +149,9 @@ PatternVariableDeclarationStatement
         name: a
         declaredElement: a@22
           type: num
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     equals: =
     expression: IntegerLiteral
       literal: 0
@@ -180,7 +188,9 @@ PatternVariableDeclarationStatement
         name: a
         declaredElement: a@22
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     equals: =
     expression: MethodInvocation
       methodName: SimpleIdentifier
@@ -217,7 +227,9 @@ PatternVariableDeclarationStatement
         name: a
         declaredElement: hasImplicitType a@18
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     equals: =
     expression: IntegerLiteral
       literal: 0
@@ -244,18 +256,20 @@ PatternVariableDeclarationStatement
     pattern: RecordPattern
       leftParenthesis: (
       fields
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: a
             declaredElement: hasImplicitType a@33
               type: int
-          fieldElement: <null>
-        RecordPatternField
+            matchedValueType: int
+          element: <null>
+        PatternField
           pattern: DeclaredVariablePattern
             name: b
             declaredElement: hasImplicitType b@36
               type: String
-          fieldElement: <null>
+            matchedValueType: String
+          element: <null>
       rightParenthesis: )
       matchedValueType: (int, String)
     equals: =

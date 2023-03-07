@@ -193,7 +193,7 @@ if (is_fuchsia) {
       if (defined(invoker.data_deps)) {
         data_deps += invoker.data_deps
       }
-      manifest = "build/fuchsia/dart.cmx"
+      manifest = invoker.manifest
 
       library_files = []
       if (defined(invoker.library_files)) {
@@ -229,6 +229,7 @@ if (is_fuchsia) {
   }
 
   dart_fuchsia_test_component("fuchsia_test_component") {
+    manifest = "build/fuchsia/fuchsia_test_component.cmx"
     resource_dirs = [
       "tests/standalone_2",
       "pkg/async_helper",
@@ -257,6 +258,7 @@ if (is_fuchsia) {
   }
 
   dart_fuchsia_test_component("fuchsia_ffi_test_component") {
+    manifest = "build/fuchsia/fuchsia_ffi_test_component.cmx"
     data_deps = [
       "runtime/bin:ffi_test_dynamic_library",
       "runtime/bin:ffi_test_functions",

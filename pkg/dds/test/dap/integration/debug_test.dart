@@ -143,7 +143,7 @@ main() {
 
       // Verify the order of the stderr output events.
       final output = outputEvents
-          .map((e) => '${e.output.trim()}')
+          .map((e) => e.output.trim())
           .where((output) => output.isNotEmpty)
           .join('\n');
       expectLines(output, [

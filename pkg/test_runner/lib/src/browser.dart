@@ -129,18 +129,18 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
   return false;
 }
 
-/// Generates the HTML template file needed to load and run a dartdevc test in
+/// Generates the HTML template file needed to load and run a ddc test in
 /// the browser.
 ///
 /// [testName] is the short name of the test without any subdirectory path
 /// or extension, like "math_test". [testNameAlias] is the alias of the
 /// test variable used for import/export (usually relative to its module root).
 /// [testJSDir] is the relative path to the build directory where the
-/// dartdevc-generated JS file is stored. [nonNullAsserts] enables non-null
+/// ddc-generated JS file is stored. [nonNullAsserts] enables non-null
 /// assertions for non-nullable method parameters when running with weak null
 /// safety. [weakNullSafetyErrors] enables null safety type violations to throw
 /// when running in weak mode.
-String dartdevcHtml(
+String ddcHtml(
     String testName,
     String testNameAlias,
     String testJSDir,
@@ -150,7 +150,6 @@ String dartdevcHtml(
     bool weakNullSafetyErrors) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
-  var isNnbd = mode != NnbdMode.legacy;
   var isNnbdStrong = mode == NnbdMode.strong;
   var sdkPath = isNnbdStrong ? 'sound/amd/dart_sdk' : 'kernel/amd/dart_sdk';
   var pkgDir = isNnbdStrong ? 'pkg_sound' : 'pkg_kernel';
@@ -231,11 +230,9 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
     }, 0);
   };
 
-  if ($isNnbd) {
-    sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $isNnbdStrong));
-    sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
-    sdk.dart.nonNullAsserts($nonNullAsserts);
-  }
+  sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $isNnbdStrong));
+  sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
+  sdk.dart.nonNullAsserts($nonNullAsserts);
 
   dartMainRunner(function testMainWrapper() {
     // Some callbacks are not scheduled with timers/microtasks, so they don't

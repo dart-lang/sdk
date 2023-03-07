@@ -5,13 +5,16 @@
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:test/test.dart';
 
+import 'env.dart';
+
 void main() {
-  group('isSubtypeOf()', () {
-    var a = StaticTypeImpl('A');
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var b2 = StaticTypeImpl('B2', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [b]);
-    var d = StaticTypeImpl('D', inherits: [c]);
+  group('isSubtypeOf() |', () {
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', inherits: [a]);
+    var b2 = env.createClass('B2', inherits: [a]);
+    var c = env.createClass('C', inherits: [b]);
+    var d = env.createClass('D', inherits: [c]);
 
     test('subtype includes self', () {
       expect(a.isSubtypeOf(a), isTrue);
@@ -59,12 +62,12 @@ void main() {
       //        I12  I23
       //           \/
       //          I123
-      var i1 = StaticTypeImpl('I1');
-      var i2 = StaticTypeImpl('I2');
-      var i3 = StaticTypeImpl('I3');
-      var i12 = StaticTypeImpl('I12', inherits: [i1, i2]);
-      var i23 = StaticTypeImpl('I12', inherits: [i2, i3]);
-      var i123 = StaticTypeImpl('I12', inherits: [i12, i23]);
+      var i1 = env.createClass('I1');
+      var i2 = env.createClass('I2');
+      var i3 = env.createClass('I3');
+      var i12 = env.createClass('I12', inherits: [i1, i2]);
+      var i23 = env.createClass('I23', inherits: [i2, i3]);
+      var i123 = env.createClass('I123', inherits: [i12, i23]);
 
       expect(i1.isSubtypeOf(i2), isFalse);
       expect(i2.isSubtypeOf(i1), isFalse);
@@ -98,41 +101,43 @@ void main() {
       expect(i23.isSubtypeOf(i123), isFalse);
       expect(i123.isSubtypeOf(i23), isTrue);
     });
+  });
 
-    test('nullable', () {
-      var a = StaticTypeImpl('A');
-      var b = StaticTypeImpl('B', inherits: [a]);
+  test('nullable', () {
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', inherits: [a]);
 
-      expect(StaticType.nullType.isSubtypeOf(a), isFalse);
-      expect(StaticType.nullType.isSubtypeOf(b), isFalse);
-      expect(StaticType.nullType.isSubtypeOf(a.nullable), isTrue);
-      expect(StaticType.nullType.isSubtypeOf(b.nullable), isTrue);
+    expect(StaticType.nullType.isSubtypeOf(a), isFalse);
+    expect(StaticType.nullType.isSubtypeOf(b), isFalse);
+    expect(StaticType.nullType.isSubtypeOf(a.nullable), isTrue);
+    expect(StaticType.nullType.isSubtypeOf(b.nullable), isTrue);
 
-      expect(a.isSubtypeOf(StaticType.nullType), isFalse);
-      expect(b.isSubtypeOf(StaticType.nullType), isFalse);
-      expect(a.nullable.isSubtypeOf(StaticType.nullType), isFalse);
-      expect(b.nullable.isSubtypeOf(StaticType.nullType), isFalse);
+    expect(a.isSubtypeOf(StaticType.nullType), isFalse);
+    expect(b.isSubtypeOf(StaticType.nullType), isFalse);
+    expect(a.nullable.isSubtypeOf(StaticType.nullType), isFalse);
+    expect(b.nullable.isSubtypeOf(StaticType.nullType), isFalse);
 
-      expect(a.isSubtypeOf(a.nullable), isTrue);
-      expect(a.nullable.isSubtypeOf(a), isFalse);
-      expect(a.nullable.isSubtypeOf(a.nullable), isTrue);
+    expect(a.isSubtypeOf(a.nullable), isTrue);
+    expect(a.nullable.isSubtypeOf(a), isFalse);
+    expect(a.nullable.isSubtypeOf(a.nullable), isTrue);
 
-      expect(a.isSubtypeOf(b.nullable), isFalse);
-      expect(a.nullable.isSubtypeOf(b), isFalse);
-      expect(a.nullable.isSubtypeOf(b.nullable), isFalse);
+    expect(a.isSubtypeOf(b.nullable), isFalse);
+    expect(a.nullable.isSubtypeOf(b), isFalse);
+    expect(a.nullable.isSubtypeOf(b.nullable), isFalse);
 
-      expect(b.isSubtypeOf(a.nullable), isTrue);
-      expect(b.nullable.isSubtypeOf(a), isFalse);
-      expect(b.nullable.isSubtypeOf(a.nullable), isTrue);
-    });
+    expect(b.isSubtypeOf(a.nullable), isTrue);
+    expect(b.nullable.isSubtypeOf(a), isFalse);
+    expect(b.nullable.isSubtypeOf(a.nullable), isTrue);
   });
 
   test('fields', () {
-    var a = StaticTypeImpl('A');
-    var b = StaticTypeImpl('B');
-    var c = StaticTypeImpl('C', fields: {'x': a, 'y': b});
-    var d = StaticTypeImpl('D', fields: {'w': a});
-    var e = StaticTypeImpl('E', inherits: [c, d], fields: {'z': b});
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B');
+    var c = env.createClass('C', fields: {'x': a, 'y': b});
+    var d = env.createClass('D', fields: {'w': a});
+    var e = env.createClass('E', inherits: [c, d], fields: {'z': b});
 
     expect(a.fields, isEmpty);
     expect(b.fields, isEmpty);
@@ -149,24 +154,37 @@ void main() {
     expect(e.fields['z'], b);
 
     // Overridden field types win.
-    var f = StaticTypeImpl('F', fields: {'x': a});
-    var g = StaticTypeImpl('G', inherits: [f], fields: {'x': b});
+    var f = env.createClass('F', fields: {'x': a});
+    var g = env.createClass('G', inherits: [f], fields: {'x': b});
     expect(g.fields, hasLength(1));
     expect(g.fields['x'], b);
   });
 
   test('subtypes', () {
-    var a = StaticTypeImpl('A', isSealed: true);
-    var b = StaticTypeImpl('B', inherits: [a]);
-    var c = StaticTypeImpl('C', inherits: [a]);
-    var d = StaticTypeImpl('D', inherits: [c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    env.createClass('D', inherits: [c]);
+    var e = env.createClass('E', isSealed: true, inherits: [a]);
+    var f = env.createClass('F', inherits: [e]);
 
     // Gets subtypes for sealed type.
     var aSubtypes = a.subtypes.toList();
-    expect(aSubtypes, unorderedEquals([b, c]));
+    expect(
+        aSubtypes,
+        unorderedEquals([
+          WrappedStaticType(b, a),
+          WrappedStaticType(c, a),
+          WrappedStaticType(e, a)
+        ]));
 
-    // And unsealed.
+    // Unsealed subtype.
     var cSubtypes = c.subtypes.toList();
-    expect(cSubtypes, unorderedEquals([d]));
+    expect(cSubtypes, unorderedEquals([]));
+
+    // Sealed subtype.
+    var eSubtypes = e.subtypes.toList();
+    expect(eSubtypes, unorderedEquals([WrappedStaticType(f, e)]));
   });
 }

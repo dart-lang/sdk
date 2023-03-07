@@ -595,16 +595,28 @@ class Printer implements NodeVisitor {
     visitCommaSeparated(fun.params, PRIMARY,
         newInForInit: false, newAtStatementBegin: false);
     out(')');
+
+    // When pattern support is enabled, case clauses like `case
+    // AsyncModifier.sync()` will be re-interpreted as object patterns (which
+    // won't be valid, since object patterns can't refer to named constructors).
+    // To preserve the intended behavior, we need to extract these as named
+    // constants.  TODO(paulberry): once pattern support is enabled, inline
+    // these constants back into the switch statement.
+    const sync_ = AsyncModifier.sync();
+    const async_ = AsyncModifier.async();
+    const syncStar = AsyncModifier.syncStar();
+    const asyncStar = AsyncModifier.asyncStar();
+
     switch (fun.asyncModifier) {
-      case AsyncModifier.sync():
+      case sync_:
         break;
-      case AsyncModifier.async():
+      case async_:
         out(' async');
         break;
-      case AsyncModifier.syncStar():
+      case syncStar:
         out(' sync*');
         break;
-      case AsyncModifier.asyncStar():
+      case asyncStar:
         out(' async*');
         break;
     }

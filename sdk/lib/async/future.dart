@@ -748,8 +748,11 @@ abstract class Future<T> {
   /// and a stack trace for the error.
   /// In the case of `onError`,
   /// if the exception thrown is `identical` to the error argument to `onError`,
+  /// and it is thrown *synchronously*
   /// the throw is considered a rethrow,
   /// and the original stack trace is used instead.
+  /// To rethrow with the same stack trace in an asynchronous callback,
+  /// use [Error.throwWithStackTrace].
   ///
   /// If the callback returns a [Future],
   /// the future returned by `then` will be completed with
@@ -1054,12 +1057,20 @@ extension FutureExtensions<T> on Future<T> {
   Future<T> onError<E extends Object>(
       FutureOr<T> handleError(E error, StackTrace stackTrace),
       {bool test(E error)?}) {
-    // There are various ways to optimize this to avoid the double is E/as E
-    // type check, but for now we are not optimizing the error path.
-    return this.catchError(
-        (Object error, StackTrace stackTrace) =>
-            handleError(error as E, stackTrace),
-        test: (Object error) => error is E && (test == null || test(error)));
+    FutureOr<T> onError(Object error, StackTrace stackTrace) {
+      if (error is! E || test != null && !test(error)) {
+        // Counts as rethrow, preserves stack trace.
+        throw error;
+      }
+      return handleError(error, stackTrace);
+    }
+    if (this is _Future<Object?>) {
+      // Internal method working like `catchError`,
+      // but allows specifying a different result future type.
+      return unsafeCast<_Future<T>>(this)._safeOnError<T>(onError);
+    }
+
+    return this.then<T>((T value) => value, onError: onError);
   }
 
   /// Completely ignores this future and its result.
@@ -1110,7 +1121,7 @@ class TimeoutException implements Exception {
 /// A way to produce Future objects and to complete them later
 /// with a value or error.
 ///
-/// Most of the time, the simplest way to create a future is to just use
+/// Most of the time, the simples t way to create a future is to just use
 /// one of the [Future] constructors to capture the result of a single
 /// asynchronous computation:
 /// ```dart

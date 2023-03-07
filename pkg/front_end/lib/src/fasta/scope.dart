@@ -51,6 +51,9 @@ enum ScopeKind {
   /// Scope of the head of the if-case statement
   ifCaseHead,
 
+  /// Scope of an if-element in a collection
+  ifElement,
+
   /// Scope for the initializers of generative constructors
   initializers,
 
@@ -137,7 +140,7 @@ class MutableScope {
   Scope? get parent => _parent;
 
   @override
-  String toString() => "Scope($classNameOrDebugName, ${_local.keys})";
+  String toString() => "Scope(${kind}, $classNameOrDebugName, ${_local.keys})";
 }
 
 class Scope extends MutableScope {

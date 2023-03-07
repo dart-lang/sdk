@@ -71,7 +71,6 @@ var tests = <IsolateTest>[
 
     var bpt1 = await isolate.addBreakOnActivation(r1Ref);
     print("Added breakpoint $bpt1");
-    expect(bpt1 is Breakpoint, isTrue);
     expect(breaksHit, equals(0));
     await r1Ref.reload();
     expect(r1Ref.activationBreakpoint, equals(bpt1));
@@ -115,7 +114,6 @@ var tests = <IsolateTest>[
 
     var bpt1 = await isolate.addBreakOnActivation(r1Ref);
     print("Added breakpoint $bpt1");
-    expect(bpt1 is Breakpoint, isTrue);
     expect(breaksHit, equals(0));
     await r1Ref.reload();
     expect(r1Ref.activationBreakpoint, equals(bpt1));
@@ -160,7 +158,6 @@ var tests = <IsolateTest>[
 
     var bpt1 = await isolate.addBreakOnActivation(r1Ref);
     print("Added breakpoint $bpt1");
-    expect(bpt1 is Breakpoint, isTrue);
     expect(breaksHit, equals(0));
     await r1Ref.reload();
     expect(r1Ref.activationBreakpoint, equals(bpt1));
@@ -171,7 +168,6 @@ var tests = <IsolateTest>[
 
     var bpt2 = await isolate.addBreakOnActivation(r2Ref);
     print("Added breakpoint $bpt2");
-    expect(bpt2 is Breakpoint, isTrue);
     expect(breaksHit, equals(1));
     await r2Ref.reload();
     expect(r2Ref.activationBreakpoint, equals(bpt2));

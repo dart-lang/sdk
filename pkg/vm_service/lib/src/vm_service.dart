@@ -8,6 +8,8 @@
 ///
 /// The main entry-point for this library is the [VmService] class.
 
+// ignore_for_file: overridden_fields
+
 import 'dart:async';
 import 'dart:convert' show base64, jsonDecode, jsonEncode, utf8;
 import 'dart:typed_data';
@@ -26,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.1.0';
+const String vmServiceVersion = '4.3.0';
 
 /// @optional
 const String optional = 'optional';
@@ -74,7 +76,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
 }
 
 dynamic _createSpecificObject(
-    dynamic json, dynamic creator(Map<String, dynamic> map)) {
+    dynamic json, dynamic Function(Map<String, dynamic> map) creator) {
   if (json == null) return null;
 
   if (json is List) {
@@ -209,6 +211,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getFlagList': const ['FlagList'],
   'getInboundReferences': const ['InboundReferences'],
   'getInstances': const ['InstanceSet'],
+  'getInstancesAsList': const ['InstanceRef'],
   'getIsolate': const ['Isolate'],
   'getIsolateGroup': const ['IsolateGroup'],
   'getMemoryUsage': const ['MemoryUsage'],
@@ -280,7 +283,7 @@ abstract class VmServiceInterface {
   /// breakpoints.
   ///
   /// If no breakpoint is possible at that line, the `102` (Cannot add
-  /// breakpoint) [RPC error] code is returned.
+  /// breakpoint) RPC error code is returned.
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   ///
@@ -317,7 +320,7 @@ abstract class VmServiceInterface {
   /// breakpoints.
   ///
   /// If no breakpoint is possible at that line, the `102` (Cannot add
-  /// breakpoint) [RPC error] code is returned.
+  /// breakpoint) RPC error code is returned.
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   ///
@@ -339,7 +342,7 @@ abstract class VmServiceInterface {
   /// entrypoint of some function.
   ///
   /// If no breakpoint is possible at the function entry, the `102` (Cannot add
-  /// breakpoint) [RPC error] code is returned.
+  /// breakpoint) RPC error code is returned.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
@@ -391,7 +394,7 @@ abstract class VmServiceInterface {
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
-  /// If invocation triggers a failed compilation then [RPC error] 113
+  /// If invocation triggers a failed compilation then [RPCError] 113
   /// "Expression compilation error" is returned.
   ///
   /// If a runtime error occurs while evaluating the invocation, an [ErrorRef]
@@ -437,7 +440,7 @@ abstract class VmServiceInterface {
   /// as a result of this evaluation are ignored. Defaults to false if not
   /// provided.
   ///
-  /// If the expression fails to parse and compile, then [RPC error] 113
+  /// If the expression fails to parse and compile, then [RPCError] 113
   /// "Expression compilation error" is returned.
   ///
   /// If an error occurs while evaluating the expression, an [ErrorRef]
@@ -472,7 +475,7 @@ abstract class VmServiceInterface {
   /// as a result of this evaluation are ignored. Defaults to false if not
   /// provided.
   ///
-  /// If the expression fails to parse and compile, then [RPC error] 113
+  /// If the expression fails to parse and compile, then [RPCError] 113
   /// "Expression compilation error" is returned.
   ///
   /// If an error occurs while evaluating the expression, an [ErrorRef]
@@ -516,9 +519,9 @@ abstract class VmServiceInterface {
 
   /// The `getAllocationTraces` RPC allows for the retrieval of allocation
   /// traces for objects of a specific set of types (see
-  /// [setTraceClassAllocation]). Only samples collected in the time range
-  /// `[timeOriginMicros, timeOriginMicros + timeExtentMicros]` will be
-  /// reported.
+  /// [VmServiceInterface.setTraceClassAllocation]). Only samples collected in
+  /// the time range `[timeOriginMicros, timeOriginMicros + timeExtentMicros]`
+  /// will be reported.
   ///
   /// If `classId` is provided, only traces for allocations with the matching
   /// `classId` will be reported.
@@ -552,7 +555,7 @@ abstract class VmServiceInterface {
   /// profiler. Only samples collected in the time range `[timeOriginMicros,
   /// timeOriginMicros + timeExtentMicros]` will be reported.
   ///
-  /// If the profiler is disabled, an [RPC error] response will be returned.
+  /// If the profiler is disabled, an [RPCError] response will be returned.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
@@ -612,7 +615,7 @@ abstract class VmServiceInterface {
   /// yet been garbage collected.
   ///
   /// `objectId` is the ID of the `Class` to retrieve instances for. `objectId`
-  /// must be the ID of a `Class`, otherwise an [RPC error] is returned.
+  /// must be the ID of a `Class`, otherwise an [RPCError] is returned.
   ///
   /// `limit` is the maximum number of instances to be returned.
   ///
@@ -634,6 +637,43 @@ abstract class VmServiceInterface {
     String isolateId,
     String objectId,
     int limit, {
+    bool? includeSubclasses,
+    bool? includeImplementers,
+  });
+
+  /// The `getInstancesAsList` RPC is used to retrieve a set of instances which
+  /// are of a specific class. This RPC returns an `InstanceRef` corresponding
+  /// to a Dart `List<dynamic>` that contains the requested instances. This
+  /// `List` is not growable, but it is otherwise mutable. The response type is
+  /// what distinguishes this RPC from `getInstances`, which returns an
+  /// `InstanceSet`.
+  ///
+  /// The order of the instances is undefined (i.e., not related to allocation
+  /// order) and unstable (i.e., multiple invocations of this method against the
+  /// same class can give different answers even if no Dart code has executed
+  /// between the invocations).
+  ///
+  /// The set of instances may include objects that are unreachable but have not
+  /// yet been garbage collected.
+  ///
+  /// `objectId` is the ID of the `Class` to retrieve instances for. `objectId`
+  /// must be the ID of a `Class`, otherwise an [RPCError] is returned.
+  ///
+  /// If `includeSubclasses` is true, instances of subclasses of the specified
+  /// class will be included in the set.
+  ///
+  /// If `includeImplementers` is true, instances of implementers of the
+  /// specified class will be included in the set. Note that subclasses of a
+  /// class are also considered implementers of that class.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<InstanceRef> getInstancesAsList(
+    String isolateId,
+    String objectId, {
     bool? includeSubclasses,
     bool? includeImplementers,
   });
@@ -882,8 +922,8 @@ abstract class VmServiceInterface {
   /// The `timeOriginMicros` parameter is the beginning of the time range used
   /// to filter timeline events. It uses the same monotonic clock as
   /// dart:developer's `Timeline.now` and the VM embedding API's
-  /// `Dart_TimelineGetMicros`. See [getVMTimelineMicros] for access to this
-  /// clock through the service protocol.
+  /// `Dart_TimelineGetMicros`. See [VmServiceInterface.getVMTimelineMicros] for
+  /// access to this clock through the service protocol.
   ///
   /// The `timeExtentMicros` parameter specifies how large the time range used
   /// to filter timeline events should be.
@@ -893,18 +933,18 @@ abstract class VmServiceInterface {
   /// `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
   ///
   /// If `getVMTimeline` is invoked while the current recorder is Callback, an
-  /// [RPC error] with error code `114`, `invalid timeline request`, will be
+  /// [RPCError] with error code `114`, `invalid timeline request`, will be
   /// returned as timeline events are handled by the embedder in this mode.
   ///
   /// If `getVMTimeline` is invoked while the current recorder is one of Fuchsia
-  /// or Macos or Systrace, an [RPC error] with error code `114`, `invalid
+  /// or Macos or Systrace, an [RPCError] with error code `114`, `invalid
   /// timeline request`, will be returned as timeline events are handled by the
   /// OS in these modes.
   ///
-  /// If `getVMTimeline` is invoked while the current recorder is File, an [RPC
-  /// error] with error code `114`, `invalid timeline request`, will be returned
-  /// as timeline events are written directly to a file, and thus cannot be
-  /// retrieved through the VM Service, in this mode.
+  /// If `getVMTimeline` is invoked while the current recorder is File, an
+  /// [RPCError] with error code `114`, `invalid timeline request`, will be
+  /// returned as timeline events are written directly to a file, and thus
+  /// cannot be retrieved through the VM Service, in this mode.
   Future<Timeline> getVMTimeline(
       {int? timeOriginMicros, int? timeExtentMicros});
 
@@ -912,7 +952,7 @@ abstract class VmServiceInterface {
   /// timeline configuration.
   ///
   /// To change which timeline streams are currently enabled, see
-  /// [setVMTimelineFlags].
+  /// [VmServiceInterface.setVMTimelineFlags].
   ///
   /// See [TimelineFlags].
   Future<TimelineFlags> getVMTimelineFlags();
@@ -921,7 +961,7 @@ abstract class VmServiceInterface {
   /// clock used by the timeline, similar to `Timeline.now` in `dart:developer`
   /// and `Dart_TimelineGetMicros` in the VM embedding API.
   ///
-  /// See [Timestamp] and [getVMTimeline].
+  /// See [Timestamp] and [VmServiceInterface.getVMTimeline].
   Future<Timestamp> getVMTimelineMicros();
 
   /// The `pause` RPC is used to interrupt a running isolate. The RPC enqueues
@@ -1220,7 +1260,7 @@ abstract class VmServiceInterface {
   /// stream as a result of invoking this RPC.
   ///
   /// To get the list of currently enabled timeline streams, see
-  /// [getVMTimelineFlags].
+  /// [VmServiceInterface.getVMTimelineFlags].
   ///
   /// See [Success].
   Future<Success> setVMTimelineFlags(List<String> recordedStreams);
@@ -1228,7 +1268,7 @@ abstract class VmServiceInterface {
   /// The `streamCancel` RPC cancels a stream subscription in the VM.
   ///
   /// If the client is not subscribed to the stream, the `104` (Stream not
-  /// subscribed) [RPC error] code is returned.
+  /// subscribed) RPC error code is returned.
   ///
   /// See [Success].
   Future<Success> streamCancel(String streamId);
@@ -1246,7 +1286,7 @@ abstract class VmServiceInterface {
   /// the client will begin receiving events from the stream.
   ///
   /// If the client is already subscribed to the stream, the `103` (Stream
-  /// already subscribed) [RPC error] code is returned.
+  /// already subscribed) RPC error code is returned.
   ///
   /// The `streamId` parameter may have the following published values:
   ///
@@ -1325,8 +1365,11 @@ class VmServerConnection {
   VmServerConnection(this._requestStream, this._responseSink,
       this._serviceExtensionRegistry, this._serviceImplementation) {
     _requestStream.listen(_delegateRequest, onDone: _doneCompleter.complete);
-    done.then(
-        (_) => _streamSubscriptions.values.forEach((sub) => sub.cancel()));
+    done.then((_) {
+      for (var sub in _streamSubscriptions.values) {
+        sub.cancel();
+      }
+    });
   }
 
   /// Invoked when the current client has registered some extension, and
@@ -1469,6 +1512,14 @@ class VmServerConnection {
             params!['isolateId'],
             params['objectId'],
             params['limit'],
+            includeSubclasses: params['includeSubclasses'],
+            includeImplementers: params['includeImplementers'],
+          );
+          break;
+        case 'getInstancesAsList':
+          response = await _serviceImplementation.getInstancesAsList(
+            params!['isolateId'],
+            params['objectId'],
             includeSubclasses: params['includeSubclasses'],
             includeImplementers: params['includeImplementers'],
           );
@@ -1776,15 +1827,17 @@ class VmService implements VmServiceInterface {
   late final StreamSubscription _streamSub;
   late final Function _writeMessage;
   final Map<String, _OutstandingRequest> _outstandingRequests = {};
-  Map<String, ServiceCallback> _services = {};
+  final Map<String, ServiceCallback> _services = {};
   late final Log _log;
 
-  StreamController<String> _onSend = StreamController.broadcast(sync: true);
-  StreamController<String> _onReceive = StreamController.broadcast(sync: true);
+  final StreamController<String> _onSend =
+      StreamController.broadcast(sync: true);
+  final StreamController<String> _onReceive =
+      StreamController.broadcast(sync: true);
 
   final Completer _onDoneCompleter = Completer();
 
-  Map<String, StreamController<Event>> _eventControllers = {};
+  final Map<String, StreamController<Event>> _eventControllers = {};
 
   StreamController<Event> _getEventController(String eventName) {
     StreamController<Event>? controller = _eventControllers[eventName];
@@ -1799,7 +1852,7 @@ class VmService implements VmServiceInterface {
 
   VmService(
     Stream<dynamic> /*String|List<int>*/ inStream,
-    void writeMessage(String message), {
+    void Function(String message) writeMessage, {
     Log? log,
     DisposeHandler? disposeHandler,
     Future? streamClosed,
@@ -1807,7 +1860,7 @@ class VmService implements VmServiceInterface {
     _streamSub = inStream.listen(_processMessage,
         onDone: () => _onDoneCompleter.complete());
     _writeMessage = writeMessage;
-    _log = log == null ? _NullLog() : log;
+    _log = log ?? _NullLog();
     _disposeHandler = disposeHandler;
     streamClosed?.then((_) {
       if (!_onDoneCompleter.isCompleted) {
@@ -2006,6 +2059,21 @@ class VmService implements VmServiceInterface {
         'isolateId': isolateId,
         'objectId': objectId,
         'limit': limit,
+        if (includeSubclasses != null) 'includeSubclasses': includeSubclasses,
+        if (includeImplementers != null)
+          'includeImplementers': includeImplementers,
+      });
+
+  @override
+  Future<InstanceRef> getInstancesAsList(
+    String isolateId,
+    String objectId, {
+    bool? includeSubclasses,
+    bool? includeImplementers,
+  }) =>
+      _call('getInstancesAsList', {
+        'isolateId': isolateId,
+        'objectId': objectId,
         if (includeSubclasses != null) 'includeSubclasses': includeSubclasses,
         if (includeImplementers != null)
           'includeImplementers': includeImplementers,
@@ -2306,7 +2374,7 @@ class VmService implements VmServiceInterface {
   /// Register a service for invocation.
   void registerServiceCallback(String service, ServiceCallback cb) {
     if (_services.containsKey(service)) {
-      throw Exception('Service \'${service}\' already registered');
+      throw Exception('Service \'$service\' already registered');
     }
     _services[service] = cb;
   }
@@ -2351,7 +2419,7 @@ class VmService implements VmServiceInterface {
       _onReceive.add(message);
       json = jsonDecode(message)!;
     } catch (e, s) {
-      _log.severe('unable to decode message: ${message}, ${e}\n${s}');
+      _log.severe('unable to decode message: $message, $e\n$s');
       return;
     }
 
@@ -2365,7 +2433,7 @@ class VmService implements VmServiceInterface {
         (json.containsKey('result') || json.containsKey('error'))) {
       _processResponse(json);
     } else {
-      _log.severe('unknown message type: ${message}');
+      _log.severe('unknown message type: $message');
     }
   }
 
@@ -2485,6 +2553,7 @@ class RPCError implements Exception {
     return map;
   }
 
+  @override
   String toString() {
     if (details == null) {
       return '$callingMethod: ($code) $message';
@@ -2502,7 +2571,8 @@ class SentinelException implements Exception {
   SentinelException.parse(this.callingMethod, Map<String, dynamic> data)
       : sentinel = Sentinel.parse(data)!;
 
-  String toString() => '$sentinel from ${callingMethod}()';
+  @override
+  String toString() => '$sentinel from $callingMethod()';
 }
 
 /// An `ExtensionData` is an arbitrary map that can have any contents.
@@ -2516,7 +2586,8 @@ class ExtensionData {
 
   ExtensionData._fromJson(this.data);
 
-  String toString() => '[ExtensionData ${data}]';
+  @override
+  String toString() => '[ExtensionData $data]';
 }
 
 /// A logging handler you can pass to a [VmService] instance in order to get
@@ -2530,7 +2601,9 @@ abstract class Log {
 }
 
 class _NullLog implements Log {
+  @override
   void warning(String message) {}
+  @override
   void severe(String message) {}
 }
 // enums
@@ -2927,8 +3000,9 @@ class AllocationProfile extends Response {
     return json;
   }
 
+  @override
   String toString() =>
-      '[AllocationProfile members: ${members}, memoryUsage: ${memoryUsage}]';
+      '[AllocationProfile members: $members, memoryUsage: $memoryUsage]';
 }
 
 /// A `BoundField` represents a field bound to a particular value in an
@@ -2981,8 +3055,8 @@ class BoundField {
     return json;
   }
 
-  String toString() =>
-      '[BoundField decl: ${decl}, name: ${name}, value: ${value}]';
+  @override
+  String toString() => '[BoundField decl: $decl, name: $name, value: $value]';
 }
 
 /// A `BoundVariable` represents a local variable bound to a particular value in
@@ -3048,9 +3122,10 @@ class BoundVariable extends Response {
     return json;
   }
 
+  @override
   String toString() => '[BoundVariable ' //
-      'name: ${name}, value: ${value}, declarationTokenPos: ${declarationTokenPos}, ' //
-      'scopeStartTokenPos: ${scopeStartTokenPos}, scopeEndTokenPos: ${scopeEndTokenPos}]';
+      'name: $name, value: $value, declarationTokenPos: $declarationTokenPos, ' //
+      'scopeStartTokenPos: $scopeStartTokenPos, scopeEndTokenPos: $scopeEndTokenPos]';
 }
 
 /// A `Breakpoint` describes a debugger breakpoint.
@@ -3121,13 +3196,16 @@ class Breakpoint extends Obj {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Breakpoint && id == other.id;
 
+  @override
   String toString() => '[Breakpoint ' //
-      'id: ${id}, breakpointNumber: ${breakpointNumber}, enabled: ${enabled}, ' //
-      'resolved: ${resolved}, location: ${location}]';
+      'id: $id, breakpointNumber: $breakpointNumber, enabled: $enabled, ' //
+      'resolved: $resolved, location: $location]';
 }
 
 /// `ClassRef` is a reference to a `Class`.
@@ -3191,12 +3269,14 @@ class ClassRef extends ObjRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is ClassRef && id == other.id;
 
-  String toString() =>
-      '[ClassRef id: ${id}, name: ${name}, library: ${library}]';
+  @override
+  String toString() => '[ClassRef id: $id, name: $name, library: $library]';
 }
 
 /// A `Class` provides information about a Dart language class.
@@ -3205,19 +3285,23 @@ class Class extends Obj implements ClassRef {
       json == null ? null : Class._fromJson(json);
 
   /// The name of this class.
+  @override
   String? name;
 
   /// The location of this class in the source code.
   @optional
+  @override
   SourceLocation? location;
 
   /// The library which contains this class.
+  @override
   LibraryRef? library;
 
   /// The type parameters for the class.
   ///
   /// Provided if the class is generic.
   @optional
+  @override
   List<InstanceRef>? typeParameters;
 
   /// The error which occurred during class finalization, if it exists.
@@ -3229,6 +3313,21 @@ class Class extends Obj implements ClassRef {
 
   /// Is this a const class?
   bool? isConst;
+
+  /// Is this a sealed class?
+  bool? isSealed;
+
+  /// Is this a mixin class?
+  bool? isMixinClass;
+
+  /// Is this a base class?
+  bool? isBaseClass;
+
+  /// Is this an interface class?
+  bool? isInterfaceClass;
+
+  /// Is this a final class?
+  bool? isFinal;
 
   /// Are allocations of this class being traced?
   bool? traceAllocations;
@@ -3269,6 +3368,11 @@ class Class extends Obj implements ClassRef {
     this.library,
     this.isAbstract,
     this.isConst,
+    this.isSealed,
+    this.isMixinClass,
+    this.isBaseClass,
+    this.isInterfaceClass,
+    this.isFinal,
     this.traceAllocations,
     this.interfaces,
     this.fields,
@@ -3299,6 +3403,11 @@ class Class extends Obj implements ClassRef {
     error = createServiceObject(json['error'], const ['ErrorRef']) as ErrorRef?;
     isAbstract = json['abstract'] ?? false;
     isConst = json['const'] ?? false;
+    isSealed = json['isSealed'] ?? false;
+    isMixinClass = json['isMixinClass'] ?? false;
+    isBaseClass = json['isBaseClass'] ?? false;
+    isInterfaceClass = json['isInterfaceClass'] ?? false;
+    isFinal = json['isFinal'] ?? false;
     traceAllocations = json['traceAllocations'] ?? false;
     superClass =
         createServiceObject(json['super'], const ['ClassRef']) as ClassRef?;
@@ -3332,6 +3441,11 @@ class Class extends Obj implements ClassRef {
       'library': library?.toJson(),
       'abstract': isAbstract ?? false,
       'const': isConst ?? false,
+      'isSealed': isSealed ?? false,
+      'isMixinClass': isMixinClass ?? false,
+      'isBaseClass': isBaseClass ?? false,
+      'isInterfaceClass': isInterfaceClass ?? false,
+      'isFinal': isFinal ?? false,
       'traceAllocations': traceAllocations ?? false,
       'interfaces': interfaces?.map((f) => f.toJson()).toList(),
       'fields': fields?.map((f) => f.toJson()).toList(),
@@ -3348,10 +3462,13 @@ class Class extends Obj implements ClassRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Class && id == other.id;
 
+  @override
   String toString() => '[Class]';
 }
 
@@ -3410,9 +3527,10 @@ class ClassHeapStats extends Response {
     return json;
   }
 
+  @override
   String toString() => '[ClassHeapStats ' //
-      'classRef: ${classRef}, accumulatedSize: ${accumulatedSize}, ' //
-      'bytesCurrent: ${bytesCurrent}, instancesAccumulated: ${instancesAccumulated}, instancesCurrent: ${instancesCurrent}]';
+      'classRef: $classRef, accumulatedSize: $accumulatedSize, bytesCurrent: $bytesCurrent, ' //
+      'instancesAccumulated: $instancesAccumulated, instancesCurrent: $instancesCurrent]';
 }
 
 class ClassList extends Response {
@@ -3444,7 +3562,8 @@ class ClassList extends Response {
     return json;
   }
 
-  String toString() => '[ClassList classes: ${classes}]';
+  @override
+  String toString() => '[ClassList classes: $classes]';
 }
 
 /// `CodeRef` is a reference to a `Code` object.
@@ -3485,11 +3604,14 @@ class CodeRef extends ObjRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is CodeRef && id == other.id;
 
-  String toString() => '[CodeRef id: ${id}, name: ${name}, kind: ${kind}]';
+  @override
+  String toString() => '[CodeRef id: $id, name: $name, kind: $kind]';
 }
 
 /// A `Code` object represents compiled code in the Dart VM.
@@ -3498,9 +3620,11 @@ class Code extends Obj implements CodeRef {
       json == null ? null : Code._fromJson(json);
 
   /// A name for this code object.
+  @override
   String? name;
 
   /// What kind of code object is this?
+  @override
   /*CodeKind*/ String? kind;
 
   Code({
@@ -3530,11 +3654,14 @@ class Code extends Obj implements CodeRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Code && id == other.id;
 
-  String toString() => '[Code id: ${id}, name: ${name}, kind: ${kind}]';
+  @override
+  String toString() => '[Code id: $id, name: $name, kind: $kind]';
 }
 
 class ContextRef extends ObjRef {
@@ -3568,11 +3695,14 @@ class ContextRef extends ObjRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is ContextRef && id == other.id;
 
-  String toString() => '[ContextRef id: ${id}, length: ${length}]';
+  @override
+  String toString() => '[ContextRef id: $id, length: $length]';
 }
 
 /// A `Context` is a data structure which holds the captured variables for some
@@ -3582,6 +3712,7 @@ class Context extends Obj implements ContextRef {
       json == null ? null : Context._fromJson(json);
 
   /// The number of variables in this context.
+  @override
   int? length;
 
   /// The enclosing context for this context.
@@ -3625,12 +3756,15 @@ class Context extends Obj implements ContextRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Context && id == other.id;
 
+  @override
   String toString() =>
-      '[Context id: ${id}, length: ${length}, variables: ${variables}]';
+      '[Context id: $id, length: $length, variables: $variables]';
 }
 
 class ContextElement {
@@ -3658,10 +3792,11 @@ class ContextElement {
     return json;
   }
 
-  String toString() => '[ContextElement value: ${value}]';
+  @override
+  String toString() => '[ContextElement value: $value]';
 }
 
-/// See [getCpuSamples] and [CpuSample].
+/// See [VmServiceInterface.getCpuSamples] and [CpuSample].
 class CpuSamples extends Response {
   static CpuSamples? parse(Map<String, dynamic>? json) =>
       json == null ? null : CpuSamples._fromJson(json);
@@ -3741,9 +3876,10 @@ class CpuSamples extends Response {
     return json;
   }
 
+  @override
   String toString() => '[CpuSamples ' //
-      'samplePeriod: ${samplePeriod}, maxStackDepth: ${maxStackDepth}, ' //
-      'sampleCount: ${sampleCount}, timeOriginMicros: ${timeOriginMicros}, timeExtentMicros: ${timeExtentMicros}, pid: ${pid}, functions: ${functions}, samples: ${samples}]';
+      'samplePeriod: $samplePeriod, maxStackDepth: $maxStackDepth, ' //
+      'sampleCount: $sampleCount, timeOriginMicros: $timeOriginMicros, timeExtentMicros: $timeExtentMicros, pid: $pid, functions: $functions, samples: $samples]';
 }
 
 class CpuSamplesEvent {
@@ -3819,12 +3955,13 @@ class CpuSamplesEvent {
     return json;
   }
 
+  @override
   String toString() => '[CpuSamplesEvent ' //
-      'samplePeriod: ${samplePeriod}, maxStackDepth: ${maxStackDepth}, ' //
-      'sampleCount: ${sampleCount}, timeOriginMicros: ${timeOriginMicros}, timeExtentMicros: ${timeExtentMicros}, pid: ${pid}, functions: ${functions}, samples: ${samples}]';
+      'samplePeriod: $samplePeriod, maxStackDepth: $maxStackDepth, ' //
+      'sampleCount: $sampleCount, timeOriginMicros: $timeOriginMicros, timeExtentMicros: $timeExtentMicros, pid: $pid, functions: $functions, samples: $samples]';
 }
 
-/// See [getCpuSamples] and [CpuSamples].
+/// See [VmServiceInterface.getCpuSamples] and [CpuSamples].
 class CpuSample {
   static CpuSample? parse(Map<String, dynamic>? json) =>
       json == null ? null : CpuSample._fromJson(json);
@@ -3909,8 +4046,9 @@ class CpuSample {
     return json;
   }
 
+  @override
   String toString() =>
-      '[CpuSample tid: ${tid}, timestamp: ${timestamp}, stack: ${stack}]';
+      '[CpuSample tid: $tid, timestamp: $timestamp, stack: $stack]';
 }
 
 /// `ErrorRef` is a reference to an `Error`.
@@ -3951,24 +4089,28 @@ class ErrorRef extends ObjRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is ErrorRef && id == other.id;
 
-  String toString() =>
-      '[ErrorRef id: ${id}, kind: ${kind}, message: ${message}]';
+  @override
+  String toString() => '[ErrorRef id: $id, kind: $kind, message: $message]';
 }
 
 /// An `Error` represents a Dart language level error. This is distinct from an
-/// [RPC error].
+/// [RPCError].
 class Error extends Obj implements ErrorRef {
   static Error? parse(Map<String, dynamic>? json) =>
       json == null ? null : Error._fromJson(json);
 
   /// What kind of error is this?
+  @override
   /*ErrorKind*/ String? kind;
 
   /// A description of the error.
+  @override
   String? message;
 
   /// If this error is due to an unhandled exception, this is the exception
@@ -4016,11 +4158,14 @@ class Error extends Obj implements ErrorRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Error && id == other.id;
 
-  String toString() => '[Error id: ${id}, kind: ${kind}, message: ${message}]';
+  @override
+  String toString() => '[Error id: $id, kind: $kind, message: $message]';
 }
 
 /// An `Event` is an asynchronous notification from the VM. It is delivered only
@@ -4357,7 +4502,8 @@ class Event extends Response {
     return json;
   }
 
-  String toString() => '[Event kind: ${kind}, timestamp: ${timestamp}]';
+  @override
+  String toString() => '[Event kind: $kind, timestamp: $timestamp]';
 }
 
 /// An `FieldRef` is a reference to a `Field`.
@@ -4441,13 +4587,16 @@ class FieldRef extends ObjRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is FieldRef && id == other.id;
 
+  @override
   String toString() => '[FieldRef ' //
-      'id: ${id}, name: ${name}, owner: ${owner}, declaredType: ${declaredType}, ' //
-      'isConst: ${isConst}, isFinal: ${isFinal}, isStatic: ${isStatic}]';
+      'id: $id, name: $name, owner: $owner, declaredType: $declaredType, ' //
+      'isConst: $isConst, isFinal: $isFinal, isStatic: $isStatic]';
 }
 
 /// A `Field` provides information about a Dart language field or variable.
@@ -4456,27 +4605,33 @@ class Field extends Obj implements FieldRef {
       json == null ? null : Field._fromJson(json);
 
   /// The name of this field.
+  @override
   String? name;
 
   /// The owner of this field, which can be either a Library or a Class.
   ///
   /// Note: the location of `owner` may not agree with `location` if this is a
   /// field from a mixin application, patched class, etc.
+  @override
   ObjRef? owner;
 
   /// The declared type of this field.
   ///
   /// The value will always be of one of the kinds: Type, TypeRef,
   /// TypeParameter, BoundedType.
+  @override
   InstanceRef? declaredType;
 
   /// Is this field const?
+  @override
   bool? isConst;
 
   /// Is this field final?
+  @override
   bool? isFinal;
 
   /// Is this field static?
+  @override
   bool? isStatic;
 
   /// The location of this field in the source code.
@@ -4484,6 +4639,7 @@ class Field extends Obj implements FieldRef {
   /// Note: this may not agree with the location of `owner` if this is a field
   /// from a mixin application, patched class, etc.
   @optional
+  @override
   SourceLocation? location;
 
   /// The value of this field, if the field is static. If uninitialized, this
@@ -4542,13 +4698,16 @@ class Field extends Obj implements FieldRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Field && id == other.id;
 
+  @override
   String toString() => '[Field ' //
-      'id: ${id}, name: ${name}, owner: ${owner}, declaredType: ${declaredType}, ' //
-      'isConst: ${isConst}, isFinal: ${isFinal}, isStatic: ${isStatic}]';
+      'id: $id, name: $name, owner: $owner, declaredType: $declaredType, ' //
+      'isConst: $isConst, isFinal: $isFinal, isStatic: $isStatic]';
 }
 
 /// A `Flag` represents a single VM command line flag.
@@ -4596,8 +4755,9 @@ class Flag {
     return json;
   }
 
+  @override
   String toString() =>
-      '[Flag name: ${name}, comment: ${comment}, modified: ${modified}]';
+      '[Flag name: $name, comment: $comment, modified: $modified]';
 }
 
 /// A `FlagList` represents the complete set of VM command line flags.
@@ -4630,7 +4790,8 @@ class FlagList extends Response {
     return json;
   }
 
-  String toString() => '[FlagList flags: ${flags}]';
+  @override
+  String toString() => '[FlagList flags: $flags]';
 }
 
 class Frame extends Response {
@@ -4696,7 +4857,8 @@ class Frame extends Response {
     return json;
   }
 
-  String toString() => '[Frame index: ${index}]';
+  @override
+  String toString() => '[Frame index: $index]';
 }
 
 /// An `FuncRef` is a reference to a `Func`.
@@ -4780,13 +4942,16 @@ class FuncRef extends ObjRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is FuncRef && id == other.id;
 
+  @override
   String toString() => '[FuncRef ' //
-      'id: ${id}, name: ${name}, owner: ${owner}, isStatic: ${isStatic}, ' //
-      'isConst: ${isConst}, implicit: ${implicit}, isAbstract: ${isAbstract}]';
+      'id: $id, name: $name, owner: $owner, isStatic: $isStatic, ' //
+      'isConst: $isConst, implicit: $implicit, isAbstract: $isAbstract]';
 }
 
 /// A `Func` represents a Dart language function.
@@ -4795,6 +4960,7 @@ class Func extends Obj implements FuncRef {
       json == null ? null : Func._fromJson(json);
 
   /// The name of this function.
+  @override
   String? name;
 
   /// The owner of this function, which can be a Library, Class, or a Function.
@@ -4804,18 +4970,23 @@ class Func extends Obj implements FuncRef {
   /// etc.
   ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
+  @override
   dynamic owner;
 
   /// Is this function static?
+  @override
   bool? isStatic;
 
   /// Is this function const?
+  @override
   bool? isConst;
 
   /// Is this function implicitly defined (e.g., implicit getter/setter)?
+  @override
   bool? implicit;
 
   /// Is this function an abstract method?
+  @override
   bool? isAbstract;
 
   /// The location of this function in the source code.
@@ -4824,6 +4995,7 @@ class Func extends Obj implements FuncRef {
   /// function from a mixin application, expression evaluation, patched class,
   /// etc.
   @optional
+  @override
   SourceLocation? location;
 
   /// The signature of the function.
@@ -4884,13 +5056,16 @@ class Func extends Obj implements FuncRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Func && id == other.id;
 
+  @override
   String toString() => '[Func ' //
-      'id: ${id}, name: ${name}, owner: ${owner}, isStatic: ${isStatic}, ' //
-      'isConst: ${isConst}, implicit: ${implicit}, isAbstract: ${isAbstract}, signature: ${signature}]';
+      'id: $id, name: $name, owner: $owner, isStatic: $isStatic, ' //
+      'isConst: $isConst, implicit: $implicit, isAbstract: $isAbstract, signature: $signature]';
 }
 
 /// `InstanceRef` is a reference to an `Instance`.
@@ -5143,13 +5318,16 @@ class InstanceRef extends ObjRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is InstanceRef && id == other.id;
 
+  @override
   String toString() => '[InstanceRef ' //
-      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
-      'classRef: ${classRef}]';
+      'id: $id, kind: $kind, identityHashCode: $identityHashCode, ' //
+      'classRef: $classRef]';
 }
 
 /// An `Instance` represents an instance of the Dart language class `Obj`.
@@ -5158,11 +5336,13 @@ class Instance extends Obj implements InstanceRef {
       json == null ? null : Instance._fromJson(json);
 
   /// What kind of instance is this?
+  @override
   /*InstanceKind*/ String? kind;
 
   /// The identityHashCode assigned to the allocated object. This hash code is
   /// the same as the hash code provided in HeapSnapshot and CpuSample's
   /// returned by getAllocationTraces().
+  @override
   int? identityHashCode;
 
   /// Instance references always include their class.
@@ -5178,6 +5358,7 @@ class Instance extends Obj implements InstanceRef {
   ///  - String (value may be truncated)
   ///  - StackTrace
   @optional
+  @override
   String? valueAsString;
 
   /// The valueAsString for String references may be truncated. If so, this
@@ -5185,6 +5366,7 @@ class Instance extends Obj implements InstanceRef {
   ///
   /// New code should use 'length' and 'count' instead.
   @optional
+  @override
   bool? valueAsStringIsTruncated;
 
   /// The number of (non-static) fields of a PlainInstance, or the length of a
@@ -5214,6 +5396,7 @@ class Instance extends Obj implements InstanceRef {
   ///  - Float64x2List
   ///  - Record
   @optional
+  @override
   int? length;
 
   /// The index of the first element or association or codeunit returned. This
@@ -5271,6 +5454,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - Type
   @optional
+  @override
   String? name;
 
   /// The corresponding Class if this Type is canonical.
@@ -5278,6 +5462,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - Type
   @optional
+  @override
   ClassRef? typeClass;
 
   /// The parameterized class of a type parameter:
@@ -5285,6 +5470,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - TypeParameter
   @optional
+  @override
   ClassRef? parameterizedClass;
 
   /// The return type of a function.
@@ -5292,6 +5478,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - FunctionType
   @optional
+  @override
   InstanceRef? returnType;
 
   /// The list of parameter types for a function.
@@ -5299,6 +5486,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - FunctionType
   @optional
+  @override
   List<Parameter>? parameters;
 
   /// The type parameters for a function.
@@ -5306,6 +5494,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - FunctionType
   @optional
+  @override
   List<InstanceRef>? typeParameters;
 
   /// The (non-static) fields of this Instance.
@@ -5365,6 +5554,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - RegExp
   @optional
+  @override
   InstanceRef? pattern;
 
   /// The function associated with a Closure instance.
@@ -5372,6 +5562,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - Closure
   @optional
+  @override
   FuncRef? closureFunction;
 
   /// The context associated with a Closure instance.
@@ -5379,6 +5570,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - Closure
   @optional
+  @override
   ContextRef? closureContext;
 
   /// Whether this regular expression is case sensitive.
@@ -5458,6 +5650,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - ReceivePort
   @optional
+  @override
   int? portId;
 
   /// The stack trace associated with the allocation of a ReceivePort.
@@ -5465,6 +5658,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - ReceivePort
   @optional
+  @override
   InstanceRef? allocationLocation;
 
   /// A name associated with a ReceivePort used for debugging purposes.
@@ -5472,6 +5666,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - ReceivePort
   @optional
+  @override
   String? debugName;
 
   Instance({
@@ -5638,13 +5833,16 @@ class Instance extends Obj implements InstanceRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Instance && id == other.id;
 
+  @override
   String toString() => '[Instance ' //
-      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
-      'classRef: ${classRef}]';
+      'id: $id, kind: $kind, identityHashCode: $identityHashCode, ' //
+      'classRef: $classRef]';
 }
 
 /// `IsolateRef` is a reference to an `Isolate` object.
@@ -5701,13 +5899,16 @@ class IsolateRef extends Response {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is IsolateRef && id == other.id;
 
+  @override
   String toString() => '[IsolateRef ' //
-      'id: ${id}, number: ${number}, name: ${name}, isSystemIsolate: ${isSystemIsolate}, ' //
-      'isolateGroupId: ${isolateGroupId}]';
+      'id: $id, number: $number, name: $name, isSystemIsolate: $isSystemIsolate, ' //
+      'isolateGroupId: $isolateGroupId]';
 }
 
 /// An `Isolate` object provides information about one isolate in the VM.
@@ -5716,19 +5917,24 @@ class Isolate extends Response implements IsolateRef {
       json == null ? null : Isolate._fromJson(json);
 
   /// The id which is passed to the getIsolate RPC to reload this isolate.
+  @override
   String? id;
 
   /// A numeric id for this isolate, represented as a string. Unique.
+  @override
   String? number;
 
   /// A name identifying this isolate. Not guaranteed to be unique.
+  @override
   String? name;
 
   /// Specifies whether the isolate was spawned by the VM or embedder for
   /// internal use. If `false`, this isolate is likely running user code.
+  @override
   bool? isSystemIsolate;
 
   /// The id of the isolate group that this isolate belongs to.
+  @override
   String? isolateGroupId;
 
   /// The list of isolate flags provided to this isolate. See Dart_IsolateFlags
@@ -5860,10 +6066,13 @@ class Isolate extends Response implements IsolateRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Isolate && id == other.id;
 
+  @override
   String toString() => '[Isolate]';
 }
 
@@ -5897,8 +6106,9 @@ class IsolateFlag {
     return json;
   }
 
+  @override
   String toString() =>
-      '[IsolateFlag name: ${name}, valueAsString: ${valueAsString}]';
+      '[IsolateFlag name: $name, valueAsString: $valueAsString]';
 }
 
 /// `IsolateGroupRef` is a reference to an `IsolateGroup` object.
@@ -5950,12 +6160,15 @@ class IsolateGroupRef extends Response {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is IsolateGroupRef && id == other.id;
 
+  @override
   String toString() => '[IsolateGroupRef ' //
-      'id: ${id}, number: ${number}, name: ${name}, isSystemIsolateGroup: ${isSystemIsolateGroup}]';
+      'id: $id, number: $number, name: $name, isSystemIsolateGroup: $isSystemIsolateGroup]';
 }
 
 /// An `IsolateGroup` object provides information about an isolate group in the
@@ -5965,16 +6178,20 @@ class IsolateGroup extends Response implements IsolateGroupRef {
       json == null ? null : IsolateGroup._fromJson(json);
 
   /// The id which is passed to the getIsolateGroup RPC to reload this isolate.
+  @override
   String? id;
 
   /// A numeric id for this isolate, represented as a string. Unique.
+  @override
   String? number;
 
   /// A name identifying this isolate group. Not guaranteed to be unique.
+  @override
   String? name;
 
   /// Specifies whether the isolate group was spawned by the VM or embedder for
   /// internal use. If `false`, this isolate group is likely running user code.
+  @override
   bool? isSystemIsolateGroup;
 
   /// A list of all isolates in this isolate group.
@@ -6015,16 +6232,19 @@ class IsolateGroup extends Response implements IsolateGroupRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is IsolateGroup && id == other.id;
 
+  @override
   String toString() => '[IsolateGroup ' //
-      'id: ${id}, number: ${number}, name: ${name}, isSystemIsolateGroup: ${isSystemIsolateGroup}, ' //
-      'isolates: ${isolates}]';
+      'id: $id, number: $number, name: $name, isSystemIsolateGroup: $isSystemIsolateGroup, ' //
+      'isolates: $isolates]';
 }
 
-/// See [getInboundReferences].
+/// See [VmServiceInterface.getInboundReferences].
 class InboundReferences extends Response {
   static InboundReferences? parse(Map<String, dynamic>? json) =>
       json == null ? null : InboundReferences._fromJson(json);
@@ -6057,10 +6277,11 @@ class InboundReferences extends Response {
     return json;
   }
 
-  String toString() => '[InboundReferences references: ${references}]';
+  @override
+  String toString() => '[InboundReferences references: $references]';
 }
 
-/// See [getInboundReferences].
+/// See [VmServiceInterface.getInboundReferences].
 class InboundReference {
   static InboundReference? parse(Map<String, dynamic>? json) =>
       json == null ? null : InboundReference._fromJson(json);
@@ -6115,10 +6336,11 @@ class InboundReference {
     return json;
   }
 
-  String toString() => '[InboundReference source: ${source}]';
+  @override
+  String toString() => '[InboundReference source: $source]';
 }
 
-/// See [getInstances].
+/// See [VmServiceInterface.getInstances].
 class InstanceSet extends Response {
   static InstanceSet? parse(Map<String, dynamic>? json) =>
       json == null ? null : InstanceSet._fromJson(json);
@@ -6155,8 +6377,9 @@ class InstanceSet extends Response {
     return json;
   }
 
+  @override
   String toString() =>
-      '[InstanceSet totalCount: ${totalCount}, instances: ${instances}]';
+      '[InstanceSet totalCount: $totalCount, instances: $instances]';
 }
 
 /// `LibraryRef` is a reference to a `Library`.
@@ -6197,24 +6420,29 @@ class LibraryRef extends ObjRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is LibraryRef && id == other.id;
 
-  String toString() => '[LibraryRef id: ${id}, name: ${name}, uri: ${uri}]';
+  @override
+  String toString() => '[LibraryRef id: $id, name: $name, uri: $uri]';
 }
 
 /// A `Library` provides information about a Dart language library.
 ///
-/// See [setLibraryDebuggable].
+/// See [VmServiceInterface.setLibraryDebuggable].
 class Library extends Obj implements LibraryRef {
   static Library? parse(Map<String, dynamic>? json) =>
       json == null ? null : Library._fromJson(json);
 
   /// The name of this library.
+  @override
   String? name;
 
   /// The uri of this library.
+  @override
   String? uri;
 
   /// Is this library debuggable? Default true.
@@ -6289,10 +6517,13 @@ class Library extends Obj implements LibraryRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Library && id == other.id;
 
+  @override
   String toString() => '[Library]';
 }
 
@@ -6353,9 +6584,10 @@ class LibraryDependency {
     return json;
   }
 
+  @override
   String toString() => '[LibraryDependency ' //
-      'isImport: ${isImport}, isDeferred: ${isDeferred}, prefix: ${prefix}, ' //
-      'target: ${target}]';
+      'isImport: $isImport, isDeferred: $isDeferred, prefix: $prefix, ' //
+      'target: $target]';
 }
 
 class LogRecord extends Response {
@@ -6436,9 +6668,10 @@ class LogRecord extends Response {
     return json;
   }
 
+  @override
   String toString() => '[LogRecord ' //
-      'message: ${message}, time: ${time}, level: ${level}, sequenceNumber: ${sequenceNumber}, ' //
-      'loggerName: ${loggerName}, zone: ${zone}, error: ${error}, stackTrace: ${stackTrace}]';
+      'message: $message, time: $time, level: $level, sequenceNumber: $sequenceNumber, ' //
+      'loggerName: $loggerName, zone: $zone, error: $error, stackTrace: $stackTrace]';
 }
 
 class MapAssociation {
@@ -6473,7 +6706,8 @@ class MapAssociation {
     return json;
   }
 
-  String toString() => '[MapAssociation key: ${key}, value: ${value}]';
+  @override
+  String toString() => '[MapAssociation key: $key, value: $value]';
 }
 
 /// A `MemoryUsage` object provides heap usage information for a specific
@@ -6525,9 +6759,10 @@ class MemoryUsage extends Response {
     return json;
   }
 
+  @override
   String toString() => '[MemoryUsage ' //
-      'externalUsage: ${externalUsage}, heapCapacity: ${heapCapacity}, ' //
-      'heapUsage: ${heapUsage}]';
+      'externalUsage: $externalUsage, heapCapacity: $heapCapacity, ' //
+      'heapUsage: $heapUsage]';
 }
 
 /// A `Message` provides information about a pending isolate message and the
@@ -6596,9 +6831,10 @@ class Message extends Response {
     return json;
   }
 
+  @override
   String toString() => '[Message ' //
-      'index: ${index}, name: ${name}, messageObjectId: ${messageObjectId}, ' //
-      'size: ${size}]';
+      'index: $index, name: $name, messageObjectId: $messageObjectId, ' //
+      'size: $size]';
 }
 
 /// A `NativeFunction` object is used to represent native functions in profiler
@@ -6626,7 +6862,8 @@ class NativeFunction {
     return json;
   }
 
-  String toString() => '[NativeFunction name: ${name}]';
+  @override
+  String toString() => '[NativeFunction name: $name]';
 }
 
 /// `NullValRef` is a reference to an a `NullVal`.
@@ -6672,13 +6909,16 @@ class NullValRef extends InstanceRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is NullValRef && id == other.id;
 
+  @override
   String toString() => '[NullValRef ' //
-      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
-      'classRef: ${classRef}, valueAsString: ${valueAsString}]';
+      'id: $id, kind: $kind, identityHashCode: $identityHashCode, ' //
+      'classRef: $classRef, valueAsString: $valueAsString]';
 }
 
 /// A `NullVal` object represents the Dart language value null.
@@ -6724,13 +6964,16 @@ class NullVal extends Instance implements NullValRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is NullVal && id == other.id;
 
+  @override
   String toString() => '[NullVal ' //
-      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
-      'classRef: ${classRef}, valueAsString: ${valueAsString}]';
+      'id: $id, kind: $kind, identityHashCode: $identityHashCode, ' //
+      'classRef: $classRef, valueAsString: $valueAsString]';
 }
 
 /// `ObjRef` is a reference to a `Obj`.
@@ -6772,11 +7015,14 @@ class ObjRef extends Response {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is ObjRef && id == other.id;
 
-  String toString() => '[ObjRef id: ${id}]';
+  @override
+  String toString() => '[ObjRef id: $id]';
 }
 
 /// An `Obj` is a persistent object that is owned by some isolate.
@@ -6788,12 +7034,14 @@ class Obj extends Response implements ObjRef {
   /// this Object.
   ///
   /// Some objects may get a new id when they are reloaded.
+  @override
   String? id;
 
   /// Provided and set to true if the id of an Object is fixed. If true, the id
   /// of an Object is guaranteed not to change or expire. The object may,
   /// however, still be _Collected_.
   @optional
+  @override
   bool? fixedId;
 
   /// If an object is allocated in the Dart heap, it will have a corresponding
@@ -6848,11 +7096,14 @@ class Obj extends Response implements ObjRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Obj && id == other.id;
 
-  String toString() => '[Obj id: ${id}]';
+  @override
+  String toString() => '[Obj id: $id]';
 }
 
 /// A `Parameter` is a representation of a function parameter.
@@ -6903,13 +7154,14 @@ class Parameter {
     return json;
   }
 
+  @override
   String toString() =>
-      '[Parameter parameterType: ${parameterType}, fixed: ${fixed}]';
+      '[Parameter parameterType: $parameterType, fixed: $fixed]';
 }
 
 /// A `PortList` contains a list of ports associated with some isolate.
 ///
-/// See [getPort].
+/// See [VmServiceInterface.getPorts].
 class PortList extends Response {
   static PortList? parse(Map<String, dynamic>? json) =>
       json == null ? null : PortList._fromJson(json);
@@ -6939,7 +7191,8 @@ class PortList extends Response {
     return json;
   }
 
-  String toString() => '[PortList ports: ${ports}]';
+  @override
+  String toString() => '[PortList ports: $ports]';
 }
 
 /// A `ProfileFunction` contains profiling information about a Dart or native
@@ -6995,15 +7248,16 @@ class ProfileFunction {
     return json;
   }
 
+  @override
   String toString() => '[ProfileFunction ' //
-      'kind: ${kind}, inclusiveTicks: ${inclusiveTicks}, exclusiveTicks: ${exclusiveTicks}, ' //
-      'resolvedUrl: ${resolvedUrl}, function: ${function}]';
+      'kind: $kind, inclusiveTicks: $inclusiveTicks, exclusiveTicks: $exclusiveTicks, ' //
+      'resolvedUrl: $resolvedUrl, function: $function]';
 }
 
 /// A `ProtocolList` contains a list of all protocols supported by the service
 /// instance.
 ///
-/// See [Protocol] and [getSupportedProtocols].
+/// See [Protocol] and [VmServiceInterface.getSupportedProtocols].
 class ProtocolList extends Response {
   static ProtocolList? parse(Map<String, dynamic>? json) =>
       json == null ? null : ProtocolList._fromJson(json);
@@ -7034,10 +7288,11 @@ class ProtocolList extends Response {
     return json;
   }
 
-  String toString() => '[ProtocolList protocols: ${protocols}]';
+  @override
+  String toString() => '[ProtocolList protocols: $protocols]';
 }
 
-/// See [getSupportedProtocols].
+/// See [VmServiceInterface.getSupportedProtocols].
 class Protocol {
   static Protocol? parse(Map<String, dynamic>? json) =>
       json == null ? null : Protocol._fromJson(json);
@@ -7073,11 +7328,12 @@ class Protocol {
     return json;
   }
 
-  String toString() => '[Protocol ' //
-      'protocolName: ${protocolName}, major: ${major}, minor: ${minor}]';
+  @override
+  String toString() =>
+      '[Protocol protocolName: $protocolName, major: $major, minor: $minor]';
 }
 
-/// Set [getProcessMemoryUsage].
+/// See [VmServiceInterface.getProcessMemoryUsage].
 class ProcessMemoryUsage extends Response {
   static ProcessMemoryUsage? parse(Map<String, dynamic>? json) =>
       json == null ? null : ProcessMemoryUsage._fromJson(json);
@@ -7107,7 +7363,8 @@ class ProcessMemoryUsage extends Response {
     return json;
   }
 
-  String toString() => '[ProcessMemoryUsage root: ${root}]';
+  @override
+  String toString() => '[ProcessMemoryUsage root: $root]';
 }
 
 class ProcessMemoryItem {
@@ -7155,9 +7412,9 @@ class ProcessMemoryItem {
     return json;
   }
 
+  @override
   String toString() => '[ProcessMemoryItem ' //
-      'name: ${name}, description: ${description}, size: ${size}, ' //
-      'children: ${children}]';
+      'name: $name, description: $description, size: $size, children: $children]';
 }
 
 class ReloadReport extends Response {
@@ -7188,7 +7445,8 @@ class ReloadReport extends Response {
     return json;
   }
 
-  String toString() => '[ReloadReport success: ${success}]';
+  @override
+  String toString() => '[ReloadReport success: $success]';
 }
 
 /// See [RetainingPath].
@@ -7246,10 +7504,11 @@ class RetainingObject {
     return json;
   }
 
-  String toString() => '[RetainingObject value: ${value}]';
+  @override
+  String toString() => '[RetainingObject value: $value]';
 }
 
-/// See [getRetainingPath].
+/// See [VmServiceInterface.getRetainingPath].
 class RetainingPath extends Response {
   static RetainingPath? parse(Map<String, dynamic>? json) =>
       json == null ? null : RetainingPath._fromJson(json);
@@ -7295,8 +7554,9 @@ class RetainingPath extends Response {
     return json;
   }
 
+  @override
   String toString() => '[RetainingPath ' //
-      'length: ${length}, gcRootType: ${gcRootType}, elements: ${elements}]';
+      'length: $length, gcRootType: $gcRootType, elements: $elements]';
 }
 
 /// Every non-error response returned by the Service Protocol extends
@@ -7323,6 +7583,7 @@ class Response {
     return result;
   }
 
+  @override
   String toString() => '[Response]';
 }
 
@@ -7364,8 +7625,8 @@ class Sentinel extends Response {
     return json;
   }
 
-  String toString() =>
-      '[Sentinel kind: ${kind}, valueAsString: ${valueAsString}]';
+  @override
+  String toString() => '[Sentinel kind: $kind, valueAsString: $valueAsString]';
 }
 
 /// `ScriptRef` is a reference to a `Script`.
@@ -7400,11 +7661,14 @@ class ScriptRef extends ObjRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is ScriptRef && id == other.id;
 
-  String toString() => '[ScriptRef id: ${id}, uri: ${uri}]';
+  @override
+  String toString() => '[ScriptRef id: $id, uri: $uri]';
 }
 
 /// A `Script` provides information about a Dart language script.
@@ -7441,6 +7705,7 @@ class Script extends Obj implements ScriptRef {
   final _tokenToColumn = <int, int>{};
 
   /// The uri from which this script was loaded.
+  @override
   String? uri;
 
   /// The library which owns this script.
@@ -7535,11 +7800,14 @@ class Script extends Obj implements ScriptRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Script && id == other.id;
 
-  String toString() => '[Script id: ${id}, uri: ${uri}, library: ${library}]';
+  @override
+  String toString() => '[Script id: $id, uri: $uri, library: $library]';
 }
 
 class ScriptList extends Response {
@@ -7571,7 +7839,8 @@ class ScriptList extends Response {
     return json;
   }
 
-  String toString() => '[ScriptList scripts: ${scripts}]';
+  @override
+  String toString() => '[ScriptList scripts: $scripts]';
 }
 
 /// The `SourceLocation` class is used to designate a position or range in some
@@ -7634,8 +7903,8 @@ class SourceLocation extends Response {
     return json;
   }
 
-  String toString() =>
-      '[SourceLocation script: ${script}, tokenPos: ${tokenPos}]';
+  @override
+  String toString() => '[SourceLocation script: $script, tokenPos: $tokenPos]';
 }
 
 /// The `SourceReport` class represents a set of reports tied to source
@@ -7684,7 +7953,8 @@ class SourceReport extends Response {
     return json;
   }
 
-  String toString() => '[SourceReport ranges: ${ranges}, scripts: ${scripts}]';
+  @override
+  String toString() => '[SourceReport ranges: $ranges, scripts: $scripts]';
 }
 
 /// The `SourceReportCoverage` class represents coverage information for one
@@ -7723,8 +7993,8 @@ class SourceReportCoverage {
     return json;
   }
 
-  String toString() =>
-      '[SourceReportCoverage hits: ${hits}, misses: ${misses}]';
+  @override
+  String toString() => '[SourceReportCoverage hits: $hits, misses: $misses]';
 }
 
 /// The `SourceReportRange` class represents a range of executable code
@@ -7815,15 +8085,16 @@ class SourceReportRange {
     return json;
   }
 
+  @override
   String toString() => '[SourceReportRange ' //
-      'scriptIndex: ${scriptIndex}, startPos: ${startPos}, endPos: ${endPos}, ' //
-      'compiled: ${compiled}]';
+      'scriptIndex: $scriptIndex, startPos: $startPos, endPos: $endPos, ' //
+      'compiled: $compiled]';
 }
 
 /// The `Stack` class represents the various components of a Dart stack trace
 /// for a given isolate.
 ///
-/// See [getStack].
+/// See [VmServiceInterface.getStack].
 class Stack extends Response {
   static Stack? parse(Map<String, dynamic>? json) =>
       json == null ? null : Stack._fromJson(json);
@@ -7896,8 +8167,9 @@ class Stack extends Response {
     return json;
   }
 
-  String toString() => '[Stack ' //
-      'frames: ${frames}, messages: ${messages}, truncated: ${truncated}]';
+  @override
+  String toString() =>
+      '[Stack frames: $frames, messages: $messages, truncated: $truncated]';
 }
 
 /// The `Success` type is used to indicate that an operation completed
@@ -7920,6 +8192,7 @@ class Success extends Response {
     return json;
   }
 
+  @override
   String toString() => '[Success]';
 }
 
@@ -7968,9 +8241,10 @@ class Timeline extends Response {
     return json;
   }
 
+  @override
   String toString() => '[Timeline ' //
-      'traceEvents: ${traceEvents}, timeOriginMicros: ${timeOriginMicros}, ' //
-      'timeExtentMicros: ${timeExtentMicros}]';
+      'traceEvents: $traceEvents, timeOriginMicros: $timeOriginMicros, ' //
+      'timeExtentMicros: $timeExtentMicros]';
 }
 
 /// An `TimelineEvent` is an arbitrary map that contains a [Trace Event Format]
@@ -7994,6 +8268,7 @@ class TimelineEvent {
     return result;
   }
 
+  @override
   String toString() => '[TimelineEvent]';
 }
 
@@ -8039,9 +8314,10 @@ class TimelineFlags extends Response {
     return json;
   }
 
+  @override
   String toString() => '[TimelineFlags ' //
-      'recorderName: ${recorderName}, availableStreams: ${availableStreams}, ' //
-      'recordedStreams: ${recordedStreams}]';
+      'recorderName: $recorderName, availableStreams: $availableStreams, ' //
+      'recordedStreams: $recordedStreams]';
 }
 
 class Timestamp extends Response {
@@ -8072,7 +8348,8 @@ class Timestamp extends Response {
     return json;
   }
 
-  String toString() => '[Timestamp timestamp: ${timestamp}]';
+  @override
+  String toString() => '[Timestamp timestamp: $timestamp]';
 }
 
 /// `TypeArgumentsRef` is a reference to a `TypeArguments` object.
@@ -8108,11 +8385,14 @@ class TypeArgumentsRef extends ObjRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is TypeArgumentsRef && id == other.id;
 
-  String toString() => '[TypeArgumentsRef id: ${id}, name: ${name}]';
+  @override
+  String toString() => '[TypeArgumentsRef id: $id, name: $name]';
 }
 
 /// A `TypeArguments` object represents the type argument vector for some
@@ -8122,6 +8402,7 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
       json == null ? null : TypeArguments._fromJson(json);
 
   /// A name for this type argument list.
+  @override
   String? name;
 
   /// A list of types.
@@ -8159,12 +8440,14 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
     return json;
   }
 
+  @override
   int get hashCode => id.hashCode;
 
+  @override
   bool operator ==(Object other) => other is TypeArguments && id == other.id;
 
-  String toString() =>
-      '[TypeArguments id: ${id}, name: ${name}, types: ${types}]';
+  @override
+  String toString() => '[TypeArguments id: $id, name: $name, types: $types]';
 }
 
 /// A `TypeParameters` object represents the type argument vector for some
@@ -8206,8 +8489,9 @@ class TypeParameters {
     return json;
   }
 
+  @override
   String toString() =>
-      '[TypeParameters names: ${names}, bounds: ${bounds}, defaults: ${defaults}]';
+      '[TypeParameters names: $names, bounds: $bounds, defaults: $defaults]';
 }
 
 /// The `UnresolvedSourceLocation` class is used to refer to an unresolved
@@ -8281,6 +8565,7 @@ class UnresolvedSourceLocation extends Response {
     return json;
   }
 
+  @override
   String toString() => '[UnresolvedSourceLocation]';
 }
 
@@ -8312,7 +8597,8 @@ class UriList extends Response {
     return json;
   }
 
-  String toString() => '[UriList uris: ${uris}]';
+  @override
+  String toString() => '[UriList uris: $uris]';
 }
 
 /// See [Versioning].
@@ -8352,7 +8638,8 @@ class Version extends Response {
     return json;
   }
 
-  String toString() => '[Version major: ${major}, minor: ${minor}]';
+  @override
+  String toString() => '[Version major: $major, minor: $minor]';
 }
 
 /// `VMRef` is a reference to a `VM` object.
@@ -8384,7 +8671,8 @@ class VMRef extends Response {
     return json;
   }
 
-  String toString() => '[VMRef name: ${name}]';
+  @override
+  String toString() => '[VMRef name: $name]';
 }
 
 class VM extends Response implements VMRef {
@@ -8392,6 +8680,7 @@ class VM extends Response implements VMRef {
       json == null ? null : VM._fromJson(json);
 
   /// A name identifying this vm. Not guaranteed to be unique.
+  @override
   String? name;
 
   /// Word length on target architecture (e.g. 32, 64).
@@ -8494,5 +8783,6 @@ class VM extends Response implements VMRef {
     return json;
   }
 
+  @override
   String toString() => '[VM]';
 }

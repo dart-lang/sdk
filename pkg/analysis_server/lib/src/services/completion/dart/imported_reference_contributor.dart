@@ -6,13 +6,16 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A contributor for calculating suggestions for imported top level members.
 class ImportedReferenceContributor extends DartCompletionContributor {
   ImportedReferenceContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     if (!request.includeIdentifiers) {
       return;
     }

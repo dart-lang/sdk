@@ -33,5 +33,5 @@ main() {
   makeLive(test(new Class1a(), Class1a));
   makeLive(test(new Class1b<int>(), Class1a));
   makeLive(test(new Class1c<int>(), Class1a));
-  new Class2<int>();
+  Class2<int>();
 }

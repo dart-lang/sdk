@@ -410,6 +410,8 @@ class CiderReplaceMatch {
 
 class FlutterWidgetRename {
   final String name;
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
   final List<CiderSearchMatch> matches;
   final List<CiderReplaceMatch> replacements;
@@ -426,6 +428,8 @@ class FlutterWidgetState {
 }
 
 class RenameResponse {
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
   final List<CiderSearchMatch> matches;
   final CheckNameResponse checkName;

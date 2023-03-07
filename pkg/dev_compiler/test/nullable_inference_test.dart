@@ -6,7 +6,8 @@ import 'dart:async';
 import 'dart:convert' show jsonEncode;
 import 'dart:io';
 
-import 'package:dev_compiler/src/kernel/command.dart' show getSdkPath;
+import 'package:dev_compiler/src/kernel/command.dart'
+    show addGeneratedVariables, getSdkPath;
 import 'package:dev_compiler/src/kernel/js_typerep.dart';
 import 'package:dev_compiler/src/kernel/nullable_inference.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
@@ -705,7 +706,7 @@ const nullCheck = const _NullCheck();
       DevCompilerTarget(TargetFlags(soundNullSafety: false)),
       fileSystem: _fileSystem,
       explicitExperimentalFlags: const {},
-      environmentDefines: const {},
+      environmentDefines: addGeneratedVariables({}, enableAsserts: true),
       nnbdMode: fe.NnbdMode.Weak);
   if (!identical(oldCompilerState, _compilerState)) inference = null;
   var result =

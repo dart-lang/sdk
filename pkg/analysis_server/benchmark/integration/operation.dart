@@ -103,7 +103,7 @@ class ResponseOperation extends Operation {
   final CommonInputConverter converter;
   final Map<String, Object?> requestJson;
   final Map<String, Object?> responseJson;
-  final Completer completer = Completer();
+  final Completer<void> completer = Completer();
   late Driver driver;
 
   ResponseOperation(this.converter, this.requestJson, this.responseJson) {
@@ -170,14 +170,14 @@ class ResponseOperation extends Operation {
 
 class StartServerOperation extends Operation {
   @override
-  Future perform(Driver driver) {
+  Future<void> perform(Driver driver) {
     return driver.startServer();
   }
 }
 
 class WaitForAnalysisCompleteOperation extends Operation {
   @override
-  Future perform(Driver driver) {
+  Future<void> perform(Driver driver) {
     var start = DateTime.now();
     driver.logger.log(Level.FINE, 'waiting for analysis to complete');
     late StreamSubscription<ServerStatusParams> subscription;

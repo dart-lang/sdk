@@ -112,8 +112,8 @@ Future<String> compileAll(String code,
     bool soundNullSafety = false,
     int? expectedErrors,
     int? expectedWarnings}) async {
-  OutputCollector outputCollector = new OutputCollector();
-  DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+  OutputCollector outputCollector = OutputCollector();
+  DiagnosticCollector diagnosticCollector = DiagnosticCollector();
   List<String> options = <String>[];
   if (disableInlining) {
     options.add(Flags.disableInlining);
@@ -193,13 +193,13 @@ Future compileAndMatchFuzzyHelper(String code, String entry, String regexp,
     {required bool shouldMatch}) {
   return compile(code, entry: entry, check: (String generated) {
     String originalRegexp = regexp;
-    final xRe = new RegExp('\\bx\\b');
+    final xRe = RegExp('\\bx\\b');
     regexp = regexp.replaceAll(xRe, '(?:$anyIdentifier)');
-    final spaceRe = new RegExp('\\s+');
+    final spaceRe = RegExp('\\s+');
     regexp = regexp.replaceAll(spaceRe, '(?:\\s*)');
     if (shouldMatch) {
       Expect.isTrue(
-          new RegExp(regexp).hasMatch(generated),
+          RegExp(regexp).hasMatch(generated),
           "Pattern '$originalRegexp' not found in\n$generated\n"
           "from source\n$code");
     } else {
@@ -242,7 +242,7 @@ checkerForAbsentPresent(String test) {
   return checker;
 }
 
-RegExp _directivePattern = new RegExp(
+RegExp _directivePattern = RegExp(
     //      \1                     \2        \3         \4
     r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)'|/(.*)/)''',
     multiLine: true);

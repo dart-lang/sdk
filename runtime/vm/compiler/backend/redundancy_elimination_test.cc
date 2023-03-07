@@ -249,9 +249,9 @@ static void TestAliasingViaRedefinition(
   //   v0 <- AllocateObject(class K)
   //   v1 <- LoadField(v0, K.field)
   //   v2 <- make_redefinition(v0)
-  //   PushArgument(v1)
+  //   MoveArgument(v1)
   // #if make_it_escape
-  //   PushArgument(v2)
+  //   MoveArgument(v2)
   // #endif
   //   v3 <- StaticCall(blackhole, v1, v2)
   //   v4 <- LoadField(v2, K.field)
@@ -418,13 +418,13 @@ static void TestAliasingViaStore(
   // #endif
   //   v1 <- LoadField(v0, K.field)
   //   v2 <- REDEFINITION(v5)
-  //   PushArgument(v1)
+  //   MoveArgument(v1)
   // #if make_it_escape
   //   v6 <- LoadField(v2, K.field)
-  //   PushArgument(v6)
+  //   MoveArgument(v6)
   // #elif make_host_escape
   //   StoreField(v2 . K.field = v0)
-  //   PushArgument(v5)
+  //   MoveArgument(v5)
   // #endif
   //   v3 <- StaticCall(blackhole, v1, v6)
   //   v4 <- LoadField(v0, K.field)
@@ -1213,7 +1213,7 @@ main() {
  48:     v335 <- Box(v15) T{_Double}
  49:     ParallelMove rdx <- rcx, rax <- rax
  50:     StoreIndexed(v17, v39, v335)
- 52:     PushArgument(v17)
+ 52:     MoveArgument(v17)
  54:     v40 <- StaticCall:44( _interpolate@0150898<0> v17,
             recognized_kind = StringBaseInterpolate) T{String?}
  56:     Return:48(v40)
@@ -1256,7 +1256,7 @@ main() {
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveBox,
       kMatchAndMoveStoreIndexed,
-      kMatchAndMovePushArgument,
+      kMatchAndMoveMoveArgument,
       {kMatchAndMoveStaticCall, &string_interpolate},
       kMatchReturn,
   }));
@@ -1329,7 +1329,7 @@ main() {
  28:     StoreIndexed(v11, v28, v29, NoStoreBarrier)
  29:     ParallelMove rcx <- S-3
  30:     StoreIndexed(v11, v30, v9, NoStoreBarrier)
- 32:     PushArgument(v11)
+ 32:     MoveArgument(v11)
  34:     v31 <- StaticCall:20( _interpolate@0150898<0> v11, recognized_kind = StringBaseInterpolate) T{String}
  35:     ParallelMove rax <- rax
  36:     Return:24(v31)
@@ -1353,7 +1353,7 @@ main() {
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
-      kMatchAndMovePushArgument,
+      kMatchAndMoveMoveArgument,
       kMatchAndMoveStaticCall,
       kMatchReturn,
   }));
@@ -1599,5 +1599,114 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
 }
 
 #endif  // !defined(TARGET_ARCH_IA32)
+
+// Regression test for https://github.com/dart-lang/sdk/issues/51220.
+// Verifies that deoptimization at the hoisted BinarySmiOp
+// doesn't result in the infinite re-optimization loop.
+ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress51220) {
+  auto kScript =
+      Utils::CStringUniquePtr(OS::SCreate(nullptr,
+                                          R"(
+        int n = int.parse('3');
+        main() {
+          int x = 0;
+          for (int i = 0; i < n; ++i) {
+            if (i > ((1 << %d)*1024)) {
+              ++x;
+            }
+          }
+          return x;
+        }
+      )",
+                                          static_cast<int>(kSmiBits + 1 - 10)),
+                              std::free);
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+
+  // Run unoptimized code.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // Only 2 rounds of deoptimization are allowed:
+  // * the first round should disable LICM;
+  // * the second round should disable BinarySmiOp.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+  //  EXPECT(function.ProhibitsInstructionHoisting());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+  //  EXPECT(function.ProhibitsInstructionHoisting());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // Should not deoptimize.
+  Invoke(root_library, "main");
+  EXPECT(function.HasOptimizedCode());
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/50245.
+// Verifies that deoptimization at the hoisted GuardFieldClass
+// doesn't result in the infinite re-optimization loop.
+ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress50245) {
+  if (!FLAG_sound_null_safety) {
+    return;
+  }
+
+  const char* kScript = R"(
+    class A {
+      List<int> foo;
+      A(this.foo);
+    }
+
+    A obj = A([1, 2, 3]);
+    int n = int.parse('3');
+
+    main() {
+      // Make sure A.foo= is compiled.
+      obj.foo = [];
+      int sum = 0;
+      for (int i = 0; i < n; ++i) {
+        if (int.parse('1') != 1) {
+          // Field guard from this unreachable code is moved up
+          // and causes repeated deoptimization.
+          obj.foo = const [];
+        }
+        sum += i;
+      }
+      return sum;
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+
+  // Run unoptimized code.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // LICM should be disabled after the first round of deoptimization.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+  //  EXPECT(function.ProhibitsInstructionHoisting());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // Should not deoptimize.
+  Invoke(root_library, "main");
+  EXPECT(function.HasOptimizedCode());
+}
 
 }  // namespace dart

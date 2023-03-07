@@ -322,11 +322,11 @@ CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIB
   status: needsEvaluation
 CompileTimeErrorCode.CONST_INSTANCE_FIELD:
   status: hasFix
-CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
+CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_NOT_INITIALIZED:
   status: needsEvaluation
-CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS:
+CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET:
   status: needsEvaluation
@@ -391,13 +391,19 @@ CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT:
 CompileTimeErrorCode.DUPLICATE_PART:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
-  status: needsEvaluation
-CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD:
+  status: needsFix
+  notes: |-
+    We can suggest names from the context, as in did you mean this?
+CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We do not know which one of the rest elements is to be removed.
 CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We cannot figure out the intent of the user to suggest the right fix.
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   status: noFix
   notes: |-
@@ -433,9 +439,9 @@ CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET:
 CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP:
   status: needsEvaluation
 CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS:
   status: needsEvaluation
 CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS:
@@ -443,7 +449,10 @@ CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS:
 CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS:
   status: needsEvaluation
 CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We do not know the user's intent here and so cannot figure out what to 
+    add or delete.
 CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL:
@@ -604,9 +613,12 @@ CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
 CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
   status: needsEvaluation
 CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We cannot figure out the the user's intent here, and so cannot generate a
+    fix that would be right.
 CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD:
   status: needsEvaluation
 CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD:
@@ -756,7 +768,7 @@ CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME:
 CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT:
   status: hasFix
 CompileTimeErrorCode.MISSING_VARIABLE_PATTERN:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE:
   status: needsEvaluation
 CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER:
@@ -855,13 +867,15 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
 CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
-  status: needsEvaluation
+  status: hasFix
+  notes: |-
+    Make the pattern expression a constant.
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH:
@@ -934,13 +948,16 @@ CompileTimeErrorCode.PART_OF_NON_PART:
 CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We do not have enough information to figure out the user's intent with the
+    use of the variable in the pattern.
 CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
   status: needsFix
   since: 2.17
@@ -995,13 +1012,19 @@ CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
 CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION:
   status: needsEvaluation
 CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
   status: noFix
 CompileTimeErrorCode.REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We do not have enough information to figure out the users intention here is
+    with the use of the rest element.
 CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We do not have enough information to figure out the users intention here is
+    with the use of the rest element.
 CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH:
   status: needsEvaluation
 CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR:
@@ -1031,6 +1054,8 @@ CompileTimeErrorCode.SHARED_DEFERRED_PREFIX:
 CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER:
+  status: needsEvaluation
+CompileTimeErrorCode.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
   status: needsEvaluation
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
   status: hasFix
@@ -1361,10 +1386,6 @@ HintCode.ASSIGNMENT_OF_DO_NOT_STORE:
     Fix depends on user's intent, which can't be known.
 HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
   status: hasFix
-HintCode.CAST_FROM_NULL_ALWAYS_FAILS:
-  status: noFix
-HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS:
-  status: noFix
 HintCode.DEAD_CODE:
   status: hasFix
 HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
@@ -1408,66 +1429,11 @@ HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
   status: noFix
   notes: Deprecated
-HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
-  status: noFix
-HintCode.INVALID_IMMUTABLE_ANNOTATION:
-  status: hasFix
-HintCode.INVALID_INTERNAL_ANNOTATION:
-  status: hasFix
-HintCode.INVALID_LITERAL_ANNOTATION:
-  status: hasFix
-HintCode.INVALID_NON_VIRTUAL_ANNOTATION:
-  status: hasFix
-HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
-  status: noFix
-HintCode.INVALID_USE_OF_INTERNAL_MEMBER:
-  status: noFix
-HintCode.INVALID_USE_OF_PROTECTED_MEMBER:
-  status: noFix
-HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
-  status: noFix
-  since: ~2.15
-HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
-  status: noFix
-HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
-  status: noFix
-HintCode.INVALID_VISIBILITY_ANNOTATION:
-  status: hasFix
-HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
-  status: hasFix
-HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
-  status: hasFix
-HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
-  status: hasFix
-HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
-  status: hasFix
-HintCode.MISSING_REQUIRED_PARAM:
-  status: hasFix
-HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
-  status: hasFix
-HintCode.MISSING_RETURN:
-  status: hasFix
 HintCode.MIXIN_ON_SEALED_CLASS:
   status: noFix
   notes: |-
     `sealed` annotation is likely to be replaced by the `sealed` keyword
     in the next stable release.
-HintCode.MUST_BE_IMMUTABLE:
-  status: noFix
-HintCode.MUST_CALL_SUPER:
-  status: hasFix
 HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
   status: needsFix
   notes: |-
@@ -1480,19 +1446,6 @@ HintCode.NULL_CHECK_ALWAYS_FAILS:
   status: needsFix
   notes: |-
     Remove the null check.
-HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
-  status: hasFix
-HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
-  status: hasFix
-HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
-  status: hasFix
-HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
-  status: hasFix
-HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT:
-  status: needsFix
-  notes: |-
-    We should be able to convert the import into a `package:` import. At least
-    some of the time.
 HintCode.STRICT_RAW_TYPE:
   status: needsFix
   notes: |-
@@ -1500,21 +1453,6 @@ HintCode.STRICT_RAW_TYPE:
     more helpful fixes that pretend inference works the way the user may
     have thought it did. For example in: `List a = <int>[];`, we can add
     `<int>` after `List`.
-HintCode.SUBTYPE_OF_SEALED_CLASS:
-  status: needsFix
-  notes: |-
-    `sealed` annotation is likely to be replaced by the `sealed` keyword
-    in the next stable release.
-    Remove the sealed class in the `extends` or `implements` clause.
-    Use RemoveNameFromDeclarationClause.
-HintCode.TYPE_CHECK_IS_NOT_NULL:
-  status: hasFix
-HintCode.TYPE_CHECK_IS_NULL:
-  status: hasFix
-HintCode.UNDEFINED_REFERENCED_PARAMETER:
-  status: needsFix
-  notes: |-
-    Can try to find the correct parameter name.
 HintCode.UNIGNORABLE_IGNORE:
   status: needsFix
   notes: |-
@@ -1529,18 +1467,6 @@ HintCode.UNNECESSARY_IGNORE:
     Remove the ignore comment (or one code in the comment).
 HintCode.UNNECESSARY_IMPORT:
   status: hasFix
-HintCode.UNNECESSARY_NAN_COMPARISON_FALSE:
-  status: hasFix
-  notes: |-
-    Add another fix to remove the comparison.
-HintCode.UNNECESSARY_NAN_COMPARISON_TRUE:
-  status: hasFix
-  notes: |-
-    Add another fix to remove the comparison.
-HintCode.UNNECESSARY_NO_SUCH_METHOD:
-  status: needsFix
-  notes: |-
-    Remove the noSuchMethod implementation.
 HintCode.UNNECESSARY_NULL_COMPARISON_FALSE:
   status: hasFix
 HintCode.UNNECESSARY_NULL_COMPARISON_TRUE:
@@ -1548,16 +1474,10 @@ HintCode.UNNECESSARY_NULL_COMPARISON_TRUE:
 HintCode.UNNECESSARY_QUESTION_MARK:
   status: hasFix
 HintCode.UNNECESSARY_SET_LITERAL:
-  status: needsFix
-  notes: |-
-    Remove the set literal.
+  status: hasFix
 HintCode.UNNECESSARY_TYPE_CHECK_FALSE:
   status: hasFix
 HintCode.UNNECESSARY_TYPE_CHECK_TRUE:
-  status: hasFix
-HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
-  status: hasFix
-HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
   status: hasFix
 HintCode.UNREACHABLE_SWITCH_CASE:
   status: hasFix
@@ -1569,18 +1489,8 @@ HintCode.UNUSED_FIELD:
   status: hasFix
 HintCode.UNUSED_IMPORT:
   status: hasFix
-HintCode.UNUSED_LABEL:
-  status: hasFix
 HintCode.UNUSED_LOCAL_VARIABLE:
   status: hasFix
-HintCode.UNUSED_RESULT:
-  status: noFix
-  notes: |-
-    There is no predictable common way in which a result _should_ be used.
-HintCode.UNUSED_RESULT_WITH_MESSAGE:
-  status: noFix
-  notes: |-
-    There is no predictable common way in which a result _should_ be used.
 HintCode.UNUSED_SHOWN_NAME:
   status: hasFix
 LanguageCode.IMPLICIT_DYNAMIC_FIELD:
@@ -1803,6 +1713,8 @@ LintCode.implementation_imports:
   status: needsEvaluation
 LintCode.implicit_call_tearoffs:
   status: hasFix
+LintCode.invalid_case_patterns:
+  status: hasFix
 LintCode.invariant_booleans:
   status: needsEvaluation
 LintCode.iterable_contains_unrelated_type:
@@ -1844,9 +1756,7 @@ LintCode.no_runtimeType_toString:
 LintCode.non_constant_identifier_names:
   status: hasFix
 LintCode.noop_primitive_operations:
-  status: needsFix
-  notes: |-
-    There should be a fix to remove the invocation of `toString`.
+  status: hasFix
 LintCode.null_check_on_nullable_type_parameter:
   status: hasFix
   notes: |-
@@ -2059,7 +1969,7 @@ LintCode.use_build_context_synchronously:
 LintCode.use_colored_box:
   status: needsEvaluation
 LintCode.use_decorated_box:
-  status: needsEvaluation
+  status: hasFix
 LintCode.use_enums:
   status: hasFix
 LintCode.use_full_hex_values_for_flutter_colors:
@@ -2312,6 +2222,8 @@ ParserErrorCode.FINAL_ENUM:
   status: needsEvaluation
 ParserErrorCode.FINAL_METHOD:
   status: needsEvaluation
+ParserErrorCode.FINAL_MIXIN_CLASS:
+  status: needsEvaluation
 ParserErrorCode.FINAL_TYPEDEF:
   status: needsEvaluation
 ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR:
@@ -2334,11 +2246,27 @@ ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
   status: needsEvaluation
 ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH:
   status: needsEvaluation
+ParserErrorCode.INTERFACE_MIXIN_CLASS:
+  status: needsEvaluation
 ParserErrorCode.INVALID_AWAIT_IN_FOR:
   status: needsEvaluation
 ParserErrorCode.INVALID_CODE_POINT:
   status: needsEvaluation
 ParserErrorCode.INVALID_COMMENT_REFERENCE:
+  status: needsEvaluation
+ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX:
+  status: needsEvaluation
+ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY:
+  status: hasFix
+ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST:
+  status: needsEvaluation
+ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL:
+  status: needsEvaluation
+ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC:
+  status: needsEvaluation
+ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION:
+  status: hasFix
+ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY:
   status: needsEvaluation
 ParserErrorCode.INVALID_CONSTRUCTOR_NAME:
   status: needsEvaluation
@@ -2499,12 +2427,14 @@ ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP:
 ParserErrorCode.PREFIX_AFTER_COMBINATOR:
   status: needsEvaluation
 ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY:
   status: needsEvaluation
 ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.SEALED_MIXIN_CLASS:
   status: needsEvaluation
 ParserErrorCode.SETTER_CONSTRUCTOR:
   status: needsEvaluation
@@ -2645,6 +2575,12 @@ WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
     Fix depends on user's intent, which can't be known.
 WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
   status: needsFix
+WarningCode.CAST_FROM_NULL_ALWAYS_FAILS:
+  status: noFix
+WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS:
+  status: noFix
+WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE:
+  status: needsEvaluation
 WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
   status: hasFix
 WarningCode.DEPRECATED_EXTENDS_FUNCTION:
@@ -2681,6 +2617,20 @@ WarningCode.EQUAL_KEYS_IN_MAP:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
+WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
+  status: noFix
 WarningCode.INVALID_ANNOTATION_TARGET:
   status: hasFix
 WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
@@ -2704,6 +2654,12 @@ WarningCode.INVALID_FACTORY_METHOD_DECL:
   status: noFix
 WarningCode.INVALID_FACTORY_METHOD_IMPL:
   status: noFix
+WarningCode.INVALID_IMMUTABLE_ANNOTATION:
+  status: hasFix
+WarningCode.INVALID_INTERNAL_ANNOTATION:
+  status: hasFix
+WarningCode.INVALID_LITERAL_ANNOTATION:
+  status: hasFix
 WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
   status: needsFix
   notes: |-
@@ -2749,6 +2705,10 @@ WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
+WarningCode.INVALID_NON_VIRTUAL_ANNOTATION:
+  status: hasFix
+WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
+  status: noFix
 WarningCode.INVALID_REQUIRED_NAMED_PARAM:
   status: hasFix
 WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
@@ -2756,6 +2716,37 @@ WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
 WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM:
   status: hasFix
 WarningCode.INVALID_SEALED_ANNOTATION:
+  status: hasFix
+WarningCode.INVALID_USE_OF_INTERNAL_MEMBER:
+  status: noFix
+WarningCode.INVALID_USE_OF_PROTECTED_MEMBER:
+  status: noFix
+WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
+  status: noFix
+  since: ~2.15
+WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
+  status: noFix
+WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
+  status: noFix
+WarningCode.INVALID_VISIBILITY_ANNOTATION:
+  status: hasFix
+WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
+  status: hasFix
+WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
+  status: hasFix
+WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
+  status: hasFix
+WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
+  status: hasFix
+WarningCode.MISSING_REQUIRED_PARAM:
+  status: hasFix
+WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
+  status: hasFix
+WarningCode.MISSING_RETURN:
+  status: hasFix
+WarningCode.MUST_BE_IMMUTABLE:
+  status: noFix
+WarningCode.MUST_CALL_SUPER:
   status: hasFix
 WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
   status: hasFix
@@ -2768,10 +2759,20 @@ WarningCode.NULL_AWARE_IN_CONDITION:
   status: noFix
 WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR:
   status: noFix
+WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
+  status: hasFix
+WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
+  status: hasFix
+WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
+  status: hasFix
+WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
+  status: hasFix
 WarningCode.RECEIVER_OF_TYPE_NEVER:
   status: needsFix
   notes: |-
     We _could_ remove the thing being received (method invocation, etc.)
+WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+  status: hasFix
 WarningCode.REMOVED_LINT_USE:
   status: needsFix
 WarningCode.REPLACED_LINT_USE:
@@ -2811,13 +2812,56 @@ WarningCode.SDK_VERSION_UI_AS_CODE:
 WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
   status: noFix
   notes: Deprecated
+WarningCode.SUBTYPE_OF_SEALED_CLASS:
+  status: needsFix
+  notes: |-
+    `sealed` annotation is likely to be replaced by the `sealed` keyword
+    in the next stable release.
+    Remove the sealed class in the `extends` or `implements` clause.
+    Use RemoveNameFromDeclarationClause.
+WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
+  status: hasFix
+WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
+  status: hasFix
+WarningCode.TYPE_CHECK_IS_NOT_NULL:
+  status: hasFix
+WarningCode.TYPE_CHECK_IS_NULL:
+  status: hasFix
 WarningCode.UNDEFINED_HIDDEN_NAME:
   status: hasFix
+WarningCode.UNDEFINED_REFERENCED_PARAMETER:
+  status: needsFix
+  notes: |-
+    Can try to find the correct parameter name.
 WarningCode.UNDEFINED_SHOWN_NAME:
   status: hasFix
 WarningCode.UNNECESSARY_CAST_PATTERN:
+  status: needsEvaluation
+WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE:
+  status: hasFix
+  notes: |-
+    Add another fix to remove the comparison.
+WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE:
+  status: hasFix
+  notes: |-
+    Add another fix to remove the comparison.
+WarningCode.UNNECESSARY_NO_SUCH_METHOD:
+  status: needsFix
+  notes: |-
+    Remove the noSuchMethod implementation.
+WarningCode.UNNECESSARY_WILDCARD_PATTERN:
   status: needsEvaluation
 WarningCode.UNUSED_CATCH_CLAUSE:
   status: hasFix
 WarningCode.UNUSED_CATCH_STACK:
   status: hasFix
+WarningCode.UNUSED_LABEL:
+  status: hasFix
+WarningCode.UNUSED_RESULT:
+  status: noFix
+  notes: |-
+    There is no predictable common way in which a result _should_ be used.
+WarningCode.UNUSED_RESULT_WITH_MESSAGE:
+  status: noFix
+  notes: |-
+    There is no predictable common way in which a result _should_ be used.

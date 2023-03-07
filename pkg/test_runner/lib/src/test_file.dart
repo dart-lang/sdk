@@ -238,7 +238,7 @@ class TestFile extends _TestFileBase {
         _parseStringOption(filePath, contents, 'dart2jsOptions');
     var dart2wasmOptions =
         _parseStringOption(filePath, contents, 'dart2wasmOptions');
-    var ddcOptions = _parseStringOption(filePath, contents, 'dartdevcOptions');
+    var ddcOptions = _parseStringOption(filePath, contents, 'ddcOptions');
     var otherResources = _parseStringOption(
         filePath, contents, 'OtherResources',
         allowMultiple: true);

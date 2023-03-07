@@ -6,16 +6,15 @@
 
 import "package:expect/expect.dart";
 
-
 class NotEqual {
-  bool operator==(Object other) => false;
+  bool operator ==(Object other) => false;
 }
 
 class A {
   final int i;
   const A(this.i);
 
-  bool operator==(Object other) => other is A && i == other.i;
+  bool operator ==(Object other) => other is A && i == other.i;
   int get hashCode => i;
 }
 
@@ -26,7 +25,7 @@ class B {
 
   B(this.i);
 
-  bool operator==(Object other) {
+  bool operator ==(Object other) {
     equalsCalled = true;
     return other is B && i == other.i;
   }
@@ -49,8 +48,10 @@ checkNotEquals(Object? a, Object? b) {
 main() {
   checkEqualsAndHash((1, 2), (1, 2));
   checkEqualsAndHash((1, 2), const (1, 2));
-  checkEqualsAndHash(const (42, foo: "hello3"), (foo: "hello${int.parse("3")}", 40 + int.parse("2")));
-  checkEqualsAndHash((1, 2, 3, foo: 4, bar: 5, baz: 6), (baz: 6, 1, bar: 5, 2, foo: 4, int.parse("3")));
+  checkEqualsAndHash(const (42, foo: "hello3"),
+      (foo: "hello${int.parse("3")}", 40 + int.parse("2")));
+  checkEqualsAndHash((1, 2, 3, foo: 4, bar: 5, baz: 6),
+      (baz: 6, 1, bar: 5, 2, foo: 4, int.parse("3")));
   checkEqualsAndHash((foo: 1, 2), (2, foo: 1));
   checkEqualsAndHash((foo: 3), (foo: 3));
 

@@ -4,7 +4,8 @@
 
 import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat;
-import 'package:dev_compiler/src/kernel/command.dart' show getSdkPath;
+import 'package:dev_compiler/src/kernel/command.dart'
+    show addGeneratedVariables, getSdkPath;
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
@@ -60,7 +61,7 @@ class SetupCompilerOptions {
       ..omitPlatform = true
       ..sdkSummary =
           soundNullSafety ? sdkSoundSummaryPath : sdkUnsoundSummaryPath
-      ..environmentDefines = const {}
+      ..environmentDefines = addGeneratedVariables({}, enableAsserts: true)
       ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak;
     return options;
   }

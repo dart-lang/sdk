@@ -171,5 +171,5 @@ Future<void> runSuite<T>(List<Test> tests, RunnerOptions options) async {
       .writeAsStringSync(results.map((s) => '$s\n').join(), flush: true);
   File.fromUri(logsJsonUri)
       .writeAsStringSync(logs.map((s) => '$s\n').join(), flush: true);
-  print('log files emitted to ${resultJsonUri} and ${logsJsonUri}');
+  print('log files emitted to $resultJsonUri and $logsJsonUri');
 }

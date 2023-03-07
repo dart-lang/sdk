@@ -22,7 +22,7 @@ const HASHMAP_EMPTY_CONSTRUCTOR = r"LinkedHashMap_LinkedHashMap$_empty";
 
 main() {
   runTest() async {
-    var collector = new OutputCollector();
+    var collector = OutputCollector();
     await runCompiler(
         memorySourceFiles: TEST_SOURCE, outputProvider: collector);
     String generated = collector.getOutput('', api.OutputType.js)!;

@@ -25,7 +25,7 @@ m() {
   x as int;
 }
 ''', [
-      error(HintCode.CAST_FROM_NULL_ALWAYS_FAILS, 18, 8),
+      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 18, 8),
     ]);
   }
 
@@ -48,12 +48,14 @@ m() {
   }
 
   test_eq() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x == null;
 }
-''');
+''', [
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 18, 4),
+    ]);
   }
 
   test_forLoop() async {
@@ -96,12 +98,14 @@ m() {
   }
 
   test_notEq() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x != null;
 }
-''');
+''', [
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 18, 4),
+    ]);
   }
 
   test_ternary_lhs() async {
@@ -368,7 +372,7 @@ void f() {
   x as int;
 }
 ''', [
-      error(HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS, 23, 1),
+      error(WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS, 23, 1),
     ]);
   }
 
@@ -888,12 +892,14 @@ m(int? x) {
   }
 
   test_eqEq_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   x == null;
 }
-''');
+''', [
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 18, 4),
+    ]);
   }
 
   test_forLoop_nonNullable() async {
@@ -1285,12 +1291,14 @@ m() {
   }
 
   test_notEq_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   x != null;
 }
-''');
+''', [
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 18, 4),
+    ]);
   }
 
   test_nullable_dotQ_propertyAccess_dot_methodInvocation() async {

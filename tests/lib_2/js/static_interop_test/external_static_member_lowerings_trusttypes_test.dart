@@ -5,8 +5,7 @@
 @JS()
 library external_static_member_lowerings_trusttypes_test;
 
-// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_interop';
+import 'dart:js_interop';
 
 import 'package:expect/minitest.dart';
 import 'package:js/js.dart' show trustTypes, staticInterop;

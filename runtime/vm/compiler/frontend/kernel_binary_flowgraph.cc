@@ -1522,13 +1522,10 @@ Fragment StreamingFlowGraphBuilder::RedefinitionWithType(
   return flow_graph_builder_->RedefinitionWithType(type);
 }
 
-Fragment StreamingFlowGraphBuilder::CheckNull(
-    TokenPosition position,
-    LocalVariable* receiver,
-    const String& function_name,
-    bool clear_the_temp /* = true */) {
-  return flow_graph_builder_->CheckNull(position, receiver, function_name,
-                                        clear_the_temp);
+Fragment StreamingFlowGraphBuilder::CheckNull(TokenPosition position,
+                                              LocalVariable* receiver,
+                                              const String& function_name) {
+  return flow_graph_builder_->CheckNull(position, receiver, function_name);
 }
 
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
@@ -2171,14 +2168,6 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceGet(TokenPosition* p) {
       inferred_type_metadata_helper_.GetInferredType(offset);
 
   Fragment instructions = BuildExpression();  // read receiver.
-
-  LocalVariable* receiver = nullptr;
-  if (direct_call.check_receiver_for_null_) {
-    // Duplicate receiver for CheckNull before it is consumed by PushArgument.
-    receiver = MakeTemporary();
-    instructions += LoadLocal(receiver);
-  }
-
   const String& getter_name = ReadNameAsGetterName();  // read name.
   SkipDartType();                                      // read result_type.
   const NameIndex itarget_name =
@@ -2189,6 +2178,7 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceGet(TokenPosition* p) {
   ASSERT(getter_name.ptr() == interface_target.name());
 
   if (direct_call.check_receiver_for_null_) {
+    auto receiver = MakeTemporary();
     instructions += CheckNull(position, receiver, getter_name);
   }
 
@@ -2206,10 +2196,6 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceGet(TokenPosition* p) {
                      Function::null_function(), &result_type);
   }
 
-  if (direct_call.check_receiver_for_null_) {
-    instructions += DropTempsPreserveTop(1);  // Drop receiver, preserve result.
-  }
-
   return instructions;
 }
 
@@ -2225,26 +2211,18 @@ Fragment StreamingFlowGraphBuilder::BuildDynamicGet(TokenPosition* p) {
       inferred_type_metadata_helper_.GetInferredType(offset);
 
   Fragment instructions = BuildExpression();  // read receiver.
-
-  LocalVariable* receiver = nullptr;
-  if (direct_call.check_receiver_for_null_) {
-    // Duplicate receiver for CheckNull before it is consumed by PushArgument.
-    receiver = MakeTemporary();
-    instructions += LoadLocal(receiver);
-  }
-
   const String& getter_name = ReadNameAsGetterName();  // read name.
-
-  if (direct_call.check_receiver_for_null_) {
-    instructions += CheckNull(position, receiver, getter_name);
-  }
-
   const auto& mangled_name = String::ZoneHandle(
       Z, Function::CreateDynamicInvocationForwarderName(getter_name));
   const Function* direct_call_target = &direct_call.target_;
   if (!direct_call_target->IsNull()) {
     direct_call_target = &Function::ZoneHandle(
         direct_call.target_.GetDynamicInvocationForwarder(mangled_name));
+  }
+
+  if (direct_call.check_receiver_for_null_) {
+    auto receiver = MakeTemporary();
+    instructions += CheckNull(position, receiver, getter_name);
   }
 
   if (!direct_call_target->IsNull()) {
@@ -2259,10 +2237,6 @@ Fragment StreamingFlowGraphBuilder::BuildDynamicGet(TokenPosition* p) {
                                  kTypeArgsLen, 1, Array::null_array(),
                                  kNumArgsChecked, Function::null_function(),
                                  Function::null_function(), &result_type);
-  }
-
-  if (direct_call.check_receiver_for_null_) {
-    instructions += DropTempsPreserveTop(1);  // Drop receiver, preserve result.
   }
 
   return instructions;
@@ -2280,14 +2254,6 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceTearOff(TokenPosition* p) {
       inferred_type_metadata_helper_.GetInferredType(offset);
 
   Fragment instructions = BuildExpression();  // read receiver.
-
-  LocalVariable* receiver = nullptr;
-  if (direct_call.check_receiver_for_null_) {
-    // Duplicate receiver for CheckNull before it is consumed by PushArgument.
-    receiver = MakeTemporary();
-    instructions += LoadLocal(receiver);
-  }
-
   const String& getter_name = ReadNameAsGetterName();  // read name.
   SkipDartType();                                      // read result_type.
   const NameIndex itarget_name =
@@ -2297,6 +2263,7 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceTearOff(TokenPosition* p) {
       Z, H.LookupMethodByMember(itarget_name, H.DartMethodName(itarget_name)));
 
   if (direct_call.check_receiver_for_null_) {
+    const auto receiver = MakeTemporary();
     instructions += CheckNull(position, receiver, getter_name);
   }
 
@@ -2314,10 +2281,6 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceTearOff(TokenPosition* p) {
                                  tearoff_interface_target, &result_type);
   }
 
-  if (direct_call.check_receiver_for_null_) {
-    instructions += DropTempsPreserveTop(1);  // Drop receiver, preserve result.
-  }
-
   return instructions;
 }
 
@@ -2333,14 +2296,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionTearOff(TokenPosition* p) {
 
   Fragment instructions = BuildExpression();  // read receiver.
 
-  LocalVariable* receiver = nullptr;
   if (direct_call.check_receiver_for_null_) {
-    // Duplicate receiver for CheckNull before it is consumed by PushArgument.
-    receiver = MakeTemporary();
-    instructions += LoadLocal(receiver);
-  }
-
-  if (direct_call.check_receiver_for_null_) {
+    const auto receiver = MakeTemporary();
     instructions += CheckNull(position, receiver, Symbols::GetCall());
   }
 
@@ -2356,10 +2313,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionTearOff(TokenPosition* p) {
                                  kTypeArgsLen, 1, Array::null_array(),
                                  kNumArgsChecked, Function::null_function(),
                                  Function::null_function(), &result_type);
-  }
-
-  if (direct_call.check_receiver_for_null_) {
-    instructions += DropTempsPreserveTop(1);  // Drop receiver, preserve result.
   }
 
   return instructions;
@@ -2399,9 +2352,7 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceSet(TokenPosition* p) {
 
   LocalVariable* receiver = nullptr;
   if (direct_call.check_receiver_for_null_) {
-    // Duplicate receiver for CheckNull before it is consumed by PushArgument.
     receiver = MakeTemporary();
-    instructions += LoadLocal(receiver);
   }
 
   const String& setter_name = ReadNameAsSetterName();  // read name.
@@ -2442,10 +2393,6 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceSet(TokenPosition* p) {
 
   instructions += Drop();  // Drop result of the setter invocation.
 
-  if (direct_call.check_receiver_for_null_) {
-    instructions += Drop();  // Drop receiver.
-  }
-
   return instructions;
 }
 
@@ -2471,9 +2418,7 @@ Fragment StreamingFlowGraphBuilder::BuildDynamicSet(TokenPosition* p) {
 
   LocalVariable* receiver = nullptr;
   if (direct_call.check_receiver_for_null_) {
-    // Duplicate receiver for CheckNull before it is consumed by PushArgument.
     receiver = MakeTemporary();
-    instructions += LoadLocal(receiver);
   }
 
   const String& setter_name = ReadNameAsSetterName();  // read name.
@@ -2513,10 +2458,6 @@ Fragment StreamingFlowGraphBuilder::BuildDynamicSet(TokenPosition* p) {
   }
 
   instructions += Drop();  // Drop result of the setter invocation.
-
-  if (direct_call.check_receiver_for_null_) {
-    instructions += Drop();  // Drop receiver.
-  }
 
   return instructions;
 }
@@ -2876,7 +2817,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
   Fragment instructions;
 
   intptr_t type_args_len = 0;
-  LocalVariable* type_arguments_temp = nullptr;
   {
     AlternativeReadingScope alt(&reader_);
     SkipExpression();                         // skip receiver
@@ -2887,13 +2827,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
       const TypeArguments& type_arguments =
           T.BuildTypeArguments(list_length);  // read types.
       instructions += TranslateInstantiatedTypeArguments(type_arguments);
-      if (direct_call.check_receiver_for_null_) {
-        // Don't yet push type arguments if we need to check receiver for null.
-        // In this case receiver will be duplicated so instead of pushing
-        // type arguments here we need to push it between receiver_temp
-        // and actual receiver. See the code below.
-        type_arguments_temp = MakeTemporary();
-      }
     }
     type_args_len = list_length;
   }
@@ -2929,17 +2862,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
   LocalVariable* receiver_temp = nullptr;
   if (direct_call.check_receiver_for_null_) {
-    // Duplicate receiver for CheckNull before it is consumed by PushArgument.
     receiver_temp = MakeTemporary();
-    if (type_arguments_temp != nullptr) {
-      // If call has type arguments then push them before pushing the receiver.
-      // The stack will contain:
-      //
-      //   [type_arguments_temp][receiver_temp][type_arguments][receiver] ...
-      //
-      instructions += LoadLocal(type_arguments_temp);
-    }
-    instructions += LoadLocal(receiver_temp);
   }
 
   intptr_t argument_count;
@@ -2978,8 +2901,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
   }
 
   if (direct_call.check_receiver_for_null_) {
-    instructions += CheckNull(position, receiver_temp, name,
-                              /*clear_temp=*/true);
+    instructions += CheckNull(position, receiver_temp, name);
   }
 
   const String* mangled_name = &name;
@@ -3014,14 +2936,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
         Function::null_function(), &result_type,
         /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes,
         result_type.ReceiverNotInt(), is_call_on_this);
-  }
-
-  // Drop temporaries preserving result on the top of the stack.
-  ASSERT((receiver_temp != nullptr) || (type_arguments_temp == nullptr));
-  if (receiver_temp != nullptr) {
-    const intptr_t num_temps = (receiver_temp != nullptr ? 1 : 0) +
-                               (type_arguments_temp != nullptr ? 1 : 0);
-    instructions += DropTempsPreserveTop(num_temps);
   }
 
   // Later optimization passes assume that result of a x.[]=(...) call is not
@@ -3137,8 +3051,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
   SkipDartType();  // read function_type.
 
   if (is_unchecked_closure_call) {
-    instructions += CheckNull(position, receiver_temp, Symbols::call(),
-                              /*clear_temp=*/false);
+    instructions += CheckNull(position, receiver_temp, Symbols::call());
     // Lookup the function in the closure.
     instructions += LoadLocal(receiver_temp);
     if (!FLAG_precompiled_mode) {
@@ -3563,8 +3476,7 @@ Fragment StreamingFlowGraphBuilder::BuildNullCheck(TokenPosition* p) {
   TokenPosition operand_position = TokenPosition::kNoSource;
   Fragment instructions = BuildExpression(&operand_position);
   LocalVariable* expr_temp = MakeTemporary();
-  instructions += CheckNull(position, expr_temp, String::null_string(),
-                            /* clear_the_temp = */ false);
+  instructions += CheckNull(position, expr_temp, String::null_string());
 
   return instructions;
 }

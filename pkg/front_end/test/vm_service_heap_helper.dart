@@ -12,6 +12,8 @@ class VMServiceHeapHelperSpecificExactLeakFinder
   final Map<Uri, Map<String, List<String>>> _prettyPrints =
       new Map<Uri, Map<String, List<String>>>();
   final bool throwOnPossibleLeak;
+  bool verbose = false;
+  int? timeout;
 
   VMServiceHeapHelperSpecificExactLeakFinder({
     List<Interest> interests = const [],
@@ -87,7 +89,13 @@ class VMServiceHeapHelperSpecificExactLeakFinder
     _iterationNumber = 1;
     while (true) {
       if (!shouldDoAnotherIteration(_iterationNumber)) break;
-      await waitUntilPaused(_isolateRef.id!);
+      {
+        Future<bool> f = waitUntilPaused(_isolateRef.id!);
+        if (timeout != null) {
+          f = f.timeout(new Duration(seconds: timeout!));
+        }
+        await f;
+      }
       print("Iteration: #$_iterationNumber");
 
       Stopwatch stopwatch = new Stopwatch()..start();
@@ -119,8 +127,15 @@ class VMServiceHeapHelperSpecificExactLeakFinder
             }
           }
 
-          leaks.addAll(await _findLeaks(_isolateRef, member.classRef!,
-              fieldsForClass, fieldsForClassPrettyPrint));
+          if (member.instancesCurrent != 0) {
+            if (verbose) {
+              print("Has ${member.instancesCurrent} instances of "
+                  "${member.classRef!.name}");
+            }
+
+            leaks.addAll(await _findLeaks(_isolateRef, member.classRef!,
+                fieldsForClass, fieldsForClassPrettyPrint));
+          }
         }
       }
       if (leaks.isNotEmpty) {
@@ -136,7 +151,14 @@ class VMServiceHeapHelperSpecificExactLeakFinder
 
       print("Looked for leaks in ${stopwatch.elapsedMilliseconds} ms");
 
-      await serviceClient.resume(_isolateRef.id!);
+      {
+        Future<vmService.Success> f = serviceClient.resume(_isolateRef.id!);
+        if (timeout != null) {
+          f = f.timeout(new Duration(seconds: timeout!));
+        }
+        await f;
+      }
+
       _iterationNumber++;
     }
   }
@@ -146,16 +168,13 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       vmService.ClassRef classRef,
       List<String> fieldsForClass,
       List<String> fieldsForClassPrettyPrint) async {
-    // Use undocumented (/ private?) method to get all instances of this class.
-    vmService.InstanceRef instancesAsList = (await serviceClient.callMethod(
-      "_getInstancesAsArray",
-      isolateId: isolateRef.id,
-      args: {
-        "objectId": classRef.id,
-        "includeSubclasses": false,
-        "includeImplementors": false,
-      },
-    )) as vmService.InstanceRef;
+    vmService.InstanceRef instancesAsList =
+        (await serviceClient.getInstancesAsList(
+      isolateRef.id!,
+      classRef.id!,
+      includeSubclasses: false,
+      includeImplementers: false,
+    ));
 
     // Create dart code that `toString`s a class instance according to
     // the fields given as wanting printed. Both for finding duplicates (1) and

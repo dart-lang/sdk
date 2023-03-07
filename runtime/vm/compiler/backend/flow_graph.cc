@@ -158,7 +158,7 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     }
   }
   if (current->ArgumentCount() != 0) {
-    ASSERT(!current->HasPushArguments());
+    ASSERT(!current->HasMoveArguments());
   }
   iterator->RemoveCurrentFromGraph();
 }
@@ -1558,7 +1558,7 @@ void FlowGraph::RenameRecursive(
         break;
       }
 
-      case Instruction::kPushArgument:
+      case Instruction::kMoveArgument:
         UNREACHABLE();
         break;
 
@@ -1628,7 +1628,7 @@ void FlowGraph::RenameRecursive(
           // Rename input operand.
           Definition* input = (*env)[i];
           ASSERT(input != nullptr);
-          ASSERT(!input->IsPushArgument());
+          ASSERT(!input->IsMoveArgument());
           Value* use = new (zone()) Value(input);
           phi->SetInputAt(pred_index, use);
         }
@@ -2414,7 +2414,7 @@ void FlowGraph::WidenSmiToInt32() {
         if (use_defn == NULL) {
           // We assume that tagging before returning or pushing argument costs
           // very little compared to the cost of the return/call itself.
-          ASSERT(!instr->IsPushArgument());
+          ASSERT(!instr->IsMoveArgument());
           if (!instr->IsReturn() &&
               (use->use_index() >= instr->ArgumentCount())) {
             gain--;
@@ -2998,7 +2998,8 @@ PhiInstr* FlowGraph::AddPhi(JoinEntryInstr* join,
   return phi;
 }
 
-void FlowGraph::InsertPushArguments() {
+void FlowGraph::InsertMoveArguments() {
+  intptr_t max_argument_slot_count = 0;
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
     thread()->CheckForSafepoint();
@@ -3009,24 +3010,41 @@ void FlowGraph::InsertPushArguments() {
       if (arg_count == 0) {
         continue;
       }
-      PushArgumentsArray* arguments =
-          new (Z) PushArgumentsArray(zone(), arg_count);
-      for (intptr_t i = 0; i < arg_count; ++i) {
+      MoveArgumentsArray* arguments =
+          new (Z) MoveArgumentsArray(zone(), arg_count);
+      arguments->EnsureLength(arg_count, nullptr);
+
+      intptr_t sp_relative_index = 0;
+      for (intptr_t i = arg_count - 1; i >= 0; --i) {
         Value* arg = instruction->ArgumentValueAt(i);
-        PushArgumentInstr* push_arg = new (Z) PushArgumentInstr(
-            arg->CopyWithType(Z), instruction->RequiredInputRepresentation(i));
-        arguments->Add(push_arg);
-        // Insert all PushArgument instructions immediately before call.
-        // PushArgumentInstr::EmitNativeCode may generate more efficient
-        // code for subsequent PushArgument instructions (ARM, ARM64).
-        InsertBefore(instruction, push_arg, /*env=*/nullptr, kEffect);
+        const auto rep = instruction->RequiredInputRepresentation(i);
+        (*arguments)[i] = new (Z)
+            MoveArgumentInstr(arg->CopyWithType(Z), rep, sp_relative_index);
+
+        static_assert(compiler::target::kIntSpillFactor ==
+                          compiler::target::kDoubleSpillFactor,
+                      "double and int are expected to be of the same size");
+        RELEASE_ASSERT(rep == kTagged || rep == kUnboxedDouble ||
+                       rep == kUnboxedInt64);
+        sp_relative_index +=
+            (rep == kTagged) ? 1 : compiler::target::kIntSpillFactor;
       }
-      instruction->ReplaceInputsWithPushArguments(arguments);
+      max_argument_slot_count =
+          Utils::Maximum(max_argument_slot_count, sp_relative_index);
+
+      for (auto move_arg : *arguments) {
+        // Insert all MoveArgument instructions immediately before call.
+        // MoveArgumentInstr::EmitNativeCode may generate more efficient
+        // code for subsequent MoveArgument instructions (ARM, ARM64).
+        InsertBefore(instruction, move_arg, /*env=*/nullptr, kEffect);
+      }
+      instruction->ReplaceInputsWithMoveArguments(arguments);
       if (instruction->env() != nullptr) {
-        instruction->RepairPushArgsInEnvironment();
+        instruction->RepairArgumentUsesInEnvironment();
       }
     }
   }
+  set_max_argument_slot_count(max_argument_slot_count);
 }
 
 void FlowGraph::Print(const char* phase) {

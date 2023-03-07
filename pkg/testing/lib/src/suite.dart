@@ -36,6 +36,7 @@ abstract class Suite {
     }
   }
 
+  @override
   String toString() => "Suite($name, $kind)";
 }
 
@@ -84,5 +85,6 @@ class Dart extends Suite {
     return Dart(name, uri, pattern, exclude);
   }
 
+  @override
   String toString() => "Dart($name, $uri, $pattern, $exclude)";
 }

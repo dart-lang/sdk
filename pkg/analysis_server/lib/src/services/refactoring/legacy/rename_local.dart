@@ -15,6 +15,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
@@ -158,7 +159,22 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() async {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
-    processor.addDeclarationEdit(element);
+
+    final element = this.element;
+    if (element is PatternVariableElementImpl) {
+      var rootVariable = element.rootVariable;
+      var declaredElements = rootVariable is JoinPatternVariableElementImpl
+          ? rootVariable.transitiveVariables
+              .whereType<BindPatternVariableElementImpl>()
+              .toList()
+          : [element];
+      for (var declaredElement in declaredElements) {
+        processor.addDeclarationEdit(declaredElement);
+      }
+    } else {
+      processor.addDeclarationEdit(element);
+    }
+
     var references = await searchEngine.searchReferences(element);
     processor.addReferenceEdits(references);
   }

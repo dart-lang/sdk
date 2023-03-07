@@ -1,0 +1,7 @@
+final
+mixin M1 {}
+sealed
+mixin M2 {}
+base class S {}
+final class C extends S with M1, M2 {}
+final class D = S with M1, M2;

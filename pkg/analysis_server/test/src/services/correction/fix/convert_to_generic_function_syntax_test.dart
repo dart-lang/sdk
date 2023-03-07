@@ -190,4 +190,13 @@ class D extends C {
 }
 ''');
   }
+
+  Future<void> test_typeParameters() async {
+    await resolveTestCode('''
+void f(void a<E>()) {}
+''');
+    await assertHasFix('''
+void f(void Function<E>() a) {}
+''');
+  }
 }

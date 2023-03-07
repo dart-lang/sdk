@@ -34,7 +34,9 @@ class FieldIndex {
   static const instantiationContextTypeArgumentsBase = 1;
   static const typeIsDeclaredNullable = 2;
   static const interfaceTypeTypeArguments = 4;
-  static const functionTypeNamedParameters = 8;
+  static const functionTypeNamedParameters = 9;
+  static const recordTypeNames = 3;
+  static const recordTypeFieldTypes = 4;
   static const typedListBaseLength = 2;
   static const typedListArray = 3;
   static const typedListViewTypedData = 3;
@@ -42,6 +44,12 @@ class FieldIndex {
   static const byteDataViewLength = 2;
   static const byteDataViewTypedData = 3;
   static const byteDataViewOffsetInBytes = 4;
+  static const suspendStateIterator = 4;
+  static const suspendStateContext = 5;
+  static const suspendStateTargetIndex = 6;
+  static const syncStarIteratorCurrent = 3;
+  static const syncStarIteratorYieldStarIterable = 4;
+  static const recordFieldBase = 2;
 
   static void validate(Translator translator) {
     void check(Class cls, String name, int expectedIndex) {
@@ -68,6 +76,19 @@ class FieldIndex {
         FieldIndex.interfaceTypeTypeArguments);
     check(translator.functionTypeClass, "namedParameters",
         FieldIndex.functionTypeNamedParameters);
+    check(translator.recordTypeClass, "names", FieldIndex.recordTypeNames);
+    check(translator.recordTypeClass, "fieldTypes",
+        FieldIndex.recordTypeFieldTypes);
+    check(translator.suspendStateClass, "_iterator",
+        FieldIndex.suspendStateIterator);
+    check(translator.suspendStateClass, "_context",
+        FieldIndex.suspendStateContext);
+    check(translator.suspendStateClass, "_targetIndex",
+        FieldIndex.suspendStateTargetIndex);
+    check(translator.syncStarIteratorClass, "_current",
+        FieldIndex.syncStarIteratorCurrent);
+    check(translator.syncStarIteratorClass, "_yieldStarIterable",
+        FieldIndex.syncStarIteratorYieldStarIterable);
   }
 }
 
@@ -104,7 +125,8 @@ class ClassInfo {
 
   /// The class whose struct is used as the type for variables of this type.
   /// This is a type which is a superclass of all subtypes of this type.
-  late final ClassInfo repr;
+  late final ClassInfo repr = upperBound(
+      implementedBy.map((c) => identical(c, this) ? this : c.repr).toList());
 
   /// All classes which implement this class. This is used to compute `repr`.
   final List<ClassInfo> implementedBy = [];
@@ -158,6 +180,10 @@ class ClassInfoCollector {
   final Translator translator;
   int _nextClassId = 0;
   late final ClassInfo topInfo;
+
+  /// Maps number of record fields to the struct type to be used for a record
+  /// shape class with that many fields.
+  final Map<int, w.StructType> _recordStructs = {};
 
   /// Wasm field type for fields with type [_Type]. Fields of this type are
   /// added to classes for type parameters.
@@ -267,8 +293,24 @@ class ClassInfoCollector {
     translator.classForHeapType.putIfAbsent(info.struct, () => info!);
   }
 
-  void _computeRepresentation(ClassInfo info) {
-    info.repr = upperBound(info.implementedBy);
+  void _initializeRecordClass(Class cls) {
+    final numFields = cls.fields.length;
+
+    final struct = _recordStructs.putIfAbsent(
+        numFields,
+        () => m.addStructType(
+              'Record$numFields',
+              superType: translator.recordInfo.struct,
+            ));
+
+    final ClassInfo superInfo = translator.recordInfo;
+
+    final info =
+        ClassInfo(cls, _nextClassId++, superInfo.depth + 1, struct, superInfo);
+
+    translator.classes.add(info);
+    translator.classInfo[cls] = info;
+    translator.classForHeapType.putIfAbsent(info.struct, () => info);
   }
 
   void _generateFields(ClassInfo info) {
@@ -318,6 +360,30 @@ class ClassInfoCollector {
     }
   }
 
+  void _generateRecordFields(ClassInfo info) {
+    final struct = info.struct;
+    final ClassInfo superInfo = info.superInfo!;
+    assert(identical(superInfo, translator.recordInfo));
+
+    // Different record classes can share the same struct, check if the struct
+    // is already initialized
+    if (struct.fields.isEmpty) {
+      // Copy fields from superclass
+      for (w.FieldType fieldType in superInfo.struct.fields) {
+        info._addField(fieldType);
+      }
+
+      for (Field _ in info.cls!.fields) {
+        info._addField(w.FieldType(topInfo.nullableType));
+      }
+    }
+
+    int fieldIdx = superInfo.struct.fields.length;
+    for (Field field in info.cls!.fields) {
+      translator.fieldIndex[field] = fieldIdx++;
+    }
+  }
+
   /// Create class info and Wasm struct for all classes.
   void collect() {
     _initializeTop();
@@ -332,24 +398,29 @@ class ClassInfoCollector {
     // parameters.
     _initialize(translator.typeClass);
 
-    for (Library library in translator.component.libraries) {
-      for (Class cls in library.classes) {
-        _initialize(cls);
-      }
+    // Initialize the record base class if we have record classes.
+    if (translator.recordClasses.isNotEmpty) {
+      _initialize(translator.coreTypes.recordClass);
     }
 
-    // For each class, compute which Wasm struct should be used for the type of
-    // variables bearing that class as their Dart type. This is the struct
-    // corresponding to the least common (most specific) supertype of all Dart
-    // classes implementing this class.
-    for (ClassInfo info in translator.classes) {
-      _computeRepresentation(info);
+    for (Library library in translator.component.libraries) {
+      for (Class cls in library.classes) {
+        if (cls.superclass == translator.coreTypes.recordClass) {
+          _initializeRecordClass(cls);
+        } else {
+          _initialize(cls);
+        }
+      }
     }
 
     // Now that the representation types for all classes have been computed,
     // fill in the types of the fields in the generated Wasm structs.
     for (ClassInfo info in translator.classes) {
-      _generateFields(info);
+      if (info.superInfo == translator.recordInfo) {
+        _generateRecordFields(info);
+      } else {
+        _generateFields(info);
+      }
     }
 
     // Add hidden fields of typed_data classes.

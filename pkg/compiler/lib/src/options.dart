@@ -391,6 +391,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// this RegExp pattern.
   String? dumpSsaPattern = null;
 
+  /// Whether to generate a `.resources.json` file detailing the use of resource
+  /// identifiers.
+  bool writeResources = false;
+
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
   ///
@@ -654,6 +658,7 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, "${Flags.dumpInfo}=binary")
       ..dumpSsaPattern =
           _extractStringOption(options, '${Flags.dumpSsa}=', null)
+      ..writeResources = _hasOption(options, Flags.writeResources)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
       ..omitLateNames = _hasOption(options, Flags.omitLateNames)
@@ -834,6 +839,8 @@ class CompilerOptions implements DiagnosticOptions {
     if (_mergeFragmentsThreshold != null) {
       mergeFragmentsThreshold = _mergeFragmentsThreshold;
     }
+
+    environment['dart.web.assertions_enabled'] = '$enableUserAssertions';
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

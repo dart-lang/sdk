@@ -42,6 +42,18 @@ class MyListOfOneElement extends Object
   }
 }
 
+/// Throws when any index is assigned to e.g. `l[0] = 5;`.
+class BrokenList extends Object with ListMixin<int> implements List<int> {
+  int get length => 5;
+  void set length(int index) => throw UnsupportedError('Cannot set length');
+
+  void operator []=(int index, int value) {
+    throw StateError('[$index] = $value');
+  }
+
+  operator [](int index) => 0;
+}
+
 class FileTest {
   static Directory tempDirectory;
   static File largeFile;
@@ -829,19 +841,20 @@ class FileTest {
     asyncTestDone("testReadInto");
   }
 
-  static void testReadIntoSync() {
+  static void testReadIntoSync(
+      List<int> Function(int length, int fill) listFactory) {
     File file = new File(tempDirectory.path + "/out_read_into_sync");
 
     var openedFile = file.openSync(mode: FileMode.write);
     openedFile.writeFromSync(const [1, 2, 3]);
 
     openedFile.setPositionSync(0);
-    var list = <int>[null, null, null];
+    var list = listFactory(3, 49);
     Expect.equals(3, openedFile.readIntoSync(list));
     Expect.listEquals([1, 2, 3], list);
 
     read(start, end, length, expected) {
-      var list = <int>[null, null, null];
+      var list = listFactory(3, 49);
       openedFile.setPositionSync(0);
       Expect.equals(length, openedFile.readIntoSync(list, start, end));
       Expect.listEquals(expected, list);
@@ -849,12 +862,27 @@ class FileTest {
     }
 
     read(0, 3, 3, [1, 2, 3]);
-    read(0, 2, 2, [1, 2, null]);
-    read(1, 2, 1, [null, 1, null]);
-    read(1, 3, 2, [null, 1, 2]);
-    read(2, 3, 1, [null, null, 1]);
-    read(0, 0, 0, [null, null, null]);
+    read(0, 2, 2, [1, 2, 49]);
+    read(1, 2, 1, [49, 1, 49]);
+    read(1, 3, 2, [49, 1, 2]);
+    read(2, 3, 1, [49, 49, 1]);
+    read(0, 0, 0, [49, 49, 49]);
 
+    openedFile.closeSync();
+  }
+
+  /// Tests that `RandomAccessFile.readInto` propogates exceptions when
+  /// assigning data to a list that throws.
+  static void testReadIntoSyncBadList() {
+    File file =
+        new File(tempDirectory.path + "/out_read_into_sync_broken_list");
+
+    var openedFile = file.openSync(mode: FileMode.write);
+    openedFile.writeFromSync(const [1, 2, 3]);
+
+    openedFile.setPositionSync(0);
+    final list = BrokenList();
+    Expect.throws(() => openedFile.readIntoSync(list), (e) => e is StateError);
     openedFile.closeSync();
   }
 
@@ -1765,7 +1793,14 @@ class FileTest {
       testTruncate();
       testTruncateSync();
       testReadInto();
-      testReadIntoSync();
+      testReadIntoSync((length, fill) => List<int>.filled(length, fill));
+      // readIntoSync has an optimized code path for UInt8List.
+      testReadIntoSync(
+          (length, fill) => Uint8List(length)..fillRange(0, length, fill));
+      // readIntoSync should worked with typed data that is not uint8.
+      testReadIntoSync(
+          (length, fill) => Uint16List(length)..fillRange(0, length, fill));
+      testReadIntoSyncBadList();
       testWriteFrom();
       testWriteFromSync();
       testCloseException();

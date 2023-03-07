@@ -137,5 +137,5 @@ class Class {
 
 /*member: main:calls=[test$0(0)],params=0*/
 main() {
-  new Class().test();
+  Class().test();
 }

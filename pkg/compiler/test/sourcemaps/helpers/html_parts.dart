@@ -90,7 +90,7 @@ AnnotationData? getAnnotationDataFromSchemes(Iterable<Annotation> annotations,
     data['onclick'] = elementScheme.onClick(id, ids);
     data['onmouseover'] = elementScheme.onMouseOver(id, ids);
     data['onmouseout'] = elementScheme.onMouseOut(id, ids);
-    return new AnnotationData(properties: data);
+    return AnnotationData(properties: data);
   }
   return null;
 }
@@ -115,7 +115,7 @@ class HtmlPrintContext {
       AnnotationFilter? includeAnnotation,
       AnnotationDataFunction? getAnnotationData,
       LineDataFunction? getLineData}) {
-    return new HtmlPrintContext(
+    return HtmlPrintContext(
         lineNoWidth: lineNoWidth ?? this.lineNoWidth,
         usePre: usePre ?? this.usePre,
         includeAnnotation: includeAnnotation ?? this.includeAnnotation,
@@ -143,7 +143,7 @@ abstract class HtmlPart {
 
   static HtmlPart fromJson(json, JsonStrategy strategy) {
     if (json is String) {
-      return new ConstHtmlPart(json);
+      return ConstHtmlPart(json);
     } else {
       switch (HtmlPartKind.values[json['kind']]) {
         case HtmlPartKind.LINE:
@@ -184,7 +184,7 @@ class ConstHtmlPart implements HtmlPart {
   }
 
   static ConstHtmlPart fromJson(Map json, JsonStrategy strategy) {
-    return new ConstHtmlPart(json['html']);
+    return ConstHtmlPart(json['html']);
   }
 }
 
@@ -229,7 +229,7 @@ class HtmlText implements HtmlPart {
   }
 
   static HtmlText fromJson(Map json, JsonStrategy strategy) {
-    return new HtmlText(json['text']);
+    return HtmlText(json['text']);
   }
 }
 
@@ -271,7 +271,7 @@ class TagPart implements HtmlPart {
   }
 
   static TagPart fromJson(Map json, JsonStrategy strategy) {
-    return new TagPart(json['tag'],
+    return TagPart(json['tag'],
         properties: json['properties'],
         content: json['content'].map(HtmlPart.fromJson).toList());
   }
@@ -299,7 +299,7 @@ class HtmlLine implements HtmlPart {
   }
 
   static HtmlLine fromJson(Map json, JsonStrategy strategy) {
-    HtmlLine line = new HtmlLine();
+    HtmlLine line = HtmlLine();
     json['html'].forEach(
         (part) => line.htmlParts.add(HtmlPart.fromJson(part, strategy)));
     return line;
@@ -334,10 +334,10 @@ class CodePart {
         htmlParts.add(new TagPart(annotationDataForSpan.tag,
             properties: annotationDataForSpan.properties,
             content: [
-              new TagPart(annotationData.tag,
+              TagPart(annotationData.tag,
                   properties: annotationData.properties,
                   content: [new HtmlText(head)]),
-              new HtmlText(tail)
+              HtmlText(tail)
             ]));
       } else if (annotationDataForSpan != null) {
         htmlParts.add(new TagPart(annotationDataForSpan.tag,
@@ -369,7 +369,7 @@ class CodePart {
   }
 
   static CodePart fromJson(Map json, JsonStrategy strategy) {
-    return new CodePart(
+    return CodePart(
         json['annotations'].map((j) => strategy.decodeAnnotation(j)).toList(),
         json['subsequentCode']);
   }
@@ -394,7 +394,7 @@ class LineNumber extends HtmlPart {
   }
 
   static LineNumber fromJson(Map json, JsonStrategy strategy) {
-    return new LineNumber(
+    return LineNumber(
         json['lineNo'], strategy.decodeLineAnnotation(json['lineAnnotation']));
   }
 
@@ -411,7 +411,7 @@ class CodeLine extends HtmlPart {
   final Uri? uri;
   final int lineNo;
   final int offset;
-  final StringBuffer codeBuffer = new StringBuffer();
+  final StringBuffer codeBuffer = StringBuffer();
   final List<CodePart> codeParts = <CodePart>[];
   final List<Annotation> annotations = <Annotation>[];
   var lineAnnotation;
@@ -429,7 +429,7 @@ class CodeLine extends HtmlPart {
       LineData lineData = context.getLineData(lineAnnotation);
       htmlBuffer.write('<p class="${lineData.lineClass}">');
     }
-    new LineNumber(lineNo, lineAnnotation).printHtmlOn(htmlBuffer, context);
+    LineNumber(lineNo, lineAnnotation).printHtmlOn(htmlBuffer, context);
     for (CodePart part in codeParts) {
       part.printHtmlOn(htmlBuffer, context);
     }
@@ -456,7 +456,7 @@ class CodeLine extends HtmlPart {
   }
 
   static CodeLine fromJson(Map json, JsonStrategy strategy) {
-    CodeLine line = new CodeLine(json['lineNo'], json['offset'],
+    CodeLine line = CodeLine(json['lineNo'], json['offset'],
         uri: json['uri'] != null ? Uri.parse(json['uri']) : null);
     line.codeBuffer.write(json['code']);
     json['parts'].forEach(
@@ -483,7 +483,7 @@ class JsonStrategy {
   }
 
   Annotation decodeAnnotation(Map json) {
-    return new Annotation(json['id'], json['codeOffset'], json['title'],
+    return Annotation(json['id'], json['codeOffset'], json['title'],
         data: json['data']);
   }
 

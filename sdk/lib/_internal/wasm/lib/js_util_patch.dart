@@ -39,7 +39,7 @@ dynamic jsify(Object? object) {
         o is Float64List ||
         o is ByteBuffer ||
         o is ByteData) {
-      return JSValue.box(jsifyRaw(o));
+      return JSValue(jsifyRaw(o));
     }
 
     if (o is Map) {
@@ -60,7 +60,7 @@ dynamic jsify(Object? object) {
       return convertedIterable;
     } else {
       // None of the objects left will require recursive conversions.
-      return JSValue.box(jsifyRaw(o));
+      return JSValue(jsifyRaw(o));
     }
   }
 
@@ -143,6 +143,10 @@ bool lessThan<T>(Object? first, Object? second) => throw 'unimplemented';
 @patch
 bool lessThanOrEqual<T>(Object? first, Object? second) => throw 'unimplemented';
 
+@patch
+bool typeofEquals<T>(Object? o, String type) =>
+    JS<bool>('(o, t) => typeof o === t', jsifyRaw(o), jsifyRaw(type));
+
 typedef _PromiseSuccessFunc = void Function(Object? value);
 typedef _PromiseFailureFunc = void Function(Object? error);
 
@@ -161,7 +165,7 @@ Future<T> promiseToFuture<T>(Object jsPromise) {
     // so we cannot tell them apart. In the future we should reify `undefined`
     // in Dart.
     if (e == null) {
-      return completer.completeError(NullRejectionException._(false));
+      return completer.completeError(NullRejectionException(false));
     }
     return completer.completeError(e);
   });
@@ -205,8 +209,9 @@ Object? dartify(Object? object) {
       return o;
     }
 
-    WasmExternRef ref = o.toExternRef();
-    if (isJSBoolean(ref) ||
+    WasmExternRef? ref = o.toExternRef();
+    if (ref.isNull ||
+        isJSBoolean(ref) ||
         isJSNumber(ref) ||
         isJSString(ref) ||
         isJSUndefined(ref) ||

@@ -1,0 +1,22 @@
+base class BaseClass {}
+---- unknown chunk starts ----
+base
+---- unknown chunk ends ----
+class RegularClass {}
+final class FinalClass extends BaseClass {}
+mixin BaseMixin {}
+sealed class SubtypeOfBase extends BaseClass {}
+---- unknown chunk starts ----
+base
+---- unknown chunk ends ----
+class Extends extends BaseClass {}
+class ExtendsExtends extends Extends {}
+class Implements implements BaseClass {}
+class IndirectSubtype extends SubtypeOfBase {}
+class Multiple extends FinalClass implements BaseMixin {}
+class Multiple2 extends RegularClass implements BaseClass {}
+class With with BaseMixin {}
+class With2 with BaseMixin, BaseMixin2 {}
+mixin BaseMixin2 {}
+mixin MixinImplements implements BaseMixin {}
+mixin On on BaseClass {}

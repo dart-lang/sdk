@@ -12,9 +12,9 @@ class B<T> {}
 
 /*class: C:needsArgs*/
 class C<T> {
-  method() => new B<T>();
+  method() => B<T>();
 }
 
 main() {
-  new C<A>().method() is B<A>;
+  C<A>().method() is B<A>;
 }

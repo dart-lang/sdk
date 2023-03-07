@@ -348,18 +348,7 @@ void JSONWriter::AddEscapedUTF8String(const char* s, intptr_t len) {
   if (s == NULL) {
     return;
   }
-  const uint8_t* s8 = reinterpret_cast<const uint8_t*>(s);
-  intptr_t i = 0;
-  for (; i < len;) {
-    // Extract next UTF8 character.
-    int32_t ch = 0;
-    int32_t ch_len = Utf8::Decode(&s8[i], len - i, &ch);
-    ASSERT(ch_len != 0);
-    buffer_.EscapeAndAddCodeUnit(ch);
-    // Move i forward.
-    i += ch_len;
-  }
-  ASSERT(i == len);
+  buffer_.AddEscapedUTF8(s, len);
 }
 
 bool JSONWriter::AddDartString(const String& s,
@@ -373,29 +362,26 @@ bool JSONWriter::AddDartString(const String& s,
   if (!Utils::RangeCheck(offset, count, length)) {
     count = length - offset;
   }
-  intptr_t limit = offset + count;
-  for (intptr_t i = offset; i < limit; i++) {
-    uint16_t code_unit = s.CharAt(i);
-    if (Utf16::IsTrailSurrogate(code_unit)) {
-      buffer_.EscapeAndAddUTF16CodeUnit(code_unit);
-    } else if (Utf16::IsLeadSurrogate(code_unit)) {
-      if (i + 1 == limit) {
-        buffer_.EscapeAndAddUTF16CodeUnit(code_unit);
-      } else {
-        uint16_t next_code_unit = s.CharAt(i + 1);
-        if (Utf16::IsTrailSurrogate(next_code_unit)) {
-          uint32_t decoded = Utf16::Decode(code_unit, next_code_unit);
-          buffer_.EscapeAndAddCodeUnit(decoded);
-          i++;
-        } else {
-          buffer_.EscapeAndAddUTF16CodeUnit(code_unit);
-        }
-      }
+
+  if (count > 0) {  // Avoid asserts about harmless out-of-bounds index.
+    NoSafepointScope no_safepoint;
+    if (s.IsOneByteString()) {
+      buffer_.AddEscapedLatin1(OneByteString::CharAddr(s, offset), count);
+    } else if (s.IsExternalOneByteString()) {
+      buffer_.AddEscapedLatin1(ExternalOneByteString::CharAddr(s, offset),
+                               count);
+    } else if (s.IsTwoByteString()) {
+      buffer_.AddEscapedUTF16(TwoByteString::CharAddr(s, offset), count);
+    } else if (s.IsExternalTwoByteString()) {
+      buffer_.AddEscapedUTF16(ExternalTwoByteString::CharAddr(s, offset),
+                              count);
     } else {
-      buffer_.EscapeAndAddCodeUnit(code_unit);
+      UNREACHABLE();
     }
   }
+
   // Return value indicates whether the string is truncated.
+  intptr_t limit = offset + count;
   return (offset > 0) || (limit < length);
 }
 

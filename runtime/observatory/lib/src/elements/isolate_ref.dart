@@ -24,8 +24,6 @@ class IsolateRefElement extends CustomElement implements Renderable {
 
   factory IsolateRefElement(M.IsolateRef isolate, M.EventRepository events,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(events != null);
     IsolateRefElement e = new IsolateRefElement.created();
     e._r = new RenderingScheduler<IsolateRefElement>(e, queue: queue);
     e._isolate = isolate;

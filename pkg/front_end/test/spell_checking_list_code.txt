@@ -125,6 +125,7 @@ benchmarked
 benchmarker
 benchmarking
 benchmarks
+beta
 bf
 bi
 bias
@@ -160,6 +161,7 @@ brevity
 brianwilkerson
 bridge
 bridges
+brute
 bs
 bsd
 bslash
@@ -216,8 +218,10 @@ clamp
 clamped
 clarification
 clarify
+clash
 clashes
 class's
+clause's
 clazz
 cli
 client's
@@ -234,6 +238,8 @@ codes
 collision
 coloring
 colorized
+column's
+columns
 com
 combinations
 combinator
@@ -263,6 +269,7 @@ concept
 conceptual
 concerned
 conciser
+conclusions
 cond
 condensed
 config
@@ -358,6 +365,7 @@ delimiting
 demands
 demangle
 demangled
+demonstrated
 dep
 depended
 dependency's
@@ -404,6 +412,7 @@ disambiguator
 discovers
 discussion
 disjoint
+disjointness
 dispatched
 distribute
 diverged
@@ -710,6 +719,8 @@ inferable
 influence
 informative
 infos
+inhabit
+inhabits
 inhibit
 init
 initializations
@@ -737,6 +748,7 @@ intermediate
 internet
 interop
 interpolations
+interpretation
 interrupted
 intersections
 intersects
@@ -811,6 +823,7 @@ leeway
 left's
 legitimately
 len
+lengths
 lets
 letting
 levels
@@ -821,6 +834,7 @@ lhs
 lib
 libs
 lifetime
+lift
 lifted
 lifter
 limiting
@@ -990,6 +1004,9 @@ outlined
 outputs
 outputting
 ovar
+overapproximate
+overapproximates
+overapproximation
 overestimate
 overhead
 overlap
@@ -1108,6 +1125,9 @@ proposed
 proto
 protobuf
 protocol
+prototype's
+prove
+proven
 provider
 provisional
 prune
@@ -1189,6 +1209,7 @@ redefine
 redirectee
 redirector
 redo
+reevaluation
 reexports
 ref
 refactoring
@@ -1245,6 +1266,7 @@ response
 responses
 restoring
 restriction
+restricts
 resumed
 ret
 reusage
@@ -1269,6 +1291,9 @@ rough
 roughly
 rounding
 roundtrip
+row
+row's
+rows
 rparen
 rpc
 rs
@@ -1324,6 +1349,7 @@ shares
 shas
 shelf
 shifts
+ship
 shl
 shortening
 showing
@@ -1341,6 +1367,7 @@ sides
 sigmund
 signaling
 significant
+simplifier
 simplify
 singleton
 sinker
@@ -1353,6 +1380,7 @@ sk
 sky
 slash
 slb
+slipped
 slots
 slowing
 smi
@@ -1399,6 +1427,7 @@ starter
 stated
 statics
 stats
+stay
 stderr
 stdin
 stdio
@@ -1449,6 +1478,7 @@ subtracted
 subtracting
 subtraction
 subtracts
+suffixed
 suffixing
 suggests
 suite
@@ -1615,6 +1645,7 @@ unlower
 unmark
 unneeded
 unordered
+unpacks
 unpaired
 unparenthesized
 unparsed
@@ -1710,6 +1741,7 @@ winds
 wise
 wiser
 wishes
+witness
 wn
 worst
 worthwhile
@@ -1758,6 +1790,7 @@ yaml
 yb
 yet
 yi
+yielded
 yielding
 yields
 yn

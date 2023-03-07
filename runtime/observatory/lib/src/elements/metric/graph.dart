@@ -24,9 +24,6 @@ class MetricGraphElement extends CustomElement implements Renderable {
   factory MetricGraphElement(
       M.IsolateRef isolate, M.Metric metric, M.MetricRepository metrics,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(metric != null);
-    assert(metrics != null);
     MetricGraphElement e = new MetricGraphElement.created();
     e._r = new RenderingScheduler<MetricGraphElement>(e, queue: queue);
     e._isolate = isolate;
@@ -62,12 +59,8 @@ class MetricGraphElement extends CustomElement implements Renderable {
     final current = rows.last.last;
 
     var message = 'current: $current';
-    if (min != null) {
-      message = 'min: $min, $message';
-    }
-    if (max != null) {
-      message = message + ', max: $max';
-    }
+    message = 'min: $min, $message';
+    message = message + ', max: $max';
 
     final host = new DivElement();
     children = <Element>[
@@ -76,16 +69,14 @@ class MetricGraphElement extends CustomElement implements Renderable {
         ..children = <Element>[
           new DivElement()
             ..classes = ['memberItem']
-            ..children = min == null
-                ? const []
-                : [
-                    new DivElement()
-                      ..classes = ['memberName']
-                      ..text = 'min',
-                    new DivElement()
-                      ..classes = ['memberValue']
-                      ..text = '$min'
-                  ],
+            ..children = [
+              new DivElement()
+                ..classes = ['memberName']
+                ..text = 'min',
+              new DivElement()
+                ..classes = ['memberValue']
+                ..text = '$min'
+            ],
           new DivElement()
             ..classes = ['memberItem']
             ..children = <Element>[
@@ -98,16 +89,14 @@ class MetricGraphElement extends CustomElement implements Renderable {
             ],
           new DivElement()
             ..classes = ['memberItem']
-            ..children = max == null
-                ? const []
-                : [
-                    new DivElement()
-                      ..classes = ['memberName']
-                      ..text = 'max',
-                    new DivElement()
-                      ..classes = ['memberValue']
-                      ..text = '$max'
-                  ]
+            ..children = [
+              new DivElement()
+                ..classes = ['memberName']
+                ..text = 'max',
+              new DivElement()
+                ..classes = ['memberValue']
+                ..text = '$max'
+            ]
         ],
     ];
     if (rows.length <= 1) {

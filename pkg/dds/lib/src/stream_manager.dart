@@ -78,7 +78,7 @@ class StreamManager {
           'kind': 'ServiceRegistered',
           'timestamp': DateTime.now().millisecondsSinceEpoch,
           'service': service,
-          'method': namespace + '.' + service,
+          'method': '$namespace.$service',
           'alias': alias,
         }
       };
@@ -110,7 +110,7 @@ class StreamManager {
             'kind': 'ServiceUnregistered',
             'timestamp': DateTime.now().millisecondsSinceEpoch,
             'service': service,
-            'method': namespace! + '.' + service,
+            'method': '$namespace.$service',
           },
         },
         excludedClient: client,

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import "dart:convert";
 import "dart:io";
 import "package:kernel/kernel.dart";
@@ -29,13 +27,11 @@ main(List<String> args) async {
 /// Visits classes in libraries specified by `libraryFilter`
 /// and aggregates metrics by class.
 class MetricsVisitor extends RecursiveVisitor {
-  String currentClass;
+  late String currentClass;
   List<String> libraryFilter;
   Map<String, ClassMetrics> classInfo = {};
 
-  MetricsVisitor([filter]) {
-    libraryFilter = filter ?? [];
-  }
+  MetricsVisitor([List<String>? filter]) : libraryFilter = filter ?? [];
 
   @override
   void visitComponent(Component node) {
@@ -58,7 +54,7 @@ class MetricsVisitor extends RecursiveVisitor {
 
   @override
   void visitProcedure(Procedure node) {
-    classInfo[currentClass].methods.add(ClassMetricsMethod(
+    classInfo[currentClass]!.methods.add(ClassMetricsMethod(
         node.name.text,
         node.containsSuperCalls,
         node.isInstanceMember,
@@ -83,12 +79,12 @@ class MetricsVisitor extends RecursiveVisitor {
       // Check if Mixed.
       if (node.superclass?.isAnonymousMixin ?? false) {
         metrics.mixed = true;
-        metrics.mixins = _filterMixins(node.superclass.demangledName);
+        metrics.mixins = _filterMixins(node.superclass!.demangledName);
       }
 
       // Add parents.
       if (node.superclass != null) {
-        var unmangledParent = _getParent(node.superclass);
+        var unmangledParent = _getParent(node.superclass!);
         metrics.parent = unmangledParent;
       }
 
@@ -118,7 +114,7 @@ class MetricsVisitor extends RecursiveVisitor {
   // and returns parent class name.
   String _getParent(Class node) {
     if (node.isAnonymousMixin) {
-      return _getParent(node.superclass);
+      return _getParent(node.superclass!);
     }
 
     return node.name;
@@ -139,19 +135,19 @@ class MetricsVisitor extends RecursiveVisitor {
   // adding child classes and overridden methods from parent.
   void _processData() {
     classInfo.keys.forEach((className) {
-      var parentName = classInfo[className].parent;
+      var parentName = classInfo[className]!.parent;
       if (classInfo[parentName] != null) {
-        classInfo[parentName].inheritedBy.add(className);
+        classInfo[parentName]!.inheritedBy.add(className);
 
         var notOverridden = <String>[];
-        var parentMethods = classInfo[parentName].methods.map((m) => m.name);
-        var classMethods = classInfo[className].methods.map((m) => m.name);
+        var parentMethods = classInfo[parentName]!.methods.map((m) => m.name);
+        var classMethods = classInfo[className]!.methods.map((m) => m.name);
 
         parentMethods.forEach((method) =>
             {if (!classMethods.contains(method)) notOverridden.add(method)});
 
         // Update Method Info.
-        classInfo[className].notOverriddenMethods = notOverridden;
+        classInfo[className]!.notOverriddenMethods = notOverridden;
       }
     });
   }
@@ -177,7 +173,7 @@ class ClassMetrics {
   List<String> implementedTypes;
   List<String> notOverriddenMethods;
   List<String> inheritedBy;
-  String parent;
+  String? parent;
   bool mixed;
   bool containsNativeMember;
 
@@ -185,17 +181,16 @@ class ClassMetrics {
       {this.mixed = false,
       this.containsNativeMember = false,
       this.parent,
-      methods,
-      mixins,
-      notOverridden,
-      implementedTypes,
-      inheritedBy}) {
-    this.methods = methods ?? [];
-    this.mixins = mixins ?? [];
-    this.notOverriddenMethods = notOverridden ?? [];
-    this.implementedTypes = implementedTypes ?? [];
-    this.inheritedBy = inheritedBy ?? [];
-  }
+      List<ClassMetricsMethod>? methods,
+      List<String>? mixins,
+      List<String>? notOverridden,
+      List<String>? implementedTypes,
+      List<String>? inheritedBy})
+      : this.methods = methods ?? [],
+        this.mixins = mixins ?? [],
+        this.notOverriddenMethods = notOverridden ?? [],
+        this.implementedTypes = implementedTypes ?? [],
+        this.inheritedBy = inheritedBy ?? [];
 
   bool get invokesSuper {
     if (methods.isNotEmpty) {

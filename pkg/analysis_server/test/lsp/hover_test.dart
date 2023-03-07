@@ -3,11 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -18,6 +22,13 @@ void main() {
 
 @reflectiveTest
 class HoverTest extends AbstractLspAnalysisServerTest {
+  @override
+  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
+    ..enabledExperiments = [
+      EnableString.records,
+      EnableString.patterns,
+    ];
+
   /// Checks whether the correct types of documentation are returned in a Hover
   /// based on [preference].
   Future<void> assertDocumentation(
@@ -25,12 +36,12 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     required bool includesSummary,
     required bool includesFull,
   }) async {
-    final content = '''
+    final code = TestCode.parse('''
     /// Summary.
     ///
     /// Full.
     class ^A {}
-    ''';
+    ''');
 
     final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(
@@ -42,9 +53,9 @@ class HoverTest extends AbstractLspAnalysisServerTest {
         if (preference != null) 'documentation': preference,
       },
     );
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
     await initialAnalysis;
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    final hover = await getHover(mainFileUri, code.position.position);
     final hoverContents = _getStringContents(hover!);
 
     if (includesSummary) {
@@ -60,26 +71,79 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     }
   }
 
-  Future<void> test_dartDoc_macros() async {
-    final content = '''
+  Future<void> assertMarkdownContents(String content, Matcher matcher) async {
+    final code = TestCode.parse(content);
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, code.code);
+    await initialAnalysis;
+    final hover = await getHover(mainFileUri, code.position.position);
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(code.range.range));
+    expect(hover.contents, isNotNull);
+    final markup = _getMarkupContents(hover);
+    expect(markup.kind, equals(MarkupKind.Markdown));
+    expect(markup.value, matcher);
+  }
+
+  Future<void> assertPlainTextContents(String content, Matcher matcher) async {
+    final code = TestCode.parse(content);
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(mainFileUri, code.code);
+    await initialAnalysis;
+    final hover = await getHover(mainFileUri, code.position.position);
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(code.range.range));
+    expect(hover.contents, isNotNull);
+    final markup = _getMarkupContents(hover);
+    expect(markup.kind, equals(MarkupKind.PlainText));
+    expect(markup.value, matcher);
+  }
+
+  Future<void> assertStringContents(
+    String content,
+    Matcher matcher, {
+    bool waitForAnalysis = false,
+    bool withOpenFile = true,
+  }) async {
+    final code = TestCode.parse(content);
+
+    final initialAnalysis = waitForAnalysis ? waitForAnalysisComplete() : null;
+    await initialize();
+    if (withOpenFile) {
+      await openFile(mainFileUri, code.code);
+    } else {
+      newFile(mainFilePath, code.code);
+    }
+    await initialAnalysis;
+    final hover = await getHover(mainFileUri, code.position.position);
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(code.range.range));
+    expect(hover.contents, isNotNull);
+    final contents = _getStringContents(hover);
+    expect(contents, matcher);
+  }
+
+  Future<void> test_dartDoc_macros() => assertStringContents(
+        waitForAnalysis: true,
+        '''
     /// {@template template_name}
     /// This is shared content.
     /// {@endtemplate}
     const String foo = null;
 
     /// {@macro template_name}
-    const String [[f^oo2]] = null;
-    ''';
-
-    final initialAnalysis = waitForAnalysisComplete();
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    await initialAnalysis;
-    var hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(_getStringContents(hover), endsWith('This is shared content.'));
-  }
+    const String [!f^oo2!] = null;
+    ''',
+        endsWith('This is shared content.'),
+      );
 
   Future<void> test_dartDocPreference_full() =>
       assertDocumentation('full', includesSummary: true, includesFull: true);
@@ -95,41 +159,21 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dartDocPreference_unset() =>
       assertDocumentation(null, includesSummary: true, includesFull: true);
 
-  Future<void> test_function_startOfParameterList() async {
-    final content = '''
+  Future<void> test_function_startOfParameterList() => assertStringContents(
+        '''
     /// This is a function.
-    String [[abc]]^() {}
-    ''';
+    String [!abc!]^() {}
+    ''',
+        contains('This is a function.'),
+      );
 
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    final markup = _getMarkupContents(hover);
-    expect(markup.value, contains('This is a function.'));
-  }
-
-  Future<void> test_function_startOfTypeParameterList() async {
-    final content = '''
+  Future<void> test_function_startOfTypeParameterList() => assertStringContents(
+        '''
     /// This is a function.
-    String [[abc]]^<T>(T a) {}
-    ''';
-
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    final markup = _getMarkupContents(hover);
-    expect(markup.value, contains('This is a function.'));
-  }
+    String [!abc!]^<T>(T a) {}
+    ''',
+        contains('This is a function.'),
+      );
 
   Future<void> test_hover_bad_position() async {
     await initialize();
@@ -152,7 +196,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     /// ```dart sample
     /// print();
     /// ```
-    String [[a^bc]];
+    String [!a^bc!];
     ''';
 
     final expectedHoverContent = '''
@@ -175,92 +219,49 @@ print();
     '''
         .trim();
 
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    final markup = _getMarkupContents(hover);
-    expect(markup.kind, equals(MarkupKind.Markdown));
-    expect(markup.value, equals(expectedHoverContent));
+    await assertMarkdownContents(content, equals(expectedHoverContent));
   }
 
-  Future<void> test_markdown_simple() async {
-    final content = '''
+  Future<void> test_markdown_simple() => assertMarkdownContents(
+        '''
     /// This is a string.
-    String [[a^bc]];
-    ''';
+    String [!a^bc!];
+    ''',
+        contains('This is a string.'),
+      );
 
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    final markup = _getMarkupContents(hover);
-    expect(markup.kind, equals(MarkupKind.Markdown));
-    expect(markup.value, contains('This is a string.'));
-  }
-
-  Future<void> test_method_startOfParameterList() async {
-    final content = '''
+  Future<void> test_method_startOfParameterList() => assertStringContents(
+        '''
     class A {
       /// This is a method.
-      String [[abc]]^() {}
+      String [!abc!]^() {}
     }
-    ''';
+    ''',
+        contains('This is a method.'),
+      );
 
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    final markup = _getMarkupContents(hover);
-    expect(markup.value, contains('This is a method.'));
-  }
-
-  Future<void> test_method_startOfTypeParameterList() async {
-    final content = '''
+  Future<void> test_method_startOfTypeParameterList() => assertStringContents(
+        '''
     class A {
       /// This is a method.
-      String [[abc]]^<T>(T a) {}
+      String [!abc!]^<T>(T a) {}
     }
-    ''';
-
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    final markup = _getMarkupContents(hover);
-    expect(markup.value, contains('This is a method.'));
-  }
+    ''',
+        contains('This is a method.'),
+      );
 
   Future<void> test_noElement() async {
-    final content = '''
+    final code = TestCode.parse('''
     String abc;
 
     ^
 
     int a;
-    ''';
+    ''');
 
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    var hover = await getHover(mainFileUri, positionFromMarker(content));
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    final hover = await getHover(mainFileUri, code.position.position);
     expect(hover, isNull);
   }
 
@@ -273,7 +274,7 @@ print();
 
   Future<void> test_nullableTypes() async {
     final content = '''
-    String? [[a^bc]];
+    String? [!a^bc!];
     ''';
 
     final expectedHoverContent = '''
@@ -286,41 +287,176 @@ Type: `String?`
     '''
         .trim();
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    expect(_getStringContents(hover), equals(expectedHoverContent));
+    await assertStringContents(content, equals(expectedHoverContent));
   }
 
-  Future<void> test_plainText_simple() async {
-    final content = '''
+  Future<void> test_pattern_assignment_left() => assertStringContents(
+        '''
+void f(String a, String b) {
+  (b, [!a^!]) = (a, b);
+}
+    ''',
+        contains('Type: `String`'),
+      );
+
+  Future<void> test_pattern_assignment_list() => assertStringContents(
+        '''
+void f(List<int> x, num a) {
+  [[!a^!]] = x;
+}
+    ''',
+        contains('num a'),
+      );
+
+  Future<void> test_pattern_assignment_right() => assertStringContents(
+        '''
+void f(String a, String b) {
+  (b, a) = ([!a^!], b);
+}
+    ''',
+        contains('Type: `String`'),
+      );
+
+  Future<void> test_pattern_cast_typeName() => assertStringContents(
+        '''
+void f((num, Object) record) {
+  var (i as int, s as [!St^ring!]) = record;
+}
+    ''',
+        contains('class String'),
+      );
+
+  Future<void> test_pattern_map() => assertStringContents(
+        '''
+void f(x) {
+  switch (x) {
+    case {0: [!Str^ing!] a}:
+      break;
+  }
+}
+    ''',
+        contains('class String'),
+      );
+
+  Future<void> test_pattern_map_typeArguments() => assertStringContents(
+        '''
+void f(x) {
+  switch (x) {
+    case <int, [!Str^ing!]>{0: var a}:
+      break;
+  }
+}
+    ''',
+        contains('class String'),
+      );
+
+  Future<void> test_pattern_nullAssert() => assertStringContents(
+        '''
+void f((int?, int?) position) {
+  var ([!x^!]!, y!) = position;
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
+  Future<void> test_pattern_nullCheck() => assertStringContents(
+        '''
+void f(String? maybeString) {
+  switch (maybeString) {
+    case var [!s^!]?:
+  }
+}
+    ''',
+        contains('Type: `String`'),
+      );
+
+  Future<void> test_pattern_object_fieldName() => assertStringContents(
+        '''
+double calculateArea(Shape shape) =>
+  switch (shape) {
+    Square([!leng^th!]: var l) => l * l,
+  };
+
+class Shape { }
+class Square extends Shape {
+  /// The length.
+  double get length => 0;
+}
+    ''',
+        allOf([
+          contains('double get length'),
+          contains('The length.'),
+        ]),
+      );
+
+  Future<void> test_pattern_object_typeName() => assertStringContents(
+        '''
+double calculateArea(Shape shape) =>
+  switch (shape) {
+    [!Squ^are!](length: var l) => l * l,
+  };
+
+class Shape { }
+/// A square.
+class Square extends Shape {
+  double get length => 0;
+}
+    ''',
+        contains('A square.'),
+      );
+
+  Future<void> test_pattern_record_fieldName() => assertStringContents(
+        '''
+void f(({int foo}) x, num a) {
+  ([!fo^o!]: a,) = x;
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
+  Future<void> test_pattern_record_fieldValue() => assertStringContents(
+        '''
+void f(({int foo}) x, num a) {
+  (foo: [!a^!],) = x;
+}
+    ''',
+        contains('Type: `num`'),
+      );
+
+  Future<void> test_pattern_record_variable() => assertStringContents(
+        '''
+void f(({int foo}) x, num a) {
+  (foo: a,) = [!x^!];
+}
+    ''',
+        contains('Type: `({int foo})`'),
+      );
+
+  Future<void> test_pattern_relational_variable() => assertStringContents(
+        '''
+String f(int char) {
+  const zero = 0;
+  return switch (char) {
+    == [!ze^ro!] => 'zero'
+  };
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
+  Future<void> test_plainText_simple() => assertPlainTextContents(
+        '''
     /// This is a string.
-    String [[a^bc]];
-    ''';
-
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    // Ensure we got PlainText back as the type, even though we're sending the
-    // same markdown content.
-    final markup = _getMarkupContents(hover);
-    expect(markup.kind, equals(MarkupKind.PlainText));
-    expect(markup.value, contains('This is a string.'));
-  }
+    String [!a^bc!];
+    ''',
+        contains('This is a string.'),
+      );
 
   Future<void> test_promotedTypes() async {
     final content = '''
 void f(aaa) {
   if (aaa is String) {
-    print([[aa^a]]);
+    print([!aa^a!]);
   }
 }
     ''';
@@ -333,79 +469,94 @@ Type: `String`
     '''
         .trim();
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    expect(_getStringContents(hover), equals(expectedHoverContent));
+    await assertStringContents(content, equals(expectedHoverContent));
   }
 
-  Future<void> test_range_multiLineConstructorCall() async {
-    final content = '''
-    final a = new [[Str^ing.fromCharCodes]]([
+  Future<void> test_range_multiLineConstructorCall() => assertStringContents(
+        '''
+    final a = new [!Str^ing.fromCharCodes!]([
       1,
       2,
     ]);
-    ''';
+    ''',
+        contains('String String.fromCharCodes('),
+      );
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-  }
+  Future<void> test_recordLiteral_named() => assertStringContents(
+        r'''
+void f(({int f1, int f2}) r) {
+  r.[!f^1!];
+}
+    ''',
+        contains('Type: `int`'),
+      );
 
-  Future<void> test_signatureFormatting_multiLine() async {
-    final content = '''
+  Future<void> test_recordLiteral_positional() => assertStringContents(
+        r'''
+void f((int, int) r) {
+  r.[!$^1!];
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
+  Future<void> test_recordType_parameter() => assertStringContents(
+        '''
+void f(([!dou^ble!], double) param) {
+  return (1.0, 1.0);
+}
+    ''',
+        contains('class double'),
+      );
+
+  Future<void> test_recordType_return() => assertStringContents(
+        '''
+([!dou^ble!], double) f() {
+  return (1.0, 1.0);
+}
+    ''',
+        contains('class double'),
+      );
+
+  Future<void> test_signatureFormatting_multiLine() => assertStringContents(
+        '''
     class Foo {
       Foo(String arg1, String arg2, [String arg3]);
     }
 
     void f() {
-      var a = Fo^o();
+      var a = [!Fo^o!]();
     }
-    ''';
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    final contents = _getStringContents(hover!);
-    expect(contents, startsWith('''
+    ''',
+        startsWith('''
 ```dart
 (new) Foo Foo(
   String arg1,
   String arg2, [
   String arg3,
 ])
-```'''));
-  }
+```'''),
+      );
 
-  Future<void> test_signatureFormatting_singleLine() async {
-    final content = '''
+  Future<void> test_signatureFormatting_singleLine() => assertStringContents(
+        '''
     class Foo {
       Foo(String a, String b);
     }
 
     void f() {
-      var a = Fo^o();
+      var a = [!Fo^o!]();
     }
-    ''';
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    final contents = _getStringContents(hover!);
-    expect(contents, startsWith('''
+    ''',
+        startsWith('''
 ```dart
 (new) Foo Foo(String a, String b)
-```'''));
-  }
+```'''),
+      );
 
   Future<void> test_string_noDocComment() async {
     final content = '''
-    String [[a^bc]];
+    String [!a^bc!];
     ''';
 
     final expectedHoverContent = '''
@@ -418,70 +569,49 @@ Type: `String`
     '''
         .trim();
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    expect(_getStringContents(hover), equals(expectedHoverContent));
+    await assertStringContents(content, equals(expectedHoverContent));
   }
 
   Future<void> test_string_reflectsLatestEdits() async {
-    final original = '''
+    final original = TestCode.parse('''
     /// Original string.
-    String [[a^bc]];
-    ''';
-    final updated = '''
+    String [!a^bc!];
+    ''');
+    final updated = TestCode.parse('''
     /// Updated string.
-    String [[a^bc]];
-    ''';
+    String [!a^bc!];
+    ''');
 
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(original));
-    var hover = await getHover(mainFileUri, positionFromMarker(original));
+    await openFile(mainFileUri, original.code);
+    var hover = await getHover(mainFileUri, original.position.position);
     expect(hover, isNotNull);
     var contents = _getStringContents(hover!);
     expect(contents, contains('Original'));
 
-    await replaceFile(222, mainFileUri, withoutMarkers(updated));
-    hover = await getHover(mainFileUri, positionFromMarker(updated));
+    await replaceFile(222, mainFileUri, updated.code);
+    hover = await getHover(mainFileUri, updated.position.position);
     expect(hover, isNotNull);
     contents = _getStringContents(hover!);
     expect(contents, contains('Updated'));
   }
 
-  Future<void> test_string_simple() async {
-    final content = '''
+  Future<void> test_string_simple() => assertStringContents(
+        '''
     /// This is a string.
-    String [[a^bc]];
-    ''';
+    String [!a^bc!];
+    ''',
+        contains('This is a string.'),
+      );
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    final contents = _getStringContents(hover);
-    expect(contents, contains('This is a string.'));
-  }
-
-  Future<void> test_unopenFile() async {
-    final content = '''
+  Future<void> test_unopenFile() => assertStringContents(
+        withOpenFile: false,
+        '''
     /// This is a string.
-    String [[a^bc]];
-    ''';
-
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    final markup = _getStringContents(hover);
-    expect(markup, contains('This is a string.'));
-  }
+    String [!a^bc!];
+    ''',
+        contains('This is a string.'),
+      );
 
   MarkupContent _getMarkupContents(Hover hover) {
     return hover.contents.map(

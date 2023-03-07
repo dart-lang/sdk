@@ -11,8 +11,10 @@
 #include <fcntl.h>
 
 #include <cstdlib>
+#include <utility>
 
 #include "platform/atomic.h"
+#include "platform/hashmap.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
@@ -101,8 +103,11 @@ DEFINE_FLAG(charp,
 //       |TimelineEventRecorder::lock_|
 //
 
-std::atomic<bool> RecorderLock::shutdown_lock_ = {false};
-std::atomic<intptr_t> RecorderLock::outstanding_event_writes_ = {0};
+std::atomic<RecorderSynchronizationLock::RecorderState>
+    RecorderSynchronizationLock::recorder_state_ = {
+        RecorderSynchronizationLock::kUnInitialized};
+std::atomic<intptr_t> RecorderSynchronizationLock::outstanding_event_writes_ = {
+    0};
 
 static TimelineEventRecorder* CreateDefaultTimelineRecorder() {
 #if defined(PRODUCT)
@@ -232,6 +237,18 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
 void Timeline::Init() {
   ASSERT(recorder_ == NULL);
   recorder_ = CreateTimelineRecorder();
+
+  RecorderSynchronizationLock::Init();
+
+  // The following is needed to backfill information about any |OSThread|s that
+  // were initialized before this point.
+  OSThreadIterator it;
+  while (it.HasNext()) {
+    OSThread& thread = *it.Next();
+    recorder_->AddTrackMetadataBasedOnThread(
+        OS::ProcessId(), OSThread::ThreadIdToIntPtr(thread.trace_id()),
+        thread.name());
+  }
   if (FLAG_trace_timeline) {
     OS::PrintErr("Using the %s timeline recorder.\n", recorder_->name());
   }
@@ -242,7 +259,6 @@ void Timeline::Init() {
   stream_##name##_.set_enabled(HasStream(enabled_streams_, #name));
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
 #undef TIMELINE_STREAM_FLAG_DEFAULT
-  RecorderLock::Init();
 }
 
 void Timeline::Cleanup() {
@@ -259,7 +275,7 @@ void Timeline::Cleanup() {
   Timeline::stream_##name##_.set_enabled(false);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
-  RecorderLock::WaitForShutdown();
+  RecorderSynchronizationLock::WaitForShutdown();
   // Timeline::Clear() is guarded by the recorder lock and will return
   // immediately if we've started the shutdown sequence, leaking the recorder.
   // All outstanding work has already been completed, so we're safe to call this
@@ -274,9 +290,9 @@ void Timeline::Cleanup() {
 }
 
 void Timeline::ReclaimCachedBlocksFromThreads() {
-  RecorderLockScope rl;
+  RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL || rl.IsShuttingDown()) {
+  if (recorder == NULL || !ls.IsActive()) {
     return;
   }
   ReclaimCachedBlocksFromThreadsUnsafe();
@@ -313,9 +329,9 @@ void Timeline::PrintFlagsToJSONArray(JSONArray* arr) {
 void Timeline::PrintFlagsToJSON(JSONStream* js) {
   JSONObject obj(js);
   obj.AddProperty("type", "TimelineFlags");
-  RecorderLockScope rl;
+  RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL || rl.IsShuttingDown()) {
+  if (recorder == NULL || !ls.IsActive()) {
     obj.AddProperty("recorderName", "null");
   } else {
     obj.AddProperty("recorderName", recorder->name());
@@ -339,9 +355,9 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
 #endif
 
 void Timeline::Clear() {
-  RecorderLockScope rl;
+  RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == nullptr || rl.IsShuttingDown()) {
+  if (recorder == nullptr || !ls.IsActive()) {
     return;
   }
   ClearUnsafe();
@@ -615,8 +631,9 @@ void TimelineEvent::FormatArgument(intptr_t i,
 void TimelineEvent::Complete() {
   TimelineEventRecorder* recorder = Timeline::recorder();
   recorder->CompleteEvent(this);
-  // Paired with RecorderLock::EnterLock() in TimelineStream::StartEvent().
-  RecorderLock::ExitLock();
+  // Paired with |RecorderSynchronizationLock::EnterLock()| in
+  // |TimelineStream::StartEvent()|.
+  RecorderSynchronizationLock::ExitLock();
 }
 
 void TimelineEvent::Init(EventType event_type, const char* label) {
@@ -841,6 +858,32 @@ const char* TimelineEvent::GetFormattedIsolateGroupId() const {
   return formatted_isolate_group_id;
 }
 
+TimelineTrackMetadata::TimelineTrackMetadata(
+    intptr_t pid,
+    intptr_t tid,
+    Utils::CStringUniquePtr&& track_name)
+    : pid_(pid), tid_(tid), track_name_(std::move(track_name)) {}
+
+void TimelineTrackMetadata::set_track_name(
+    Utils::CStringUniquePtr&& track_name) {
+  track_name_ = std::move(track_name);
+}
+
+#if !defined(PRODUCT)
+void TimelineTrackMetadata::PrintJSON(const JSONArray& jsarr_events) const {
+  JSONObject jsobj(&jsarr_events);
+  jsobj.AddProperty("name", "thread_name");
+  jsobj.AddProperty("ph", "M");
+  jsobj.AddProperty("pid", pid());
+  jsobj.AddProperty("tid", tid());
+  {
+    JSONObject jsobj_args(&jsobj, "args");
+    jsobj_args.AddPropertyF("name", "%s (%" Pd ")", track_name(), tid());
+    jsobj_args.AddProperty("mode", "basic");
+  }
+}
+#endif  // !defined(PRODUCT)
+
 TimelineStream::TimelineStream(const char* name,
                                const char* fuchsia_name,
                                bool has_static_labels,
@@ -862,21 +905,23 @@ TimelineStream::TimelineStream(const char* name,
 }
 
 TimelineEvent* TimelineStream::StartEvent() {
-  // Paired with RecorderLock::ExitLock() in TimelineEvent::Complete().
+  // Paired with |RecorderSynchronizationLock::ExitLock()| in
+  // |TimelineEvent::Complete()|.
   //
   // The lock must be held until the event is completed to avoid having the
   // memory backing the event being freed in the middle of processing the
   // event.
-  RecorderLock::EnterLock();
+  RecorderSynchronizationLock::EnterLock();
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (!enabled() || (recorder == nullptr) || RecorderLock::IsShuttingDown()) {
-    RecorderLock::ExitLock();
+  if (!enabled() || (recorder == nullptr) ||
+      !RecorderSynchronizationLock::IsActive()) {
+    RecorderSynchronizationLock::ExitLock();
     return nullptr;
   }
   ASSERT(name_ != nullptr);
   TimelineEvent* event = recorder->StartEvent();
   if (event == nullptr) {
-    RecorderLock::ExitLock();
+    RecorderSynchronizationLock::ExitLock();
     return nullptr;
   }
   event->StreamInit(this);
@@ -1034,30 +1079,30 @@ IsolateTimelineEventFilter::IsolateTimelineEventFilter(
       isolate_id_(isolate_id) {}
 
 TimelineEventRecorder::TimelineEventRecorder()
-    : time_low_micros_(0), time_high_micros_(0) {}
+    : time_low_micros_(0),
+      time_high_micros_(0),
+      track_uuid_to_track_metadata_(
+          &SimpleHashMap::SamePointerValue,
+          TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity),
+      track_uuid_to_track_metadata_lock_() {}
+
+TimelineEventRecorder::~TimelineEventRecorder() {
+  for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
+       entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
+    TimelineTrackMetadata* value =
+        static_cast<TimelineTrackMetadata*>(entry->value);
+    delete value;
+  }
+}
 
 #ifndef PRODUCT
-void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
-  OSThreadIterator it;
-  while (it.HasNext()) {
-    OSThread* thread = it.Next();
-    const char* thread_name = thread->name();
-    if (thread_name == NULL) {
-      // Only emit a thread name if one was set.
-      continue;
-    }
-    JSONObject obj(events);
-    int64_t pid = OS::ProcessId();
-    int64_t tid = OSThread::ThreadIdToIntPtr(thread->trace_id());
-    obj.AddProperty("name", "thread_name");
-    obj.AddProperty("ph", "M");
-    obj.AddProperty64("pid", pid);
-    obj.AddProperty64("tid", tid);
-    {
-      JSONObject args(&obj, "args");
-      args.AddPropertyF("name", "%s (%" Pd64 ")", thread_name, tid);
-      args.AddProperty("mode", "basic");
-    }
+void TimelineEventRecorder::PrintJSONMeta(const JSONArray& jsarr_events) {
+  MutexLocker ml(&track_uuid_to_track_metadata_lock_);
+  for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
+       entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
+    TimelineTrackMetadata* value =
+        static_cast<TimelineTrackMetadata*>(entry->value);
+    value->PrintJSON(jsarr_events);
   }
 }
 #endif
@@ -1209,6 +1254,36 @@ TimelineEventBlock* TimelineEventRecorder::GetNewBlock() {
   return GetNewBlockLocked();
 }
 
+void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
+    const intptr_t process_id,
+    const intptr_t trace_id,
+    const char* thread_name) {
+  if (FLAG_timeline_recorder != nullptr &&
+      // There is no way to retrieve track metadata when a callback or systrace
+      // recorder is in use, so we don't need to update the map in these cases.
+      strcmp("callback", FLAG_timeline_recorder) != 0 &&
+      strcmp("systrace", FLAG_timeline_recorder) != 0) {
+    MutexLocker ml(&track_uuid_to_track_metadata_lock_);
+
+    void* key = reinterpret_cast<void*>(trace_id);
+    const intptr_t hash = Utils::WordHash(trace_id);
+    SimpleHashMap::Entry* entry =
+        track_uuid_to_track_metadata_.Lookup(key, hash, true);
+    if (entry->value == nullptr) {
+      entry->value = new TimelineTrackMetadata(
+          process_id, trace_id,
+          Utils::CreateCStringUniquePtr(
+              Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
+    } else {
+      TimelineTrackMetadata* value =
+          static_cast<TimelineTrackMetadata*>(entry->value);
+      ASSERT(process_id == value->pid());
+      value->set_track_name(Utils::CreateCStringUniquePtr(
+          Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
+    }
+  }
+}
+
 TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
     intptr_t capacity)
     : memory_(NULL),
@@ -1282,7 +1357,7 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
   topLevel.AddProperty("type", "Timeline");
   {
     JSONArray events(&topLevel, "traceEvents");
-    PrintJSONMeta(&events);
+    PrintJSONMeta(events);
     PrintJSONEvents(&events, filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
@@ -1293,7 +1368,7 @@ void TimelineEventFixedBufferRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
-  PrintJSONMeta(&events);
+  PrintJSONMeta(events);
   PrintJSONEvents(&events, filter);
 }
 #endif
@@ -1490,6 +1565,7 @@ TimelineEventFileRecorderBase::TimelineEventFileRecorderBase(const char* path)
       tail_(nullptr),
       file_(nullptr),
       shutting_down_(false),
+      drained_(false),
       thread_id_(OSThread::kInvalidThreadJoinId) {
   Dart_FileOpenCallback file_open = Dart::file_open_callback();
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
@@ -1555,6 +1631,8 @@ void TimelineEventFileRecorderBase::Drain() {
     }
     ml.Enter();
   }
+  drained_ = true;
+  ml.Notify();
 }
 
 void TimelineEventFileRecorderBase::Write(const char* buffer,
@@ -1589,7 +1667,10 @@ void TimelineEventFileRecorderBase::CompleteEvent(TimelineEvent* event) {
 void TimelineEventFileRecorderBase::ShutDown() {
   MonitorLocker ml(&monitor_);
   shutting_down_ = true;
-  ml.Notify();
+  ml.NotifyAll();
+  while (!drained_) {
+    ml.Wait();
+  }
 }
 
 TimelineEventFileRecorder::TimelineEventFileRecorder(const char* path)
@@ -1638,7 +1719,7 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
   topLevel.AddProperty("type", "Timeline");
   {
     JSONArray events(&topLevel, "traceEvents");
-    PrintJSONMeta(&events);
+    PrintJSONMeta(events);
     PrintJSONEvents(&events, filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
@@ -1649,7 +1730,7 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
-  PrintJSONMeta(&events);
+  PrintJSONMeta(events);
   PrintJSONEvents(&events, filter);
 }
 #endif

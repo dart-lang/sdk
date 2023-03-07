@@ -5,12 +5,15 @@
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 class RecordLiteralContributor extends DartCompletionContributor {
   RecordLiteralContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     final containingNode = request.target.containingNode;
 
     final parent = containingNode.parent;

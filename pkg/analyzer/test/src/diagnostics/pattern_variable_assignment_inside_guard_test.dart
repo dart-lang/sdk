@@ -76,6 +76,7 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(HintCode.DEAD_CODE, 35, 8),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
       error(
           CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD, 50, 1),

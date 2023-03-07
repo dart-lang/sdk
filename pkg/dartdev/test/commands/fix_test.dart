@@ -171,15 +171,15 @@ linter:
             'lib${Platform.pathSeparator}main.dart',
             '  annotate_overrides $bullet 1 fix',
             '  prefer_single_quotes $bullet 2 fixes',
-            'To fix an individual diagnostic, run one of the following commands:',
-            '  dart fix --apply --code annotate_overrides .',
-            '  dart fix --apply --code prefer_single_quotes .',
+            'To fix an individual diagnostic, run one of:',
+            '  dart fix --apply --code=annotate_overrides .',
+            '  dart fix --apply --code=prefer_single_quotes .',
             'To fix all diagnostics, run:',
             '  dart fix --apply .',
           ]));
     });
 
-    test('--dry-run --code (single)', () async {
+    test('--dry-run --code=(single)', () async {
       p = project(
         mainSrc: '''
 var x = "";
@@ -208,7 +208,7 @@ linter:
           ]));
     });
 
-    test('--dry-run --code (single: undefined)', () async {
+    test('--dry-run --code=(single: undefined)', () async {
       p = project(
         mainSrc: '''
 var x = "";
@@ -259,7 +259,7 @@ linter:
           ]));
     });
 
-    test('--apply --code (single)', () async {
+    test('--apply --code=(single)', () async {
       p = project(
         mainSrc: '''
 var x = "";
@@ -289,7 +289,7 @@ linter:
           ]));
     });
 
-    test('--apply --code (undefined)', () async {
+    test('--apply --code=(undefined)', () async {
       p = project(
         mainSrc: '',
       );
@@ -304,7 +304,7 @@ linter:
           ]));
     });
 
-    test('--apply --code (not enabled)', () async {
+    test('--apply --code=(not enabled)', () async {
       p = project(
         mainSrc: '''
 var x = "";
@@ -321,16 +321,12 @@ linter:
       var result = await runFix(
           ['--apply', '--code', 'prefer_single_quotes', '.'],
           workingDir: p!.dirPath);
-      expect(result.exitCode, 3);
+      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
-      expect(
-          result.stdout,
-          stringContainsInOrder([
-            "Unable to compute fixes: The lint 'prefer_single_quotes' is not enabled; add it to your analysis options and try again.",
-          ]));
+      expect(result.stdout, stringContainsInOrder(['Nothing to fix!']));
     });
 
-    test('--apply --code (multiple: one undefined)', () async {
+    test('--apply --code=(multiple: one undefined)', () async {
       p = project(
         mainSrc: '''
 var x = "";
@@ -362,7 +358,7 @@ linter:
           ]));
     });
 
-    test('--apply --code (multiple)', () async {
+    test('--apply --code=(multiple)', () async {
       p = project(
         mainSrc: '''
 var x = "";
@@ -398,7 +394,7 @@ linter:
           ]));
     });
 
-    test('--apply --code (multiple: comma-delimited)', () async {
+    test('--apply --code=(multiple: comma-delimited)', () async {
       p = project(
         mainSrc: '''
 var x = "";

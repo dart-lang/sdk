@@ -75,7 +75,6 @@ Future testMethod(Isolate isolate) async {
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
   print("Breakpoint: $bpt");
-  expect(bpt is Breakpoint, isTrue);  // I.e, not null.
 
   bool hitBreakpoint = false;
   var stream = await isolate.vm.getEventStream(VM.kDebugStream);
@@ -121,7 +120,6 @@ Future testMethod2(Isolate isolate) async {
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
   print("Breakpoint: $bpt");
-  expect(bpt is Breakpoint, isTrue);  // I.e, not null.
 
   bool hitBreakpoint = false;
   var stream = await isolate.vm.getEventStream(VM.kDebugStream);
@@ -167,7 +165,6 @@ Future testMethod3(Isolate isolate) async {
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
   print("Breakpoint: $bpt");
-  expect(bpt is Breakpoint, isTrue);  // I.e, not null.
 
   bool hitBreakpoint = false;
   var stream = await isolate.vm.getEventStream(VM.kDebugStream);
@@ -206,7 +203,6 @@ Future testMethod4(Isolate isolate) async {
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
   print("Breakpoint: $bpt");
-  expect(bpt is Breakpoint, isTrue);  // I.e, not null.
 
   bool hitBreakpoint = false;
   var stream = await isolate.vm.getEventStream(VM.kDebugStream);

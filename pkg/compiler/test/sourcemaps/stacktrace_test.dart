@@ -15,14 +15,13 @@ import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 void main(List<String> args) {
-  ArgParser argParser = new ArgParser(allowTrailingOptions: true);
+  ArgParser argParser = ArgParser(allowTrailingOptions: true);
   argParser.addFlag('write-js', defaultsTo: false);
   argParser.addFlag('print-js', defaultsTo: false);
   argParser.addFlag('verbose', abbr: 'v', defaultsTo: false);
   argParser.addFlag('continued', abbr: 'c', defaultsTo: false);
   ArgResults argResults = argParser.parse(args);
-  Directory dataDir =
-      new Directory.fromUri(Platform.script.resolve('stacktrace'));
+  Directory dataDir = Directory.fromUri(Platform.script.resolve('stacktrace'));
   asyncTest(() async {
     bool continuing = false;
     await for (FileSystemEntity entity in dataDir.list()) {
@@ -36,7 +35,7 @@ void main(List<String> args) {
       print('----------------------------------------------------------------');
       print('Checking ${entity.uri}');
       print('----------------------------------------------------------------');
-      String annotatedCode = await new File.fromUri(entity.uri).readAsString();
+      String annotatedCode = await File.fromUri(entity.uri).readAsString();
       await testAnnotatedCode(annotatedCode,
           verbose: argResults['verbose'],
           printJs: argResults['print-js'],

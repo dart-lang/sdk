@@ -1206,10 +1206,8 @@ void PageSpace::ConcurrentSweep(IsolateGroup* isolate_group) {
 }
 
 void PageSpace::Compact(Thread* thread) {
-  thread->isolate_group()->set_compaction_in_progress(true);
   GCCompactor compactor(thread, heap_);
   compactor.Compact(pages_, &freelists_[Page::kData], &pages_lock_);
-  thread->isolate_group()->set_compaction_in_progress(false);
 
   if (FLAG_verify_after_gc) {
     OS::PrintErr("Verifying after compacting...");

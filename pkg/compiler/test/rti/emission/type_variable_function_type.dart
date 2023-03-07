@@ -25,8 +25,8 @@ class Bar<T> {
 }
 
 void main() {
-  dynamic x = new Foo<List<String>>();
-  if (new DateTime.now().millisecondsSinceEpoch == 42) x = new Foo<int>();
+  dynamic x = Foo<List<String>>();
+  if (new DateTime.now().millisecondsSinceEpoch == 42) x = Foo<int>();
   makeLive(x.m(new Bar<String>().f()));
   makeLive(x.m(new Bar<List<String>>().f()));
 }

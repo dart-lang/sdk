@@ -1605,6 +1605,56 @@ void f() {
     );
   }
 
+  Future<void> test_class_getter_in_objectPattern() {
+    addTestFile('''
+void f(Object? x) {
+  if (x case A(test: 0)) {}
+  if (x case A(: var test)) {}
+}
+
+class A {
+  int get test => 0;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test =>', 'newName');
+    }, '''
+void f(Object? x) {
+  if (x case A(newName: 0)) {}
+  if (x case A(newName: var test)) {}
+}
+
+class A {
+  int get newName => 0;
+}
+''');
+  }
+
+  Future<void> test_class_method_in_objectPattern() {
+    addTestFile('''
+void f(Object? x) {
+  if (x case A(test: _)) {}
+  if (x case A(: var test)) {}
+}
+
+class A {
+  void test() {}
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test() {}', 'newName');
+    }, '''
+void f(Object? x) {
+  if (x case A(newName: _)) {}
+  if (x case A(newName: var test)) {}
+}
+
+class A {
+  void newName() {}
+}
+''');
+  }
+
   Future<void> test_class_options_fatalError() {
     addTestFile('''
 class Test {}
@@ -2285,6 +2335,48 @@ void f() {
       assertResultProblemsError(
           problems, "The parameter 't' is named and can not be private.");
     });
+  }
+
+  Future<void> test_patternVariable_ifCase() {
+    addTestFile('''
+void f(Object? x) {
+  if (x case int test) {
+    test;
+    test = 1;
+    test += 2;
+  }
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test) {', 'newName');
+    }, '''
+void f(Object? x) {
+  if (x case int newName) {
+    newName;
+    newName = 1;
+    newName += 2;
+  }
+}
+''');
+  }
+
+  Future<void> test_patternVariable_patternAssignment() {
+    addTestFile('''
+void f(Object? x) {
+  int test;
+  (test, _) = (0, 1);
+  test;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test,', 'newName');
+    }, '''
+void f(Object? x) {
+  int newName;
+  (newName, _) = (0, 1);
+  newName;
+}
+''');
   }
 
   Future<void> test_reset_afterCreateChange() {

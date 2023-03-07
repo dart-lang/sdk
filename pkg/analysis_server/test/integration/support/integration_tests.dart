@@ -79,8 +79,7 @@ typedef MismatchDescriber = Description Function(
 typedef NotificationProcessor = void Function(String event, Map params);
 
 /// Base class for analysis server integration tests.
-abstract class AbstractAnalysisServerIntegrationTest
-    extends IntegrationTestMixin {
+abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest {
   /// Amount of time to give the server to respond to a shutdown request before
   /// forcibly terminating it.
   static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 60);
@@ -109,10 +108,6 @@ abstract class AbstractAnalysisServerIntegrationTest
   bool _subscribedToServerStatus = false;
 
   String dartSdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
-
-  AbstractAnalysisServerIntegrationTest() {
-    initializeInttestMixin();
-  }
 
   /// Return a future which will complete when a 'server.status' notification is
   /// received from the server with 'analyzing' set to false.
@@ -609,7 +604,7 @@ class Server {
   /// Start the server. If [profileServer] is `true`, the server will be started
   /// with "--observe" and "--pause-isolates-on-exit", allowing the observatory
   /// to be used.
-  Future start({
+  Future<void> start({
     required String dartSdkPath,
     int? diagnosticPort,
     String? instrumentationLogFile,

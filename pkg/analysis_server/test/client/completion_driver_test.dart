@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -54,13 +53,8 @@ abstract class AbstractCompletionDriverTest
   /// selections. Individual tests can replace the default set.
   Set<String> allowedIdentifiers = const {};
 
-  @override
-  List<String> get experiments => [
-        EnableString.class_modifiers,
-        EnableString.patterns,
-        EnableString.records,
-        EnableString.sealed_class,
-      ];
+  /// Return `true` if keywords should be included in the text to be compared.
+  bool get includeKeywords => true;
 
   bool get isProtocolVersion1 {
     return protocol == TestingCompletionProtocol.version1;
@@ -217,6 +211,8 @@ name: test
           var completion = suggestion.completion;
           return RegExp(r'^[a-zA-Z][0-9]+$').hasMatch(completion) ||
               allowedIdentifiers.contains(completion);
+        } else if (kind == CompletionSuggestionKind.KEYWORD) {
+          return includeKeywords;
         }
         return true;
       },
@@ -873,7 +869,7 @@ void f(List<String> args) {
   Future<void> test_project_suggestMixins() async {
     newFile('$testPackageLibPath/a.dart', r'''
 mixin M { }
-class A { }
+mixin class A { }
 ''');
 
     if (isProtocolVersion1) {

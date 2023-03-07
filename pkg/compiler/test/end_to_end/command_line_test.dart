@@ -382,8 +382,7 @@ Future test(List<String> arguments,
   int? actualExitCode;
   entry.compileFunc = (_options, input, diagnostics, output) {
     options = _options;
-    return new Future<api.CompilationResult>.value(
-        new api.CompilationResult(null));
+    return Future<api.CompilationResult>.value(api.CompilationResult(null));
   };
   entry.exitFunc = (_exitCode) {
     actualExitCode = _exitCode;

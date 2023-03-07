@@ -36,7 +36,6 @@ String _concatArgs(List<String> args, int count) {
 // Shared functionality for RootCommand and Command.
 abstract class _CommandBase {
   _CommandBase(List<Command> children) {
-    assert(children != null);
     _children.addAll(children);
     for (var child in _children) {
       child._parent = this;

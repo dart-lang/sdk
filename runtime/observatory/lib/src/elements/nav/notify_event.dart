@@ -28,7 +28,6 @@ class NavNotifyEventElement extends CustomElement implements Renderable {
   M.Event get event => _event;
 
   factory NavNotifyEventElement(M.Event event, {RenderingQueue? queue}) {
-    assert(event != null);
     NavNotifyEventElement e = new NavNotifyEventElement.created();
     e._r = new RenderingScheduler<NavNotifyEventElement>(e, queue: queue);
     e._event = event;
@@ -200,18 +199,14 @@ class NavNotifyEventElement extends CustomElement implements Renderable {
   }
 
   static List<Element> _manageIsolateReloadEvent(M.IsolateReloadEvent event) {
-    if (event.error != null) {
-      return [
-        new SpanElement()..text = 'Isolate reload failed:',
-        new BRElement(),
-        new BRElement(),
-        new DivElement()
-          ..classes = ["indent", "error"]
-          ..text = event.error.message.toString()
-      ];
-    } else {
-      return [new SpanElement()..text = 'Isolate reload'];
-    }
+    return [
+      new SpanElement()..text = 'Isolate reload failed:',
+      new BRElement(),
+      new BRElement(),
+      new DivElement()
+        ..classes = ["indent", "error"]
+        ..text = event.error.message.toString()
+    ];
   }
 
   EventDeleteEvent _toEvent(_) {

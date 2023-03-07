@@ -87,7 +87,7 @@ main() {
 
     await compileAndDoNotMatchFuzzy(TEST_FOUR, 'foo', '(x) = \1;');
 
-    await compileAndDoNotMatch(TEST_FIVE, 'main', new RegExp('hash0'));
+    await compileAndDoNotMatch(TEST_FIVE, 'main', RegExp('hash0'));
   }
 
   asyncTest(() async {

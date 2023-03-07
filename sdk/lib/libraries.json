@@ -136,10 +136,6 @@
       "_js_helper": {
         "uri": "_internal/wasm/lib/js_helper.dart"
       },
-      "_js_interop": {
-        "uri": "_js_interop/js_interop.dart",
-        "patches": "_internal/wasm/lib/js_interop_patch.dart"
-      },
       "_js_types": {
         "uri": "_internal/wasm/lib/js_types.dart"
       },
@@ -178,6 +174,7 @@
           "_internal/vm_shared/lib/string_buffer_patch.dart",
           "_internal/wasm/lib/date_patch_patch.dart",
           "_internal/wasm/lib/string_buffer_create.dart",
+          "_internal/wasm/lib/sync_star_patch.dart",
           "_internal/wasm/lib/weak_patch.dart"
         ]
       },
@@ -214,6 +211,10 @@
       "js": {
         "uri": "js/js.dart",
         "patches": "_internal/wasm/lib/js_patch.dart"
+      },
+      "js_interop": {
+        "uri": "js_interop/js_interop.dart",
+        "patches": "_internal/wasm/lib/js_interop_patch.dart"
       },
       "js_util": {
         "uri": "js_util/js_util.dart",
@@ -322,8 +323,8 @@
         "uri": "js/js.dart",
         "patches": "_internal/js_runtime/lib/js_patch.dart"
       },
-      "_js_interop": {
-        "uri": "_js_interop/js_interop.dart",
+      "js_interop": {
+        "uri": "js_interop/js_interop.dart",
         "patches": "_internal/js_shared/lib/js_interop_patch.dart"
       },
       "_js_annotations": {
@@ -428,10 +429,6 @@
       "_js_helper": {
         "uri": "_internal/js_dev_runtime/private/js_helper.dart"
       },
-      "_js_interop": {
-        "uri": "_js_interop/js_interop.dart",
-        "patches": "_internal/js_shared/lib/js_interop_patch.dart"
-      },
       "_js_names": {
         "uri": "_internal/js_dev_runtime/private/js_names.dart"
       },
@@ -506,6 +503,10 @@
       "js": {
         "uri": "js/js.dart",
         "patches": "_internal/js_dev_runtime/patch/js_patch.dart"
+      },
+      "js_interop": {
+        "uri": "js_interop/js_interop.dart",
+        "patches": "_internal/js_shared/lib/js_interop_patch.dart"
       },
       "js_util": {
         "uri": "js_util/js_util.dart",

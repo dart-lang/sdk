@@ -8,8 +8,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/type_algebra.dart';
-import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show messageWasmSyncStar;
 
 void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
     ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter) {
@@ -646,10 +644,6 @@ class _WasmTransformer extends Transformer {
       _enclosingIsAsyncStar = false;
       return super.visitFunctionNode(functionNode);
     } else {
-      if (functionNode.dartAsyncMarker == AsyncMarker.SyncStar) {
-        diagnosticReporter?.report(messageWasmSyncStar, functionNode.fileOffset,
-            1, functionNode.location?.file);
-      }
       bool previousEnclosing = _enclosingIsAsyncStar;
       TreeNode result = super.visitFunctionNode(functionNode);
       _enclosingIsAsyncStar = previousEnclosing;

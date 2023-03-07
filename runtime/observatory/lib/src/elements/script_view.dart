@@ -7,8 +7,6 @@ library script_view;
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/context_ref.dart';
-import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
@@ -59,17 +57,6 @@ class ScriptViewElement extends CustomElement implements Renderable {
       M.ObjectRepository objects,
       {int? pos,
       RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(script != null);
-    assert(scripts != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(objects != null);
     ScriptViewElement e = new ScriptViewElement.created();
     e._r = new RenderingScheduler<ScriptViewElement>(e, queue: queue);
     e._vm = vm;

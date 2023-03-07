@@ -132,8 +132,8 @@ Future<CompiledData<T>?> computeData<T>(String name, Uri entryPoint,
     bool skipFailedCompilations = false,
     Iterable<Id> globalIds = const <Id>[],
     Future<void> verifyCompiler(String test, Compiler compiler)?}) async {
-  OutputCollector outputCollector = new OutputCollector();
-  DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+  OutputCollector outputCollector = OutputCollector();
+  DiagnosticCollector diagnosticCollector = DiagnosticCollector();
   Uri? packageConfig;
   Uri wantedPackageConfig =
       createUriForFileName(".dart_tool/package_config.json");
@@ -189,17 +189,17 @@ Future<CompiledData<T>?> computeData<T>(String name, Uri entryPoint,
 
   errors.forEach((Uri uri, Map<int, List<CollectedMessage>> map) {
     map.forEach((int offset, List<CollectedMessage> list) {
-      NodeId id = new NodeId(offset, IdKind.error);
+      NodeId id = NodeId(offset, IdKind.error);
       T? data = dataComputer.computeErrorData(compiler, id, list);
       if (data != null) {
         Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
-        actualMap[id] = new ActualData<T>(id, data, uri, offset, list);
+        actualMap[id] = ActualData<T>(id, data, uri, offset, list);
       }
     });
   });
 
   if (!result.isSuccess) {
-    return new Dart2jsCompiledData<T>(
+    return Dart2jsCompiledData<T>(
         compiler, null, entryPoint, actualMaps, globalData);
   }
 
@@ -338,11 +338,11 @@ Future<CompiledData<T>?> computeData<T>(String name, Uri entryPoint,
       ClassEntity cls = getGlobalClass(id.className);
       processClass(cls, globalData);
     } else {
-      throw new UnsupportedError("Unexpected global id: $id");
+      throw UnsupportedError("Unexpected global id: $id");
     }
   }
 
-  return new Dart2jsCompiledData<T>(
+  return Dart2jsCompiledData<T>(
       compiler, elementEnvironment, entryPoint, actualMaps, globalData);
 }
 
@@ -532,7 +532,7 @@ Future<TestResult<T>> runTestForConfiguration<T>(
 Spannable computeSpannable(
     ElementEnvironment? elementEnvironment, Uri mainUri, Id id) {
   if (id is NodeId) {
-    return new SourceSpan(mainUri, id.value, id.value + 1);
+    return SourceSpan(mainUri, id.value, id.value + 1);
   } else if (id is MemberId) {
     if (elementEnvironment == null) {
       // If compilation resulted in error we might not have an
@@ -586,7 +586,7 @@ Spannable computeSpannable(
     }
     return cls;
   } else if (id is LibraryId) {
-    return new SourceSpan(id.uri, 0, 0);
+    return SourceSpan(id.uri, 0, 0);
   }
-  throw new UnsupportedError('Unsupported id $id.');
+  throw UnsupportedError('Unsupported id $id.');
 }

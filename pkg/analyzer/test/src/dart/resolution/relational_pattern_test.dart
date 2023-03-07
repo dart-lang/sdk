@@ -36,6 +36,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@class::A::@method::==
+  matchedValueType: A
 ''');
   }
 
@@ -58,6 +59,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: dart:core::@class::Object::@method::==
+  matchedValueType: A
 ''');
   }
 
@@ -82,6 +84,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@class::A::@method::>
+  matchedValueType: A
 ''');
   }
 
@@ -108,6 +111,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@extension::E::@method::>
+  matchedValueType: A
 ''');
   }
 
@@ -132,6 +136,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: <null>
+  matchedValueType: A
 ''');
   }
 
@@ -156,6 +161,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@class::A::@method::>=
+  matchedValueType: A
 ''');
   }
 
@@ -182,6 +188,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@extension::E::@method::>=
+  matchedValueType: A
 ''');
   }
 
@@ -206,6 +213,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: <null>
+  matchedValueType: A
 ''');
   }
 
@@ -227,6 +235,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@class::A::@method::==
+  matchedValueType: A
 ''');
   }
 
@@ -251,6 +260,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@class::A::@method::<
+  matchedValueType: A
 ''');
   }
 
@@ -277,6 +287,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@extension::E::@method::<
+  matchedValueType: A
 ''');
   }
 
@@ -301,6 +312,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: <null>
+  matchedValueType: A
 ''');
   }
 
@@ -325,6 +337,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@class::A::@method::<=
+  matchedValueType: A
 ''');
   }
 
@@ -351,6 +364,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@extension::E::@method::<=
+  matchedValueType: A
 ''');
   }
 
@@ -375,6 +389,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: <null>
+  matchedValueType: A
 ''');
   }
 
@@ -399,6 +414,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@class::A::@method::==
+  matchedValueType: A
 ''');
   }
 
@@ -421,6 +437,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: dart:core::@class::Object::@method::==
+  matchedValueType: A
 ''');
   }
 
@@ -452,6 +469,7 @@ RelationalPattern
     staticInvokeType: int Function()
     staticType: int
   element: dart:core::@class::Object::@method::==
+  matchedValueType: dynamic
 ''');
   }
 
@@ -476,6 +494,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: self::@class::A::@method::==
+  matchedValueType: A
 ''');
   }
 }

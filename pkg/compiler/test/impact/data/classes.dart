@@ -56,7 +56,7 @@ class Sub1 extends Super1 {
 }
 
 /*member: testSuperCall:static=[Sub1.(0)]*/
-testSuperCall() => new Sub1();
+testSuperCall() => Sub1();
 
 /*member: Super2.:static=[Object.(0)]*/
 class Super2 {
@@ -72,7 +72,7 @@ class Sub2 extends Super2 {
 }
 
 /*member: testSuperGet:static=[Sub2.(0)]*/
-testSuperGet() => new Sub2();
+testSuperGet() => Sub2();
 
 /*member: Super3.:static=[Object.(0)]*/
 class Super3 {
@@ -88,7 +88,7 @@ class Sub3 extends Super3 {
 }
 
 /*member: testSuperFieldSet:static=[Sub3.(0)]*/
-testSuperFieldSet() => new Sub3();
+testSuperFieldSet() => Sub3();
 
 /*member: Super4.:static=[Object.(0)]*/
 class Super4 {
@@ -104,7 +104,7 @@ class Sub4 extends Super4 {
 }
 
 /*member: testSuperSetterSet:static=[Sub4.(0)]*/
-testSuperSetterSet() => new Sub4();
+testSuperSetterSet() => Sub4();
 
 /*member: Super5.:static=[Object.(0)]*/
 class Super5 {
@@ -120,7 +120,7 @@ class Sub5 extends Super5 {
 }
 
 /*member: testSuperClosurization:static=[Sub5.(0)]*/
-testSuperClosurization() => new Sub5();
+testSuperClosurization() => Sub5();
 
 class EmptyMixin {}
 
@@ -136,7 +136,7 @@ class ForwardingConstructorClass = ForwardingConstructorSuperClass
  static=[ForwardingConstructorClass.(1)],
  type=[inst:JSNull]
 */
-testForwardingConstructor() => new ForwardingConstructorClass(null);
+testForwardingConstructor() => ForwardingConstructorClass(null);
 
 class ForwardingConstructorTypedSuperClass {
   /*member: ForwardingConstructorTypedSuperClass.:
@@ -192,7 +192,7 @@ class ForwardingConstructorTypedClass = ForwardingConstructorTypedSuperClass
  static=[ForwardingConstructorTypedClass.(1)],
  type=[inst:JSNull]
 */
-testForwardingConstructorTyped() => new ForwardingConstructorTypedClass(null);
+testForwardingConstructorTyped() => ForwardingConstructorTypedClass(null);
 
 class ForwardingConstructorGenericSuperClass<T> {
   /*member: ForwardingConstructorGenericSuperClass.:
@@ -257,7 +257,7 @@ class ForwardingConstructorGenericClass<
  type=[inst:JSNull]
 */
 testForwardingConstructorGeneric() {
-  new ForwardingConstructorGenericClass<int>(null);
+  ForwardingConstructorGenericClass<int>(null);
 }
 
 enum Enum { A }
@@ -346,7 +346,7 @@ testStaticGenericMethod() {
  type=[inst:JSBool]
 */
 testInstanceGenericMethod() {
-  new GenericClass<int, String>.generative().genericMethod<bool>(false);
+  GenericClass<int, String>.generative().genericMethod<bool>(false);
 }
 
 abstract class AbstractClass {
@@ -358,23 +358,23 @@ abstract class AbstractClass {
 }
 
 /*member: testAbstractClassWithField:static=[AbstractClass.(0)]*/
-testAbstractClassWithField() => new AbstractClass();
+testAbstractClassWithField() => AbstractClass();
 
 /*member: testMixinInstantiation:static=[Sub.(0)]*/
-testMixinInstantiation() => new Sub();
+testMixinInstantiation() => Sub();
 
 /*member: testNamedMixinInstantiation:static=[NamedMixin.(0)]*/
-testNamedMixinInstantiation() => new NamedMixin();
+testNamedMixinInstantiation() => NamedMixin();
 
 /*member: testGenericMixinInstantiation:static=[
   GenericSub.(0),
   checkTypeBound(4)]*/
-testGenericMixinInstantiation() => new GenericSub<int, String>();
+testGenericMixinInstantiation() => GenericSub<int, String>();
 
 /*member: testGenericNamedMixinInstantiation:static=[
   GenericNamedMixin.(0),
   checkTypeBound(4)]*/
-testGenericNamedMixinInstantiation() => new GenericNamedMixin<int, String>();
+testGenericNamedMixinInstantiation() => GenericNamedMixin<int, String>();
 
 class Class {
   /*member: GenericClass.generative:static=[Object.(0)]*/

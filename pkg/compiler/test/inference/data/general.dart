@@ -655,11 +655,11 @@ testReturnNull6() {
 
 /*member: testReturnNotEquals:[exact=JSBool]*/
 testReturnNotEquals() {
-  return new A() /*invoke: [exact=A]*/ != 54;
+  return A() /*invoke: [exact=A]*/ != 54;
 }
 
 /*member: testReturnInvokeDynamicGetter:[null|subclass=Object]*/
-testReturnInvokeDynamicGetter() => new A().myFactory /*invoke: [exact=A]*/ ();
+testReturnInvokeDynamicGetter() => A().myFactory /*invoke: [exact=A]*/ ();
 
 /*member: topLevelConstList:Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/
 var topLevelConstList = const [42];
@@ -732,15 +732,16 @@ class B extends A {
       ++new A(). /*[exact=A]*/ /*update: [exact=A]*/ myField;
 
   /*member: B.returnInt2:[subclass=JSUInt32]*/
-  returnInt2() => new A()
-      . /*[exact=A]*/ /*update: [exact=A]*/ myField /*invoke: [exact=JSUInt31]*/ += 4;
+  returnInt2() =>
+      A(). /*[exact=A]*/ /*update: [exact=A]*/ myField /*invoke: [exact=JSUInt31]*/ +=
+          4;
 
   /*member: B.returnInt3:[subclass=JSUInt32]*/
   returnInt3() => /*invoke: [exact=JSUInt31]*/
       ++new A() /*[exact=A]*/ /*update: [exact=A]*/ [0];
 
   /*member: B.returnInt4:[subclass=JSUInt32]*/
-  returnInt4() => new A() /*[exact=A]*/ /*update: [exact=A]*/ [
+  returnInt4() => A() /*[exact=A]*/ /*update: [exact=A]*/ [
       0] /*invoke: [exact=JSUInt31]*/ += 42;
 
   /*member: B.returnInt5:[subclass=JSUInt32]*/
@@ -810,7 +811,7 @@ testCascade1() {
 
 /*member: testCascade2:[exact=CascadeHelper]*/
 testCascade2() {
-  return new CascadeHelper()
+  return CascadeHelper()
     .. /*update: [exact=CascadeHelper]*/ a = "hello"
     .. /*update: [exact=CascadeHelper]*/ b = 42
     .. /*[exact=CascadeHelper]*/ i /*invoke: [subclass=JSPositiveInt]*/ /*update: [exact=CascadeHelper]*/ +=
@@ -899,8 +900,8 @@ main() {
   testDoWhile2();
   testDoWhile3();
   testDoWhile4();
-  new A() /*invoke: [null|subclass=A]*/ == null;
-  new A()
+  A() /*invoke: [null|subclass=A]*/ == null;
+  A()
     .. /*invoke: [exact=A]*/ returnInt1()
     .. /*invoke: [exact=A]*/ returnInt2()
     .. /*invoke: [exact=A]*/ returnInt3()
@@ -908,7 +909,7 @@ main() {
     .. /*invoke: [exact=A]*/ returnInt5()
     .. /*invoke: [exact=A]*/ returnInt6();
 
-  new B()
+  B()
     .. /*invoke: [exact=B]*/ returnInt1()
     .. /*invoke: [exact=B]*/ returnInt2()
     .. /*invoke: [exact=B]*/ returnInt3()
@@ -919,7 +920,7 @@ main() {
     .. /*invoke: [exact=B]*/ returnInt8()
     .. /*invoke: [exact=B]*/ returnInt9();
 
-  new C()
+  C()
     .. /*invoke: [exact=C]*/ returnInt1()
     .. /*invoke: [exact=C]*/ returnInt2()
     .. /*invoke: [exact=C]*/ returnInt3()

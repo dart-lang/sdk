@@ -2576,8 +2576,8 @@ CompileTimeErrorCode:
         static const int f = 3;
       }
       ```
-  CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
-    problemMessage: "The type of a key in a constant map can't override the '==' operator, but the class '{0}' does."
+  CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
+    problemMessage: "The type of a key in a constant map can't override the '==' operator, or 'hashCode', but the class '{0}' does."
     correctionMessage: "Try using a different value for the key, or removing the keyword 'const' from the map."
     hasPublishedDocs: true
     comment: |-
@@ -2660,8 +2660,8 @@ CompileTimeErrorCode:
       ```dart
       const c = 'c';
       ```
-  CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS:
-    problemMessage: "The type of an element in a constant set can't override the '==' operator, but the type '{0}' does."
+  CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
+    problemMessage: "An element in a constant set can't override the '==' operator, or 'hashCode', but the type '{0}' does."
     correctionMessage: "Try using a different value for the element, or removing the keyword 'const' from the set."
     hasPublishedDocs: true
     comment: |-
@@ -3597,7 +3597,7 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the variable
-  DUPLICATE_RECORD_PATTERN_FIELD:
+  DUPLICATE_PATTERN_FIELD:
     problemMessage: The field '{0}' is already matched in this pattern.
     correctionMessage: Try removing the duplicate field.
     comment: |-
@@ -5847,7 +5847,7 @@ CompileTimeErrorCode:
       in both the `extends` and `with` clauses for the class `B`:
 
       ```dart
-      class A {}
+      mixin class A {}
 
       class B extends A with [!A!] {}
       ```
@@ -8834,6 +8834,7 @@ CompileTimeErrorCode:
       defines a constructor, is being used as a mixin:
 
       ```dart
+      //@dart=2.19
       class A {
         A();
       }
@@ -8856,6 +8857,7 @@ CompileTimeErrorCode:
       then do so:
 
       ```dart
+      //@dart=2.19
       class A {
       }
 
@@ -8890,6 +8892,7 @@ CompileTimeErrorCode:
       extends `A`, is being used as a mixin by `C`:
 
       ```dart
+      //@dart=2.19
       class A {}
 
       class B extends A {}
@@ -8903,6 +8906,7 @@ CompileTimeErrorCode:
       change it:
 
       ```dart
+      //@dart=2.19
       class A {}
 
       class B {}
@@ -12886,6 +12890,13 @@ CompileTimeErrorCode:
 
       int f(C c) => c.b;
       ```
+  SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
+    problemMessage: "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype '{1}' is '{2}'."
+    comment: |-
+      Parameters:
+      0: the name of the subtype that is not 'base', 'final', or 'sealed'
+      1: the name of the supertype which is 'base' or 'final'
+      2: the modifier on the supertype
   SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
     problemMessage: The type '{0}' of this parameter isn't a subtype of the type '{1}' of the associated super constructor parameter.
     correctionMessage: Try removing the explicit type annotation from the parameter.
@@ -18323,753 +18334,6 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
-  INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
-    problemMessage: "The type argument(s) of '{0}' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '{0}'."
-    comment: |-
-      When "strict-inference" is enabled, collection literal types must be
-      inferred via the context type, or have type arguments.
-
-      Parameters:
-      0: the name of the collection
-  INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
-    problemMessage: "The type argument(s) of the function '{0}' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '{0}'."
-    comment: |-
-      When "strict-inference" is enabled, types in function invocations must be
-      inferred via the context type, or have type arguments.
-
-      Parameters:
-      0: the name of the function
-  INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
-    problemMessage: "The return type of '{0}' cannot be inferred."
-    correctionMessage: "Declare the return type of '{0}'."
-    comment: |-
-      When "strict-inference" is enabled, recursive local functions, top-level
-      functions, methods, and function-typed function parameters must all
-      specify a return type. See the strict-inference resource:
-
-      https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
-
-      Parameters:
-      0: the name of the function or method
-  INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
-    problemMessage: "The type argument(s) of the generic function type '{0}' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '{0}'."
-    comment: |-
-      When "strict-inference" is enabled, types in function invocations must be
-      inferred via the context type, or have type arguments.
-
-      Parameters:
-      0: the name of the type
-  INFERENCE_FAILURE_ON_INSTANCE_CREATION:
-    problemMessage: "The type argument(s) of the constructor '{0}' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '{0}'."
-    comment: |-
-      When "strict-inference" is enabled, types in instance creation
-      (constructor calls) must be inferred via the context type, or have type
-      arguments.
-
-      Parameters:
-      0: the name of the constructor
-  INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
-    problemMessage: "The type of {0} can't be inferred without either a type or initializer."
-    correctionMessage: Try specifying the type of the variable.
-    comment: |-
-      When "strict-inference" in enabled, uninitialized variables must be
-      declared with a specific type.
-
-      Parameters:
-      0: the name of the variable
-  INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
-    problemMessage: "The type of {0} can't be inferred; a type must be explicitly provided."
-    correctionMessage: Try specifying the type of the parameter.
-    comment: |-
-      When "strict-inference" in enabled, function parameters must be
-      declared with a specific type, or inherit a type.
-
-      Parameters:
-      0: the name of the parameter
-  INVALID_IMMUTABLE_ANNOTATION:
-    problemMessage: Only classes can be annotated as being immutable.
-    comment: |-
-      This hint is generated anywhere an @immutable annotation is associated with
-      anything other than a class.
-  INVALID_INTERNAL_ANNOTATION:
-    problemMessage: "Only public elements in a package's private API can be annotated as being internal."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a declaration is annotated with
-      the `[internal][meta-internal]` annotation and that declaration is either
-      in a [public library][] or has a private name.
-
-      #### Example
-
-      The following code, when in a [public library][], produces this diagnostic
-      because the `[internal][meta-internal]` annotation can't be applied to
-      declarations in a [public library][]:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@internal!]
-      class C {}
-      ```
-
-      The following code, whether in a public or internal library, produces this
-      diagnostic because the `[internal][meta-internal]` annotation can't be
-      applied to declarations with private names:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@internal!]
-      class _C {}
-
-      void f(_C c) {}
-      ```
-
-      #### Common fixes
-
-      If the declaration has a private name, then remove the annotation:
-
-      ```dart
-      class _C {}
-
-      void f(_C c) {}
-      ```
-
-      If the declaration has a public name and is intended to be internal to the
-      package, then move the annotated declaration into an internal library (in
-      other words, a library inside the `src` directory).
-
-      Otherwise, remove the use of the annotation:
-
-      ```dart
-      class C {}
-      ```
-  INVALID_LITERAL_ANNOTATION:
-    problemMessage: Only const constructors can have the `@literal` annotation.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the `[literal][[meta-literal]]`
-      annotation is applied to anything other than a const constructor.
-
-      #### Examples
-
-      The following code produces this diagnostic because the constructor isn't
-      a `const` constructor:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        [!@literal!]
-        C();
-      }
-      ```
-
-      The following code produces this diagnostic because `x` isn't a
-      constructor:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@literal!]
-      var x;
-      ```
-
-      #### Common fixes
-
-      If the annotation is on a constructor and the constructor should always be
-      invoked with `const`, when possible, then mark the constructor with the
-      `const` keyword:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        @literal
-        const C();
-      }
-      ```
-
-      If the constructor can't be marked as `const`, then remove the annotation.
-
-      If the annotation is on anything other than a constructor, then remove the
-      annotation:
-
-      ```dart
-      var x;
-      ```
-  INVALID_NON_VIRTUAL_ANNOTATION:
-    problemMessage: "The annotation '@nonVirtual' can only be applied to a concrete instance member."
-    correctionMessage: Try removing '@nonVirtual'.
-    hasPublishedDocs: true
-    comment: |-
-      This hint is generated anywhere where `@nonVirtual` annotates something
-      other than a non-abstract instance member in a class or mixin.
-
-      No Parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the `nonVirtual` annotation is
-      found on a declaration other than a member of a class, mixin, or enum, or
-      if the member isn't a concrete instance member.
-
-      #### Examples
-
-      The following code produces this diagnostic because the annotation is on a
-      class declaration rather than a member inside the class:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@nonVirtual!]
-      class C {}
-      ```
-
-      The following code produces this diagnostic because the method `m` is an
-      abstract method:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      abstract class C {
-        [!@nonVirtual!]
-        void m();
-      }
-      ```
-
-      The following code produces this diagnostic because the method `m` is a
-      static method:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      abstract class C {
-        [!@nonVirtual!]
-        static void m() {}
-      }
-      ```
-
-      #### Common fixes
-
-      If the declaration isn't a member of a class, mixin, or enum, then remove
-      the annotation:
-
-      ```dart
-      class C {}
-      ```
-
-      If the member is intended to be a concrete instance member, then make it
-      so:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      abstract class C {
-        @nonVirtual
-        void m() {}
-      }
-      ```
-
-      If the member is not intended to be a concrete instance member, then
-      remove the annotation:
-
-      ```dart
-      abstract class C {
-        static void m() {}
-      }
-      ```
-  INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
-    problemMessage: "The member '{0}' is declared non-virtual in '{1}' and can't be overridden in subclasses."
-    hasPublishedDocs: true
-    comment: |-
-      This hint is generated anywhere where an instance member annotated with
-      `@nonVirtual` is overridden in a subclass.
-
-      Parameters:
-      0: the name of the member
-      1: the name of the defining class
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a member of a class, mixin, or
-      enum overrides a member that has the `@nonVirtual` annotation on it.
-
-      #### Example
-
-      The following code produces this diagnostic because the method `m` in `B`
-      overrides the method `m` in `A`, and the method `m` in `A` is annotated
-      with the `@nonVirtual` annotation:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @nonVirtual
-        void m() {}
-      }
-
-      class B extends A {
-        @override
-        void [!m!]() {}
-      }
-      ```
-
-      #### Common fixes
-
-      If the annotation on the method in the superclass is correct (the method
-      in the superclass is not intended to be overridden), then remove or rename
-      the overriding method:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @nonVirtual
-        void m() {}
-      }
-
-      class B extends A {}
-      ```
-
-      If the method in the superclass is intended to be overridden, then remove
-      the `@nonVirtual` annotation:
-
-      ```dart
-      class A {
-        void m() {}
-      }
-
-      class B extends A {
-        @override
-        void m() {}
-      }
-      ```
-  INVALID_USE_OF_INTERNAL_MEMBER:
-    problemMessage: "The member '{0}' can only be used within its package."
-    comment: |-
-      Parameters:
-      0: the name of the member
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a reference to a declaration
-      that is annotated with the `[internal][meta-internal]` annotation is found
-      outside the package containing the declaration.
-
-      #### Example
-
-      Given a package `p` that defines a library containing a declaration marked
-      with the `[internal][meta-internal]` annotation:
-
-      ```dart
-      %uri="package:p/src/p.dart"
-      import 'package:meta/meta.dart';
-
-      @internal
-      class C {}
-      ```
-
-      The following code produces this diagnostic because it's referencing the
-      class `C`, which isn't intended to be used outside the package `p`:
-
-      ```dart
-      import 'package:p/src/p.dart';
-
-      void f([!C!] c) {}
-      ```
-
-      #### Common fixes
-
-      Remove the reference to the internal declaration.
-  INVALID_USE_OF_PROTECTED_MEMBER:
-    problemMessage: "The member '{0}' can only be used within instance members of subclasses of '{1}'."
-    comment: |-
-      This hint is generated anywhere where a member annotated with `@protected`
-      is used outside of an instance member of a subclass.
-
-      Parameters:
-      0: the name of the member
-      1: the name of the defining class
-  INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
-    problemMessage: "The member '{0}' can only be used for overriding."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the member
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an instance member that is
-      annotated with `[visibleForOverriding][meta-visibleForOverriding]` is
-      referenced outside the library in which it's declared for any reason other
-      than to override it.
-
-      #### Example
-
-      Given a file named `a.dart` containing the following declaration:
-
-      ```dart
-      %uri="lib/a.dart"
-      import 'package:meta/meta.dart';
-
-      class A {
-        @visibleForOverriding
-        void a() {}
-      }
-      ```
-
-      The following code produces this diagnostic because the method `m` is being
-      invoked even though the only reason it's public is to allow it to be
-      overridden:
-
-      ```dart
-      import 'a.dart';
-
-      class B extends A {
-        void b() {
-          [!a!]();
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the invalid use of the member.
-  INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
-    problemMessage: "The member '{0}' can only be used within '{1}' or a template library."
-    comment: |-
-      This hint is generated anywhere where a member annotated with
-      `@visibleForTemplate` is used outside of a "template" Dart file.
-
-      Parameters:
-      0: the name of the member
-      1: the name of the defining class
-  INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
-    problemMessage: "The member '{0}' can only be used within '{1}' or a test."
-    hasPublishedDocs: true
-    comment: |-
-      This hint is generated anywhere where a member annotated with
-      `@visibleForTesting` is used outside the defining library, or a test.
-
-      Parameters:
-      0: the name of the member
-      1: the name of the defining class
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a member annotated with
-      `@visibleForTesting` is referenced anywhere other than the library in
-      which it is declared or in a library in the `test` directory.
-
-      #### Example
-
-      Given a file named `c.dart` that contains the following:
-
-      ```dart
-      %uri="lib/c.dart"
-      import 'package:meta/meta.dart';
-
-      class C {
-        @visibleForTesting
-        void m() {}
-      }
-      ```
-
-      The following code, when not inside the `test` directory, produces this
-      diagnostic because the method `m` is marked as being visible only for
-      tests:
-
-      ```dart
-      import 'c.dart';
-
-      void f(C c) {
-        c.[!m!]();
-      }
-      ```
-
-      #### Common fixes
-
-      If the annotated member should not be referenced outside of tests, then
-      remove the reference:
-
-      ```dart
-      import 'c.dart';
-
-      void f(C c) {}
-      ```
-
-      If it's OK to reference the annotated member outside of tests, then remove
-      the annotation:
-
-      ```dart
-      class C {
-        void m() {}
-      }
-      ```
-  INVALID_VISIBILITY_ANNOTATION:
-    problemMessage: "The member '{0}' is annotated with '{1}', but this annotation is only meaningful on declarations of public members."
-    hasPublishedDocs: true
-    comment: |-
-      This hint is generated anywhere where a private declaration is annotated
-      with `@visibleForTemplate` or `@visibleForTesting`.
-
-      Parameters:
-      0: the name of the member
-      1: the name of the annotation
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when either the `visibleForTemplate`
-      or `[visibleForTesting][meta-visibleForTesting]` annotation is applied to
-      a non-public declaration.
-
-      #### Example
-
-      The following code produces this diagnostic:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@visibleForTesting!]
-      void _someFunction() {}
-
-      void f() => _someFunction();
-      ```
-
-      #### Common fixes
-
-      If the declaration doesn't need to be used by test code, then remove the
-      annotation:
-
-      ```dart
-      void _someFunction() {}
-
-      void f() => _someFunction();
-      ```
-
-      If it does, then make it public:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @visibleForTesting
-      void someFunction() {}
-
-      void f() => someFunction();
-      ```
-  INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
-    problemMessage: "The annotation 'visibleForOverriding' can only be applied to a public instance member that can be overridden."
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when anything other than a public
-      instance member of a class is annotated with
-      `[visibleForOverriding][meta-visibleForOverriding]`. Because only public
-      instance members can be overridden outside the defining library, there's
-      no value to annotating any other declarations.
-
-      #### Example
-
-      The following code produces this diagnostic because the annotation is on a
-      class, and classes can't be overridden:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      [!@visibleForOverriding!]
-      class C {}
-      ```
-
-      #### Common fixes
-
-      Remove the annotation:
-
-      ```dart
-      class C {}
-      ```
-  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
-    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete implementation of '{0}'."
-    correctionMessage: Try overriding the missing member.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the member
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an instance member that has the
-      `@mustBeOverridden` annotation isn't overridden in a subclass.
-
-      #### Example
-
-      The following code produces this diagnostic because the class `B` doesn't
-      have an override of the inherited method `A.m` when `A.m` is annotated
-      with `@mustBeOverridden`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @mustBeOverridden
-        void m() {}
-      }
-
-      class [!B!] extends A {}
-      ```
-
-      #### Common fixes
-
-      If the annotation is appropriate for the member, then override the member
-      in the subclass:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @mustBeOverridden
-        void m() {}
-      }
-
-      class B extends A {
-        @override
-        void m() {}
-      }
-      ```
-
-      If the annotation isn't appropriate for the member, then remove the
-      annotation:
-
-      ```dart
-      class A {
-        void m() {}
-      }
-
-      class B extends A {}
-      ```
-  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
-    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete implementations of '{0}' and '{1}'."
-    correctionMessage: Try overriding the missing members.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the first member
-      1: the name of the second member
-  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
-    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete implementations of '{0}', '{1}', and {2} more."
-    correctionMessage: Try overriding the missing members.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the first member
-      1: the name of the second member
-      2: the number of additional missing members that aren't listed
-  MISSING_REQUIRED_PARAM:
-    problemMessage: "The parameter '{0}' is required."
-    hasPublishedDocs: true
-    comment: |-
-      Generate a hint for a constructor, function or method invocation where a
-      required parameter is missing.
-
-      Parameters:
-      0: the name of the parameter
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a method or function with a
-      named parameter that is annotated as being required is invoked without
-      providing a value for the parameter.
-
-      #### Example
-
-      The following code produces this diagnostic because the named parameter `x`
-      is required:
-
-      ```dart
-      %language=2.9
-      import 'package:meta/meta.dart';
-
-      void f({@required int x}) {}
-
-      void g() {
-        [!f!]();
-      }
-      ```
-
-      #### Common fixes
-
-      Provide the required value:
-
-      ```dart
-      %language=2.9
-      import 'package:meta/meta.dart';
-
-      void f({@required int x}) {}
-
-      void g() {
-        f(x: 2);
-      }
-      ```
-  MISSING_REQUIRED_PARAM_WITH_DETAILS:
-    sharedName: MISSING_REQUIRED_PARAM
-    problemMessage: "The parameter '{0}' is required. {1}."
-    hasPublishedDocs: true
-    comment: |-
-      Generate a hint for a constructor, function or method invocation where a
-      required parameter is missing.
-
-      Parameters:
-      0: the name of the parameter
-      1: message details
-  MISSING_RETURN:
-    problemMessage: "This function has a return type of '{0}', but doesn't end with a return statement."
-    correctionMessage: "Try adding a return statement, or changing the return type to 'void'."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the declared return type
-    documentation: |-
-      #### Description
-
-      Any function or method that doesn't end with either an explicit return or a
-      throw implicitly returns `null`. This is rarely the desired behavior. The
-      analyzer produces this diagnostic when it finds an implicit return.
-
-      #### Example
-
-      The following code produces this diagnostic because `f` doesn't end with a
-      return:
-
-      ```dart
-      %language=2.9
-      int [!f!](int x) {
-        if (x < 0) {
-          return 0;
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Add a `return` statement that makes the return value explicit, even if
-      `null` is the appropriate value.
   MIXIN_ON_SEALED_CLASS:
     problemMessage: "The class '{0}' shouldn't be used as a mixin constraint because it is sealed, and any class mixing in this mixin must have '{0}' as a superclass."
     correctionMessage: Try composing with this class, or refer to its documentation for more information.
@@ -19114,117 +18378,6 @@ HintCode:
       If the classes that use the mixin don't need to be subclasses of the sealed
       class, then consider adding a field and delegating to the wrapped instance
       of the sealed class.
-  MUST_BE_IMMUTABLE:
-    problemMessage: "This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: {0}"
-    hasPublishedDocs: true
-    comment: |-
-      Generate a hint for classes that inherit from classes annotated with
-      `@immutable` but that are not immutable.
-
-      Parameters:
-      0: the name of the class
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an immutable class defines one
-      or more instance fields that aren't final. A class is immutable if it's
-      marked as being immutable using the annotation
-      `[immutable][meta-immutable]` or if it's a subclass of an immutable class.
-
-      #### Example
-
-      The following code produces this diagnostic because the field `x` isn't
-      final:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @immutable
-      class [!C!] {
-        int x;
-
-        C(this.x);
-      }
-      ```
-
-      #### Common fixes
-
-      If instances of the class should be immutable, then add the keyword `final`
-      to all non-final field declarations:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @immutable
-      class C {
-        final int x;
-
-        C(this.x);
-      }
-      ```
-
-      If the instances of the class should be mutable, then remove the
-      annotation, or choose a different superclass if the annotation is
-      inherited:
-
-      ```dart
-      class C {
-        int x;
-
-        C(this.x);
-      }
-      ```
-  MUST_CALL_SUPER:
-    problemMessage: "This method overrides a method annotated as '@mustCallSuper' in '{0}', but doesn't invoke the overridden method."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the class declaring the overridden method
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a method that overrides a method
-      that is annotated as `[mustCallSuper][meta-mustCallSuper]` doesn't invoke
-      the overridden method as required.
-
-      #### Example
-
-      The following code produces this diagnostic because the method `m` in `B`
-      doesn't invoke the overridden method `m` in `A`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @mustCallSuper
-        m() {}
-      }
-
-      class B extends A {
-        @override
-        [!m!]() {}
-      }
-      ```
-
-      #### Common fixes
-
-      Add an invocation of the overridden method in the overriding method:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        @mustCallSuper
-        m() {}
-      }
-
-      class B extends A {
-        @override
-        m() {
-          super.m();
-        }
-      }
-      ```
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
     sharedName: NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
     problemMessage: "This instance creation must be 'const', because the {0} constructor is marked as '@literal'."
@@ -19284,87 +18437,6 @@ HintCode:
 
       void f() => const C();
       ```
-  CAST_FROM_NULL_ALWAYS_FAILS:
-    problemMessage: "This cast always throws an exception because the expression always evaluates to 'null'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an expression whose type is
-      `Null` is being cast to a non-nullable type.
-
-      #### Example
-
-      The following code produces this diagnostic because `n` is known to always
-      be `null`, but it's being cast to a non-nullable type:
-
-      ```dart
-      void f(Null n) {
-        [!n as int!];
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary cast:
-
-      ```dart
-      void f(Null n) {
-        n;
-      }
-      ```
-  CAST_FROM_NULLABLE_ALWAYS_FAILS:
-    problemMessage: "This cast will always throw an exception because the nullable local variable '{0}' is not assigned."
-    correctionMessage: "Try giving it an initializer expression, or ensure that it's assigned on every execution path."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the unassigned variable
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a local variable that has a
-      nullable type hasn't been assigned and is cast to a non-nullable type.
-      Because the variable hasn't been assigned it has the default value of
-      `null`, causing the cast to throw an exception.
-
-      #### Example
-
-      The following code produces this diagnostic because the variable `x` is
-      cast to a non-nullable type (`int`) when it's known to have the value
-      `null`:
-
-      ```dart
-      void f() {
-        num? x;
-        [!x!] as int;
-        print(x);
-      }
-      ```
-
-      #### Common fixes
-
-      If the variable is expected to have a value before the cast, then add an
-      initializer or an assignment:
-
-      ```dart
-      void f() {
-        num? x = 3;
-        x as int;
-        print(x);
-      }
-      ```
-
-      If the variable isn't expected to be assigned, then remove the cast:
-
-      ```dart
-      void f() {
-        num? x;
-        print(x);
-      }
-      ```
   NULL_CHECK_ALWAYS_FAILS:
     problemMessage: "This null-check will always throw an exception because the expression will always evaluate to 'null'."
     comment: |-
@@ -19405,84 +18477,6 @@ HintCode:
 
       Null g() => null;
       ```
-  OVERRIDE_ON_NON_OVERRIDING_FIELD:
-    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
-    problemMessage: "The field doesn't override an inherited getter or setter."
-    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
-    hasPublishedDocs: true
-    comment: |-
-      A field with the override annotation does not override a getter or setter.
-
-      No parameters.
-  OVERRIDE_ON_NON_OVERRIDING_GETTER:
-    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
-    problemMessage: "The getter doesn't override an inherited getter."
-    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
-    hasPublishedDocs: true
-    comment: |-
-      A getter with the override annotation does not override an existing getter.
-
-      No parameters.
-  OVERRIDE_ON_NON_OVERRIDING_METHOD:
-    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
-    problemMessage: "The method doesn't override an inherited method."
-    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
-    hasPublishedDocs: true
-    comment: |-
-      A method with the override annotation does not override an existing method.
-
-      No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a class member is annotated with
-      the `@override` annotation, but the member isn't declared in any of the
-      supertypes of the class.
-
-      #### Example
-
-      The following code produces this diagnostic because `m` isn't declared in
-      any of the supertypes of `C`:
-
-      ```dart
-      class C {
-        @override
-        String [!m!]() => '';
-      }
-      ```
-
-      #### Common fixes
-
-      If the member is intended to override a member with a different name, then
-      update the member to have the same name:
-
-      ```dart
-      class C {
-        @override
-        String toString() => '';
-      }
-      ```
-
-      If the member is intended to override a member that was removed from the
-      superclass, then consider removing the member from the subclass.
-
-      If the member can't be removed, then remove the annotation.
-  OVERRIDE_ON_NON_OVERRIDING_SETTER:
-    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
-    problemMessage: "The setter doesn't override an inherited setter."
-    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
-    hasPublishedDocs: true
-    comment: |-
-      A setter with the override annotation does not override an existing setter.
-
-      No parameters.
-  PACKAGE_IMPORT_CONTAINS_DOT_DOT:
-    problemMessage: "A package import shouldn't contain '..'."
-    comment: |-
-      It is a bad practice for a package import to reference anything outside the
-      given package, or more generally, it is bad practice for a package import
-      to contain a "..". For example, a source file should not contain a
-      directive such as `import 'package:foo/../some.dart'`.
   STRICT_RAW_TYPE:
     problemMessage: "The generic type '{0}' should have explicit type arguments but doesn't."
     correctionMessage: "Use explicit type arguments for '{0}'."
@@ -19494,235 +18488,6 @@ HintCode:
 
       Parameters:
       0: the name of the generic type
-  SUBTYPE_OF_SEALED_CLASS:
-    problemMessage: "The class '{0}' shouldn't be extended, mixed in, or implemented because it's sealed."
-    correctionMessage: "Try composing instead of inheriting, or refer to the documentation of '{0}' for more information."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the sealed class
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a sealed class (one that either
-      has the `[sealed][meta-sealed]` annotation or inherits or mixes in a
-      sealed class) is referenced in either the `extends`, `implements`, or
-      `with` clause of a class or mixin declaration if the declaration isn't in
-      the same package as the sealed class.
-
-      #### Example
-
-      Given a library in a package other than the package being analyzed that
-      contains the following:
-
-      ```dart
-      %uri="package:a/a.dart"
-      import 'package:meta/meta.dart';
-
-      class A {}
-
-      @sealed
-      class B {}
-      ```
-
-      The following code produces this diagnostic because `C`, which isn't in the
-      same package as `B`, is extending the sealed class `B`:
-
-      ```dart
-      import 'package:a/a.dart';
-
-      [!class C extends B {}!]
-      ```
-
-      #### Common fixes
-
-      If the class doesn't need to be a subtype of the sealed class, then change
-      the declaration so that it isn't:
-
-      ```dart
-      import 'package:a/a.dart';
-
-      class B extends A {}
-      ```
-
-      If the class needs to be a subtype of the sealed class, then either change
-      the sealed class so that it's no longer sealed or move the subclass into
-      the same package as the sealed class.
-  TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
-    problemMessage: The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.
-    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u{0}'.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the unicode sequence of the code point.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when it encounters source that
-      contains text direction Unicode code points. These code points cause
-      source code in either a string literal or a comment to be interpreted
-      and compiled differently than how it appears in editors, leading to
-      possible security vulnerabilities.
-
-      #### Example
-
-      The following code produces this diagnostic twice because there are
-      hidden characters at the start and end of the label string:
-
-      ```dart
-      var label = '[!I!]nteractive text[!'!];
-      ```
-
-      #### Common fixes
-
-      If the code points are intended to be included in the string literal,
-      then escape them:
-
-      ```dart
-      var label = '\u202AInteractive text\u202C';
-      ```
-
-      If the code points aren't intended to be included in the string literal,
-      then remove them:
-
-      ```dart
-      var label = 'Interactive text';
-      ```
-  TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
-    problemMessage: The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.
-    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u{0}'.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the unicode sequence of the code point.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when it encounters source that
-      contains text direction Unicode code points. These code points cause
-      source code in either a string literal or a comment to be interpreted
-      and compiled differently than how it appears in editors, leading to
-      possible security vulnerabilities.
-
-      #### Example
-
-      The following code produces this diagnostic twice because there are
-      hidden characters at the start and end of the label string:
-
-      ```dart
-      var label = '[!I!]nteractive text[!'!];
-      ```
-
-      #### Common fixes
-
-      If the code points are intended to be included in the string literal,
-      then escape them:
-
-      ```dart
-      var label = '\u202AInteractive text\u202C';
-      ```
-
-      If the code points aren't intended to be included in the string literal,
-      then remove them:
-
-      ```dart
-      var label = 'Interactive text';
-      ```
-  TYPE_CHECK_IS_NOT_NULL:
-    sharedName: TYPE_CHECK_WITH_NULL
-    problemMessage: "Tests for non-null should be done with '!= null'."
-    correctionMessage: "Try replacing the 'is! Null' check with '!= null'."
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when there's a type check (using the
-      `as` operator) where the type is `Null`. There's only one value whose type
-      is `Null`, so the code is both more readable and more performant when it
-      tests for `null` explicitly.
-
-      #### Examples
-
-      The following code produces this diagnostic because the code is testing to
-      see whether the value of `s` is `null` by using a type check:
-
-      ```dart
-      void f(String? s) {
-        if ([!s is Null!]) {
-          return;
-        }
-        print(s);
-      }
-      ```
-
-      The following code produces this diagnostic because the code is testing to
-      see whether the value of `s` is something other than `null` by using a type
-      check:
-
-      ```dart
-      void f(String? s) {
-        if ([!s is! Null!]) {
-          print(s);
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Replace the type check with the equivalent comparison with `null`:
-
-      ```dart
-      void f(String? s) {
-        if (s == null) {
-          return;
-        }
-        print(s);
-      }
-      ```
-  TYPE_CHECK_IS_NULL:
-    sharedName: TYPE_CHECK_WITH_NULL
-    problemMessage: "Tests for null should be done with '== null'."
-    correctionMessage: "Try replacing the 'is Null' check with '== null'."
-    hasPublishedDocs: true
-    comment: No parameters.
-  UNDEFINED_REFERENCED_PARAMETER:
-    problemMessage: "The parameter '{0}' isn't defined by '{1}'."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the undefined parameter
-      1: the name of the targeted member
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an annotation of the form
-      `[UseResult][meta-UseResult].unless(parameterDefined: parameterName)`
-      specifies a parameter name that isn't defined by the annotated function.
-
-      #### Example
-
-      The following code produces this diagnostic because the function `f`
-      doesn't have a parameter named `b`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @UseResult.unless(parameterDefined: [!'b'!])
-      int f([int? a]) => a ?? 0;
-      ```
-
-      #### Common fixes
-
-      Change the argument named `parameterDefined` to match the name of one of
-      the parameters to the function:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @UseResult.unless(parameterDefined: 'a')
-      int f([int? a]) => a ?? 0;
-      ```
   UNIGNORABLE_IGNORE:
     problemMessage: "The diagnostic '{0}' can't be ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
@@ -19873,98 +18638,6 @@ HintCode:
       If some of the names imported by this import are intended to be used but
       aren't yet, and if those names aren't imported by other imports, then add
       the missing references to those names.
-  UNNECESSARY_NAN_COMPARISON_FALSE:
-    sharedName: UNNECESSARY_NAN_COMPARISON
-    problemMessage: A double can't equal 'double.nan', so the condition is always 'false'.
-    correctionMessage: Try using 'double.isNan', or removing the condition.
-    hasPublishedDocs: false
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a value is compared to
-      `double.nan` using either `==` or `!=`.
-
-      Dart follows the [IEEE 754] floating-point standard for the semantics of
-      floating point operations, which states that, for any floating point value
-      `x` (including NaN, positive infinity, and negative infinity),
-      - `NaN == x` is always false
-      - `NaN != x` is always true
-
-      As a result, comparing any value to NaN is pointless because the result is
-      already known (based on the comparison operator being used).
-
-      #### Example
-
-      The following code produces this diagnostic because `d` is being compared
-      to `double.nan`:
-
-      ```dart
-      bool isNaN(double d) => d [!== double.nan!];
-      ```
-
-      #### Common fixes
-
-      Use the getter `double.isNaN` instead:
-
-      ```dart
-      bool isNaN(double d) => d.isNaN;
-      ```
-  UNNECESSARY_NAN_COMPARISON_TRUE:
-    sharedName: UNNECESSARY_NAN_COMPARISON
-    problemMessage: A double can't equal 'double.nan', so the condition is always 'true'.
-    correctionMessage: Try using 'double.isNan', or removing the condition.
-    hasPublishedDocs: false
-    comment: No parameters.
-  UNNECESSARY_NO_SUCH_METHOD:
-    problemMessage: "Unnecessary 'noSuchMethod' declaration."
-    correctionMessage: "Try removing the declaration of 'noSuchMethod'."
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when there's a declaration of
-      `noSuchMethod`, the only thing the declaration does is invoke the
-      overridden declaration, and the overridden declaration isn't the
-      declaration in `Object`.
-
-      Overriding the implementation of `Object`'s `noSuchMethod` (no matter what
-      the implementation does) signals to the analyzer that it shouldn't flag any
-      inherited abstract methods that aren't implemented in that class. This
-      works even if the overriding implementation is inherited from a superclass,
-      so there's no value to declare it again in a subclass.
-
-      #### Example
-
-      The following code produces this diagnostic because the declaration of
-      `noSuchMethod` in `A` makes the declaration of `noSuchMethod` in `B`
-      unnecessary:
-
-      ```dart
-      class A {
-        @override
-        dynamic noSuchMethod(x) => super.noSuchMethod(x);
-      }
-      class B extends A {
-        @override
-        dynamic [!noSuchMethod!](y) {
-          return super.noSuchMethod(y);
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary declaration:
-
-      ```dart
-      class A {
-        @override
-        dynamic noSuchMethod(x) => super.noSuchMethod(x);
-      }
-      class B extends A {}
-      ```
   UNNECESSARY_NULL_COMPARISON_FALSE:
     sharedName: UNNECESSARY_NULL_COMPARISON
     problemMessage: "The operand can't be null, so the condition is always 'false'."
@@ -20246,57 +18919,6 @@ HintCode:
 
       If some of the imported names are intended to be used, then add the missing
       code.
-  UNUSED_LABEL:
-    problemMessage: "The label '{0}' isn't used."
-    correctionMessage: "Try removing the label, or using it in either a 'break' or 'continue' statement."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the label that isn't used
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a label that isn't used is
-      found.
-
-      #### Example
-
-      The following code produces this diagnostic because the label `loop` isn't
-      referenced anywhere in the method:
-
-      ```dart
-      void f(int limit) {
-        [!loop:!] for (int i = 0; i < limit; i++) {
-          print(i);
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      If the label isn't needed, then remove it:
-
-      ```dart
-      void f(int limit) {
-        for (int i = 0; i < limit; i++) {
-          print(i);
-        }
-      }
-      ```
-
-      If the label is needed, then use it:
-
-      ```dart
-      void f(int limit) {
-        loop: for (int i = 0; i < limit; i++) {
-          print(i);
-          if (i != 0) {
-            break loop;
-          }
-        }
-      }
-      ```
-      TODO(brianwilkerson) Highlight the identifier without the colon.
   UNUSED_LOCAL_VARIABLE:
     problemMessage: "The value of the local variable '{0}' isn't used."
     correctionMessage: Try removing the variable or using it.
@@ -20326,93 +18948,6 @@ HintCode:
       If the variable isn't needed, then remove it.
 
       If the variable was intended to be used, then add the missing code.
-  UNUSED_RESULT:
-    problemMessage: "The value of '{0}' should be used."
-    correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the annotated method, property or function
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a function annotated with
-      `[useResult][meta-useResult]` is invoked, and the value returned by that
-      function isn't used. The value is considered to be used if a member of the
-      value is invoked, if the value is passed to another function, or if the
-      value is assigned to a variable or field.
-
-      #### Example
-
-      The following code produces this diagnostic because the invocation of
-      `c.a()` isn't used, even though the method `a` is annotated with
-      `[useResult][meta-useResult]`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        @useResult
-        int a() => 0;
-
-        int b() => 0;
-      }
-
-      void f(C c) {
-        c.[!a!]();
-      }
-      ```
-
-      #### Common fixes
-
-      If you intended to invoke the annotated function, then use the value that
-      was returned:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        @useResult
-        int a() => 0;
-
-        int b() => 0;
-      }
-
-      void f(C c) {
-        print(c.a());
-      }
-      ```
-
-      If you intended to invoke a different function, then correct the name of
-      the function being invoked:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        @useResult
-        int a() => 0;
-
-        int b() => 0;
-      }
-
-      void f(C c) {
-        c.b();
-      }
-      ```
-  UNUSED_RESULT_WITH_MESSAGE:
-    sharedName: UNUSED_RESULT
-    problemMessage: "'{0}' should be used. {1}."
-    correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
-    hasPublishedDocs: true
-    comment: |-
-      The result of invoking a method, property, or function annotated with
-      `@useResult` must be used (assigned, passed to a function as an argument,
-      or returned by a function).
-
-      Parameters:
-      0: the name of the annotated method, property or function
-      1: message details
   UNUSED_SHOWN_NAME:
     problemMessage: "The name {0} is shown, but isn't used."
     correctionMessage: Try removing the name from the list of shown members.
@@ -21798,6 +20333,94 @@ WarningCode:
         return '';
       }
       ```
+  CAST_FROM_NULL_ALWAYS_FAILS:
+    problemMessage: "This cast always throws an exception because the expression always evaluates to 'null'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an expression whose type is
+      `Null` is being cast to a non-nullable type.
+
+      #### Example
+
+      The following code produces this diagnostic because `n` is known to always
+      be `null`, but it's being cast to a non-nullable type:
+
+      ```dart
+      void f(Null n) {
+        [!n as int!];
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary cast:
+
+      ```dart
+      void f(Null n) {
+        n;
+      }
+      ```
+  CAST_FROM_NULLABLE_ALWAYS_FAILS:
+    problemMessage: "This cast will always throw an exception because the nullable local variable '{0}' is not assigned."
+    correctionMessage: "Try giving it an initializer expression, or ensure that it's assigned on every execution path."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the unassigned variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a local variable that has a
+      nullable type hasn't been assigned and is cast to a non-nullable type.
+      Because the variable hasn't been assigned it has the default value of
+      `null`, causing the cast to throw an exception.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable `x` is
+      cast to a non-nullable type (`int`) when it's known to have the value
+      `null`:
+
+      ```dart
+      void f() {
+        num? x;
+        [!x!] as int;
+        print(x);
+      }
+      ```
+
+      #### Common fixes
+
+      If the variable is expected to have a value before the cast, then add an
+      initializer or an assignment:
+
+      ```dart
+      void f() {
+        num? x = 3;
+        x as int;
+        print(x);
+      }
+      ```
+
+      If the variable isn't expected to be assigned, then remove the cast:
+
+      ```dart
+      void f() {
+        num? x;
+        print(x);
+      }
+      ```
+  CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE:
+    problemMessage: "The matched value type '{0}' can never be equal to this constant of type '{1}'."
+    correctionMessage: "Try a constant of the same type as the matched value type."
+    comment: |-
+      Parameters:
+      0: the matched value type
+      1: the constant value type
   DEAD_CODE:
     aliasFor: HintCode.DEAD_CODE
     comment: This is the new replacement for [HintCode.DEAD_CODE].
@@ -22188,6 +20811,73 @@ WarningCode:
       Note that literal maps preserve the order of their entries, so the choice
       of which entry to remove might affect the order in which the keys and
       values are returned by an iterator.
+  INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
+    problemMessage: "The type argument(s) of '{0}' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '{0}'."
+    comment: |-
+      When "strict-inference" is enabled, collection literal types must be
+      inferred via the context type, or have type arguments.
+
+      Parameters:
+      0: the name of the collection
+  INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
+    problemMessage: "The type argument(s) of the function '{0}' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '{0}'."
+    comment: |-
+      When "strict-inference" is enabled, types in function invocations must be
+      inferred via the context type, or have type arguments.
+
+      Parameters:
+      0: the name of the function
+  INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
+    problemMessage: "The return type of '{0}' cannot be inferred."
+    correctionMessage: "Declare the return type of '{0}'."
+    comment: |-
+      When "strict-inference" is enabled, recursive local functions, top-level
+      functions, methods, and function-typed function parameters must all
+      specify a return type. See the strict-inference resource:
+
+      https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
+
+      Parameters:
+      0: the name of the function or method
+  INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
+    problemMessage: "The type argument(s) of the generic function type '{0}' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '{0}'."
+    comment: |-
+      When "strict-inference" is enabled, types in function invocations must be
+      inferred via the context type, or have type arguments.
+
+      Parameters:
+      0: the name of the type
+  INFERENCE_FAILURE_ON_INSTANCE_CREATION:
+    problemMessage: "The type argument(s) of the constructor '{0}' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '{0}'."
+    comment: |-
+      When "strict-inference" is enabled, types in instance creation
+      (constructor calls) must be inferred via the context type, or have type
+      arguments.
+
+      Parameters:
+      0: the name of the constructor
+  INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
+    problemMessage: "The type of {0} can't be inferred without either a type or initializer."
+    correctionMessage: Try specifying the type of the variable.
+    comment: |-
+      When "strict-inference" in enabled, uninitialized variables must be
+      declared with a specific type.
+
+      Parameters:
+      0: the name of the variable
+  INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
+    problemMessage: "The type of {0} can't be inferred; a type must be explicitly provided."
+    correctionMessage: Try specifying the type of the parameter.
+    comment: |-
+      When "strict-inference" in enabled, function parameters must be
+      declared with a specific type, or inherit a type.
+
+      Parameters:
+      0: the name of the parameter
   INVALID_ANNOTATION_TARGET:
     problemMessage: "The annotation '{0}' can only be used on {1}."
     comment: |-
@@ -22398,6 +21088,68 @@ WarningCode:
 
       class C {}
       ```
+  INVALID_IMMUTABLE_ANNOTATION:
+    problemMessage: Only classes can be annotated as being immutable.
+    comment: |-
+      This hint is generated anywhere an @immutable annotation is associated with
+      anything other than a class.
+  INVALID_INTERNAL_ANNOTATION:
+    problemMessage: "Only public elements in a package's private API can be annotated as being internal."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a declaration is annotated with
+      the `[internal][meta-internal]` annotation and that declaration is either
+      in a [public library][] or has a private name.
+
+      #### Example
+
+      The following code, when in a [public library][], produces this diagnostic
+      because the `[internal][meta-internal]` annotation can't be applied to
+      declarations in a [public library][]:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@internal!]
+      class C {}
+      ```
+
+      The following code, whether in a public or internal library, produces this
+      diagnostic because the `[internal][meta-internal]` annotation can't be
+      applied to declarations with private names:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@internal!]
+      class _C {}
+
+      void f(_C c) {}
+      ```
+
+      #### Common fixes
+
+      If the declaration has a private name, then remove the annotation:
+
+      ```dart
+      class _C {}
+
+      void f(_C c) {}
+      ```
+
+      If the declaration has a public name and is intended to be internal to the
+      package, then move the annotated declaration into an internal library (in
+      other words, a library inside the `src` directory).
+
+      Otherwise, remove the use of the annotation:
+
+      ```dart
+      class C {}
+      ```
   INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The language version override can't specify a version greater than the latest known language version: {0}.{1}."
@@ -22487,6 +21239,210 @@ WarningCode:
     comment: |-
       No parameters.
     hasPublishedDocs: true
+  INVALID_LITERAL_ANNOTATION:
+    problemMessage: Only const constructors can have the `@literal` annotation.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `[literal][[meta-literal]]`
+      annotation is applied to anything other than a const constructor.
+
+      #### Examples
+
+      The following code produces this diagnostic because the constructor isn't
+      a `const` constructor:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        [!@literal!]
+        C();
+      }
+      ```
+
+      The following code produces this diagnostic because `x` isn't a
+      constructor:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@literal!]
+      var x;
+      ```
+
+      #### Common fixes
+
+      If the annotation is on a constructor and the constructor should always be
+      invoked with `const`, when possible, then mark the constructor with the
+      `const` keyword:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        @literal
+        const C();
+      }
+      ```
+
+      If the constructor can't be marked as `const`, then remove the annotation.
+
+      If the annotation is on anything other than a constructor, then remove the
+      annotation:
+
+      ```dart
+      var x;
+      ```
+  INVALID_NON_VIRTUAL_ANNOTATION:
+    problemMessage: "The annotation '@nonVirtual' can only be applied to a concrete instance member."
+    correctionMessage: Try removing '@nonVirtual'.
+    hasPublishedDocs: true
+    comment: |-
+      This hint is generated anywhere where `@nonVirtual` annotates something
+      other than a non-abstract instance member in a class or mixin.
+
+      No Parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `nonVirtual` annotation is
+      found on a declaration other than a member of a class, mixin, or enum, or
+      if the member isn't a concrete instance member.
+
+      #### Examples
+
+      The following code produces this diagnostic because the annotation is on a
+      class declaration rather than a member inside the class:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@nonVirtual!]
+      class C {}
+      ```
+
+      The following code produces this diagnostic because the method `m` is an
+      abstract method:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      abstract class C {
+        [!@nonVirtual!]
+        void m();
+      }
+      ```
+
+      The following code produces this diagnostic because the method `m` is a
+      static method:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      abstract class C {
+        [!@nonVirtual!]
+        static void m() {}
+      }
+      ```
+
+      #### Common fixes
+
+      If the declaration isn't a member of a class, mixin, or enum, then remove
+      the annotation:
+
+      ```dart
+      class C {}
+      ```
+
+      If the member is intended to be a concrete instance member, then make it
+      so:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      abstract class C {
+        @nonVirtual
+        void m() {}
+      }
+      ```
+
+      If the member is not intended to be a concrete instance member, then
+      remove the annotation:
+
+      ```dart
+      abstract class C {
+        static void m() {}
+      }
+      ```
+  INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
+    problemMessage: "The member '{0}' is declared non-virtual in '{1}' and can't be overridden in subclasses."
+    hasPublishedDocs: true
+    comment: |-
+      This hint is generated anywhere where an instance member annotated with
+      `@nonVirtual` is overridden in a subclass.
+
+      Parameters:
+      0: the name of the member
+      1: the name of the defining class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a member of a class, mixin, or
+      enum overrides a member that has the `@nonVirtual` annotation on it.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `m` in `B`
+      overrides the method `m` in `A`, and the method `m` in `A` is annotated
+      with the `@nonVirtual` annotation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @nonVirtual
+        void m() {}
+      }
+
+      class B extends A {
+        @override
+        void [!m!]() {}
+      }
+      ```
+
+      #### Common fixes
+
+      If the annotation on the method in the superclass is correct (the method
+      in the superclass is not intended to be overridden), then remove or rename
+      the overriding method:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @nonVirtual
+        void m() {}
+      }
+
+      class B extends A {}
+      ```
+
+      If the method in the superclass is intended to be overridden, then remove
+      the `@nonVirtual` annotation:
+
+      ```dart
+      class A {
+        void m() {}
+      }
+
+      class B extends A {
+        @override
+        void m() {}
+      }
+      ```
   INVALID_REQUIRED_NAMED_PARAM:
     problemMessage: "The type parameter '{0}' is annotated with @required but only named parameters without a default value can be annotated with it."
     correctionMessage: Remove @required.
@@ -22514,6 +21470,252 @@ WarningCode:
 
       Parameters:
       0: the name of the member
+  INVALID_USE_OF_INTERNAL_MEMBER:
+    problemMessage: "The member '{0}' can only be used within its package."
+    comment: |-
+      Parameters:
+      0: the name of the member
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a reference to a declaration
+      that is annotated with the `[internal][meta-internal]` annotation is found
+      outside the package containing the declaration.
+
+      #### Example
+
+      Given a package `p` that defines a library containing a declaration marked
+      with the `[internal][meta-internal]` annotation:
+
+      ```dart
+      %uri="package:p/src/p.dart"
+      import 'package:meta/meta.dart';
+
+      @internal
+      class C {}
+      ```
+
+      The following code produces this diagnostic because it's referencing the
+      class `C`, which isn't intended to be used outside the package `p`:
+
+      ```dart
+      import 'package:p/src/p.dart';
+
+      void f([!C!] c) {}
+      ```
+
+      #### Common fixes
+
+      Remove the reference to the internal declaration.
+  INVALID_USE_OF_PROTECTED_MEMBER:
+    problemMessage: "The member '{0}' can only be used within instance members of subclasses of '{1}'."
+    comment: |-
+      This hint is generated anywhere where a member annotated with `@protected`
+      is used outside of an instance member of a subclass.
+
+      Parameters:
+      0: the name of the member
+      1: the name of the defining class
+  INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
+    problemMessage: "The member '{0}' can only be used for overriding."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the member
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance member that is
+      annotated with `[visibleForOverriding][meta-visibleForOverriding]` is
+      referenced outside the library in which it's declared for any reason other
+      than to override it.
+
+      #### Example
+
+      Given a file named `a.dart` containing the following declaration:
+
+      ```dart
+      %uri="lib/a.dart"
+      import 'package:meta/meta.dart';
+
+      class A {
+        @visibleForOverriding
+        void a() {}
+      }
+      ```
+
+      The following code produces this diagnostic because the method `m` is being
+      invoked even though the only reason it's public is to allow it to be
+      overridden:
+
+      ```dart
+      import 'a.dart';
+
+      class B extends A {
+        void b() {
+          [!a!]();
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the invalid use of the member.
+  INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
+    problemMessage: "The member '{0}' can only be used within '{1}' or a template library."
+    comment: |-
+      This hint is generated anywhere where a member annotated with
+      `@visibleForTemplate` is used outside of a "template" Dart file.
+
+      Parameters:
+      0: the name of the member
+      1: the name of the defining class
+  INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
+    problemMessage: "The member '{0}' can only be used within '{1}' or a test."
+    hasPublishedDocs: true
+    comment: |-
+      This hint is generated anywhere where a member annotated with
+      `@visibleForTesting` is used outside the defining library, or a test.
+
+      Parameters:
+      0: the name of the member
+      1: the name of the defining class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a member annotated with
+      `@visibleForTesting` is referenced anywhere other than the library in
+      which it is declared or in a library in the `test` directory.
+
+      #### Example
+
+      Given a file named `c.dart` that contains the following:
+
+      ```dart
+      %uri="lib/c.dart"
+      import 'package:meta/meta.dart';
+
+      class C {
+        @visibleForTesting
+        void m() {}
+      }
+      ```
+
+      The following code, when not inside the `test` directory, produces this
+      diagnostic because the method `m` is marked as being visible only for
+      tests:
+
+      ```dart
+      import 'c.dart';
+
+      void f(C c) {
+        c.[!m!]();
+      }
+      ```
+
+      #### Common fixes
+
+      If the annotated member should not be referenced outside of tests, then
+      remove the reference:
+
+      ```dart
+      import 'c.dart';
+
+      void f(C c) {}
+      ```
+
+      If it's OK to reference the annotated member outside of tests, then remove
+      the annotation:
+
+      ```dart
+      class C {
+        void m() {}
+      }
+      ```
+  INVALID_VISIBILITY_ANNOTATION:
+    problemMessage: "The member '{0}' is annotated with '{1}', but this annotation is only meaningful on declarations of public members."
+    hasPublishedDocs: true
+    comment: |-
+      This hint is generated anywhere where a private declaration is annotated
+      with `@visibleForTemplate` or `@visibleForTesting`.
+
+      Parameters:
+      0: the name of the member
+      1: the name of the annotation
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when either the `visibleForTemplate`
+      or `[visibleForTesting][meta-visibleForTesting]` annotation is applied to
+      a non-public declaration.
+
+      #### Example
+
+      The following code produces this diagnostic:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@visibleForTesting!]
+      void _someFunction() {}
+
+      void f() => _someFunction();
+      ```
+
+      #### Common fixes
+
+      If the declaration doesn't need to be used by test code, then remove the
+      annotation:
+
+      ```dart
+      void _someFunction() {}
+
+      void f() => _someFunction();
+      ```
+
+      If it does, then make it public:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @visibleForTesting
+      void someFunction() {}
+
+      void f() => someFunction();
+      ```
+  INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
+    problemMessage: "The annotation 'visibleForOverriding' can only be applied to a public instance member that can be overridden."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when anything other than a public
+      instance member of a class is annotated with
+      `[visibleForOverriding][meta-visibleForOverriding]`. Because only public
+      instance members can be overridden outside the defining library, there's
+      no value to annotating any other declarations.
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      class, and classes can't be overridden:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@visibleForOverriding!]
+      class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      class C {}
+      ```
   RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
     sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR
     problemMessage: "The return type '{0}' isn't assignable to '{1}', as required by 'Future.catchError'."
@@ -22618,6 +21820,285 @@ WarningCode:
         void m() {}
       }
       ```
+  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
+    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
+    problemMessage: "Missing concrete implementation of '{0}'."
+    correctionMessage: Try overriding the missing member.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the member
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance member that has the
+      `@mustBeOverridden` annotation isn't overridden in a subclass.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `B` doesn't
+      have an override of the inherited method `A.m` when `A.m` is annotated
+      with `@mustBeOverridden`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @mustBeOverridden
+        void m() {}
+      }
+
+      class [!B!] extends A {}
+      ```
+
+      #### Common fixes
+
+      If the annotation is appropriate for the member, then override the member
+      in the subclass:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @mustBeOverridden
+        void m() {}
+      }
+
+      class B extends A {
+        @override
+        void m() {}
+      }
+      ```
+
+      If the annotation isn't appropriate for the member, then remove the
+      annotation:
+
+      ```dart
+      class A {
+        void m() {}
+      }
+
+      class B extends A {}
+      ```
+  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
+    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
+    problemMessage: "Missing concrete implementations of '{0}' and '{1}'."
+    correctionMessage: Try overriding the missing members.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the first member
+      1: the name of the second member
+  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
+    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
+    problemMessage: "Missing concrete implementations of '{0}', '{1}', and {2} more."
+    correctionMessage: Try overriding the missing members.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the first member
+      1: the name of the second member
+      2: the number of additional missing members that aren't listed
+  MISSING_REQUIRED_PARAM:
+    problemMessage: "The parameter '{0}' is required."
+    hasPublishedDocs: true
+    comment: |-
+      Generate a hint for a constructor, function or method invocation where a
+      required parameter is missing.
+
+      Parameters:
+      0: the name of the parameter
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method or function with a
+      named parameter that is annotated as being required is invoked without
+      providing a value for the parameter.
+
+      #### Example
+
+      The following code produces this diagnostic because the named parameter `x`
+      is required:
+
+      ```dart
+      %language=2.9
+      import 'package:meta/meta.dart';
+
+      void f({@required int x}) {}
+
+      void g() {
+        [!f!]();
+      }
+      ```
+
+      #### Common fixes
+
+      Provide the required value:
+
+      ```dart
+      %language=2.9
+      import 'package:meta/meta.dart';
+
+      void f({@required int x}) {}
+
+      void g() {
+        f(x: 2);
+      }
+      ```
+  MISSING_REQUIRED_PARAM_WITH_DETAILS:
+    sharedName: MISSING_REQUIRED_PARAM
+    problemMessage: "The parameter '{0}' is required. {1}."
+    hasPublishedDocs: true
+    comment: |-
+      Generate a hint for a constructor, function or method invocation where a
+      required parameter is missing.
+
+      Parameters:
+      0: the name of the parameter
+      1: message details
+  MISSING_RETURN:
+    problemMessage: "This function has a return type of '{0}', but doesn't end with a return statement."
+    correctionMessage: "Try adding a return statement, or changing the return type to 'void'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the declared return type
+    documentation: |-
+      #### Description
+
+      Any function or method that doesn't end with either an explicit return or a
+      throw implicitly returns `null`. This is rarely the desired behavior. The
+      analyzer produces this diagnostic when it finds an implicit return.
+
+      #### Example
+
+      The following code produces this diagnostic because `f` doesn't end with a
+      return:
+
+      ```dart
+      %language=2.9
+      int [!f!](int x) {
+        if (x < 0) {
+          return 0;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Add a `return` statement that makes the return value explicit, even if
+      `null` is the appropriate value.
+  MUST_BE_IMMUTABLE:
+    problemMessage: "This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: {0}"
+    hasPublishedDocs: true
+    comment: |-
+      Generate a hint for classes that inherit from classes annotated with
+      `@immutable` but that are not immutable.
+
+      Parameters:
+      0: the name of the class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an immutable class defines one
+      or more instance fields that aren't final. A class is immutable if it's
+      marked as being immutable using the annotation
+      `[immutable][meta-immutable]` or if it's a subclass of an immutable class.
+
+      #### Example
+
+      The following code produces this diagnostic because the field `x` isn't
+      final:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @immutable
+      class [!C!] {
+        int x;
+
+        C(this.x);
+      }
+      ```
+
+      #### Common fixes
+
+      If instances of the class should be immutable, then add the keyword `final`
+      to all non-final field declarations:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @immutable
+      class C {
+        final int x;
+
+        C(this.x);
+      }
+      ```
+
+      If the instances of the class should be mutable, then remove the
+      annotation, or choose a different superclass if the annotation is
+      inherited:
+
+      ```dart
+      class C {
+        int x;
+
+        C(this.x);
+      }
+      ```
+  MUST_CALL_SUPER:
+    problemMessage: "This method overrides a method annotated as '@mustCallSuper' in '{0}', but doesn't invoke the overridden method."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the class declaring the overridden method
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method that overrides a method
+      that is annotated as `[mustCallSuper][meta-mustCallSuper]` doesn't invoke
+      the overridden method as required.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `m` in `B`
+      doesn't invoke the overridden method `m` in `A`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @mustCallSuper
+        m() {}
+      }
+
+      class B extends A {
+        @override
+        [!m!]() {}
+      }
+      ```
+
+      #### Common fixes
+
+      Add an invocation of the overridden method in the overriding method:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @mustCallSuper
+        m() {}
+      }
+
+      class B extends A {
+        @override
+        m() {
+          super.m();
+        }
+      }
+      ```
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
     aliasFor: HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
     comment: This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
@@ -22715,8 +22196,76 @@ WarningCode:
       A condition in operands of a logical operator could evaluate to `null`
       because it uses the null-aware '?.' operator.
   OVERRIDE_ON_NON_OVERRIDING_FIELD:
-    aliasFor: HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD
-    comment: This is the new replacement for [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD].
+    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
+    problemMessage: "The field doesn't override an inherited getter or setter."
+    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
+    hasPublishedDocs: true
+    comment: |-
+      A field with the override annotation does not override a getter or setter.
+
+      No parameters.
+  OVERRIDE_ON_NON_OVERRIDING_GETTER:
+    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
+    problemMessage: "The getter doesn't override an inherited getter."
+    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
+    hasPublishedDocs: true
+    comment: |-
+      A getter with the override annotation does not override an existing getter.
+
+      No parameters.
+  OVERRIDE_ON_NON_OVERRIDING_METHOD:
+    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
+    problemMessage: "The method doesn't override an inherited method."
+    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
+    hasPublishedDocs: true
+    comment: |-
+      A method with the override annotation does not override an existing method.
+
+      No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class member is annotated with
+      the `@override` annotation, but the member isn't declared in any of the
+      supertypes of the class.
+
+      #### Example
+
+      The following code produces this diagnostic because `m` isn't declared in
+      any of the supertypes of `C`:
+
+      ```dart
+      class C {
+        @override
+        String [!m!]() => '';
+      }
+      ```
+
+      #### Common fixes
+
+      If the member is intended to override a member with a different name, then
+      update the member to have the same name:
+
+      ```dart
+      class C {
+        @override
+        String toString() => '';
+      }
+      ```
+
+      If the member is intended to override a member that was removed from the
+      superclass, then consider removing the member from the subclass.
+
+      If the member can't be removed, then remove the annotation.
+  OVERRIDE_ON_NON_OVERRIDING_SETTER:
+    sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
+    problemMessage: "The setter doesn't override an inherited setter."
+    correctionMessage: Try updating this class to match the superclass, or removing the override annotation.
+    hasPublishedDocs: true
+    comment: |-
+      A setter with the override annotation does not override an existing setter.
+
+      No parameters.
   RECEIVER_OF_TYPE_NEVER:
     problemMessage: "The receiver is of type 'Never', and will never complete with a value."
     correctionMessage: Try checking for throw expressions or type errors in the receiver
@@ -22733,6 +22282,9 @@ WarningCode:
       the call are unreachable.
 
       Parameters: none
+  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+    problemMessage: "A record literal with exactly one positional field requires a trailing comma."
+    correctionMessage: Try adding a trailing comma.
   REMOVED_LINT_USE:
     problemMessage: "'{0}' was removed in Dart '{1}'"
     correctionMessage: "Remove the reference to '{0}'."
@@ -23450,6 +23002,198 @@ WarningCode:
       const a = [1, 2];
       var b = [...a];
       ```
+  SUBTYPE_OF_SEALED_CLASS:
+    problemMessage: "The class '{0}' shouldn't be extended, mixed in, or implemented because it's sealed."
+    correctionMessage: "Try composing instead of inheriting, or refer to the documentation of '{0}' for more information."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the sealed class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a sealed class (one that either
+      has the `[sealed][meta-sealed]` annotation or inherits or mixes in a
+      sealed class) is referenced in either the `extends`, `implements`, or
+      `with` clause of a class or mixin declaration if the declaration isn't in
+      the same package as the sealed class.
+
+      #### Example
+
+      Given a library in a package other than the package being analyzed that
+      contains the following:
+
+      ```dart
+      %uri="package:a/a.dart"
+      import 'package:meta/meta.dart';
+
+      class A {}
+
+      @sealed
+      class B {}
+      ```
+
+      The following code produces this diagnostic because `C`, which isn't in the
+      same package as `B`, is extending the sealed class `B`:
+
+      ```dart
+      import 'package:a/a.dart';
+
+      [!class C extends B {}!]
+      ```
+
+      #### Common fixes
+
+      If the class doesn't need to be a subtype of the sealed class, then change
+      the declaration so that it isn't:
+
+      ```dart
+      import 'package:a/a.dart';
+
+      class B extends A {}
+      ```
+
+      If the class needs to be a subtype of the sealed class, then either change
+      the sealed class so that it's no longer sealed or move the subclass into
+      the same package as the sealed class.
+  TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
+    problemMessage: The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.
+    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u{0}'.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the unicode sequence of the code point.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when it encounters source that
+      contains text direction Unicode code points. These code points cause
+      source code in either a string literal or a comment to be interpreted
+      and compiled differently than how it appears in editors, leading to
+      possible security vulnerabilities.
+
+      #### Example
+
+      The following code produces this diagnostic twice because there are
+      hidden characters at the start and end of the label string:
+
+      ```dart
+      var label = '[!I!]nteractive text[!'!];
+      ```
+
+      #### Common fixes
+
+      If the code points are intended to be included in the string literal,
+      then escape them:
+
+      ```dart
+      var label = '\u202AInteractive text\u202C';
+      ```
+
+      If the code points aren't intended to be included in the string literal,
+      then remove them:
+
+      ```dart
+      var label = 'Interactive text';
+      ```
+  TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
+    problemMessage: The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.
+    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u{0}'.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the unicode sequence of the code point.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when it encounters source that
+      contains text direction Unicode code points. These code points cause
+      source code in either a string literal or a comment to be interpreted
+      and compiled differently than how it appears in editors, leading to
+      possible security vulnerabilities.
+
+      #### Example
+
+      The following code produces this diagnostic twice because there are
+      hidden characters at the start and end of the label string:
+
+      ```dart
+      var label = '[!I!]nteractive text[!'!];
+      ```
+
+      #### Common fixes
+
+      If the code points are intended to be included in the string literal,
+      then escape them:
+
+      ```dart
+      var label = '\u202AInteractive text\u202C';
+      ```
+
+      If the code points aren't intended to be included in the string literal,
+      then remove them:
+
+      ```dart
+      var label = 'Interactive text';
+      ```
+  TYPE_CHECK_IS_NOT_NULL:
+    sharedName: TYPE_CHECK_WITH_NULL
+    problemMessage: "Tests for non-null should be done with '!= null'."
+    correctionMessage: "Try replacing the 'is! Null' check with '!= null'."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when there's a type check (using the
+      `as` operator) where the type is `Null`. There's only one value whose type
+      is `Null`, so the code is both more readable and more performant when it
+      tests for `null` explicitly.
+
+      #### Examples
+
+      The following code produces this diagnostic because the code is testing to
+      see whether the value of `s` is `null` by using a type check:
+
+      ```dart
+      void f(String? s) {
+        if ([!s is Null!]) {
+          return;
+        }
+        print(s);
+      }
+      ```
+
+      The following code produces this diagnostic because the code is testing to
+      see whether the value of `s` is something other than `null` by using a type
+      check:
+
+      ```dart
+      void f(String? s) {
+        if ([!s is! Null!]) {
+          print(s);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Replace the type check with the equivalent comparison with `null`:
+
+      ```dart
+      void f(String? s) {
+        if (s == null) {
+          return;
+        }
+        print(s);
+      }
+      ```
+  TYPE_CHECK_IS_NULL:
+    sharedName: TYPE_CHECK_WITH_NULL
+    problemMessage: "Tests for null should be done with '== null'."
+    correctionMessage: "Try replacing the 'is Null' check with '== null'."
+    hasPublishedDocs: true
+    comment: No parameters.
   UNDEFINED_HIDDEN_NAME:
     problemMessage: "The library '{0}' doesn't export a member with the hidden name '{1}'."
     correctionMessage: Try removing the name from the list of hidden members.
@@ -23484,6 +23228,43 @@ WarningCode:
       import 'dart:math' hide max;
 
       var x = min(0, 1);
+      ```
+  UNDEFINED_REFERENCED_PARAMETER:
+    problemMessage: "The parameter '{0}' isn't defined by '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the undefined parameter
+      1: the name of the targeted member
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an annotation of the form
+      `[UseResult][meta-UseResult].unless(parameterDefined: parameterName)`
+      specifies a parameter name that isn't defined by the annotated function.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f`
+      doesn't have a parameter named `b`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @UseResult.unless(parameterDefined: [!'b'!])
+      int f([int? a]) => a ?? 0;
+      ```
+
+      #### Common fixes
+
+      Change the argument named `parameterDefined` to match the name of one of
+      the parameters to the function:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @UseResult.unless(parameterDefined: 'a')
+      int f([int? a]) => a ?? 0;
       ```
   UNDEFINED_SHOWN_NAME:
     problemMessage: "The library '{0}' doesn't export a member with the shown name '{1}'."
@@ -23530,6 +23311,108 @@ WarningCode:
   UNNECESSARY_FINAL:
     aliasFor: HintCode.UNNECESSARY_FINAL
     comment: This is the new replacement for [HintCode.UNNECESSARY_FINAL].
+  UNNECESSARY_NAN_COMPARISON_FALSE:
+    sharedName: UNNECESSARY_NAN_COMPARISON
+    problemMessage: A double can't equal 'double.nan', so the condition is always 'false'.
+    correctionMessage: Try using 'double.isNan', or removing the condition.
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a value is compared to
+      `double.nan` using either `==` or `!=`.
+
+      Dart follows the [IEEE 754] floating-point standard for the semantics of
+      floating point operations, which states that, for any floating point value
+      `x` (including NaN, positive infinity, and negative infinity),
+      - `NaN == x` is always false
+      - `NaN != x` is always true
+
+      As a result, comparing any value to NaN is pointless because the result is
+      already known (based on the comparison operator being used).
+
+      #### Example
+
+      The following code produces this diagnostic because `d` is being compared
+      to `double.nan`:
+
+      ```dart
+      bool isNaN(double d) => d [!== double.nan!];
+      ```
+
+      #### Common fixes
+
+      Use the getter `double.isNaN` instead:
+
+      ```dart
+      bool isNaN(double d) => d.isNaN;
+      ```
+  UNNECESSARY_NAN_COMPARISON_TRUE:
+    sharedName: UNNECESSARY_NAN_COMPARISON
+    problemMessage: A double can't equal 'double.nan', so the condition is always 'true'.
+    correctionMessage: Try using 'double.isNan', or removing the condition.
+    hasPublishedDocs: false
+    comment: No parameters.
+  UNNECESSARY_NO_SUCH_METHOD:
+    problemMessage: "Unnecessary 'noSuchMethod' declaration."
+    correctionMessage: "Try removing the declaration of 'noSuchMethod'."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when there's a declaration of
+      `noSuchMethod`, the only thing the declaration does is invoke the
+      overridden declaration, and the overridden declaration isn't the
+      declaration in `Object`.
+
+      Overriding the implementation of `Object`'s `noSuchMethod` (no matter what
+      the implementation does) signals to the analyzer that it shouldn't flag any
+      inherited abstract methods that aren't implemented in that class. This
+      works even if the overriding implementation is inherited from a superclass,
+      so there's no value to declare it again in a subclass.
+
+      #### Example
+
+      The following code produces this diagnostic because the declaration of
+      `noSuchMethod` in `A` makes the declaration of `noSuchMethod` in `B`
+      unnecessary:
+
+      ```dart
+      class A {
+        @override
+        dynamic noSuchMethod(x) => super.noSuchMethod(x);
+      }
+      class B extends A {
+        @override
+        dynamic [!noSuchMethod!](y) {
+          return super.noSuchMethod(y);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary declaration:
+
+      ```dart
+      class A {
+        @override
+        dynamic noSuchMethod(x) => super.noSuchMethod(x);
+      }
+      class B extends A {}
+      ```
+  UNNECESSARY_TYPE_CHECK_FALSE:
+    aliasFor: HintCode.UNNECESSARY_TYPE_CHECK_FALSE
+    comment: This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
+  UNNECESSARY_TYPE_CHECK_TRUE:
+    aliasFor: HintCode.UNNECESSARY_TYPE_CHECK_TRUE
+    comment: This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_TRUE].
+  UNNECESSARY_WILDCARD_PATTERN:
+    problemMessage: Unnecessary wildcard pattern.
+    correctionMessage: Try removing the wildcard pattern.
+    comment: No parameters.
   UNUSED_CATCH_CLAUSE:
     problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
     correctionMessage: Try removing the catch clause.
@@ -23625,6 +23508,144 @@ WarningCode:
   UNUSED_IMPORT:
     aliasFor: HintCode.UNUSED_IMPORT
     comment: This is the new replacement for [HintCode.UNUSED_IMPORT].
+  UNUSED_LABEL:
+    problemMessage: "The label '{0}' isn't used."
+    correctionMessage: "Try removing the label, or using it in either a 'break' or 'continue' statement."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the label that isn't used
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a label that isn't used is
+      found.
+
+      #### Example
+
+      The following code produces this diagnostic because the label `loop` isn't
+      referenced anywhere in the method:
+
+      ```dart
+      void f(int limit) {
+        [!loop:!] for (int i = 0; i < limit; i++) {
+          print(i);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the label isn't needed, then remove it:
+
+      ```dart
+      void f(int limit) {
+        for (int i = 0; i < limit; i++) {
+          print(i);
+        }
+      }
+      ```
+
+      If the label is needed, then use it:
+
+      ```dart
+      void f(int limit) {
+        loop: for (int i = 0; i < limit; i++) {
+          print(i);
+          if (i != 0) {
+            break loop;
+          }
+        }
+      }
+      ```
+      TODO(brianwilkerson) Highlight the identifier without the colon.
   UNUSED_LOCAL_VARIABLE:
     aliasFor: HintCode.UNUSED_LOCAL_VARIABLE
     comment: This is the new replacement for [HintCode.UNUSED_LOCAL_VARIABLE].
+  UNUSED_RESULT:
+    problemMessage: "The value of '{0}' should be used."
+    correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the annotated method, property or function
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a function annotated with
+      `[useResult][meta-useResult]` is invoked, and the value returned by that
+      function isn't used. The value is considered to be used if a member of the
+      value is invoked, if the value is passed to another function, or if the
+      value is assigned to a variable or field.
+
+      #### Example
+
+      The following code produces this diagnostic because the invocation of
+      `c.a()` isn't used, even though the method `a` is annotated with
+      `[useResult][meta-useResult]`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        @useResult
+        int a() => 0;
+
+        int b() => 0;
+      }
+
+      void f(C c) {
+        c.[!a!]();
+      }
+      ```
+
+      #### Common fixes
+
+      If you intended to invoke the annotated function, then use the value that
+      was returned:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        @useResult
+        int a() => 0;
+
+        int b() => 0;
+      }
+
+      void f(C c) {
+        print(c.a());
+      }
+      ```
+
+      If you intended to invoke a different function, then correct the name of
+      the function being invoked:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        @useResult
+        int a() => 0;
+
+        int b() => 0;
+      }
+
+      void f(C c) {
+        c.b();
+      }
+      ```
+  UNUSED_RESULT_WITH_MESSAGE:
+    sharedName: UNUSED_RESULT
+    problemMessage: "'{0}' should be used. {1}."
+    correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
+    hasPublishedDocs: true
+    comment: |-
+      The result of invoking a method, property, or function annotated with
+      `@useResult` must be used (assigned, passed to a function as an argument,
+      or returned by a function).
+
+      Parameters:
+      0: the name of the annotated method, property or function
+      1: message details

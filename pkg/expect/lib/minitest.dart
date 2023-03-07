@@ -73,7 +73,7 @@ void finishTests() {
   _groups.add(_Group());
 }
 
-void group(String description, body()) {
+void group(String description, Function() body) {
   // TODO(rnystrom): Do something useful with the description.
   _groups.add(_Group());
 
@@ -87,7 +87,7 @@ void group(String description, body()) {
   }
 }
 
-void test(String description, body()) {
+void test(String description, Function() body) {
   // TODO(rnystrom): Do something useful with the description.
   for (var group in _groups) {
     var result = group.setUpFunction();
@@ -112,13 +112,13 @@ void test(String description, body()) {
   }
 }
 
-void setUp(body()) {
+void setUp(Function() body) {
   // Can't define multiple setUps at the same level.
   assert(_groups.last.setUpFunction == _defaultAction);
   _groups.last.setUpFunction = body;
 }
 
-void tearDown(body()) {
+void tearDown(Function() body) {
   // Can't define multiple tearDowns at the same level.
   assert(_groups.last.tearDownFunction == _defaultAction);
   _groups.last.tearDownFunction = body;
@@ -150,7 +150,7 @@ Object unorderedEquals(dynamic value) => _Expectation((actual) {
       Expect.setEquals(value as Iterable, actual as Iterable);
     });
 
-Object predicate(bool fn(dynamic value), [String description = ""]) =>
+Object predicate(bool Function(dynamic value) fn, [String description = ""]) =>
     _Expectation((actual) {
       Expect.isTrue(fn(actual), description);
     });

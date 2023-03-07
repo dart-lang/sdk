@@ -1,7 +1,14 @@
-# Changelog
+## 11.2.1-dev
 
-## 11.0.2
+## 11.2.0
+- Update to version `4.3` of the spec.
+- Add `isSealed`, `isMixinClass`, `isBaseClass`, `isInterfaceClass`, and
+  `isFinal` properties to `Class`.
+
+## 11.1.0
 - Reduce number of type checks in `toJson()` methods.
+- Update to version `4.2` of the spec.
+- Add `getInstancesAsList` RPC.
 
 ## 11.0.1
 - Fix bug where code would try to call `.toJson()` on `int`s.

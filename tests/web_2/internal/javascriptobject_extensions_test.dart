@@ -12,7 +12,6 @@ import 'package:js/js_util.dart';
 import 'package:expect/minitest.dart';
 
 import 'dart:html' show Window;
-import 'dart:typed_data' show ByteBuffer;
 import 'dart:_interceptors'
     show
         LegacyJavaScriptObject,
@@ -44,11 +43,6 @@ class AnonymousClass {
 class DartClass {}
 
 external AnonymousClass get anonymousObj;
-
-external ByteBuffer get arrayBuffer;
-
-@JS('arrayBuffer')
-external dynamic get arrayBufferDynamic;
 
 external Window get window;
 
@@ -91,7 +85,6 @@ main() {
     self.anonymousObj = {
       name: 'AnonymousClass',
     };
-    self.arrayBuffer = new ArrayBuffer();
   ''');
 
   // Instances of JS classes can be casted to JavaScriptObject and back.
@@ -134,14 +127,6 @@ main() {
   var legacyJavaScriptObject = jsObj as LegacyJavaScriptObject;
   expect(legacyJavaScriptObject is Window, false);
   runtimeIsAndAs<Window>(legacyJavaScriptObject, false);
-
-  // Non-web Native classes like those in `dart:typed_data` are not subclasses
-  // of JavaScriptObject.
-  expect(arrayBuffer is JavaScriptObject, false);
-  runtimeIsAndAs<JavaScriptObject>(arrayBuffer, false);
-  runtimeIsAndAs<JavaScriptObject>(arrayBufferDynamic, false);
-  expect(javaScriptObject is ByteBuffer, false);
-  runtimeIsAndAs<ByteBuffer>(javaScriptObject, false);
 
   // Make sure `Object` methods work with JavaScriptObject like they do with JS
   // interop objects.

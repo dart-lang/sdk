@@ -706,6 +706,157 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_createChange_patternVariable_declarationStatement() async {
+    await indexTestUnit('''
+void f(Object? x) {
+  var (test, _) = (1, 2);
+  test;
+  test = 1;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test,');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(Object? x) {
+  var (newName, _) = (1, 2);
+  newName;
+  newName = 1;
+}
+''');
+  }
+
+  Future<void> test_createChange_patternVariable_ifCase() async {
+    await indexTestUnit('''
+void f(Object? x) {
+  if (x case int test) {
+    test;
+    test = 1;
+    test += 2;
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test) {');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(Object? x) {
+  if (x case int newName) {
+    newName;
+    newName = 1;
+    newName += 2;
+  }
+}
+''');
+  }
+
+  Future<void> test_createChange_patternVariable_ifCase_logicalOr() async {
+    await indexTestUnit('''
+void f(Object? x) {
+  if (x case int test || [int test] when test > 0) {
+    test;
+    test = 1;
+    test += 2;
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test]');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(Object? x) {
+  if (x case int newName || [int newName] when newName > 0) {
+    newName;
+    newName = 1;
+    newName += 2;
+  }
+}
+''');
+  }
+
+  Future<void> test_createChange_patternVariable_patternAssignment() async {
+    await indexTestUnit('''
+void f() {
+  int test;
+  (test, _) = (0, 1);
+  test;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test,');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f() {
+  int newName;
+  (newName, _) = (0, 1);
+  newName;
+}
+''');
+  }
+
+  Future<void> test_createChange_patternVariable_switchExpression() async {
+    await indexTestUnit('''
+Object f(Object? x) => switch (x) {
+  [int test] when test > 0 => test,
+  _ => -1,
+};
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test]');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+Object f(Object? x) => switch (x) {
+  [int newName] when newName > 0 => newName,
+  _ => -1,
+};
+''');
+  }
+
+  Future<void>
+      test_createChange_patternVariable_switchStatement_shared() async {
+    await indexTestUnit('''
+void f(Object? x) {
+  switch (0) {
+    case int test when test > 0:
+    case [int test] when test < 0:
+      test;
+      test = 1;
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test]');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(Object? x) {
+  switch (0) {
+    case int newName when newName > 0:
+    case [int newName] when newName < 0:
+      newName;
+      newName = 1;
+  }
+}
+''');
+  }
+
   Future<void> test_oldName() async {
     await indexTestUnit('''
 void f() {

@@ -5,7 +5,6 @@
 library models;
 
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:observatory_2/object_graph.dart';
 
 part 'src/models/exceptions.dart';

@@ -15,7 +15,7 @@ main() {
 
 const String TEST2 = r"""
 main() {
-  var a = new List();
+  var a = List();
   a.add(42);
   a.add(null);
   return a[0] + 42;
@@ -24,7 +24,7 @@ main() {
 
 const String TEST3 = r"""
 main() {
-  var a = new List(42);
+  var a = List(42);
   a[a.length - 1] = 42;
   return a[0] + 42;
 }
@@ -32,7 +32,7 @@ main() {
 
 const String TEST4 = r"""
 main() {
-  var a = new List.filled(42, null);
+  var a = List.filled(42, null);
   a[a.length - 1] = 42;
   return 42 + a[0];
 }

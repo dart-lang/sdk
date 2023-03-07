@@ -79,7 +79,7 @@ class D1 extends D {}
     String source = '''
 $classes
 main() {
-${liveClasses.map((c) => '  new $c();').join('\n')}
+${liveClasses.map((c) => '  $c();').join('\n')}
 }
 ''';
     print('------------------------------------------------------------------');
@@ -128,7 +128,7 @@ ${liveClasses.map((c) => '  new $c();').join('\n')}
           List<ClassRelation>? expectRelations = memberResults[cls];
           bool expectedResult =
               expectRelations != null && expectRelations.contains(relation);
-          StrongModeConstraint constraint = new StrongModeConstraint(
+          StrongModeConstraint constraint = StrongModeConstraint(
               commonElements, nativeBasicData, cls, relation);
           Expect.equals(
               expectedResult,

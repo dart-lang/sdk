@@ -108,25 +108,25 @@ Future<Process> startDartProcessPaused(
 
 /// Monitors [process] for the VM Service banner and extracts the URI.
 Future<Uri> waitForStdoutVmServiceBanner(Process process) {
-  final _vmServiceUriCompleter = Completer<Uri>();
+  final vmServiceUriCompleter = Completer<Uri>();
 
   late StreamSubscription<String> vmServiceBannerSub;
   vmServiceBannerSub = process.stdout.transform(utf8.decoder).listen(
     (line) {
       final match = vmServiceBannerPattern.firstMatch(line);
       if (match != null) {
-        _vmServiceUriCompleter.complete(Uri.parse(match.group(1)!));
+        vmServiceUriCompleter.complete(Uri.parse(match.group(1)!));
         vmServiceBannerSub.cancel();
       }
     },
     onDone: () {
-      if (!_vmServiceUriCompleter.isCompleted) {
-        _vmServiceUriCompleter.completeError('Stream ended');
+      if (!vmServiceUriCompleter.isCompleted) {
+        vmServiceUriCompleter.completeError('Stream ended');
       }
     },
   );
 
-  return _vmServiceUriCompleter.future;
+  return vmServiceUriCompleter.future;
 }
 
 /// A helper class containing the DAP server/client for DAP integration tests.

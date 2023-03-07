@@ -1926,15 +1926,21 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // Atomically clear kOldAndNotRememberedBit.
   ASSERT(target::Object::tags_offset() == 0);
   __ sub(R3, R1, Operand(kHeapObjectTag));
-  // R3: Untagged address of header word (ldxr/stxr do not support offsets).
-  Label retry;
-  __ Bind(&retry);
-  __ ldxr(R2, R3, kEightBytes);
-  __ tbz(&lost_race, R2, target::UntaggedObject::kOldAndNotRememberedBit);
-  __ AndImmediate(R2, R2,
-                  ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  __ stxr(R4, R2, R3, kEightBytes);
-  __ cbnz(&retry, R4);
+  // R3: Untagged address of header word (atomics do not support offsets).
+  if (TargetCPUFeatures::atomic_memory_supported()) {
+    __ LoadImmediate(TMP, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
+    __ ldclr(TMP, TMP, R3);
+    __ tbz(&lost_race, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
+  } else {
+    Label retry;
+    __ Bind(&retry);
+    __ ldxr(R2, R3, kEightBytes);
+    __ tbz(&lost_race, R2, target::UntaggedObject::kOldAndNotRememberedBit);
+    __ AndImmediate(R2, R2,
+                    ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+    __ stxr(R4, R2, R3, kEightBytes);
+    __ cbnz(&retry, R4);
+  }
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1979,13 +1985,20 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   Label marking_retry, marking_overflow;
   ASSERT(target::Object::tags_offset() == 0);
   __ sub(R3, R0, Operand(kHeapObjectTag));
-  // R3: Untagged address of header word (ldxr/stxr do not support offsets).
-  __ Bind(&marking_retry);
-  __ ldxr(R2, R3, kEightBytes);
-  __ tbz(&lost_race, R2, target::UntaggedObject::kOldAndNotMarkedBit);
-  __ AndImmediate(R2, R2, ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
-  __ stxr(R4, R2, R3, kEightBytes);
-  __ cbnz(&marking_retry, R4);
+  // R3: Untagged address of header word (atomics do not support offsets).
+  if (TargetCPUFeatures::atomic_memory_supported()) {
+    __ LoadImmediate(TMP, 1 << target::UntaggedObject::kOldAndNotMarkedBit);
+    __ ldclr(TMP, TMP, R3);
+    __ tbz(&lost_race, TMP, target::UntaggedObject::kOldAndNotMarkedBit);
+  } else {
+    __ Bind(&marking_retry);
+    __ ldxr(R2, R3, kEightBytes);
+    __ tbz(&lost_race, R2, target::UntaggedObject::kOldAndNotMarkedBit);
+    __ AndImmediate(R2, R2,
+                    ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    __ stxr(R4, R2, R3, kEightBytes);
+    __ cbnz(&marking_retry, R4);
+  }
 
   __ LoadFromOffset(R4, THR, target::Thread::marking_stack_block_offset());
   __ LoadFromOffset(R2, R4, target::MarkingStackBlock::top_offset(),

@@ -90,31 +90,21 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     writeln("import 'package:$packageName/protocol/protocol_generated.dart';");
     writeln(
         "import 'package:$packageName/src/protocol/protocol_internal.dart';");
-    writeln("import 'package:test/test.dart';");
-    writeln();
-    writeln("import 'integration_tests.dart';");
-    writeln("import 'protocol_matchers.dart';");
     for (var uri in api.types.importUris) {
       write("import '");
       write(uri);
       writeln("';");
     }
+    writeln("import 'package:test/test.dart';");
     writeln();
-    writeln('/// Convenience methods for running integration tests.');
-    writeln('abstract class IntegrationTestMixin {');
+    writeln("import 'integration_tests.dart';");
+    writeln("import 'protocol_matchers.dart';");
+    writeln();
+    writeln('/// Base implementation for running integration tests.');
+    writeln('abstract class IntegrationTest {');
     indent(() {
       writeln('Server get server;');
       super.visitApi();
-      writeln();
-      docComment(toHtmlVisitor.collectHtml(() {
-        toHtmlVisitor.writeln('Initialize the fields in InttestMixin, and');
-        toHtmlVisitor.writeln('ensure that notifications will be handled.');
-      }));
-      writeln('void initializeInttestMixin() {');
-      indent(() {
-        write(fieldInitializationCode.join());
-      });
-      writeln('}');
       writeln();
       docComment(toHtmlVisitor.collectHtml(() {
         toHtmlVisitor.writeln('Dispatch the notification named [event], and');
@@ -151,16 +141,13 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       toHtmlVisitor.translateHtml(notification.html);
       toHtmlVisitor.describePayload(notification.params, 'Parameters');
     }));
-    writeln('late Stream<$className> $streamName;');
+    writeln('late final Stream<$className> $streamName = '
+        '_$streamName.stream.asBroadcastStream();');
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.write('Stream controller for [$streamName].');
     }));
-    writeln('late StreamController<$className> _$streamName;');
-    fieldInitializationCode.add(collectCode(() {
-      writeln('_$streamName = StreamController<$className>(sync: true);');
-      writeln('$streamName = _$streamName.stream.asBroadcastStream();');
-    }));
+    writeln('final _$streamName = StreamController<$className>(sync: true);');
     notificationSwitchContents.add(collectCode(() {
       writeln("case '${notification.longEvent}':");
       indent(() {
@@ -204,6 +191,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       toHtmlVisitor.describePayload(request.result, 'Returns');
     }));
     if (request.deprecated) {
+      writeln('  // TODO(srawlins): Provide a deprecation message, or remove.');
+      writeln('  // ignore: provide_deprecation_message');
       writeln('@deprecated');
     }
 
@@ -215,7 +204,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
           doCapitalize: true);
       futureClass = 'Future<$resultClass>';
     } else {
-      futureClass = 'Future';
+      futureClass = 'Future<void>';
     }
 
     writeln('$futureClass $methodName(${args.join(', ')}) async {');
@@ -249,7 +238,6 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
         writeln("return $resultClass.fromJson(decoder, 'result', result);");
       } else {
         writeln('outOfTestExpect(result, isNull);');
-        writeln('return null;');
       }
     });
     writeln('}');

@@ -34,7 +34,7 @@ class Class1 {
 }
 
 /*member: missingGetter:[exact=JSUInt31]*/
-missingGetter() => new Class1(). /*invoke: [exact=Class1]*/ method();
+missingGetter() => Class1(). /*invoke: [exact=Class1]*/ method();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Invoke missing method.
@@ -58,7 +58,7 @@ class Class2 {
 }
 
 /*member: missingMethod:[exact=JSUInt31]*/
-missingMethod() => new Class2(). /*invoke: [exact=Class2]*/ method();
+missingMethod() => Class2(). /*invoke: [exact=Class2]*/ method();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pass closure to missing method.
@@ -90,8 +90,7 @@ class Class3 {
 }
 
 /*member: closureThroughMissingMethod:[null|subclass=Object]*/
-closureThroughMissingMethod() =>
-    new Class3(). /*invoke: [exact=Class3]*/ method();
+closureThroughMissingMethod() => Class3(). /*invoke: [exact=Class3]*/ method();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pass closure to missing setter.
@@ -128,5 +127,4 @@ class Class4 {
 }
 
 /*member: closureThroughMissingSetter:[null]*/
-closureThroughMissingSetter() =>
-    new Class4(). /*invoke: [exact=Class4]*/ method();
+closureThroughMissingSetter() => Class4(). /*invoke: [exact=Class4]*/ method();

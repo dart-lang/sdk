@@ -36,14 +36,12 @@ var tests = <IsolateTest>[
     Breakpoint bpt = await isolate.addBreakpoint(script, LINE_A);
     print("Breakpoint is $bpt");
     expect(bpt, isNotNull);
-    expect(bpt is Breakpoint, isTrue);
 
     // Set breakpoint and check later that this breakpoint won't be added if
     // the library is non-debuggable.
     bpt = await isolate.addBreakpoint(script, LINE_B);
     print("Breakpoint is $bpt");
     expect(bpt, isNotNull);
-    expect(bpt is Breakpoint, isTrue);
     await script.reload();
     // Remove breakpoint.
     var res = await isolate.removeBreakpoint(bpt);

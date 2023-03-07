@@ -11,14 +11,14 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import 'integration_tests.dart';
 import 'protocol_matchers.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-/// Convenience methods for running integration tests.
-abstract class IntegrationTestMixin {
+/// Base implementation for running integration tests.
+abstract class IntegrationTest {
   Server get server;
 
   /// Return the version number of the analysis server.
@@ -39,10 +39,9 @@ abstract class IntegrationTestMixin {
   /// this request, but for which a response has not yet been sent, will not be
   /// responded to. No further responses or notifications will be sent after
   /// the response to this request has been sent.
-  Future sendServerShutdown() async {
+  Future<void> sendServerShutdown() async {
     var result = await server.send('server.shutdown', null);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Subscribe for services. All previous subscriptions are replaced by the
@@ -57,11 +56,11 @@ abstract class IntegrationTestMixin {
   /// subscriptions: List<ServerService>
   ///
   ///   A list of the services being subscribed to.
-  Future sendServerSetSubscriptions(List<ServerService> subscriptions) async {
+  Future<void> sendServerSetSubscriptions(
+      List<ServerService> subscriptions) async {
     var params = ServerSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send('server.setSubscriptions', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Requests cancellation of a request sent by the client by id. This is
@@ -77,11 +76,10 @@ abstract class IntegrationTestMixin {
   /// id: String
   ///
   ///   The id of the request that should be cancelled.
-  Future sendServerCancelRequest(String id) async {
+  Future<void> sendServerCancelRequest(String id) async {
     var params = ServerCancelRequestParams(id).toJson();
     var result = await server.send('server.cancelRequest', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Reports that the server is running. This notification is issued once
@@ -99,10 +97,12 @@ abstract class IntegrationTestMixin {
   /// pid: int
   ///
   ///   The process id of the analysis server process.
-  late Stream<ServerConnectedParams> onServerConnected;
+  late final Stream<ServerConnectedParams> onServerConnected =
+      _onServerConnected.stream.asBroadcastStream();
 
   /// Stream controller for [onServerConnected].
-  late StreamController<ServerConnectedParams> _onServerConnected;
+  final _onServerConnected =
+      StreamController<ServerConnectedParams>(sync: true);
 
   /// Reports that an unexpected error has occurred while executing the server.
   /// This notification is not used for problems with specific requests (which
@@ -127,20 +127,22 @@ abstract class IntegrationTestMixin {
   ///
   ///   The stack trace associated with the generation of the error, used for
   ///   debugging the server.
-  late Stream<ServerErrorParams> onServerError;
+  late final Stream<ServerErrorParams> onServerError =
+      _onServerError.stream.asBroadcastStream();
 
   /// Stream controller for [onServerError].
-  late StreamController<ServerErrorParams> _onServerError;
+  final _onServerError = StreamController<ServerErrorParams>(sync: true);
 
   /// The stream of entries describing events happened in the server.
   ///
   /// Parameters
   ///
   /// entry: ServerLogEntry
-  late Stream<ServerLogParams> onServerLog;
+  late final Stream<ServerLogParams> onServerLog =
+      _onServerLog.stream.asBroadcastStream();
 
   /// Stream controller for [onServerLog].
-  late StreamController<ServerLogParams> _onServerLog;
+  final _onServerLog = StreamController<ServerLogParams>(sync: true);
 
   /// Reports the current status of the server. Parameters are omitted if there
   /// has been no change in the status represented by that parameter.
@@ -163,10 +165,11 @@ abstract class IntegrationTestMixin {
   ///
   ///   Note: this status type is deprecated, and is no longer sent by the
   ///   server.
-  late Stream<ServerStatusParams> onServerStatus;
+  late final Stream<ServerStatusParams> onServerStatus =
+      _onServerStatus.stream.asBroadcastStream();
 
   /// Stream controller for [onServerStatus].
-  late StreamController<ServerStatusParams> _onServerStatus;
+  final _onServerStatus = StreamController<ServerStatusParams>(sync: true);
 
   /// Return the errors associated with the given file. If the errors for the
   /// given file have not yet been computed, or the most recently computed
@@ -387,6 +390,8 @@ abstract class IntegrationTestMixin {
   ///   from the URI "file:///bar.dart" to them. To check if a specific URI is
   ///   reachable from a given file, clients can check for its presence in the
   ///   resulting key set.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
   Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(
       String file) async {
@@ -452,10 +457,9 @@ abstract class IntegrationTestMixin {
   /// Force re-reading of all potentially changed files, re-resolving of all
   /// referenced URIs, and corresponding re-analysis of everything affected in
   /// the current analysis roots.
-  Future sendAnalysisReanalyze() async {
+  Future<void> sendAnalysisReanalyze() async {
     var result = await server.send('analysis.reanalyze', null);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Sets the root paths used to determine which files to analyze. The set of
@@ -509,7 +513,7 @@ abstract class IntegrationTestMixin {
   ///   their package: URI's resolved using the normal pubspec.yaml mechanism.
   ///   If this field is absent, or the empty map is specified, that indicates
   ///   that the normal pubspec.yaml mechanism should always be used.
-  Future sendAnalysisSetAnalysisRoots(
+  Future<void> sendAnalysisSetAnalysisRoots(
       List<String> included, List<String> excluded,
       {Map<String, String>? packageRoots}) async {
     var params = AnalysisSetAnalysisRootsParams(included, excluded,
@@ -517,7 +521,6 @@ abstract class IntegrationTestMixin {
         .toJson();
     var result = await server.send('analysis.setAnalysisRoots', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Subscribe for general services (that is, services that are not specific
@@ -533,12 +536,11 @@ abstract class IntegrationTestMixin {
   /// subscriptions: List<GeneralAnalysisService>
   ///
   ///   A list of the services being subscribed to.
-  Future sendAnalysisSetGeneralSubscriptions(
+  Future<void> sendAnalysisSetGeneralSubscriptions(
       List<GeneralAnalysisService> subscriptions) async {
     var params = AnalysisSetGeneralSubscriptionsParams(subscriptions).toJson();
     var result = await server.send('analysis.setGeneralSubscriptions', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Set the priority files to the files in the given list. A priority file is
@@ -564,11 +566,10 @@ abstract class IntegrationTestMixin {
   /// files: List<FilePath>
   ///
   ///   The files that are to be a priority for analysis.
-  Future sendAnalysisSetPriorityFiles(List<String> files) async {
+  Future<void> sendAnalysisSetPriorityFiles(List<String> files) async {
     var params = AnalysisSetPriorityFilesParams(files).toJson();
     var result = await server.send('analysis.setPriorityFiles', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Subscribe for services that are specific to individual files. All
@@ -601,12 +602,11 @@ abstract class IntegrationTestMixin {
   ///
   ///   A table mapping services to a list of the files being subscribed to the
   ///   service.
-  Future sendAnalysisSetSubscriptions(
+  Future<void> sendAnalysisSetSubscriptions(
       Map<AnalysisService, List<String>> subscriptions) async {
     var params = AnalysisSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send('analysis.setSubscriptions', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Update the content of one or more files. Files that were previously
@@ -646,12 +646,13 @@ abstract class IntegrationTestMixin {
   /// options: AnalysisOptions
   ///
   ///   The options that are to be used to control analysis.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
-  Future sendAnalysisUpdateOptions(AnalysisOptions options) async {
+  Future<void> sendAnalysisUpdateOptions(AnalysisOptions options) async {
     var params = AnalysisUpdateOptionsParams(options).toJson();
     var result = await server.send('analysis.updateOptions', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Reports the paths of the files that are being analyzed.
@@ -665,10 +666,12 @@ abstract class IntegrationTestMixin {
   /// directories: List<FilePath>
   ///
   ///   A list of the paths of the files that are being analyzed.
-  late Stream<AnalysisAnalyzedFilesParams> onAnalysisAnalyzedFiles;
+  late final Stream<AnalysisAnalyzedFilesParams> onAnalysisAnalyzedFiles =
+      _onAnalysisAnalyzedFiles.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisAnalyzedFiles].
-  late StreamController<AnalysisAnalyzedFilesParams> _onAnalysisAnalyzedFiles;
+  final _onAnalysisAnalyzedFiles =
+      StreamController<AnalysisAnalyzedFilesParams>(sync: true);
 
   /// Reports closing labels relevant to a given file.
   ///
@@ -691,10 +694,12 @@ abstract class IntegrationTestMixin {
   ///   constructor/method calls and List arguments that span multiple lines.
   ///   Note that the ranges that are returned can overlap each other because
   ///   they may be associated with constructs that can be nested.
-  late Stream<AnalysisClosingLabelsParams> onAnalysisClosingLabels;
+  late final Stream<AnalysisClosingLabelsParams> onAnalysisClosingLabels =
+      _onAnalysisClosingLabels.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisClosingLabels].
-  late StreamController<AnalysisClosingLabelsParams> _onAnalysisClosingLabels;
+  final _onAnalysisClosingLabels =
+      StreamController<AnalysisClosingLabelsParams>(sync: true);
 
   /// Reports the errors associated with a given file. The set of errors
   /// included in the notification is always a complete list that supersedes
@@ -709,10 +714,11 @@ abstract class IntegrationTestMixin {
   /// errors: List<AnalysisError>
   ///
   ///   The errors contained in the file.
-  late Stream<AnalysisErrorsParams> onAnalysisErrors;
+  late final Stream<AnalysisErrorsParams> onAnalysisErrors =
+      _onAnalysisErrors.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisErrors].
-  late StreamController<AnalysisErrorsParams> _onAnalysisErrors;
+  final _onAnalysisErrors = StreamController<AnalysisErrorsParams>(sync: true);
 
   /// Reports that any analysis results that were previously associated with
   /// the given files should be considered to be invalid because those files
@@ -732,10 +738,12 @@ abstract class IntegrationTestMixin {
   /// files: List<FilePath>
   ///
   ///   The files that are no longer being analyzed.
-  late Stream<AnalysisFlushResultsParams> onAnalysisFlushResults;
+  late final Stream<AnalysisFlushResultsParams> onAnalysisFlushResults =
+      _onAnalysisFlushResults.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisFlushResults].
-  late StreamController<AnalysisFlushResultsParams> _onAnalysisFlushResults;
+  final _onAnalysisFlushResults =
+      StreamController<AnalysisFlushResultsParams>(sync: true);
 
   /// Reports the folding regions associated with a given file. Folding regions
   /// can be nested, but will not be overlapping. Nesting occurs when a
@@ -755,10 +763,12 @@ abstract class IntegrationTestMixin {
   /// regions: List<FoldingRegion>
   ///
   ///   The folding regions contained in the file.
-  late Stream<AnalysisFoldingParams> onAnalysisFolding;
+  late final Stream<AnalysisFoldingParams> onAnalysisFolding =
+      _onAnalysisFolding.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisFolding].
-  late StreamController<AnalysisFoldingParams> _onAnalysisFolding;
+  final _onAnalysisFolding =
+      StreamController<AnalysisFoldingParams>(sync: true);
 
   /// Reports the highlight regions associated with a given file.
   ///
@@ -779,10 +789,12 @@ abstract class IntegrationTestMixin {
   ///   some range. Note that the highlight regions that are returned can
   ///   overlap other highlight regions if there is more than one meaning
   ///   associated with a particular region.
-  late Stream<AnalysisHighlightsParams> onAnalysisHighlights;
+  late final Stream<AnalysisHighlightsParams> onAnalysisHighlights =
+      _onAnalysisHighlights.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisHighlights].
-  late StreamController<AnalysisHighlightsParams> _onAnalysisHighlights;
+  final _onAnalysisHighlights =
+      StreamController<AnalysisHighlightsParams>(sync: true);
 
   /// Reports the classes that are implemented or extended and class members
   /// that are implemented or overridden in a file.
@@ -804,10 +816,12 @@ abstract class IntegrationTestMixin {
   /// members: List<ImplementedMember>
   ///
   ///   The member defined in the file that are implemented or overridden.
-  late Stream<AnalysisImplementedParams> onAnalysisImplemented;
+  late final Stream<AnalysisImplementedParams> onAnalysisImplemented =
+      _onAnalysisImplemented.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisImplemented].
-  late StreamController<AnalysisImplementedParams> _onAnalysisImplemented;
+  final _onAnalysisImplemented =
+      StreamController<AnalysisImplementedParams>(sync: true);
 
   /// Reports that the navigation information associated with a region of a
   /// single file has become invalid and should be re-requested.
@@ -835,10 +849,12 @@ abstract class IntegrationTestMixin {
   ///   The delta to be applied to the offsets in information that follows the
   ///   invalidated region in order to update it so that it doesn't need to be
   ///   re-requested.
-  late Stream<AnalysisInvalidateParams> onAnalysisInvalidate;
+  late final Stream<AnalysisInvalidateParams> onAnalysisInvalidate =
+      _onAnalysisInvalidate.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisInvalidate].
-  late StreamController<AnalysisInvalidateParams> _onAnalysisInvalidate;
+  final _onAnalysisInvalidate =
+      StreamController<AnalysisInvalidateParams>(sync: true);
 
   /// Reports the navigation targets associated with a given file.
   ///
@@ -871,10 +887,12 @@ abstract class IntegrationTestMixin {
   ///
   ///   The files containing navigation targets referenced in the file. They
   ///   are referenced by NavigationTargets by their index in this array.
-  late Stream<AnalysisNavigationParams> onAnalysisNavigation;
+  late final Stream<AnalysisNavigationParams> onAnalysisNavigation =
+      _onAnalysisNavigation.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisNavigation].
-  late StreamController<AnalysisNavigationParams> _onAnalysisNavigation;
+  final _onAnalysisNavigation =
+      StreamController<AnalysisNavigationParams>(sync: true);
 
   /// Reports the occurrences of references to elements within a single file.
   ///
@@ -891,10 +909,12 @@ abstract class IntegrationTestMixin {
   /// occurrences: List<Occurrences>
   ///
   ///   The occurrences of references to elements within the file.
-  late Stream<AnalysisOccurrencesParams> onAnalysisOccurrences;
+  late final Stream<AnalysisOccurrencesParams> onAnalysisOccurrences =
+      _onAnalysisOccurrences.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisOccurrences].
-  late StreamController<AnalysisOccurrencesParams> _onAnalysisOccurrences;
+  final _onAnalysisOccurrences =
+      StreamController<AnalysisOccurrencesParams>(sync: true);
 
   /// Reports the outline associated with a single file.
   ///
@@ -923,10 +943,12 @@ abstract class IntegrationTestMixin {
   /// outline: Outline
   ///
   ///   The outline associated with the file.
-  late Stream<AnalysisOutlineParams> onAnalysisOutline;
+  late final Stream<AnalysisOutlineParams> onAnalysisOutline =
+      _onAnalysisOutline.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisOutline].
-  late StreamController<AnalysisOutlineParams> _onAnalysisOutline;
+  final _onAnalysisOutline =
+      StreamController<AnalysisOutlineParams>(sync: true);
 
   /// Reports the overriding members in a file.
   ///
@@ -943,10 +965,12 @@ abstract class IntegrationTestMixin {
   /// overrides: List<Override>
   ///
   ///   The overrides associated with the file.
-  late Stream<AnalysisOverridesParams> onAnalysisOverrides;
+  late final Stream<AnalysisOverridesParams> onAnalysisOverrides =
+      _onAnalysisOverrides.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisOverrides].
-  late StreamController<AnalysisOverridesParams> _onAnalysisOverrides;
+  final _onAnalysisOverrides =
+      StreamController<AnalysisOverridesParams>(sync: true);
 
   /// Request that completion suggestions for the given offset in the given
   /// file be returned.
@@ -1062,12 +1086,11 @@ abstract class IntegrationTestMixin {
   /// subscriptions: List<CompletionService>
   ///
   ///   A list of the services being subscribed to.
-  Future sendCompletionSetSubscriptions(
+  Future<void> sendCompletionSetSubscriptions(
       List<CompletionService> subscriptions) async {
     var params = CompletionSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send('completion.setSubscriptions', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// The client can make this request to express interest in certain libraries
@@ -1086,12 +1109,14 @@ abstract class IntegrationTestMixin {
   ///   from which the client is interested in receiving completion
   ///   suggestions. If one configured path is beneath another, the descendant
   ///   will override the ancestors' configured libraries of interest.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
-  Future sendCompletionRegisterLibraryPaths(List<LibraryPathSet> paths) async {
+  Future<void> sendCompletionRegisterLibraryPaths(
+      List<LibraryPathSet> paths) async {
     var params = CompletionRegisterLibraryPathsParams(paths).toJson();
     var result = await server.send('completion.registerLibraryPaths', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Clients must make this request when the user has selected a completion
@@ -1267,10 +1292,12 @@ abstract class IntegrationTestMixin {
   ///
   ///   If an AvailableSuggestion has relevance tags that match more than one
   ///   IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
-  late Stream<CompletionResultsParams> onCompletionResults;
+  late final Stream<CompletionResultsParams> onCompletionResults =
+      _onCompletionResults.stream.asBroadcastStream();
 
   /// Stream controller for [onCompletionResults].
-  late StreamController<CompletionResultsParams> _onCompletionResults;
+  final _onCompletionResults =
+      StreamController<CompletionResultsParams>(sync: true);
 
   /// Reports the pre-computed, candidate completions from symbols defined in a
   /// corresponding library. This notification may be sent multiple times. When
@@ -1290,12 +1317,13 @@ abstract class IntegrationTestMixin {
   /// removedLibraries: List<int> (optional)
   ///
   ///   A list of library ids that no longer apply.
-  late Stream<CompletionAvailableSuggestionsParams>
-      onCompletionAvailableSuggestions;
+  late final Stream<CompletionAvailableSuggestionsParams>
+      onCompletionAvailableSuggestions =
+      _onCompletionAvailableSuggestions.stream.asBroadcastStream();
 
   /// Stream controller for [onCompletionAvailableSuggestions].
-  late StreamController<CompletionAvailableSuggestionsParams>
-      _onCompletionAvailableSuggestions;
+  final _onCompletionAvailableSuggestions =
+      StreamController<CompletionAvailableSuggestionsParams>(sync: true);
 
   /// Reports existing imports in a library. This notification may be sent
   /// multiple times for a library. When a notification is processed, clients
@@ -1310,11 +1338,13 @@ abstract class IntegrationTestMixin {
   /// imports: ExistingImports
   ///
   ///   The existing imports in the library.
-  late Stream<CompletionExistingImportsParams> onCompletionExistingImports;
+  late final Stream<CompletionExistingImportsParams>
+      onCompletionExistingImports =
+      _onCompletionExistingImports.stream.asBroadcastStream();
 
   /// Stream controller for [onCompletionExistingImports].
-  late StreamController<CompletionExistingImportsParams>
-      _onCompletionExistingImports;
+  final _onCompletionExistingImports =
+      StreamController<CompletionExistingImportsParams>(sync: true);
 
   /// Perform a search for references to the element defined or referenced at
   /// the given offset in the given file.
@@ -1548,10 +1578,11 @@ abstract class IntegrationTestMixin {
   ///
   ///   True if this is that last set of results that will be returned for the
   ///   indicated search.
-  late Stream<SearchResultsParams> onSearchResults;
+  late final Stream<SearchResultsParams> onSearchResults =
+      _onSearchResults.stream.asBroadcastStream();
 
   /// Stream controller for [onSearchResults].
-  late StreamController<SearchResultsParams> _onSearchResults;
+  final _onSearchResults = StreamController<SearchResultsParams>(sync: true);
 
   /// Format the contents of a single file. The currently selected region of
   /// text is passed in so that the selection can be preserved across the
@@ -2141,11 +2172,10 @@ abstract class IntegrationTestMixin {
   /// id: ExecutionContextId
   ///
   ///   The identifier of the execution context that is to be deleted.
-  Future sendExecutionDeleteContext(String id) async {
+  Future<void> sendExecutionDeleteContext(String id) async {
     var params = ExecutionDeleteContextParams(id).toJson();
     var result = await server.send('execution.deleteContext', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Request completion suggestions for the given runtime context.
@@ -2305,13 +2335,14 @@ abstract class IntegrationTestMixin {
   /// subscriptions: List<ExecutionService>
   ///
   ///   A list of the services being subscribed to.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
-  Future sendExecutionSetSubscriptions(
+  Future<void> sendExecutionSetSubscriptions(
       List<ExecutionService> subscriptions) async {
     var params = ExecutionSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send('execution.setSubscriptions', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Reports information needed to allow a single file to be launched.
@@ -2336,10 +2367,12 @@ abstract class IntegrationTestMixin {
   ///
   ///   A list of the Dart files that are referenced by the file. This field is
   ///   omitted if the file is not an HTML file.
-  late Stream<ExecutionLaunchDataParams> onExecutionLaunchData;
+  late final Stream<ExecutionLaunchDataParams> onExecutionLaunchData =
+      _onExecutionLaunchData.stream.asBroadcastStream();
 
   /// Stream controller for [onExecutionLaunchData].
-  late StreamController<ExecutionLaunchDataParams> _onExecutionLaunchData;
+  final _onExecutionLaunchData =
+      StreamController<ExecutionLaunchDataParams>(sync: true);
 
   /// Return server diagnostics.
   ///
@@ -2407,11 +2440,10 @@ abstract class IntegrationTestMixin {
   /// value: bool
   ///
   ///   Enable or disable analytics.
-  Future sendAnalyticsEnable(bool value) async {
+  Future<void> sendAnalyticsEnable(bool value) async {
     var params = AnalyticsEnableParams(value).toJson();
     var result = await server.send('analytics.enable', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Send information about client events.
@@ -2432,11 +2464,10 @@ abstract class IntegrationTestMixin {
   /// action: String
   ///
   ///   The value used to indicate which action was performed.
-  Future sendAnalyticsSendEvent(String action) async {
+  Future<void> sendAnalyticsSendEvent(String action) async {
     var params = AnalyticsSendEventParams(action).toJson();
     var result = await server.send('analytics.sendEvent', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Send timing information for client events (e.g. code completions).
@@ -2460,11 +2491,10 @@ abstract class IntegrationTestMixin {
   /// millis: int
   ///
   ///   The duration of the event in milliseconds.
-  Future sendAnalyticsSendTiming(String event, int millis) async {
+  Future<void> sendAnalyticsSendTiming(String event, int millis) async {
     var params = AnalyticsSendTimingParams(event, millis).toJson();
     var result = await server.send('analytics.sendTiming', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Return the description of the widget instance at the given location.
@@ -2578,12 +2608,11 @@ abstract class IntegrationTestMixin {
   ///
   ///   A table mapping services to a list of the files being subscribed to the
   ///   service.
-  Future sendFlutterSetSubscriptions(
+  Future<void> sendFlutterSetSubscriptions(
       Map<FlutterService, List<String>> subscriptions) async {
     var params = FlutterSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send('flutter.setSubscriptions', params);
     outOfTestExpect(result, isNull);
-    return null;
   }
 
   /// Reports the Flutter outline associated with a single file.
@@ -2601,76 +2630,11 @@ abstract class IntegrationTestMixin {
   /// outline: FlutterOutline
   ///
   ///   The outline associated with the file.
-  late Stream<FlutterOutlineParams> onFlutterOutline;
+  late final Stream<FlutterOutlineParams> onFlutterOutline =
+      _onFlutterOutline.stream.asBroadcastStream();
 
   /// Stream controller for [onFlutterOutline].
-  late StreamController<FlutterOutlineParams> _onFlutterOutline;
-
-  /// Initialize the fields in InttestMixin, and ensure that notifications will
-  /// be handled.
-  void initializeInttestMixin() {
-    _onServerConnected = StreamController<ServerConnectedParams>(sync: true);
-    onServerConnected = _onServerConnected.stream.asBroadcastStream();
-    _onServerError = StreamController<ServerErrorParams>(sync: true);
-    onServerError = _onServerError.stream.asBroadcastStream();
-    _onServerLog = StreamController<ServerLogParams>(sync: true);
-    onServerLog = _onServerLog.stream.asBroadcastStream();
-    _onServerStatus = StreamController<ServerStatusParams>(sync: true);
-    onServerStatus = _onServerStatus.stream.asBroadcastStream();
-    _onAnalysisAnalyzedFiles =
-        StreamController<AnalysisAnalyzedFilesParams>(sync: true);
-    onAnalysisAnalyzedFiles =
-        _onAnalysisAnalyzedFiles.stream.asBroadcastStream();
-    _onAnalysisClosingLabels =
-        StreamController<AnalysisClosingLabelsParams>(sync: true);
-    onAnalysisClosingLabels =
-        _onAnalysisClosingLabels.stream.asBroadcastStream();
-    _onAnalysisErrors = StreamController<AnalysisErrorsParams>(sync: true);
-    onAnalysisErrors = _onAnalysisErrors.stream.asBroadcastStream();
-    _onAnalysisFlushResults =
-        StreamController<AnalysisFlushResultsParams>(sync: true);
-    onAnalysisFlushResults = _onAnalysisFlushResults.stream.asBroadcastStream();
-    _onAnalysisFolding = StreamController<AnalysisFoldingParams>(sync: true);
-    onAnalysisFolding = _onAnalysisFolding.stream.asBroadcastStream();
-    _onAnalysisHighlights =
-        StreamController<AnalysisHighlightsParams>(sync: true);
-    onAnalysisHighlights = _onAnalysisHighlights.stream.asBroadcastStream();
-    _onAnalysisImplemented =
-        StreamController<AnalysisImplementedParams>(sync: true);
-    onAnalysisImplemented = _onAnalysisImplemented.stream.asBroadcastStream();
-    _onAnalysisInvalidate =
-        StreamController<AnalysisInvalidateParams>(sync: true);
-    onAnalysisInvalidate = _onAnalysisInvalidate.stream.asBroadcastStream();
-    _onAnalysisNavigation =
-        StreamController<AnalysisNavigationParams>(sync: true);
-    onAnalysisNavigation = _onAnalysisNavigation.stream.asBroadcastStream();
-    _onAnalysisOccurrences =
-        StreamController<AnalysisOccurrencesParams>(sync: true);
-    onAnalysisOccurrences = _onAnalysisOccurrences.stream.asBroadcastStream();
-    _onAnalysisOutline = StreamController<AnalysisOutlineParams>(sync: true);
-    onAnalysisOutline = _onAnalysisOutline.stream.asBroadcastStream();
-    _onAnalysisOverrides =
-        StreamController<AnalysisOverridesParams>(sync: true);
-    onAnalysisOverrides = _onAnalysisOverrides.stream.asBroadcastStream();
-    _onCompletionResults =
-        StreamController<CompletionResultsParams>(sync: true);
-    onCompletionResults = _onCompletionResults.stream.asBroadcastStream();
-    _onCompletionAvailableSuggestions =
-        StreamController<CompletionAvailableSuggestionsParams>(sync: true);
-    onCompletionAvailableSuggestions =
-        _onCompletionAvailableSuggestions.stream.asBroadcastStream();
-    _onCompletionExistingImports =
-        StreamController<CompletionExistingImportsParams>(sync: true);
-    onCompletionExistingImports =
-        _onCompletionExistingImports.stream.asBroadcastStream();
-    _onSearchResults = StreamController<SearchResultsParams>(sync: true);
-    onSearchResults = _onSearchResults.stream.asBroadcastStream();
-    _onExecutionLaunchData =
-        StreamController<ExecutionLaunchDataParams>(sync: true);
-    onExecutionLaunchData = _onExecutionLaunchData.stream.asBroadcastStream();
-    _onFlutterOutline = StreamController<FlutterOutlineParams>(sync: true);
-    onFlutterOutline = _onFlutterOutline.stream.asBroadcastStream();
-  }
+  final _onFlutterOutline = StreamController<FlutterOutlineParams>(sync: true);
 
   /// Dispatch the notification named [event], and containing parameters
   /// [params], to the appropriate stream.

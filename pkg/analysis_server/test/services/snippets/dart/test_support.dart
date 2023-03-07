@@ -27,13 +27,51 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
   @override
   bool get verifyNoTestUnitErrors => false;
 
-  Future<void> expectNotValidSnippet(
-    String code,
-  ) async {
-    await resolveTestCode(withoutMarkers(code));
+  Future<void> assertSnippet(String content, String expected) async {
+    final code = TestCode.parse(content);
+    final expectedCode = TestCode.parse(expected);
+    final snippet = await expectValidSnippet2(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+
+    // Apply the edits and check the results.
+    var codeResult = code.code;
+    for (var edit in snippet.change.edits) {
+      codeResult = SourceEdit.applySequence(codeResult, edit.edits);
+    }
+    expect(codeResult, expectedCode.code);
+
+    // Check selection/position.
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, expectedCode.position.offset);
+
+    // And linked edits.
+    final expectedLinkedGroups = expectedCode.ranges
+        .map(
+          (range) => {
+            'positions': [
+              {
+                'file': testFile,
+                'offset': range.sourceRange.offset,
+              },
+            ],
+            'length': range.sourceRange.length,
+            'suggestions': [],
+          },
+        )
+        .toSet();
+    final actualLinkedGroups =
+        snippet.change.linkedEditGroups.map((group) => group.toJson()).toSet();
+    expect(actualLinkedGroups, equals(expectedLinkedGroups));
+  }
+
+  Future<void> expectNotValidSnippet(String content) async {
+    final code = TestCode.parse(content);
+    await resolveTestCode(code.code);
     final request = DartSnippetRequest(
       unit: testAnalysisResult,
-      offset: offsetFromMarker(code),
+      offset: code.position.offset,
     );
 
     final producer = generator(request, elementImportCache: {});
@@ -41,10 +79,24 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
   }
 
   Future<Snippet> expectValidSnippet(String code) async {
+    // TODO(dantup): Remove this function and convert other snippets to new
+    //  format.
     await resolveTestCode(withoutMarkers(code));
     final request = DartSnippetRequest(
       unit: testAnalysisResult,
       offset: offsetFromMarker(code),
+    );
+
+    final producer = generator(request, elementImportCache: {});
+    expect(await producer.isValid(), isTrue);
+    return producer.compute();
+  }
+
+  Future<Snippet> expectValidSnippet2(TestCode code) async {
+    await resolveTestCode(code.code);
+    final request = DartSnippetRequest(
+      unit: testAnalysisResult,
+      offset: code.position.offset,
     );
 
     final producer = generator(request, elementImportCache: {});

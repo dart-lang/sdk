@@ -18,6 +18,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show
         ErrorToken,
+        Keyword,
         LanguageVersionToken,
         Scanner,
         ScannerConfiguration,
@@ -1978,10 +1979,11 @@ severity: $severity
     TopologicalSortResult<SourceClassBuilder> result =
         topologicalSort(classGraph);
     List<SourceClassBuilder> classes = result.sortedVertices;
+    Map<ClassBuilder, ClassBuilder> classToBaseOrFinalSuperClass = {};
     for (SourceClassBuilder cls in classes) {
       checkClassSupertypes(cls, classGraph.directSupertypeMap[cls]!,
           denyListedClasses, enumClass);
-      checkSupertypeClassModifiers(cls);
+      checkSupertypeClassModifiers(cls, classToBaseOrFinalSuperClass);
     }
 
     List<SourceClassBuilder> classesWithCycles = result.cyclicVertices;
@@ -2145,7 +2147,8 @@ severity: $severity
 
   /// Reports errors for 'base', 'interface', 'final', 'mixin' and 'sealed'
   /// class modifiers.
-  void checkSupertypeClassModifiers(SourceClassBuilder cls) {
+  void checkSupertypeClassModifiers(SourceClassBuilder cls,
+      Map<ClassBuilder, ClassBuilder> classToBaseOrFinalSuperClass) {
     bool isClassModifiersEnabled(ClassBuilder typeBuilder) =>
         typeBuilder.libraryBuilder.library.languageVersion >=
             ExperimentalFlag.classModifiers.experimentEnabledVersion &&
@@ -2173,37 +2176,87 @@ severity: $severity
       return typeDeclarationBuilder;
     }
 
+    // All subtypes of a base or final class or mixin must also be base,
+    // final, or sealed. Report an error otherwise.
+    void checkForBaseFinalRestriction(ClassBuilder superclass) {
+      if (classToBaseOrFinalSuperClass.containsKey(cls)) {
+        // We've already visited this class. Don't check it again.
+        return;
+      } else if (cls.isEnum) {
+        // Don't report any errors on enums. They should all be considered
+        // final.
+        return;
+      }
+
+      final ClassBuilder? cachedBaseOrFinalSuperClass =
+          classToBaseOrFinalSuperClass[superclass];
+      final bool hasCachedBaseOrFinalSuperClass =
+          cachedBaseOrFinalSuperClass != null;
+      ClassBuilder? baseOrFinalSuperClass;
+      if (!superclass.cls.isAnonymousMixin &&
+          (superclass.isBase || superclass.isFinal)) {
+        // Prefer the direct base or final superclass
+        baseOrFinalSuperClass = superclass;
+      } else if (hasCachedBaseOrFinalSuperClass) {
+        // There's a base or final class higher up in the class hierarchy.
+        // The superclass is a sealed element or an anonymous class.
+        baseOrFinalSuperClass = cachedBaseOrFinalSuperClass;
+      } else {
+        return;
+      }
+
+      classToBaseOrFinalSuperClass[cls] = baseOrFinalSuperClass;
+
+      if (!cls.isBase &&
+          !cls.isFinal &&
+          !cls.isSealed &&
+          !cls.cls.isAnonymousMixin) {
+        cls.addProblem(
+            templateSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed.withArguments(
+                cls.fullNameForErrors,
+                baseOrFinalSuperClass.fullNameForErrors,
+                baseOrFinalSuperClass.isBase
+                    ? Keyword.BASE.lexeme
+                    : Keyword.FINAL.lexeme),
+            cls.charOffset,
+            noLength);
+      }
+    }
+
     final TypeBuilder? supertypeBuilder = cls.supertypeBuilder;
     if (supertypeBuilder != null) {
       final TypeDeclarationBuilder? supertypeDeclaration =
           unaliasDeclaration(supertypeBuilder);
-      if (supertypeDeclaration is ClassBuilder &&
-          cls.libraryBuilder.origin !=
-              supertypeDeclaration.libraryBuilder.origin) {
+      if (supertypeDeclaration is ClassBuilder) {
         if (isClassModifiersEnabled(supertypeDeclaration)) {
-          if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
-            cls.addProblem(
-                templateInterfaceClassExtendedOutsideOfLibrary
-                    .withArguments(supertypeDeclaration.fullNameForErrors),
-                supertypeBuilder.charOffset ?? TreeNode.noOffset,
-                noLength);
-          } else if (supertypeDeclaration.isFinal &&
-              // TODO(kallentu): Error case where the class has a singular on
-              // clause. Change with the new spec changes.
-              !cls.isMixinDeclaration) {
-            cls.addProblem(
-                templateFinalClassExtendedOutsideOfLibrary
-                    .withArguments(supertypeDeclaration.fullNameForErrors),
-                supertypeBuilder.charOffset ?? TreeNode.noOffset,
-                noLength);
+          checkForBaseFinalRestriction(supertypeDeclaration);
+
+          if (cls.libraryBuilder.origin !=
+              supertypeDeclaration.libraryBuilder.origin) {
+            if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
+              cls.addProblem(
+                  templateInterfaceClassExtendedOutsideOfLibrary
+                      .withArguments(supertypeDeclaration.fullNameForErrors),
+                  supertypeBuilder.charOffset ?? TreeNode.noOffset,
+                  noLength);
+            } else if (supertypeDeclaration.isFinal &&
+                !cls.isMixinDeclaration) {
+              // Error case where the class has a singular on-clause.
+              cls.addProblem(
+                  templateFinalClassExtendedOutsideOfLibrary
+                      .withArguments(supertypeDeclaration.fullNameForErrors),
+                  supertypeBuilder.charOffset ?? TreeNode.noOffset,
+                  noLength);
+            }
           }
         }
 
         // Report error for extending a sealed class outside of its library.
         if (isSealedClassEnabled(supertypeDeclaration) &&
             supertypeDeclaration.isSealed &&
-            // TODO(kallentu): Error case where the class has a singular on
-            // clause. Remove with the new spec changes.
+            cls.libraryBuilder.origin !=
+                supertypeDeclaration.libraryBuilder.origin &&
+            // Error case where the class has a singular on-clause.
             !cls.isMixinDeclaration) {
           cls.addProblem(
               templateSealedClassSubtypeOutsideOfLibrary
@@ -2218,13 +2271,13 @@ severity: $severity
     if (mixedInTypeBuilder != null) {
       final TypeDeclarationBuilder? mixedInTypeDeclaration =
           unaliasDeclaration(mixedInTypeBuilder);
-      if (mixedInTypeDeclaration is ClassBuilder &&
-          cls.libraryBuilder.origin !=
-              mixedInTypeDeclaration.libraryBuilder.origin) {
+      if (mixedInTypeDeclaration is ClassBuilder) {
         if (isClassModifiersEnabled(mixedInTypeDeclaration)) {
+          checkForBaseFinalRestriction(mixedInTypeDeclaration);
+
           // Check for implicit class mixins.
           // Only classes declared with a 'mixin' modifier are allowed to be
-          // mixed in outside of its library.
+          // mixed in.
           if (cls.isMixinApplication &&
               !mixedInTypeDeclaration.isMixinDeclaration &&
               !mixedInTypeDeclaration.isMixinClass) {
@@ -2234,25 +2287,31 @@ severity: $severity
                 mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
                 noLength);
           }
-          if (mixedInTypeDeclaration.isInterface) {
-            cls.addProblem(
-                templateInterfaceMixinMixedInOutsideOfLibrary
-                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
-                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-                noLength);
-          } else if (mixedInTypeDeclaration.isFinal) {
-            cls.addProblem(
-                templateFinalMixinMixedInOutsideOfLibrary
-                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
-                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-                noLength);
+
+          if (cls.libraryBuilder.origin !=
+              mixedInTypeDeclaration.libraryBuilder.origin) {
+            if (mixedInTypeDeclaration.isInterface) {
+              cls.addProblem(
+                  templateInterfaceMixinMixedInOutsideOfLibrary
+                      .withArguments(mixedInTypeDeclaration.fullNameForErrors),
+                  mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
+                  noLength);
+            } else if (mixedInTypeDeclaration.isFinal) {
+              cls.addProblem(
+                  templateFinalMixinMixedInOutsideOfLibrary
+                      .withArguments(mixedInTypeDeclaration.fullNameForErrors),
+                  mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
+                  noLength);
+            }
           }
         }
 
         // Report error for mixing in a sealed mixin outside of its library.
         // Assume these are all mixin declarations and cannot be classes.
         if (isSealedClassEnabled(mixedInTypeDeclaration) &&
-            mixedInTypeDeclaration.isSealed) {
+            mixedInTypeDeclaration.isSealed &&
+            cls.libraryBuilder.origin !=
+                mixedInTypeDeclaration.libraryBuilder.origin) {
           cls.addProblem(
               templateSealedMixinSubtypeOutsideOfLibrary
                   .withArguments(mixedInTypeDeclaration.fullNameForErrors),
@@ -2267,41 +2326,47 @@ severity: $severity
       for (TypeBuilder interfaceBuilder in interfaceBuilders) {
         final TypeDeclarationBuilder? interfaceDeclaration =
             unaliasDeclaration(interfaceBuilder);
-        if (interfaceDeclaration is ClassBuilder &&
-            cls.libraryBuilder.origin != interfaceDeclaration.libraryBuilder) {
+        if (interfaceDeclaration is ClassBuilder) {
           if (isClassModifiersEnabled(interfaceDeclaration)) {
-            // Report an error for a class implementing a base class outside of
-            // its library.
-            if (interfaceDeclaration.isBase) {
-              if (interfaceDeclaration.isMixinDeclaration) {
-                cls.addProblem(
-                    templateBaseMixinImplementedOutsideOfLibrary
-                        .withArguments(interfaceDeclaration.fullNameForErrors),
-                    interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                    noLength);
-              } else {
-                cls.addProblem(
-                    templateBaseClassImplementedOutsideOfLibrary
-                        .withArguments(interfaceDeclaration.fullNameForErrors),
-                    interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                    noLength);
-              }
-            } else if (interfaceDeclaration.isFinal &&
-                // TODO(kallentu): Error case where the class has multiple on
-                // clauses. Change with the new spec changes.
-                !cls.cls.isAnonymousMixin) {
-              if (interfaceDeclaration.isMixinDeclaration) {
-                cls.addProblem(
-                    templateFinalMixinImplementedOutsideOfLibrary
-                        .withArguments(interfaceDeclaration.fullNameForErrors),
-                    interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                    noLength);
-              } else {
-                cls.addProblem(
-                    templateFinalClassImplementedOutsideOfLibrary
-                        .withArguments(interfaceDeclaration.fullNameForErrors),
-                    interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                    noLength);
+            checkForBaseFinalRestriction(interfaceDeclaration);
+
+            if (cls.libraryBuilder.origin !=
+                interfaceDeclaration.libraryBuilder.origin) {
+              // Report an error for a class implementing a base class outside
+              // of its library.
+              if (interfaceDeclaration.isBase && !cls.cls.isAnonymousMixin) {
+                if (interfaceDeclaration.isMixinDeclaration) {
+                  cls.addProblem(
+                      templateBaseMixinImplementedOutsideOfLibrary
+                          .withArguments(
+                              interfaceDeclaration.fullNameForErrors),
+                      interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                      noLength);
+                } else {
+                  cls.addProblem(
+                      templateBaseClassImplementedOutsideOfLibrary
+                          .withArguments(
+                              interfaceDeclaration.fullNameForErrors),
+                      interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                      noLength);
+                }
+              } else if (interfaceDeclaration.isFinal &&
+                  !cls.cls.isAnonymousMixin) {
+                if (interfaceDeclaration.isMixinDeclaration) {
+                  cls.addProblem(
+                      templateFinalMixinImplementedOutsideOfLibrary
+                          .withArguments(
+                              interfaceDeclaration.fullNameForErrors),
+                      interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                      noLength);
+                } else {
+                  cls.addProblem(
+                      templateFinalClassImplementedOutsideOfLibrary
+                          .withArguments(
+                              interfaceDeclaration.fullNameForErrors),
+                      interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                      noLength);
+                }
               }
             }
           }
@@ -2310,8 +2375,8 @@ severity: $severity
           // outside of its library.
           if (isSealedClassEnabled(interfaceDeclaration) &&
               interfaceDeclaration.isSealed &&
-              // TODO(kallentu): Error case where the class has multiple on
-              // clauses. Remove with the new spec changes.
+              cls.libraryBuilder.origin !=
+                  interfaceDeclaration.libraryBuilder.origin &&
               !cls.cls.isAnonymousMixin) {
             if (interfaceDeclaration.isMixinDeclaration) {
               cls.addProblem(

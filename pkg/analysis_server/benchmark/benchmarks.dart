@@ -20,7 +20,7 @@ import 'perf/dart_analyze.dart';
 import 'perf/flutter_analyze_benchmark.dart';
 import 'perf/flutter_completion_benchmark.dart';
 
-Future main(List<String> args) async {
+Future<void> main(List<String> args) async {
   var benchmarks = [
     ColdAnalysisBenchmark(ServerBenchmark.das),
     ColdAnalysisBenchmark(ServerBenchmark.lsp),
@@ -77,9 +77,9 @@ abstract class Benchmark {
 
   bool get needsSetup => false;
 
-  Future oneTimeCleanup() => Future.value();
+  Future<void> oneTimeCleanup() => Future.value();
 
-  Future oneTimeSetup() => Future.value();
+  Future<void> oneTimeSetup() => Future.value();
 
   Future<BenchMarkResult> run({
     required String dartSdkPath,
@@ -87,7 +87,7 @@ abstract class Benchmark {
     bool verbose = false,
   });
 
-  Map toJson() =>
+  Map<String, Object?> toJson() =>
       {'id': id, 'description': description, 'enabled': enabled, 'kind': kind};
 
   @override
@@ -106,7 +106,7 @@ class BenchMarkResult {
     return BenchMarkResult(kindName, math.min(value, other.value));
   }
 
-  Map toJson() => {kindName: value};
+  Map<String, Object?> toJson() => {kindName: value};
 
   @override
   String toString() => '$kindName: $value';
@@ -124,35 +124,32 @@ class CompoundBenchMarkResult extends BenchMarkResult {
   }
 
   @override
-  BenchMarkResult combine(BenchMarkResult other) {
+  BenchMarkResult combine(covariant CompoundBenchMarkResult other) {
     BenchMarkResult combine(BenchMarkResult? a, BenchMarkResult? b) {
       if (a == null) return b!;
       if (b == null) return a;
       return a.combine(b);
     }
 
-    var o = other as CompoundBenchMarkResult;
-
     var combined = CompoundBenchMarkResult(name);
-    var keys = (<String>{}
-          ..addAll(results.keys)
-          ..addAll(o.results.keys))
-        .toList();
+    var keys = {
+      ...results.keys,
+      ...other.results.keys,
+    }.toList();
 
     for (var key in keys) {
-      combined.add(key, combine(results[key], o.results[key]));
+      combined.add(key, combine(results[key], other.results[key]));
     }
 
     return combined;
   }
 
   @override
-  Map toJson() {
-    var m = <String, dynamic>{};
-    for (var entry in results.entries) {
-      m['$name-${entry.key}'] = entry.value.toJson();
-    }
-    return m;
+  Map<String, Object?> toJson() {
+    return {
+      for (var entry in results.entries)
+        '$name-${entry.key}': entry.value.toJson(),
+    };
   }
 
   @override
@@ -166,7 +163,7 @@ abstract class FlutterBenchmark {
   set flutterRepositoryPath(String path);
 }
 
-class ListCommand extends Command {
+class ListCommand extends Command<void> {
   final List<Benchmark> benchmarks;
 
   ListCommand(this.benchmarks) {
@@ -186,7 +183,7 @@ class ListCommand extends Command {
   @override
   void run() {
     if (argResults!['machine'] as bool) {
-      var map = <String, dynamic>{
+      var map = <String, Object?>{
         'benchmarks': benchmarks.map((b) => b.toJson()).toList()
       };
       print(JsonEncoder.withIndent('  ').convert(map));
@@ -198,7 +195,7 @@ class ListCommand extends Command {
   }
 }
 
-class RunCommand extends Command {
+class RunCommand extends Command<void> {
   final List<Benchmark> benchmarks;
 
   RunCommand(this.benchmarks) {
@@ -228,7 +225,7 @@ class RunCommand extends Command {
   String get name => 'run';
 
   @override
-  Future run() async {
+  Future<void> run() async {
     var args = argResults;
     if (args == null) {
       throw StateError('argResults have not been set');

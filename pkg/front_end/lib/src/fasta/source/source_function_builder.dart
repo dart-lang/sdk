@@ -10,6 +10,7 @@ import 'package:kernel/class_hierarchy.dart';
 import '../../api_prototype/lowering_predicates.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
@@ -424,7 +425,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   VariableDeclaration getFormalParameter(int index) {
-    if (isExtensionInstanceMember || isInlineClassInstanceMember) {
+    if (this is! ConstructorBuilder &&
+        (isExtensionInstanceMember || isInlineClassInstanceMember)) {
       return formals![index + 1].variable!;
     } else {
       return formals![index].variable!;

@@ -10,13 +10,10 @@ class IsolateRepository extends M.IsolateRepository {
   Iterable<M.Service> get reloadSourcesServices =>
       _vm.services.where((S.Service s) => s.service == 'reloadSources');
 
-  IsolateRepository(this._vm) {
-    assert(_vm != null);
-  }
+  IsolateRepository(this._vm);
 
   Future<M.Isolate> get(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     try {
       await isolate.reload();
     } on SC.NetworkRpcException catch (_) {
@@ -28,11 +25,9 @@ class IsolateRepository extends M.IsolateRepository {
   Future reloadSources(M.IsolateRef i, {M.Service? service}) async {
     if (service == null) {
       S.Isolate isolate = i as S.Isolate;
-      assert(isolate != null);
       await isolate.reloadSources();
     } else {
       S.Service srv = service as S.Service;
-      assert(srv != null);
       await _vm.invokeRpcNoUpgrade(srv.method, {'isolateId': i.id});
     }
   }

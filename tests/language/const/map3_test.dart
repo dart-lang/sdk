@@ -20,13 +20,13 @@ main() {
   //          ^
   // [cfe] Constant evaluation error:
   //                 ^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+  // [analyzer] COMPILE_TIME_ERROR.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY
   Expect.equals(42, m[const B()]);
 
   m = const {"foo": 99, A.b: 499};
   //  ^
   // [cfe] Constant evaluation error:
   //                    ^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+  // [analyzer] COMPILE_TIME_ERROR.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY
   Expect.equals(499, m[const B()]);
 }

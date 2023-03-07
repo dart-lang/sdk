@@ -58,9 +58,6 @@ class Utils {
   }
 
   static String formatTimePrecise(double time) {
-    if (time == null) {
-      return "-";
-    }
     const millisPerSecond = 1000;
 
     var millis = (time * millisPerSecond).round();
@@ -120,9 +117,6 @@ class Utils {
   }
 
   static String formatTime(double time) {
-    if (time == null) {
-      return "-";
-    }
     const millisPerHour = 60 * 60 * 1000;
     const millisPerMinute = 60 * 1000;
     const millisPerSecond = 1000;

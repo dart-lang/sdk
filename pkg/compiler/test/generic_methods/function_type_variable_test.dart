@@ -76,19 +76,19 @@ main() {
     main() {
       ${createUses(existentialTypeData)}
 
-      new C1();
-      new C2();
-      new C3.fact();
-      new C4();
+      C1();
+      C2();
+      C3.fact();
+      C4();
 
       F9(null, null);
       F10();
       F11(null);
       F12(null);
-      new C5<num>().F15<int, int>(1, 2);
-      new C5<num>().F16<int, int>(1, 2);
-      new C5<num>().F17(null, null, null);
-      new C5<num>().F18();
+      C5<num>().F15<int, int>(1, 2);
+      C5<num>().F16<int, int>(1, 2);
+      C5<num>().F17(null, null, null);
+      C5<num>().F18();
     }
     """),
         options: [Flags.noSoundNullSafety, Flags.printLegacyStars]);

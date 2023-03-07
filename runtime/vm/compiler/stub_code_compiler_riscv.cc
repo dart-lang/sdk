@@ -1075,8 +1075,7 @@ static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler) {
   // Load the receiver.
   __ LoadCompressedSmiFieldFromOffset(
       T2, ARGS_DESC_REG, target::ArgumentsDescriptor::size_offset());
-  __ slli(TMP, T2, target::kWordSizeLog2 - 1);  // T2 is Smi.
-  __ add(TMP, TMP, FP);
+  __ AddShifted(TMP, FP, T2, target::kWordSizeLog2 - 1);  // T2 is Smi.
   __ LoadFromOffset(A0, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
   // Push: result slot, receiver, ICData/MegamorphicCache,
@@ -2095,8 +2094,7 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
   // Load the receiver.
   __ LoadCompressedSmiFieldFromOffset(
       T2, S4, target::ArgumentsDescriptor::size_offset());
-  __ slli(TMP, T2, target::kWordSizeLog2 - 1);  // T2 is Smi
-  __ add(TMP, TMP, FP);
+  __ AddShifted(TMP, FP, T2, target::kWordSizeLog2 - 1);  // T2 is Smi
   __ LoadFromOffset(A0, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
 
@@ -3288,8 +3286,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
 
   const intptr_t base = target::Array::data_offset();
   // T3 is smi tagged, but table entries are 16 bytes, so LSL 3.
-  __ slli(TMP, T3, kCompressedWordSizeLog2);
-  __ add(TMP, TMP, T2);
+  __ AddShifted(TMP, T2, T3, kCompressedWordSizeLog2);
   __ LoadCompressedSmiFieldFromOffset(T4, TMP, base);
   Label probe_failed;
   __ CompareObjectRegisters(T4, T5);

@@ -165,6 +165,7 @@ Future<void> runGenSnapshot({
       arguments: [
         '--snapshot-kind=app-aot-elf',
         '--elf=${outputUri.toFilePath()}',
+        '--strip',
         dillUri.toFilePath(),
       ],
     );

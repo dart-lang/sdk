@@ -539,6 +539,10 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
         write(prefix + '::' + node.name.text);
+      } else if (node is InlineClass) {
+        Library nodeLibrary = node.enclosingLibrary;
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        write(prefix + '::' + node.name);
       } else if (node is Procedure) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
@@ -1490,7 +1494,10 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeWord('/* declaredRepresentationType =');
     writeType(node.declaredRepresentationType);
     writeWord('*/');
-
+    if (node.implements.isNotEmpty) {
+      writeSpaced('implements');
+      writeList(node.implements, writeType);
+    }
     String endLineString = ' {';
     if (node.enclosingLibrary.fileUri != node.fileUri) {
       endLineString += ' // from ${node.fileUri}';
@@ -2974,7 +2981,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       writeSymbol(':');
       writeConstantReference(entry.value);
     });
-    endLine(')');
+    endLine('}');
   }
 
   @override

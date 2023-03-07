@@ -382,9 +382,11 @@ class FlowGraph : public ZoneAllocated {
   // Remove the redefinition instructions inserted to inhibit code motion.
   void RemoveRedefinitions(bool keep_checks = false);
 
-  // Insert PushArgument instructions and remove explicit def-use
+  // Insert MoveArgument instructions and remove explicit def-use
   // relations between calls and their arguments.
-  void InsertPushArguments();
+  //
+  // Compute the maximum number of arguments.
+  void InsertMoveArguments();
 
   // Copy deoptimization target from one instruction to another if we still
   // have to keep deoptimization environment at gotos for LICM purposes.
@@ -543,6 +545,16 @@ class FlowGraph : public ZoneAllocated {
   // can be detached).
   void CompactSSA(ZoneGrowableArray<Definition*>* detached_defs = nullptr);
 
+  // Maximum number of word-sized slots needed for outgoing arguments.
+  intptr_t max_argument_slot_count() const {
+    RELEASE_ASSERT(max_argument_slot_count_ >= 0);
+    return max_argument_slot_count_;
+  }
+  void set_max_argument_slot_count(intptr_t count) {
+    RELEASE_ASSERT(max_argument_slot_count_ == -1);
+    max_argument_slot_count_ = count;
+  }
+
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
   friend class FlowGraphChecker;
@@ -672,6 +684,8 @@ class FlowGraph : public ZoneAllocated {
   intptr_t inlining_id_;
   bool should_print_;
   uint8_t* compiler_pass_filters_ = nullptr;
+
+  intptr_t max_argument_slot_count_ = -1;
 
   const Array* coverage_array_ = &Array::empty_array();
 };

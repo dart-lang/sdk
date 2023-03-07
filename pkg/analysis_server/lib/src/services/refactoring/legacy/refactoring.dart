@@ -458,10 +458,14 @@ abstract class RenameRefactoring implements Refactoring {
       AstNode node, Element? element) {
     // TODO(scheglov) This is bad code.
     SyntacticEntity? nameNode;
-    if (node is ConstructorDeclaration) {
+    if (node is AssignedVariablePattern) {
+      nameNode = node.name;
+    } else if (node is ConstructorDeclaration) {
       nameNode = node;
     } else if (node is ConstructorSelector) {
       nameNode = node;
+    } else if (node is DeclaredVariablePattern) {
+      nameNode = node.name;
     } else if (node is EnumConstantDeclaration) {
       nameNode = node.name;
     } else if (node is ExtensionDeclaration) {

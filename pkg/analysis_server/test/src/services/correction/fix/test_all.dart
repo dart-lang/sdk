@@ -165,6 +165,7 @@ import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
+import 'remove_invocation_test.dart' as remove_invocation;
 import 'remove_leading_underscore_test.dart' as remove_leading_underscore;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
@@ -180,6 +181,7 @@ import 'remove_print_test.dart' as remove_print;
 import 'remove_question_mark_test.dart' as remove_question_mark;
 import 'remove_required_test.dart' as remove_required;
 import 'remove_returned_value_test.dart' as remove_returned_value;
+import 'remove_set_literal_test.dart' as remove_set_literal;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
@@ -228,6 +230,7 @@ import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
 import 'replace_with_brackets_test.dart' as replace_with_brackets;
 import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
+import 'replace_with_decorated_box_test.dart' as replace_with_decorated_box;
 import 'replace_with_eight_digit_hex_test.dart' as replace_with_eight_digit_hex;
 import 'replace_with_extension_name_test.dart' as replace_with_extension_name;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
@@ -398,6 +401,7 @@ void main() {
     remove_if_null_operator.main();
     remove_initializer.main();
     remove_interpolation_braces.main();
+    remove_invocation.main();
     remove_leading_underscore.main();
     remove_method_declaration.main();
     remove_name_from_combinator.main();
@@ -410,6 +414,7 @@ void main() {
     remove_question_mark.main();
     remove_required.main();
     remove_returned_value.main();
+    remove_set_literal.main();
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_type_arguments.main();
@@ -451,6 +456,7 @@ void main() {
     replace_var_with_dynamic.main();
     replace_with_brackets.main();
     replace_with_conditional_assignment.main();
+    replace_with_decorated_box.main();
     replace_with_eight_digit_hex.main();
     replace_with_extension_name.main();
     replace_with_identifier.main();

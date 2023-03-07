@@ -6,10 +6,10 @@ base mixin M {}
 base class C = Object with M;
 
 
-base[StringToken] class[KeywordToken] A[StringToken] {[BeginToken]}[SimpleToken]
+base[KeywordToken] class[KeywordToken] A[StringToken] {[BeginToken]}[SimpleToken]
 
-abstract[KeywordToken] base[StringToken] class[KeywordToken] B[StringToken] {[BeginToken]}[SimpleToken]
+abstract[KeywordToken] base[KeywordToken] class[KeywordToken] B[StringToken] {[BeginToken]}[SimpleToken]
 
-base[StringToken] mixin[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken]
-base[StringToken] class[KeywordToken] C[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] M[StringToken];[SimpleToken]
+base[KeywordToken] mixin[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken]
+base[KeywordToken] class[KeywordToken] C[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] M[StringToken];[SimpleToken]
 [SimpleToken]

@@ -1,0 +1,9 @@
+@Deprecated('')
+inline class A {
+  @Deprecated('')
+  final int i;
+  @Deprecated('')
+  A(this.i);
+  @Deprecated('')
+  void m() {}
+}

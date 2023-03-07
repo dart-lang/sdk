@@ -349,7 +349,7 @@ uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
          dart::UntaggedObject::ClassIdTag::encode(cid) |
          dart::UntaggedObject::NewBit::encode(true) |
          dart::UntaggedObject::ImmutableBit::encode(
-             IsUnmodifiableTypedDataViewClassId(cid));
+             ShouldHaveImmutabilityBitSet(cid));
 }
 
 word Object::tags_offset() {

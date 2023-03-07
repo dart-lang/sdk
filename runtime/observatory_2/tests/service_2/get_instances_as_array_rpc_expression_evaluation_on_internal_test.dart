@@ -14,9 +14,9 @@ var tests = <IsolateTest>[
       final Map params = {
         "objectId": member["class"]["id"],
         "includeSubclasses": false,
-        "includeImplementors": false,
+        "includeImplementers": false,
       };
-      final result = await isolate.invokeRpc("_getInstancesAsArray", params);
+      final result = await isolate.invokeRpc("getInstancesAsList", params);
       // This has previously caused an exception like
       // "ServerRpcException(evaluate: Unexpected exception:
       // FormatException: Unexpected character (at offset 329)"

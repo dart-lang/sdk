@@ -12,11 +12,10 @@ import 'service_test_common.dart';
 import 'test_helper.dart';
 
 void fooBar() {
-  int i = 0;
+  int _ = 0;
   while (true) {
-    i++;
+    _++;
   }
-  print(i);
 }
 
 late WebSocketVM client1;
@@ -25,7 +24,7 @@ late WebSocketVM client2;
 final hotReloadTest = <IsolateTest>[
   // Multiple clients, hot reload approval.
   (Isolate isolate) async {
-    final resumeFuture = waitForResume(isolate);
+    waitForResume(isolate);
 
     client1 = await createClient(isolate.owner as WebSocketVM);
     await setRequireApprovalForResume(

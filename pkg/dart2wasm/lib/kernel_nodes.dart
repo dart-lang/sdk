@@ -77,6 +77,15 @@ mixin KernelNodes {
   late final Class stackTraceClass = index.getClass("dart:core", "StackTrace");
   late final Class typeUniverseClass =
       index.getClass("dart:core", "_TypeUniverse");
+  late final Class recordTypeClass = index.getClass("dart:core", "_RecordType");
+
+  // dart:core sync* support classes
+  late final Class suspendStateClass =
+      index.getClass("dart:core", "_SuspendState");
+  late final Class syncStarIterableClass =
+      index.getClass("dart:core", "_SyncStarIterable");
+  late final Class syncStarIteratorClass =
+      index.getClass("dart:core", "_SyncStarIterator");
 
   // dart:ffi classes
   late final Class ffiCompoundClass = index.getClass("dart:ffi", "_Compound");
@@ -175,6 +184,9 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "Invocation", "genericMethod");
   late final Procedure noSuchMethodErrorThrowWithInvocation = index
       .getProcedure("dart:core", "NoSuchMethodError", "_throwWithInvocation");
+  late final Procedure noSuchMethodErrorThrowUnimplementedExternalMemberError =
+      index.getProcedure("dart:core", "NoSuchMethodError",
+          "_throwUnimplementedExternalMemberError");
   late final Procedure stackTraceCurrent =
       index.getProcedure("dart:core", "StackTrace", "get:current");
   late final Procedure throwNullCheckError =
@@ -185,6 +197,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "_TypeError", "_throwWasmRefError");
   late final Procedure throwArgumentTypeCheckError = index.getProcedure(
       "dart:core", "_TypeError", "_throwArgumentTypeCheckError");
+  late final Procedure throwTypeArgumentBoundCheckError = index.getProcedure(
+      "dart:core", "_TypeError", "_throwTypeArgumentBoundCheckError");
   late final Procedure throwAssertionError =
       index.getProcedure("dart:core", "AssertionError", "_throwWithMessage");
   late final Procedure javaScriptErrorFactory =
@@ -200,6 +214,8 @@ mixin KernelNodes {
   // dart:core type procedures
   late final Procedure isSubtype =
       index.getTopLevelProcedure("dart:core", "_isSubtype");
+  late final Procedure isTypeSubtype =
+      index.getTopLevelProcedure("dart:core", "_isTypeSubtype");
   late final Procedure checkClosureShape =
       index.getTopLevelProcedure("dart:core", "_checkClosureShape");
   late final Procedure checkClosureType =

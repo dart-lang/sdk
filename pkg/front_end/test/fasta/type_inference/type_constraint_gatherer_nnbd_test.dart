@@ -391,9 +391,11 @@ class TypeConstraintGathererTest {
     var typeSchemaEnvironment = new TypeSchemaEnvironment(
         coreTypes, new ClassHierarchy(component, coreTypes));
     var typeConstraintGatherer = new TypeConstraintGatherer(
-        typeSchemaEnvironment, typeParameterNodesToConstrain, testLibrary);
+        typeSchemaEnvironment, typeParameterNodesToConstrain,
+        isNonNullableByDefault: testLibrary.isNonNullableByDefault);
     var constraints = tryConstrain(typeConstraintGatherer, a, b)
-        ? typeConstraintGatherer.computeConstraints(clientLibrary)
+        ? typeConstraintGatherer.computeConstraints(
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault)
         : null;
     if (expectedConstraints == null) {
       expect(constraints, isNull);

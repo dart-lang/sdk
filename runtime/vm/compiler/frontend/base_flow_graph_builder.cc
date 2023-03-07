@@ -1087,8 +1087,7 @@ Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
 
 Fragment BaseFlowGraphBuilder::CheckNull(TokenPosition position,
                                          LocalVariable* receiver,
-                                         const String& function_name,
-                                         bool clear_the_temp /* = true */) {
+                                         const String& function_name) {
   Fragment instructions = LoadLocal(receiver);
 
   CheckNullInstr* check_null = new (Z) CheckNullInstr(
@@ -1098,14 +1097,6 @@ Fragment BaseFlowGraphBuilder::CheckNull(TokenPosition position,
 
   // Does not use the redefinition, no `Push(check_null)`.
   instructions <<= check_null;
-
-  if (clear_the_temp) {
-    // Null out receiver to make sure it is not saved into the frame before
-    // doing the call.
-    instructions += NullConstant();
-    instructions += StoreLocal(TokenPosition::kNoSource, receiver);
-    instructions += Drop();
-  }
 
   return instructions;
 }

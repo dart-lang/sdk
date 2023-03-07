@@ -4755,7 +4755,13 @@ class AstBuilder extends StackListener {
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var metadata = pop() as List<AnnotationImpl>?;
-    var comment = _findComment(metadata, mixinKeyword);
+
+    final begin = sealedKeyword ??
+        baseKeyword ??
+        interfaceKeyword ??
+        finalKeyword ??
+        mixinKeyword;
+    var comment = _findComment(metadata, begin);
 
     _classLikeBuilder = _MixinDeclarationBuilder(
       comment: comment,
@@ -4989,7 +4995,7 @@ class AstBuilder extends StackListener {
   @override
   void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
     debugEvent("ExtractorPatternFields");
-    var fields = popTypedList2<RecordPatternFieldImpl>(count);
+    var fields = popTypedList2<PatternFieldImpl>(count);
     push(_ObjectPatternFields(beginToken, endToken, fields));
   }
 
@@ -5056,12 +5062,12 @@ class AstBuilder extends StackListener {
     debugEvent("PatternField");
 
     var pattern = pop() as DartPatternImpl;
-    RecordPatternFieldNameImpl? fieldName;
+    PatternFieldNameImpl? fieldName;
     if (colon != null) {
       var name = (pop() as SimpleIdentifierImpl?)?.token;
-      fieldName = RecordPatternFieldNameImpl(name: name, colon: colon);
+      fieldName = PatternFieldNameImpl(name: name, colon: colon);
     }
-    push(RecordPatternFieldImpl(fieldName: fieldName, pattern: pattern));
+    push(PatternFieldImpl(name: fieldName, pattern: pattern));
   }
 
   @override
@@ -5112,7 +5118,7 @@ class AstBuilder extends StackListener {
   void handleRecordPattern(Token token, int count) {
     debugEvent("RecordPattern");
 
-    var fields = popTypedList2<RecordPatternFieldImpl>(count);
+    var fields = popTypedList2<PatternFieldImpl>(count);
     push(
       RecordPatternImpl(
         leftParenthesis: token,
@@ -6025,7 +6031,7 @@ class _Modifiers {
 class _ObjectPatternFields {
   final Token leftParenthesis;
   final Token rightParenthesis;
-  final List<RecordPatternFieldImpl> fields;
+  final List<PatternFieldImpl> fields;
 
   _ObjectPatternFields(
       this.leftParenthesis, this.rightParenthesis, this.fields);
