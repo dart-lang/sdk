@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 /// A visitor that visits an [AstNode] and its parent recursively along with any
 /// declarations in those nodes. Consumers typically call [visit] which catches
 /// the exception thrown by [finished].
-abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
+abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
   final int offset;
 
   LocalDeclarationVisitor(this.offset);
@@ -244,6 +244,18 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitSwitchCase(SwitchCase node) {
+    _visitStatements(node.statements);
+    visitNode(node);
+  }
+
+  @override
+  void visitSwitchDefault(SwitchDefault node) {
+    _visitStatements(node.statements);
+    visitNode(node);
+  }
+
+  @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     if (offset > node.arrow.end) {
       _visitVariablesIn(node.guardedPattern.pattern);
@@ -252,7 +264,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitSwitchMember(SwitchMember node) {
+  void visitSwitchPatternCase(SwitchPatternCase node) {
     _visitStatements(node.statements);
     visitNode(node);
   }
