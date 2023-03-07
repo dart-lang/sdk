@@ -452,7 +452,8 @@ class VmTarget extends Target {
   }
 
   @override
-  Class concreteRecordClass(CoreTypes coreTypes) {
+  Class getRecordImplementationClass(
+      CoreTypes coreTypes, int numPositionalFields, List<String> namedFields) {
     return _record ??= coreTypes.index.getClass('dart:core', '_Record');
   }
 

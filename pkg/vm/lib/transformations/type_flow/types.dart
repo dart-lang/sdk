@@ -12,8 +12,14 @@ import 'package:kernel/core_types.dart';
 
 import 'utils.dart';
 
-/// Dart class representation used in type flow analysis.
-/// For each Dart class there is a unique instance of [TFClass].
+/// Class representation used in the type flow analysis.
+///
+/// For each ordinary Dart class there is a unique instance of [TFClass].
+///
+/// There are distinct [TFClass] objects for each record shape.
+/// They may map to the same or distinct implementation Dart classes
+/// depending on the [Target.getRecordImplementationClass].
+///
 /// Each [TFClass] has unique id which could be used to sort classes.
 class TFClass {
   final int id;
@@ -36,6 +42,49 @@ class TFClass {
 
   @override
   String toString() => nodeToText(classNode);
+}
+
+/// Shape of a record (number of positional fields and a set of named fields).
+class RecordShape {
+  final int numPositionalFields;
+  final List<String> namedFields; // Sorted.
+  final int _hash = 0;
+
+  RecordShape(RecordType type)
+      : numPositionalFields = type.positional.length,
+        namedFields = type.named.isEmpty
+            ? const <String>[]
+            : type.named.map((nt) => nt.name).toList();
+
+  int get numFields => numPositionalFields + namedFields.length;
+
+  String fieldName(int i) {
+    if (i < numPositionalFields) {
+      return "\$${i + 1}";
+    } else {
+      return namedFields[i - numPositionalFields];
+    }
+  }
+
+  @override
+  int get hashCode => (_hash == 0) ? _computeHashCode() : _hash;
+
+  int _computeHashCode() {
+    int hash =
+        (((numPositionalFields * 31) & kHashMask) + listHashCode(namedFields)) &
+            kHashMask;
+    if (hash == 0) {
+      hash = 1;
+    }
+    return hash;
+  }
+
+  @override
+  bool operator ==(other) =>
+      identical(this, other) ||
+      (other is RecordShape &&
+          this.numPositionalFields == other.numPositionalFields &&
+          listEquals(this.namedFields, other.namedFields));
 }
 
 abstract class GenericInterfacesInfo {
@@ -70,8 +119,13 @@ abstract class TypesBuilder {
   /// Return [TFClass] corresponding to the given [classNode].
   TFClass getTFClass(Class classNode);
 
+  /// Return [Type] corresponding to the given record shape.
+  /// [allocated] flag indicates that an instance of
+  /// this record shape is allocated.
+  Type getRecordType(RecordShape shape, bool allocated) =>
+      ConeType(getTFClass(coreTypes.recordClass));
+
   late final Type functionType = ConeType(getTFClass(coreTypes.functionClass));
-  late final Type recordType = ConeType(getTFClass(coreTypes.recordClass));
 
   /// Create a Type which corresponds to a set of instances constrained by
   /// Dart type annotation [dartType].
@@ -81,7 +135,7 @@ abstract class TypesBuilder {
     Type result;
     if (type is InterfaceType) {
       final cls = type.classNode;
-      result = new ConeType(getTFClass(cls));
+      result = ConeType(getTFClass(cls));
     } else if (type == const DynamicType() || type == const VoidType()) {
       result = const AnyType();
     } else if (type is NeverType || type is NullType) {
@@ -90,8 +144,7 @@ abstract class TypesBuilder {
       // TODO(alexmarkov): support inference of function types
       result = functionType;
     } else if (type is RecordType) {
-      // TODO(dartbug.com/49719): support inference of record types
-      result = recordType;
+      result = getRecordType(RecordShape(type), false);
     } else if (type is FutureOrType) {
       // TODO(alexmarkov): support FutureOr types
       result = const AnyType();
