@@ -175,8 +175,6 @@ abstract class TestSuite {
     if (testFile.isWebStaticErrorTest &&
         const {
           Compiler.dart2js,
-          Compiler.dartdevc,
-          Compiler.dartdevk,
           Compiler.ddc,
         }.contains(configuration.compiler)) {
       return true;
@@ -967,8 +965,6 @@ class StandardTestSuite extends TestSuite {
     const supportedCompilers = {
       Compiler.dart2js,
       Compiler.dart2wasm,
-      Compiler.dartdevc,
-      Compiler.dartdevk,
       Compiler.ddc
     };
     assert(supportedCompilers.contains(configuration.compiler));

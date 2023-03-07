@@ -1638,8 +1638,6 @@ mixin _StaticErrorOutput on CommandOutput {
       Compiler.dart2analyzer: ErrorSource.analyzer,
       Compiler.dart2js: ErrorSource.web,
       Compiler.dart2wasm: ErrorSource.web,
-      Compiler.dartdevc: ErrorSource.web,
-      Compiler.dartdevk: ErrorSource.web,
       Compiler.ddc: ErrorSource.web,
       Compiler.fasta: ErrorSource.cfe
     }[testCase.configuration.compiler]!;

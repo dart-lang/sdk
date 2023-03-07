@@ -86,8 +86,6 @@ abstract class CompilerConfiguration {
       case Compiler.dart2wasm:
         return Dart2WasmCompilerConfiguration(configuration);
 
-      case Compiler.dartdevc:
-      case Compiler.dartdevk:
       case Compiler.ddc:
         return DevCompilerConfiguration(configuration);
 
@@ -585,8 +583,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-/// Configuration for "dartdevc", "dartdevk", and "ddc".
-// TODO(nshahan): Cleanup mulitple aliases for the compiler.
+/// Configuration for "ddc".
 class DevCompilerConfiguration extends CompilerConfiguration {
   DevCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
