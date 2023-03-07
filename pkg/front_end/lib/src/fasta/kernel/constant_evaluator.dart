@@ -32,7 +32,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 
 import '../../base/nnbd_mode.dart';
@@ -833,12 +833,7 @@ class ConstantsTransformer extends RemovingTransformer {
         cases.add(caseInfo.createSpace(
             exhaustivenessCache, constantPatternValues, _staticTypeContext!));
       }
-      List<Space>? remainingSpaces;
-      if (_exhaustivenessDataForTesting != null) {
-        remainingSpaces = [];
-      }
-      List<ExhaustivenessError> errors =
-          reportErrors(type, cases, remainingSpaces);
+      List<ExhaustivenessError> errors = reportErrors(type, cases);
       if (!useFallbackExhaustivenessAlgorithm) {
         for (ExhaustivenessError error in errors) {
           if (error is UnreachableCaseError) {
@@ -869,7 +864,6 @@ class ConstantsTransformer extends RemovingTransformer {
                 switchInfo.cases
                     .map((SwitchCaseInfo info) => info.fileOffset)
                     .toList(),
-                remainingSpaces!,
                 errors);
       }
 

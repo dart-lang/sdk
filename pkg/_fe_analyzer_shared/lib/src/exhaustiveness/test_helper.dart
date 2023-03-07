@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 
-import 'space.dart';
 import 'static_type.dart';
 
 /// Tags used for id-testing of exhaustiveness.
@@ -15,11 +15,10 @@ class Tags {
   static const String space = 'space';
   static const String subtypes = 'subtypes';
   static const String expandedSubtypes = 'expandedSubtypes';
-  static const String remaining = 'remaining';
 }
 
 /// Returns a textual representation for [space] used for testing.
-String spaceToText(Space space) => space.toString();
+String spacesToText(Space space) => space.toString();
 
 /// Returns a textual representation for [fields] used for testing.
 String fieldsToText(Map<String, StaticType> fields) {

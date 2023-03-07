@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'space.dart';
 import 'static_type.dart';
-import 'witness.dart' as witness;
+import 'witness.dart';
 
 /// Indicates whether the "fallback" exhaustiveness algorithm (based on flow
 /// analysis) should be used instead of full exhaustiveness.  This is a
@@ -14,20 +13,6 @@ import 'witness.dart' as witness;
 /// TODO(paulberry): remove this flag (and the implementation of the fallback
 /// exhaustiveness algorithm) when it is no longer needed.
 bool useFallbackExhaustivenessAlgorithm = true;
-
-/// Checks the [cases] representing a series of switch cases to see if they
-/// exhaustively cover all possible values of the matched [valueType]. Also
-/// checks to see if any case can't be matched because it's covered by previous
-/// cases.
-///
-/// Returns a string containing any unreachable case or non-exhaustive match
-/// errors. Returns an empty string if all cases are reachable and the cases
-/// are exhaustive.
-
-List<ExhaustivenessError> reportErrors(StaticType valueType, List<Space> cases,
-    [List<Space>? remainingSpaces]) {
-  return witness.reportErrors(valueType, cases);
-}
 
 class ExhaustivenessError {}
 
@@ -42,7 +27,7 @@ class NonExhaustiveError implements ExhaustivenessError {
 
   @override
   String toString() =>
-      '$valueType is not exhaustively matched by ${new Space.union(cases)}.';
+      '$valueType is not exhaustively matched by ${cases.join('|')}.';
 }
 
 class UnreachableCaseError implements ExhaustivenessError {

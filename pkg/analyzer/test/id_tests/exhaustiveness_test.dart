@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/test_helper.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
@@ -84,10 +83,6 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
           }
         }
       }
-      Space? remainingSpace = _exhaustivenessData.remainingSpaces[node];
-      if (remainingSpace != null) {
-        features[Tags.remaining] = spaceToText(remainingSpace);
-      }
       ExhaustivenessError? error = _exhaustivenessData.errors[node];
       if (error != null) {
         features[Tags.error] = errorToText(error);
@@ -95,11 +90,7 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
     } else if (node is SwitchMember || node is SwitchExpressionCase) {
       Space? caseSpace = _exhaustivenessData.caseSpaces[node];
       if (caseSpace != null) {
-        features[Tags.space] = spaceToText(caseSpace);
-      }
-      Space? remainingSpace = _exhaustivenessData.remainingSpaces[node];
-      if (remainingSpace != null) {
-        features[Tags.remaining] = spaceToText(remainingSpace);
+        features[Tags.space] = spacesToText(caseSpace);
       }
       ExhaustivenessError? error = _exhaustivenessData.errors[node];
       if (error != null) {

@@ -5,7 +5,7 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -784,10 +784,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (guardedPattern != null) {
         Space space;
         if (guardedPattern.whenClause != null) {
-          space = Space(_exhaustivenessCache.getUnknownStaticType());
+          space = Space(
+              const Path.root(), _exhaustivenessCache.getUnknownStaticType());
         } else {
           final pattern = guardedPattern.pattern;
-          space = patternConverter.convertPattern(pattern, nonNull: false);
+          space = patternConverter.convertPattern(pattern,
+              nonNull: false, path: const Path.root());
         }
         caseNodesWithSpace.add(caseNode);
         caseSpaces.add(space);
@@ -795,14 +797,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
 
     // Prepare for recording data for testing.
-    List<Space>? remainingSpaces;
     final exhaustivenessDataForTesting = this.exhaustivenessDataForTesting;
-    if (exhaustivenessDataForTesting != null) {
-      remainingSpaces = [];
-    }
 
     // Compute and report errors.
-    final errors = reportErrors(scrutineeTypeEx, caseSpaces, remainingSpaces);
+    final errors = reportErrors(scrutineeTypeEx, caseSpaces);
     if (!useFallbackExhaustivenessAlgorithm) {
       for (final error in errors) {
         if (error is UnreachableCaseError) {
@@ -832,22 +830,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
 
     // Record data for testing.
-    if (exhaustivenessDataForTesting != null && remainingSpaces != null) {
-      assert(remainingSpaces.isEmpty ||
-          remainingSpaces.length == caseSpaces.length + 1);
+    if (exhaustivenessDataForTesting != null) {
       for (var i = 0; i < caseSpaces.length; i++) {
         final caseNode = caseNodesWithSpace[i];
         exhaustivenessDataForTesting.caseSpaces[caseNode] = caseSpaces[i];
-        if (remainingSpaces.isNotEmpty) {
-          exhaustivenessDataForTesting.remainingSpaces[caseNode] =
-              remainingSpaces[i];
-        }
       }
       exhaustivenessDataForTesting.switchScrutineeType[node] = scrutineeTypeEx;
-      if (remainingSpaces.isNotEmpty) {
-        exhaustivenessDataForTesting.remainingSpaces[node] =
-            remainingSpaces.last;
-      }
       for (var error in errors) {
         if (error is UnreachableCaseError) {
           exhaustivenessDataForTesting.errors[caseNodesWithSpace[error.index]] =

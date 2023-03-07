@@ -4,7 +4,6 @@
 
 import 'dart:math';
 
-import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 
@@ -110,7 +109,7 @@ void main() {
 /// Test that [cases] are exhaustive over [type] if and only if all cases are
 /// included and that all subsets of the cases are not exhaustive.
 void expectExhaustiveOnlyAll(StaticType type, List<Map<String, Object>> cases) {
-  var valueSpace = Space(type);
+  var valueSpace = Space(const Path.root(), type);
   var caseSpaces = cases.map((c) => ty(type, c)).toList();
 
   const trials = 100;

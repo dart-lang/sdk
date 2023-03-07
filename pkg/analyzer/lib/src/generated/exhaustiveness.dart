@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_types.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -291,10 +291,6 @@ class ExhaustivenessDataForTesting {
   /// Map from switch case nodes to the space for its pattern/expression.
   Map<AstNode, Space> caseSpaces = {};
 
-  /// Map from switch case nodes to the remaining space before the case or
-  /// from statement/expression nodes to the remaining space after all cases.
-  Map<AstNode, Space> remainingSpaces = {};
-
   /// Map from switch statement/expression/case nodes to the error reported
   /// on the node.
   Map<AstNode, ExhaustivenessError> errors = {};
@@ -312,11 +308,12 @@ class PatternConverter {
   Space convertPattern(
     DartPattern pattern, {
     required bool nonNull,
+    required Path path,
   }) {
     if (pattern is DeclaredVariablePatternImpl) {
       final type = pattern.declaredElement!.type;
       final staticType = _asStaticType(type, nonNull: nonNull);
-      return Space(staticType);
+      return Space(path, staticType);
     } else if (pattern is ObjectPattern) {
       final fields = <String, Space>{};
       for (final field in pattern.fields) {
@@ -325,23 +322,24 @@ class PatternConverter {
           // TODO(johnniwinther): How do we handle error cases?
           continue;
         }
-        fields[name] = convertPattern(field.pattern, nonNull: false);
+        fields[name] =
+            convertPattern(field.pattern, nonNull: false, path: path.add(name));
       }
       final type = pattern.type.typeOrThrow;
       final staticType = _asStaticType(type, nonNull: nonNull);
-      return Space(staticType, fields);
+      return Space(path, staticType, fields: fields);
     } else if (pattern is WildcardPattern) {
       final typeNode = pattern.type;
       if (typeNode == null) {
         if (nonNull) {
-          return Space(StaticType.nonNullableObject);
+          return Space(path, StaticType.nonNullableObject);
         } else {
-          return Space.top;
+          return Space(path, StaticType.nullableObject);
         }
       } else {
         final type = typeNode.typeOrThrow;
         final staticType = _asStaticType(type, nonNull: nonNull);
-        return Space(staticType);
+        return Space(path, staticType);
       }
     } else if (pattern is RecordPatternImpl) {
       var index = 1;
@@ -363,26 +361,26 @@ class PatternConverter {
             continue;
           }
         }
-        fields[name] = convertPattern(field.pattern, nonNull: false);
+        fields[name] =
+            convertPattern(field.pattern, nonNull: false, path: path.add(name));
       }
       final recordType = RecordType(
         positional: positional,
         named: named,
         nullabilitySuffix: NullabilitySuffix.none,
       );
-      return Space(cache.getStaticType(recordType), fields);
+      return Space(path, cache.getStaticType(recordType), fields: fields);
     } else if (pattern is LogicalOrPattern) {
-      return Space.union([
-        convertPattern(pattern.leftOperand, nonNull: nonNull),
-        convertPattern(pattern.rightOperand, nonNull: nonNull)
-      ]);
+      return convertPattern(pattern.leftOperand, nonNull: nonNull, path: path)
+          .union(convertPattern(pattern.rightOperand,
+              nonNull: nonNull, path: path));
     } else if (pattern is NullCheckPattern) {
-      return convertPattern(pattern.pattern, nonNull: true);
+      return convertPattern(pattern.pattern, nonNull: true, path: path);
     } else if (pattern is ParenthesizedPattern) {
-      return convertPattern(pattern.pattern, nonNull: nonNull);
+      return convertPattern(pattern.pattern, nonNull: nonNull, path: path);
     } else if (pattern is NullAssertPattern) {
-      Space space = convertPattern(pattern.pattern, nonNull: true);
-      return Space.union([space, Space.nullSpace]);
+      Space space = convertPattern(pattern.pattern, nonNull: true, path: path);
+      return space.union(Space(path, StaticType.nullType));
     } else if (pattern is CastPattern ||
         pattern is RelationalPattern ||
         pattern is LogicalAndPattern) {
@@ -390,23 +388,23 @@ class PatternConverter {
       // TODO(johnniwinther): Handle `Null` aspect implicitly covered by
       // [NullAssertPattern] and `as Null`.
       // TODO(johnniwinther): Handle top in [AndPattern] branches.
-      return Space(cache.getUnknownStaticType());
+      return Space(path, cache.getUnknownStaticType());
     } else if (pattern is ListPattern || pattern is MapPattern) {
       // TODO(johnniwinther): Support list and map patterns. This not only
       //  requires a new interpretation of [Space] fields that handles the
       //  relation between concrete lengths, rest patterns with/without
       //  subpattern, and list/map of arbitrary size and content, but also for the
       //  runtime to check for lengths < 0.
-      return Space(cache.getUnknownStaticType());
+      return Space(path, cache.getUnknownStaticType());
     } else if (pattern is ConstantPattern) {
       final value = constantPatternValues[pattern];
       if (value != null) {
-        return _convertConstantValue(value);
+        return _convertConstantValue(value, path);
       }
-      return Space(cache.getUnknownStaticType());
+      return Space(path, cache.getUnknownStaticType());
     }
     assert(false, "Unexpected pattern $pattern (${pattern.runtimeType})");
-    return Space(cache.getUnknownStaticType());
+    return Space(path, cache.getUnknownStaticType());
   }
 
   StaticType _asStaticType(DartType type, {required bool nonNull}) {
@@ -414,34 +412,37 @@ class PatternConverter {
     return nonNull ? staticType.nonNullable : staticType;
   }
 
-  Space _convertConstantValue(DartObjectImpl value) {
+  Space _convertConstantValue(DartObjectImpl value, Path path) {
     final state = value.state;
     if (value.isNull) {
-      return Space.nullSpace;
+      return Space(path, StaticType.nullType);
     } else if (state is BoolState) {
       final value = state.value;
       if (value != null) {
-        return Space(cache.getBoolValueStaticType(value));
+        return Space(path, cache.getBoolValueStaticType(state.value!));
       }
     } else if (state is RecordState) {
       final fields = <String, Space>{};
       for (var index = 0; index < state.positionalFields.length; index++) {
+        final name = '\$${1 + index}';
         final value = state.positionalFields[index];
-        fields['\$${1 + index}'] = _convertConstantValue(value);
+        fields[name] = _convertConstantValue(value, path.add(name));
       }
       for (final entry in state.namedFields.entries) {
-        fields[entry.key] = _convertConstantValue(entry.value);
+        final name = entry.key;
+        fields[name] = _convertConstantValue(entry.value, path.add(name));
       }
-      return Space(cache.getStaticType(value.type), fields);
+      return Space(path, cache.getStaticType(value.type), fields: fields);
     }
     final type = value.type;
     if (type is InterfaceType) {
       final element = type.element;
       if (element is EnumElement) {
-        return Space(cache.getEnumElementStaticType(element, value));
+        return Space(path, cache.getEnumElementStaticType(element, value));
       }
     }
-    return Space(cache.getUniqueStaticType(type, value, value.toString()));
+    return Space(
+        path, cache.getUniqueStaticType(type, value, value.toString()));
   }
 }
 
