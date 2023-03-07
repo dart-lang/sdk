@@ -40,4 +40,22 @@ int loop2(int x) {
   return x;
 }
 
+int nonNullableWithoutInitializer(bool cond) {
+  int x;
+  if (cond) {
+    x = 5;
+  } else if (true) {
+    x = 7;
+  }
+  return x;
+}
+
+int? lateWithoutInitializer(bool cond) {
+  late int? x;
+  if (cond) {
+    x = 5;
+  }
+  return x;
+}
+
 main() {}
