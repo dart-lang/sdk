@@ -24,27 +24,8 @@ library /*isNonNullableByDefault*/;
 // class C with Function {}
 //              ^
 //
-// pkg/front_end/testcases/class_modifiers/subtype_function.dart:9:14: Error: The mixin 'Function' can't be mixed-in outside of its library because it's a final mixin.
-// class C with Function {}
-//              ^
-//
 // pkg/front_end/testcases/class_modifiers/subtype_function.dart:9:7: Error: The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'Function' is 'final'.
 // Try adding 'base', 'final', or 'sealed' to the type.
-// class C with Function {}
-//       ^
-//
-// pkg/front_end/testcases/class_modifiers/subtype_function.dart:5:7: Error: Extending 'Function' is deprecated because 'Function' is final class.
-// Try removing 'Function' from the 'extends' clause.
-// class A extends Function {}
-//       ^
-//
-// pkg/front_end/testcases/class_modifiers/subtype_function.dart:7:7: Error: Implementing 'Function' is deprecated because 'Function' is final class.
-// Try removing 'Function' from the 'implements' clause.
-// class B implements Function {}
-//       ^
-//
-// pkg/front_end/testcases/class_modifiers/subtype_function.dart:9:7: Error: Mixing in 'Function' is deprecated because 'Function' is final class.
-// Try removing 'Function' from the 'with' clause.
 // class C with Function {}
 //       ^
 //
