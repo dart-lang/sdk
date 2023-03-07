@@ -3669,7 +3669,7 @@ class _MiniAstTypeAnalyzer
           covariant _SwitchStatement node, int caseIndex) {
     _SwitchStatementMember case_ = node.cases[caseIndex];
     return SwitchStatementMemberInfo(
-      [
+      heads: [
         for (var element in case_.elements)
           if (element is _SwitchHeadCase)
             CaseHeadOrDefaultInfo(
@@ -3684,8 +3684,8 @@ class _MiniAstTypeAnalyzer
               guard: null,
             )
       ],
-      case_._body.statements,
-      case_._candidateVariables,
+      body: case_._body.statements,
+      variables: case_._candidateVariables,
       hasLabels: case_.hasLabels,
     );
   }

@@ -203,8 +203,11 @@ class SwitchStatementMemberInfo<Node extends Object, Statement extends Node,
   /// might become not consistent.
   final Map<String, Variable> variables;
 
-  SwitchStatementMemberInfo(this.heads, this.body, this.variables,
-      {required this.hasLabels});
+  SwitchStatementMemberInfo(
+      {required this.heads,
+      required this.body,
+      required this.variables,
+      required this.hasLabels});
 }
 
 /// Type analysis logic to be shared between the analyzer and front end.  The

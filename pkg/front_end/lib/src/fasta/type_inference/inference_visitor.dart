@@ -9822,7 +9822,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           covariant SwitchStatement node, int caseIndex) {
     SwitchCase case_ = node.cases[caseIndex];
     if (case_ is SwitchCaseImpl) {
-      return new SwitchStatementMemberInfo([
+      return new SwitchStatementMemberInfo(heads: [
         for (Expression expression in case_.expressions)
           new CaseHeadOrDefaultInfo(
             pattern: expression,
@@ -9833,12 +9833,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             pattern: null,
             variables: {},
           )
-      ], [
+      ], body: [
         case_.body
-      ], {}, hasLabels: case_.hasLabel);
+      ], variables: {}, hasLabels: case_.hasLabel);
     } else {
       case_ as PatternSwitchCase;
-      return new SwitchStatementMemberInfo([
+      return new SwitchStatementMemberInfo(heads: [
         for (PatternGuard patternGuard in case_.patternGuards)
           new CaseHeadOrDefaultInfo(
             pattern: patternGuard.pattern,
@@ -9854,9 +9854,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             pattern: null,
             variables: {},
           )
-      ], [
+      ], body: [
         case_.body
-      ], {}, hasLabels: case_.hasLabel);
+      ], variables: {
+        for (VariableDeclaration jointVariable in case_.jointVariables)
+          jointVariable.name!: jointVariable
+      }, hasLabels: case_.hasLabel);
     }
   }
 
