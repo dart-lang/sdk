@@ -14,9 +14,7 @@ class Superclass extends core::Object {
   method method4(core::num argument1, covariant-by-declaration core::num argument2) → core::String
     ;
 }
-class Mixin extends core::Object {
-  synthetic constructor •() → self::Mixin
-    ;
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method method1(core::num argument1, core::num argument2) → core::String
     ;
   method method2(covariant-by-declaration core::int argument1, core::num argument2) → core::String

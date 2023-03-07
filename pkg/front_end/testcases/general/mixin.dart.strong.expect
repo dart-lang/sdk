@@ -21,17 +21,11 @@ class B extends self::_B&Object&M1&M2 {
     : super self::_B&Object&M1&M2::•()
     ;
 }
-abstract class M1 extends core::Object {
-  synthetic constructor •() → self::M1
-    : super core::Object::•()
-    ;
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
   method m() → dynamic
     return core::print("M1");
 }
-abstract class M2 extends core::Object {
-  synthetic constructor •() → self::M2
-    : super core::Object::•()
-    ;
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
   method m() → dynamic
     return core::print("M2");
 }
@@ -54,10 +48,7 @@ class C extends self::_C&Object&M1&M2 {
     : super self::_C&Object&M1&M2::•()
     ;
 }
-abstract class G1<T extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::G1<self::G1::T%>
-    : super core::Object::•()
-    ;
+abstract class G1<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
   method m() → dynamic
     return core::print(self::G1::T%);
 }

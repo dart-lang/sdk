@@ -14,7 +14,7 @@ abstract class SuperClass2 {
   SuperClass2(String i) : value = i;
 }
 
-class Mixin {}
+mixin Mixin {}
 
 class NamedMixin1 = SuperClass1 with Mixin;
 class NamedMixin2 = SuperClass2 with Mixin;

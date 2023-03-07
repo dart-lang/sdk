@@ -4,7 +4,7 @@
 
 // See http://dartbug.com/34511 for details.
 
-class A<X> {}
+mixin A<X> {}
 
 class B<Z> extends Object with A<Z Function()> {}
 

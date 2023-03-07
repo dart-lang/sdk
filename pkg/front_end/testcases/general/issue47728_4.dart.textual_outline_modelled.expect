@@ -1,5 +1,4 @@
-class B {}
-
 class C = A with B;
 main() {}
+mixin B {}
 typedef A = Function()?;

@@ -11,7 +11,7 @@ class A1 {
   A1(this.a);
 }
 
-class B1 {}
+mixin B1 {}
 
 // C1 has a synthesized constructor that takes a positional parameter.
 class C1 = A1 with B1;
@@ -27,7 +27,7 @@ class A2 {
   A2({this.a = 0});
 }
 
-class B2 {}
+mixin B2 {}
 
 // C2 has a synthesized constructor that takes a named parameter.
 class C2 = A2 with B2;
@@ -43,7 +43,7 @@ class A3 {
   A3([this.a = 0]);
 }
 
-class B3 {}
+mixin B3 {}
 
 // C3 has a synthesized constructor that takes an optional positional parameter.
 class C3 = A3 with B3;
@@ -61,7 +61,7 @@ class D4 extends C4 {
 // C4 has a synthesized constructor that takes an optional parameter.
 class C4 = A4 with B4;
 
-class B4 {}
+mixin B4 {}
 
 class A4 extends AA4 {
   A4([super.foo]);
@@ -83,7 +83,7 @@ class C5c = C5b with B5;
 class C5b = C5a with B5;
 class C5a = A5 with B5;
 
-class B5 {}
+mixin B5 {}
 
 class A5 extends AA5 {
   A5([super.foo]);
@@ -102,7 +102,7 @@ class D6 extends C6 {
 
 // 7. The base class from dill.
 
-class B7 {}
+mixin B7 {}
 
 // C7 has a synthesized constructor that takes a positional parameter.
 class C7 = A7 with B7;
@@ -119,7 +119,7 @@ class D8 extends C8 {
 
 // 9. The base class with nullable field from dill.
 
-class B9 {}
+mixin B9 {}
 
 // C9 has a synthesized constructor that takes a positional parameter.
 class C9 = A9 with B9;

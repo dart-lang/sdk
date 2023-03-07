@@ -4,9 +4,9 @@
 
 class I<X, Y> {}
 
-class M0<T> implements I<T, int> {}
+mixin M0<T> implements I<T, int> {}
 
-class M1<T> implements I<String, T> {}
+mixin M1<T> implements I<String, T> {}
 
 // M0 inferred as M0<String>
 // M1 inferred as M1<int>

@@ -6,9 +6,7 @@ class NoUnnamedConstructor extends core::Object {
   constructor _() → self::NoUnnamedConstructor
     ;
 }
-class MixMeIn extends core::Object {
-  synthetic constructor •() → self::MixMeIn
-    ;
+abstract class MixMeIn extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class _Foo&NoUnnamedConstructor&MixMeIn = self::NoUnnamedConstructor with self::MixMeIn /*isAnonymousMixin*/  {
   synthetic constructor _() → self::_Foo&NoUnnamedConstructor&MixMeIn

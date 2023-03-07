@@ -11,6 +11,5 @@ class E extends D {}
 
 class F extends C<int> with M {}
 
-class M {}
-
 main() {}
+mixin M {}

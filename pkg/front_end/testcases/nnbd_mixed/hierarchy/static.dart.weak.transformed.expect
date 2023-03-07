@@ -87,10 +87,7 @@ class Super extends core::Object {
   static method extendedStaticImplementedInstanceMethod() → void {}
   method extendedInstanceImplementedStaticMethod() → void {}
 }
-class Mixin extends core::Object {
-  synthetic constructor •() → self::Mixin
-    : super core::Object::•()
-    ;
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   static method mixedInStaticDeclaredInstanceMethod() → void {}
   method mixedInInstanceDeclaredStaticMethod() → void {}
   static method mixedInStaticImplementedInstanceMethod() → void {}

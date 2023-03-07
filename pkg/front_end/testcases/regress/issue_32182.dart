@@ -6,7 +6,7 @@ import "issue_32182.dart" as self;
 
 class A<T> {}
 
-class M {
+mixin M {
   m() => 42;
 }
 

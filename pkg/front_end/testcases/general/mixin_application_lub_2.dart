@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Diagnosticable {}
+mixin Diagnosticable {}
 
 // Originally the existence of this (unused) class (which has an anonymous mixin
 // that matches that of `State<T>`) caused an error in the VM's mixin

@@ -59,27 +59,6 @@ class Interface2 {
   void set implementedMethodImplementedSetter(int value) {}
 }
 
-class Mixin {
-  int extendedMethodMixedInField = 0;
-  int get extendedMethodMixedInGetter => 0;
-  int get mixedInGetterDeclaredMethod => 0;
-  int get mixedInGetterImplementedMethod => 0;
-  int mixedInFieldDeclaredMethod = 0;
-  int mixedInFieldImplementedMethod = 0;
-  void extendedFieldMixedInMethod() {}
-  void extendedGetterMixedInMethod() {}
-  void extendedSetterMixedInMethod() {}
-  void mixedInMethodDeclaredField() {}
-  void mixedInMethodDeclaredGetter() {}
-  void mixedInMethodDeclaredSetter() {}
-  void mixedInMethodImplementedField() {}
-  void mixedInMethodImplementedGetter() {}
-  void mixedInMethodImplementedSetter() {}
-  void set extendedMethodMixedInSetter(int value) {}
-  void set mixedInSetterDeclaredMethod(int value) {}
-  void set mixedInSetterImplementedMethod(int value) {}
-}
-
 class Super {
   int extendedFieldDeclaredMethod = 0;
   int extendedFieldImplementedMethod = 0;
@@ -102,3 +81,23 @@ class Super {
 }
 
 main() {}
+mixin Mixin {
+  int extendedMethodMixedInField = 0;
+  int get extendedMethodMixedInGetter => 0;
+  int get mixedInGetterDeclaredMethod => 0;
+  int get mixedInGetterImplementedMethod => 0;
+  int mixedInFieldDeclaredMethod = 0;
+  int mixedInFieldImplementedMethod = 0;
+  void extendedFieldMixedInMethod() {}
+  void extendedGetterMixedInMethod() {}
+  void extendedSetterMixedInMethod() {}
+  void mixedInMethodDeclaredField() {}
+  void mixedInMethodDeclaredGetter() {}
+  void mixedInMethodDeclaredSetter() {}
+  void mixedInMethodImplementedField() {}
+  void mixedInMethodImplementedGetter() {}
+  void mixedInMethodImplementedSetter() {}
+  void set extendedMethodMixedInSetter(int value) {}
+  void set mixedInSetterDeclaredMethod(int value) {}
+  void set mixedInSetterImplementedMethod(int value) {}
+}

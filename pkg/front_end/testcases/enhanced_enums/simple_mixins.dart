@@ -2,25 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A {
+mixin M1 {
   String get foo => "foo";
 }
 
-class B {
+mixin M2 {
   int bar() => 42;
 }
 
-mixin M {
+mixin M3 {
   void set callOnAssignment(void Function() f) {
     f();
   }
 }
 
-enum E1 with A { one, two }
+enum E1 with M1 { one, two }
 
-enum E2 with A, B { one, two }
+enum E2 with M1, M2 { one, two }
 
-enum E3 with M { one, two }
+enum E3 with M3 { one, two }
 
 expectEquals(x, y) {
   if (x != y) {

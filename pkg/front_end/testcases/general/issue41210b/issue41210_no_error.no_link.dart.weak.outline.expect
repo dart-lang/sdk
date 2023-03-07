@@ -60,17 +60,11 @@ abstract class A extends core::Object implements iss::Interface /*isMixinDeclara
   method method(core::num i, {core::String s = "hello"}) → core::String
     ;
 }
-abstract class B extends core::Object implements iss::Interface {
-  synthetic constructor •() → iss::B
-    ;
+abstract class B extends core::Object implements iss::Interface /*isMixinDeclaration*/  {
   abstract method method(core::num i) → core::String;
 }
-abstract class D extends core::Object implements iss::Interface, iss::Interface2 {
-  synthetic constructor •() → iss::D
-    ;
+abstract class D extends core::Object implements iss::Interface, iss::Interface2 /*isMixinDeclaration*/  {
   abstract forwarding-stub method method(covariant-by-declaration core::num i) → core::String;
 }
-abstract class F extends core::Object implements iss::Interface {
-  synthetic constructor •() → iss::F
-    ;
+abstract class F extends core::Object implements iss::Interface /*isMixinDeclaration*/  {
 }

@@ -16,7 +16,7 @@ class Bad {
   Bad.bar() : this.baz();
 }
 
-class M {}
+mixin M {}
 
 class MixinApplication extends Super with M {
   MixinApplication() : super();

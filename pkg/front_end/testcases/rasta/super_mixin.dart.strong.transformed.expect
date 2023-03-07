@@ -132,14 +132,11 @@ library test.mixin_library /*isNonNullableByDefault*/;
 import self as mix;
 import "dart:core" as core;
 
-class Mixin<T extends core::Object? = dynamic> extends core::Object {
+abstract class Mixin<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
   field dynamic x = mix::f();
   field dynamic y = null;
   field dynamic z = null;
   covariant-by-class field mix::Mixin::T? t = null;
-  synthetic constructor •() → mix::Mixin<mix::Mixin::T%>
-    : super core::Object::•()
-    ;
   method foo() → dynamic
     return invalid-expression "pkg/front_end/testcases/rasta/mixin_library.dart:16:18: Error: Superclass has no method named 'foo'.
   foo() => super.foo() + f();

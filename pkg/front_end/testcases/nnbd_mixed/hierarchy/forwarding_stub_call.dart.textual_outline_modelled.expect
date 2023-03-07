@@ -1,9 +1,5 @@
 class Class = Super<int> with Mixin;
 
-class Mixin {
-  void method(int t) {}
-}
-
 class Subclass extends Class {
   void test() {}
 }
@@ -13,3 +9,6 @@ class Super<T> {
 }
 
 main() {}
+mixin Mixin {
+  void method(int t) {}
+}

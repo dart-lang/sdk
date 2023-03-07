@@ -7,7 +7,7 @@ class Super {
   void extendedDuplicate2() {}
 }
 
-class Mixin {
+mixin Mixin {
   void mixedInDuplicate1() {}
   void mixedInDuplicate2() {}
 }

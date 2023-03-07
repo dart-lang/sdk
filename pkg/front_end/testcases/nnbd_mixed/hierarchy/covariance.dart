@@ -7,11 +7,11 @@
 // If a parameter is directly or indirectly a covariant override, its type in
 // the method tear-off should become Object?.
 
-class M1 {
+mixin M1 {
   method(covariant int a, int b) {}
 }
 
-class M2 {
+mixin M2 {
   method(int a, covariant int b) {}
 }
 

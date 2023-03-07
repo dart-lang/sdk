@@ -160,13 +160,11 @@ library test.mixin_library /*isNonNullableByDefault*/;
 import self as mix;
 import "dart:core" as core;
 
-class Mixin<T extends core::Object? = dynamic> extends core::Object {
+abstract class Mixin<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
   field dynamic x;
   field dynamic y;
   field dynamic z;
   covariant-by-class field mix::Mixin::T? t;
-  synthetic constructor •() → mix::Mixin<mix::Mixin::T%>
-    ;
   method foo() → dynamic
     ;
   method g(covariant-by-class mix::Mixin::T% a) → mix::Mixin::T?
