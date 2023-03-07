@@ -1,34 +1,35 @@
+errors(A a, B<String> b1, B<num> b2, C1 c1, C2 c2, D1 d1) {}
+expect(expected, actual) {}
+
 inline class A {
-  final int it;
   A(this.it);
+  final int it;
   int methodA() => it + 5;
 }
 
 inline class B<T> {
-  final T it;
   B(this.it);
   T methodB() => it;
+  final T it;
 }
 
 inline class C1 implements A {
-  final int it;
   C1(this.it);
+  final int it;
   int methodC1() => it + 42;
 }
 
 inline class C2 implements A, B<int> {
-  final int it;
   C2(this.it);
+  final int it;
   int methodC2() => it + 87;
 }
 
 inline class D1 implements C1 {
-  final int it;
   D1(this.it);
+  final int it;
   int methodD1() => it + 123;
 }
 
-errors(A a, B<String> b1, B<num> b2, C1 c1, C2 c2, D1 d1) {}
-method(A a, B<String> b1, B<num> b2, C1 c1, C2 c2, D1 d1) {}
 main() {}
-expect(expected, actual) {}
+method(A a, B<String> b1, B<num> b2, C1 c1, C2 c2, D1 d1) {}

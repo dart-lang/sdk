@@ -4,40 +4,40 @@ extension on dynamic {
   void set it(value) {}
 }
 
-inline class InlineClass {
-  final int it;
-  InlineClass(this.it);
-  void test() {}
-}
-
-inline class GenericInlineClass<T> {
-  final T it;
-  GenericInlineClass(this.it);
-  void test(T t) {}
-}
-
-inline class FunctionInlineClass<T> {
-  final T Function() it;
-  FunctionInlineClass(this.it);
-  void test(T Function() t) {}
-}
-
-inline class GenericFunctionInlineClass {
-  final T Function<T>() it;
-  GenericFunctionInlineClass(this.it);
-  void test() {}
-}
-
 inline class DynamicInlineClass {
-  final dynamic it;
   DynamicInlineClass(this.it);
+  final dynamic it;
   void test() {}
 }
 
 inline class ErroneousInlineClass {
-  final int a;
-  final String b;
   ErroneousInlineClass(this.a, this.b);
+  final String b;
+  final int a;
+  void test() {}
+}
+
+inline class FunctionInlineClass<T> {
+  FunctionInlineClass(this.it);
+  final T Function() it;
+  void test(T Function() t) {}
+}
+
+inline class GenericFunctionInlineClass {
+  GenericFunctionInlineClass(this.it);
+  final T Function<T>() it;
+  void test() {}
+}
+
+inline class GenericInlineClass<T> {
+  GenericInlineClass(this.it);
+  final T it;
+  void test(T t) {}
+}
+
+inline class InlineClass {
+  InlineClass(this.it);
+  final int it;
   void test() {}
 }
 
