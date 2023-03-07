@@ -43,7 +43,7 @@ restrictedCase(o1, o2) {
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
-    A(field: 42) as A /*cfe.space=A(field: IntConstant(42))*//*analyzer.space=A(field: int (42))*/=> 0,
+    A(field: 42) as A /*space=A(field: 42)*/=> 0,
     _ /*space=()*/=> 1
   };
 
@@ -53,7 +53,7 @@ restrictedCase(o1, o2) {
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
-    A(field: 42) as A /*cfe.space=A(field: IntConstant(42))*//*analyzer.space=A(field: int (42))*/=> 0,
+    A(field: 42) as A /*space=A(field: 42)*/=> 0,
   };
 }
 

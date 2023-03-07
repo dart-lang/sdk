@@ -42,7 +42,7 @@ restrictedCase(o1, o2) {
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
-    A(field: 42)! /*cfe.space=A(field: IntConstant(42))|Null*//*analyzer.space=A(field: int (42))|Null*/=> 0,
+    A(field: 42)! /*space=A(field: 42)|Null*/=> 0,
     _ /*space=()*/=> 1
   };
 
@@ -52,7 +52,7 @@ restrictedCase(o1, o2) {
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
-    A(field: 42)! /*cfe.space=A(field: IntConstant(42))|Null*//*analyzer.space=A(field: int (42))|Null*/=> 0,
+    A(field: 42)! /*space=A(field: 42)|Null*/=> 0,
   };
 }
 
@@ -107,8 +107,7 @@ nullableA(A? a1, A? a2, A? a3) {
    type=A?
   */switch (a3) {
     A(field: 42)!
-      /*cfe.space=A(field: IntConstant(42))|Null*/
-      /*analyzer.space=A(field: int (42))|Null*/
+      /*space=A(field: 42)|Null*/
       => 0,
   };
 }
