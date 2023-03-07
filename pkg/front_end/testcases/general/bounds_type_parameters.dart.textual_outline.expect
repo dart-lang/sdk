@@ -1,4 +1,4 @@
-class Class<T> {}
+mixin Class<T> {}
 
 class ConcreteClass implements Class<ConcreteClass> {}
 

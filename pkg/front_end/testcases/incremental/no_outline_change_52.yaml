@@ -15,7 +15,7 @@ worlds:
         part 'part.dart';
       part.dart: |
         part of 'main.dart';
-        class Foo {
+        mixin Foo {
           method() {
             print("A");
           }
@@ -37,7 +37,7 @@ worlds:
     sources:
       part.dart: |
         part of 'main.dart';
-        class Foo {
+        mixin Foo {
           method() {
             print("B");
           }
