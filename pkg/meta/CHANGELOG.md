@@ -1,3 +1,7 @@
+## 1.9.1-dev
+
+* Update `@reopen` documentation.
+
 ## 1.9.0
 
 * Introduce `@reopen` to annotate class or mixin declarations that can safely
