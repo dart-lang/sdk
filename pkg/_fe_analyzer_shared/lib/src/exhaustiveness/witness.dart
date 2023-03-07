@@ -316,19 +316,10 @@ class Space {
 
   Space._(this.path, this.singleSpaces);
 
-  Space union(Space other) {
+  factory Space.fromSingleSpaces(Path path, List<SingleSpace> singleSpaces) {
     Set<SingleSpace> singleSpacesSet = {};
 
     for (SingleSpace singleSpace in singleSpaces) {
-      // Discard empty space.
-      if (singleSpace == SingleSpace.empty) {
-        continue;
-      }
-
-      singleSpacesSet.add(singleSpace);
-    }
-
-    for (SingleSpace singleSpace in other.singleSpaces) {
       // Discard empty space.
       if (singleSpace == SingleSpace.empty) {
         continue;
@@ -352,6 +343,11 @@ class Space {
       }
     }
     return new Space._(path, singleSpacesList);
+  }
+
+  Space union(Space other) {
+    return new Space.fromSingleSpaces(
+        path, [...singleSpaces, ...other.singleSpaces]);
   }
 
   @override

@@ -829,9 +829,10 @@ class ConstantsTransformer extends RemovingTransformer {
       StaticType type =
           exhaustivenessCache.getStaticType(switchInfo.expressionType);
       List<Space> cases = [];
+      PatternConverter patternConverter = new PatternConverter(
+          exhaustivenessCache, constantPatternValues, _staticTypeContext!);
       for (SwitchCaseInfo caseInfo in switchInfo.cases) {
-        cases.add(caseInfo.createSpace(
-            exhaustivenessCache, constantPatternValues, _staticTypeContext!));
+        cases.add(caseInfo.createSpace(patternConverter));
       }
       List<ExhaustivenessError> errors = reportErrors(type, cases);
       if (!useFallbackExhaustivenessAlgorithm) {

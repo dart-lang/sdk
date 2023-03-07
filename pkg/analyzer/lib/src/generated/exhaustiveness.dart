@@ -296,7 +296,7 @@ class ExhaustivenessDataForTesting {
   Map<AstNode, ExhaustivenessError> errors = {};
 }
 
-class PatternConverter {
+class PatternConverter with SpaceCreator<DartPattern, DartType> {
   final AnalyzerExhaustivenessCache cache;
   final Map<ConstantPattern, DartObjectImpl> constantPatternValues;
 
@@ -305,111 +305,97 @@ class PatternConverter {
     required this.constantPatternValues,
   });
 
-  Space convertPattern(
-    DartPattern pattern, {
-    required bool nonNull,
-    required Path path,
-  }) {
+  @override
+  StaticType createStaticType(DartType type, {required bool nonNull}) {
+    final staticType = cache.getStaticType(type);
+    return nonNull ? staticType.nonNullable : staticType;
+  }
+
+  @override
+  StaticType createUnknownStaticType() {
+    return cache.getUnknownStaticType();
+  }
+
+  @override
+  Space dispatchPattern(Path path, DartPattern pattern,
+      {required bool nonNull}) {
     if (pattern is DeclaredVariablePatternImpl) {
-      final type = pattern.declaredElement!.type;
-      final staticType = _asStaticType(type, nonNull: nonNull);
-      return Space(path, staticType);
+      return createVariableSpace(path, pattern.declaredElement!.type,
+          nonNull: nonNull);
     } else if (pattern is ObjectPattern) {
-      final fields = <String, Space>{};
+      final fields = <String, DartPattern>{};
       for (final field in pattern.fields) {
         final name = field.effectiveName;
         if (name == null) {
-          // TODO(johnniwinther): How do we handle error cases?
+          // Error case, skip field.
           continue;
         }
-        fields[name] =
-            convertPattern(field.pattern, nonNull: false, path: path.add(name));
+        fields[name] = field.pattern;
       }
-      final type = pattern.type.typeOrThrow;
-      final staticType = _asStaticType(type, nonNull: nonNull);
-      return Space(path, staticType, fields: fields);
+      return createObjectSpace(path, pattern.type.typeOrThrow, fields,
+          nonNull: nonNull);
     } else if (pattern is WildcardPattern) {
-      final typeNode = pattern.type;
-      if (typeNode == null) {
-        if (nonNull) {
-          return Space(path, StaticType.nonNullableObject);
-        } else {
-          return Space(path, StaticType.nullableObject);
-        }
-      } else {
-        final type = typeNode.typeOrThrow;
-        final staticType = _asStaticType(type, nonNull: nonNull);
-        return Space(path, staticType);
-      }
+      return createWildcardSpace(path, pattern.type?.typeOrThrow,
+          nonNull: nonNull);
     } else if (pattern is RecordPatternImpl) {
-      var index = 1;
-      final positional = <DartType>[];
-      final named = <String, DartType>{};
-      final fields = <String, Space>{};
+      final positionalTypes = <DartType>[];
+      final positionalPatterns = <DartPattern>[];
+      final namedTypes = <String, DartType>{};
+      final namedPatterns = <String, DartPattern>{};
       for (final field in pattern.fields) {
         final nameNode = field.name;
-        String? name;
         if (nameNode == null) {
-          name = '\$${index++}';
-          positional.add(cache.typeSystem.typeProvider.dynamicType);
+          positionalTypes.add(cache.typeSystem.typeProvider.dynamicType);
+          positionalPatterns.add(field.pattern);
         } else {
-          name = field.effectiveName;
+          String? name = field.effectiveName;
           if (name != null) {
-            named[name] = cache.typeSystem.typeProvider.dynamicType;
+            namedTypes[name] = cache.typeSystem.typeProvider.dynamicType;
+            namedPatterns[name] = field.pattern;
           } else {
             // Error case, skip field.
             continue;
           }
         }
-        fields[name] =
-            convertPattern(field.pattern, nonNull: false, path: path.add(name));
       }
       final recordType = RecordType(
-        positional: positional,
-        named: named,
+        positional: positionalTypes,
+        named: namedTypes,
         nullabilitySuffix: NullabilitySuffix.none,
       );
-      return Space(path, cache.getStaticType(recordType), fields: fields);
+      return createRecordSpace(
+          path, recordType, positionalPatterns, namedPatterns);
     } else if (pattern is LogicalOrPattern) {
-      return convertPattern(pattern.leftOperand, nonNull: nonNull, path: path)
-          .union(convertPattern(pattern.rightOperand,
-              nonNull: nonNull, path: path));
+      return createLogicalOrSpace(
+          path, pattern.leftOperand, pattern.rightOperand,
+          nonNull: nonNull);
     } else if (pattern is NullCheckPattern) {
-      return convertPattern(pattern.pattern, nonNull: true, path: path);
+      return createNullCheckSpace(path, pattern.pattern);
     } else if (pattern is ParenthesizedPattern) {
-      return convertPattern(pattern.pattern, nonNull: nonNull, path: path);
+      return dispatchPattern(path, pattern.pattern, nonNull: nonNull);
     } else if (pattern is NullAssertPattern) {
-      Space space = convertPattern(pattern.pattern, nonNull: true, path: path);
-      return space.union(Space(path, StaticType.nullType));
+      return createNullAssertSpace(path, pattern.pattern);
     } else if (pattern is CastPattern) {
-      // TODO(johnniwinther): Handle types (sibling sealed types?) implicitly
-      // handled by the throw of the invalid cast.
-      return convertPattern(pattern.pattern, nonNull: nonNull, path: path);
-    } else if (pattern is RelationalPattern || pattern is LogicalAndPattern) {
-      // These pattern do not add to the exhaustiveness coverage.
-      // TODO(johnniwinther): Handle top in [AndPattern] branches.
-      return Space(path, cache.getUnknownStaticType());
-    } else if (pattern is ListPattern || pattern is MapPattern) {
-      // TODO(johnniwinther): Support list and map patterns. This not only
-      //  requires a new interpretation of [Space] fields that handles the
-      //  relation between concrete lengths, rest patterns with/without
-      //  subpattern, and list/map of arbitrary size and content, but also for the
-      //  runtime to check for lengths < 0.
-      return Space(path, cache.getUnknownStaticType());
+      return createCastSpace(path, pattern.pattern, nonNull: nonNull);
+    } else if (pattern is LogicalAndPattern) {
+      return createLogicalAndSpace(
+          path, pattern.leftOperand, pattern.rightOperand,
+          nonNull: nonNull);
+    } else if (pattern is RelationalPattern) {
+      return createRelationalSpace(path);
+    } else if (pattern is ListPattern) {
+      return createListSpace(path);
+    } else if (pattern is MapPattern) {
+      return createMapSpace(path);
     } else if (pattern is ConstantPattern) {
       final value = constantPatternValues[pattern];
       if (value != null) {
         return _convertConstantValue(value, path);
       }
-      return Space(path, cache.getUnknownStaticType());
+      return createUnknownSpace(path);
     }
     assert(false, "Unexpected pattern $pattern (${pattern.runtimeType})");
-    return Space(path, cache.getUnknownStaticType());
-  }
-
-  StaticType _asStaticType(DartType type, {required bool nonNull}) {
-    final staticType = cache.getStaticType(type);
-    return nonNull ? staticType.nonNullable : staticType;
+    return createUnknownSpace(path);
   }
 
   Space _convertConstantValue(DartObjectImpl value, Path path) {
