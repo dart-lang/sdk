@@ -1,0 +1,49 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  #L1:
+  {
+    final core::int a;
+    final core::int a#1;
+    final core::String a#2;
+    final dynamic #0#0 = x;
+    late final core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
+    late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    dynamic #t1;
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = a = #0#6{core::int} in true)) && (let final dynamic #t3 = #t1 = a in true) || #0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t4 = a#1 = #0#0{core::int} in true) && (let final dynamic #t5 = #t1 = a#1 in true)) {
+      final core::int a = #t1{core::int};
+      {
+        return a;
+      }
+    }
+    else
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::String && (let final dynamic #t6 = a#2 = #0#6{core::String} in true)) || #0#0 is{ForNonNullableByDefault} core::String && (let final dynamic #t7 = a#2 = #0#0{core::String} in true)) {
+        {
+          return a#2;
+        }
+      }
+      else {
+        {
+          return null;
+        }
+      }
+  }
+}
+static method main() → dynamic {
+  self::expectEquals(self::test(0), 0);
+  self::expectEquals(self::test(<core::int>[0]), 0);
+  self::expectEquals(self::test("foo"), "foo");
+  self::expectEquals(self::test(<core::String>["foo"]), "foo");
+  self::expectEquals(self::test(3.14), null);
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected '${x}' to be equal to '${x}'.";
+  }
+}
+
+constants  {
+  #C1 = 1
+}

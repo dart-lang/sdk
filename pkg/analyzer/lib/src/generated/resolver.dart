@@ -1017,9 +1017,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var group = node.memberGroups[index];
     return SwitchStatementMemberInfo(
-      group.members.map(ofMember).toList(),
-      group.statements,
-      group.variables,
+      heads: group.members.map(ofMember).toList(),
+      body: group.statements,
+      variables: group.variables,
       hasLabels: group.hasLabels,
     );
   }
