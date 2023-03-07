@@ -35,4 +35,5 @@ dev_dependencies:
   lints: any
   logging: any
   matcher: any
+  test_descriptor: any
   test_reflective_loader: any
