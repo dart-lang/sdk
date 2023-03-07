@@ -1,3 +1,12 @@
+## 2.19.4 - 2023-03-08
+
+This is a patch release that:
+
+- Fixes mobile devices vm crashes caused by particular use of RegExp. (issue
+  [#121270][]).
+
+[#121270]: https://github.com/flutter/flutter/issues/121270
+
 ## 2.19.3 - 2023-03-01
 
 This is a patch release that:
@@ -7,12 +16,8 @@ This is a patch release that:
 - Improves the performance of the Dart Analysis Server by limiting the analysis
   context to 1. (issue [#50981][]).
 
-- Fixes mobile devices vm crashes caused by particular use of RegExp. (issue
-  [#121270][])
-
 [#50981]: https://github.com/dart-lang/sdk/issues/50981
 [#51481]: https://github.com/dart-lang/sdk/issues/51481
-[#121270]: https://github.com/flutter/flutter/issues/121270
 
 ## 2.19.2 - 2023-02-08
 
