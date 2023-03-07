@@ -742,8 +742,9 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
   Space createLogicalAndSpace(Path path, Pattern left, Pattern right,
       {required bool nonNull}) {
-    // TODO(johnniwinther): Handle top in [AndPattern] branches.
-    return createUnknownSpace(path);
+    Space aSpace = dispatchPattern(path, left, nonNull: nonNull);
+    Space bSpace = dispatchPattern(path, right, nonNull: nonNull);
+    return _createSpaceIntersection(path, aSpace, bSpace);
   }
 
   /// Creates the [Space] at [path] for a list pattern.
@@ -774,5 +775,61 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// anything.
   Space createUnknownSpace(Path path) {
     return new Space(path, createUnknownStaticType());
+  }
+
+  /// Creates an approximation of the intersection of the single spaces [a] and
+  /// [b].
+  SingleSpace? _createSingleSpaceIntersection(
+      Path path, SingleSpace a, SingleSpace b) {
+    StaticType? type;
+    if (a.type.isSubtypeOf(b.type)) {
+      type = a.type;
+    } else if (b.type.isSubtypeOf(a.type)) {
+      type = b.type;
+    }
+    if (type == null) {
+      return null;
+    }
+    Map<String, Space> fields = {};
+    for (MapEntry<String, Space> entry in a.fields.entries) {
+      String name = entry.key;
+      Space aSpace = entry.value;
+      Space? bSpace = b.fields[name];
+      if (bSpace != null) {
+        fields[name] = _createSpaceIntersection(path.add(name), aSpace, bSpace);
+      } else {
+        fields[name] = aSpace;
+      }
+    }
+    for (MapEntry<String, Space> entry in b.fields.entries) {
+      String name = entry.key;
+      fields[name] ??= entry.value;
+    }
+    return new SingleSpace(type, fields: fields);
+  }
+
+  /// Creates an approximation of the intersection of spaces [a] and [b].
+  Space _createSpaceIntersection(Path path, Space a, Space b) {
+    assert(
+        path == a.path, "Unexpected path. Expected $path, actual ${a.path}.");
+    assert(
+        path == b.path, "Unexpected path. Expected $path, actual ${b.path}.");
+    List<SingleSpace> singleSpaces = [];
+    bool hasUnknownSpace = false;
+    for (SingleSpace aSingleSpace in a.singleSpaces) {
+      for (SingleSpace bSingleSpace in b.singleSpaces) {
+        SingleSpace? space =
+            _createSingleSpaceIntersection(path, aSingleSpace, bSingleSpace);
+        if (space != null) {
+          singleSpaces.add(space);
+        } else {
+          hasUnknownSpace = true;
+        }
+      }
+    }
+    if (hasUnknownSpace) {
+      singleSpaces.add(new SingleSpace(createUnknownStaticType()));
+    }
+    return new Space.fromSingleSpaces(path, singleSpaces);
   }
 }
