@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 
+import 'witness.dart';
+
 /// Interface implemented by analyze/CFE to support type operations need for the
 /// shared [StaticType]s.
 abstract class TypeOperations<Type extends Object> {
@@ -603,4 +605,231 @@ class FutureOrStaticType<Type extends Object>
 
   @override
   Iterable<StaticType> get subtypes => [_typeArgument, _futureType];
+}
+
+/// Mixin for creating [Space]s from [Pattern]s.
+mixin SpaceCreator<Pattern extends Object, Type extends Object> {
+  /// Creates a [StaticType] for an unknown type.
+  ///
+  /// This is used when the type of the pattern is unknown or can't be
+  /// represented as a [StaticType]. This type is unique and ensures that it
+  /// is neither matches anything nor is matched by anything.
+  StaticType createUnknownStaticType();
+
+  /// Creates the [StaticType] for [type]. If [nonNull] is `true`, the created
+  /// type is non-nullable.
+  StaticType createStaticType(Type type, {required bool nonNull});
+
+  /// Creates the [Space] for [pattern] at the given [path].
+  ///
+  /// If [nonNull] is `true`, the space is implicitly non-nullable.
+  Space dispatchPattern(Path path, Pattern pattern, {required bool nonNull});
+
+  /// Creates the root space for [pattern].
+  Space createRootSpace(Pattern pattern, {required bool hasGuard}) {
+    if (hasGuard) {
+      return createUnknownSpace(const Path.root());
+    } else {
+      return dispatchPattern(const Path.root(), pattern, nonNull: false);
+    }
+  }
+
+  /// Creates the [Space] at [path] for a variable pattern of the declared
+  /// [type].
+  ///
+  /// If [nonNull] is `true`, the space is implicitly non-nullable.
+  Space createVariableSpace(Path path, Type type, {required bool nonNull}) {
+    return new Space(path, createStaticType(type, nonNull: nonNull));
+  }
+
+  /// Creates the [Space] at [path] for an object pattern of the required [type]
+  /// and [fieldPatterns].
+  ///
+  /// If [nonNull] is `true`, the space is implicitly non-nullable.
+  Space createObjectSpace(
+      Path path, Type type, Map<String, Pattern> fieldPatterns,
+      {required bool nonNull}) {
+    Map<String, Space> fields = <String, Space>{};
+    for (MapEntry<String, Pattern> entry in fieldPatterns.entries) {
+      String name = entry.key;
+      fields[name] =
+          dispatchPattern(path.add(name), entry.value, nonNull: false);
+    }
+    StaticType staticType = createStaticType(type, nonNull: nonNull);
+    return new Space(path, staticType, fields: fields);
+  }
+
+  /// Creates the [Space] at [path] for a record pattern of the required [type],
+  /// [positionalFields], and [namedFields].
+  Space createRecordSpace(Path path, Type recordType,
+      List<Pattern> positionalFields, Map<String, Pattern> namedFields) {
+    Map<String, Space> fields = <String, Space>{};
+    for (int index = 0; index < positionalFields.length; index++) {
+      String name = '\$${index + 1}';
+      fields[name] = dispatchPattern(path.add(name), positionalFields[index],
+          nonNull: false);
+    }
+    for (MapEntry<String, Pattern> entry in namedFields.entries) {
+      String name = entry.key;
+      fields[name] =
+          dispatchPattern(path.add(name), entry.value, nonNull: false);
+    }
+    return new Space(path, createStaticType(recordType, nonNull: true),
+        fields: fields);
+  }
+
+  /// Creates the [Space] at [path] for a wildcard pattern with the declared
+  /// [type].
+  ///
+  /// If [nonNull] is `true`, the space is implicitly non-nullable.
+  Space createWildcardSpace(Path path, Type? type, {required bool nonNull}) {
+    if (type == null) {
+      if (nonNull) {
+        return new Space(path, StaticType.nonNullableObject);
+      } else {
+        return new Space(path, StaticType.nullableObject);
+      }
+    } else {
+      StaticType staticType = createStaticType(type, nonNull: nonNull);
+      return new Space(path, staticType);
+    }
+  }
+
+  /// Creates the [Space] at [path] for a relational pattern.
+  Space createRelationalSpace(Path path) {
+    // This pattern do not add to the exhaustiveness coverage.
+    return createUnknownSpace(path);
+  }
+
+  /// Creates the [Space] at [path] for a cast pattern with the given
+  /// [subPattern].
+  ///
+  /// If [nonNull] is `true`, the space is implicitly non-nullable.
+  Space createCastSpace(Path path, Pattern subPattern,
+      {required bool nonNull}) {
+    // TODO(johnniwinther): Handle types (sibling sealed types?) implicitly
+    // handled by the throw of the invalid cast.
+    return dispatchPattern(path, subPattern, nonNull: nonNull);
+  }
+
+  /// Creates the [Space] at [path] for a null check pattern with the given
+  /// [subPattern].
+  Space createNullCheckSpace(Path path, Pattern subPattern) {
+    return dispatchPattern(path, subPattern, nonNull: true);
+  }
+
+  /// Creates the [Space] at [path] for a null assert pattern with the given
+  /// [subPattern].
+  Space createNullAssertSpace(Path path, Pattern subPattern) {
+    Space space = dispatchPattern(path, subPattern, nonNull: true);
+    return space.union(new Space(path, StaticType.nullType));
+  }
+
+  /// Creates the [Space] at [path] for a logical or pattern with the given
+  /// [left] and [right] subpatterns.
+  ///
+  /// If [nonNull] is `true`, the space is implicitly non-nullable.
+  Space createLogicalOrSpace(Path path, Pattern left, Pattern right,
+      {required bool nonNull}) {
+    Space aSpace = dispatchPattern(path, left, nonNull: nonNull);
+    Space bSpace = dispatchPattern(path, right, nonNull: nonNull);
+    return aSpace.union(bSpace);
+  }
+
+  /// Creates the [Space] at [path] for a logical and pattern with the given
+  /// [left] and [right] subpatterns.
+  ///
+  /// If [nonNull] is `true`, the space is implicitly non-nullable.
+  Space createLogicalAndSpace(Path path, Pattern left, Pattern right,
+      {required bool nonNull}) {
+    Space aSpace = dispatchPattern(path, left, nonNull: nonNull);
+    Space bSpace = dispatchPattern(path, right, nonNull: nonNull);
+    return _createSpaceIntersection(path, aSpace, bSpace);
+  }
+
+  /// Creates the [Space] at [path] for a list pattern.
+  Space createListSpace(Path path) {
+    // TODO(johnniwinther): Support list patterns. This not only
+    //  requires a new interpretation of [Space] fields that handles the
+    //  relation between concrete lengths, rest patterns with/without
+    //  subpattern, and list of arbitrary size and content, but also for the
+    //  runtime to check for lengths < 0.
+    return createUnknownSpace(path);
+  }
+
+  /// Creates the [Space] at [path] for a map pattern.
+  Space createMapSpace(Path path) {
+    // TODO(johnniwinther): Support map patterns. This not only
+    //  requires a new interpretation of [Space] fields that handles the
+    //  relation between concrete lengths, rest patterns with/without
+    //  subpattern, and map of arbitrary size and content, but also for the
+    //  runtime to check for lengths < 0.
+    return createUnknownSpace(path);
+  }
+
+  /// Creates the [Space] at [path] for a pattern with unknown space.
+  ///
+  /// This is used when the space of the pattern is unknown or can't be
+  /// represented precisely as a union of [SingleSpace]s. This space is unique
+  /// and ensures that it is neither matches anything nor is matched by
+  /// anything.
+  Space createUnknownSpace(Path path) {
+    return new Space(path, createUnknownStaticType());
+  }
+
+  /// Creates an approximation of the intersection of the single spaces [a] and
+  /// [b].
+  SingleSpace? _createSingleSpaceIntersection(
+      Path path, SingleSpace a, SingleSpace b) {
+    StaticType? type;
+    if (a.type.isSubtypeOf(b.type)) {
+      type = a.type;
+    } else if (b.type.isSubtypeOf(a.type)) {
+      type = b.type;
+    }
+    if (type == null) {
+      return null;
+    }
+    Map<String, Space> fields = {};
+    for (MapEntry<String, Space> entry in a.fields.entries) {
+      String name = entry.key;
+      Space aSpace = entry.value;
+      Space? bSpace = b.fields[name];
+      if (bSpace != null) {
+        fields[name] = _createSpaceIntersection(path.add(name), aSpace, bSpace);
+      } else {
+        fields[name] = aSpace;
+      }
+    }
+    for (MapEntry<String, Space> entry in b.fields.entries) {
+      String name = entry.key;
+      fields[name] ??= entry.value;
+    }
+    return new SingleSpace(type, fields: fields);
+  }
+
+  /// Creates an approximation of the intersection of spaces [a] and [b].
+  Space _createSpaceIntersection(Path path, Space a, Space b) {
+    assert(
+        path == a.path, "Unexpected path. Expected $path, actual ${a.path}.");
+    assert(
+        path == b.path, "Unexpected path. Expected $path, actual ${b.path}.");
+    List<SingleSpace> singleSpaces = [];
+    bool hasUnknownSpace = false;
+    for (SingleSpace aSingleSpace in a.singleSpaces) {
+      for (SingleSpace bSingleSpace in b.singleSpaces) {
+        SingleSpace? space =
+            _createSingleSpaceIntersection(path, aSingleSpace, bSingleSpace);
+        if (space != null) {
+          singleSpaces.add(space);
+        } else {
+          hasUnknownSpace = true;
+        }
+      }
+    }
+    if (hasUnknownSpace) {
+      singleSpaces.add(new SingleSpace(createUnknownStaticType()));
+    }
+    return new Space.fromSingleSpaces(path, singleSpaces);
+  }
 }

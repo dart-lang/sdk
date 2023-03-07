@@ -4046,16 +4046,6 @@ const MessageCode messageExpressionNotMetadata = const MessageCode(
         r"""This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeExtendFunction = messageExtendFunction;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtendFunction = const MessageCode("ExtendFunction",
-    problemMessage:
-        r"""Extending 'Function' is deprecated because 'Function' is final class.""",
-    correctionMessage:
-        r"""Try removing 'Function' from the 'extends' clause.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateExtendingEnum =
     const Template<Message Function(String name)>(
         problemMessageTemplate:
@@ -5661,17 +5651,6 @@ const MessageCode messageIllegalSyncGeneratorVoidReturnType = const MessageCode(
     "IllegalSyncGeneratorVoidReturnType",
     problemMessage:
         r"""Functions marked 'sync*' can't have return type 'void'.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeImplementFunction = messageImplementFunction;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageImplementFunction = const MessageCode(
-    "ImplementFunction",
-    problemMessage:
-        r"""Implementing 'Function' is deprecated because 'Function' is final class.""",
-    correctionMessage:
-        r"""Try removing 'Function' from the 'implements' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImplementsBeforeExtends = messageImplementsBeforeExtends;
@@ -9005,15 +8984,6 @@ const MessageCode messageMixinDeclaresConstructor = const MessageCode(
     "MixinDeclaresConstructor",
     index: 95,
     problemMessage: r"""Mixins can't declare constructors.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeMixinFunction = messageMixinFunction;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMixinFunction = const MessageCode("MixinFunction",
-    problemMessage:
-        r"""Mixing in 'Function' is deprecated because 'Function' is final class.""",
-    correctionMessage: r"""Try removing 'Function' from the 'with' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

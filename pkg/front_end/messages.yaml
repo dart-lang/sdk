@@ -5479,27 +5479,6 @@ ExportOptOutFromOptIn:
       // @dart=2.5
       class A {}
 
-ExtendFunction:
-  problemMessage: "Extending 'Function' is deprecated because 'Function' is final class."
-  correctionMessage: "Try removing 'Function' from the 'extends' clause."
-  experiments: class-modifiers
-  script: |
-    class A extends Function {}
-
-ImplementFunction:
-  problemMessage: "Implementing 'Function' is deprecated because 'Function' is final class."
-  correctionMessage: "Try removing 'Function' from the 'implements' clause."
-  experiments: class-modifiers
-  script: |
-    class A implements Function {}
-
-MixinFunction:
-  problemMessage: "Mixing in 'Function' is deprecated because 'Function' is final class."
-  correctionMessage: "Try removing 'Function' from the 'with' clause."
-  experiments: class-modifiers
-  script: |
-    class A extends Object with Function {}
-
 CannotAssignToFinalVariable:
   problemMessage: "Can't assign to the final variable '#name'."
   script: |

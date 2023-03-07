@@ -782,15 +782,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       }
 
       if (guardedPattern != null) {
-        Space space;
-        if (guardedPattern.whenClause != null) {
-          space = Space(
-              const Path.root(), _exhaustivenessCache.getUnknownStaticType());
-        } else {
-          final pattern = guardedPattern.pattern;
-          space = patternConverter.convertPattern(pattern,
-              nonNull: false, path: const Path.root());
-        }
+        Space space = patternConverter.createRootSpace(guardedPattern.pattern,
+            hasGuard: guardedPattern.whenClause != null);
         caseNodesWithSpace.add(caseNode);
         caseSpaces.add(space);
       }

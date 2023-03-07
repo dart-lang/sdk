@@ -70,8 +70,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfFunction(bool constructor);
 
-  Fragment BuildExpression(TokenPosition* position = nullptr,
-                           bool allow_late_uninitialized = false);
+  Fragment BuildExpression(TokenPosition* position = nullptr);
   Fragment BuildStatement(TokenPosition* position = nullptr);
   Fragment BuildStatementWithBranchCoverage(TokenPosition* position = nullptr);
 
@@ -265,14 +264,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildArgumentsFromActualArguments(Array* argument_names);
 
   Fragment BuildInvalidExpression(TokenPosition* position);
-  Fragment BuildVariableGet(TokenPosition* position,
-                            bool allow_late_uninitialized = false);
-  Fragment BuildVariableGet(uint8_t payload,
-                            TokenPosition* position,
-                            bool allow_late_uninitialized = false);
+  Fragment BuildVariableGet(TokenPosition* position);
+  Fragment BuildVariableGet(uint8_t payload, TokenPosition* position);
   Fragment BuildVariableGetImpl(intptr_t variable_kernel_position,
-                                TokenPosition position,
-                                bool allow_late_uninitialized = false);
+                                TokenPosition position);
   Fragment BuildVariableSet(TokenPosition* position);
   Fragment BuildVariableSet(uint8_t payload, TokenPosition* position);
   Fragment BuildVariableSetImpl(TokenPosition position,

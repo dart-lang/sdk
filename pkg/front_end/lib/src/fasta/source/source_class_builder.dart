@@ -237,10 +237,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder);
     if (_isFunction(supertype, coreLibrary)) {
-      if (libraryBuilder.libraryFeatures.classModifiers.isEnabled) {
-        libraryBuilder.addProblem(
-            messageExtendFunction, charOffset, noLength, fileUri);
-      }
       supertype = null;
       supertypeBuilder = null;
     }
@@ -269,10 +265,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     Supertype? mixedInType =
         mixedInTypeBuilder?.buildMixedInType(libraryBuilder);
     if (_isFunction(mixedInType, coreLibrary)) {
-      if (libraryBuilder.libraryFeatures.classModifiers.isEnabled) {
-        libraryBuilder.addProblem(
-            messageMixinFunction, charOffset, noLength, fileUri);
-      }
       mixedInType = null;
       mixedInTypeBuilder = null;
       actualCls.isAnonymousMixin = false;
@@ -323,10 +315,6 @@ class SourceClassBuilder extends ClassBuilderImpl
             interfaceBuilders![i].buildSupertype(libraryBuilder);
         if (supertype != null) {
           if (_isFunction(supertype, coreLibrary)) {
-            if (libraryBuilder.libraryFeatures.classModifiers.isEnabled) {
-              libraryBuilder.addProblem(
-                  messageImplementFunction, charOffset, noLength, fileUri);
-            }
             continue;
           }
           // TODO(ahe): Report an error if supertype is null.

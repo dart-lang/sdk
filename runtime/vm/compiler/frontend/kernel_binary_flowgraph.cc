@@ -1031,9 +1031,7 @@ Fragment StreamingFlowGraphBuilder::BuildStatementAt(intptr_t kernel_offset) {
   return BuildStatement();  // read statement.
 }
 
-Fragment StreamingFlowGraphBuilder::BuildExpression(
-    TokenPosition* position,
-    bool allow_late_uninitialized) {
+Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
   ++num_ast_nodes_;
   uint8_t payload = 0;
   Tag tag = ReadTag(&payload);  // read tag.
@@ -1041,9 +1039,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(
     case kInvalidExpression:
       return BuildInvalidExpression(position);
     case kVariableGet:
-      return BuildVariableGet(position, allow_late_uninitialized);
+      return BuildVariableGet(position);
     case kSpecializedVariableGet:
-      return BuildVariableGet(payload, position, allow_late_uninitialized);
+      return BuildVariableGet(payload, position);
     case kVariableSet:
       return BuildVariableSet(position);
     case kSpecializedVariableSet:
@@ -1993,35 +1991,28 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression(
   return Fragment();
 }
 
-Fragment StreamingFlowGraphBuilder::BuildVariableGet(
-    TokenPosition* position,
-    bool allow_late_uninitialized) {
+Fragment StreamingFlowGraphBuilder::BuildVariableGet(TokenPosition* position) {
   const TokenPosition pos = ReadPosition();
   if (position != nullptr) *position = pos;
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
   ReadUInt();              // read relative variable index.
   SkipOptionalDartType();  // read promoted type.
-  return BuildVariableGetImpl(variable_kernel_position, pos,
-                              allow_late_uninitialized);
+  return BuildVariableGetImpl(variable_kernel_position, pos);
 }
 
-Fragment StreamingFlowGraphBuilder::BuildVariableGet(
-    uint8_t payload,
-    TokenPosition* position,
-    bool allow_late_uninitialized) {
+Fragment StreamingFlowGraphBuilder::BuildVariableGet(uint8_t payload,
+                                                     TokenPosition* position) {
   const TokenPosition pos = ReadPosition();
   if (position != nullptr) *position = pos;
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
-  return BuildVariableGetImpl(variable_kernel_position, pos,
-                              allow_late_uninitialized);
+  return BuildVariableGetImpl(variable_kernel_position, pos);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
     intptr_t variable_kernel_position,
-    TokenPosition position,
-    bool allow_late_uninitialized) {
+    TokenPosition position) {
   LocalVariable* variable = LookupVariable(variable_kernel_position);
-  if (!variable->is_late() || allow_late_uninitialized) {
+  if (!variable->is_late()) {
     return LoadLocal(variable);
   }
 
@@ -6064,8 +6055,7 @@ Fragment StreamingFlowGraphBuilder::BuildReachabilityFence() {
   // generate different expressions, including: constant expressions.
   // So, build an arbitrary expression here instead.
   TokenPosition* position = nullptr;
-  const bool allow_late_uninitialized = true;
-  Fragment code = BuildExpression(position, allow_late_uninitialized);
+  Fragment code = BuildExpression(position);
 
   const intptr_t named_args_len = ReadListLength();
   ASSERT(named_args_len == 0);
