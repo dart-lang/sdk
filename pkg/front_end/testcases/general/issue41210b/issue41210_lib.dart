@@ -14,10 +14,10 @@ mixin A implements Interface {
   String method(num i, {String s = "hello"}) => s;
 }
 
-abstract class B implements Interface {
+mixin B implements Interface {
   String method(num i);
 }
 
-abstract class D implements Interface, Interface2 {}
+mixin D implements Interface, Interface2 {}
 
-abstract class F implements Interface {}
+mixin F implements Interface {}

@@ -4,11 +4,8 @@ import "dart:core" as core;
 
 import "dart:async";
 
-class Mixin extends core::Object {
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   field FutureOr<Null>m = null;
-  synthetic constructor •() → self::Mixin
-    : super core::Object::•()
-    ;
 }
 abstract class _Class&Object&Mixin = core::Object with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class&Object&Mixin

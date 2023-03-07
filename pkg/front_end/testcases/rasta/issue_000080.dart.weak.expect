@@ -2,11 +2,8 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class Mixin extends core::Object {
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   field dynamic field = null;
-  synthetic constructor •() → self::Mixin
-    : super core::Object::•()
-    ;
   method foo() → dynamic
     return 87;
 }

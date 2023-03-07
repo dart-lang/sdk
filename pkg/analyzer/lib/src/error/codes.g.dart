@@ -5728,6 +5728,18 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Users should not assign values marked `@doNotStore`.
+  ///
+  ///  Parameters:
+  ///  0: the name of the field or variable
+  static const WarningCode ASSIGNMENT_OF_DO_NOT_STORE = WarningCode(
+    'ASSIGNMENT_OF_DO_NOT_STORE',
+    "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
+        "top-level variable.",
+    correctionMessage: "Try removing the assignment.",
+    hasPublishedDocs: true,
+  );
+
   ///  Parameters:
   ///  0: the return type as derived by the type of the [Future].
   static const WarningCode BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR =
@@ -6379,6 +6391,22 @@ class WarningCode extends AnalyzerErrorCode {
         "statement.",
     correctionMessage:
         "Try adding a return statement, or changing the return type to 'void'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  This hint is generated anywhere where a `@sealed` class is used as a
+  ///  a superclass constraint of a mixin.
+  ///
+  ///  Parameters:
+  ///  0: the name of the sealed class
+  static const WarningCode MIXIN_ON_SEALED_CLASS = WarningCode(
+    'MIXIN_ON_SEALED_CLASS',
+    "The class '{0}' shouldn't be used as a mixin constraint because it is "
+        "sealed, and any class mixing in this mixin must have '{0}' as a "
+        "superclass.",
+    correctionMessage:
+        "Try composing with this class, or refer to its documentation for more "
+        "information.",
     hasPublishedDocs: true,
   );
 

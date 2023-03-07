@@ -26,11 +26,6 @@ class Interface {
   void interfaceDuplicate2() {}
 }
 
-class Mixin {
-  void mixedInDuplicate1() {}
-  void mixedInDuplicate2() {}
-}
-
 class Super {
   int get superDuplicate1 => 42;
   int get superDuplicate2 => 42;
@@ -41,3 +36,7 @@ class Super {
 }
 
 main() {}
+mixin Mixin {
+  void mixedInDuplicate1() {}
+  void mixedInDuplicate2() {}
+}

@@ -1,9 +1,8 @@
 class Base {}
 
-class Mixin {
-  foo() => print('foo');
-}
-
 class Sub extends Base with Mixin {}
 
 main() {}
+mixin Mixin {
+  foo() => print('foo');
+}

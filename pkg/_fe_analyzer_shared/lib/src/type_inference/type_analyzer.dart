@@ -521,6 +521,10 @@ mixin TypeAnalyzer<
               requiredType: staticType);
     }
     flow.promoteForPattern(matchedType: matchedType, knownType: staticType);
+    // The promotion may have made the matched type even more specific than
+    // either `matchedType` or `staticType`, so fetch it again and use that
+    // in the call to `declaredVariablePattern` below.
+    matchedType = flow.getMatchedValueType();
     bool isImplicitlyTyped = declaredType == null;
     // TODO(paulberry): are we handling _isFinal correctly?
     int promotionKey = context.patternVariablePromotionKeys[variableName] =

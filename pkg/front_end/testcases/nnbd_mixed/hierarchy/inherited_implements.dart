@@ -6,7 +6,7 @@ class Super {
   num extendedMethod() => 0;
 }
 
-class Mixin {
+mixin Mixin {
   num mixedInMethod() => 0;
 }
 

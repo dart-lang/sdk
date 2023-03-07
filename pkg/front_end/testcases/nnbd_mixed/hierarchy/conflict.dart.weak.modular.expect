@@ -174,13 +174,10 @@ class Super extends core::Object {
     return 0;
   set extendedSetterImplementedMethod(core::int value) → void {}
 }
-class Mixin extends core::Object {
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   field core::int mixedInFieldDeclaredMethod = 0;
   field core::int mixedInFieldImplementedMethod = 0;
   field core::int extendedMethodMixedInField = 0;
-  synthetic constructor •() → self::Mixin
-    : super core::Object::•()
-    ;
   method mixedInMethodDeclaredGetter() → void {}
   method mixedInMethodDeclaredSetter() → void {}
   method mixedInMethodDeclaredField() → void {}

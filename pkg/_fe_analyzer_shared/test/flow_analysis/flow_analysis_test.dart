@@ -8992,6 +8992,38 @@ main() {
             ]),
           ]);
         });
+
+        test('Complex example', () {
+          // This is based on the code sample from
+          // https://github.com/dart-lang/sdk/issues/51644, except that the type
+          // of the scrutinee has been changed from `dynamic` to `Object?`.
+          var a1 = Var('a', identity: 'a1');
+          var a2 = Var('a', identity: 'a2');
+          var a3 = Var('a', identity: 'a3');
+          var a = PatternVariableJoin('a', expectedComponents: [a1, a2, a3]);
+          h.run([
+            switch_(expr('Object?'), [
+              switchStatementMember([
+                a1
+                    .pattern(type: 'String?')
+                    .nullCheck
+                    .when(a1.expr.is_('Never'))
+                    .switchCase,
+                a2
+                    .pattern(type: 'String?')
+                    .when(a2.expr.notEq(nullLiteral))
+                    .switchCase,
+                a3
+                    .pattern(type: 'String?')
+                    .nullAssert
+                    .when(a3.expr.eq(intLiteral(1)))
+                    .switchCase,
+              ], [
+                checkPromoted(a, 'String'),
+              ]),
+            ]),
+          ]);
+        });
       });
 
       group(
@@ -9148,6 +9180,31 @@ main() {
               [
                 checkPromoted(x, 'int'),
               ]),
+        ]);
+      });
+
+      test('Promotes to non-nullable if matched type is non-nullable', () {
+        // When the matched value type is non-nullable, and the variable's
+        // declared type is nullable, a successful match promotes the variable.
+        // This allows a case pattern of the form `T? x?` to promote `x` to
+        // non-nullable `T`.
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Object'), x.pattern(type: 'int?'), [
+            checkPromoted(x, 'int'),
+          ]),
+        ]);
+      });
+
+      test('Does not promote to non-nullable if matched type is `Null`', () {
+        // Since `Null` is handled specially by `TypeOperations.classifyType`,
+        // make sure that we don't accidentally promote the variable to
+        // non-nullable when the matched value type is `Null`.
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Null'), x.pattern(type: 'int?'), [
+            checkNotPromoted(x),
+          ]),
         ]);
       });
 

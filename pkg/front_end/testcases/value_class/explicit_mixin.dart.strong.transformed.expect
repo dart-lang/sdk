@@ -87,7 +87,7 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: StringConcatenation @ org-dartlang-testcase:///explicit_mixin.dart:8:7 -> StringConstant("A()")
-Evaluated: StringConcatenation @ org-dartlang-testcase:///explicit_mixin.dart:8:7 -> StringConstant("A()")
-Evaluated: StringConcatenation @ org-dartlang-testcase:///explicit_mixin.dart:18:7 -> StringConstant("F()")
+Evaluated: StringConcatenation @ org-dartlang-testcase:///explicit_mixin.dart:10:7 -> StringConstant("A()")
+Evaluated: StringConcatenation @ org-dartlang-testcase:///explicit_mixin.dart:10:7 -> StringConstant("A()")
+Evaluated: StringConcatenation @ org-dartlang-testcase:///explicit_mixin.dart:20:7 -> StringConstant("F()")
 Extra constant evaluation: evaluated: 52, effectively constant: 3

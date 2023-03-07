@@ -2,15 +2,11 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class M1 extends core::Object {
-  synthetic constructor •() → self::M1
-    ;
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
   method method(covariant-by-declaration core::int a, core::int b) → dynamic
     ;
 }
-class M2 extends core::Object {
-  synthetic constructor •() → self::M2
-    ;
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
   method method(core::int a, covariant-by-declaration core::int b) → dynamic
     ;
 }

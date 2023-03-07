@@ -4,6 +4,7 @@
 
 enum E1 {
   element;
+
   final int element = 42; // Error.
 }
 
@@ -42,7 +43,7 @@ enum E7 {
   static void set element(E7 value) {}
 }
 
-class A8 {
+mixin A8 {
   void set element(dynamic value) {}
 }
 
@@ -50,7 +51,7 @@ enum E8 with A8 {
   element // Error.
 }
 
-class A9 {
+mixin A9 {
   int element = 42;
 }
 
@@ -58,7 +59,7 @@ enum E9 with A9 {
   element // Error.
 }
 
-class A10 {
+mixin A10 {
   void element() {}
 }
 

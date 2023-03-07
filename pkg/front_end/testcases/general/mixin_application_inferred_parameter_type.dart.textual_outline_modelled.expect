@@ -1,7 +1,5 @@
 class Class = Super with Mixin;
 
-class Mixin {}
-
 class Super {
   Super(this.field);
   var field = 42;
@@ -9,3 +7,4 @@ class Super {
 
 error() {}
 main() {}
+mixin Mixin {}

@@ -17812,41 +17812,6 @@ FfiCode:
       1: the name of the class being extended, implemented, or mixed in
     hasPublishedDocs: true
 HintCode:
-  ASSIGNMENT_OF_DO_NOT_STORE:
-    problemMessage: "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable."
-    correctionMessage: Try removing the assignment.
-    comment: |-
-      Users should not assign values marked `@doNotStore`.
-
-      Parameters:
-      0: the name of the field or variable
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the value of a function
-      (including methods and getters) that is explicitly or implicitly marked by
-      the `[doNotStore][meta-doNotStore]` annotation is stored in either a field
-      or top-level variable.
-
-      #### Example
-
-      The following code produces this diagnostic because the value of the
-      function `f` is being stored in the top-level variable `x`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @doNotStore
-      int f() => 1;
-
-      var x = [!f()!];
-      ```
-
-      #### Common fixes
-
-      Replace references to the field or variable with invocations of the
-      function producing the value.
   CAN_BE_NULL_AFTER_NULL_AWARE:
     problemMessage: "The receiver uses '?.', so its value can be null."
     correctionMessage: "Replace the '.' with a '?.' in the invocation."
@@ -18328,50 +18293,6 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
-  MIXIN_ON_SEALED_CLASS:
-    problemMessage: "The class '{0}' shouldn't be used as a mixin constraint because it is sealed, and any class mixing in this mixin must have '{0}' as a superclass."
-    correctionMessage: Try composing with this class, or refer to its documentation for more information.
-    hasPublishedDocs: true
-    comment: |-
-      This hint is generated anywhere where a `@sealed` class is used as a
-      a superclass constraint of a mixin.
-
-      Parameters:
-      0: the name of the sealed class
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the superclass constraint of a
-      mixin is a class from a different package that was marked as
-      `[sealed][meta-sealed]`. Classes that are sealed can't be extended,
-      implemented, mixed in, or used as a superclass constraint.
-
-      #### Example
-
-      If the package `p` defines a sealed class:
-
-      ```dart
-      %uri="package:p/p.dart"
-      import 'package:meta/meta.dart';
-
-      @sealed
-      class C {}
-      ```
-
-      Then, the following code, when in a package other than `p`, produces this
-      diagnostic:
-
-      ```dart
-      import 'package:p/p.dart';
-
-      [!mixin M on C {}!]
-      ```
-
-      #### Common fixes
-
-      If the classes that use the mixin don't need to be subclasses of the sealed
-      class, then consider adding a field and delegating to the wrapped instance
-      of the sealed class.
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
     sharedName: NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
     problemMessage: "This instance creation must be 'const', because the {0} constructor is marked as '@literal'."
@@ -20238,6 +20159,41 @@ WarningCode:
         f.catchError((Object error) => 0);
       }
       ```
+  ASSIGNMENT_OF_DO_NOT_STORE:
+    problemMessage: "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable."
+    correctionMessage: Try removing the assignment.
+    comment: |-
+      Users should not assign values marked `@doNotStore`.
+
+      Parameters:
+      0: the name of the field or variable
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value of a function
+      (including methods and getters) that is explicitly or implicitly marked by
+      the `[doNotStore][meta-doNotStore]` annotation is stored in either a field
+      or top-level variable.
+
+      #### Example
+
+      The following code produces this diagnostic because the value of the
+      function `f` is being stored in the top-level variable `x`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @doNotStore
+      int f() => 1;
+
+      var x = [!f()!];
+      ```
+
+      #### Common fixes
+
+      Replace references to the field or variable with invocations of the
+      function producing the value.
   BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
     problemMessage: "This 'onError' handler must return a value assignable to '{0}', but ends without returning a value."
     correctionMessage: Try adding a return statement.
@@ -21982,6 +21938,50 @@ WarningCode:
 
       Add a `return` statement that makes the return value explicit, even if
       `null` is the appropriate value.
+  MIXIN_ON_SEALED_CLASS:
+    problemMessage: "The class '{0}' shouldn't be used as a mixin constraint because it is sealed, and any class mixing in this mixin must have '{0}' as a superclass."
+    correctionMessage: Try composing with this class, or refer to its documentation for more information.
+    hasPublishedDocs: true
+    comment: |-
+      This hint is generated anywhere where a `@sealed` class is used as a
+      a superclass constraint of a mixin.
+
+      Parameters:
+      0: the name of the sealed class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the superclass constraint of a
+      mixin is a class from a different package that was marked as
+      `[sealed][meta-sealed]`. Classes that are sealed can't be extended,
+      implemented, mixed in, or used as a superclass constraint.
+
+      #### Example
+
+      If the package `p` defines a sealed class:
+
+      ```dart
+      %uri="package:p/p.dart"
+      import 'package:meta/meta.dart';
+
+      @sealed
+      class C {}
+      ```
+
+      Then, the following code, when in a package other than `p`, produces this
+      diagnostic:
+
+      ```dart
+      import 'package:p/p.dart';
+
+      [!mixin M on C {}!]
+      ```
+
+      #### Common fixes
+
+      If the classes that use the mixin don't need to be subclasses of the sealed
+      class, then consider adding a field and delegating to the wrapped instance
+      of the sealed class.
   MUST_BE_IMMUTABLE:
     problemMessage: "This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: {0}"
     hasPublishedDocs: true

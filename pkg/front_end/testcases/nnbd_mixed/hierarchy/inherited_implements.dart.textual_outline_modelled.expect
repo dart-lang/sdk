@@ -43,12 +43,11 @@ class ClassImplementsWithNoSuchMethod implements Interface2 {
   noSuchMethod(Invocation invocation) {}
 }
 
-class Mixin {
-  num mixedInMethod() => 0;
-}
-
 class Super {
   num extendedMethod() => 0;
 }
 
 main() {}
+mixin Mixin {
+  num mixedInMethod() => 0;
+}

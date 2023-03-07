@@ -2,8 +2,6 @@ import 'nullable_supertypes.dart' as prefix;
 
 class A {}
 
-class B {}
-
 class C {}
 
 class C1 extends AAlias {}
@@ -29,6 +27,7 @@ class D4 = A with B implements TAlias<C>;
 class D5 extends A with TAlias<B> {}
 
 main() {}
+mixin B {}
 mixin M1 on AAlias {}
 mixin M2 on A, BAlias {}
 mixin M3 on A implements BAlias {}

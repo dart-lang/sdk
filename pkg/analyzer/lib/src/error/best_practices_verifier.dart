@@ -929,7 +929,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // named elements, so we can safely assume `entry.value.name` is
       // non-`null`.
       _errorReporter.reportErrorForNode(
-        HintCode.ASSIGNMENT_OF_DO_NOT_STORE,
+        WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
         entry.key,
         [entry.value.name!],
       );
@@ -1201,7 +1201,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               element.superclassConstraints.contains(supertype)) {
             // This is a special violation of the sealed class contract,
             // requiring specific messaging.
-            _errorReporter.reportErrorForNode(HintCode.MIXIN_ON_SEALED_CLASS,
+            _errorReporter.reportErrorForNode(WarningCode.MIXIN_ON_SEALED_CLASS,
                 node, [superclass.name.toString()]);
           } else {
             // This is a regular violation of the sealed class contract.

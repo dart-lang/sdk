@@ -8,7 +8,7 @@
 
 // The case 'm1' covers function types with some missing parts.
 
-class Am1<X, Y> {}
+mixin Am1<X, Y> {}
 
 class Bm1<Z> extends Object with Am1<Function(int), Z> {}
 
@@ -61,7 +61,7 @@ class Wm1<Z> = Object
 // The case 'm2' covers function types with some missing parts that should be
 // checked against a bound.
 
-class Am2<X extends Function(), Y> {}
+mixin Am2<X extends Function(), Y> {}
 
 // Compile-time error: type argument is not a subtype.
 class Bm2<Z> extends Object with Am2<Function(int), Z> {}
@@ -143,7 +143,7 @@ typedef TdJ = Function(Function Function);
 
 typedef TdK = Function(Function Function() Function) Function();
 
-class Am3<L, Y> {}
+mixin Am3<L, Y> {}
 
 class Bm3<Z> extends Object with Am3<TdB, Z> {}
 

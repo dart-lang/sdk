@@ -14,13 +14,9 @@ class I<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> ex
   synthetic constructor •() → self::I<self::I::X%, self::I::Y%>
     ;
 }
-class M0<T extends core::Object? = dynamic> extends core::Object implements self::I<self::M0::T%, core::int> {
-  synthetic constructor •() → self::M0<self::M0::T%>
-    ;
+abstract class M0<T extends core::Object? = dynamic> extends core::Object implements self::I<self::M0::T%, core::int> /*isMixinDeclaration*/  {
 }
-class M1<T extends core::Object? = dynamic> extends core::Object implements self::I<core::String, self::M1::T%> {
-  synthetic constructor •() → self::M1<self::M1::T%>
-    ;
+abstract class M1<T extends core::Object? = dynamic> extends core::Object implements self::I<core::String, self::M1::T%> /*isMixinDeclaration*/  {
 }
 abstract class _A&Object&M0 = core::Object with self::M0<dynamic> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A&Object&M0

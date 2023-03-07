@@ -37,7 +37,7 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 mixin Bar on Foo {}
 ''', [
-      error(HintCode.MIXIN_ON_SEALED_CLASS, 31, 19),
+      error(WarningCode.MIXIN_ON_SEALED_CLASS, 31, 19),
     ]);
   }
 

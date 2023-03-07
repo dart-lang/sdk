@@ -10,10 +10,7 @@ class _FailingTest extends core::Object /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
 }
-class MyTest extends core::Object {
-  synthetic constructor •() → self::MyTest
-    : super core::Object::•()
-    ;
+abstract class MyTest extends core::Object /*isMixinDeclaration*/  {
   @#C1
   method foo() → void {}
 }

@@ -420,13 +420,11 @@ abstract class Super extends core::Object {
   set extendedSetterImplementedGetter(core::int value) → void
     ;
 }
-abstract class Mixin extends core::Object {
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   field core::int extendedGetterMixedInField;
   final field core::String extendedSetterMixedInField;
   final field core::String mixedInFieldDeclaredSetter;
   final field core::String mixedInFieldImplementedSetter;
-  synthetic constructor •() → self::Mixin
-    ;
   set extendedGetterMixedInSetter(core::int value) → void
     ;
   set extendedFieldMixedInSetter(core::int value) → void

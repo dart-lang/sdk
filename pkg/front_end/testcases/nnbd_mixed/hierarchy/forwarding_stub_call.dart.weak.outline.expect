@@ -8,9 +8,7 @@ class Super<T extends core::Object? = dynamic> extends core::Object {
   method method(covariant-by-class self::Super::T% t) → void
     ;
 }
-class Mixin extends core::Object {
-  synthetic constructor •() → self::Mixin
-    ;
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method method(core::int t) → void
     ;
 }

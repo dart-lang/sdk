@@ -33,20 +33,6 @@ class AA5 {
   final int foo;
 }
 
-class B1 {}
-
-class B2 {}
-
-class B3 {}
-
-class B4 {}
-
-class B5 {}
-
-class B7 {}
-
-class B9 {}
-
 class C1 = A1 with B1;
 class C2 = A2 with B2;
 class C3 = A3 with B3;
@@ -94,3 +80,10 @@ class D9 extends C9 {
 }
 
 main() {}
+mixin B1 {}
+mixin B2 {}
+mixin B3 {}
+mixin B4 {}
+mixin B5 {}
+mixin B7 {}
+mixin B9 {}

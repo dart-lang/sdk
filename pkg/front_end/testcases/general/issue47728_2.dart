@@ -4,7 +4,7 @@
 
 typedef A = ;
 
-class B {}
+mixin B {}
 
 class C = A with B;
 

@@ -38,14 +38,6 @@ class Interface2 {
   void method(int a, covariant int b, int c, int d, int e) {}
 }
 
-class M1 {
-  method(covariant int a, int b) {}
-}
-
-class M2 {
-  method(int a, covariant int b) {}
-}
-
 class Mixed extends Superclass
     with Mixin1, Mixin2
     implements Interface1, Interface2 {}
@@ -74,4 +66,10 @@ class Superclass {
   void method(int a, int b, int c, int d, covariant int e) {}
 }
 
+mixin M1 {
+  method(covariant int a, int b) {}
+}
+mixin M2 {
+  method(int a, covariant int b) {}
+}
 void main() {}

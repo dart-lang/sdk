@@ -4519,6 +4519,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       required Type knownType,
       bool matchFailsIfWrongType = true,
       bool matchMayFailEvenIfCorrectType = false}) {
+    if (operations.classifyType(matchedType) ==
+        TypeClassification.nonNullable) {
+      // The matched type is non-nullable, so promote to a non-nullable type.
+      // This allows for code like `case int? x?` to promote `x` to
+      // non-nullable.
+      knownType = operations.promoteToNonNull(knownType);
+    }
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     ReferenceWithType<Type> matchedValueReference =
         context.createReference(matchedType);

@@ -8,7 +8,7 @@ class B {
   final Object m = new Object();
 }
 
-class M {
+mixin M {
   static Object m() => new Object();
 }
 

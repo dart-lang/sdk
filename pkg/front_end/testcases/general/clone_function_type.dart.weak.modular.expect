@@ -37,7 +37,7 @@ library /*isNonNullableByDefault*/;
 // class Bm2<Z> extends Object with Am2<Function(int), Z> {}
 //                                  ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
-// class Am2<X extends Function(), Y> {}
+// mixin Am2<X extends Function(), Y> {}
 //           ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:70:34: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
@@ -45,7 +45,7 @@ library /*isNonNullableByDefault*/;
 // class Cm2<Z> extends Object with Am2<Function(int x), Z> {}
 //                                  ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
-// class Am2<X extends Function(), Y> {}
+// mixin Am2<X extends Function(), Y> {}
 //           ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:86:34: Error: Type argument 'Function' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
@@ -54,7 +54,7 @@ library /*isNonNullableByDefault*/;
 // class Jm2<Z> extends Object with Am2<Function, Z> {}
 //                                  ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
-// class Am2<X extends Function(), Y> {}
+// mixin Am2<X extends Function(), Y> {}
 //           ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:89:34: Error: Type argument 'dynamic Function(Function)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
@@ -63,7 +63,7 @@ library /*isNonNullableByDefault*/;
 // class Km2<Z> extends Object with Am2<Function(Function Function), Z> {}
 //                                  ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
-// class Am2<X extends Function(), Y> {}
+// mixin Am2<X extends Function(), Y> {}
 //           ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:95:28: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
@@ -71,7 +71,7 @@ library /*isNonNullableByDefault*/;
 // class Mm2<Z> = Object with Am2<Function(int), Z>;
 //                            ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
-// class Am2<X extends Function(), Y> {}
+// mixin Am2<X extends Function(), Y> {}
 //           ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:98:28: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
@@ -79,7 +79,7 @@ library /*isNonNullableByDefault*/;
 // class Nm2<Z> = Object with Am2<Function(int x), Z>;
 //                            ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
-// class Am2<X extends Function(), Y> {}
+// mixin Am2<X extends Function(), Y> {}
 //           ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:114:28: Error: Type argument 'Function' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
@@ -88,7 +88,7 @@ library /*isNonNullableByDefault*/;
 // class Um2<Z> = Object with Am2<Function, Z>;
 //                            ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
-// class Am2<X extends Function(), Y> {}
+// mixin Am2<X extends Function(), Y> {}
 //           ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:117:28: Error: Type argument 'dynamic Function(Function)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
@@ -97,7 +97,7 @@ library /*isNonNullableByDefault*/;
 // class Vm2<Z> = Object with Am2<Function(Function Function), Z>;
 //                            ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
-// class Am2<X extends Function(), Y> {}
+// mixin Am2<X extends Function(), Y> {}
 //           ^
 //
 import self as self;
@@ -113,10 +113,7 @@ typedef TdH = ([core::int]) → dynamic;
 typedef TdI = ([core::int]) → dynamic;
 typedef TdJ = (core::Function) → dynamic;
 typedef TdK = () → (() → core::Function) → dynamic;
-class Am1<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::Am1<self::Am1::X%, self::Am1::Y%>
-    : super core::Object::•()
-    ;
+abstract class Am1<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class _Bm1&Object&Am1<Z extends core::Object? = dynamic> = core::Object with self::Am1<(core::int) → dynamic, self::_Bm1&Object&Am1::Z%> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Bm1&Object&Am1<self::_Bm1&Object&Am1::Z%>
@@ -283,10 +280,7 @@ class Wm1<Z extends core::Object? = dynamic> = core::Object with self::Am1<() �
     : super core::Object::•()
     ;
 }
-class Am2<X extends () → dynamic, Y extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::Am2<self::Am2::X, self::Am2::Y%>
-    : super core::Object::•()
-    ;
+abstract class Am2<X extends () → dynamic, Y extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class _Bm2&Object&Am2<Z extends core::Object? = dynamic> = core::Object with self::Am2<(core::int) → dynamic, self::_Bm2&Object&Am2::Z%> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Bm2&Object&Am2<self::_Bm2&Object&Am2::Z%>
@@ -453,10 +447,7 @@ class Wm2<Z extends core::Object? = dynamic> = core::Object with self::Am2<() �
     : super core::Object::•()
     ;
 }
-class Am3<L extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::Am3<self::Am3::L%, self::Am3::Y%>
-    : super core::Object::•()
-    ;
+abstract class Am3<L extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class _Bm3&Object&Am3<Z extends core::Object? = dynamic> = core::Object with self::Am3<(core::int) → dynamic, self::_Bm3&Object&Am3::Z%> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Bm3&Object&Am3<self::_Bm3&Object&Am3::Z%>
