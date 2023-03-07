@@ -49,7 +49,8 @@ class C extends A {}
   }
 
   test_class_base_extends_multiple_files() async {
-    await assertErrorsInFile('$testPackageLibPath/a.dart', r'''
+    await assertErrorsInFile(
+        resourceProvider.convertPath('$testPackageLibPath/a.dart'), r'''
 base class A {}
 class B extends A {}
 ''', [
@@ -61,7 +62,8 @@ class B extends A {}
           text:
               "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'."),
     ]);
-    await assertErrorsInFile('$testPackageLibPath/c.dart', r'''
+    await assertErrorsInFile(
+        resourceProvider.convertPath('$testPackageLibPath/c.dart'), r'''
 import 'a.dart';
 class C extends B {}
 ''', [
