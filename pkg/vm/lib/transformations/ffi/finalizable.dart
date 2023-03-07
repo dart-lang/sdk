@@ -45,6 +45,7 @@ mixin FinalizableTransformer on Transformer {
     Expression? appendFencesToExpression,
     bool? declaresThis,
     _Scope? precomputedCaptureScope,
+    Block? addLateValueVariablesTo,
   }) {
     final scope =
         _Scope(node, parent: _currentScope, declaresThis: declaresThis);
@@ -61,6 +62,15 @@ mixin FinalizableTransformer on Transformer {
     if (appendFencesToExpression != null) {
       appendFencesToExpression.replaceWith(_wrapReachabilityFences(
           appendFencesToExpression, scope.toFenceThisScope));
+    }
+    final lateValueDeclarations = _currentScope?._lateDeclarations ?? {};
+    for (final entry in lateValueDeclarations.entries) {
+      final lateVariable = entry.key;
+      final lateValueVariable = entry.value;
+      addLateValueVariablesTo!.statements.insert(
+        addLateValueVariablesTo.statements.indexOf(lateVariable),
+        lateValueVariable,
+      );
     }
     assert(_currentScope == scope);
     _currentScope = _currentScope!.parent;
@@ -144,6 +154,7 @@ mixin FinalizableTransformer on Transformer {
       node,
       () => super.visitBlock(node),
       appendFencesToStatement: node,
+      addLateValueVariablesTo: node,
     );
   }
 
@@ -253,7 +264,21 @@ mixin FinalizableTransformer on Transformer {
       return node;
     }
     if (_isFinalizable(node.type)) {
-      _currentScope!.addDeclaration(node);
+      if (node.isLate) {
+        final lateValueDeclaration = VariableDeclaration(
+          ':${node.name}:finalizableValue',
+          type: node.type.withDeclaredNullability(Nullability.nullable),
+        );
+        _currentScope!.addLateDeclaration(node, lateValueDeclaration);
+        final initializer = node.initializer;
+        if (initializer != null) {
+          final newInitializer = VariableSet(lateValueDeclaration, initializer);
+          node.initializer = newInitializer;
+          newInitializer.parent = node;
+        }
+      } else {
+        _currentScope!.addDeclaration(node);
+      }
     }
     return node;
   }
@@ -261,20 +286,33 @@ mixin FinalizableTransformer on Transformer {
   @override
   TreeNode visitVariableSet(VariableSet node) {
     node = super.visitVariableSet(node) as VariableSet;
-    if (!_isFinalizable(node.variable.type)) {
+    final variable = node.variable;
+    if (!_isFinalizable(variable.type)) {
       return node;
     }
 
     final expression = node.value;
 
+    if (variable.isLate && variable.initializer == null) {
+      // We can't fence late variables, they might not have been set yet.
+      // Instead we fence the value variable and assign the late variable
+      // value to the value variable.
+      final valueVariable = _currentScope!.lateVariableValueVariable(variable);
+      final newExpression = _wrapReachabilityFences(
+        expression,
+        [VariableGet(valueVariable)],
+      );
+      node.value = newExpression;
+      newExpression.parent = node;
+      return VariableSet(valueVariable, node);
+    }
+
     final newExpression = _wrapReachabilityFences(
       expression,
-      [VariableGet(node.variable)],
+      [VariableGet(variable)],
     );
-
     node.value = newExpression;
     newExpression.parent = node;
-
     return node;
   }
 
@@ -634,7 +672,15 @@ class _Scope {
   ///
   /// We use a list rather than a set because declarations are unique and we'd
   /// like to prevent arbitrary reorderings when generating code from this.
+  ///
+  /// Includes [_lateDeclarations] keys.
   final List<VariableDeclaration> _declarations = [];
+
+  /// The late Finalizable declarations in this scope mapped to nullable non-
+  /// late variables that contain the same value.
+  ///
+  /// The map is mutable, because we populate it during visiting statements.
+  final Map<VariableDeclaration, VariableDeclaration> _lateDeclarations = {};
 
   /// [ThisExpression] is not a [VariableDeclaration] and needs to be tracked
   /// separately.
@@ -671,6 +717,21 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
   void addDeclaration(VariableDeclaration declaration) {
     _declarations.add(declaration);
     allDeclarationsIsEmpty = false;
+  }
+
+  void addLateDeclaration(VariableDeclaration declaration,
+      VariableDeclaration lateValueDeclaration) {
+    _lateDeclarations[declaration] = lateValueDeclaration;
+    addDeclaration(declaration);
+  }
+
+  VariableDeclaration lateVariableValueVariable(
+      VariableDeclaration lateVariable) {
+    final resultThisScope = _lateDeclarations[lateVariable];
+    if (resultThisScope != null) {
+      return resultThisScope;
+    }
+    return parent!.lateVariableValueVariable(lateVariable);
   }
 
   /// Whether [allDeclarations] is empty.
@@ -744,7 +805,11 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     final captures = _captures;
     return [
       if (declaresThis || _capturesThis) ThisExpression(),
-      for (var d in _declarations) VariableGet(d),
+      for (var d in _declarations)
+        if (_lateDeclarations.containsKey(d))
+          VariableGet(_lateDeclarations[d]!)
+        else
+          VariableGet(d),
       if (captures != null)
         for (var d in captures.entries.where((e) => e.value).map((e) => e.key))
           VariableGet(d),
