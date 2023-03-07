@@ -159,44 +159,40 @@ String writeOption(String name, dynamic value) {
   return '$name: <code>$value</code><br> ';
 }
 
-// TODO(brianwilkerson) This page is disabled for production until we determine
-//  whether we want to display some information to the user and if so what
-//  information we want to display.
-//
-// class AnalyticsPage extends DiagnosticPageWithNav {
-//   AnalyticsPage(DiagnosticsSite site)
-//       : super(site, 'analytics', 'Analytics',
-//             description: 'Analytics gathered by the analysis server.');
-//
-//   @override
-//   String? get navDetail => null;
-//
-//   @override
-//   Future generateContent(Map<String, String> params) async {
-//     var manager = server.analyticsManager;
-//     //
-//     // Display the standard header.
-//     //
-//     if (!manager.analytics.telemetryEnabled) {
-//       p('Analytics reporting disabled. In order to enable it, run:');
-//       p('&nbsp;&nbsp;<code>dart --enable-analytics</code>');
-//       p('If analytics had been enabled, the information below would have been '
-//           'reported.');
-//     } else {
-//       p('The Dart tool uses Google Analytics to report feature usage '
-//           'statistics and to send basic crash reports. This data is used to '
-//           'help improve the Dart platform and tools over time.');
-//       p('To disable reporting of analytics, run:');
-//       p('&nbsp;&nbsp;<code>dart --disable-analytics</code>');
-//       p('The information below will be reported the next time analytics are '
-//           'sent.');
-//     }
-//     //
-//     // Display the analytics data that has been gathered.
-//     //
-//     manager.toHtml(buf);
-//   }
-// }
+class AnalyticsPage extends DiagnosticPageWithNav {
+  AnalyticsPage(DiagnosticsSite site)
+      : super(site, 'analytics', 'Analytics',
+            description: 'Analytics gathered by the analysis server.');
+
+  @override
+  String? get navDetail => null;
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    var manager = server.analyticsManager;
+    //
+    // Display the standard header.
+    //
+    if (!manager.analytics.telemetryEnabled) {
+      p('Analytics reporting disabled. In order to enable it, run:');
+      p('&nbsp;&nbsp;<code>dart --enable-analytics</code>');
+      p('If analytics had been enabled, the information below would have been '
+          'reported.');
+    } else {
+      p('The Dart tool uses Google Analytics to report feature usage '
+          'statistics and to send basic crash reports. This data is used to '
+          'help improve the Dart platform and tools over time.');
+      p('To disable reporting of analytics, run:');
+      p('&nbsp;&nbsp;<code>dart --disable-analytics</code>');
+      p('The information below will be reported the next time analytics are '
+          'sent.');
+    }
+    //
+    // Display the analytics data that has been gathered.
+    //
+    manager.toHtml(buf);
+  }
+}
 
 class AstPage extends DiagnosticPageWithNav {
   String? _description;
@@ -1010,6 +1006,10 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
 }
 
 class DiagnosticsSite extends Site implements AbstractGetHandler {
+  /// A flag used to control whether developer support should be included when
+  /// building the pages.
+  static const bool includeDeveloperSupport = false;
+
   /// An object that can handle either a WebSocket connection or a connection
   /// to the client over stdio.
   AbstractSocketServer socketServer;
@@ -1024,7 +1024,9 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(EnvironmentVariablesPage(this));
     pages.add(ExceptionsPage(this));
     // pages.add(new InstrumentationPage(this));
-    // pages.add(AnalyticsPage(this));
+    if (includeDeveloperSupport) {
+      pages.add(AnalyticsPage(this));
+    }
 
     // Add server-specific pages. Ordering doesn't matter as the items are
     // sorted later.
