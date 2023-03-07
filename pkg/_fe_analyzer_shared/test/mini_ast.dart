@@ -877,6 +877,7 @@ class MiniAstOperations
     'Object': false,
     'Object?': false,
     'String': false,
+    'String?': false,
   };
 
   static final Map<String, Type> _coreGlbs = {
@@ -921,6 +922,7 @@ class MiniAstOperations
     'int': Type('int'),
     'int?': Type('int?'),
     'num': Type('num'),
+    'String?': Type('String?'),
     'List<int>': Type('List<int>'),
   };
 
