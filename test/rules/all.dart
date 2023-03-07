@@ -68,6 +68,8 @@ import 'prefer_const_constructors_test.dart' as prefer_const_constructors;
 import 'prefer_const_declarations_test.dart' as prefer_const_declarations;
 import 'prefer_const_literals_to_create_immutables_test.dart'
     as prefer_const_literals_to_create_immutables;
+import 'prefer_constructors_over_static_methods_test.dart'
+    as prefer_constructors_over_static_methods;
 import 'prefer_contains_test.dart' as prefer_contains;
 import 'prefer_final_fields_test.dart' as prefer_final_fields;
 import 'prefer_final_parameters_test.dart' as prefer_final_parameters;
@@ -154,6 +156,7 @@ void main() {
   prefer_const_constructors_in_immutables.main();
   prefer_const_declarations.main();
   prefer_const_literals_to_create_immutables.main();
+  prefer_constructors_over_static_methods.main();
   prefer_contains.main();
   prefer_final_fields.main();
   prefer_final_parameters.main();
