@@ -161,10 +161,7 @@ class A6 extends core::Object {
     : syn::A6::a = a, super core::Object::•()
     ;
 }
-class B6 extends core::Object {
-  synthetic constructor •() → syn::B6
-    : super core::Object::•()
-    ;
+abstract class B6 extends core::Object /*isMixinDeclaration*/  {
 }
 class C6 = syn::A6 with syn::B6 {
   synthetic constructor •({core::int a = #C1}) → syn::C6
@@ -183,10 +180,7 @@ class A8 extends core::Object {
     : syn::A8::a = a, super core::Object::•()
     ;
 }
-class B8 extends core::Object {
-  synthetic constructor •() → syn::B8
-    : super core::Object::•()
-    ;
+abstract class B8 extends core::Object /*isMixinDeclaration*/  {
 }
 class C8 = syn::A8 with syn::B8 {
   synthetic constructor •({core::int? a = #C3}) → syn::C8
