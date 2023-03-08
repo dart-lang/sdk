@@ -8,6 +8,7 @@ Defines the dart2js builders.
 load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
+    "arm64",
     "chrome",
     "firefox",
     "mac",
@@ -16,19 +17,25 @@ load(
 )
 load("//lib/paths.star", "paths")
 
+dart.poller("dart2js-gitiles-trigger", branches = ["main"], paths = paths.dart2js)
+
 dart.ci_sandbox_builder(
-    "dart2js-canary-x64",
+    "dart2js-canary-linux",
     category = "dart2js|c",
+    channels = ["try"],
     properties = [chrome, no_android],
+    triggered_by = ["dart2js-gitiles-trigger-%s"],
 )
 dart.ci_sandbox_builder(
-    "dart2js-strong-hostasserts-linux-ia32-d8",
+    "dart2js-hostasserts-linux-d8",
     category = "dart2js|d8|ha",
+    channels = ["try"],
     location_filters = paths.to_location_filters(paths.dart2js),
     properties = no_android,
+    triggered_by = ["dart2js-gitiles-trigger-%s"],
 )
 dart.ci_sandbox_builder(
-    "dart2js-minified-strong-linux-x64-d8",
+    "dart2js-minified-linux-d8",
     category = "dart2js|d8|mi",
     location_filters = paths.to_location_filters(paths.dart2js),
     properties = no_android,
@@ -40,48 +47,50 @@ dart.ci_sandbox_builder(
     properties = no_android,
 )
 dart.ci_sandbox_builder(
-    "dart2js-strong-linux-x64-chrome",
+    "dart2js-linux-chrome",
     category = "dart2js|chrome|l",
     location_filters = paths.to_location_filters(paths.dart2js),
     properties = [chrome, no_android],
 )
 dart.ci_sandbox_builder(
-    "dart2js-csp-minified-linux-x64-chrome",
+    "dart2js-minified-csp-linux-chrome",
     category = "dart2js|chrome|csp",
     properties = [chrome, no_android],
 )
 dart.ci_sandbox_builder(
-    "dart2js-strong-mac-x64-chrome",
+    "dart2js-mac-chrome",
     category = "dart2js|chrome|m",
-    dimensions = mac,
+    dimensions = [arm64, mac],
     properties = [chrome, no_android],
 )
 dart.ci_sandbox_builder(
-    "dart2js-strong-win-x64-chrome",
+    "dart2js-win-chrome",
     category = "dart2js|chrome|w",
     dimensions = windows,
     properties = [chrome, no_android],
 )
 dart.ci_sandbox_builder(
-    "dart2js-nnbd-linux-x64-chrome",
-    category = "dart2js|chrome|nn",
+    "dart2js-hostasserts-linux-unsound",
+    category = "dart2js|chrome|un",
+    channels = ["try"],
     location_filters = paths.to_location_filters(paths.dart2js),
     properties = [chrome, no_android],
+    triggered_by = ["dart2js-gitiles-trigger-%s"],
 )
 dart.ci_sandbox_builder(
-    "dart2js-strong-linux-x64-firefox",
+    "dart2js-linux-firefox",
     category = "dart2js|firefox|l",
     properties = [firefox, no_android],
 )
 dart.ci_sandbox_builder(
-    "dart2js-strong-win-x64-firefox",
+    "dart2js-win-firefox",
     dimensions = windows,
     enabled = False,
     properties = [firefox, no_android],
 )
 dart.ci_sandbox_builder(
-    "dart2js-strong-mac-x64-safari",
+    "dart2js-mac-safari",
     category = "dart2js|safari|m",
-    dimensions = mac,
+    dimensions = [arm64, mac],
     properties = no_android,
 )
