@@ -121,6 +121,7 @@ monorepo_builder("flutter-linux-debug", "debug", "build")
 monorepo_builder("flutter-linux-debug-unopt", "debug-unopt", "build")
 monorepo_builder("flutter-linux-profile", "profile", "build")
 monorepo_builder("flutter-linux-release", "release", "build")
+monorepo_builder("flutter-wasm-release", "wasm", "build")
 
 def monorepo_tester(name, short_name, category):
     dart.ci_sandbox_builder(
