@@ -1545,15 +1545,18 @@ class Intrinsifier {
       //     if (f1.vtable == f2.vtable) {
       //       if (f1 and f2 are instantiations) {
       //         if (f1.context.inner.vtable == f2.context.inner.vtable) {
-      //           if (identical(f1.context.inner.context,
-      //                         f2.context.inner.context)) {
-      //             return typesEqual(f1.context, f2.context);
+      //           if (typesEqual(f1.context, f2.context)) {
+      //             f1 = f1.context.inner;
+      //             f2 = f2.context.inner;
+      //             if (identical(f1, f2)) return true;
+      //             goto outerClosureContext;
       //           }
       //         }
       //         return false;
       //       }
-      //       if (v1.context is #Top && v2.context is #Top) {
-      //         return identical(v1.context, v2.context);
+      //       outerClosureContext:
+      //       if (f1.context is #Top && f2.context is #Top) {
+      //         return identical(f1.context, f2.context);
       //       }
       //     }
       //     return false;
@@ -1600,12 +1603,15 @@ class Intrinsifier {
       final instantiationContextBase = w.RefType(
           translator.closureLayouter.instantiationContextBaseStruct,
           nullable: false);
-      final instantiationBlock =
+
+      final instantiationCheckPassedBlock = b.block();
+
+      final notInstantiationBlock =
           b.block([], [w.RefType.struct(nullable: false)]);
 
       b.local_get(fun1);
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(instantiationContextBase, instantiationBlock);
+      b.br_on_cast_fail(instantiationContextBase, notInstantiationBlock);
 
       // Closures are instantiations. Compare inner function vtables to check
       // that instantiations are for the same generic function.
@@ -1633,15 +1639,7 @@ class Intrinsifier {
       b.ref_eq();
       b.if_(); // fun1.context.inner.vtable == fun2.context.inner.vtable
 
-      // Closures are instantiations of the same function, compare inner
-      // contexts and types
-      getInstantiationContextInner(fun1);
-      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      getInstantiationContextInner(fun2);
-      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.ref_eq();
-      b.if_(); // fun1.context.inner.context == fun2.context.inner.context
-      // Inner contexts are equal, compare types
+      // Closures are instantiations of the same function, compare types
       b.local_get(fun1);
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
       b.ref_cast(instantiationContextBase);
@@ -1656,14 +1654,27 @@ class Intrinsifier {
           FieldIndex.vtableInstantiationTypeComparisonFunction);
       b.call_ref(translator
           .closureLayouter.instantiationClosureTypeComparisonFunctionType);
+      b.if_();
+      getInstantiationContextInner(fun1);
+      b.local_tee(fun1);
+      getInstantiationContextInner(fun2);
+      b.local_tee(fun2);
+      b.ref_eq();
+      b.if_();
+      b.i32_const(1); // true
       b.return_();
-      b.end(); // fun1.context.inner.context == fun2.context.inner.context
+      b.end();
+      b.br(instantiationCheckPassedBlock);
+      b.end();
+      b.i32_const(0); // false
+      b.return_();
       b.end(); // fun1.context.inner.vtable == fun2.context.inner.vtable
       // Contexts or inner vtables are not equal
       b.i32_const(0); // false
       b.return_();
-      b.end(); // instantiationBlock
+      b.end(); // notInstantiationBlock
       b.drop();
+      b.end(); // instantiationCheckPassedBlock
 
       // Compare context references. If context of a function has the top type
       // then the function is an instance tear-off. Otherwise it's a closure.
