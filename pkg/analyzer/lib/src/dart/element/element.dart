@@ -30,6 +30,7 @@ import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/dart/element/since_sdk_version.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -54,6 +55,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// A concrete implementation of a [ClassElement].
 abstract class AbstractClassElementImpl extends _ExistingElementImpl
@@ -2092,6 +2094,15 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   bool get isConstantEvaluated => evaluationResult != null;
 
+  bool get isDartInternalSince {
+    final element = this.element;
+    if (element is ConstructorElement) {
+      return element.enclosingElement.name == 'Since' &&
+          element.library.source.uri.toString() == 'dart:_internal';
+    }
+    return false;
+  }
+
   @override
   bool get isDeprecated {
     final element = this.element;
@@ -2266,6 +2277,14 @@ abstract class ElementImpl implements Element {
   static const _metadataFlag_isReady = 1 << 0;
   static const _metadataFlag_hasDeprecated = 1 << 1;
   static const _metadataFlag_hasOverride = 1 << 2;
+
+  /// Cached values for [sinceSdkVersion].
+  ///
+  /// Only very few elements have `@Since()` annotations, so instead of adding
+  /// an instance field to [ElementImpl], we attach this information this way.
+  /// We ask it only when [Modifier.HAS_SINCE_SDK_VERSION_VALUE] is `true`, so
+  /// don't pay for a hash lookup when we know that the result is `null`.
+  static final Expando<Version> _sinceSdkVersion = Expando<Version>();
 
   static int _NEXT_ID = 0;
 
@@ -2718,6 +2737,22 @@ abstract class ElementImpl implements Element {
   @override
   AnalysisSession? get session {
     return enclosingElement?.session;
+  }
+
+  @override
+  Version? get sinceSdkVersion {
+    if (!hasModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED)) {
+      setModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED, true);
+      final result = SinceSdkVersionComputer().compute(this);
+      if (result != null) {
+        _sinceSdkVersion[this] = result;
+        setModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE, true);
+      }
+    }
+    if (hasModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE)) {
+      return _sinceSdkVersion[this];
+    }
+    return null;
   }
 
   @override
@@ -4989,58 +5024,66 @@ class Modifier implements Comparable<Modifier> {
   static const Modifier HAS_PART_OF_DIRECTIVE =
       Modifier('HAS_PART_OF_DIRECTIVE', 15);
 
+  /// Indicates that the value of [Element.sinceSdkVersion] was computed.
+  static const Modifier HAS_SINCE_SDK_VERSION_COMPUTED =
+      Modifier('HAS_SINCE_SDK_VERSION_COMPUTED', 16);
+
+  /// [HAS_SINCE_SDK_VERSION_COMPUTED] and the value was not `null`.
+  static const Modifier HAS_SINCE_SDK_VERSION_VALUE =
+      Modifier('HAS_SINCE_SDK_VERSION_VALUE', 17);
+
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 18);
 
   /// Indicates that the modifier 'interface' was applied to the element.
-  static const Modifier INTERFACE = Modifier('INTERFACE', 17);
+  static const Modifier INTERFACE = Modifier('INTERFACE', 19);
 
   /// Indicates that the method invokes the super method with the same name.
-  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 18);
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 20);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 19);
+  static const Modifier LATE = Modifier('LATE', 21);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 20);
+  static const Modifier MACRO = Modifier('MACRO', 22);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 21);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 23);
 
   /// Indicates that a class is a mixin class.
-  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 22);
+  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 24);
 
-  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 23);
+  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 25);
 
   /// Indicates whether the type of a [PropertyInducingElementImpl] should be
   /// used to infer the initializer. We set it to `false` if the type was
   /// inferred from the initializer itself.
   static const Modifier SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE =
-      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 24);
+      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 26);
 
   /// Indicates that the modifier 'sealed' was applied to the element.
-  static const Modifier SEALED = Modifier('SEALED', 25);
+  static const Modifier SEALED = Modifier('SEALED', 27);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 26);
+  static const Modifier SETTER = Modifier('SETTER', 28);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 27);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 29);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 28);
+  static const Modifier STATIC = Modifier('STATIC', 30);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 29);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 31);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 30);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 32);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -5059,6 +5102,8 @@ class Modifier implements Comparable<Modifier> {
     GETTER,
     HAS_INITIALIZER,
     HAS_PART_OF_DIRECTIVE,
+    HAS_SINCE_SDK_VERSION_COMPUTED,
+    HAS_SINCE_SDK_VERSION_VALUE,
     IMPLICIT_TYPE,
     INTERFACE,
     INVOKES_SUPER_SELF,
@@ -5239,6 +5284,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   Element get nonSynthetic => this;
+
+  @override
+  Version? get sinceSdkVersion => null;
 
   @override
   Source? get source => null;
@@ -5890,6 +5938,9 @@ class PropertyAccessorElementImpl_ImplicitGetter
   DartType get returnTypeInternal => variable.type;
 
   @override
+  Version? get sinceSdkVersion => variable.sinceSdkVersion;
+
+  @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
 
   @override
@@ -5958,6 +6009,9 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   DartType get returnTypeInternal => VoidTypeImpl.instance;
+
+  @override
+  Version? get sinceSdkVersion => variable.sinceSdkVersion;
 
   @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
