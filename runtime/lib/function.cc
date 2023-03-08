@@ -44,7 +44,7 @@ static bool ClosureEqualsHelper(Zone* zone,
   const auto& func_b = Function::Handle(zone, other_closure.function());
   // Check that functions match.
   if (func_a.ptr() != func_b.ptr()) {
-    // Closure functions that are not implicit closures (tear-offs) are unique.
+    // Non-implicit closures taken from different functions are not equal.
     if (!func_a.IsImplicitClosureFunction() ||
         !func_b.IsImplicitClosureFunction()) {
       return false;
@@ -80,17 +80,27 @@ static bool ClosureEqualsHelper(Zone* zone,
       const Context& context_b = Context::Handle(zone, other_closure.context());
       return context_a.At(0) == context_b.At(0);
     }
-  } else {
-    // Non-identical closures which are not tear-offs can be equal only if
-    // they are different instantiations of the same generic closure.
-    if (!func_a.IsGeneric() || receiver.IsGeneric() ||
-        (receiver.context() != other_closure.context()) ||
+  } else if (func_a.IsGeneric()) {
+    // Additional constraints for closures of generic functions:
+    // (1) Different instantiations of the same generic closure
+    //     with the same type arguments should be equal.
+    //     This means that instantiated generic closures are not unique
+    //     and equality of instantiated generic closures should not be
+    //     based on identity.
+    // (2) Instantiations of non-equal generic closures should be non-equal.
+    //     This means that equality of non-instantiated generic closures
+    //     should not be based on identity too as it won't match equality
+    //     after instantiation.
+    if ((receiver.context() != other_closure.context()) ||
         (receiver.instantiator_type_arguments() !=
          other_closure.instantiator_type_arguments()) ||
         (receiver.function_type_arguments() !=
          other_closure.function_type_arguments())) {
       return false;
     }
+  } else {
+    // Closures of non-generic functions are unique.
+    return false;
   }
   return true;
 }

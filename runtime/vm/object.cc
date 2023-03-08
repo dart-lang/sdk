@@ -26529,24 +26529,26 @@ uword Closure::ComputeHash() const {
   Zone* zone = thread->zone();
   const Function& func = Function::Handle(zone, function());
   uint32_t result = 0;
-  if (func.IsImplicitInstanceClosureFunction()) {
-    // Implicit instance closures are not unique, so combine function's hash
-    // code, delayed type arguments hash code (if generic), and identityHashCode
-    // of cached receiver.
+  if (func.IsImplicitClosureFunction() || func.IsGeneric()) {
+    // Combine function's hash code, delayed type arguments hash code
+    // (if generic), and identityHashCode of cached receiver (if implicit
+    // instance closure).
     result = static_cast<uint32_t>(func.Hash());
     if (func.IsGeneric()) {
       const TypeArguments& delayed_type_args =
           TypeArguments::Handle(zone, delayed_type_arguments());
       result = CombineHashes(result, delayed_type_args.Hash());
     }
-    const Context& context = Context::Handle(zone, this->context());
-    const Instance& receiver =
-        Instance::Handle(zone, Instance::RawCast(context.At(0)));
-    const Integer& receiverHash =
-        Integer::Handle(zone, receiver.IdentityHashCode(thread));
-    result = CombineHashes(result, receiverHash.AsTruncatedUint32Value());
+    if (func.IsImplicitInstanceClosureFunction()) {
+      const Context& context = Context::Handle(zone, this->context());
+      const Instance& receiver =
+          Instance::Handle(zone, Instance::RawCast(context.At(0)));
+      const Integer& receiverHash =
+          Integer::Handle(zone, receiver.IdentityHashCode(thread));
+      result = CombineHashes(result, receiverHash.AsTruncatedUint32Value());
+    }
   } else {
-    // Explicit closures and implicit static closures are unique,
+    // Non-implicit closures of non-generic functions are unique,
     // so identityHashCode of closure object is good enough.
     const Integer& identityHash =
         Integer::Handle(zone, this->IdentityHashCode(thread));
