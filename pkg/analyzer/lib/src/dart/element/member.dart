@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
@@ -631,6 +632,9 @@ abstract class Member implements Element {
 
   @override
   AnalysisSession? get session => _declaration.session;
+
+  @override
+  Version? get sinceSdkVersion => _declaration.sinceSdkVersion;
 
   /// The substitution for type parameters referenced in the base element.
   MapSubstitution get substitution => _substitution;

@@ -728,6 +728,23 @@ abstract class Element implements AnalysisTarget {
   /// Return the analysis session in which this element is defined.
   AnalysisSession? get session;
 
+  /// The version where this SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in SDK, or does not have
+  /// a `@Since()` annotation applicable to it.
+  Version? get sinceSdkVersion;
+
   @override
   Source? get source;
 

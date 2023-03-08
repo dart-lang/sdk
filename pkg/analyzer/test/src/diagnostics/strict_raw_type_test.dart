@@ -20,6 +20,7 @@ class StrictRawTypeTest extends PubPackageResolutionTest {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
+        experiments: experiments,
         strictRawTypes: true,
       ),
     );
@@ -105,14 +106,16 @@ void f() {
 
   test_mixinApplication_missing() async {
     await assertErrorsInCode(r'''
-class C<T> {}
+mixin class C<T> {}
 class D = Object with C;
-''', [error(HintCode.STRICT_RAW_TYPE, 36, 1)]);
+''', [
+      error(HintCode.STRICT_RAW_TYPE, 42, 1),
+    ]);
   }
 
   test_mixinApplication_withTypeArg() async {
     await assertNoErrorsInCode(r'''
-class C<T> {}
+mixin class C<T> {}
 class D = Object with C<int>;
 ''');
   }
@@ -159,14 +162,16 @@ List f(int a) => [1, 2, 3];
 
   test_superclassWith_missingTypeArg() async {
     await assertErrorsInCode(r'''
-class C<T> {}
+mixin class C<T> {}
 class D extends Object with C {}
-''', [error(HintCode.STRICT_RAW_TYPE, 42, 1)]);
+''', [
+      error(HintCode.STRICT_RAW_TYPE, 48, 1),
+    ]);
   }
 
   test_superclassWith_withTypeArg() async {
     await assertNoErrorsInCode(r'''
-class C<T> {}
+mixin class C<T> {}
 class D extends Object with C<int> {}
 ''');
   }
@@ -252,7 +257,7 @@ F3 f3 = <T>(T a) => a;
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
-class C<T> {}
+mixin class C<T> {}
 class D extends C {}
 class E extends Object with C {}
 class F = Object with C;

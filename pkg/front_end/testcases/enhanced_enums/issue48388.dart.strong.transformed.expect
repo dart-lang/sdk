@@ -2,35 +2,35 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/issue48388.dart:6:13: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:8:13: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 //   final int values = 42; // Error.
 //             ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/issue48388.dart:14:12: Error: 'M3' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:16:12: Error: 'M3' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 //   void set values(String x) {} // Error.
 //            ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/issue48388.dart:22:11: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:24:11: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 //   num get values => 0; // Error.
 //           ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/issue48388.dart:23:12: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:25:12: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 //   void set values(num x) {} // Error.
 //            ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/issue48388.dart:27:7: Error: 'E1' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:29:7: Error: 'E1' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 //   int values() => 42; // Error.
 //       ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/issue48388.dart:35:12: Error: 'E3' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:37:12: Error: 'E3' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 //   void set values(num x) {} // Error.
 //            ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/issue48388.dart:43:11: Error: 'E5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:45:11: Error: 'E5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 //   num get values => 0; // Error.
 //           ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/issue48388.dart:44:12: Error: 'E5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:46:12: Error: 'E5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 //   void set values(num x) {} // Error.
 //            ^^^^^^
 //

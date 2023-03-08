@@ -46,8 +46,8 @@ class BooleanArray {
   /// Throw an exception if the index is not within the bounds allowed for an
   /// integer-encoded array of boolean values.
   static void _checkIndex(int index) {
-    if (index < 0 || index > 30) {
-      throw RangeError("Index not between 0 and 30: $index");
+    if (index < 0 || index > 60) {
+      throw RangeError("Index not between 0 and 60: $index");
     }
   }
 }

@@ -297,7 +297,8 @@ mixin FinalizableTransformer on Transformer {
       // We can't fence late variables, they might not have been set yet.
       // Instead we fence the value variable and assign the late variable
       // value to the value variable.
-      final valueVariable = _currentScope!.lateVariableValueVariable(variable);
+      final valueVariable = _currentScope!
+          .lateVariableValueVariable(variable, checkAncestorScopes: true)!;
       final newExpression = _wrapReachabilityFences(
         expression,
         [VariableGet(valueVariable)],
@@ -725,13 +726,29 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     addDeclaration(declaration);
   }
 
-  VariableDeclaration lateVariableValueVariable(
-      VariableDeclaration lateVariable) {
+  VariableDeclaration? lateVariableValueVariable(
+      VariableDeclaration lateVariable,
+      {required bool checkAncestorScopes}) {
     final resultThisScope = _lateDeclarations[lateVariable];
     if (resultThisScope != null) {
       return resultThisScope;
     }
-    return parent!.lateVariableValueVariable(lateVariable);
+    if (!checkAncestorScopes) {
+      return null;
+    }
+    return parent?.lateVariableValueVariable(lateVariable,
+        checkAncestorScopes: checkAncestorScopes);
+  }
+
+  VariableDeclaration variableToFence(VariableDeclaration declaration,
+      {required bool checkAncestorScopes}) {
+    final possibleValueToFence = lateVariableValueVariable(declaration,
+        checkAncestorScopes: checkAncestorScopes);
+    if (possibleValueToFence != null) {
+      return possibleValueToFence;
+    }
+
+    return declaration;
   }
 
   /// Whether [allDeclarations] is empty.
@@ -806,13 +823,10 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     return [
       if (declaresThis || _capturesThis) ThisExpression(),
       for (var d in _declarations)
-        if (_lateDeclarations.containsKey(d))
-          VariableGet(_lateDeclarations[d]!)
-        else
-          VariableGet(d),
+        VariableGet(variableToFence(d, checkAncestorScopes: false)),
       if (captures != null)
         for (var d in captures.entries.where((e) => e.value).map((e) => e.key))
-          VariableGet(d),
+          VariableGet(variableToFence(d, checkAncestorScopes: true)),
     ];
   }
 

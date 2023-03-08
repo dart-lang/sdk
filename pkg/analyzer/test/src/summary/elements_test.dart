@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -41,6 +43,9 @@ class ElementsKeepLinkingTest extends ElementsTest {
 }
 
 abstract class ElementsTest extends ElementsBaseTest {
+  @override
+  List<MockSdkLibrary> additionalMockSdkLibraries = [];
+
   test_annotationArgument_recordLiteral() async {
     var library = await buildLibrary('''
 @A((2, a: 3))
@@ -37237,6 +37242,513 @@ library
 ''');
   }
 
+  test_sinceSdkVersion_class_constructor_inherits() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+class A {
+  A.named();
+}
+
+class B {
+  B.named();
+}
+''');
+    configuration
+      ..forSinceSdkVersion()
+      ..withConstructors = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @47
+        sinceSdkVersion: 2.15.0
+        constructors
+          named @55
+            sinceSdkVersion: 2.15.0
+            periodOffset: 54
+            nameEnd: 60
+      class B @73
+        constructors
+          named @81
+            periodOffset: 80
+            nameEnd: 86
+''');
+  }
+
+  test_sinceSdkVersion_class_field_inherits() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+class A {
+  int foo = 0;
+}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @47
+        sinceSdkVersion: 2.15.0
+        fields
+          foo @57
+            sinceSdkVersion: 2.15.0
+            type: int
+            shouldUseTypeForInitializerInference: true
+        accessors
+          synthetic get foo @-1
+            sinceSdkVersion: 2.15.0
+            returnType: int
+          synthetic set foo @-1
+            sinceSdkVersion: 2.15.0
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_class_getter_inherits() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+class A {
+  int get foo => 0;
+}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @47
+        sinceSdkVersion: 2.15.0
+        fields
+          synthetic foo @-1
+            type: int
+        accessors
+          get foo @61
+            sinceSdkVersion: 2.15.0
+            returnType: int
+''');
+  }
+
+  test_sinceSdkVersion_class_method_inherits() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+class A {
+  void foo() {}
+}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @47
+        sinceSdkVersion: 2.15.0
+        methods
+          foo @58
+            sinceSdkVersion: 2.15.0
+            returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_class_method_max_greater() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+class A {
+  @Since('2.16')
+  void foo() {}
+}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @47
+        sinceSdkVersion: 2.15.0
+        methods
+          foo @75
+            sinceSdkVersion: 2.16.0
+            returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_class_method_max_less() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+class A {
+  @Since('2.14')
+  void foo() {}
+}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @47
+        sinceSdkVersion: 2.15.0
+        methods
+          foo @75
+            sinceSdkVersion: 2.15.0
+            returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_class_setter_inherits() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+class A {
+  set foo(int _) {}
+}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @47
+        sinceSdkVersion: 2.15.0
+        fields
+          synthetic foo @-1
+            type: int
+        accessors
+          set foo @57
+            sinceSdkVersion: 2.15.0
+            parameters
+              requiredPositional _ @65
+                type: int
+            returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_enum_constant() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+enum E {
+  v1,
+  @Since('2.15')
+  v2
+}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @31
+        supertype: Enum
+        fields
+          static const enumConstant v1 @37
+            type: E
+            shouldUseTypeForInitializerInference: false
+          static const enumConstant v2 @60
+            sinceSdkVersion: 2.15.0
+            type: E
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<E>
+        accessors
+          synthetic static get v1 @-1
+            returnType: E
+          synthetic static get v2 @-1
+            sinceSdkVersion: 2.15.0
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+''');
+  }
+
+  test_sinceSdkVersion_enum_method_inherits() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+enum E {
+  v;
+  void foo() {}
+}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @46
+        sinceSdkVersion: 2.15.0
+        supertype: Enum
+        fields
+          static const enumConstant v @52
+            sinceSdkVersion: 2.15.0
+            type: E
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<E>
+        accessors
+          synthetic static get v @-1
+            sinceSdkVersion: 2.15.0
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+        methods
+          foo @62
+            sinceSdkVersion: 2.15.0
+            returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_extension_method_inherits() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+extension E on int {
+  void foo() {}
+}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      E @51
+        sinceSdkVersion: 2.15.0
+        extendedType: int
+        methods
+          foo @69
+            sinceSdkVersion: 2.15.0
+            returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_mixin_method_inherits() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+mixin M {
+  void foo() {}
+}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @47
+        sinceSdkVersion: 2.15.0
+        superclassConstraints
+          Object
+        methods
+          foo @58
+            sinceSdkVersion: 2.15.0
+            returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_unit_function() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+void foo() {}
+
+void bar() {}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      foo @46
+        sinceSdkVersion: 2.15.0
+        returnType: void
+      bar @61
+        returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_unit_function_format_extended() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15.3-dev.7')
+void foo() {}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      foo @54
+        sinceSdkVersion: 2.15.3-dev.7
+        returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_unit_function_format_full() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15.3')
+void foo() {}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      foo @48
+        sinceSdkVersion: 2.15.3
+        returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_unit_function_format_invalid() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('42')
+void foo() {}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      foo @44
+        returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_unit_function_inherits() async {
+    final library = await _buildDartFooLibrary(r'''
+@Since('2.15')
+library;
+
+import 'dart:_internal';
+
+void foo() {}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  sinceSdkVersion: 2.15.0
+  definingUnit
+    functions
+      foo @56
+        sinceSdkVersion: 2.15.0
+        returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_unit_function_parameters_optionalNamed() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+void f(int p1, {
+  @Since('2.15')
+  int? p2,
+}) {}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @31
+        parameters
+          requiredPositional p1 @37
+            type: int
+          optionalNamed p2 @67
+            type: int?
+            sinceSdkVersion: 2.15.0
+        returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_unit_function_parameters_optionalPositional() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+void f(int p1, [
+  @Since('2.15')
+  int? p2,
+]) {}
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @31
+        parameters
+          requiredPositional p1 @37
+            type: int
+          optionalPositional p2 @67
+            type: int?
+            sinceSdkVersion: 2.15.0
+        returnType: void
+''');
+  }
+
+  test_sinceSdkVersion_unit_typeAlias() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+typedef A = List<int>;
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @49
+        sinceSdkVersion: 2.15.0
+        aliasedType: List<int>
+''');
+  }
+
+  test_sinceSdkVersion_unit_variable() async {
+    final library = await _buildDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+final foo = 0;
+''');
+    configuration.forSinceSdkVersion();
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final foo @47
+        sinceSdkVersion: 2.15.0
+        type: int
+        shouldUseTypeForInitializerInference: false
+    accessors
+      synthetic static get foo @-1
+        sinceSdkVersion: 2.15.0
+        returnType: int
+''');
+  }
+
   test_syntheticFunctionType_genericClosure() async {
     var library = await buildLibrary('''
 final v = f() ? <T>(T t) => 0 : <T>(T t) => 1;
@@ -43433,6 +43945,16 @@ library
     expect(typeStringList, expected);
   }
 
+  Future<LibraryElementImpl> _buildDartFooLibrary(String content) async {
+    additionalMockSdkLibraries.add(
+      MockSdkLibrary('foo', [
+        MockSdkLibraryUnit('foo/foo.dart', content),
+      ]),
+    );
+
+    return await _libraryByUriFromTest('dart:foo');
+  }
+
   Element _elementOfDefiningUnit(
       LibraryElementImpl library, List<String> names) {
     var reference = library.definingCompilationUnit.reference!;
@@ -43447,6 +43969,16 @@ library
 
     var elementFactory = library.linkedData!.elementFactory;
     return elementFactory.elementOfReference(reference)!;
+  }
+
+  /// Returns the library for [uriStr] from the context of [testFile].
+  Future<LibraryElementImpl> _libraryByUriFromTest(String uriStr) async {
+    final analysisContext = contextFor(testFile);
+    final analysisSession = analysisContext.currentSession;
+
+    final libraryResult = await analysisSession.getLibraryByUri(uriStr);
+    libraryResult as LibraryElementResult;
+    return libraryResult.element as LibraryElementImpl;
   }
 }
 
@@ -43475,5 +44007,12 @@ extension on ElementTextConfiguration {
       }
       return true;
     };
+  }
+
+  void forSinceSdkVersion() {
+    withConstantInitializers = false;
+    withConstructors = false;
+    withImports = false;
+    withMetadata = false;
   }
 }

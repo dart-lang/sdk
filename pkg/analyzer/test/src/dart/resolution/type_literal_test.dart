@@ -11,7 +11,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeLiteralResolutionTest);
-    defineReflectiveTests(TypeLiteralResolutionWithoutConstructorTearoffsTest);
+    defineReflectiveTests(TypeLiteralResolutionTest_WithoutConstructorTearoffs);
   });
 }
 
@@ -421,7 +421,7 @@ var t = T<void Function()>;
 }
 
 @reflectiveTest
-class TypeLiteralResolutionWithoutConstructorTearoffsTest
+class TypeLiteralResolutionTest_WithoutConstructorTearoffs
     extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
   test_class() async {
     await assertErrorsInCode('''

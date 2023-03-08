@@ -14,15 +14,15 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(GenericTypeAliasDriverResolutionTest);
+    defineReflectiveTests(GenericTypeAliasResolutionTest);
     defineReflectiveTests(
-        GenericTypeAliasDriverResolutionWithoutGenericMetadataTest);
+        GenericTypeAliasResolutionTest_WithoutGenericMetadata);
   });
 }
 
 @reflectiveTest
-class GenericTypeAliasDriverResolutionTest extends PubPackageResolutionTest
-    with GenericTypeAliasDriverResolutionTestCases {
+class GenericTypeAliasResolutionTest extends PubPackageResolutionTest
+    with GenericTypeAliasResolutionTestCases {
   test_genericFunctionTypeCannotBeTypeArgument_def_class() async {
     await assertNoErrorsInCode(r'''
 class C<T> {}
@@ -97,97 +97,9 @@ C<G>? x;
   }
 }
 
-mixin GenericTypeAliasDriverResolutionTestCases on PubPackageResolutionTest {
-  test_genericFunctionTypeCannotBeTypeArgument_OK_def_class() async {
-    await assertNoErrorsInCode(r'''
-class C<T> {}
-
-typedef G = Function();
-
-C<G> x = C();
-''');
-  }
-
-  test_genericFunctionTypeCannotBeTypeArgument_OK_literal_class() async {
-    await assertNoErrorsInCode(r'''
-class C<T> {}
-
-C<Function()> x = C();
-''');
-  }
-
-  test_missingGenericFunction() async {
-    await assertErrorsInCode(r'''
-typedef F<T> = ;
-
-void f() {
-  F.a;
-}
-''', [
-      error(ParserErrorCode.EXPECTED_TYPE_NAME, 15, 1),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 15, 0),
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 1),
-    ]);
-  }
-
-  test_missingGenericFunction_imported_withPrefix() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-typedef F<T> = ;
-''');
-    await assertErrorsInCode(r'''
-import 'a.dart' as p;
-
-void f() {
-  p.F.a;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1),
-    ]);
-  }
-
-  test_type_element() async {
-    await assertNoErrorsInCode(r'''
-G<int>? g;
-
-typedef G<T> = T Function(double);
-''');
-    var type = findElement.topVar('g').type as FunctionType;
-    assertType(type, 'int Function(double)?');
-    assertTypeAlias(
-      type,
-      element: findElement.typeAlias('G'),
-      typeArguments: ['int'],
-    );
-  }
-
-  test_typeParameters() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-
-class B {}
-
-typedef F<T extends A> = B Function<U extends B>(T a, U b);
-''');
-    var f = findElement.typeAlias('F');
-    expect(f.typeParameters, hasLength(1));
-
-    var t = f.typeParameters[0];
-    expect(t.name, 'T');
-    assertType(t.bound, 'A');
-
-    var ff = f.aliasedElement as GenericFunctionTypeElement;
-    expect(ff.typeParameters, hasLength(1));
-
-    var u = ff.typeParameters[0];
-    expect(u.name, 'U');
-    assertType(u.bound, 'B');
-  }
-}
-
 @reflectiveTest
-class GenericTypeAliasDriverResolutionWithoutGenericMetadataTest
-    extends PubPackageResolutionTest
-    with GenericTypeAliasDriverResolutionTestCases {
+class GenericTypeAliasResolutionTest_WithoutGenericMetadata
+    extends PubPackageResolutionTest with GenericTypeAliasResolutionTestCases {
   @override
   List<String> get experiments =>
       super.experiments..remove(EnableString.generic_metadata);
@@ -272,5 +184,92 @@ F<Function<S>()>? x;
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
           38, 13),
     ]);
+  }
+}
+
+mixin GenericTypeAliasResolutionTestCases on PubPackageResolutionTest {
+  test_genericFunctionTypeCannotBeTypeArgument_OK_def_class() async {
+    await assertNoErrorsInCode(r'''
+class C<T> {}
+
+typedef G = Function();
+
+C<G> x = C();
+''');
+  }
+
+  test_genericFunctionTypeCannotBeTypeArgument_OK_literal_class() async {
+    await assertNoErrorsInCode(r'''
+class C<T> {}
+
+C<Function()> x = C();
+''');
+  }
+
+  test_missingGenericFunction() async {
+    await assertErrorsInCode(r'''
+typedef F<T> = ;
+
+void f() {
+  F.a;
+}
+''', [
+      error(ParserErrorCode.EXPECTED_TYPE_NAME, 15, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 15, 0),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 1),
+    ]);
+  }
+
+  test_missingGenericFunction_imported_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef F<T> = ;
+''');
+    await assertErrorsInCode(r'''
+import 'a.dart' as p;
+
+void f() {
+  p.F.a;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1),
+    ]);
+  }
+
+  test_type_element() async {
+    await assertNoErrorsInCode(r'''
+G<int>? g;
+
+typedef G<T> = T Function(double);
+''');
+    var type = findElement.topVar('g').type as FunctionType;
+    assertType(type, 'int Function(double)?');
+    assertTypeAlias(
+      type,
+      element: findElement.typeAlias('G'),
+      typeArguments: ['int'],
+    );
+  }
+
+  test_typeParameters() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+class B {}
+
+typedef F<T extends A> = B Function<U extends B>(T a, U b);
+''');
+    var f = findElement.typeAlias('F');
+    expect(f.typeParameters, hasLength(1));
+
+    var t = f.typeParameters[0];
+    expect(t.name, 'T');
+    assertType(t.bound, 'A');
+
+    var ff = f.aliasedElement as GenericFunctionTypeElement;
+    expect(ff.typeParameters, hasLength(1));
+
+    var u = ff.typeParameters[0];
+    expect(u.name, 'U');
+    assertType(u.bound, 'B');
   }
 }

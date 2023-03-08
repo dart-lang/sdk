@@ -1008,6 +1008,12 @@ class FixProcessor extends BaseProcessor {
       CreateConstructor.new,
       ConvertToNamedArguments.new,
     ],
+    CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY: [
+      RemoveNameFromDeclarationClause.new,
+    ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED: [
       AddLate.new,
       CreateConstructorForFinalFields.new,

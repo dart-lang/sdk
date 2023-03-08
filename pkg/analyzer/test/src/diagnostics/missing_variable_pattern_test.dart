@@ -555,6 +555,8 @@ void f(num x) {
   switch (x) {
     case final int a || 2:
       return;
+    default:
+      return;
   }
 }
 ''', [
@@ -663,6 +665,8 @@ void f(num x) {
     case final double a:
     case 2:
       return;
+    default:
+      return;
   }
 }
 ''', [
@@ -708,6 +712,8 @@ void f(num x) {
     case final double a:
       return;
     case 2:
+      return;
+    default:
       return;
   }
 }

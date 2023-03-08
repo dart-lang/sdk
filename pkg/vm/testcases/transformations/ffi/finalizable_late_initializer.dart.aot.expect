@@ -18,7 +18,7 @@ static method main() → void {
   late final self::Foo foo = #foo#initializer(){() → self::Foo};
   (() → Null {
     core::print(foo);
-    _in::reachabilityFence(foo);
+    _in::reachabilityFence(:foo:finalizableValue);
   })(){() → Null};
   self::Foo? :foo2:finalizableValue;
   function #foo2#initializer() → self::Foo

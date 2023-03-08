@@ -19,6 +19,11 @@ class ExtendsDisallowedClassTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 class A extends bool {}
 ''', [
+      error(
+          CompileTimeErrorCode
+              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          6,
+          1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 4),
     ]);
   }
@@ -27,6 +32,11 @@ class A extends bool {}
     await assertErrorsInCode('''
 class A extends double {}
 ''', [
+      error(
+          CompileTimeErrorCode
+              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          6,
+          1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 6),
     ]);
   }
@@ -72,6 +82,11 @@ class A<T> extends FutureOr<T> {}
     await assertErrorsInCode('''
 class A extends int {}
 ''', [
+      error(
+          CompileTimeErrorCode
+              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          6,
+          1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 3),
     ]);
   }
@@ -96,6 +111,11 @@ class A extends num {}
     await assertErrorsInCode('''
 class A extends Record {}
 ''', [
+      error(
+          CompileTimeErrorCode
+              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          6,
+          1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 6),
     ]);
   }
@@ -104,6 +124,11 @@ class A extends Record {}
     await assertErrorsInCode('''
 class A extends String {}
 ''', [
+      error(
+          CompileTimeErrorCode
+              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          6,
+          1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 6),
     ]);
   }

@@ -255,12 +255,6 @@ abstract class ContextResolutionTest
       registerLintRules();
       _lintRulesAreRegistered = true;
     }
-
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-      additionalLibraries: additionalMockSdkLibraries,
-    );
   }
 
   @mustCallSuper
@@ -299,6 +293,12 @@ abstract class ContextResolutionTest
     if (_analysisContextCollection != null) {
       return;
     }
+
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+      additionalLibraries: additionalMockSdkLibraries,
+    );
 
     _analysisContextCollection = AnalysisContextCollectionImpl(
       byteStore: _byteStore,
