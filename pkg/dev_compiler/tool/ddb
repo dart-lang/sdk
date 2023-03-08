@@ -136,6 +136,14 @@ void main(List<String> args) async {
   var libname =
       js_names.pathToJSIdentifier(p.relative(p.withoutExtension(entry)));
 
+  // This is used in the DDC module system and usually corresponds to the
+  // entrypoint's path.
+  var appname = p.relative(p.withoutExtension(entry));
+
+  // This is used in the DDC module system for multiapp workflows and is
+  // stubbed in ddb.
+  var uuid = "00000000-0000-0000-0000-000000000000";
+
   // By default (no `-d`), we use the `dartdevc` binary on the user's path to
   // compute the SDK we use for execution.  I.e., we assume that `dart` is
   // under `$DART_SDK/bin/dart` and use that to find `dartdevc` and related
@@ -353,7 +361,7 @@ sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
 // Invoke main through the d8 preamble to ensure the code is running
 // within the fake event loop.
 self.dartMainRunner(function () {
-  dart_library.start("$basename", "$libname");
+  dart_library.start("$appname", "$uuid", "$basename", "$libname", false);
 });
 ''';
       var dart2jsD8Preamble =

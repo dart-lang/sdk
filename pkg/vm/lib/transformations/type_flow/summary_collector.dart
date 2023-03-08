@@ -1629,16 +1629,19 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitRecordLiteral(RecordLiteral node) {
-    final Type receiver = _typesBuilder.recordType;
+    final recordShape = RecordShape(node.recordType);
+    final Type receiver = _typesBuilder.getRecordType(recordShape, true);
     for (int i = 0; i < node.positional.length; ++i) {
-      final Field f = _entryPointsListener.getRecordPositionalField(i);
+      final Field f =
+          _entryPointsListener.getRecordPositionalField(recordShape, i);
       final TypeExpr value = _visit(node.positional[i]);
       final args = Args<TypeExpr>([receiver, value]);
       _makeCall(node,
           DirectSelector(f, callKind: CallKind.SetFieldInConstructor), args);
     }
     for (var expr in node.named) {
-      final Field f = _entryPointsListener.getRecordNamedField(expr.name);
+      final Field f =
+          _entryPointsListener.getRecordNamedField(recordShape, expr.name);
       final TypeExpr value = _visit(expr.value);
       final args = Args<TypeExpr>([receiver, value]);
       _makeCall(node,
@@ -1651,8 +1654,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitRecordIndexGet(RecordIndexGet node) {
     final receiver = _visit(node.receiver);
-    final Field field =
-        _entryPointsListener.getRecordPositionalField(node.index);
+    final Field field = _entryPointsListener.getRecordPositionalField(
+        RecordShape(node.receiverType), node.index);
     final args = Args<TypeExpr>([receiver]);
     return _makeCall(
         node, DirectSelector(field, callKind: CallKind.PropertyGet), args);
@@ -1661,7 +1664,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitRecordNameGet(RecordNameGet node) {
     final receiver = _visit(node.receiver);
-    final Field field = _entryPointsListener.getRecordNamedField(node.name);
+    final Field field = _entryPointsListener.getRecordNamedField(
+        RecordShape(node.receiverType), node.name);
     final args = Args<TypeExpr>([receiver]);
     return _makeCall(
         node, DirectSelector(field, callKind: CallKind.PropertyGet), args);
@@ -2628,14 +2632,16 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
   @override
   Type visitRecordConstant(RecordConstant constant) {
     final epl = summaryCollector._entryPointsListener;
-    final Type receiver = summaryCollector._typesBuilder.recordType;
+    final recordShape = RecordShape(constant.recordType);
+    final Type receiver =
+        summaryCollector._typesBuilder.getRecordType(recordShape, true);
     for (int i = 0; i < constant.positional.length; ++i) {
-      final Field f = epl.getRecordPositionalField(i);
+      final Field f = epl.getRecordPositionalField(recordShape, i);
       final Type value = typeFor(constant.positional[i]);
       epl.addFieldUsedInConstant(f, receiver, value);
     }
     constant.named.forEach((String fieldName, Constant fieldValue) {
-      final Field f = epl.getRecordNamedField(fieldName);
+      final Field f = epl.getRecordNamedField(recordShape, fieldName);
       final Type value = typeFor(fieldValue);
       epl.addFieldUsedInConstant(f, receiver, value);
     });

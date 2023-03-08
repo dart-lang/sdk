@@ -17,7 +17,7 @@ import 'calls.dart' as calls
 import 'native_code.dart'
     show EntryPointsListener, NativeCodeOracle, PragmaEntryPointsVisitor;
 import 'protobuf_handler.dart' show ProtobufHandler;
-import 'types.dart' show TFClass, Type, ConcreteType;
+import 'types.dart' show TFClass, Type, ConcreteType, RecordShape;
 import '../pragma.dart' show ConstantPragmaAnnotationParser;
 
 class Selector {
@@ -527,10 +527,12 @@ class _EntryPointsListenerImpl implements EntryPointsListener {
   ConcreteType addAllocatedClass(Class c) => rta.addAllocatedClass(c);
 
   @override
-  Field getRecordPositionalField(int pos) => throw 'Unsupported operation';
+  Field getRecordPositionalField(RecordShape shape, int pos) =>
+      throw 'Unsupported operation';
 
   @override
-  Field getRecordNamedField(String name) => throw 'Unsupported operation';
+  Field getRecordNamedField(RecordShape shape, String name) =>
+      throw 'Unsupported operation';
 
   @override
   void recordMemberCalledViaInterfaceSelector(Member target) =>

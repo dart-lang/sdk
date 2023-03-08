@@ -54,11 +54,11 @@ class FakeEntryPointsListener implements EntryPointsListener {
   }
 
   @override
-  Field getRecordPositionalField(int pos) =>
-      getRecordNamedField("\$${pos + 1}");
+  Field getRecordPositionalField(RecordShape shape, int pos) =>
+      getRecordNamedField(shape, shape.fieldName(pos));
 
   @override
-  Field getRecordNamedField(String name) =>
+  Field getRecordNamedField(RecordShape shape, String name) =>
       Field.immutable(Name(name), fileUri: dummyUri);
 
   @override

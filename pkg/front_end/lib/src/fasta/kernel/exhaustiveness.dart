@@ -481,8 +481,8 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       } else {
         return new Space(
             path,
-            cache.getUniqueStaticType(
-                constant.getType(context), constant, '${constant}'));
+            cache.getUniqueStaticType(constant.getType(context), constant,
+                constant.toText(textStrategy)));
       }
     } else {
       // TODO(johnniwinther): Assert that constant value is available when the

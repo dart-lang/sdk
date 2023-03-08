@@ -23,11 +23,11 @@ abstract class EntryPointsListener {
   /// Add instantiation of the given class.
   ConcreteType addAllocatedClass(Class c);
 
-  /// Returns synthetic Field representing positional field of a record.
-  Field getRecordPositionalField(int pos);
+  /// Returns Field representing positional field of a record with given shape.
+  Field getRecordPositionalField(RecordShape shape, int pos);
 
-  /// Returns synthetic Field representing named field of a record.
-  Field getRecordNamedField(String name);
+  /// Returns Field representing named field of a record with given shape.
+  Field getRecordNamedField(RecordShape shape, String name);
 
   /// Record the fact that given member is called via interface selector
   /// (not dynamically, and not from `this`).

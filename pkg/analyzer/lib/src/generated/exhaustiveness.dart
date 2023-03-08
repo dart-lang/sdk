@@ -428,7 +428,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
       }
     }
     return Space(
-        path, cache.getUniqueStaticType(type, value, value.toString()));
+        path, cache.getUniqueStaticType(type, value, value.state.toString()));
   }
 }
 

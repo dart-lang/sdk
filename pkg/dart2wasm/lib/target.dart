@@ -30,6 +30,7 @@ import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
 
 import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
+import 'package:dart2wasm/records.dart' show RecordShape;
 
 class WasmTarget extends Target {
   WasmTarget({this.constantBranchPruning = true});
@@ -362,4 +363,11 @@ class WasmTarget extends Target {
 
   @override
   bool isSupportedPragma(String pragmaName) => pragmaName.startsWith("wasm:");
+
+  late final Map<RecordShape, Class> recordClasses;
+
+  @override
+  Class getRecordImplementationClass(CoreTypes coreTypes,
+          int numPositionalFields, List<String> namedFields) =>
+      recordClasses[RecordShape(numPositionalFields, namedFields)]!;
 }

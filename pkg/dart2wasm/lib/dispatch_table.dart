@@ -250,16 +250,10 @@ class DispatchTable {
     final cls = member.enclosingClass;
     final isWasmType = cls != null && translator.isWasmType(cls);
 
-    // TODO(51363): Dynamic call metadata is not accurate for record fields, so
-    // we consider them to be dynamically called.
-    final isRecordMember =
-        member.enclosingClass?.superclass == translator.recordInfo.cls;
-
     final calledDynamically = !isWasmType &&
-            (metadata.getterCalledDynamically ||
-                metadata.methodOrSetterCalledDynamically ||
-                member.name.text == "call") ||
-        isRecordMember;
+        (metadata.getterCalledDynamically ||
+            metadata.methodOrSetterCalledDynamically ||
+            member.name.text == "call");
 
     final selector = _selectorInfo.putIfAbsent(
         selectorId,

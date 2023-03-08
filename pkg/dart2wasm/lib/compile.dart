@@ -21,7 +21,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
 
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
@@ -58,7 +57,7 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
     handleDiagnosticMessage(message);
   }
 
-  Target target =
+  final WasmTarget target =
       WasmTarget(constantBranchPruning: options.constantBranchPruning);
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
@@ -96,6 +95,7 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
 
   final Map<RecordShape, Class> recordClasses =
       generateRecordClasses(component, coreTypes);
+  target.recordClasses = recordClasses;
 
   globalTypeFlow.transformComponent(target, coreTypes, component,
       treeShakeSignatures: true,
