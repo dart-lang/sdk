@@ -11,7 +11,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SimpleIdentifierResolutionTest);
-    defineReflectiveTests(SimpleIdentifierResolutionWithoutNullSafetyTest);
+    defineReflectiveTests(SimpleIdentifierResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -289,6 +289,11 @@ SimpleIdentifier
   }
 }
 
+@reflectiveTest
+class SimpleIdentifierResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with SimpleIdentifierResolutionTestCases, WithoutNullSafetyMixin {}
+
 mixin SimpleIdentifierResolutionTestCases on PubPackageResolutionTest {
   test_dynamic_explicitCore() async {
     await assertNoErrorsInCode(r'''
@@ -412,8 +417,3 @@ class A {
     assertType(identifier, 'void Function(int)');
   }
 }
-
-@reflectiveTest
-class SimpleIdentifierResolutionWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with SimpleIdentifierResolutionTestCases, WithoutNullSafetyMixin {}

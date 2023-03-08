@@ -10,12 +10,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AssignmentDriverResolutionTest);
+    defineReflectiveTests(AssignmentExpressionResolutionTest);
   });
 }
 
 @reflectiveTest
-class AssignmentDriverResolutionTest extends PubPackageResolutionTest {
+class AssignmentExpressionResolutionTest extends PubPackageResolutionTest {
   test_compound_plus_int_context_int() async {
     await assertNoErrorsInCode('''
 T f<T>() => throw Error();

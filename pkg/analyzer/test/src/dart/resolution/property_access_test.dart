@@ -11,7 +11,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PropertyAccessResolutionTest);
-    defineReflectiveTests(PropertyAccessResolutionWithoutNullSafetyTest);
+    defineReflectiveTests(PropertyAccessResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -820,6 +820,11 @@ PropertyAccess
 ''');
   }
 }
+
+@reflectiveTest
+class PropertyAccessResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with PropertyAccessResolutionTestCases, WithoutNullSafetyMixin {}
 
 mixin PropertyAccessResolutionTestCases on PubPackageResolutionTest {
   test_extensionOverride_read() async {
@@ -1844,8 +1849,3 @@ bar() {
     assertType(identifier, 'void Function(int)');
   }
 }
-
-@reflectiveTest
-class PropertyAccessResolutionWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with PropertyAccessResolutionTestCases, WithoutNullSafetyMixin {}

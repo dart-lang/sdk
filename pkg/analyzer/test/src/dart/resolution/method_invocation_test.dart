@@ -13,8 +13,8 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MethodInvocationResolutionWithoutNullSafetyTest);
     defineReflectiveTests(MethodInvocationResolutionTest);
+    defineReflectiveTests(MethodInvocationResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -1131,6 +1131,11 @@ MethodInvocation
 ''');
   }
 }
+
+@reflectiveTest
+class MethodInvocationResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, MethodInvocationResolutionTestCases {}
 
 mixin MethodInvocationResolutionTestCases on PubPackageResolutionTest {
   test_clamp_double_context_double() async {
@@ -9472,8 +9477,3 @@ MethodInvocation
     }
   }
 }
-
-@reflectiveTest
-class MethodInvocationResolutionWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, MethodInvocationResolutionTestCases {}

@@ -11,12 +11,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SuperFormalParameterTest);
+    defineReflectiveTests(SuperFormalParameterResolutionTest);
   });
 }
 
 @reflectiveTest
-class SuperFormalParameterTest extends PubPackageResolutionTest {
+class SuperFormalParameterResolutionTest extends PubPackageResolutionTest {
   test_element_typeParameterSubstitution_chained() async {
     await assertNoErrorsInCode(r'''
 class A<T> {

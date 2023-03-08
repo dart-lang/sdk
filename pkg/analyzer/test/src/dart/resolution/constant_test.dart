@@ -17,7 +17,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantResolutionTest);
-    defineReflectiveTests(ConstantResolutionWithoutNullSafetyTest);
+    defineReflectiveTests(ConstantResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -204,7 +204,7 @@ const b = a;
 }
 
 @reflectiveTest
-class ConstantResolutionWithoutNullSafetyTest extends PubPackageResolutionTest
+class ConstantResolutionTest_WithoutNullSafety extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('$testPackageLibPath/a.dart', r'''

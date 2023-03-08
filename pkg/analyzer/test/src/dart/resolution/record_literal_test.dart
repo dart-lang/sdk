@@ -8,12 +8,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RecordLiteralTest);
+    defineReflectiveTests(RecordLiteralResolutionTest);
   });
 }
 
 @reflectiveTest
-class RecordLiteralTest extends PubPackageResolutionTest {
+class RecordLiteralResolutionTest extends PubPackageResolutionTest {
   test_field_rewrite_named() async {
     await assertNoErrorsInCode(r'''
 void f((int, String) r) {

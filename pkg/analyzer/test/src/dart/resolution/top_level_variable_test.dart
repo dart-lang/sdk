@@ -10,13 +10,13 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TopLevelVariableTest);
-    defineReflectiveTests(TopLevelVariableWithoutNullSafetyTest);
+    defineReflectiveTests(TopLevelVariableResolutionTest);
+    defineReflectiveTests(TopLevelVariableResolutionTest_WithoutNullSafety);
   });
 }
 
 @reflectiveTest
-class TopLevelVariableTest extends PubPackageResolutionTest
+class TopLevelVariableResolutionTest extends PubPackageResolutionTest
     with TopLevelVariableTestCases {
   /// See https://github.com/dart-lang/sdk/issues/51137
   test_initializer_contextType_dontUseInferredType() async {
@@ -167,6 +167,11 @@ var v = a;
   }
 }
 
+@reflectiveTest
+class TopLevelVariableResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with TopLevelVariableTestCases, WithoutNullSafetyMixin {}
+
 mixin TopLevelVariableTestCases on PubPackageResolutionTest {
   test_session_getterSetter() async {
     await resolveTestCode('''
@@ -213,7 +218,3 @@ var v = null;
     assertType(findElement.topVar('v').type, 'dynamic');
   }
 }
-
-@reflectiveTest
-class TopLevelVariableWithoutNullSafetyTest extends PubPackageResolutionTest
-    with TopLevelVariableTestCases, WithoutNullSafetyMixin {}

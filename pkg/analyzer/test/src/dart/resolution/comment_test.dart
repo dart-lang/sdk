@@ -9,14 +9,14 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CommentDriverResolution_PrefixedIdentifierTest);
-    defineReflectiveTests(CommentDriverResolution_PropertyAccessTest);
-    defineReflectiveTests(CommentDriverResolution_SimpleIdentifierTest);
+    defineReflectiveTests(CommentResolutionTest_PrefixedIdentifier);
+    defineReflectiveTests(CommentResolutionTest_PropertyAccess);
+    defineReflectiveTests(CommentResolutionTest_SimpleIdentifier);
   });
 }
 
 @reflectiveTest
-class CommentDriverResolution_PrefixedIdentifierTest
+class CommentResolutionTest_PrefixedIdentifier
     extends PubPackageResolutionTest {
   test_class_constructor_named() async {
     // TODO(srawlins): improve coverage regarding constructors, operators, the
@@ -439,8 +439,7 @@ CommentReference
 }
 
 @reflectiveTest
-class CommentDriverResolution_PropertyAccessTest
-    extends PubPackageResolutionTest {
+class CommentResolutionTest_PropertyAccess extends PubPackageResolutionTest {
   test_class_constructor_named() async {
     await assertNoErrorsInCode('''
 import '' as self;
@@ -934,8 +933,7 @@ CommentReference
 }
 
 @reflectiveTest
-class CommentDriverResolution_SimpleIdentifierTest
-    extends PubPackageResolutionTest {
+class CommentResolutionTest_SimpleIdentifier extends PubPackageResolutionTest {
   test_associatedSetterAndGetter() async {
     await assertNoErrorsInCode('''
 int get foo => 0;

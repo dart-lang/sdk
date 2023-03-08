@@ -12,7 +12,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PostfixExpressionResolutionTest);
-    defineReflectiveTests(PostfixExpressionResolutionWithoutNullSafetyTest);
+    defineReflectiveTests(PostfixExpressionResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -390,6 +390,11 @@ PostfixExpression
 ''');
   }
 }
+
+@reflectiveTest
+class PostfixExpressionResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with PostfixExpressionResolutionTestCases, WithoutNullSafetyMixin {}
 
 mixin PostfixExpressionResolutionTestCases on PubPackageResolutionTest {
   test_dec_simpleIdentifier_parameter_int() async {
@@ -1377,8 +1382,3 @@ PostfixExpression
     }
   }
 }
-
-@reflectiveTest
-class PostfixExpressionResolutionWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with PostfixExpressionResolutionTestCases, WithoutNullSafetyMixin {}

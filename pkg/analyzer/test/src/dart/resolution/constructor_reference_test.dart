@@ -11,14 +11,646 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstructorReferenceResolutionTest);
-    defineReflectiveTests(ConstructorReferenceResolution_TypeArgsTest);
+    defineReflectiveTests(ConstructorReferenceResolutionTest_TypeArgs);
     defineReflectiveTests(
-        ConstructorReferenceResolutionWithoutConstructorTearoffsTest);
+        ConstructorReferenceResolutionTest_WithoutConstructorTearoffs);
   });
 }
 
 @reflectiveTest
-class ConstructorReferenceResolution_TypeArgsTest
+class ConstructorReferenceResolutionTest extends PubPackageResolutionTest {
+  test_abstractClass_factory() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  factory A() => A2();
+}
+
+class A2 implements A {}
+
+foo() {
+  A.new;
+}
+''');
+
+    var node = findNode.constructorReference('A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::new
+      staticType: null
+    staticElement: self::@class::A::@constructor::new
+  staticType: A Function()
+''');
+  }
+
+  test_abstractClass_generative() async {
+    await assertErrorsInCode('''
+abstract class A {
+  A();
+}
+
+foo() {
+  A.new;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          39,
+          5),
+    ]);
+
+    var node = findNode.constructorReference('A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::new
+      staticType: null
+    staticElement: self::@class::A::@constructor::new
+  staticType: A Function()
+''');
+  }
+
+  test_abstractClass_redirecting() async {
+    await assertErrorsInCode('''
+abstract class A {
+  A(): this.two();
+
+  A.two();
+}
+
+foo() {
+  A.new;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          63,
+          5),
+    ]);
+
+    var node = findNode.constructorReference('A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::new
+      staticType: null
+    staticElement: self::@class::A::@constructor::new
+  staticType: A Function()
+''');
+  }
+
+  test_class_generic_inferFromContext_badTypeArgument() async {
+    await assertErrorsInCode('''
+class A<T extends num> {
+  A.foo();
+}
+
+A<String> Function() bar() {
+  return A.foo;
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 41, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 39, 9)]),
+    ]);
+
+    var node = findNode.constructorReference('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+      tearOffTypeArgumentTypes
+        Never
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A<Never> Function()
+''');
+  }
+
+  test_class_generic_named_inferTypeFromContext() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  A.foo();
+}
+
+A<int> Function() bar() {
+  return A.foo;
+}
+''');
+
+    var node = findNode.constructorReference('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+      tearOffTypeArgumentTypes
+        int
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A<int> Function()
+''');
+  }
+
+  test_class_generic_named_uninstantiated() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  A.foo();
+}
+
+void bar() {
+  A.foo;
+}
+''');
+
+    var node = findNode.constructorReference('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A<T> Function<T>()
+''');
+  }
+
+  test_class_generic_named_uninstantiated_bound() async {
+    await assertNoErrorsInCode('''
+class A<T extends num> {
+  A.foo();
+}
+
+void bar() {
+  A.foo;
+}
+''');
+
+    var node = findNode.constructorReference('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A<T> Function<T extends num>()
+''');
+  }
+
+  test_class_nonGeneric_const() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+}
+
+const a1 = A.new;
+''');
+
+    var node = findNode.constructorReference('A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::new
+      staticType: null
+    staticElement: self::@class::A::@constructor::new
+  staticType: A Function()
+''');
+  }
+
+  test_class_nonGeneric_named() async {
+    await assertNoErrorsInCode('''
+class A {
+  A.foo();
+}
+
+void bar() {
+  A.foo;
+}
+''');
+
+    var node = findNode.constructorReference('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A Function()
+''');
+  }
+
+  test_class_nonGeneric_unnamed() async {
+    await assertNoErrorsInCode('''
+class A {
+  A();
+}
+
+bar() {
+  A.new;
+}
+''');
+
+    var node = findNode.constructorReference('A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::new
+      staticType: null
+    staticElement: self::@class::A::@constructor::new
+  staticType: A Function()
+''');
+  }
+
+  test_prefixedAlias_nonGeneric_named() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  A.foo();
+}
+typedef TA = A;
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+bar() {
+  a.TA.foo;
+}
+''');
+
+    var node = findNode.constructorReference('a.TA.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: TA
+          staticElement: package:test/a.dart::@typeAlias::TA
+          staticType: null
+        staticElement: package:test/a.dart::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: package:test/a.dart::@class::A::@constructor::foo
+      staticType: null
+    staticElement: package:test/a.dart::@class::A::@constructor::foo
+  staticType: A Function()
+''');
+  }
+
+  test_prefixedAlias_nonGeneric_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  A();
+}
+typedef TA = A;
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+bar() {
+  a.TA.new;
+}
+''');
+
+    var node = findNode.constructorReference('a.TA.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: TA
+          staticElement: package:test/a.dart::@typeAlias::TA
+          staticType: null
+        staticElement: package:test/a.dart::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: package:test/a.dart::@class::A::@constructor::new
+      staticType: null
+    staticElement: package:test/a.dart::@class::A::@constructor::new
+  staticType: A Function()
+''');
+  }
+
+  test_prefixedClass_nonGeneric_named() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  A.foo();
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+bar() {
+  a.A.foo;
+}
+''');
+
+    var node = findNode.constructorReference('a.A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          staticElement: package:test/a.dart::@class::A
+          staticType: null
+        staticElement: package:test/a.dart::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: package:test/a.dart::@class::A::@constructor::foo
+      staticType: null
+    staticElement: package:test/a.dart::@class::A::@constructor::foo
+  staticType: A Function()
+''');
+  }
+
+  test_prefixedClass_nonGeneric_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  A();
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+bar() {
+  a.A.new;
+}
+''');
+
+    var node = findNode.constructorReference('a.A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          staticElement: package:test/a.dart::@class::A
+          staticType: null
+        staticElement: package:test/a.dart::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: package:test/a.dart::@class::A::@constructor::new
+      staticType: null
+    staticElement: package:test/a.dart::@class::A::@constructor::new
+  staticType: A Function()
+''');
+  }
+
+  test_typeAlias_generic_const() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  const A();
+}
+typedef TA<T> = A<T>;
+
+const a = TA.new;
+''');
+
+    var node = findNode.constructorReference('TA.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::new
+      staticType: null
+    staticElement: self::@class::A::@constructor::new
+  staticType: A<T> Function<T>()
+''');
+  }
+
+  test_typeAlias_generic_named_uninstantiated() async {
+    await assertNoErrorsInCode('''
+class A<T, U> {
+  A.foo();
+}
+typedef TA<U> = A<String, U>;
+
+bar() {
+  TA.foo;
+}
+''');
+
+    var node = findNode.constructorReference('TA.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A<String, U> Function<U>()
+''');
+  }
+
+  test_typeAlias_instantiated_const() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  const A();
+}
+typedef TA = A<int>;
+
+const a = TA.new;
+''');
+
+    var node = findNode.constructorReference('TA.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::new
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::new
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
+  }
+
+  test_typeAlias_instantiated_named() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  A.foo();
+}
+typedef TA = A<int>;
+
+bar() {
+  TA.foo;
+}
+''');
+
+    var node = findNode.constructorReference('TA.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::foo
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::foo
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
+  }
+}
+
+@reflectiveTest
+class ConstructorReferenceResolutionTest_TypeArgs
     extends PubPackageResolutionTest {
   test_alias_generic_const() async {
     await assertNoErrorsInCode('''
@@ -1070,639 +1702,7 @@ ConstructorReference
 }
 
 @reflectiveTest
-class ConstructorReferenceResolutionTest extends PubPackageResolutionTest {
-  test_abstractClass_factory() async {
-    await assertNoErrorsInCode('''
-abstract class A {
-  factory A() => A2();
-}
-
-class A2 implements A {}
-
-foo() {
-  A.new;
-}
-''');
-
-    var node = findNode.constructorReference('A.new;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: new
-      staticElement: self::@class::A::@constructor::new
-      staticType: null
-    staticElement: self::@class::A::@constructor::new
-  staticType: A Function()
-''');
-  }
-
-  test_abstractClass_generative() async {
-    await assertErrorsInCode('''
-abstract class A {
-  A();
-}
-
-foo() {
-  A.new;
-}
-''', [
-      error(
-          CompileTimeErrorCode
-              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
-          39,
-          5),
-    ]);
-
-    var node = findNode.constructorReference('A.new;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: new
-      staticElement: self::@class::A::@constructor::new
-      staticType: null
-    staticElement: self::@class::A::@constructor::new
-  staticType: A Function()
-''');
-  }
-
-  test_abstractClass_redirecting() async {
-    await assertErrorsInCode('''
-abstract class A {
-  A(): this.two();
-
-  A.two();
-}
-
-foo() {
-  A.new;
-}
-''', [
-      error(
-          CompileTimeErrorCode
-              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
-          63,
-          5),
-    ]);
-
-    var node = findNode.constructorReference('A.new;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: new
-      staticElement: self::@class::A::@constructor::new
-      staticType: null
-    staticElement: self::@class::A::@constructor::new
-  staticType: A Function()
-''');
-  }
-
-  test_class_generic_inferFromContext_badTypeArgument() async {
-    await assertErrorsInCode('''
-class A<T extends num> {
-  A.foo();
-}
-
-A<String> Function() bar() {
-  return A.foo;
-}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 41, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 39, 9)]),
-    ]);
-
-    var node = findNode.constructorReference('A.foo;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      staticElement: self::@class::A::@constructor::foo
-      staticType: null
-      tearOffTypeArgumentTypes
-        Never
-    staticElement: self::@class::A::@constructor::foo
-  staticType: A<Never> Function()
-''');
-  }
-
-  test_class_generic_named_inferTypeFromContext() async {
-    await assertNoErrorsInCode('''
-class A<T> {
-  A.foo();
-}
-
-A<int> Function() bar() {
-  return A.foo;
-}
-''');
-
-    var node = findNode.constructorReference('A.foo;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      staticElement: self::@class::A::@constructor::foo
-      staticType: null
-      tearOffTypeArgumentTypes
-        int
-    staticElement: self::@class::A::@constructor::foo
-  staticType: A<int> Function()
-''');
-  }
-
-  test_class_generic_named_uninstantiated() async {
-    await assertNoErrorsInCode('''
-class A<T> {
-  A.foo();
-}
-
-void bar() {
-  A.foo;
-}
-''');
-
-    var node = findNode.constructorReference('A.foo;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      staticElement: self::@class::A::@constructor::foo
-      staticType: null
-    staticElement: self::@class::A::@constructor::foo
-  staticType: A<T> Function<T>()
-''');
-  }
-
-  test_class_generic_named_uninstantiated_bound() async {
-    await assertNoErrorsInCode('''
-class A<T extends num> {
-  A.foo();
-}
-
-void bar() {
-  A.foo;
-}
-''');
-
-    var node = findNode.constructorReference('A.foo;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      staticElement: self::@class::A::@constructor::foo
-      staticType: null
-    staticElement: self::@class::A::@constructor::foo
-  staticType: A<T> Function<T extends num>()
-''');
-  }
-
-  test_class_nonGeneric_const() async {
-    await assertNoErrorsInCode('''
-class A {
-  const A();
-}
-
-const a1 = A.new;
-''');
-
-    var node = findNode.constructorReference('A.new;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: new
-      staticElement: self::@class::A::@constructor::new
-      staticType: null
-    staticElement: self::@class::A::@constructor::new
-  staticType: A Function()
-''');
-  }
-
-  test_class_nonGeneric_named() async {
-    await assertNoErrorsInCode('''
-class A {
-  A.foo();
-}
-
-void bar() {
-  A.foo;
-}
-''');
-
-    var node = findNode.constructorReference('A.foo;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      staticElement: self::@class::A::@constructor::foo
-      staticType: null
-    staticElement: self::@class::A::@constructor::foo
-  staticType: A Function()
-''');
-  }
-
-  test_class_nonGeneric_unnamed() async {
-    await assertNoErrorsInCode('''
-class A {
-  A();
-}
-
-bar() {
-  A.new;
-}
-''');
-
-    var node = findNode.constructorReference('A.new;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: new
-      staticElement: self::@class::A::@constructor::new
-      staticType: null
-    staticElement: self::@class::A::@constructor::new
-  staticType: A Function()
-''');
-  }
-
-  test_prefixedAlias_nonGeneric_named() async {
-    newFile('$testPackageLibPath/a.dart', '''
-class A {
-  A.foo();
-}
-typedef TA = A;
-''');
-    await assertNoErrorsInCode('''
-import 'a.dart' as a;
-bar() {
-  a.TA.foo;
-}
-''');
-
-    var node = findNode.constructorReference('a.TA.foo;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
-        period: .
-        identifier: SimpleIdentifier
-          token: TA
-          staticElement: package:test/a.dart::@typeAlias::TA
-          staticType: null
-        staticElement: package:test/a.dart::@typeAlias::TA
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      staticElement: package:test/a.dart::@class::A::@constructor::foo
-      staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::foo
-  staticType: A Function()
-''');
-  }
-
-  test_prefixedAlias_nonGeneric_unnamed() async {
-    newFile('$testPackageLibPath/a.dart', '''
-class A {
-  A();
-}
-typedef TA = A;
-''');
-    await assertNoErrorsInCode('''
-import 'a.dart' as a;
-bar() {
-  a.TA.new;
-}
-''');
-
-    var node = findNode.constructorReference('a.TA.new;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
-        period: .
-        identifier: SimpleIdentifier
-          token: TA
-          staticElement: package:test/a.dart::@typeAlias::TA
-          staticType: null
-        staticElement: package:test/a.dart::@typeAlias::TA
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: new
-      staticElement: package:test/a.dart::@class::A::@constructor::new
-      staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::new
-  staticType: A Function()
-''');
-  }
-
-  test_prefixedClass_nonGeneric_named() async {
-    newFile('$testPackageLibPath/a.dart', '''
-class A {
-  A.foo();
-}
-''');
-    await assertNoErrorsInCode('''
-import 'a.dart' as a;
-bar() {
-  a.A.foo;
-}
-''');
-
-    var node = findNode.constructorReference('a.A.foo;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
-        period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      staticElement: package:test/a.dart::@class::A::@constructor::foo
-      staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::foo
-  staticType: A Function()
-''');
-  }
-
-  test_prefixedClass_nonGeneric_unnamed() async {
-    newFile('$testPackageLibPath/a.dart', '''
-class A {
-  A();
-}
-''');
-    await assertNoErrorsInCode('''
-import 'a.dart' as a;
-bar() {
-  a.A.new;
-}
-''');
-
-    var node = findNode.constructorReference('a.A.new;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
-        period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: new
-      staticElement: package:test/a.dart::@class::A::@constructor::new
-      staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::new
-  staticType: A Function()
-''');
-  }
-
-  test_typeAlias_generic_const() async {
-    await assertNoErrorsInCode('''
-class A<T> {
-  const A();
-}
-typedef TA<T> = A<T>;
-
-const a = TA.new;
-''');
-
-    var node = findNode.constructorReference('TA.new;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: new
-      staticElement: self::@class::A::@constructor::new
-      staticType: null
-    staticElement: self::@class::A::@constructor::new
-  staticType: A<T> Function<T>()
-''');
-  }
-
-  test_typeAlias_generic_named_uninstantiated() async {
-    await assertNoErrorsInCode('''
-class A<T, U> {
-  A.foo();
-}
-typedef TA<U> = A<String, U>;
-
-bar() {
-  TA.foo;
-}
-''');
-
-    var node = findNode.constructorReference('TA.foo;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      staticElement: self::@class::A::@constructor::foo
-      staticType: null
-    staticElement: self::@class::A::@constructor::foo
-  staticType: A<String, U> Function<U>()
-''');
-  }
-
-  test_typeAlias_instantiated_const() async {
-    await assertNoErrorsInCode('''
-class A<T> {
-  const A();
-}
-typedef TA = A<int>;
-
-const a = TA.new;
-''');
-
-    var node = findNode.constructorReference('TA.new;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: new
-      staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
-        substitution: {T: int}
-      staticType: null
-    staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
-      substitution: {T: int}
-  staticType: A<int> Function()
-''');
-  }
-
-  test_typeAlias_instantiated_named() async {
-    await assertNoErrorsInCode('''
-class A<T> {
-  A.foo();
-}
-typedef TA = A<int>;
-
-bar() {
-  TA.foo;
-}
-''');
-
-    var node = findNode.constructorReference('TA.foo;');
-    assertResolvedNodeText(node, r'''
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      staticElement: ConstructorMember
-        base: self::@class::A::@constructor::foo
-        substitution: {T: int}
-      staticType: null
-    staticElement: ConstructorMember
-      base: self::@class::A::@constructor::foo
-      substitution: {T: int}
-  staticType: A<int> Function()
-''');
-  }
-}
-
-@reflectiveTest
-class ConstructorReferenceResolutionWithoutConstructorTearoffsTest
+class ConstructorReferenceResolutionTest_WithoutConstructorTearoffs
     extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
   test_class_generic_nonConstructor() async {
     await assertErrorsInCode('''
