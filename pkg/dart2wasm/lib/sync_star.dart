@@ -248,7 +248,14 @@ class SyncStarCodeGenerator extends CodeGenerator {
 
     Context? context = closures.contexts[functionNode];
     if (context != null && context.isEmpty) context = context.parent;
+
     generateOuter(functionNode, context, resumeFun);
+
+    // Forget about the outer function locals containing the type arguments,
+    // so accesses to the type arguments in the inner function will fetch them
+    // from the context.
+    typeLocals.clear();
+
     generateInner(functionNode, context, resumeFun);
   }
 
