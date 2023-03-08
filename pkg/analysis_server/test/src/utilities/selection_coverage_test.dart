@@ -238,13 +238,13 @@ class SelectionData {
   SelectionData();
 }
 
-class VisitMethodVisitor extends RecursiveAstVisitor {
+class VisitMethodVisitor extends RecursiveAstVisitor<void> {
   List<ExecutableElement> visitedLists = [];
 
   VisitMethodVisitor();
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     if (node.methodName.name == '_fromList') {
       var argument = node.argumentList.arguments.first;
       if (argument is PrefixedIdentifier) {

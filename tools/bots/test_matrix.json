@@ -516,55 +516,44 @@
         "compiler": "dartkp"
       }
     },
-    "dart2js-(linux|mac|win)-chrome": {
+    "dart2js-(linux|win)-chrome": {
       "options": {
-        "use-sdk": true,
-        "dart2js-options": [
-          "--no-sound-null-safety"
-        ]
+        "nnbd": "strong",
+        "use-sdk": true
       }
     },
     "dart2js-(linux|win)-firefox": {
       "options": {
-        "use-sdk": true,
-        "dart2js-options": [
-          "--no-sound-null-safety"
-        ]
+        "nnbd": "strong",
+        "use-sdk": true
       }
     },
     "dart2js-win-ie11": {
       "options": {
         "babel": "{\"presets\":[\"es2015\"]}",
-        "use-sdk": true,
-        "dart2js-options": [
-          "--no-sound-null-safety"
-        ]
+        "nnbd": "strong",
+        "use-sdk": true
       }
     },
     "dart2js-win-edge": {
       "options": {
-        "use-sdk": true,
-        "dart2js-options": [
-          "--no-sound-null-safety"
-        ]
+        "nnbd": "strong",
+        "use-sdk": true
       }
     },
-    "dart2js-mac-safari": {
+    "dart2js-mac-(chrome|safari)": {
       "options": {
-        "use-sdk": true,
-        "dart2js-options": [
-          "--no-sound-null-safety"
-        ]
+        "architecture": "arm64",
+        "nnbd": "strong",
+        "use-sdk": true
       }
     },
     "dart2js-minified-csp-linux-chrome": {
       "options": {
-        "minified": true,
         "csp": true,
-        "use-sdk": true,
-        "dart2js-options": [
-          "--no-sound-null-safety"
-        ]
+        "minified": true,
+        "nnbd": "strong",
+        "use-sdk": true
       }
     },
     "dart2js-minified-csp-max-fragments-linux-chrome": {
@@ -582,10 +571,8 @@
     "dart2js-minified-linux-d8": {
       "options": {
         "minified": true,
-        "use-sdk": true,
-        "dart2js-options": [
-          "--no-sound-null-safety"
-        ]
+        "nnbd": "strong",
+        "use-sdk": true
       }
     },
     "dart2js-minified-hostasserts-weak-max-fragments-linux-x64-d8": {
@@ -604,40 +591,32 @@
     "dart2js-production-linux-d8": {
       "options": {
         "builder-tag": "dart2js_production",
-        "use-sdk": true,
         "dart2js-options": [
-          "-O3",
-          "--no-sound-null-safety"
-        ]
+          "-O3"
+        ],
+        "nnbd": "strong",
+        "use-sdk": true
       }
     },
     "dart2js-o0-linux-d8": {
       "options": {
         "builder-tag": "dart2js_o0",
-        "use-sdk": true,
         "dart2js-options": [
-          "-O0",
-          "--no-sound-null-safety"
-        ]
+          "-O0"
+        ],
+        "nnbd": "strong",
+        "use-sdk": true
       }
     },
-    "dart2js-canary-linux-d8": {
+    "dart2js-canary-linux-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js_canary",
-        "host-checked": true,
-        "timeout": 240,
         "dart2js-options": [
           "--canary"
-        ]
-      }
-    },
-    "dart2js-canary-linux-chrome": {
-      "options": {
+        ],
         "host-checked": true,
-        "timeout": 240,
-        "dart2js-options": [
-          "--canary"
-        ]
+        "nnbd": "strong",
+        "timeout": 240
       }
     },
     "dart2js-hostasserts-linux-ia32-d8": {
@@ -652,24 +631,31 @@
     "dart2js-hostasserts-linux-d8": {
       "options": {
         "host-checked": true,
+        "nnbd": "strong",
         "timeout": 240
       }
     },
     "dart2js-hostasserts-weak-linux-x64-(d8|chrome)": {
       "options": {
         "host-checked": true,
-        "timeout": 240,
+        "timeout": 241,
         "builder-tag": "dart2js-weak"
       }
     },
     "dart2js-hostasserts-linux-(d8|chrome)-unsound": {
       "options": {
-        "host-checked": true,
-        "timeout": 240,
         "builder-tag": "dart2js-weak",
-        "dart2js-options": [
-          "--no-sound-null-safety"
-        ]
+        "host-checked": true,
+        "nnbd": "weak",
+        "timeout": 240
+      }
+    },
+    "dart2js-hostasserts-linux-(d8|chrome)-unsound_2": {
+      "options": {
+        "builder-tag": "legacy-test-suites",
+        "host-checked": true,
+        "nnbd": "weak",
+        "timeout": 240
       }
     },
     "dart2js-hostasserts-weak-max-fragments-linux-x64-d8": {
@@ -685,12 +671,13 @@
     },
     "dart2js-hostasserts-minified-fragments-linux-d8": {
       "options": {
-        "host-checked": true,
-        "timeout": 240,
         "dart2js-options": [
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
-        ]
+        ],
+        "host-checked": true,
+        "nnbd": "strong",
+        "timeout": 240
       }
     },
     "dart2js-hostasserts-strong-linux-x64-(d8|chrome)": {
@@ -2733,10 +2720,10 @@
     },
     {
       "builders": [
-        "dart2js-canary-x64"
+        "dart2js-canary-linux"
       ],
       "meta": {
-        "description": "dart2js canary tests."
+        "description": "dart2js canary mode tests."
       },
       "steps": [
         {
@@ -2748,36 +2735,28 @@
           ]
         },
         {
-          "name": "dart2js canary d8 tests",
+          "name": "dart2js d8 tests",
           "arguments": [
             "-ndart2js-canary-linux-d8",
-            "language",
             "corelib",
+            "language",
             "web"
           ],
           "shards": 6,
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
-          "name": "dart2js canary chrome tests",
+          "name": "dart2js chrome tests",
           "arguments": [
             "-ndart2js-canary-linux-chrome",
+            "lib",
             "web"
           ],
           "shards": 3,
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
-          "name": "dart2js canary lib tests",
-          "arguments": [
-            "-ndart2js-canary-linux-chrome",
-            "lib"
-          ],
-          "shards": 3,
-          "fileset": "web_platform_hostasserts_nnbd"
-        },
-        {
-          "name": "dart2js canary co19 tests",
+          "name": "dart2js chrome co19 tests",
           "arguments": [
             "-ndart2js-canary-linux-chrome",
             "co19"
@@ -2844,10 +2823,10 @@
     },
     {
       "builders": [
-        "dart2js-strong-hostasserts-linux-ia32-d8"
+        "dart2js-hostasserts-linux-d8"
       ],
       "meta": {
-        "description": "dart2js-d8 tests with assertions during compilation"
+        "description": "dart2js tests with assertions during compilation"
       },
       "steps": [
         {
@@ -2860,47 +2839,36 @@
         {
           "name": "dart2js tests",
           "arguments": [
-            "-ndart2js-hostasserts-linux-ia32-d8"
+            "-ndart2js-hostasserts-linux-d8",
+            "corelib",
+            "language",
+            "lib",
+            "pkg",
+            "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts"
+          "fileset": "web_platform_hostasserts_nnbd"
         },
         {
-          "name": "dart2js co19_2 tests",
+          "name": "dart2js co19 tests",
           "arguments": [
-            "-ndart2js-hostasserts-linux-ia32-d8",
-            "co19_2"
+            "-ndart2js-hostasserts-linux-d8",
+            "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts"
-        },
-        {
-          "name": "dart2js package tests",
-          "arguments": [
-            "-ndart2js-hostasserts-linux-ia32-d8",
-            "pkg"
-          ]
-        },
-        {
-          "name": "dart2js extra tests",
-          "arguments": [
-            "-ndart2js-hostasserts-linux-ia32-d8",
-            "web_2"
-          ]
+          "fileset": "web_platform_hostasserts_nnbd"
         }
       ]
     },
     {
       "builders": [
-        "dart2js-strong-linux-x64-chrome",
-        "dart2js-strong-linux-x64-firefox",
-        "dart2js-strong-mac-x64-chrome",
-        "dart2js-strong-mac-x64-safari",
-        "dart2js-strong-win-x64-chrome",
-        "dart2js-strong-win-x64-firefox"
+        "dart2js-linux-chrome",
+        "dart2js-linux-firefox",
+        "dart2js-win-chrome",
+        "dart2js-win-firefox"
       ],
       "meta": {
-        "description": "dart2js browser tests for Dart 2.0."
+        "description": "dart2js browser tests"
       },
       "steps": [
         {
@@ -2914,46 +2882,75 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}",
-            "--reset-browser-configuration"
-
+            "corelib",
+            "language",
+            "lib",
+            "pkg",
+            "web"
           ],
           "shards": 6,
-          "fileset": "web_platform"
+          "fileset": "web_platform_nnbd"
         },
         {
-          "name": "dart2js co19_2 tests",
+          "name": "dart2js co19 tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}",
-            "--reset-browser-configuration",
-            "co19_2"
+            "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform"
-        },
-        {
-          "name": "dart2js package tests",
-          "arguments": [
-            "-ndart2js-${system}-${runtime}",
-            "--reset-browser-configuration",
-            "pkg"
-          ]
-        },
-        {
-          "name": "dart2js extra tests",
-          "arguments": [
-            "-ndart2js-${system}-${runtime}",
-            "--reset-browser-configuration",
-            "web_2"
-          ]
+          "fileset": "web_platform_nnbd"
         }
       ]
     },
     {
       "builders": [
-        "dart2js-minified-strong-linux-x64-d8"
+        "dart2js-mac-chrome",
+        "dart2js-mac-safari"
       ],
       "meta": {
-        "description": "dart2js tests for Dart 2.0."
+        "description": "dart2js browser tests"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=arm64",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "dart2js tests",
+          "arguments": [
+            "-ndart2js-${system}-${runtime}",
+            "--arch=arm64",
+            "corelib",
+            "language",
+            "lib",
+            "pkg",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "dart2js co19 tests",
+          "arguments": [
+            "-ndart2js-${system}-${runtime}",
+            "--arch=arm64",
+            "co19"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart2js-minified-linux-d8"
+      ],
+      "meta": {
+        "description": "dart2js minified d8 tests"
       },
       "steps": [
         {
@@ -2966,63 +2963,48 @@
         {
           "name": "dart2js tests",
           "arguments": [
-            "-ndart2js-minified-linux-d8"
-
+            "-ndart2js-minified-linux-d8",
+            "corelib",
+            "language",
+            "lib",
+            "pkg",
+            "web"
           ],
           "shards": 6,
-          "fileset": "web_platform"
-        },
-        {
-          "name": "dart2js package tests",
-          "arguments": [
-            "-ndart2js-minified-linux-d8",
-            "pkg"
-          ]
-        },
-        {
-          "name": "dart2js extra tests",
-          "arguments": [
-            "-ndart2js-minified-linux-d8",
-            "web_2"
-          ]
+          "fileset": "web_platform_nnbd"
         },
         {
           "name": "dart2js production tests",
           "arguments": [
-            "-ndart2js-production-linux-d8"
-
+            "-ndart2js-production-linux-d8",
+            "corelib",
+            "language",
+            "lib",
+            "pkg",
+            "web"
           ],
           "shards": 6,
-          "fileset": "web_platform"
-        },
-        {
-          "name": "dart2js production extra tests",
-          "arguments": [
-            "-ndart2js-production-linux-d8",
-            "web_2"
-          ]
+          "fileset": "web_platform_nnbd"
         },
         {
           "name": "dart2js -O0 smoke tests",
           "arguments": [
             "-ndart2js-o0-linux-d8",
-            "web_2"
+            "web"
           ]
         },
         {
-          "name": "dart2js d8 fragment merging tests",
+          "name": "dart2js hostasserts fragment merging tests",
           "arguments": [
-            "-ndart2js-minified-hostasserts-weak-max-fragments-linux-x64-d8",
+            "-ndart2js-hostasserts-minified-fragments-linux-d8",
             "web/deferred/"
-          ],
-          "shards": 1,
-          "fileset": "web_platform_hostasserts"
+          ]
         }
       ]
     },
     {
       "builders": [
-        "dart2js-csp-minified-linux-x64-chrome"
+        "dart2js-minified-csp-linux-chrome"
       ],
       "meta": {
         "description": "dart2js tests in csp and minified mode."
@@ -3039,50 +3021,24 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
-            "--reset-browser-configuration"
-
+            "corelib",
+            "language",
+            "lib",
+            "observatory_ui",
+            "pkg",
+            "web"
           ],
-          "shards": 4,
-          "fileset": "web_platform"
-        },
-        {
-          "name": "dart2js package tests",
-          "arguments": [
-            "-ndart2js-minified-csp-linux-chrome",
-            "--reset-browser-configuration",
-            "pkg"
-          ]
-        },
-        {
-          "name": "dart2js observatory-ui tests",
-          "arguments": [
-            "-ndart2js-minified-csp-linux-chrome",
-            "--reset-browser-configuration",
-            "observatory_ui"
-          ]
-        },
-        {
-          "name": "dart2js extra tests",
-          "arguments": [
-            "-ndart2js-minified-csp-linux-chrome",
-            "web_2"
-          ]
-        },
-        {
-          "name": "dart2js d8 fragment merging tests",
-          "arguments": [
-            "-ndart2js-minified-csp-max-fragments-linux-chrome",
-            "web/deferred/"
-          ]
+          "shards": 6,
+          "fileset": "web_platform_nnbd"
         }
       ]
     },
     {
       "builders": [
-        "dart2js-nnbd-linux-x64-chrome"
+        "dart2js-hostasserts-linux-unsound"
       ],
       "meta": {
-        "description": "dart2js tests for NNBD."
+        "description": "dart2js unsound tests with assertions during compilation"
       },
       "steps": [
         {
@@ -3094,96 +3050,55 @@
           ]
         },
         {
-          "name": "dart2js nnbd weak d8 tests",
+          "name": "dart2js d8 tests",
           "arguments": [
-            "-ndart2js-hostasserts-weak-linux-x64-d8",
-            "language",
-            "corelib"
+            "-ndart2js-hostasserts-linux-d8-unsound",
+            "corelib",
+            "language"
           ],
           "shards": 6,
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
-          "name": "dart2js nnbd weak d8 fragment merging tests",
+          "name": "dart2js chrome tests",
           "arguments": [
-            "-ndart2js-hostasserts-weak-max-fragments-linux-x64-d8",
-            "web/deferred/"
-          ],
-          "shards": 1,
-          "fileset": "web_platform_hostasserts_nnbd"
-        },
-        {
-          "name": "dart2js nnbd weak chrome tests",
-          "arguments": [
-            "-ndart2js-hostasserts-weak-linux-x64-chrome",
+            "-ndart2js-hostasserts-linux-chrome-unsound",
+            "lib",
+            "pkg",
             "web"
           ],
           "shards": 3,
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
-          "name": "dart2js nnbd weak lib tests",
+          "name": "dart2js chrome co19 tests",
           "arguments": [
-            "-ndart2js-hostasserts-weak-linux-x64-chrome",
-            "lib"
-          ],
-          "shards": 3,
-          "fileset": "web_platform_hostasserts_nnbd"
-        },
-        {
-          "name": "dart2js nnbd weak co19 tests",
-          "arguments": [
-            "-ndart2js-hostasserts-weak-linux-x64-chrome",
+            "-ndart2js-hostasserts-linux-chrome-unsound",
             "co19"
           ],
           "shards": 6,
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
-          "name": "dart2js nnbd strong d8 tests",
+          "name": "dart2js chrome _2 tests",
           "arguments": [
-            "-ndart2js-hostasserts-strong-linux-x64-d8",
-            "language",
-            "corelib"
+            "-ndart2js-hostasserts-linux-chrome-unsound_2",
+            "corelib_2",
+            "language_2",
+            "lib_2",
+            "web_2"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts_nnbd"
+          "fileset": "web_platform_hostasserts"
         },
         {
-          "name": "dart2js nnbd strong d8 fragment merging tests",
+          "name": "dart2js chrome co19_2 tests",
           "arguments": [
-            "-ndart2js-hostasserts-strong-max-fragments-linux-x64-d8",
-            "web/deferred/"
-          ],
-          "shards": 1,
-          "fileset": "web_platform_hostasserts_nnbd"
-        },
-        {
-          "name": "dart2js nnbd strong chrome tests",
-          "arguments": [
-            "-ndart2js-hostasserts-strong-linux-x64-chrome",
-            "web"
-          ],
-          "shards": 3,
-          "fileset": "web_platform_hostasserts_nnbd"
-        },
-        {
-          "name": "dart2js nnbd strong lib tests",
-          "arguments": [
-            "-ndart2js-hostasserts-strong-linux-x64-chrome",
-            "lib"
-          ],
-          "shards": 3,
-          "fileset": "web_platform_hostasserts_nnbd"
-        },
-        {
-          "name": "dart2js nnbd strong co19 tests",
-          "arguments": [
-            "-ndart2js-hostasserts-strong-linux-x64-chrome",
-            "co19"
+            "-ndart2js-hostasserts-linux-chrome-unsound_2",
+            "co19_2"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts_nnbd"
+          "fileset": "web_platform_hostasserts"
         }
       ]
     },

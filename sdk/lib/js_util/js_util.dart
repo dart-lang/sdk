@@ -23,12 +23,13 @@ library dart.js_util;
 /// instead to use `@anonymous` `@JS()` annotated classes to create map-like
 /// objects for JS interop.
 ///
-/// The argument must be a [Map] or [Iterable], the contents of which are also
-/// deeply converted. Maps are converted into JavaScript objects. Iterables are
-/// converted into arrays. Strings, numbers, bools, and `@JS()` annotated
-/// objects are passed through unmodified. Dart objects are also passed through
-/// unmodified, but their members aren't usable from JavaScript.
-external dynamic jsify(Object object);
+/// If the argument are a [Map] or [Iterable], then they will be deeply
+/// converted.  Maps are converted into JavaScript objects. Iterables are
+/// converted into arrays. `@JS()` annotated objects are passed through
+/// unmodified. Dart objects are also passed through unmodified, but their
+/// members aren't usable from JavaScript.  The conversion logic for
+/// primitives(numbers, bools, and Strings) is backend specific.
+external dynamic jsify(Object? object);
 
 external Object get globalThis;
 

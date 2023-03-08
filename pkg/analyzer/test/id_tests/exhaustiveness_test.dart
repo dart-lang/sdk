@@ -68,9 +68,19 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
     Features features = Features();
     if (node is SwitchStatement || node is SwitchExpression) {
       StaticType? scrutineeType = _exhaustivenessData.switchScrutineeType[node];
-      if (scrutineeType != null) {
+      List<Space>? caseSpaces = _exhaustivenessData.switchCases[node];
+      if (scrutineeType != null && caseSpaces != null) {
+        Set<String> fieldsOfInterest = {};
+        for (Space caseSpace in caseSpaces) {
+          for (SingleSpace singleSpace in caseSpace.singleSpaces) {
+            fieldsOfInterest.addAll(singleSpace.fields.keys);
+          }
+        }
         features[Tags.scrutineeType] = staticTypeToText(scrutineeType);
-        features[Tags.scrutineeFields] = fieldsToText(scrutineeType.fields);
+        if (fieldsOfInterest.isNotEmpty) {
+          features[Tags.scrutineeFields] =
+              fieldsToText(scrutineeType.fields, fieldsOfInterest);
+        }
         String? subtypes = typesToText(scrutineeType.subtypes);
         if (subtypes != null) {
           features[Tags.subtypes] = subtypes;

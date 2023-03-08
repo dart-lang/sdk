@@ -9,7 +9,7 @@ main() {
   switchThrowing();
 }
 
-/*member: switchThrowing:[]*/
+/*member: switchThrowing:has label*/
 @pragma('dart2js:noInline')
 switchThrowing() {
   switch (0) {

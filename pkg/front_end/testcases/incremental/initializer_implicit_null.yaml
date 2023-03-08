@@ -11,7 +11,7 @@ worlds:
     sources:
       main.dart: |
         import "lib.dart";
-        class B {}
+        mixin B {}
         class C = A with B;
       lib.dart: |
         class A {

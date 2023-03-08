@@ -1,3 +1,18 @@
+# Compiling Dart to WebAssembly
+
+WebAssembly (commonly abbreviated to Wasm) is a
+_"binary instruction format for a stack-based virtual machine"_.
+Although Wasm was originally designed for running native code on the web,
+Wasm has since evolved into a general technology for running
+compiled code across multiple platforms.
+
+The Dart team is currently investigating support for compiling Dart to Wasm,
+in conjunction with support [in Flutter](https://flutter.dev/wasm).
+
+**Note:** This feature is under active development,
+and is currently considered experimental.
+The tracking issue is [#32894](https://github.com/dart-lang/sdk/issues/32894).
+
 ## Running dart2wasm
 
 You don't need to build the Dart SDK to run dart2wasm, as long as you have a Dart SDK installed and have the [Dart SDK repository checked out](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source). NB: the SDK must be checked out using depot tools and not just cloned from this repo.

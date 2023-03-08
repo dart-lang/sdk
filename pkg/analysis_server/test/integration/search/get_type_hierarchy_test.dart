@@ -20,7 +20,7 @@ class GetTypeHierarchyTest extends AbstractAnalysisServerIntegrationTest {
   /// Pathname of the main file to run tests in.
   late String pathname;
 
-  Future getTypeHierarchy_badTarget() async {
+  Future<void> getTypeHierarchy_badTarget() async {
     var text = r'''
 void f() {
   if /* target */ (true) {
@@ -61,7 +61,7 @@ class Derived extends Pivot {}
     });
   }
 
-  Future getTypeHierarchy_displayName() {
+  Future<void> getTypeHierarchy_displayName() {
     var text = r'''
 class Base<T> {}
 class Pivot /* target */ extends Base<int> {}
@@ -74,7 +74,7 @@ class Pivot /* target */ extends Base<int> {}
     });
   }
 
-  Future getTypeHierarchy_functionTarget() async {
+  Future<void> getTypeHierarchy_functionTarget() async {
     var text = r'''
 main /* target */ () {
 }
@@ -83,7 +83,7 @@ main /* target */ () {
     expect(results, isNull);
   }
 
-  Future getTypeHierarchy_interfaces() {
+  Future<void> getTypeHierarchy_interfaces() {
     var text = r'''
 class Interface1 {}
 class Interface2 {}
@@ -102,7 +102,7 @@ class Pivot /* target */ implements Interface1, Interface2 {}
     });
   }
 
-  Future getTypeHierarchy_memberElement() {
+  Future<void> getTypeHierarchy_memberElement() {
     var text = r'''
 class Base1 {
   void foo /* base1 */ ();
@@ -129,7 +129,7 @@ class Derived2 extends Derived1 {
     });
   }
 
-  Future getTypeHierarchy_mixins() {
+  Future<void> getTypeHierarchy_mixins() {
     var text = r'''
 class Base {}
 class Mixin1 {}
@@ -148,7 +148,7 @@ class Pivot /* target */ extends Base with Mixin1, Mixin2 {}
     });
   }
 
-  Future getTypeHierarchy_subclasses() {
+  Future<void> getTypeHierarchy_subclasses() {
     var text = r'''
 class Base {}
 class Pivot /* target */ extends Base {}
@@ -170,7 +170,7 @@ class Sub2a extends Sub2 {}
     });
   }
 
-  Future getTypeHierarchy_superclass() {
+  Future<void> getTypeHierarchy_superclass() {
     var text = r'''
 class Base1 {}
 class Base2 extends Base1 {}

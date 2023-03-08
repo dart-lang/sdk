@@ -288,6 +288,9 @@ class ExhaustivenessDataForTesting {
   /// scrutinee.
   Map<AstNode, StaticType> switchScrutineeType = {};
 
+  /// Map from switch statement/expression nodes the spaces for its cases.
+  Map<AstNode, List<Space>> switchCases = {};
+
   /// Map from switch case nodes to the space for its pattern/expression.
   Map<AstNode, Space> caseSpaces = {};
 

@@ -12,7 +12,7 @@ worlds:
       main.dart: |
         import 'libA.dart';
 
-        class Foo {
+        mixin Foo {
           method() {
             print("A");
           }
@@ -35,7 +35,7 @@ worlds:
       main.dart: |
         import 'libA.dart';
 
-        class Foo {
+        mixin Foo {
           method() {
             print("B");
           }

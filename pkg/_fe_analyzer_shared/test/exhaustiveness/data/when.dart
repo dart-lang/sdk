@@ -19,7 +19,6 @@ class C extends A {
 
 method(A a) {
   /*
-   fields={field:int,hashCode:int,runtimeType:Type},
    subtypes={B,C},
    type=A
   */switch (a) {
@@ -27,7 +26,7 @@ method(A a) {
     /*space=C*/case C():
   }
   /*
-   fields={field:int,hashCode:int,runtimeType:Type},
+   fields={field:int},
    subtypes={B,C},
    type=A
   */switch (a) {
@@ -36,7 +35,7 @@ method(A a) {
   }
   /*
    error=non-exhaustive:B,
-   fields={field:int,hashCode:int,runtimeType:Type},
+   fields={field:int},
    subtypes={B,C},
    type=A
   */switch (a) {
@@ -45,7 +44,7 @@ method(A a) {
   }
   /*
    error=non-exhaustive:C,
-   fields={field:int,hashCode:int,runtimeType:Type},
+   fields={field:int},
    subtypes={B,C},
    type=A
   */switch (a) {

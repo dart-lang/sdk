@@ -208,7 +208,8 @@ class SyncStarCodeGenerator extends CodeGenerator {
   void generate() {
     closures = Closures(this);
     setupParametersAndContexts(member);
-    generateTypeChecks(member);
+    generateTypeChecks(member.function!.typeParameters, member.function!,
+        translator.paramInfoFor(reference));
     generateBodies(member.function!);
   }
 

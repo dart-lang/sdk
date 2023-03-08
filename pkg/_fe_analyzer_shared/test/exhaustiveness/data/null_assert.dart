@@ -14,7 +14,6 @@ class D extends B {}
 
 simpleAssert(o1, o2) {
   var a = /*
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
@@ -26,7 +25,6 @@ simpleAssert(o1, o2) {
   };
 
   var b = /*
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
@@ -38,7 +36,7 @@ restrictedCase(o1, o2) {
   // Null assert shouldn't match everything, because even though it doesn't
   // throw, it might not match.
   var a = /*
-   fields={},
+   fields={field:-},
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
@@ -48,7 +46,7 @@ restrictedCase(o1, o2) {
 
   var b = /*
    error=non-exhaustive:Object,
-   fields={},
+   fields={field:-},
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
@@ -59,7 +57,6 @@ restrictedCase(o1, o2) {
 nullableBool(bool? b1, bool? b2) {
   /*
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -74,7 +71,6 @@ nullableBool(bool? b1, bool? b2) {
   /*
    error=non-exhaustive:false,
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -87,14 +83,13 @@ nullableBool(bool? b1, bool? b2) {
 
 nullableA(A? a1, A? a2, A? a3) {
   var a = /*
-   fields={},
    subtypes={A,Null},
    type=A?
   */switch (a1) {
     A()! /*space=A?*/=> 0,
   };
   var b = /*
-   fields={},
+   fields={field:-},
    subtypes={A,Null},
    type=A?
   */switch (a2) {
@@ -102,7 +97,7 @@ nullableA(A? a1, A? a2, A? a3) {
   };
   var c = /*
    error=non-exhaustive:A(field: int),
-   fields={},
+   fields={field:-},
    subtypes={A,Null},
    type=A?
   */switch (a3) {
@@ -115,7 +110,6 @@ nullableA(A? a1, A? a2, A? a3) {
 nullableB(B? b1, B? b2, B? b3) {
   /*
    expandedSubtypes={C,D,Null},
-   fields={},
    subtypes={B,Null},
    type=B?
   */
@@ -126,7 +120,6 @@ nullableB(B? b1, B? b2, B? b3) {
   }
   /*
    expandedSubtypes={C,D,Null},
-   fields={},
    subtypes={B,Null},
    type=B?
   */
@@ -141,7 +134,6 @@ nullableB(B? b1, B? b2, B? b3) {
   /*
    error=non-exhaustive:D,
    expandedSubtypes={C,D,Null},
-   fields={},
    subtypes={B,Null},
    type=B?
   */

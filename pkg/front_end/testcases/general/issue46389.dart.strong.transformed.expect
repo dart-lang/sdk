@@ -19,10 +19,7 @@ class A extends core::Object {
     core::print(x.{core::Object::runtimeType}{core::Type});
   }
 }
-abstract class B<X extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::B<self::B::X%>
-    : super core::Object::•()
-    ;
+abstract class B<X extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
   abstract method foo(covariant-by-class self::B::X% x) → self::B::X%;
   abstract method bar({required covariant-by-class self::B::X% x = #C1}) → self::B::X%;
   abstract set baz(covariant-by-class self::B::X% x) → void;

@@ -14,7 +14,6 @@ void exhaustiveSwitchGeneric<T1>(A<T1> a) {
   //  direct passing of type variables in D.
   /*
    error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T1>,C,D<dynamic, dynamic>},
    type=A<T1>
   */
@@ -35,7 +34,6 @@ void exhaustiveSwitchGeneric<T1>(A<T1> a) {
 }
 void exhaustiveSwitchGenericCatchAll<T2>(A<T2> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T2>,C,D<dynamic, dynamic>},
    type=A<T2>
   */
@@ -60,7 +58,6 @@ void exhaustiveSwitchGenericBounded<T3 extends String>(A<T3> a) {
   //  direct passing of type variables in D.
   /*
    error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T3>,D<dynamic, dynamic>},
    type=A<T3>
   */
@@ -79,7 +76,6 @@ void exhaustiveSwitchGenericBounded<T3 extends String>(A<T3> a) {
 void nonExhaustiveSwitchWrongGeneric1<T4, S4>(A<T4> a) {
   /*
    error=non-exhaustive:B<T4>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T4>,C,D<dynamic, dynamic>},
    type=A<T4>
   */
@@ -102,7 +98,6 @@ void nonExhaustiveSwitchWrongGeneric1<T4, S4>(A<T4> a) {
 void nonExhaustiveSwitchWrongGeneric2<T5, S5>(A<T5> a) {
   /*
    error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T5>,C,D<dynamic, dynamic>},
    type=A<T5>
   */
@@ -127,7 +122,6 @@ void exhaustiveSwitch3(A<String> a) {
   //  direct passing of type variables in D.
   /*
    error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<String>,D<dynamic, dynamic>},
    type=A<String>
   */
@@ -146,7 +140,6 @@ void exhaustiveSwitch3(A<String> a) {
 void nonExhaustiveSwitch1(A<int> a) {
   /*
    error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<int>,C,D<dynamic, dynamic>},
    type=A<int>
   */
@@ -165,7 +158,6 @@ void nonExhaustiveSwitch1(A<int> a) {
 void nonExhaustiveSwitch2(A<int> a) {
   /*
    error=non-exhaustive:B<int>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<int>,C,D<dynamic, dynamic>},
    type=A<int>
   */
@@ -182,7 +174,6 @@ void nonExhaustiveSwitch2(A<int> a) {
 void nonExhaustiveSwitch3(A<num> a) {
   /*
    error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C,D<dynamic, dynamic>},
    type=A<num>
   */
@@ -205,7 +196,6 @@ void nonExhaustiveSwitch3(A<num> a) {
 void nonExhaustiveSwitchWithDefault(A<dynamic> a) {
   /*
    error=non-exhaustive:B<dynamic>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<dynamic>,C,D<dynamic, dynamic>},
    type=A<dynamic>
   */
@@ -226,7 +216,6 @@ void exhaustiveNullableSwitch(A<int>? a) {
   /*
    error=non-exhaustive:D<dynamic, dynamic>,
    expandedSubtypes={B<int>,C,D<dynamic, dynamic>,Null},
-   fields={},
    subtypes={A<int>,Null},
    type=A<int>?
   */
@@ -254,7 +243,6 @@ void nonExhaustiveNullableSwitch1(A<int>? a) {
   /*
    error=non-exhaustive:Null,
    expandedSubtypes={B<int>,C,D<dynamic, dynamic>,Null},
-   fields={},
    subtypes={A<int>,Null},
    type=A<int>?
   */
@@ -270,7 +258,6 @@ void nonExhaustiveNullableSwitch2(A<int>? a) {
   /*
    error=non-exhaustive:D<dynamic, dynamic>,
    expandedSubtypes={B<int>,C,D<dynamic, dynamic>,Null},
-   fields={},
    subtypes={A<int>,Null},
    type=A<int>?
   */
@@ -292,7 +279,6 @@ void nonExhaustiveNullableSwitch2(A<int>? a) {
 
 void unreachableCase1(A<int> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<int>,C,D<dynamic, dynamic>},
    type=A<int>
   */
@@ -319,7 +305,6 @@ void unreachableCase1(A<int> a) {
 void unreachableCase2(A<int> a) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<int>,C,D<dynamic, dynamic>},
    type=A<int>
   */
@@ -338,7 +323,6 @@ void unreachableCase2(A<int> a) {
 void unreachableCase3(A<int>? a) {
   /*
    expandedSubtypes={B<int>,C,D<dynamic, dynamic>,Null},
-   fields={},
    subtypes={A<int>,Null},
    type=A<int>?
   */

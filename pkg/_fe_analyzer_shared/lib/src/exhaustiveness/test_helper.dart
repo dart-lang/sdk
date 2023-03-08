@@ -21,23 +21,22 @@ class Tags {
 String spacesToText(Space space) => space.toString();
 
 /// Returns a textual representation for [fields] used for testing.
-String fieldsToText(Map<String, StaticType> fields) {
-  // TODO(johnniwinther): Enforce that field maps are always sorted.
-  List<String> sortedNames = fields.keys.toList()..sort();
+String fieldsToText(
+    Map<String, StaticType> fields, Set<String> fieldsOfInterest) {
+  List<String> sortedNames = fieldsOfInterest.toList()..sort();
   StringBuffer sb = new StringBuffer();
   String comma = '';
   sb.write('{');
   for (String name in sortedNames) {
-    if (name.startsWith('_')) {
-      // Avoid implementation specific fields, like `Object._identityHashCode`
-      // and `Enum._name`.
-      // TODO(johnniwinther): Support private fields in the test code.
-      continue;
-    }
+    StaticType? fieldType = fields[name];
     sb.write(comma);
     sb.write(name);
     sb.write(':');
-    sb.write(staticTypeToText(fields[name]!));
+    if (fieldType != null) {
+      sb.write(staticTypeToText(fieldType));
+    } else {
+      sb.write("-");
+    }
     comma = ',';
   }
   sb.write('}');

@@ -19,7 +19,6 @@ class D2 extends D {}
 exhaustiveLevel0(A a) {
   /*
    expandedSubtypes={B1,B2,C1,C2,D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -34,7 +33,6 @@ exhaustiveLevel0(A a) {
 exhaustiveLevel0_1(A a) {
   /*
    expandedSubtypes={B1,B2,C1,C2,D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -58,7 +56,6 @@ exhaustiveLevel0_1(A a) {
 exhaustiveLevel1(A a) {
   /*
    expandedSubtypes={B1,B2,C1,C2,D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -81,7 +78,6 @@ exhaustiveLevel1(A a) {
 exhaustiveLevel2(A a) {
   /*
    expandedSubtypes={B1,B2,C1,C2,D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -116,7 +112,6 @@ exhaustiveLevel2(A a) {
 exhaustiveLevel0_1_2(A a) {
   /*
    expandedSubtypes={B1,B2,C1,C2,D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */

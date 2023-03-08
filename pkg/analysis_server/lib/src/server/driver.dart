@@ -451,7 +451,7 @@ class Driver implements ServerStarter {
       }();
     } else {
       capture(instrumentationService, () {
-        Future serveResult;
+        Future<void> serveResult;
         if (sendPort == null) {
           var stdioServer = StdioAnalysisServer(socketServer);
           serveResult = stdioServer.serveStdio();
@@ -855,7 +855,7 @@ class _DiagnosticServerImpl extends DiagnosticServer {
   @override
   Future<int> getServerPort() async => (await httpServer.serveHttp())!;
 
-  Future startOnPort(int port) {
+  Future<void> startOnPort(int port) {
     return httpServer.serveHttp(port);
   }
 }

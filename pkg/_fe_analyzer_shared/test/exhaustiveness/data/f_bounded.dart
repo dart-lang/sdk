@@ -19,7 +19,6 @@ enum Enum<Z extends A<Z>> {
 exhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
   /*
    expandedSubtypes={B,C,D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D<D<dynamic>>},
    type=A<dynamic>
   */
@@ -42,7 +41,6 @@ exhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
       break;
   }
   /*
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<dynamic>
   */
@@ -69,7 +67,6 @@ exhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
 exhaustiveSwitchGeneric<T extends A<T>>(A<T> a, Enum<T> e) {
   /*
    expandedSubtypes={B,C,D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D<D<dynamic>>},
    type=A<T>
   */
@@ -88,7 +85,6 @@ exhaustiveSwitchGeneric<T extends A<T>>(A<T> a, Enum<T> e) {
       break;
   }
   /*
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<T>
   */switch (e) {
@@ -114,7 +110,6 @@ exhaustiveSwitchGeneric<T extends A<T>>(A<T> a, Enum<T> e) {
 exhaustiveSwitchBounded<T extends D<T>>(A<T> a, Enum<T> e) {
   /*
    expandedSubtypes={D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={D<T>},
    type=A<T>
   */
@@ -129,7 +124,6 @@ exhaustiveSwitchBounded<T extends D<T>>(A<T> a, Enum<T> e) {
       break;
   }
   /*
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.d1,Enum.d2},
    type=Enum<T>
   */
@@ -148,7 +142,6 @@ exhaustiveSwitchBounded<T extends D<T>>(A<T> a, Enum<T> e) {
 exhaustiveSwitchCatchAll<T extends A<T>>(A<T> a, Enum<T> e) {
   /*
    expandedSubtypes={B,C,D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D<D<dynamic>>},
    type=A<T>
   */
@@ -167,7 +160,6 @@ exhaustiveSwitchCatchAll<T extends A<T>>(A<T> a, Enum<T> e) {
       break;
   }
   /*
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<T>
   */
@@ -191,7 +183,6 @@ nonExhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
   /*
    error=non-exhaustive:D1,
    expandedSubtypes={B,C,D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D<D<dynamic>>},
    type=A<dynamic>
   */
@@ -211,7 +202,6 @@ nonExhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
   }
   /*
    error=non-exhaustive:Enum.c,
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<dynamic>
   */
@@ -235,7 +225,6 @@ nonExhaustiveSwitchGeneric<T1 extends A<T1>>(A<T1> a, Enum<T1> e) {
   /*
    error=non-exhaustive:D1,
    expandedSubtypes={B,C,D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D<D<dynamic>>},
    type=A<T1>
   */
@@ -255,7 +244,6 @@ nonExhaustiveSwitchGeneric<T1 extends A<T1>>(A<T1> a, Enum<T1> e) {
   }
   /*
    error=non-exhaustive:Enum.d1,
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<T1>
   */
@@ -279,7 +267,6 @@ nonExhaustiveSwitchBounded<T2 extends D<T2>>(A<T2> a, Enum<T2> e) {
   /*
    error=non-exhaustive:D1,
    expandedSubtypes={D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={D<T2>},
    type=A<T2>
   */
@@ -291,7 +278,6 @@ nonExhaustiveSwitchBounded<T2 extends D<T2>>(A<T2> a, Enum<T2> e) {
   }
   /*
    error=non-exhaustive:Enum.d2,
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.d1,Enum.d2},
    type=Enum<T2>
   */
@@ -307,7 +293,6 @@ nonExhaustiveSwitchCatchAll<T3 extends A<T3>>(A<T3> a, Enum<T3> e) {
   /*
    error=non-exhaustive:D1,
    expandedSubtypes={B,C,D1,D2},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D<D<dynamic>>},
    type=A<T3>
   */
@@ -323,7 +308,6 @@ nonExhaustiveSwitchCatchAll<T3 extends A<T3>>(A<T3> a, Enum<T3> e) {
   }
   /*
    error=non-exhaustive:Enum.b,
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<T3>
   */

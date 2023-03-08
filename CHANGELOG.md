@@ -152,6 +152,7 @@
 
 - Added several helper functions to access more JavaScript operator, like
   `delete` and the `typeof` functionality.
+- `jsify` is now permissive and has inverse semantics to `dartify`.
 
 ### Tools
 

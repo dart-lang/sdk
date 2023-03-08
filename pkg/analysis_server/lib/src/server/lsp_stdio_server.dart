@@ -22,7 +22,7 @@ class LspStdioAnalysisServer {
   /// Begin serving requests over stdio.
   ///
   /// Return a future that will be completed when stdin closes.
-  Future serveStdio() {
+  Future<void> serveStdio() {
     var serverChannel = LspByteStreamServerChannel(
         stdin, stdout.nonBlocking, socketServer.instrumentationService);
     socketServer.createAnalysisServer(serverChannel);

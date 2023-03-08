@@ -140,7 +140,7 @@ class LspServerClient {
     return dirname(pathname);
   }
 
-  Future start({
+  Future<void> start({
     required String dartSdkPath,
     List<String>? vmArgs,
   }) async {

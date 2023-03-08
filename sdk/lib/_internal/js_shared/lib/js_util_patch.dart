@@ -10,17 +10,12 @@ import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
 
 @patch
-dynamic jsify(Object object) {
-  if ((object is! Map) && (object is! Iterable)) {
-    throw ArgumentError("object must be a Map or Iterable");
-  }
-  return _convertDataTree(object);
-}
-
-Object _convertDataTree(Object data) {
+dynamic jsify(Object? object) {
   var _convertedObjects = HashMap.identity();
 
   Object? _convert(Object? o) {
+    // Fast path for primitives.
+    if (o == null || o is bool || o is num || o is String) return o;
     if (_convertedObjects.containsKey(o)) {
       return _convertedObjects[o];
     }
@@ -41,7 +36,7 @@ Object _convertDataTree(Object data) {
     }
   }
 
-  return _convert(data)!;
+  return _convert(object);
 }
 
 @patch
@@ -513,11 +508,13 @@ DateTime _dateToDateTime(date) {
 @patch
 Object? dartify(Object? o) {
   var _convertedObjects = HashMap.identity();
+
   Object? convert(Object? o) {
+    // Fast path for primitives.
+    if (o == null || o is bool || o is num || o is String) return o;
     if (_convertedObjects.containsKey(o)) {
       return _convertedObjects[o];
     }
-    if (o == null || o is bool || o is num || o is String) return o;
 
     if (_isJavaScriptDate(o)) {
       return _dateToDateTime(o);

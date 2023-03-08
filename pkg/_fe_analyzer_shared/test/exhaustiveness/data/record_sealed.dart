@@ -14,7 +14,7 @@ class Class {
 method(Class c) {
   /*analyzer.
    error=non-exhaustive:Class(field: ($1: C, $2: C)),
-   fields={field:(A, A),hashCode:int,runtimeType:Type},
+   fields={field:(A, A)},
    type=Class
   */
   switch (c) {

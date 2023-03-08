@@ -26,7 +26,7 @@ class AnalysisNotificationOutlineTest extends PubPackageAnalysisServerTest {
   Outline? outline;
 
   final Completer<void> _outlineReceived = Completer();
-  Completer? _highlightsReceived = Completer();
+  Completer<void>? _highlightsReceived = Completer();
 
   Future<void> prepareOutline() async {
     await addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
@@ -47,7 +47,7 @@ class AnalysisNotificationOutlineTest extends PubPackageAnalysisServerTest {
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = AnalysisHighlightsParams.fromNotification(notification);
       if (params.file == testFile.path) {
-        _highlightsReceived?.complete(null);
+        _highlightsReceived?.complete();
         _highlightsReceived = null;
       }
     }

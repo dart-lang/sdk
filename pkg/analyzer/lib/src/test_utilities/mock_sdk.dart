@@ -16,6 +16,7 @@ final MockSdkLibrary _LIB_ASYNC = MockSdkLibrary('async', [
     '''
 library dart.async;
 
+import 'dart:_internal' show Since;
 import 'dart:math';
 
 part 'stream.dart';
@@ -72,6 +73,7 @@ abstract class Timer {
   static void run(void callback()) {}
 }
 
+@Since("2.15")
 void unawaited(Future<void>? future) {}
 ''',
   ),
@@ -86,6 +88,7 @@ abstract class Stream<T> {
     throw 0;
   }
 
+  @Since("2.5")
   factory Stream.value(T value) {
     throw 0;
   }
@@ -159,6 +162,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
     throw 0;
   }
 
+  @Since("2.1")
   factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) {
     throw 0;
   }
@@ -191,6 +195,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
     throw 0;
   }
 
+  @Since("2.1")
   factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) {
     throw 0;
   }
@@ -268,6 +273,7 @@ library dart.core;
 import "dart:_internal" hide Symbol;
 import "dart:_internal" as internal show Symbol;
 
+@Since("2.1")
 export 'dart:async' show Future, Stream;
 
 const deprecated = const Deprecated("next release");
@@ -281,6 +287,7 @@ void print(Object? object) {}
 class ArgumentError extends Error {
   ArgumentError([message]);
 
+  @Since("2.1")
   static T checkNotNull<T>(T argument, [String, name]) => argument;
 }
 
@@ -296,8 +303,13 @@ abstract class bool extends Object {
 
   external const factory bool.hasEnvironment(String name);
 
+  @Since("2.1")
   bool operator &(bool other);
+
+  @Since("2.1")
   bool operator |(bool other);
+
+  @Since("2.1")
   bool operator ^(bool other);
 }
 
@@ -364,6 +376,7 @@ class Duration implements Comparable<Duration> {
   int compareTo(Duration other) => 0;
 }
 
+@Since("2.14")
 abstract class Enum {
   int get index; // Enum
   String get _name;
@@ -465,7 +478,10 @@ abstract class Iterator<E> {
 
 class List<E> implements Iterable<E> {
   external factory List.filled(int length, E fill, {bool growable = false});
+
+  @Since("2.9")
   external factory List.empty({bool growable = false});
+
   external factory List.from(Iterable elements, {bool growable = true});
   external factory List.of(Iterable<E> elements, {bool growable = true});
   external factory List.generate(int length, E generator(int index),
@@ -574,8 +590,13 @@ class Object {
   external String toString();
   external dynamic noSuchMethod(Invocation invocation);
 
+  @Since("2.14")
   static int hash(Object? object1, Object? object2) => 0;
+
+  @Since("2.14")
   static int hashAll(Iterable<Object?> objects) => 0;
+
+  @Since("2.14")
   static int hashAllUnordered(Iterable<Object?> objects) => 0;
 }
 
@@ -684,14 +705,17 @@ final MockSdkLibrary _LIB_FFI = MockSdkLibrary('ffi', [
   MockSdkLibraryUnit(
     'ffi/ffi.dart',
     '''
+@Since('2.6')
 library dart.ffi;
 
 class NativeType {
   const NativeType();
 }
 
+@Since('2.9')
 class Handle extends NativeType {}
 
+@Since('2.12')
 abstract class Opaque extends NativeType {}
 
 class Void extends NativeType {}
@@ -757,10 +781,13 @@ extension NativeFunctionPointer<NF extends Function>
 
 class _Compound extends NativeType {}
 
+@Since('2.12')
 class Struct extends _Compound {}
 
+@Since('2.14')
 class Union extends _Compound {}
 
+@Since('2.13')
 class Packed {
   final int memberAlignment;
 
@@ -782,6 +809,7 @@ class DartRepresentationOf {
   const DartRepresentationOf(String nativeType);
 }
 
+@Since('2.13')
 class Array<T extends NativeType> extends NativeType {
   const factory Array(int dimension1,
       [int dimension2,
@@ -825,6 +853,7 @@ class FfiNative<T> {
   const FfiNative(this.nativeName, {this.isLeaf = false});
 }
 
+@Since('2.19')
 class Native<T> {
   final String? symbol;
   final String? asset;
@@ -878,21 +907,24 @@ enum _OS {
   windows,
 }
 
-
+@Since('2.16')
 class AbiSpecificInteger extends NativeType {
   const AbiSpecificInteger();
 }
 
+@Since('2.16')
 class AbiSpecificIntegerMapping {
   final Map<Abi, NativeType> mapping;
 
   const AbiSpecificIntegerMapping(this.mapping);
 }
 
+@Since('2.17')
 abstract class Finalizable {
   factory Finalizable._() => throw UnsupportedError("");
 }
 
+@Since('3.0')
 abstract class VarArgs<T extends Record> extends NativeType {}
 ''',
   )

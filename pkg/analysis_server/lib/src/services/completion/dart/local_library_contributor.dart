@@ -18,7 +18,7 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 /// A visitor for building suggestions based upon the elements defined by
 /// a source file contained in the same library but not the same as
 /// the source in which the completions are being requested.
-class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
+class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   final DartCompletionRequest request;
 
   final SuggestionBuilder builder;

@@ -15,7 +15,6 @@ class E extends B {}
 
 simpleCast(o1, o2) {
   var a = /*
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
@@ -27,7 +26,6 @@ simpleCast(o1, o2) {
   };
 
   var b = /*
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
@@ -39,7 +37,7 @@ restrictedCase(o1, o2) {
   // Cast shouldn't match everything, because even though it doesn't throw,
   // it might not match.
   var a = /*
-   fields={},
+   fields={field:-},
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
@@ -49,7 +47,7 @@ restrictedCase(o1, o2) {
 
   var b = /*
    error=non-exhaustive:Object,
-   fields={},
+   fields={field:-},
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
@@ -59,7 +57,6 @@ restrictedCase(o1, o2) {
 
 sealedCast(B b1, B b2) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={C,D,E},
    type=B
   */switch (b1) {
@@ -68,7 +65,6 @@ sealedCast(B b1, B b2) {
   }
   /*
    error=non-exhaustive:E,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={C,D,E},
    type=B
   */switch (b2) {

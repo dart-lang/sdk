@@ -268,39 +268,33 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 // "referenced."
 const _Protected protected = _Protected();
 
-/// Annotation for intentionally loosening restrictions on subtyping.
+// todo(pq): add a link to `implicit_reopen` once implemented.
+
+/// Annotation for intentionally loosening restrictions on subtyping that would
+/// otherwise cause lint warnings to be produced by the `implicit_reopen` lint.
 ///
-/// Indicates that the annotated class or mixin declaration
-/// intentionally allows subclasses to implement or extend it, even
-/// though it has a superclass which does not allow that.
+/// Indicates that the annotated class, mixin, or mixin class declaration
+/// intentionally allows subtypes outside the library to implement it, or extend
+/// it, or mix it in, even though it has some superinterfaces whose restrictions
+/// prevent inheritance.
 ///
-/// A declaration annotated with `@reopen` will not generate warnings from the
-/// `implicit_reopen` lint. That lint will otherwise warn when a subclass *C*
-/// removes some of the restrictions that a superclass has.
+/// A class, mixin, or mixin class declaration prevents inheritance if:
 ///
-/// * A class or mixin prevents inheritance if it's marked interface, or if it
-///   is marked sealed and it extends or mixes in another class which prevents
-///   inheritance.
-/// * We give a warning if a subclass extends or mixes in another class which
-///   prevents inheritance, and the subclass is marked base, or is not marked
-///   `final`, `interface` or `sealed`.
-/// * A class or mixin requires inheritance if it's marked `base`, or if it is
-///   marked `sealed` and it extends or mixes in another class or mixin which
-///   requires inheritance.
-/// * We give a warning if a subclass extends or mixes in another class which
-///   requires inheritance, and the subclass has no modifier or is marked
-///   `interface`.
-/// * A class or mixin prevents subclassing if it's marked `final`, or if it is
-///   marked `sealed` and it extends, mixes in, or implements the interface of
-///   another class or mixin which prevents subclassing.
-/// * We give a warning if a subclass or sub-mixin extends, mixes in, implements
-///   the interface of, or has as an on type a class or mixin which prevents
-///   subclassing, and the subclass or sub-mixin has no modifier or is marked
-///   `interface` or `base`.
+/// * it is marked `interface` or `final`
+/// * it is marked `sealed`, and is implicitly `interface` or `final`
+///   based on the modifiers of its superinterfaces
+/// * it is an anonymous mixin application, and is implicitly `interface` or
+///   `final` based on the modifiers of its superinterfaces
+///
+/// A declaration annotated with `@reopen` will suppress warnings from the
+/// `implicit_reopen` lint. That lint will otherwise warn when a subtype has
+/// restrictions that are not sufficient to enforce the restrictions declared
+/// by class modifiers on one or more superinterfaces.
 ///
 /// In addition, tools, such as the analyzer, can provide feedback if
 ///
-/// * The annotation is applied to anything other than a class or mixin.
+/// * The annotation is applied to anything other than a class, mixin, or mixin
+///   class.
 /// * The annotation is applied to a class or mixin which does not require it.
 ///   (The intent to reopen was not satisfied.)
 @experimental // todo(pq): remove before publishing for 3.0 (https://github.com/dart-lang/sdk/issues/51059)

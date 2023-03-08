@@ -49,7 +49,7 @@ class SocketServerTest {
     });
   }
 
-  static Future createAnalysisServer_successful() {
+  static Future<void> createAnalysisServer_successful() {
     var channel = MockServerChannel();
     _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);

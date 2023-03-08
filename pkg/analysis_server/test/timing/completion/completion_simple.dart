@@ -39,13 +39,13 @@ class SimpleTest extends TimingTest {
 
   /// A completer that will be completed when code completion results have been
   /// received from the server.
-  late Completer completionReceived;
+  late Completer<void> completionReceived;
 
   /// Initialize a newly created test.
   SimpleTest();
 
   @override
-  Future oneTimeSetUp() {
+  Future<void> oneTimeSetUp() {
     return super.oneTimeSetUp().then((_) {
       mainFilePath = sourcePath('test.dart');
       originalContent = r'''
@@ -65,7 +65,7 @@ f(C c) {
   }
 
   @override
-  Future perform() {
+  Future<void> perform() {
     sendAnalysisUpdateContent({
       mainFilePath: ChangeContentOverlay([SourceEdit(cursorOffset, 0, '.')])
     });
@@ -74,7 +74,7 @@ f(C c) {
   }
 
   @override
-  Future setUp() {
+  Future<void> setUp() {
     completionReceived = Completer();
     onCompletionResults.listen((_) {
       // We only care about the time to the first response.
@@ -89,7 +89,7 @@ f(C c) {
   }
 
   @override
-  Future tearDown() {
+  Future<void> tearDown() {
     sendAnalysisSetAnalysisRoots([], []);
     return Future.value();
   }

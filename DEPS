@@ -7,8 +7,6 @@
 # https://github.com/dart-lang/sdk/wiki/Adding-and-Updating-Dependencies
 #
 # Packages can be rolled to the latest version with `tools/manage_deps.dart`.
-# There is some lag time between a commit landing in github and reaching the
-# google hosted clones.
 #
 # For example
 #
@@ -109,10 +107,11 @@ vars = {
 
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
-  # EOL comment after a dependency to pin it at its current revision.
+  # EOL comment after a dependency to disable this and pin it at its current
+  # revision.
 
   "args_rev": "9305d5a2ca817a065a1ded3734655d99cd717f2c",
-  "async_rev": "8deaa40439b05babb0093554ac58b982891076ff",
+  "async_rev": "f454380c2691728530e0b2421af7676a9621481b",
   "bazel_worker_rev": "53871c5fe36438b734a0f75c91055e75111a7210",
   "benchmark_harness_rev": "a6a0891e5430ce10518d19a52b6fa6c4ad18a6f2",
   "boolean_selector_rev": "16e6ad3c8000e08a7f1c213aef2a692d872a16c7",
@@ -134,19 +133,19 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "a3f1b041f3c5045d1fee7f1129075d0ad6a4a96e", # manually rev'd
-  "dartdoc_rev": "77d59945d3af50328aa28b87002437e8f2e6333b", # 6.2.0
+  "dart_style_rev": "a3f1b041f3c5045d1fee7f1129075d0ad6a4a96e", # disable rev_sdk_deps.dart
+  "dartdoc_rev": "98fa859c8e7e9c0ee9a8873a09aed4d96aab4d3b",
   "ffi_rev": "32f5eefea59d4461e8ab40e83f157e49d5abe0da",
   "file_rev": "72a67c33f90bfb7e10057e286e06d2fe3baa4d98",
   "fixnum_rev": "f8379d94436f3a73f71ea078f3207897c6700498",
   "glob_rev": "f378dc8734f9f2413e93951f95d278420e4a03e0",
-  "html_rev": "0b8025c16e1e5a5bcd451fb3a81cd98df218dcd4",
-  "http_rev": "1500a71c49a83bf508effcbf1f8fec3099abeb02",
-  "http_multi_server_rev": "2cd53558a80fb0609532cdd4d3d65f2fa22448a8",
+  "html_rev": "08643e9e2baac0f20ce4a3b8baed820107972270",
+  "http_rev": "805a14742e293fb51c0b89004b51add50d825792",
+  "http_multi_server_rev": "7bd190c70288361ed01ad31668e93544bcc5cf2b",
   "http_parser_rev": "b3b283b9f139640b932d604e8815460bbd3ecab5",
   "intl_rev": "fca552f2ec5d682b5fa36f02bdd72a5a4e2edcee",
   "json_rpc_2_rev": "0280ac6cb4f3905d81c47ba927123ba2b95f7940",
-  "linter_rev": "dcf3a079c573487b6ab64518604e5686be899601", # 1.34.0-dev
+  "linter_rev": "dcf3a079c573487b6ab64518604e5686be899601", # disable rev_sdk_deps.dart
   "lints_rev": "dfded5e265015f21ce154577fe8488dc244e33c2",
   "logging_rev": "abef3717d958158eb8b0ddb2871f4b15a9804cd4",
   "markdown_rev": "ecbffa9bf9109d490b9388e9cb1f2bb801aee63c",
@@ -157,30 +156,30 @@ vars = {
   "path_rev": "24b58a2499440cc3d12d2b3c2f52b95f91ff1c0a",
   "pool_rev": "694cfd867d8d84857fc42a8d07933013f0d25305",
   "protobuf_rev": "75bc380a6e9601565606a13dee16c5ab2bf5019c",
-  "pub_rev": "048e3ad2b5e1b4ebe6883addbc95722be6904a7b", # manually rev'd
+  "pub_rev": "048e3ad2b5e1b4ebe6883addbc95722be6904a7b", # disable rev_sdk_deps.dart
   "pub_semver_rev": "c0e6ea74ccfbfdb2ef54c7cd9ad31455ca8e481f",
   "shelf_rev": "e3cfe796ad478cb4b61ad8e68ea29644c0bb1037",
-  "source_map_stack_trace_rev": "a60ef54b36147b103d8b7d0317d6b578ebf874cc",
+  "source_map_stack_trace_rev": "45ea3688b6bec1eb565c38c4e28f37b01f8a0fa9",
   "source_maps_rev": "a112e981a985a8af2047ee25a9cf56b0d5413b02",
   "source_span_rev": "3951ba50ec29b9870c3131c6ddcc88700d26f3ee",
   "sse_rev": "8c03b73f90d951f5b33dd496593718107c79f97a",
   "stack_trace_rev": "6ceb191ace71c18ccf5648f6b2e8be52da39c56f",
-  "stream_channel_rev": "0850515bb74ca3a40fd5c19ef0dd3a63834d21cf",
+  "stream_channel_rev": "a20ccd4142947637213393803289787a233402a1",
   "string_scanner_rev": "29e471ea98762db8052cca0e6a69ef9c7999abed",
   "sync_http_rev": "36a1bd086798cbdb48e7541b05e5a14b5e5bb56b",
   "term_glyph_rev": "d275a8f7482b6a5e4f15d0da6feb66c24f52eb94",
-  "test_rev": "1307cc59c30ad99a1dc0bb579ddfcaaf41d2c9d1",
+  "test_rev": "92da93a83615f2bc0483aa00e6a85c4f89d616e4",
   "test_descriptor_rev": "1d4a967dd17874f3835af30720e9820c74977569",
   "test_process_rev": "f76d0b8fcf078d629cb57f859db79be93d6323d5",
   "test_reflective_loader_rev": "c4c2d5c3f94a96f3fc79e9e28944fba391bc544c",
-  "tools_rev": "28b7be83589d0d7a6d44cbe6166b6673f08018fb",
+  "tools_rev": "a1c35060d920122ecbecb8c5a389b58ccbceb125",
   "typed_data_rev": "f858046fb420cf644e7d8cb86b7893f2830d8a6c",
   "usage_rev": "399770f45ed2d384d79395c0341a04fb25609a4d",
   "vector_math_rev": "1e4d000f55512ca55d0fcef4e13fc03010d54251",
-  "watcher_rev": "0ca663817ee879477a35fa2724f0e47c15facf13",
+  "watcher_rev": "5968409e1d73e21e75fc22a6481d5efaef7f3558",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "e2fe7f665997ab8e28aa76a8b26483f9903221a8",
-  "webdev_rev": "deb801b7734056a6ffeefabe8ceb534fb658cdea",
+  "webdev_rev": "c007560346a53728920362e5ccaa7eaae85301a7",
   "webdriver_rev": "562aa06353d513586b806ce1c9655dac3971879f",
   "webkit_inspection_protocol_rev": "8401098ace995e4dcd9855a2741c2dacccaa780b",
   "yaml_rev": "a6d8781744d34c391368664b4c1e174f0433bbb6",

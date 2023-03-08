@@ -1884,24 +1884,24 @@ class _InlineMethodTest extends RefactoringTest {
   bool? deleteSource;
   bool? inlineAll;
 
-  Future _assertConditionsError(String message) async {
+  Future<void> _assertConditionsError(String message) async {
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: message);
   }
 
-  Future _assertConditionsFatal(String message) async {
+  Future<void> _assertConditionsFatal(String message) async {
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
   }
 
-  Future _assertInvalidSelection() {
+  Future<void> _assertInvalidSelection() {
     return _assertConditionsFatal(
         'Method declaration or reference must be selected to activate this refactoring.');
   }
 
-  Future _assertSuccessfulRefactoring(String expectedCode) async {
+  Future<void> _assertSuccessfulRefactoring(String expectedCode) async {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatusOK(status);
     // configure

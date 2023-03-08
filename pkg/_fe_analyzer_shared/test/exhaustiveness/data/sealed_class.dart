@@ -11,7 +11,6 @@ enum Enum {a, b}
 
 void exhaustiveSwitch1(A a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -33,7 +32,6 @@ void exhaustiveSwitch1(A a) {
 
 void exhaustiveSwitch2(A a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -52,7 +50,6 @@ void exhaustiveSwitch2(A a) {
 void nonExhaustiveSwitch1(A a) {
   /*
    error=non-exhaustive:D,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -71,7 +68,6 @@ void nonExhaustiveSwitch1(A a) {
 void nonExhaustiveSwitch2(A a) {
   /*
    error=non-exhaustive:B,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -90,7 +86,6 @@ void nonExhaustiveSwitch2(A a) {
 void nonExhaustiveSwitch3(A a) {
   /*
    error=non-exhaustive:C,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -109,7 +104,6 @@ void nonExhaustiveSwitch3(A a) {
 void nonExhaustiveSwitchWithDefault(A a) {
   /*
    error=non-exhaustive:C,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -127,7 +121,6 @@ void nonExhaustiveSwitchWithDefault(A a) {
 void exhaustiveNullableSwitch(A? a) {
   /*
    expandedSubtypes={B,C,D,Null},
-   fields={},
    subtypes={A,Null},
    type=A?
   */switch (a) {
@@ -154,7 +147,6 @@ void nonExhaustiveNullableSwitch1(A? a) {
   /*
    error=non-exhaustive:Null,
    expandedSubtypes={B,C,D,Null},
-   fields={},
    subtypes={A,Null},
    type=A?
   */
@@ -170,7 +162,6 @@ void nonExhaustiveNullableSwitch2(A? a) {
   /*
    error=non-exhaustive:D,
    expandedSubtypes={B,C,D,Null},
-   fields={},
    subtypes={A,Null},
    type=A?
   */
@@ -192,7 +183,6 @@ void nonExhaustiveNullableSwitch2(A? a) {
 
 void unreachableCase1(A a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -222,7 +212,6 @@ void unreachableCase1(A a) {
 void unreachableCase2(A a) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B,C,D},
    type=A
   */
@@ -241,7 +230,6 @@ void unreachableCase2(A a) {
 void unreachableCase3(A? a) {
   /*
    expandedSubtypes={B,C,D,Null},
-   fields={},
    subtypes={A,Null},
    type=A?
   */

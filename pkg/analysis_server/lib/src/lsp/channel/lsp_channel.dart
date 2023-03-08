@@ -12,7 +12,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 /// [NotificationMessage]s and to return both [ResponseMessage]s and
 /// [NotificationMessage]s.
 abstract class LspServerCommunicationChannel {
-  Future get closed;
+  Future<void> get closed;
 
   /// Close the communication channel.
   void close();

@@ -163,7 +163,7 @@ abstract class TimingTest extends IntegrationTest {
 
   /// Perform any operations that part of a single iteration. It is the
   /// execution of this method that will be measured.
-  Future perform();
+  Future<void> perform();
 
   /// Return a future that will complete with a timing result representing the
   /// number of milliseconds required to perform the operation the specified
@@ -178,7 +178,7 @@ abstract class TimingTest extends IntegrationTest {
   }
 
   /// Perform any operations that need to be performed before each iteration.
-  Future setUp();
+  Future<void> setUp();
 
   /// Convert the given [relativePath] to an absolute path, by interpreting it
   /// relative to [sourceDirectory].  On Windows any forward slashes in
@@ -188,7 +188,7 @@ abstract class TimingTest extends IntegrationTest {
   }
 
   /// Perform any operations that need to be performed after each iteration.
-  Future tearDown();
+  Future<void> tearDown();
 
   /// Write a source file with the given absolute [pathname] and [contents].
   ///

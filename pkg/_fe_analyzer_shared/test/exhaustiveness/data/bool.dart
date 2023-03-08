@@ -4,7 +4,6 @@
 
 void exhaustiveSwitch(bool b) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
   */
@@ -25,7 +24,6 @@ const f1 = false;
 
 void exhaustiveSwitchAliasedBefore(bool b) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
   */
@@ -43,7 +41,6 @@ void exhaustiveSwitchAliasedBefore(bool b) {
 
 void exhaustiveSwitchAliasedAfter(bool b) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
   */
@@ -65,7 +62,6 @@ const f2 = false;
 void nonExhaustiveSwitch1(bool b) {
   /*
    error=non-exhaustive:false,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
   */
@@ -80,7 +76,6 @@ void nonExhaustiveSwitch1(bool b) {
 void nonExhaustiveSwitch2(bool b) {
   /*
    error=non-exhaustive:true,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
   */
@@ -95,7 +90,6 @@ void nonExhaustiveSwitch2(bool b) {
 void nonExhaustiveSwitchWithDefault(bool b) {
   /*
    error=non-exhaustive:false,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
   */
@@ -113,7 +107,6 @@ void nonExhaustiveSwitchWithDefault(bool b) {
 void exhaustiveNullableSwitch(bool? b) {
   /*
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -137,7 +130,6 @@ void nonExhaustiveNullableSwitch1(bool? b) {
   /*
    error=non-exhaustive:Null,
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -157,7 +149,6 @@ void nonExhaustiveNullableSwitch2(bool? b) {
   /*
    error=non-exhaustive:false,
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -175,7 +166,6 @@ void nonExhaustiveNullableSwitch2(bool? b) {
 
 void unreachableCase1(bool b) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
   */
@@ -201,7 +191,6 @@ void unreachableCase1(bool b) {
 void unreachableCase2(bool b) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
   */
@@ -224,7 +213,6 @@ void unreachableCase2(bool b) {
 void unreachableCase3(bool? b) {
   /*
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */

@@ -3,13 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 untypedMap(Map map) {
-  var a = /*cfe.
+  var a = /*
    error=non-exhaustive:Map<dynamic, dynamic>,
-   fields={entries:Iterable<MapEntry<dynamic, dynamic>>,hashCode:int,isEmpty:bool,isNotEmpty:bool,keys:Iterable<dynamic>,length:int,runtimeType:Type,values:Iterable<dynamic>},
-   type=Map<dynamic, dynamic>
-  *//*analyzer.
-   error=non-exhaustive:Map<dynamic, dynamic>,
-   fields={hashCode:int,isEmpty:bool,isNotEmpty:bool,keys:Iterable<dynamic>,length:int,runtimeType:Type,values:Iterable<dynamic>},
    type=Map<dynamic, dynamic>
   */switch (map) {
     {} /*space=??*/=> 0,
@@ -25,13 +20,8 @@ class B extends A {}
 class C extends A {}
 
 typedList(List<A> list) {
-  var a = /*cfe.
+  var a = /*
    error=non-exhaustive:List<A>,
-   fields={first:A,hashCode:int,isEmpty:bool,isNotEmpty:bool,iterator:Iterator<A>,last:A,length:int,reversed:Iterable<A>,runtimeType:Type,single:A},
-   type=List<A>
-  *//*analyzer.
-   error=non-exhaustive:List<A>,
-   fields={first:A,hashCode:int,isEmpty:bool,isNotEmpty:bool,iterator:Iterator<A>,last:A,length:int,runtimeType:Type},
    type=List<A>
   */switch (list) {
     [] /*space=??*/=> 0,

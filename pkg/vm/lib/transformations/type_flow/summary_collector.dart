@@ -2253,8 +2253,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr? visitVariableDeclaration(VariableDeclaration node) {
     node.annotations.forEach(_visit);
     final initializer = node.initializer;
-    final TypeExpr initialValue =
-        initializer == null ? _nullType : _visit(initializer);
+    final TypeExpr initialValue = initializer == null
+        ? ((node.type.nullability == Nullability.nonNullable || node.isLate)
+            ? const EmptyType()
+            : _nullType)
+        : _visit(initializer);
     _declareVariable(node, initialValue);
     return null;
   }

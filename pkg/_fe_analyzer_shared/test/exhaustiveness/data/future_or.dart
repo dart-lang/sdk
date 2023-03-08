@@ -11,7 +11,6 @@ class C extends A {}
 exhaustiveBoolByValue(FutureOr<bool> f) {
   /*
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */
@@ -31,7 +30,6 @@ exhaustiveBoolByValue(FutureOr<bool> f) {
   }
   var a = /*
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */switch (f) {
@@ -44,7 +42,6 @@ exhaustiveBoolByValue(FutureOr<bool> f) {
 exhaustiveBoolByType(FutureOr<bool> f) {
   /*
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */
@@ -60,7 +57,6 @@ exhaustiveBoolByType(FutureOr<bool> f) {
   }
   /*
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */switch (f) {
@@ -75,7 +71,6 @@ exhaustiveBoolByType(FutureOr<bool> f) {
   }
   var a = /*
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */switch (f) {
@@ -88,7 +83,6 @@ nonExhaustiveBool(FutureOr<bool> f) {
   /*
    error=non-exhaustive:Future<bool>,
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */
@@ -105,7 +99,6 @@ nonExhaustiveBool(FutureOr<bool> f) {
   /*
    error=non-exhaustive:false,
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */
@@ -122,7 +115,6 @@ nonExhaustiveBool(FutureOr<bool> f) {
   /*
    error=non-exhaustive:true,
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */
@@ -139,7 +131,6 @@ nonExhaustiveBool(FutureOr<bool> f) {
   /*
    error=non-exhaustive:Future<bool>,
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */
@@ -160,7 +151,6 @@ nonExhaustiveBool(FutureOr<bool> f) {
   var a = /*
    error=non-exhaustive:Future<bool>,
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */switch (f) {
@@ -170,7 +160,6 @@ nonExhaustiveBool(FutureOr<bool> f) {
   var b = /*
    error=non-exhaustive:false,
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */switch (f) {
@@ -180,7 +169,6 @@ nonExhaustiveBool(FutureOr<bool> f) {
   var c = /*
    error=non-exhaustive:true,
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */switch (f) {
@@ -190,7 +178,6 @@ nonExhaustiveBool(FutureOr<bool> f) {
   var d = /*
    error=non-exhaustive:Future<bool>,
    expandedSubtypes={true,false,Future<bool>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
   */switch (f) {
@@ -203,7 +190,6 @@ nonExhaustiveBool(FutureOr<bool> f) {
 exhaustiveSealedBySubtype(FutureOr<A> f) {
   /*
    expandedSubtypes={B,C,Future<A>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={A,Future<A>},
    type=FutureOr<A>
   */
@@ -223,7 +209,6 @@ exhaustiveSealedBySubtype(FutureOr<A> f) {
   }
   var a = /*
    expandedSubtypes={B,C,Future<A>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={A,Future<A>},
    type=FutureOr<A>
   */switch (f) {
@@ -236,7 +221,6 @@ exhaustiveSealedBySubtype(FutureOr<A> f) {
 exhaustiveSealedByType(FutureOr<A> f) {
   /*
    expandedSubtypes={B,C,Future<A>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={A,Future<A>},
    type=FutureOr<A>
   */
@@ -252,7 +236,6 @@ exhaustiveSealedByType(FutureOr<A> f) {
   }
   var a = /*
    expandedSubtypes={B,C,Future<A>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={A,Future<A>},
    type=FutureOr<A>
   */switch (f) {
@@ -265,7 +248,6 @@ nonExhaustiveSealed(FutureOr<A> f) {
   /*
    error=non-exhaustive:Future<A>,
    expandedSubtypes={B,C,Future<A>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={A,Future<A>},
    type=FutureOr<A>
   */
@@ -282,7 +264,6 @@ nonExhaustiveSealed(FutureOr<A> f) {
   /*
    error=non-exhaustive:C,
    expandedSubtypes={B,C,Future<A>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={A,Future<A>},
    type=FutureOr<A>
   */
@@ -299,7 +280,6 @@ nonExhaustiveSealed(FutureOr<A> f) {
   /*
    error=non-exhaustive:B,
    expandedSubtypes={B,C,Future<A>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={A,Future<A>},
    type=FutureOr<A>
   */
@@ -316,7 +296,6 @@ nonExhaustiveSealed(FutureOr<A> f) {
   /*
    error=non-exhaustive:Future<A>,
    expandedSubtypes={B,C,Future<A>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={A,Future<A>},
    type=FutureOr<A>
   */switch (f) {
@@ -340,7 +319,6 @@ nonExhaustiveSealed(FutureOr<A> f) {
   var a = /*
    error=non-exhaustive:Future<A>,
    expandedSubtypes={B,C,Future<A>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={A,Future<A>},
    type=FutureOr<A>
   */switch (f) {
@@ -350,7 +328,6 @@ nonExhaustiveSealed(FutureOr<A> f) {
   var b = /*
    error=non-exhaustive:C,
    expandedSubtypes={B,C,Future<A>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={A,Future<A>},
    type=FutureOr<A>
   */switch (f) {
@@ -360,7 +337,6 @@ nonExhaustiveSealed(FutureOr<A> f) {
   var c = /*
    error=non-exhaustive:B,
    expandedSubtypes={B,C,Future<A>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={A,Future<A>},
    type=FutureOr<A>
   */switch (f) {
@@ -371,7 +347,6 @@ nonExhaustiveSealed(FutureOr<A> f) {
 
 exhaustiveRegular(FutureOr<int> f) {
   var a = /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={int,Future<int>},
    type=FutureOr<int>
   */switch (f) {
@@ -383,7 +358,6 @@ exhaustiveRegular(FutureOr<int> f) {
 nonExhaustiveRegular(FutureOr<int> f) {
   var a = /*
    error=non-exhaustive:Future<int>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={int,Future<int>},
    type=FutureOr<int>
   */switch (f) {
@@ -392,7 +366,6 @@ nonExhaustiveRegular(FutureOr<int> f) {
   };
   var b = /*
    error=non-exhaustive:int,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={int,Future<int>},
    type=FutureOr<int>
   */switch (f) {
@@ -407,7 +380,6 @@ exhaustiveNullable(
     FutureOr<bool?>? f3) {
   /*
    expandedSubtypes={true,false,Future<bool>,Null},
-   fields={},
    subtypes={FutureOr<bool>,Null},
    type=FutureOr<bool>?
   */
@@ -431,7 +403,6 @@ exhaustiveNullable(
   }
   /*
    expandedSubtypes={true,false,Null,Future<bool?>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool?,Future<bool?>},
    type=FutureOr<bool?>
   */
@@ -455,7 +426,6 @@ exhaustiveNullable(
   }
   /*
    expandedSubtypes={true,false,Null,Future<bool?>},
-   fields={},
    subtypes={FutureOr<bool?>,Null},
    type=FutureOr<bool?>?
   */
@@ -486,7 +456,6 @@ nonExhaustiveNullable(
   /*
    error=non-exhaustive:Null,
    expandedSubtypes={true,false,Future<bool>,Null},
-   fields={},
    subtypes={FutureOr<bool>,Null},
    type=FutureOr<bool>?
   */
@@ -507,7 +476,6 @@ nonExhaustiveNullable(
   /*
    error=non-exhaustive:Null,
    expandedSubtypes={true,false,Null,Future<bool?>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool?,Future<bool?>},
    type=FutureOr<bool?>
   */
@@ -528,7 +496,6 @@ nonExhaustiveNullable(
   /*
    error=non-exhaustive:Future<bool?>,
    expandedSubtypes={true,false,Null,Future<bool?>},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={bool?,Future<bool?>},
    type=FutureOr<bool?>
   */
@@ -553,7 +520,6 @@ nonExhaustiveNullable(
   /*
    error=non-exhaustive:Null,
    expandedSubtypes={true,false,Null,Future<bool?>},
-   fields={},
    subtypes={FutureOr<bool?>,Null},
    type=FutureOr<bool?>?
   */
@@ -574,7 +540,6 @@ nonExhaustiveNullable(
   /*
    error=non-exhaustive:Future<bool?>,
    expandedSubtypes={true,false,Null,Future<bool?>},
-   fields={},
    subtypes={FutureOr<bool?>,Null},
    type=FutureOr<bool?>?
   */

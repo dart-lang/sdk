@@ -155,14 +155,14 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest {
   String readFile(String pathname) => File(pathname).readAsStringSync();
 
   @override
-  Future sendServerSetSubscriptions(List<ServerService> subscriptions) {
+  Future<void> sendServerSetSubscriptions(List<ServerService> subscriptions) {
     _subscribedToServerStatus = subscriptions.contains(ServerService.STATUS);
     return super.sendServerSetSubscriptions(subscriptions);
   }
 
   /// The server is automatically started before every test, and a temporary
   /// [sourceDirectory] is created.
-  Future setUp() async {
+  Future<void> setUp() async {
     sourceDirectory = Directory(Directory.systemTemp
         .createTempSync('analysisServer')
         .resolveSymbolicLinksSync());
@@ -192,7 +192,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest {
   }
 
   /// If [skipShutdown] is not set, shut down the server.
-  Future shutdownIfNeeded() {
+  Future<void> shutdownIfNeeded() {
     if (skipShutdown) {
       return Future.value();
     }
@@ -218,8 +218,8 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest {
   /// analyze [sourceDirectory].  If [subscribeStatus] is true (the default),
   /// then also enable [SERVER_NOTIFICATION_STATUS] notifications so that
   /// [analysisFinished] can be used.
-  Future standardAnalysisSetup({bool subscribeStatus = true}) {
-    var futures = <Future>[];
+  Future<void> standardAnalysisSetup({bool subscribeStatus = true}) {
+    var futures = <Future<void>>[];
     if (subscribeStatus) {
       futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
     }
@@ -228,7 +228,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest {
   }
 
   /// Start [server].
-  Future startServer({
+  Future<void> startServer({
     int? diagnosticPort,
     int? servicePort,
   }) {
@@ -240,7 +240,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest {
   }
 
   /// After every test, the server is stopped and [sourceDirectory] is deleted.
-  Future tearDown() {
+  Future<void> tearDown() {
     return shutdownIfNeeded().then((_) {
       sourceDirectory.deleteSync(recursive: true);
     });
@@ -496,7 +496,7 @@ class Server {
 
   /// Return a future that will complete when all commands that have been sent
   /// to the server so far have been flushed to the OS buffer.
-  Future flushCommands() {
+  Future<void> flushCommands() {
     return _process.stdin.flush();
   }
 
