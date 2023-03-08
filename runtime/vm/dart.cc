@@ -259,6 +259,13 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
       "host");
 #endif
 
+#if defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS)
+  char* error = CheckIsAtLeastMinRequiredMacOSVersion();
+  if (error != nullptr) {
+    return error;
+  }
+#endif
+
   if (!Flags::Initialized()) {
     return Utils::StrDup("VM initialization failed-VM Flags not initialized.");
   }
