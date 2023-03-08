@@ -7149,6 +7149,7 @@ class InlineData {
   bool hasArgumentDefaulting = false;
   bool hasCast = false;
   bool hasIf = false;
+  bool hasLabel = false; // TODO(51652): Remove when inlining works with labels.
   List<int> argumentCounts = [];
   int regularNodeCount = 0;
   int callCount = 0;
@@ -7178,6 +7179,7 @@ class InlineData {
         regularNodeCount - 1 > maxInliningNodes) {
       return 'too many nodes (${regularNodeCount - 1}>$maxInliningNodes)';
     }
+    if (hasLabel) return 'has label';
     return null;
   }
 
@@ -7213,6 +7215,7 @@ class InlineData {
     } else if (isConstructor) {
       return 'constructor';
     }
+    if (hasLabel) return 'has label';
     for (int count in argumentCounts) {
       if (count > argumentCount) {
         return 'increasing arguments';
@@ -7296,6 +7299,11 @@ class InlineData {
     if (hasIf) {
       sb.write(comma);
       sb.write('hasIf');
+      comma = ',';
+    }
+    if (hasLabel) {
+      sb.write(comma);
+      sb.write('hasLabel');
       comma = ',';
     }
     if (argumentCounts.isNotEmpty) {
@@ -7590,6 +7598,13 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   @override
   visitExpressionStatement(ir.ExpressionStatement node) {
     registerRegularNode();
+    node.visitChildren(this);
+  }
+
+  @override
+  visitLabeledStatement(ir.LabeledStatement node) {
+    registerRegularNode();
+    data.hasLabel = true;
     node.visitChildren(this);
   }
 
