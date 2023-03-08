@@ -4,7 +4,6 @@
 
 or(bool b1, bool? b2) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={true,false},
    type=bool
   */
@@ -15,7 +14,6 @@ or(bool b1, bool? b2) {
 
   /*
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -28,7 +26,6 @@ or(bool b1, bool? b2) {
 
   /*
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -41,7 +38,6 @@ or(bool b1, bool? b2) {
 
   /*
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -54,7 +50,6 @@ or(bool b1, bool? b2) {
 
   /*
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -65,7 +60,6 @@ or(bool b1, bool? b2) {
 
   /*
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -77,7 +71,6 @@ or(bool b1, bool? b2) {
   /*
    error=non-exhaustive:false,
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -89,7 +82,6 @@ or(bool b1, bool? b2) {
   /*
    error=non-exhaustive:true,
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */

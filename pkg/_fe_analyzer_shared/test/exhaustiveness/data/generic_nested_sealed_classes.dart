@@ -21,7 +21,6 @@ class D4 extends D<bool, bool> {}
 exhaustiveLevel0<T1>(A<T1> a) {
   /*
    expandedSubtypes={B1<T1>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T1>,C,D<dynamic, dynamic>},
    type=A<T1>
   */
@@ -36,7 +35,6 @@ exhaustiveLevel0<T1>(A<T1> a) {
 exhaustiveLevel0_1<T2>(A<T2> a) {
   /*
    expandedSubtypes={B1<T2>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T2>,C,D<dynamic, dynamic>},
    type=A<T2>
   */
@@ -62,7 +60,6 @@ exhaustiveLevel1<T3>(A<T3> a) {
   /*
    error=non-exhaustive:D1<dynamic, dynamic>,
    expandedSubtypes={B1<T3>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T3>,C,D<dynamic, dynamic>},
    type=A<T3>
   */
@@ -84,7 +81,6 @@ exhaustiveLevel1<T3>(A<T3> a) {
 
 exhaustiveLevel1b<T3>(B<T3> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B1<T3>,B2},
    type=B<T3>
   */
@@ -95,7 +91,6 @@ exhaustiveLevel1b<T3>(B<T3> a) {
       break;
   }
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B1<T3>,B2},
    type=B<T3>
   */
@@ -117,7 +112,6 @@ exhaustiveLevel2<T4>(A<T4> a) {
   /*
    error=non-exhaustive:D1<dynamic, dynamic>,
    expandedSubtypes={B1<T4>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T4>,C,D<dynamic, dynamic>},
    type=A<T4>
   */
@@ -159,7 +153,6 @@ exhaustiveLevel2<T4>(A<T4> a) {
 exhaustiveLevel0_1_2<T5>(A<T5> a) {
   /*
    expandedSubtypes={B1<T5>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T5>,C,D<dynamic, dynamic>},
    type=A<T5>
   */switch (a) {

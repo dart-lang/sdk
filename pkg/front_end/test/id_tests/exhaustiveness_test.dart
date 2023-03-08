@@ -81,8 +81,16 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
           features[Tags.expandedSubtypes] = expandedSubtypes;
         }
       }
-      features[Tags.scrutineeFields] =
-          fieldsToText(result.scrutineeType.fields);
+      Set<String> fieldsOfInterest = {};
+      for (Space caseSpace in result.caseSpaces) {
+        for (SingleSpace singleSpace in caseSpace.singleSpaces) {
+          fieldsOfInterest.addAll(singleSpace.fields.keys);
+        }
+      }
+      if (fieldsOfInterest.isNotEmpty) {
+        features[Tags.scrutineeFields] =
+            fieldsToText(result.scrutineeType.fields, fieldsOfInterest);
+      }
       for (ExhaustivenessError error in result.errors) {
         if (error is NonExhaustiveError) {
           features[Tags.error] = errorToText(error);

@@ -17,7 +17,7 @@ class B extends A {
 
 void exhaustiveSwitch1(A r) {
   /*
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -43,7 +43,7 @@ void exhaustiveSwitch1(A r) {
 
 void exhaustiveSwitch2(A r) {
   /*
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -70,7 +70,7 @@ void exhaustiveSwitch2(A r) {
 void nonExhaustiveSwitch1(A r) {
   /*
    error=non-exhaustive:B(a: Enum.b, b: false),
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -93,7 +93,7 @@ void nonExhaustiveSwitch1(A r) {
 void nonExhaustiveSwitch2(A r) {
   /*
    error=non-exhaustive:B(a: Enum.a, b: false),
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -116,7 +116,7 @@ void nonExhaustiveSwitch2(A r) {
 void nonExhaustiveSwitchWithDefault(A r) {
   /*
    error=non-exhaustive:B(a: Enum.a, b: true),
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -134,7 +134,7 @@ void nonExhaustiveSwitchWithDefault(A r) {
 void exhaustiveNullableSwitch(A? r) {
   /*
    expandedSubtypes={B,Null},
-   fields={},
+   fields={a:-,b:-},
    subtypes={A,Null},
    type=A?
   */
@@ -166,7 +166,7 @@ void nonExhaustiveNullableSwitch1(A? r) {
   /*
    error=non-exhaustive:Null,
    expandedSubtypes={B,Null},
-   fields={},
+   fields={a:-,b:-},
    subtypes={A,Null},
    type=A?
   */
@@ -194,7 +194,7 @@ void nonExhaustiveNullableSwitch2(A? r) {
   /*
    error=non-exhaustive:B(a: Enum.b, b: false),
    expandedSubtypes={B,Null},
-   fields={},
+   fields={a:-,b:-},
    subtypes={A,Null},
    type=A?
   */
@@ -220,7 +220,7 @@ void nonExhaustiveNullableSwitch2(A? r) {
 
 void unreachableCase1(A r) {
   /*
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -254,7 +254,7 @@ void unreachableCase1(A r) {
 void unreachableCase2(A r) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   /*
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -285,7 +285,7 @@ void unreachableCase2(A r) {
 void unreachableCase3(A? r) {
   /*
    expandedSubtypes={B,Null},
-   fields={},
+   fields={a:-,b:-},
    subtypes={A,Null},
    type=A?
   */

@@ -8,7 +8,6 @@ class C<Z extends Object> extends A<Z> {}
 
 exhaustiveGeneric<T1>(A<T1> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<T1>
   */
@@ -26,7 +25,6 @@ exhaustiveGeneric<T1>(A<T1> a) {
 
 exhaustiveDynamic(A<dynamic> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<dynamic>
   */
@@ -44,7 +42,6 @@ exhaustiveDynamic(A<dynamic> a) {
 
 exhaustiveGenericFixed<T2>(A<T2> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<T2>
   */
@@ -62,7 +59,6 @@ exhaustiveGenericFixed<T2>(A<T2> a) {
 
 exhaustiveGenericCatchAll<T3>(A<T3> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<T3>
   */
@@ -81,7 +77,6 @@ exhaustiveGenericCatchAll<T3>(A<T3> a) {
 nonExhaustiveGeneric<T4>(A<T4> a) {
   /*
    error=non-exhaustive:C<Object>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<T4>
   */
@@ -93,7 +88,6 @@ nonExhaustiveGeneric<T4>(A<T4> a) {
   }
   /*
    error=non-exhaustive:B<num>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<T4>
   */
@@ -108,7 +102,6 @@ nonExhaustiveGeneric<T4>(A<T4> a) {
 nonExhaustiveDynamic1(A<dynamic> a) {
   /*
    error=non-exhaustive:C<Object>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<dynamic>
   */
@@ -123,7 +116,6 @@ nonExhaustiveDynamic1(A<dynamic> a) {
 nonExhaustiveDynamic2(A<dynamic> a) {
   /*
    error=non-exhaustive:B<num>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<dynamic>
   */
@@ -138,7 +130,6 @@ nonExhaustiveDynamic2(A<dynamic> a) {
 nonExhaustiveGenericFixed<T5>(A<T5> a) {
   /*
    error=non-exhaustive:B<num>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<T5>
   */
@@ -150,7 +141,6 @@ nonExhaustiveGenericFixed<T5>(A<T5> a) {
   }
   /*
    error=non-exhaustive:B<num>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<T5>
   */
@@ -165,7 +155,6 @@ nonExhaustiveGenericFixed<T5>(A<T5> a) {
 nonExhaustiveGenericCatchAll<T6, S6>(A<T6> a) {
   /*
    error=non-exhaustive:B<num>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<T6>
   */
@@ -181,7 +170,6 @@ nonExhaustiveGenericCatchAll<T6, S6>(A<T6> a) {
   }
   /*
    error=non-exhaustive:B<num>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<Object>},
    type=A<T6>
   */
@@ -200,7 +188,6 @@ nonExhaustiveGenericCatchAll<T6, S6>(A<T6> a) {
 nonExhaustiveFixed(A<String> a) {
   /*
    error=non-exhaustive:B<num>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num>,C<String>},
    type=A<String>
   */

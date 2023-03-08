@@ -6,7 +6,6 @@ enum Enum { a, b, c }
 
 void exhaustiveSwitch(Enum e) {
   /*
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */
@@ -32,7 +31,6 @@ const c1 = Enum.c;
 
 void exhaustiveSwitchAliasedBefore(Enum e) {
   /*
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */
@@ -54,7 +52,6 @@ void exhaustiveSwitchAliasedBefore(Enum e) {
 
 void exhaustiveSwitchAliasedAfter(Enum e) {
   /*
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */
@@ -81,7 +78,6 @@ const c2 = Enum.c;
 void nonExhaustiveSwitch1(Enum e) {
   /*
    error=non-exhaustive:Enum.c,
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */
@@ -100,7 +96,6 @@ void nonExhaustiveSwitch1(Enum e) {
 void nonExhaustiveSwitch2(Enum e) {
   /*
    error=non-exhaustive:Enum.b,
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */
@@ -119,7 +114,6 @@ void nonExhaustiveSwitch2(Enum e) {
 void nonExhaustiveSwitch3(Enum e) {
   /*
    error=non-exhaustive:Enum.a,
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */
@@ -138,7 +132,6 @@ void nonExhaustiveSwitch3(Enum e) {
 void nonExhaustiveSwitch4(Enum e) {
   /*
    error=non-exhaustive:Enum.a,
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */
@@ -153,7 +146,6 @@ void nonExhaustiveSwitch4(Enum e) {
 void nonExhaustiveSwitchWithDefault(Enum e) {
   /*
    error=non-exhaustive:Enum.a,
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */
@@ -171,7 +163,6 @@ void nonExhaustiveSwitchWithDefault(Enum e) {
 void exhaustiveNullableSwitch(Enum? e) {
   /*
    expandedSubtypes={Enum.a,Enum.b,Enum.c,Null},
-   fields={},
    subtypes={Enum,Null},
    type=Enum?
   */
@@ -199,7 +190,6 @@ void nonExhaustiveNullableSwitch1(Enum? e) {
   /*
    error=non-exhaustive:Null,
    expandedSubtypes={Enum.a,Enum.b,Enum.c,Null},
-   fields={},
    subtypes={Enum,Null},
    type=Enum?
   */
@@ -223,7 +213,6 @@ void nonExhaustiveNullableSwitch2(Enum? e) {
   /*
    error=non-exhaustive:Enum.b,
    expandedSubtypes={Enum.a,Enum.b,Enum.c,Null},
-   fields={},
    subtypes={Enum,Null},
    type=Enum?
   */
@@ -245,7 +234,6 @@ void nonExhaustiveNullableSwitch2(Enum? e) {
 
 void unreachableCase1(Enum e) {
   /*
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */
@@ -275,7 +263,6 @@ void unreachableCase1(Enum e) {
 void unreachableCase2(Enum e) {
   /*
    error=non-exhaustive:Enum.c,
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */
@@ -301,7 +288,6 @@ void unreachableCase2(Enum e) {
 void unreachableCase3(Enum e) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   /*
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */
@@ -328,7 +314,6 @@ void unreachableCase3(Enum e) {
 void unreachableCase4(Enum? e) {
   /*
    expandedSubtypes={Enum.a,Enum.b,Enum.c,Null},
-   fields={},
    subtypes={Enum,Null},
    type=Enum?
   */
@@ -361,7 +346,6 @@ void unreachableCase4(Enum? e) {
 
 void unreachableCase5(Enum e) {
   /*
-   fields={hashCode:int,index:int,runtimeType:Type},
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */

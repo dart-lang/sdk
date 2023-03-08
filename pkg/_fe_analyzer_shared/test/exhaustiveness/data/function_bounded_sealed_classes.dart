@@ -9,7 +9,6 @@ class D<W extends num Function(num)> extends A<W> {}
 
 exhaustiveCovariant<T>(A<T Function(Never)> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(Never)>
   */
@@ -31,7 +30,6 @@ exhaustiveCovariant<T>(A<T Function(Never)> a) {
 
 exhaustiveContravariant<T>(A<dynamic Function(T)> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<dynamic Function(T)>
   */
@@ -53,7 +51,6 @@ exhaustiveContravariant<T>(A<dynamic Function(T)> a) {
 
 exhaustiveBivariant<T>(A<T Function(T)> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(T)>
   */
@@ -76,7 +73,6 @@ exhaustiveBivariant<T>(A<T Function(T)> a) {
 nonExhaustiveCovariant<T>(A<T Function(Never)> a) {
   /*
    error=non-exhaustive:B<num Function(dynamic)>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(Never)>
   */
@@ -92,7 +88,6 @@ nonExhaustiveCovariant<T>(A<T Function(Never)> a) {
   }
   /*
    error=non-exhaustive:C<dynamic Function(num)>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(Never)>
   */
@@ -108,7 +103,6 @@ nonExhaustiveCovariant<T>(A<T Function(Never)> a) {
   }
   /*
    error=non-exhaustive:D<num Function(num)>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(Never)>
   */
@@ -127,7 +121,6 @@ nonExhaustiveCovariant<T>(A<T Function(Never)> a) {
 nonExhaustiveContravariant<T>(A<dynamic Function(T)> a) {
   /*
    error=non-exhaustive:B<num Function(dynamic)>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<dynamic Function(T)>
   */
@@ -143,7 +136,6 @@ nonExhaustiveContravariant<T>(A<dynamic Function(T)> a) {
   }
   /*
    error=non-exhaustive:C<dynamic Function(num)>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<dynamic Function(T)>
   */
@@ -159,7 +151,6 @@ nonExhaustiveContravariant<T>(A<dynamic Function(T)> a) {
   }
   /*
    error=non-exhaustive:D<num Function(num)>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<dynamic Function(T)>
   */
@@ -178,7 +169,6 @@ nonExhaustiveContravariant<T>(A<dynamic Function(T)> a) {
 nonExhaustiveBivariant<T>(A<T Function(T)> a) {
   /*
    error=non-exhaustive:B<num Function(dynamic)>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(T)>
   */
@@ -194,7 +184,6 @@ nonExhaustiveBivariant<T>(A<T Function(T)> a) {
   }
   /*
    error=non-exhaustive:C<dynamic Function(num)>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(T)>
   */
@@ -210,7 +199,6 @@ nonExhaustiveBivariant<T>(A<T Function(T)> a) {
   }
   /*
    error=non-exhaustive:D<num Function(num)>,
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(T)>
   */

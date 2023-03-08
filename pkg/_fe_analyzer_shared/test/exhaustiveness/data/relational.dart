@@ -4,7 +4,6 @@
 
 equals(o1, o2) {
   var a = /*
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
@@ -14,7 +13,6 @@ equals(o1, o2) {
 
   var b = /*
    error=non-exhaustive:Object,
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
@@ -24,7 +22,6 @@ equals(o1, o2) {
 
 greaterThan(o1, o2) {
   var a = /*
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
@@ -34,7 +31,6 @@ greaterThan(o1, o2) {
 
   var b = /*
    error=non-exhaustive:Object,
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {

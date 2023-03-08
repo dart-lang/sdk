@@ -111,7 +111,7 @@ void nonExhaustiveSwitchWithDefault((Enum, bool) r) {
 
 void exhaustiveNullableSwitch((Enum, bool)? r) {
   /*
-   fields={},
+   fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?
   */
@@ -134,7 +134,7 @@ void exhaustiveNullableSwitch((Enum, bool)? r) {
 void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
   /*
    error=non-exhaustive:Null,
-   fields={},
+   fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?
   */
@@ -149,7 +149,7 @@ void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
 void nonExhaustiveNullableSwitch2((Enum, bool)? r) {
   /*
    error=non-exhaustive:($1: Enum.a, $2: true),
-   fields={},
+   fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?
   */
@@ -221,7 +221,7 @@ void unreachableCase2((Enum, bool) r) {
 
 void unreachableCase3((Enum, bool)? r) {
   /*
-   fields={},
+   fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?
   */

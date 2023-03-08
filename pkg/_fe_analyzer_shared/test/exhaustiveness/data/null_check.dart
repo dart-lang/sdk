@@ -6,7 +6,6 @@ typedef NullableObject = Object?;
 
 object(o) {
   var a = /*
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -15,7 +14,6 @@ object(o) {
   };
   var b = /*
    error=non-exhaustive:Null,
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -25,7 +23,6 @@ object(o) {
 
 wildcard(o) {
   var a = /*
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -34,7 +31,6 @@ wildcard(o) {
   };
   var b = /*
    error=non-exhaustive:Null,
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -44,7 +40,6 @@ wildcard(o) {
 
 or(o) {
   var a = /*
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -53,7 +48,6 @@ or(o) {
   };
   var b = /*
    error=non-exhaustive:Null,
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -63,7 +57,6 @@ or(o) {
 
 typedVariable(o) {
   var a = /*
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -72,7 +65,6 @@ typedVariable(o) {
   };
   var b = /*
    error=non-exhaustive:Null,
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -82,7 +74,6 @@ typedVariable(o) {
 
 untypedVariable(o) {
   var a = /*
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -91,7 +82,6 @@ untypedVariable(o) {
   };
   var b = /*
    error=non-exhaustive:Null,
-   fields={},
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
