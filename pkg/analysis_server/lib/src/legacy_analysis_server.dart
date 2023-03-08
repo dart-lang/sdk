@@ -315,7 +315,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   Set<String>? prevAnalyzedFiles;
 
   /// The controller for [onAnalysisSetChanged].
-  final StreamController _onAnalysisSetChangedController =
+  final StreamController<void> _onAnalysisSetChangedController =
       StreamController.broadcast(sync: true);
 
   /// An optional manager to handle file systems which may not always be
@@ -402,7 +402,8 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// overlay. This means that the resolved world might have changed.
   ///
   /// The type of produced elements is not specified and should not be used.
-  Stream get onAnalysisSetChanged => _onAnalysisSetChangedController.stream;
+  Stream<void> get onAnalysisSetChanged =>
+      _onAnalysisSetChangedController.stream;
 
   /// The stream that is notified with `true` when analysis is started.
   Stream<bool> get onAnalysisStarted {

@@ -168,7 +168,7 @@ class AnalyticsPage extends DiagnosticPageWithNav {
   String? get navDetail => null;
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var manager = server.analyticsManager;
     //
     // Display the standard header.
@@ -264,7 +264,7 @@ class CollectReportPage extends DiagnosticPage {
   }
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     p('To download a report click the link below. '
         'When the report is downloaded you can share it with the '
         'Dart developers.');
@@ -477,7 +477,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
                 'Latency statistics for analysis server communications.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     void writeRow(List<String> data, {List<String?>? classes}) {
       buf.write('<tr>');
       for (var i = 0; i < data.length; i++) {
@@ -563,7 +563,7 @@ class CompletionPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       server.recentPerformance.completion.items.toList();
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var completions = performanceItems;
 
     if (completions.isEmpty) {
@@ -693,7 +693,7 @@ class ContextsPage extends DiagnosticPageWithNav {
   }
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var driverMap = server.driverMap;
     if (driverMap.isEmpty) {
       blankslate('No contexts.');
@@ -1134,7 +1134,7 @@ class EnvironmentVariablesPage extends DiagnosticPageWithNav {
                 'System environment variables as seen from the analysis server.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     buf.writeln('<table>');
     buf.writeln('<tr><th>Variable</th><th>Value</th></tr>');
     for (var key in Platform.environment.keys.toList()..sort()) {
@@ -1152,7 +1152,7 @@ class ExceptionPage extends DiagnosticPage {
       : super(site, '', '500 Oops', description: message);
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     p(trace.toString(), style: 'white-space: pre');
   }
 }
@@ -1168,7 +1168,7 @@ class ExceptionsPage extends DiagnosticPageWithNav {
   String get navDetail => '${exceptions.length}';
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     if (exceptions.isEmpty) {
       blankslate('No exceptions encountered!');
     } else {
@@ -1190,7 +1190,7 @@ class FeedbackPage extends DiagnosticPage {
             description: 'Providing feedback and filing issues.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var issuesUrl = 'https://github.com/dart-lang/sdk/issues';
     p(
       'To file issues or feature requests, see our '
@@ -1235,7 +1235,7 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
             indentInNav: true);
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     buf.writeln('<div class="columns">');
     buf.writeln('<div class="column one-half">');
     h3('Client Capabilities');
@@ -1269,7 +1269,7 @@ class LspPage extends DiagnosticPageWithNav {
             description: 'Information about an LSP client.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     h3('LSP Client Info');
     prettyJson({
       'Name': server.clientInfo?.name,
@@ -1293,7 +1293,7 @@ class LspRegistrationsPage extends DiagnosticPageWithNav {
             indentInNav: true);
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     h3('Current Registrations');
     p('Showing the LSP method name and the registration params sent to the '
         'client.');
@@ -1345,7 +1345,7 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
             description: 'Memory and CPU usage for the analysis server.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var usage = await profiler.getProcessUsage(pid);
 
     var serviceProtocolInfo = await developer.Service.getInfo();
@@ -1387,7 +1387,7 @@ class NotFoundPage extends DiagnosticPage {
       : super(site, '', '404 Not found', description: "'$path' not found.");
 
   @override
-  Future generateContent(Map<String, String> params) async {}
+  Future<void> generateContent(Map<String, String> params) async {}
 }
 
 class PluginsPage extends DiagnosticPageWithNav {
@@ -1398,7 +1398,7 @@ class PluginsPage extends DiagnosticPageWithNav {
       : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     h3('Analysis plugins');
     var analysisPlugins = AnalysisServer.supportsPlugins
         ? server.pluginManager.plugins
@@ -1478,7 +1478,7 @@ class StatusPage extends DiagnosticPageWithNav {
                 'General status and diagnostics for the analysis server.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     buf.writeln('<div class="columns">');
 
     buf.writeln('<div class="column one-half">');
@@ -1528,7 +1528,7 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
             description: 'Registered subscriptions to analysis server events.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     // server domain
     h3('Server domain subscriptions');
     ul(ServerService.VALUES, (item) {
@@ -1565,7 +1565,7 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       : super(site, 'timing', 'Timing', description: 'Timing statistics.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var kind = params['kind'];
 
     List<RequestPerformance> items;

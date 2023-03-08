@@ -106,7 +106,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// automatically.
   bool willExit = false;
 
-  StreamSubscription? _pluginChangeSubscription;
+  StreamSubscription<void>? _pluginChangeSubscription;
 
   /// The current workspace folders provided by the client. Used as analysis roots.
   final _workspaceFolders = <String>{};

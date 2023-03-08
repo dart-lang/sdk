@@ -1544,7 +1544,7 @@ class TokenUtils {
   }
 }
 
-class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
+class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor<void> {
   final Set<String> names = <String>{};
 
   @override

@@ -1289,7 +1289,7 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
   }
 }
 
-class _InitializeParametersVisitor extends GeneralizingAstVisitor {
+class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
   final ExtractMethodRefactoringImpl ref;
   final List<VariableElement> assignedUsedVariables;
 

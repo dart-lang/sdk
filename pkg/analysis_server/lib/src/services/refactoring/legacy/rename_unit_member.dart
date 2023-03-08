@@ -215,7 +215,7 @@ class _BaseUnitMemberValidator {
   }
 
   /// Validates if renamed [element] will shadow any [Element] named [name].
-  Future _validateWillShadow(Element? element) async {
+  Future<void> _validateWillShadow(Element? element) async {
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
       var member = declaration.element;

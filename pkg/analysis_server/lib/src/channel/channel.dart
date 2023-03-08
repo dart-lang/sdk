@@ -51,7 +51,7 @@ abstract class ClientCommunicationChannel {
 
   /// Close the channel to the server. Once called, all future communication
   /// with the server via [sendRequest] will silently be ignored.
-  Future close();
+  Future<void> close();
 
   /// Send the given [request] to the server
   /// and return a future with the associated [Response].

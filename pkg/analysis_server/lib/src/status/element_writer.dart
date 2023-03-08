@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 /// A visitor that will produce an HTML representation of an element structure.
-class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
+class ElementWriter extends GeneralizingElementVisitor<void> with TreeWriter {
   @override
   final StringBuffer buffer;
 
