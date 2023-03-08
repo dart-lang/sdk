@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/dart/error/ffi_code.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -54,9 +55,13 @@ class ExtendsDisallowedClassTest extends FixProcessorTest {
     await resolveTestCode('''
 class C extends String {}
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class C {}
-''');
+''',
+      errorFilter: (error) =>
+          error.errorCode == CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+    );
   }
 }
 
@@ -101,18 +106,26 @@ class ImplementsDisallowedClassTest extends FixProcessorTest {
     await resolveTestCode('''
 class C implements String {}
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class C {}
-''');
+''',
+      errorFilter: (error) =>
+          error.errorCode == CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+    );
   }
 
   Future<void> test_twoNames() async {
     await resolveTestCode('''
 abstract class C implements String, List<int> {}
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 abstract class C implements List<int> {}
-''');
+''',
+      errorFilter: (error) =>
+          error.errorCode == CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+    );
   }
 }
 
@@ -176,9 +189,13 @@ class MixinOfDisallowedClassTest extends FixProcessorTest {
     await resolveTestCode('''
 abstract class C with String {}
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 abstract class C {}
-''');
+''',
+      errorFilter: (error) =>
+          error.errorCode == CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+    );
   }
 }
 

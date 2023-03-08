@@ -45,6 +45,8 @@ class DocumentationValidator {
     'CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR',
     // The mock SDK doesn't define any internal libraries.
     'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
+    // Also reports CompileTimeErrorCode.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+    'CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS',
     // Has code in the example section that needs to be skipped (because it's
     // part of the explanatory text not part of the example), but there's
     // currently no way to do that.
@@ -120,6 +122,8 @@ class DocumentationValidator {
     'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
     'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
 
+    // Reports CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
+    'WarningCode.DEPRECATED_EXTENDS_FUNCTION',
     // Produces more than one error range by design.
     // TODO: update verification to allow for multiple highlight ranges.
     'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',

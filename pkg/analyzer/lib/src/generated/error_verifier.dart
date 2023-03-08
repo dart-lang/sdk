@@ -1696,6 +1696,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verifies that the class is not named `Function` and that it doesn't
   /// extends/implements/mixes in `Function`.
   void _checkForBadFunctionUse(ClassDeclaration node) {
+    // With the `class_modifiers` feature `Function` is final.
+    if (_featureSet!.isEnabled(Feature.class_modifiers)) {
+      return;
+    }
+
     var extendsClause = node.extendsClause;
     var implementsClause = node.implementsClause;
     var withClause = node.withClause;

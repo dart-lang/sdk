@@ -168,7 +168,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
   }
 }
 
-abstract class IterableMixin<E> implements Iterable<E> { }
+abstract mixin class IterableMixin<E> implements Iterable<E> { }
 
 abstract class LinkedHashMap<K, V> implements Map<K, V> {
   external factory LinkedHashMap(
@@ -218,11 +218,11 @@ abstract class LinkedHashSet<E> implements Set<E> {
   }
 }
 
-abstract class ListMixin<E> implements List<E> { }
+abstract mixin class ListMixin<E> implements List<E> { }
 
-abstract class MapMixin<K, V> implements Map<K, V> { }
+abstract mixin class MapMixin<K, V> implements Map<K, V> { }
 
-abstract class SetMixin<E> implements Set<E> { }
+abstract mixin class SetMixin<E> implements Set<E> { }
 
 abstract class Queue<E> implements Iterable<E> {
   bool remove(Object? value);
@@ -256,7 +256,7 @@ class JsonCodec {
 
 abstract class StringConversionSink { }
 
-abstract class StringConversionSinkMixin implements StringConversionSink { }
+abstract mixin class StringConversionSinkMixin implements StringConversionSink { }
 ''',
     )
   ],
@@ -297,7 +297,7 @@ class BigInt implements Comparable<BigInt> {
   static BigInt parse(String source, {int? radix}) => throw 0;
 }
 
-abstract class bool extends Object {
+abstract final class bool extends Object {
   external const factory bool.fromEnvironment(String name,
       {bool defaultValue = false});
 
@@ -338,7 +338,7 @@ class pragma {
   const pragma(this.name, [this.options]);
 }
 
-abstract class double extends num {
+abstract final class double extends num {
   static const double nan = 0.0 / 0.0;
   static const double infinity = 1.0 / 0.0;
   static const double negativeInfinity = -infinity;
@@ -402,9 +402,9 @@ class Exception {
 
 class FormatException implements Exception {}
 
-class Function {}
+abstract final class Function {}
 
-abstract class int extends num {
+abstract final class int extends num {
   external const factory int.fromEnvironment(String name,
       {int defaultValue = 0});
 
@@ -534,7 +534,7 @@ abstract class Map<K, V> {
   V? remove(Object? key);
 }
 
-class Null extends Object {
+final class Null extends Object {
   factory Null._uninstantiable() {
     throw 0;
   }
@@ -547,7 +547,7 @@ class MapEntry<K, V> {
   const MapEntry._(this.key, this.value);
 }
 
-abstract class num implements Comparable<num> {
+sealed class num implements Comparable<num> {
   num operator %(num other);
   num operator *(num other);
   num operator +(num other);
@@ -604,7 +604,7 @@ abstract class Pattern {
   Iterable<Match> allMatches(String string, [int start = 0]);
 }
 
-abstract class Record {}
+abstract final class Record {}
 
 abstract class RegExp implements Pattern {
   external factory RegExp(String source, {bool unicode = false});
@@ -638,7 +638,7 @@ abstract class Sink {
 
 class StackTrace {}
 
-abstract class String implements Comparable<String>, Pattern {
+abstract final class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]);
 
@@ -1397,8 +1397,10 @@ void createMockSdk({
         json.encode({
           'version': 1,
           'experimentSets': {
-            'sdkExperiments': <String>[],
-            'nullSafety': ['non-nullable']
+            'sdkExperiments': <String>[
+              'class-modifiers',
+              'sealed-class',
+            ],
           },
           'sdk': {
             'default': {'experimentSet': 'sdkExperiments'},

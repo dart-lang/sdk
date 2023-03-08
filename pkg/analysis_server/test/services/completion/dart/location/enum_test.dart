@@ -47,7 +47,7 @@ mixin EnumDeclarationTestCases on AbstractCompletionDriverTest {
   @override
   Future<void> setUp() async {
     await super.setUp();
-    allowedIdentifiers = const {'Object', 'foo01', 'foo02', 'new'};
+    allowedIdentifiers = const {'Object', 'foo01', 'foo02', 'new', 'A01'};
   }
 
   Future<void> test_afterConstants_noSemicolon() async {
@@ -177,16 +177,28 @@ suggestions
 
   Future<void> test_afterWith() async {
     await computeSuggestions('''
+mixin class A01 {}
+
 enum E with ^ {
   v
 }
 ''');
 
-    assertResponse('''
+    if (isProtocolVersion2) {
+      assertResponse('''
 suggestions
+  A01
+    kind: class
+''');
+    } else {
+      assertResponse('''
+suggestions
+  A01
+    kind: class
   Object
     kind: class
 ''');
+    }
   }
 
   Future<void> test_afterWithClause() async {

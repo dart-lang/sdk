@@ -45,30 +45,38 @@ class X = A with B implements C;
   }
 
   test_element_typeFunction_extends() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 mixin class A {}
 class X = Function with A;
-''');
+''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 27, 8),
+    ]);
     var x = findElement.class_('X');
     assertType(x.supertype, 'Object');
   }
 
   test_element_typeFunction_implements() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 mixin class A {}
 class B {}
 class X = Object with A implements A, Function, B;
-''');
+''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 66,
+          8),
+    ]);
     var x = findElement.class_('X');
     assertElementTypes(x.interfaces, ['A', 'B']);
   }
 
   test_element_typeFunction_with() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 mixin class A {}
 mixin class B {}
 class X = Object with A, Function, B;
-''');
+''', [
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 59, 8),
+    ]);
     var x = findElement.class_('X');
     assertElementTypes(x.mixins, ['A', 'B']);
   }

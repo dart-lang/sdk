@@ -23,6 +23,7 @@ class InferenceFailureOnFunctionReturnTypeTest
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
+        experiments: experiments,
         strictInference: true,
       ),
     );
@@ -46,7 +47,7 @@ class C {
 
   test_classInstanceMethod_overriding() async {
     await assertNoErrorsInCode(r'''
-class C {
+mixin class C {
   int f() => 7;
 }
 
