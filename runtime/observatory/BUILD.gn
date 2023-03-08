@@ -23,9 +23,10 @@ prebuilt_dart_action("build_observatory") {
     "compile",
     "js",
     "-o",
-    rebase_path(output),
-    "--packages=" + rebase_path("../../.dart_tool/package_config.json"),
-    rebase_path("web/main.dart"),
+    rebase_path(output, root_build_dir),
+    "--packages=" +
+        rebase_path("../../.dart_tool/package_config.json", root_build_dir),
+    rebase_path("web/main.dart", root_build_dir),
   ]
   if (is_debug) {
     args += [ "--enable-asserts" ]
@@ -142,9 +143,9 @@ template("observatory_archive") {
     script = "../tools/create_archive.py"
     args = [
       "--tar_output",
-      rebase_path(output),
+      rebase_path(output, root_build_dir),
       "--client_root",
-      rebase_path("$target_out_dir/observatory/deployed/web/"),
+      rebase_path("$target_out_dir/observatory/deployed/web/", root_build_dir),
     ]
     if (enable_compression) {
       args += [ "--compress" ]
@@ -211,9 +212,9 @@ template("observatory_archive_source") {
     script = "../tools/create_archive.py"
     args = [
       "--tar_input",
-      rebase_path(invoker.archive_file),
+      rebase_path(invoker.archive_file, root_build_dir),
       "--output",
-      rebase_path(output),
+      rebase_path(output, root_build_dir),
       "--outer_namespace",
       invoker.outer_namespace,
       "--inner_namespace",
