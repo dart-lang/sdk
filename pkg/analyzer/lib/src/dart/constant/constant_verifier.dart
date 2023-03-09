@@ -64,6 +64,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// the exhaustiveness of the switch has been checked.
   Map<ConstantPattern, DartObjectImpl>? _constantPatternValues;
 
+  Map<Expression, DartObjectImpl>? _mapPatternKeyValues;
+
   final ExhaustivenessDataForTesting? exhaustivenessDataForTesting;
 
   /// Initialize a newly created constant verifier.
@@ -298,6 +300,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY,
         );
         if (keyValue != null) {
+          _mapPatternKeyValues?[key] = keyValue;
           var existingKey = uniqueKeys[keyValue];
           if (existingKey != null) {
             duplicateKeys[key] = existingKey;
@@ -388,13 +391,14 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchExpression(SwitchExpression node) {
-    _withConstantPatternValues((constantPatternValues) {
+    _withConstantPatternValues((mapPatternKeyValues, constantPatternValues) {
       super.visitSwitchExpression(node);
       _validateSwitchExhaustiveness(
         node: node,
         switchKeyword: node.switchKeyword,
         scrutinee: node.expression,
         caseNodes: node.cases,
+        mapPatternKeyValues: mapPatternKeyValues,
         constantPatternValues: constantPatternValues,
       );
     });
@@ -402,7 +406,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    _withConstantPatternValues((constantPatternValues) {
+    _withConstantPatternValues((mapPatternKeyValues, constantPatternValues) {
       super.visitSwitchStatement(node);
       if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
         _validateSwitchExhaustiveness(
@@ -410,6 +414,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           switchKeyword: node.switchKeyword,
           scrutinee: node.expression,
           caseNodes: node.members,
+          mapPatternKeyValues: mapPatternKeyValues,
           constantPatternValues: constantPatternValues,
         );
       } else if (_currentLibrary.isNonNullableByDefault) {
@@ -755,6 +760,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     required Token switchKeyword,
     required Expression scrutinee,
     required List<AstNode> caseNodes,
+    required Map<Expression, DartObjectImpl> mapPatternKeyValues,
     required Map<ConstantPattern, DartObjectImpl> constantPatternValues,
   }) {
     final scrutineeType = scrutinee.typeOrThrow;
@@ -767,6 +773,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     // Build spaces for cases.
     final patternConverter = PatternConverter(
       cache: _exhaustivenessCache,
+      mapPatternKeyValues: mapPatternKeyValues,
       constantPatternValues: constantPatternValues,
     );
     for (final caseNode in caseNodes) {
@@ -937,12 +944,17 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   /// Runs [f] with new [_constantPatternValues].
   void _withConstantPatternValues(
-    void Function(Map<ConstantPattern, DartObjectImpl> constantPatternValues) f,
+    void Function(Map<Expression, DartObjectImpl> mapPatternKeyValues,
+            Map<ConstantPattern, DartObjectImpl> constantPatternValues)
+        f,
   ) {
-    final previous = _constantPatternValues;
-    final values = _constantPatternValues = {};
-    f(values);
-    _constantPatternValues = previous;
+    final previousMapKeyValues = _mapPatternKeyValues;
+    final previousConstantPatternValues = _constantPatternValues;
+    final mapKeyValues = _mapPatternKeyValues = {};
+    final constantValues = _constantPatternValues = {};
+    f(mapKeyValues, constantValues);
+    _mapPatternKeyValues = previousMapKeyValues;
+    _constantPatternValues = previousConstantPatternValues;
   }
 }
 

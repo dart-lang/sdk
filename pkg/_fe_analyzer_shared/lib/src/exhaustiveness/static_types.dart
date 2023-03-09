@@ -65,6 +65,10 @@ abstract class TypeOperations<Type extends Object> {
   /// record types these are the record fields.
   Map<String, Type> getFieldTypes(Type type);
 
+  /// Returns the value type `V` if [type] implements `Map<K, V>` or `null`
+  /// otherwise.
+  Type? getMapValueType(Type type);
+
   /// Returns a human-readable representation of the [type].
   String typeToString(Type type);
 }
@@ -127,6 +131,8 @@ abstract class FieldLookup<Type extends Object> {
   /// on [type]. For an interface type, these are the fields and getters, and
   /// for record types these are the record fields.
   Map<String, StaticType> getFieldTypes(Type type);
+
+  StaticType? getAdditionalFieldType(Type type, Key key);
 }
 
 /// Cache used for computing [StaticType]s used for exhaustiveness checking.
@@ -249,7 +255,7 @@ class ExhaustivenessCache<
 
   /// Creates a new unique [StaticType].
   StaticType getUnknownStaticType() {
-    return getUniqueStaticType(
+    return getUniqueStaticType<Object>(
         _typeOperations.nullableObjectType, new Object(), '?');
   }
 
@@ -257,12 +263,27 @@ class ExhaustivenessCache<
   /// [textualRepresentation] that unique identifies the [uniqueValue].
   ///
   /// This is used for constants that are neither bool nor enum values.
-  StaticType getUniqueStaticType(
-      Type type, Object uniqueValue, String textualRepresentation) {
+  StaticType getUniqueStaticType<Identity extends Object>(
+      Type type, Identity uniqueValue, String textualRepresentation) {
     Type nonNullable = _typeOperations.getNonNullable(type);
     StaticType staticType = _uniqueTypeMap[uniqueValue] ??=
-        new UniqueStaticType(_typeOperations, this, nonNullable, uniqueValue,
+        new RestrictedStaticType(
+            _typeOperations,
+            this,
+            nonNullable,
+            new IdentityRestriction<Identity>(uniqueValue),
             textualRepresentation);
+    if (_typeOperations.isNullable(type)) {
+      staticType = staticType.nullable;
+    }
+    return staticType;
+  }
+
+  /// Returns a [StaticType] of the map [type] with the given [identity] .
+  StaticType getMapStaticType(Type type, MapTypeIdentity<Type> identity) {
+    Type nonNullable = _typeOperations.getNonNullable(type);
+    StaticType staticType = _uniqueTypeMap[identity] ??= new MapTypeStaticType(
+        _typeOperations, this, nonNullable, identity, identity.toString());
     if (_typeOperations.isNullable(type)) {
       staticType = staticType.nullable;
     }
@@ -280,6 +301,17 @@ class ExhaustivenessCache<
       }
     }
     return fields;
+  }
+
+  @override
+  StaticType? getAdditionalFieldType(Type type, Key key) {
+    if (key is MapKey) {
+      Type? keyType = _typeOperations.getMapValueType(type);
+      if (keyType != null) {
+        return getStaticType(keyType);
+      }
+    }
+    return null;
   }
 }
 
@@ -319,7 +351,7 @@ class EnumInfo<Type extends Object, EnumClass extends Object,
           _typeOperations,
           _fieldLookup,
           _enumOperations.getEnumElementType(element),
-          element,
+          new IdentityRestriction<EnumElement>(element),
           _enumOperations.getEnumElementName(element));
     }
     return elements;
@@ -357,15 +389,19 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   @override
   Map<String, StaticType> get fields => _fieldLookup.getFieldTypes(_type);
 
-  /// Returns a non-null value for static types that are unique subtypes of
+  @override
+  StaticType? getAdditionalField(Key key) =>
+      _fieldLookup.getAdditionalFieldType(_type, key);
+
+  /// Returns a [Restriction] value for static types the determines subtypes of
   /// the [_type]. For instance individual elements of an enum.
-  Object? get identity => null;
+  Restriction get restriction => const Unrestricted();
 
   @override
   bool isSubtypeOfInternal(StaticType other) {
     return other is TypeBasedStaticType<Type> &&
-        (other.identity == null || identical(identity, other.identity)) &&
-        _typeOperations.isSubtypeOf(_type, other._type);
+        _typeOperations.isSubtypeOf(_type, other._type) &&
+        restriction.isSubtypeOf(_typeOperations, other.restriction);
   }
 
   @override
@@ -375,14 +411,14 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   String get name => _typeOperations.typeToString(_type);
 
   @override
-  int get hashCode => Object.hash(_type, identity);
+  int get hashCode => Object.hash(_type, restriction);
 
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other is TypeBasedStaticType<Type> &&
         _type == other._type &&
-        identity == other.identity;
+        restriction == other.restriction;
   }
 
   Type get typeForTesting => _type;
@@ -451,9 +487,9 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
 /// In the [StaticType] model, individual enum elements are represented as
 /// unique subtypes of the enum type, modelled using [EnumStaticType].
 class EnumElementStaticType<Type extends Object, EnumElement extends Object>
-    extends UniqueStaticType<Type> {
+    extends RestrictedStaticType<Type, IdentityRestriction<EnumElement>> {
   EnumElementStaticType(super.typeOperations, super.fieldLookup, super.type,
-      EnumElement super.enumElement, super.name);
+      super.restriction, super.name);
 }
 
 /// [StaticType] for a sealed class type.
@@ -514,16 +550,57 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
   }
 }
 
-/// [StaticType] for an object uniquely defined by its [identity].
-class UniqueStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
+/// [StaticType] for an object restricted by its [restriction].
+class RestrictedStaticType<Type extends Object, Identity extends Restriction>
+    extends TypeBasedStaticType<Type> {
   @override
-  final Object identity;
+  final Identity restriction;
 
   @override
   final String name;
 
-  UniqueStaticType(super.typeOperations, super.fieldLookup, super.type,
-      this.identity, this.name);
+  RestrictedStaticType(super.typeOperations, super.fieldLookup, super.type,
+      this.restriction, this.name);
+}
+
+/// Interface for a restriction within a subtype relation.
+///
+/// This is used for instance to model enum values within an enum type and
+/// map patterns within a map type.
+abstract class Restriction<Type extends Object> {
+  /// Returns `true` if this [Restriction] covers the whole type.
+  bool get isUnrestricted;
+
+  /// Returns `true` if this restriction is a subtype of [other].
+  bool isSubtypeOf(TypeOperations<Type> typeOperations, Restriction other);
+}
+
+/// The unrestricted [Restriction] that covers all values of a type.
+class Unrestricted implements Restriction<Object> {
+  const Unrestricted();
+
+  @override
+  bool get isUnrestricted => true;
+
+  @override
+  bool isSubtypeOf(TypeOperations<Object> typeOperations, Restriction other) =>
+      other.isUnrestricted;
+}
+
+/// [Restriction] based a unique [identity] value.
+class IdentityRestriction<Identity extends Object>
+    implements Restriction<Object> {
+  final Identity identity;
+
+  const IdentityRestriction(this.identity);
+
+  @override
+  bool get isUnrestricted => false;
+
+  @override
+  bool isSubtypeOf(TypeOperations<Object> typeOperations, Restriction other) =>
+      other.isUnrestricted ||
+      other is IdentityRestriction<Identity> && identity == other.identity;
 }
 
 /// [StaticType] for the `bool` type.
@@ -534,10 +611,12 @@ class BoolStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
   bool get isSealed => true;
 
   late StaticType trueType =
-      new UniqueStaticType(_typeOperations, _fieldLookup, _type, true, 'true');
+      new RestrictedStaticType<Type, IdentityRestriction<bool>>(_typeOperations,
+          _fieldLookup, _type, const IdentityRestriction<bool>(true), 'true');
 
-  late StaticType falseType = new UniqueStaticType(
-      _typeOperations, _fieldLookup, _type, false, 'false');
+  late StaticType falseType =
+      new RestrictedStaticType<Type, IdentityRestriction<bool>>(_typeOperations,
+          _fieldLookup, _type, const IdentityRestriction<bool>(false), 'false');
 
   @override
   Iterable<StaticType> get subtypes => [trueType, falseType];
@@ -572,7 +651,6 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
     if (other is! RecordStaticType<Type>) {
       return false;
     }
-    assert(identity == null);
     if (fields.length != other.fields.length) {
       return false;
     }
@@ -583,6 +661,23 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
       }
     }
     return true;
+  }
+
+  @override
+  String spaceToText(
+      Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('(');
+    bool first = true;
+    fields.forEach((String name, StaticType staticType) {
+      if (!first) buffer.write(', ');
+      // TODO(johnniwinther): Ensure using Dart syntax for positional fields.
+      buffer.write('$name: ${spaceFields[name] ?? staticType}');
+      first = false;
+    });
+
+    buffer.write(')');
+    return buffer.toString();
   }
 }
 
@@ -607,6 +702,114 @@ class FutureOrStaticType<Type extends Object>
   Iterable<StaticType> get subtypes => [_typeArgument, _futureType];
 }
 
+/// [StaticType] for a map pattern type using a [MapTypeIdentity] for its
+/// uniqueness.
+class MapTypeStaticType<Type extends Object>
+    extends RestrictedStaticType<Type, MapTypeIdentity<Type>> {
+  MapTypeStaticType(super.typeOperations, super.fieldLookup, super.type,
+      MapTypeIdentity<Type> super.restriction, super.name);
+
+  @override
+  String spaceToText(
+      Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(restriction.typeArgumentsText);
+    buffer.write('{');
+
+    bool first = true;
+    additionalSpaceFields.forEach((Key key, Space space) {
+      if (!first) buffer.write(', ');
+      buffer.write('$key: $space');
+      first = false;
+    });
+    if (restriction.hasRest) {
+      if (!first) buffer.write(', ');
+      buffer.write('...');
+    }
+
+    buffer.write('}');
+    return buffer.toString();
+  }
+}
+
+/// Identity object used for creating a unique [MapTypeStaticType] for a
+/// map pattern.
+///
+/// The uniqueness is defined by the key and value types, the key values of
+/// the map pattern, and whether the map pattern has a rest element.
+///
+/// This identity ensures that we can detect
+class MapTypeIdentity<Type extends Object> implements Restriction<Type> {
+  final Type keyType;
+  final Type valueType;
+  final Set<MapKey> keys;
+  final bool hasRest;
+  final String typeArgumentsText;
+
+  MapTypeIdentity(
+      this.keyType, this.valueType, this.keys, this.typeArgumentsText,
+      {required this.hasRest});
+
+  @override
+  late final int hashCode =
+      Object.hash(keyType, valueType, Object.hashAllUnordered(keys), hasRest);
+
+  @override
+  bool get isUnrestricted {
+    // The map pattern containing only a rest pattern covers the whole type.
+    return hasRest && keys.isEmpty;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! MapTypeIdentity<Type>) return false;
+    if (keyType != other.keyType ||
+        valueType != other.valueType ||
+        hasRest != other.hasRest) {
+      return false;
+    }
+    if (keys.length != other.keys.length) return false;
+    return keys.containsAll(other.keys);
+  }
+
+  @override
+  bool isSubtypeOf(TypeOperations<Type> typeOperations, Restriction other) {
+    if (other.isUnrestricted) return true;
+    if (other is! MapTypeIdentity<Type>) return false;
+    if (!typeOperations.isSubtypeOf(keyType, other.keyType)) return false;
+    if (!typeOperations.isSubtypeOf(valueType, other.valueType)) return false;
+    if (other.hasRest) {
+      return keys.containsAll(other.keys);
+    } else if (hasRest) {
+      return false;
+    } else {
+      return keys.length == other.keys.length && keys.containsAll(other.keys);
+    }
+  }
+
+  @override
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(typeArgumentsText);
+    sb.write('{');
+    String comma = '';
+    for (MapKey key in keys) {
+      sb.write(comma);
+      sb.write(key);
+      sb.write(': ()');
+      comma = ', ';
+    }
+    if (hasRest) {
+      sb.write(comma);
+      sb.write('...');
+      comma = ', ';
+    }
+    sb.write('}');
+    return sb.toString();
+  }
+}
+
 /// Mixin for creating [Space]s from [Pattern]s.
 mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// Creates a [StaticType] for an unknown type.
@@ -619,6 +822,9 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// Creates the [StaticType] for [type]. If [nonNull] is `true`, the created
   /// type is non-nullable.
   StaticType createStaticType(Type type, {required bool nonNull});
+
+  /// Creates the [StaticType] for the map [type] with the given [identity].
+  StaticType createMapType(Type type, MapTypeIdentity<Type> identity);
 
   /// Creates the [Space] for [pattern] at the given [path].
   ///
@@ -758,13 +964,21 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   }
 
   /// Creates the [Space] at [path] for a map pattern.
-  Space createMapSpace(Path path) {
-    // TODO(johnniwinther): Support map patterns. This not only
-    //  requires a new interpretation of [Space] fields that handles the
-    //  relation between concrete lengths, rest patterns with/without
-    //  subpattern, and map of arbitrary size and content, but also for the
-    //  runtime to check for lengths < 0.
-    return createUnknownSpace(path);
+  Space createMapSpace(Path path, Type type, MapTypeIdentity<Type> identity,
+      Map<Key, Pattern> subPatterns) {
+    assert(
+        identity.keys.length == subPatterns.length &&
+            identity.keys.containsAll(subPatterns.keys),
+        "Key mismatch: identity has ${identity.keys}, "
+        "subpatterns have ${subPatterns.keys}.");
+    Map<Key, Space> additionalFields = {};
+    for (MapEntry<Key, Pattern> entry in subPatterns.entries) {
+      String name = '[${entry.key}]';
+      additionalFields[entry.key] =
+          dispatchPattern(path.add(name), entry.value, nonNull: false);
+    }
+    return new Space(path, createMapType(type, identity),
+        additionalFields: additionalFields);
   }
 
   /// Creates the [Space] at [path] for a pattern with unknown space.

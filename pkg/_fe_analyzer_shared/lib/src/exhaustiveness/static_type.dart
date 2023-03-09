@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(paulberry,rnystrom): Generics.
+import 'witness.dart';
 
 /// A static type in the type system.
 abstract class StaticType {
@@ -23,6 +23,13 @@ abstract class StaticType {
   ///
   /// Includes inherited fields.
   Map<String, StaticType> get fields;
+
+  /// Returns the static type for the [key] in this static type, or `null` if
+  /// no such key exists.
+  ///
+  /// This is used to model keys in map patterns, and indices and ranges in list
+  /// patterns.
+  StaticType? getAdditionalField(Key key);
 
   /// Returns `true` if this static type is a subtype of [other], taking the
   /// nullability and subtyping relation into account.
@@ -50,7 +57,7 @@ abstract class StaticType {
 
   /// Returns `true` if this is a record type.
   ///
-  /// This is only used for print the type as part of a [Space].
+  /// This is only used for print the type as part of a [Witness].
   bool get isRecord;
 
   /// Returns the name of this static type.
@@ -66,6 +73,11 @@ abstract class StaticType {
 
   /// The immediate subtypes of this type.
   Iterable<StaticType> get subtypes;
+
+  /// Returns a textual representation of a single space consisting of this
+  /// type and the provided [fields] and [additionalFields].
+  String spaceToText(
+      Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields);
 }
 
 abstract class _BaseStaticType implements StaticType {
@@ -78,7 +90,37 @@ abstract class _BaseStaticType implements StaticType {
   Map<String, StaticType> get fields => const {};
 
   @override
+  StaticType? getAdditionalField(Key key) => null;
+
+  @override
   Iterable<StaticType> get subtypes => const [];
+
+  @override
+  String spaceToText(
+      Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+    assert(additionalSpaceFields.isEmpty,
+        "Additional fields not supported in ${runtimeType}.");
+    if (this == StaticType.nullableObject && fields.isEmpty) return '()';
+    if (this == StaticType.neverType && fields.isEmpty) return '∅';
+
+    // If there are no fields, just show the type.
+    if (spaceFields.isEmpty) return name;
+
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(name);
+
+    buffer.write('(');
+    bool first = true;
+
+    spaceFields.forEach((String name, Space space) {
+      if (!first) buffer.write(', ');
+      buffer.write('$name: $space');
+      first = false;
+    });
+
+    buffer.write(')');
+    return buffer.toString();
+  }
 
   @override
   String toString() => name;
@@ -263,4 +305,25 @@ class WrappedStaticType extends NonNullableStaticType {
         wrappedType == other.wrappedType &&
         impliedType == other.impliedType;
   }
+}
+
+abstract class Key {}
+
+class MapKey extends Key {
+  final Object value;
+  final String textualRepresentation;
+
+  MapKey(this.value, this.textualRepresentation);
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is MapKey && value == other.value;
+  }
+
+  @override
+  String toString() => textualRepresentation;
 }

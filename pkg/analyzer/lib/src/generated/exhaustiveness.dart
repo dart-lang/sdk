@@ -197,6 +197,16 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
+  DartType? getMapValueType(DartType type) {
+    InterfaceType? mapType =
+        type.asInstanceOf(_typeSystem.typeProvider.mapElement);
+    if (mapType != null) {
+      return mapType.typeArguments[1];
+    }
+    return null;
+  }
+
+  @override
   DartType getNonNullable(DartType type) {
     return _typeSystem.promoteToNonNull(type);
   }
@@ -301,12 +311,19 @@ class ExhaustivenessDataForTesting {
 
 class PatternConverter with SpaceCreator<DartPattern, DartType> {
   final AnalyzerExhaustivenessCache cache;
+  final Map<Expression, DartObjectImpl> mapPatternKeyValues;
   final Map<ConstantPattern, DartObjectImpl> constantPatternValues;
 
   PatternConverter({
     required this.cache,
+    required this.mapPatternKeyValues,
     required this.constantPatternValues,
   });
+
+  @override
+  StaticType createMapType(DartType type, MapTypeIdentity<DartType> identity) {
+    return cache.getMapStaticType(type, identity);
+  }
 
   @override
   StaticType createStaticType(DartType type, {required bool nonNull}) {
@@ -389,7 +406,52 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
     } else if (pattern is ListPattern) {
       return createListSpace(path);
     } else if (pattern is MapPattern) {
-      return createMapSpace(path);
+      DartType? keyType;
+      DartType? valueType;
+      var typeArguments = pattern.typeArguments;
+      if (typeArguments != null && typeArguments.arguments.length == 2) {
+        keyType = typeArguments.arguments[0].typeOrThrow;
+        valueType = typeArguments.arguments[1].typeOrThrow;
+      }
+      keyType ??= cache.typeSystem.typeProvider.dynamicType;
+      valueType ??= cache.typeSystem.typeProvider.dynamicType;
+      bool hasRest = false;
+      Map<MapKey, DartPattern> entries = {};
+      for (MapPatternElement entry in pattern.elements) {
+        if (entry is RestPatternElement) {
+          hasRest = true;
+        } else {
+          Expression expression = (entry as MapPatternEntry).key;
+          // TODO(johnniwinther): Assert that we have a constant value.
+          DartObjectImpl? constant = mapPatternKeyValues[expression];
+          if (constant == null) {
+            return createUnknownSpace(path);
+          }
+          MapKey key = MapKey(constant, constant.state.toString());
+          entries[key] = entry.value;
+        }
+      }
+
+      String typeArgumentsText;
+      if (keyType is! DynamicType && valueType is! DynamicType) {
+        StringBuffer sb = StringBuffer();
+        sb.write('<');
+        sb.write(keyType);
+        sb.write(', ');
+        sb.write(valueType);
+        sb.write('>');
+        typeArgumentsText = sb.toString();
+      } else {
+        typeArgumentsText = '';
+      }
+
+      return createMapSpace(
+          path,
+          cache.typeSystem.typeProvider.mapType(keyType, valueType),
+          MapTypeIdentity(
+              keyType, valueType, entries.keys.toSet(), typeArgumentsText,
+              hasRest: hasRest),
+          entries);
     } else if (pattern is ConstantPattern) {
       final value = constantPatternValues[pattern];
       if (value != null) {
@@ -431,7 +493,9 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
       }
     }
     return Space(
-        path, cache.getUniqueStaticType(type, value, value.state.toString()));
+        path,
+        cache.getUniqueStaticType<DartObjectImpl>(
+            type, value, value.state.toString()));
   }
 }
 

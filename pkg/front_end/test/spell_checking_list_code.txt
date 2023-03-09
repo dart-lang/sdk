@@ -1658,6 +1658,7 @@ unreachable
 unregister
 unregistered
 unregisters
+unrestricted
 unreversed
 unseen
 unset
