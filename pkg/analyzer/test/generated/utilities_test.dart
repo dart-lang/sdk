@@ -1266,7 +1266,7 @@ void f() {
 @myA2
 library foo;
 ''');
-    var node = findNode.libraryDirective;
+    var node = findNode.singleLibraryDirective;
     _assertAnnotatedNode(node);
     _assertReplacementForChildren<LibraryDirective>(
       destination: node,
