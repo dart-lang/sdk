@@ -10551,7 +10551,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
 
       if (fieldNameString != null) {
-        field.fieldName = new Name(fieldNameString);
+        field.fieldName = new Name(fieldNameString,
+            fieldNameString.startsWith("_") ? libraryBuilder.library : null);
 
         ObjectAccessTarget fieldTarget = findInterfaceMember(
             node.objectType, field.fieldName, field.fileOffset,
@@ -11225,9 +11226,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType receiverType,
     required shared.RecordPatternField<TreeNode, Pattern> field,
   }) {
-    // TODO(cstefantsova): Provide a better fileOffset.
+    String fieldName = field.name!;
     ObjectAccessTarget fieldAccessTarget = findInterfaceMember(
-        receiverType, new Name(field.name!), field.pattern.fileOffset,
+        receiverType,
+        new Name(fieldName,
+            fieldName.startsWith("_") ? libraryBuilder.library : null),
+        field.pattern.fileOffset,
         callSiteAccessKind: CallSiteAccessKind.getterInvocation);
     return fieldAccessTarget.getGetterType(this);
   }
