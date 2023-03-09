@@ -2805,6 +2805,8 @@ WarningCode.SDK_VERSION_NEVER:
   notes: Deprecated
 WarningCode.SDK_VERSION_SET_LITERAL:
   status: hasFix
+WarningCode.SDK_VERSION_SINCE:
+  status: needsEvaluation
 WarningCode.SDK_VERSION_UI_AS_CODE:
   status: hasFix
 WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:

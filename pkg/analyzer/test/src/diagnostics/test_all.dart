@@ -723,6 +723,7 @@ import 'sdk_version_is_expression_in_const_context_test.dart'
     as sdk_version_is_expression_in_const_context;
 import 'sdk_version_never_test.dart' as sdk_version_never;
 import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
+import 'sdk_version_since_test.dart' as sdk_version_since;
 import 'sdk_version_ui_as_code_in_const_context_test.dart'
     as sdk_version_ui_as_code_in_const_context;
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
@@ -1345,6 +1346,7 @@ main() {
     sdk_version_is_expression_in_const_context.main();
     sdk_version_never.main();
     sdk_version_set_literal.main();
+    sdk_version_since.main();
     sdk_version_ui_as_code.main();
     sdk_version_ui_as_code_in_const_context.main();
     sealed_class_subtype_outside_of_library.main();

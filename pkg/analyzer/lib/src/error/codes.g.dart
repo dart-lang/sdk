@@ -6736,6 +6736,16 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the version specified in the `@Since()` annotation
+  ///  1: the SDK version constraints
+  static const WarningCode SDK_VERSION_SINCE = WarningCode(
+    'SDK_VERSION_SINCE',
+    "This API is available since SDK {0}, but constraints '{1}' don't "
+        "guarantee it.",
+    correctionMessage: "Try updating the SDK constraints.",
+  );
+
   ///  No parameters.
   static const WarningCode SDK_VERSION_UI_AS_CODE = WarningCode(
     'SDK_VERSION_UI_AS_CODE',

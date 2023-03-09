@@ -20,4 +20,17 @@ class SdkConstraintVerifierTest extends PubPackageResolutionTest {
 
     await assertErrorsInCode(source, expectedErrors ?? []);
   }
+
+  /// Verify that the [expectedErrors] are produced if the [source] is analyzed
+  /// in a context that uses given SDK [constraints].
+  Future<void> verifyVersion2(String constraints, String source,
+      {List<ExpectedError>? expectedErrors}) async {
+    writeTestPackagePubspecYamlFile(
+      PubspecYamlFileConfig(
+        sdkVersion: constraints,
+      ),
+    );
+
+    await assertErrorsInCode(source, expectedErrors ?? []);
+  }
 }

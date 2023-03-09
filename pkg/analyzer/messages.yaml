@@ -22889,6 +22889,13 @@ WarningCode:
       ```dart
       var s = new Set<int>();
       ```
+  SDK_VERSION_SINCE:
+    problemMessage: "This API is available since SDK {0}, but constraints '{1}' don't guarantee it."
+    correctionMessage: Try updating the SDK constraints.
+    comment: |-
+      Parameters:
+      0: the version specified in the `@Since()` annotation
+      1: the SDK version constraints
   SDK_VERSION_UI_AS_CODE:
     problemMessage: "The for, if, and spread elements weren't supported until version 2.3.0, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
