@@ -2,19 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-// Regression test for dart2js that used to crash in the presence of a
-// super constructor declared external.
+// Regression test for dart2js that used to miscompile classes
+// extending HashMap, because HashMap is patched.
 
 import "package:expect/expect.dart";
+
 import 'dart:collection';
 
-class Crash extends Expando<String> {
-  Crash() : super();
-}
+class Foo extends Expando {}
 
-void main() {
-  Crash expando = new Crash();
-  Expect.isTrue(expando is Expando);
+main() {
+  Expect.isNull(new Foo()[new Object()]);
 }

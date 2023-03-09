@@ -20,7 +20,7 @@ part of dart.core;
 /// For failures that are not intended to be caught, use [Error]
 /// and its subclasses.
 @pragma('flutter:keep-to-string-in-subtypes')
-abstract interface class Exception {
+abstract class Exception {
   factory Exception([var message]) => _Exception(message);
 }
 

@@ -53,7 +53,7 @@ abstract class StringConversionSink extends ChunkedConversionSink<String> {
 
 /// A [ClosableStringSink] extends the [StringSink] interface by adding a
 /// `close` method.
-abstract class ClosableStringSink implements StringSink {
+abstract class ClosableStringSink extends StringSink {
   /// Creates a new instance combining a [StringSink] [sink] and a callback
   /// [onClose] which is invoked when the returned instance is closed.
   factory ClosableStringSink.fromStringSink(StringSink sink, void onClose()) =

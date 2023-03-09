@@ -8,7 +8,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        abstract class AIterator implements Iterator {
+        abstract class AIterator extends Iterator {
         }
         class Foo {
           final a;
@@ -25,7 +25,7 @@ worlds:
     errors: true
     sources:
       main.dart: |
-        abstract class BIterator implements Iterator {
+        abstract class BIterator extends Iterator {
         }
         class Foo {
           final a kjsdf ksjdf ;

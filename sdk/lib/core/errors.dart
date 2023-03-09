@@ -596,7 +596,7 @@ class ConcurrentModificationError extends Error {
 }
 
 /// Error that the platform can use in case of memory shortage.
-final class OutOfMemoryError implements Error {
+class OutOfMemoryError implements Error {
   @pragma("vm:entry-point")
   const OutOfMemoryError();
   String toString() => "Out of Memory";
@@ -605,7 +605,7 @@ final class OutOfMemoryError implements Error {
 }
 
 /// Error that the platform can use in case of stack overflow.
-final class StackOverflowError implements Error {
+class StackOverflowError implements Error {
   @pragma("vm:entry-point")
   const StackOverflowError();
   String toString() => "Stack Overflow";
