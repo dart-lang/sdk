@@ -42,6 +42,8 @@ const main = async () => {
         return new WebAssembly.Instance(compile(filename), imports);
     }
 
+    globalThis.window ??= globalThis;
+
     let importObject = {};
 
     // Is an FFI module specified?
