@@ -39,6 +39,7 @@ import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
+import 'package:unified_analytics/unified_analytics.dart';
 
 /// The [Driver] class represents a single running instance of the analysis
 /// server application.  It is responsible for parsing command line options
@@ -256,17 +257,14 @@ class Driver implements ServerStarter {
     var defaultSdk = _createDefaultSdk(defaultSdkPath);
 
     // Create the analytics manager.
-    // TODO(brianwilkerson) Add support for finding the version of the Flutter
-    //  SDK, or `null` if we're not in a Flutter SDK.
-    // TODO(brianwilkerson) Delete the line below and uncomment the 3 lines
-    //  below it when we have (a) fixed the `dart analyze` and `dart fix` tests
-    //  so that they don't send events and (b) implemented a way for users to
-    //  disable analytics.
+    // TODO(brianwilkerson) Create the real Analytics instance when we have
+    //  (a) fixed the `dart analyze` and `dart fix` tests so that they don't
+    //  send events and (b) implemented a way for users to disable analytics.
     var analyticsManager = AnalyticsManager(NoopAnalytics());
-    // var analyticsManager = AnalyticsManager(Analytics(
-    //     tool: DashTool.languageServer,
-    //     dartVersion: defaultSdk.sdkVersion,
-    //     flutterVersion: null));
+    if (2 < 1) {
+      // var analyticsManager =
+      AnalyticsManager(_createAnalytics(defaultSdk, defaultSdkPath));
+    }
 
     // Record the start of the session.
     analyticsManager.startUp(
@@ -543,6 +541,28 @@ class Driver implements ServerStarter {
     var zoneSpecification = ZoneSpecification(
         handleUncaughtError: errorFunction, print: printFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
+  }
+
+  /// Create the `Analytics` instance to be used to report analytics.
+  Analytics _createAnalytics(DartSdk dartSdk, String dartSdkPath) {
+    // TODO(brianwilkerson) Find out whether there's a way to get the channel
+    //  without running `flutter channel`.
+    var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+    var flutterSdkRoot = pathContext
+        .dirname(pathContext.dirname(pathContext.dirname(dartSdkPath)));
+    var flutterVersionFile = PhysicalResourceProvider.INSTANCE
+        .getFile(pathContext.join(flutterSdkRoot, 'version'));
+    String? flutterVersion;
+    try {
+      flutterVersion = flutterVersionFile.readAsStringSync();
+    } catch (exception) {
+      // If we can't read the file, ignore it.
+    }
+    return Analytics(
+        tool: DashTool.languageServer,
+        dartVersion: dartSdk.sdkVersion,
+        // flutterChannel: '',
+        flutterVersion: flutterVersion);
   }
 
   DartSdk _createDefaultSdk(String defaultSdkPath) {
