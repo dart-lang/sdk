@@ -468,9 +468,7 @@ abstract class Map<K, V> {
 /// the `MapEntry` class will be changed to such a type,
 /// and will likely no longer be able to be implemented or extended
 /// by classes.
-// TODO(lrn): Make this class `final` when class modifiers are introduced.
-// Change to an `inline class` when those are available.
-class MapEntry<K, V> {
+final class MapEntry<K, V> {
   /// The key of the entry.
   ///
   /// ```dart

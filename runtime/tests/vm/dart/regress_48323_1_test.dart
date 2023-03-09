@@ -6,7 +6,7 @@
 // Verifies that class finalization doesn't crash when seeing
 // superclass with type arguments which were not finalized yet.
 
-abstract class GraphNode extends Comparable<dynamic> {
+abstract class GraphNode implements Comparable<dynamic> {
   int compareTo(dynamic other) => 0;
 }
 

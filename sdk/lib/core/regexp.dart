@@ -213,7 +213,7 @@ part of dart.core;
 /// when the regexp does not find a match.
 /// Several guides to [improving the performance of regular expressions](https://www.google.com/search?q=performance+of+regular+expressions)
 /// exist on the internet. Use these as inspirations, too.
-abstract class RegExp implements Pattern {
+abstract interface class RegExp implements Pattern {
   /// Constructs a regular expression.
   ///
   /// Throws a [FormatException] if [source] does not follow valid regular
@@ -469,7 +469,7 @@ abstract class RegExp implements Pattern {
 /// }
 /// ```
 @Since("2.3")
-abstract class RegExpMatch implements Match {
+abstract interface class RegExpMatch implements Match {
   /// The string captured by the named capture group [name].
   ///
   /// Returns the substring of the input that the

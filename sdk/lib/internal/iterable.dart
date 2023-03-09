@@ -381,7 +381,7 @@ class EfficientLengthMappedIterable<S, T> extends MappedIterable<S, T>
       : super._(iterable, function);
 }
 
-class MappedIterator<S, T> extends Iterator<T> {
+class MappedIterator<S, T> implements Iterator<T> {
   T? _current;
   final Iterator<S> _iterator;
   final _Transformation<S, T> _f;
@@ -430,7 +430,7 @@ class WhereIterable<E> extends Iterable<E> {
       MappedIterable<E, T>._(this, toElement);
 }
 
-class WhereIterator<E> extends Iterator<E> {
+class WhereIterator<E> implements Iterator<E> {
   final Iterator<E> _iterator;
   final _ElementPredicate<E> _f;
 
@@ -522,7 +522,7 @@ class EfficientLengthTakeIterable<E> extends TakeIterable<E>
   }
 }
 
-class TakeIterator<E> extends Iterator<E> {
+class TakeIterator<E> implements Iterator<E> {
   final Iterator<E> _iterator;
   int _remaining;
 
@@ -560,7 +560,7 @@ class TakeWhileIterable<E> extends Iterable<E> {
   }
 }
 
-class TakeWhileIterator<E> extends Iterator<E> {
+class TakeWhileIterator<E> implements Iterator<E> {
   final Iterator<E> _iterator;
   final _ElementPredicate<E> _f;
   bool _isFinished = false;
@@ -631,7 +631,7 @@ int _checkCount(int count) {
   return count;
 }
 
-class SkipIterator<E> extends Iterator<E> {
+class SkipIterator<E> implements Iterator<E> {
   final Iterator<E> _iterator;
   int _skipCount;
 
@@ -659,7 +659,7 @@ class SkipWhileIterable<E> extends Iterable<E> {
   }
 }
 
-class SkipWhileIterator<E> extends Iterator<E> {
+class SkipWhileIterator<E> implements Iterator<E> {
   final Iterator<E> _iterator;
   final _ElementPredicate<E> _f;
   bool _hasSkipped = false;

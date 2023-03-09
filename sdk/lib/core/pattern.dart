@@ -5,7 +5,7 @@
 part of dart.core;
 
 /// An interface for basic searches within strings.
-abstract class Pattern {
+abstract interface class Pattern {
   /// Matches this pattern against the string repeatedly.
   ///
   /// If [start] is provided, matching will start at that index.
@@ -82,7 +82,7 @@ abstract class Pattern {
 /// that were part of the matching. These are called _groups_ in the `Match`
 /// object. Some patterns may never have any groups, and their matches always
 /// have zero [groupCount].
-abstract class Match {
+abstract interface class Match {
   /// The index in the string where the match starts.
   int get start;
 

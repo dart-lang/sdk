@@ -4,7 +4,7 @@
 
 part of dart.core;
 
-abstract class StringSink {
+abstract interface class StringSink {
   /// Writes the string representation of [object].
   ///
   /// Converts [object] to a string using `object.toString()`.
