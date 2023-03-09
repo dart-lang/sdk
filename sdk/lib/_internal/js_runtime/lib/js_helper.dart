@@ -388,7 +388,6 @@ class Primitives {
   static bool? parseBool(String source, bool caseSensitive) {
     checkNotNullable(source, "source");
     checkNotNullable(caseSensitive, "caseSensitive");
-    // The caseSensitive defaults to true.
     if (caseSensitive) {
       return source == "true"
           ? true
@@ -396,7 +395,6 @@ class Primitives {
               ? false
               : null;
     }
-    // Compare case-sensitive when caseSensitive is false.
     return _compareIgnoreCase(source, "true")
         ? true
         : _compareIgnoreCase(source, "false")

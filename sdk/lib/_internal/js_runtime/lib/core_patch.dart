@@ -580,6 +580,16 @@ class String {
 class bool {
   @patch
   int get hashCode => super.hashCode;
+
+  @patch
+  static bool parse(String source, {bool caseSensitive = true}) =>
+      tryParse(source, caseSensitive: caseSensitive) ??
+      (throw FormatException("Invalid boolean", source));
+
+  @patch
+  static bool? tryParse(String source, {bool caseSensitive = true}) {
+    return Primitives.parseBool(source, caseSensitive);
+  }
 }
 
 @patch
