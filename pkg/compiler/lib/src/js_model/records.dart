@@ -55,10 +55,11 @@ class RecordData {
   final JsToElementMap _elementMap;
   final List<RecordRepresentation> _representations;
 
+  final Map<RecordShape, List<MemberEntity>> _gettersByShape;
   final Map<ClassEntity, RecordRepresentation> _classToRepresentation = {};
   final Map<RecordShape, RecordRepresentation> _shapeToRepresentation = {};
 
-  RecordData._(this._elementMap, this._representations) {
+  RecordData._(this._elementMap, this._representations, this._gettersByShape) {
     // Unpack representations into lookup maps.
     for (final info in _representations) {
       _classToRepresentation[info.cls] = info;
@@ -66,13 +67,23 @@ class RecordData {
     }
   }
 
+  Iterable<MemberEntity> get allGetters =>
+      _gettersByShape.values.expand((e) => e);
+
+  List<MemberEntity> gettersForShape(RecordShape shape) =>
+      _gettersByShape[shape]!;
+
   factory RecordData.readFromDataSource(
       JsToElementMap elementMap, DataSourceReader source) {
     source.begin(tag);
     List<RecordRepresentation> representations =
         source.readList(() => RecordRepresentation.readFromDataSource(source));
+    final shapes =
+        source.readList(() => RecordShape.readFromDataSource(source));
+    final getters = source.readList(source.readMembers);
     source.end(tag);
-    return RecordData._(elementMap, representations);
+    return RecordData._(
+        elementMap, representations, Map.fromIterables(shapes, getters));
   }
 
   /// Serializes this [RecordData] to [sink].
@@ -80,6 +91,9 @@ class RecordData {
     sink.begin(tag);
     sink.writeList<RecordRepresentation>(
         _representations, (info) => info.writeToDataSink(sink));
+    sink.writeList(
+        _gettersByShape.keys, (RecordShape v) => v.writeToDataSink(sink));
+    sink.writeList(_gettersByShape.values, sink.writeMembers);
     sink.end(tag);
   }
 
@@ -222,6 +236,7 @@ class RecordDataBuilder {
   final DiagnosticReporter _reporter;
   final JsToElementMap _elementMap;
   final AnnotationsData _annotationsData;
+  final Map<RecordShape, List<MemberEntity>> _gettersByShape = {};
 
   RecordDataBuilder(this._reporter, this._elementMap, this._annotationsData);
 
@@ -238,9 +253,11 @@ class RecordDataBuilder {
     List<RecordRepresentation> representations = [];
     for (int i = 0; i < shapes.length; i++) {
       final shape = shapes[i];
+      final getters = <MemberEntity>[];
       final cls = shape.fieldCount == 0
           ? _elementMap.commonElements.emptyRecordClass
-          : closedWorldBuilder.buildRecordShapeClass(shape);
+          : closedWorldBuilder.buildRecordShapeClass(shape, getters);
+      _gettersByShape[shape] = getters;
       int shapeTag = i;
       bool usesList = _computeUsesGeneralClass(cls);
       final info =
@@ -248,10 +265,7 @@ class RecordDataBuilder {
       representations.add(info);
     }
 
-    return RecordData._(
-      _elementMap,
-      representations,
-    );
+    return RecordData._(_elementMap, representations, _gettersByShape);
   }
 
   bool _computeUsesGeneralClass(ClassEntity? cls) {
