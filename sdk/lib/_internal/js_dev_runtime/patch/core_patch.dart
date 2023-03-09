@@ -704,6 +704,16 @@ class bool {
   }
 
   @patch
+  static bool parse(String source, {bool caseSensitive = true}) =>
+      Primitives.parseBool(source, caseSensitive) ??
+      (throw FormatException("Invalid boolean", source));
+
+  @patch
+  static bool? tryParse(String source, {bool caseSensitive = true}) {
+    return Primitives.parseBool(source, caseSensitive);
+  }
+
+  @patch
   int get hashCode => super.hashCode;
 
   @JSExportName('is')

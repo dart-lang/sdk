@@ -29,6 +29,7 @@
   * `StringConversionSink`
 
 #### `dart:core`
+- Added `bool.parse` and `bool.tryParse` static methods.
 
 - **Breaking change** [#49529][]:
   - Removed the deprecated `List` constructor, as it wasn't null safe.
