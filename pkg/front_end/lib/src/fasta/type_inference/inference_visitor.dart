@@ -9864,10 +9864,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleCaseHead(
-      covariant /* SwitchStatement | SwitchExpression */ Object node,
-      {required int caseIndex,
-      required int subIndex}) {
+  CaseHeadOrDefaultInfo<TreeNode, Expression, VariableDeclaration>
+      handleCaseHead(
+          covariant /* SwitchStatement | SwitchExpression */ Object node,
+          CaseHeadOrDefaultInfo<TreeNode, Expression, VariableDeclaration> head,
+          {required int caseIndex,
+          required int subIndex}) {
+    CaseHeadOrDefaultInfo<TreeNode, Expression, VariableDeclaration> result =
+        head;
     int? stackBase;
     assert(checkStackBase(node as TreeNode, stackBase = stackHeight - 2));
 
@@ -9919,6 +9923,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             !identical(guardRewrite, patternGuard.guard)) {
           patternGuard.guard = (guardRewrite as Expression)
             ..parent = patternGuard;
+
+          result = new CaseHeadOrDefaultInfo(
+            pattern: head.pattern,
+            guard: patternGuard.guard,
+            variables: head.variables,
+          );
         }
         Object? rewrite = popRewrite();
         if (!identical(rewrite, patternGuard.pattern)) {
@@ -9972,6 +9982,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           hasGuard: patternGuard.guard != null,
           fileOffset: switchExpressionCase.fileOffset));
     }
+
+    return result;
   }
 
   @override
