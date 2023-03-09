@@ -161,7 +161,7 @@ try:
     # For now just split on spaces to get the args out. This will break if
     # pkgconfig returns quoted things with spaces in them, but that doesn't seem
     # to happen in practice.
-    all_flags = flag_string.strip().split(' ')
+    all_flags = flag_string.decode('utf-8').strip().split(' ')
 except:
     print("Could not run pkg-config.")
     sys.exit(1)
