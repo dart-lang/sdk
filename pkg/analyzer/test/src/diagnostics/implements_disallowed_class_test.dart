@@ -19,11 +19,6 @@ class ImplementsDisallowedClassTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 class A implements bool {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 4),
     ]);
   }
@@ -56,11 +51,6 @@ class A implements Enum {}
     await assertErrorsInCode('''
 class A implements double {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6),
     ]);
   }
@@ -106,11 +96,6 @@ class A<T> implements FutureOr<T> {}
     await assertErrorsInCode('''
 class A implements int {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 3),
     ]);
   }
@@ -135,11 +120,6 @@ class A implements num {}
     await assertErrorsInCode('''
 class A implements Record {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6),
     ]);
   }
@@ -148,11 +128,6 @@ class A implements Record {}
     await assertErrorsInCode('''
 class A implements String {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6),
     ]);
   }
@@ -161,11 +136,6 @@ class A implements String {}
     await assertErrorsInCode('''
 class A implements String, num {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6),
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 27, 3),
     ]);
@@ -309,11 +279,6 @@ mixin M implements Enum {}
     await assertErrorsInCode(r'''
 mixin M implements int {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 3),
     ]);
 

@@ -19,11 +19,6 @@ class MixinOfDisallowedClassTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 class A extends Object with bool {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 4),
     ]);
   }
@@ -32,11 +27,6 @@ class A extends Object with bool {}
     await assertErrorsInCode('''
 class A extends Object with double {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6),
     ]);
   }
@@ -72,11 +62,6 @@ class A<T> extends Object with FutureOr<T> {}
     await assertErrorsInCode('''
 class A extends Object with int {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 3),
     ]);
   }
@@ -101,11 +86,6 @@ class A extends Object with num {}
     await assertErrorsInCode('''
 class A extends Object with Record {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6),
     ]);
   }
@@ -114,11 +94,6 @@ class A extends Object with Record {}
     await assertErrorsInCode('''
 class A extends Object with String {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
       error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6),
     ]);
   }
