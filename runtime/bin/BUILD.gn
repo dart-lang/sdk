@@ -527,7 +527,7 @@ gen_snapshot_action("generate_snapshot_bin") {
         rebase_path(isolate_snapshot_data, root_build_dir),
     "--isolate_snapshot_instructions=" +
         rebase_path(isolate_snapshot_instructions, root_build_dir),
-    rebase_path(platform_dill),
+    rebase_path(platform_dill, root_build_dir),
   ]
 }
 
@@ -548,7 +548,7 @@ template("bin_to_assembly") {
       "--input",
       rebase_path(invoker.input, root_build_dir),
       "--output",
-      rebase_path(output),
+      rebase_path(output, root_build_dir),
       "--symbol_name",
       invoker.symbol,
       "--target_os",
@@ -587,9 +587,9 @@ template("bin_to_coff") {
     output = invoker.input + ".o"
     args = [
       "--input",
-      rebase_path(invoker.input),
+      rebase_path(invoker.input, root_build_dir),
       "--output",
-      rebase_path(output),
+      rebase_path(output, root_build_dir),
       "--symbol_name",
       invoker.symbol,
     ]

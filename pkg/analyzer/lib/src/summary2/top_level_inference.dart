@@ -244,7 +244,7 @@ class _PropertyInducingElementTypeInference
 
     final enclosingElement = _element.enclosingElement;
     final enclosingClassElement =
-        enclosingElement is ClassElement ? enclosingElement : null;
+        enclosingElement is InterfaceElement ? enclosingElement : null;
 
     var astResolver = AstResolver(_linker, _unitElement, _scope,
         enclosingClassElement: enclosingClassElement);

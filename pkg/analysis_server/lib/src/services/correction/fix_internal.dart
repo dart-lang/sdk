@@ -1440,6 +1440,9 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY: [
       AddConst.new,
     ],
+    ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC: [
+      AddConst.new,
+    ],
     ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION: [
       AddConst.new,
     ],

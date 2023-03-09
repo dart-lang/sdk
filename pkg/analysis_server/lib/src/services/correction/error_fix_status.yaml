@@ -2250,7 +2250,7 @@ ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST:
 ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL:
   status: needsEvaluation
 ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION:
   status: hasFix
 ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY:

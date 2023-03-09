@@ -665,6 +665,130 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_super_class_field() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+  late final v = super.foo();
+}
+''');
+
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_hasReceiver_super_class_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void bar() {
+    super.foo();
+  }
+}
+''');
+
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_super_mixin_field() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo() => 0;
+}
+
+mixin M on A {
+  late final v = super.foo();
+}
+''');
+
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_hasReceiver_super_mixin_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+''');
+
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
   test_hasReceiver_typeAlias_staticMethod() async {
     await assertNoErrorsInCode(r'''
 class A {
