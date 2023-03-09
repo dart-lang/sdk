@@ -571,9 +571,12 @@ class Translator with KernelNodes {
         translateStorageType(type), type.toText(defaultAstTextStrategy));
   }
 
-  w.ArrayType wasmArrayType(w.StorageType type, String name) {
-    return arrayTypeCache.putIfAbsent(type,
-        () => m.addArrayType("Array<$name>", elementType: w.FieldType(type)));
+  w.ArrayType wasmArrayType(w.StorageType type, String name,
+      {bool mutable = true}) {
+    return arrayTypeCache.putIfAbsent(
+        type,
+        () => m.addArrayType("Array<$name>",
+            elementType: w.FieldType(type, mutable: mutable)));
   }
 
   /// Translate a Dart type as it should appear on parameters and returns of

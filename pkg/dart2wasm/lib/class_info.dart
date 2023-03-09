@@ -118,6 +118,9 @@ class ClassInfo {
   /// follow the Dart class hierarchy.
   final ClassInfo? superInfo;
 
+  /// The class that this class masquerades as via `runtimeType`, if any.
+  ClassInfo? masquerade = null;
+
   /// For every type parameter which is directly mapped to a type parameter in
   /// the superclass, this contains the corresponding superclass type
   /// parameter. These will reuse the corresponding type parameter field of
@@ -185,6 +188,36 @@ class ClassInfoCollector {
   /// Maps number of record fields to the struct type to be used for a record
   /// shape class with that many fields.
   final Map<int, w.StructType> _recordStructs = {};
+
+  /// Masquerades for implementation classes. For each entry of the map, all
+  /// subtypes of the key masquerade as the value.
+  late final Map<Class, Class> _masquerades = {
+    translator.coreTypes.boolClass: translator.coreTypes.boolClass,
+    translator.coreTypes.intClass: translator.coreTypes.intClass,
+    translator.coreTypes.doubleClass: translator.coreTypes.doubleClass,
+    translator.coreTypes.stringClass: translator.coreTypes.stringClass,
+    translator.index.getClass("dart:core", "_Type"):
+        translator.coreTypes.typeClass,
+    translator.index.getClass("dart:core", "_ListBase"):
+        translator.coreTypes.listClass,
+    for (Class cls in const <String>[
+      "Int8List",
+      "Uint8List",
+      "Uint8ClampedList",
+      "Int16List",
+      "Uint16List",
+      "Int32List",
+      "Uint32List",
+      "Int64List",
+      "Uint64List",
+      "Float32List",
+      "Float64List",
+      "Int32x4List",
+      "Float32x4List",
+      "Float64x2List",
+    ].map((name) => translator.index.getClass("dart:typed_data", name)))
+      cls: cls
+  };
 
   /// Wasm field type for fields with type [_Type]. Fields of this type are
   /// added to classes for type parameters.
@@ -292,6 +325,26 @@ class ClassInfoCollector {
     translator.classes.add(info);
     translator.classInfo[cls] = info;
     translator.classForHeapType.putIfAbsent(info.struct, () => info!);
+
+    ClassInfo? computeMasquerade() {
+      if (info!.superInfo?.masquerade != null) {
+        return info.superInfo!.masquerade;
+      }
+      for (Supertype implemented in cls.implementedTypes) {
+        ClassInfo? implementedMasquerade =
+            translator.classInfo[implemented.classNode]!.masquerade;
+        if (implementedMasquerade != null) {
+          return implementedMasquerade;
+        }
+      }
+      Class? selfMasquerade = _masquerades[cls];
+      if (selfMasquerade != null) {
+        return translator.classInfo[selfMasquerade]!;
+      }
+      return null;
+    }
+
+    info.masquerade = computeMasquerade();
   }
 
   void _initializeRecordClass(Class cls) {
@@ -398,6 +451,11 @@ class ClassInfoCollector {
     // needs to be initialized before we encounter a class with type
     // parameters.
     _initialize(translator.typeClass);
+
+    // Initialize masquerade classes to make sure they have low class IDs.
+    for (Class cls in _masquerades.values) {
+      _initialize(cls);
+    }
 
     // Initialize the record base class if we have record classes.
     if (translator.recordClasses.isNotEmpty) {

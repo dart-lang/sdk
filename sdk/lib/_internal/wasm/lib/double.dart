@@ -60,9 +60,6 @@ final class _BoxedDouble extends double {
   /// Dummy factory to silence error about missing superclass constructor.
   external factory _BoxedDouble();
 
-  @override
-  Type get runtimeType => double;
-
   static const int _mantissaBits = 52;
   static const int _exponentBits = 11;
   static const int _exponentBias = 1023;

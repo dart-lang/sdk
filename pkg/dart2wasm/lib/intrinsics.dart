@@ -694,25 +694,6 @@ class Intrinsifier {
           return translator.types.makeTypeRulesSubstitutions(b);
         case "_getTypeNames":
           return translator.types.makeTypeNames(b);
-        case "_getFunctionTypeRuntimeType":
-          Expression object = node.arguments.positional[0];
-          w.StructType closureBase =
-              translator.closureLayouter.closureBaseStruct;
-          codeGen.wrap(object, w.RefType.def(closureBase, nullable: false));
-          b.struct_get(closureBase, FieldIndex.closureRuntimeType);
-          return translator.types.typeClassInfo.nonNullableType;
-        case "_getInterfaceTypeRuntimeType":
-          Expression object = node.arguments.positional[0];
-          Expression typeArguments = node.arguments.positional[1];
-          ClassInfo info = translator.classInfo[translator.interfaceTypeClass]!;
-          b.i32_const(info.classId);
-          b.i32_const(initialIdentityHash);
-          // Runtime types are never nullable.
-          b.i32_const(0);
-          getID(object);
-          codeGen.wrap(typeArguments, translator.types.typeListExpectedType);
-          b.struct_new(info.struct);
-          return info.nonNullableType;
       }
     }
 
@@ -1148,14 +1129,87 @@ class Intrinsifier {
     // Object.runtimeType
     if (member.enclosingClass == translator.coreTypes.objectClass &&
         name == "runtimeType") {
-      // Simple redirect to `_runtimeType`. This is done to keep
-      // `Object.runtimeType` external, which seems to be necessary for the TFA.
-      // If we don't do this, then the TFA assumes things like
-      // `null.runtimeType` are impossible and inserts a throw.
+      // Simple redirect to `_getMasqueradedRuntimeType`. This is done to keep
+      // `Object.runtimeType` external. If `Object.runtimeType` is implemented
+      // in Dart, the TFA will conclude that `null.runtimeType` never returns,
+      // since it dispatches to `Object.runtimeType`, which uses the receiver
+      // as non-nullable.
       w.Local receiver = paramLocals[0];
       b.local_get(receiver);
-      codeGen.call(translator.objectRuntimeType.reference);
+      codeGen.call(translator.getMasqueradedRuntimeType.reference);
       return true;
+    }
+
+    // _getActualRuntimeType and _getMasqueradedRuntimeType
+    if (member.enclosingLibrary == translator.coreTypes.coreLibrary &&
+        (name == "_getActualRuntimeType" ||
+            name == "_getMasqueradedRuntimeType")) {
+      final bool masqueraded = name == "_getMasqueradedRuntimeType";
+
+      final w.Local object = paramLocals[0];
+      final w.Local classId = function.addLocal(w.NumType.i32);
+      final w.Local resultClassId = function.addLocal(w.NumType.i32);
+
+      w.Label interfaceType = b.block();
+      w.Label notMasqueraded = b.block();
+      w.Label recordType = b.block();
+      w.Label functionType = b.block();
+      w.Label abstractClass = b.block();
+
+      // Look up the type category by class ID and switch on it.
+      b.global_get(translator.types.typeCategoryTable);
+      b.local_get(object);
+      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+      b.local_tee(classId);
+      b.array_get_u((translator.types.typeCategoryTable.type.type as w.RefType)
+          .heapType as w.ArrayType);
+      b.local_tee(resultClassId);
+      b.br_table([
+        abstractClass,
+        functionType,
+        recordType,
+        if (masqueraded) notMasqueraded
+      ], masqueraded ? interfaceType : notMasqueraded);
+
+      b.end(); // abstractClass
+      // We should never see class IDs for abstract types.
+      b.unreachable();
+
+      b.end(); // functionType
+      w.StructType closureBase = translator.closureLayouter.closureBaseStruct;
+      b.local_get(object);
+      b.ref_cast(w.RefType.def(closureBase, nullable: false));
+      b.struct_get(closureBase, FieldIndex.closureRuntimeType);
+      b.return_();
+
+      b.end(); // recordType
+      b.local_get(object);
+      translator.convertType(
+          function,
+          object.type,
+          translator.classInfo[translator.coreTypes.recordClass]!.repr
+              .nonNullableType);
+      codeGen.call(translator.recordGetRecordRuntimeType.reference);
+      b.return_();
+
+      b.end(); // notMasqueraded
+      b.local_get(classId);
+      b.local_set(resultClassId);
+
+      b.end(); // interfaceType
+      ClassInfo info = translator.classInfo[translator.interfaceTypeClass]!;
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      // Runtime types are never nullable.
+      b.i32_const(0);
+      // Set class ID of interface type.
+      b.local_get(resultClassId);
+      b.i64_extend_i32_u();
+      // Call _typeArguments to get the list of type arguments.
+      b.local_get(object);
+      codeGen.call(translator.objectGetTypeArguments.reference);
+      b.struct_new(info.struct);
+      b.return_();
     }
 
     // identical
