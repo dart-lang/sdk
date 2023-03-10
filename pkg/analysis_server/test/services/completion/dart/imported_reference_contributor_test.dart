@@ -11,6 +11,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2393,6 +2394,7 @@ class B extends A {
   }
 
   Future<void> test_function_parameters_nnbd_required() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     resolveSource('$testPackageLibPath/a.dart', '''
 void m(int? nullable, int nonNullable) {}
 ''');
@@ -2415,6 +2417,7 @@ void f() {^}
   }
 
   Future<void> test_function_parameters_nnbd_required_into_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     resolveSource('$testPackageLibPath/a.dart', '''
 void m(int? nullable, int nonNullable) {}
 ''');
@@ -2438,6 +2441,7 @@ void f() {^}
   }
 
   Future<void> test_function_parameters_nnbd_required_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     resolveSource('$testPackageLibPath/a.dart', '''
 // @dart = 2.8
 void m(int param) {}

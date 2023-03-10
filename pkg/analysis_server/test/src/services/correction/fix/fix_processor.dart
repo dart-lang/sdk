@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart'
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
@@ -88,7 +87,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   late BulkFixProcessor processor;
 
   @override
-  List<Feature> get experiments => const [];
+  List<String> get experiments => const [];
 
   /// Return the lint code being tested.
   String? get lintCode => null;

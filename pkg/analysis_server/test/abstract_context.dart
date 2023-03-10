@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -45,12 +44,12 @@ class AbstractContextTest with ResourceProviderMixin {
 
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
-  List<Feature> get experiments => [
-        Feature.class_modifiers,
-        Feature.macros,
-        Feature.patterns,
-        Feature.records,
-        Feature.sealed_class,
+  List<String> get experiments => [
+        EnableString.class_modifiers,
+        EnableString.macros,
+        EnableString.patterns,
+        EnableString.records,
+        EnableString.sealed_class,
       ];
 
   String get latestLanguageVersion =>
@@ -106,7 +105,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({
-    List<Feature>? experiments,
+    List<String>? experiments,
     List<String>? cannotIgnore,
     bool? implicitCasts,
     List<String>? lints,
@@ -120,12 +119,7 @@ class AbstractContextTest with ResourceProviderMixin {
     if (experiments != null) {
       buffer.writeln('  enable-experiment:');
       for (var experiment in experiments) {
-        final experimentalFlag = experiment.experimentalFlag;
-        if (experimentalFlag != null) {
-          buffer.writeln('    - ${experiment.experimentalFlag}');
-        } else {
-          throw ArgumentError('Not experimental: $experiment');
-        }
+        buffer.writeln('    - $experiment');
       }
     }
 
