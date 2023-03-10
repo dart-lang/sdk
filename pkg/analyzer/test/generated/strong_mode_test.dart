@@ -3049,10 +3049,8 @@ void main() {
     ]);
 
     final node = findNode.functionDeclaration('f<T>');
-    assertResolvedNodeText(
-        node,
-        isNullSafetyEnabled
-            ? r'''
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -3080,7 +3078,7 @@ FunctionDeclaration
           type: T
         name: x
         declaredElement: self::@function::f::@parameter::x
-        declaredElementType: T
+          type: T
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3091,9 +3089,10 @@ FunctionDeclaration
     declaredElement: self::@function::f
     staticType: T Function<T>(T)
   declaredElement: self::@function::f
-  declaredElementType: T Function<T>(T)
-'''
-            : r'''
+    type: T Function<T>(T)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -3121,7 +3120,7 @@ FunctionDeclaration
           type: T*
         name: x
         declaredElement: self::@function::f::@parameter::x
-        declaredElementType: T*
+          type: T*
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3132,8 +3131,9 @@ FunctionDeclaration
     declaredElement: self::@function::f
     staticType: T* Function<T>(T*)*
   declaredElement: self::@function::f
-  declaredElementType: T* Function<T>(T*)*
+    type: T* Function<T>(T*)*
 ''');
+    }
   }
 
   test_genericFunction_bounds() async {
@@ -3143,10 +3143,8 @@ FunctionDeclaration
     ]);
 
     final node = findNode.functionDeclaration('f<T');
-    assertResolvedNodeText(
-        node,
-        isNullSafetyEnabled
-            ? r'''
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -3181,7 +3179,7 @@ FunctionDeclaration
           type: T
         name: x
         declaredElement: self::@function::f::@parameter::x
-        declaredElementType: T
+          type: T
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3192,9 +3190,10 @@ FunctionDeclaration
     declaredElement: self::@function::f
     staticType: T Function<T extends num>(T)
   declaredElement: self::@function::f
-  declaredElementType: T Function<T extends num>(T)
-'''
-            : r'''
+    type: T Function<T extends num>(T)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -3229,7 +3228,7 @@ FunctionDeclaration
           type: T*
         name: x
         declaredElement: self::@function::f::@parameter::x
-        declaredElementType: T*
+          type: T*
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3240,8 +3239,9 @@ FunctionDeclaration
     declaredElement: self::@function::f
     staticType: T* Function<T extends num*>(T*)*
   declaredElement: self::@function::f
-  declaredElementType: T* Function<T extends num*>(T*)*
+    type: T* Function<T extends num*>(T*)*
 ''');
+    }
   }
 
   test_genericFunction_parameter() async {
@@ -3265,10 +3265,8 @@ class C<E> {
     ]);
 
     final node = findNode.methodDeclaration('f<T>');
-    assertResolvedNodeText(
-        node,
-        isNullSafetyEnabled
-            ? r'''
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
 MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
@@ -3289,7 +3287,7 @@ MethodDeclaration
         type: T
       name: x
       declaredElement: self::@class::C::@method::f::@parameter::x
-      declaredElementType: T
+        type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -3298,9 +3296,10 @@ MethodDeclaration
       staticType: Null
     semicolon: ;
   declaredElement: self::@class::C::@method::f
-  declaredElementType: T Function<T>(T)
-'''
-            : r'''
+    type: T Function<T>(T)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
@@ -3321,7 +3320,7 @@ MethodDeclaration
         type: T*
       name: x
       declaredElement: self::@class::C::@method::f::@parameter::x
-      declaredElementType: T*
+        type: T*
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -3330,8 +3329,9 @@ MethodDeclaration
       staticType: Null*
     semicolon: ;
   declaredElement: self::@class::C::@method::f
-  declaredElementType: T* Function<T>(T*)*
+    type: T* Function<T>(T*)*
 ''');
+    }
   }
 
   test_genericFunction_typedef() async {
@@ -3961,10 +3961,8 @@ class D extends C {
             : []);
 
     final node = findNode.methodDeclaration('f<T>(T y)');
-    assertResolvedNodeText(
-        node,
-        isNullSafetyEnabled
-            ? r'''
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -3984,7 +3982,7 @@ MethodDeclaration
         type: T
       name: y
       declaredElement: self::@class::D::@method::f::@parameter::y
-      declaredElementType: T
+        type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -3993,9 +3991,10 @@ MethodDeclaration
       staticType: Null
     semicolon: ;
   declaredElement: self::@class::D::@method::f
-  declaredElementType: T Function<T>(T)
-'''
-            : r'''
+    type: T Function<T>(T)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -4015,7 +4014,7 @@ MethodDeclaration
         type: T*
       name: y
       declaredElement: self::@class::D::@method::f::@parameter::y
-      declaredElementType: T*
+        type: T*
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -4024,8 +4023,9 @@ MethodDeclaration
       staticType: Null*
     semicolon: ;
   declaredElement: self::@class::D::@method::f
-  declaredElementType: T* Function<T>(T*)*
+    type: T* Function<T>(T*)*
 ''');
+    }
   }
 
   test_genericMethod_override_bounds() async {

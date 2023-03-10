@@ -3803,7 +3803,7 @@ FunctionReference
               staticType: null
             type: T
           declaredElement: @-1
-          declaredElementType: T
+            type: T
         rightParenthesis: )
       declaredElement: GenericFunctionTypeElement
         parameters
@@ -4026,7 +4026,7 @@ FunctionReference
           type: T
         name: a
         declaredElement: @36::@parameter::a
-        declaredElementType: T
+          type: T
       rightParenthesis: )
     body: BlockFunctionBody
       block: Block
