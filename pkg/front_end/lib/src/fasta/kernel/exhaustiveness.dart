@@ -170,6 +170,20 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   DartType? getFutureOrTypeArgument(DartType type) {
     return type is FutureOrType ? type.typeArgument : null;
   }
+
+  @override
+  DartType? getMapValueType(DartType type) {
+    type = type.resolveTypeParameterType;
+    if (type is InterfaceType) {
+      InterfaceType? mapType = _classHierarchy.getTypeAsInstanceOf(
+          type, _typeEnvironment.coreTypes.mapClass,
+          isNonNullableByDefault: true);
+      if (mapType != null) {
+        return mapType.typeArguments[1];
+      }
+    }
+    return null;
+  }
 }
 
 class CfeEnumOperations
@@ -449,7 +463,44 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
     } else if (pattern is ListPattern) {
       return createListSpace(path);
     } else if (pattern is MapPattern) {
-      return createMapSpace(path);
+      // TODO(johnniwinther): We shouldn't see the inferred type arguments here.
+      DartType keyType = pattern.keyType ?? const DynamicType();
+      DartType valueType = pattern.valueType ?? const DynamicType();
+      bool hasRest = false;
+      Map<MapKey, Pattern> entries = {};
+      for (MapPatternEntry entry in pattern.entries) {
+        if (entry is MapPatternRestEntry) {
+          hasRest = true;
+        } else {
+          Expression expression = (entry.key as ConstantPattern).expression;
+          // TODO(johnniwinther): Assert that we have a constant value.
+          Constant? constant = constants[expression];
+          if (constant == null) {
+            return createUnknownSpace(path);
+          }
+          MapKey key = new MapKey(constant, constant.toText(textStrategy));
+          entries[key] = entry.value;
+        }
+      }
+      String typeArgumentsText;
+      if (keyType is! DynamicType && valueType is! DynamicType) {
+        StringBuffer sb = new StringBuffer();
+        sb.write('<');
+        sb.write(keyType.toText(textStrategy));
+        sb.write(', ');
+        sb.write(valueType.toText(textStrategy));
+        sb.write('>');
+        typeArgumentsText = sb.toString();
+      } else {
+        typeArgumentsText = '';
+      }
+      return createMapSpace(
+          path,
+          pattern.mapType,
+          new MapTypeIdentity(
+              keyType, valueType, entries.keys.toSet(), typeArgumentsText,
+              hasRest: hasRest),
+          entries);
     }
     assert(false, "Unexpected pattern $pattern (${pattern.runtimeType}).");
     return createUnknownSpace(path);
@@ -481,8 +532,8 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       } else {
         return new Space(
             path,
-            cache.getUniqueStaticType(constant.getType(context), constant,
-                constant.toText(textStrategy)));
+            cache.getUniqueStaticType<Constant>(constant.getType(context),
+                constant, constant.toText(textStrategy)));
       }
     } else {
       // TODO(johnniwinther): Assert that constant value is available when the
@@ -503,6 +554,11 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       staticType = staticType.nonNullable;
     }
     return staticType;
+  }
+
+  @override
+  StaticType createMapType(DartType type, MapTypeIdentity<DartType> identity) {
+    return cache.getMapStaticType(type, identity);
   }
 }
 

@@ -369,7 +369,8 @@ class MemberHierarchyBuilder {
 
   void init(void Function(MemberEntity parent, MemberEntity override) join) {
     final liveMembers = closedWorld.liveInstanceMembers
-        .followedBy(closedWorld.liveAbstractInstanceMembers);
+        .followedBy(closedWorld.liveAbstractInstanceMembers)
+        .followedBy(closedWorld.recordData.allGetters);
 
     for (final member in liveMembers) {
       _processMember(member, join);

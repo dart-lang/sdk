@@ -542,7 +542,7 @@ void f(A a) {}
 
 @reflectiveTest
 class DeprecatedMemberUseFromSamePackage_BasicWorkspaceTest
-    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_assignmentExpression_compound_deprecatedGetter() async {
     await assertErrorsInCode(r'''
 @deprecated
@@ -650,12 +650,11 @@ class A {
   @deprecated
   A operator+(A a) { return a; }
 }
-f(A a) {
-  A b;
+f(A a, A b) {
   a += b;
 }
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 77, 6),
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 75, 6),
     ]);
   }
 
@@ -793,7 +792,7 @@ class C {}
 
 class X {
   @deprecated
-  C f;
+  late C f;
 }
 ''');
   }
@@ -875,7 +874,7 @@ mixin M {
 class C {}
 
 @deprecated
-C v;
+late C v;
 ''');
   }
 
@@ -1035,11 +1034,11 @@ f(A a, A b) {
   test_parameter_named() async {
     await assertErrorsInCode(r'''
 class A {
-  m({@deprecated int x}) {}
+  m({@deprecated int x = 0}) {}
   n() {m(x: 1);}
 }
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 47, 1),
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 51, 1),
     ]);
   }
 
@@ -1047,7 +1046,7 @@ class A {
     await assertNoErrorsInCode(r'''
 class C {
   int x;
-  C({@deprecated this.x});
+  C({@deprecated this.x = 0});
 }
 ''');
   }
@@ -1055,7 +1054,7 @@ class C {
   test_parameter_named_inDefiningConstructor_assertInitializer() async {
     await assertNoErrorsInCode(r'''
 class C {
-  C({@deprecated int y}) : assert(y > 0);
+  C({@deprecated int y = 0}) : assert(y > 0);
 }
 ''');
   }
@@ -1064,7 +1063,7 @@ class C {
     await assertNoErrorsInCode(r'''
 class C {
   int x;
-  C({@deprecated int y}) : x = y;
+  C({@deprecated int y = 0}) : x = y;
 }
 ''');
   }
@@ -1077,17 +1076,17 @@ class A {}
 class B extends A {}
 
 class C {
-  A a;
-  C({B this.a});
+  final A a;
+  C({required B this.a});
 }
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 68, 1),
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 83, 1),
     ]);
   }
 
   test_parameter_named_inDefiningFunction() async {
     await assertNoErrorsInCode(r'''
-f({@deprecated int x}) => x;
+f({@deprecated int x = 0}) => x;
 ''');
   }
 
@@ -1095,7 +1094,7 @@ f({@deprecated int x}) => x;
     await assertNoErrorsInCode(r'''
 class C {
   m() {
-    f({@deprecated int x}) {
+    f({@deprecated int x = 0}) {
       return x;
     }
     return f();
@@ -1107,7 +1106,7 @@ class C {
   test_parameter_named_inDefiningMethod() async {
     await assertNoErrorsInCode(r'''
 class C {
-  m({@deprecated int x}) {
+  m({@deprecated int x = 0}) {
     return x;
   }
 }
@@ -1117,7 +1116,7 @@ class C {
   test_parameter_named_inNestedLocalFunction() async {
     await assertNoErrorsInCode(r'''
 class C {
-  m({@deprecated int x}) {
+  m({@deprecated int x = 0}) {
     f() {
       return x;
     }
@@ -1130,14 +1129,14 @@ class C {
   test_parameter_positionalOptional() async {
     await assertErrorsInCode(r'''
 class A {
-  void foo([@deprecated int x]) {}
+  void foo([@deprecated int x = 0]) {}
 }
 
 void f(A a) {
   a.foo(0);
 }
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 70, 1),
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 74, 1),
     ]);
   }
 
@@ -1149,7 +1148,7 @@ class A {
     foo(0);
   }
 
-  void foo([@deprecated int x]) {}
+  void foo([@deprecated int x = 0]) {}
 }
 ''');
   }
@@ -1157,7 +1156,7 @@ class A {
   test_parameter_positionalOptional_inDeprecatedFunction() async {
     await assertNoErrorsInCode(r'''
 class A {
-  void foo([@deprecated int x]) {}
+  void foo([@deprecated int x = 0]) {}
 }
 
 @deprecated
@@ -1301,11 +1300,11 @@ class B extends A {
   test_redirectingConstructorInvocation_namedParameter() async {
     await assertErrorsInCode(r'''
 class A {
-  A({@deprecated int a}) {}
+  A({@deprecated int a = 0}) {}
   A.named() : this(a: 0);
 }
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 57, 1),
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 61, 1),
     ]);
   }
 

@@ -177,9 +177,6 @@ final class _NaiveFloat32x4List extends Object
 
   _NaiveFloat32x4List(int length) : _storage = Float32List(length * 4);
 
-  @override
-  Type get runtimeType => Float32x4List;
-
   _NaiveFloat32x4List._externalStorage(this._storage);
 
   _NaiveFloat32x4List._slowFromList(List<Float32x4> list)
@@ -242,9 +239,6 @@ final class _NaiveFloat64x2List extends Object
   final Float64List _storage;
 
   _NaiveFloat64x2List(int length) : _storage = Float64List(length * 2);
-
-  @override
-  Type get runtimeType => Float64x2List;
 
   _NaiveFloat64x2List._externalStorage(this._storage);
 
@@ -337,9 +331,6 @@ final class _NaiveFloat32x4 implements Float32x4 {
         this.w = _truncate(w);
 
   _NaiveFloat32x4._truncated(this.x, this.y, this.z, this.w);
-
-  @override
-  Type get runtimeType => Float32x4List;
 
   @override
   String toString() {

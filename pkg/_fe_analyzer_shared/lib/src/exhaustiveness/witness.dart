@@ -233,7 +233,11 @@ class SingleSpace {
   /// Any field subpatterns the pattern matches.
   final Map<String, Space> fields;
 
-  SingleSpace(this.type, {this.fields = const {}});
+  /// Additional fields for map/list semantics.
+  final Map<Key, Space> additionalFields;
+
+  SingleSpace(this.type,
+      {this.fields = const {}, this.additionalFields = const {}});
 
   @override
   late final int hashCode = Object.hash(
@@ -259,41 +263,7 @@ class SingleSpace {
 
   @override
   String toString() {
-    if (type == StaticType.nullableObject && fields.isEmpty) return '()';
-    if (this == StaticType.neverType && fields.isEmpty) return '∅';
-
-    if (type.isRecord) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.write('(');
-      bool first = true;
-      type.fields.forEach((String name, StaticType staticType) {
-        if (!first) buffer.write(', ');
-        // TODO(johnniwinther): Ensure using Dart syntax for positional fields.
-        buffer.write('$name: ${fields[name] ?? staticType}');
-        first = false;
-      });
-
-      buffer.write(')');
-      return buffer.toString();
-    } else {
-      // If there are no fields, just show the type.
-      if (fields.isEmpty) return type.name;
-
-      StringBuffer buffer = new StringBuffer();
-      buffer.write(type.name);
-
-      buffer.write('(');
-      bool first = true;
-
-      fields.forEach((String name, Space space) {
-        if (!first) buffer.write(', ');
-        buffer.write('$name: $space');
-        first = false;
-      });
-
-      buffer.write(')');
-      return buffer.toString();
-    }
+    return type.spaceToText(fields, additionalFields);
   }
 }
 
@@ -311,8 +281,13 @@ class Space {
   /// Create an empty space.
   Space.empty(this.path) : singleSpaces = [SingleSpace.empty];
 
-  Space(Path path, StaticType type, {Map<String, Space> fields = const {}})
-      : this._(path, [new SingleSpace(type, fields: fields)]);
+  Space(Path path, StaticType type,
+      {Map<String, Space> fields = const {},
+      Map<Key, Space> additionalFields = const {}})
+      : this._(path, [
+          new SingleSpace(type,
+              fields: fields, additionalFields: additionalFields)
+        ]);
 
   Space._(this.path, this.singleSpaces);
 

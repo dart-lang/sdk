@@ -543,10 +543,26 @@ class TypeSystem {
   TypeInformation allocateRecord(ir.TreeNode node, RecordType recordType,
       List<TypeInformation> fieldTypes, bool isConst) {
     assert(fieldTypes.length == recordType.shape.fieldCount);
+    final getters = _closedWorld.recordData.gettersForShape(recordType.shape);
+
     FieldInRecordTypeInformation makeField(int i) {
       final field = FieldInRecordTypeInformation(
           _abstractValueDomain, currentMember, i, fieldTypes[i]);
       allocatedTypes.add(field);
+      final getter = getters[i] as FunctionEntity;
+      final getterType = memberTypeInformations[getter] ??=
+          GetterTypeInformation(
+              _closedWorld.abstractValueDomain,
+              getter,
+              _closedWorld.dartTypes.functionType(
+                  _closedWorld.dartTypes.dynamicType(),
+                  const [],
+                  const [],
+                  const [],
+                  const {},
+                  const [],
+                  const []));
+      getterType.addInput(field);
       return field;
     }
 
@@ -554,7 +570,6 @@ class TypeSystem {
     final originalType = _abstractValueDomain.recordType;
     final record = RecordTypeInformation(
         currentMember, originalType, recordType.shape, fields);
-    if (isConst) record.markAsInferred();
     // TODO(50081): When tracing is added for records, use `allocatedRecords`.
     allocatedTypes.add(record);
     return record;

@@ -2020,10 +2020,6 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
     }
   }
 
-  markAsInferred() {
-    for (final fieldType in fieldTypes) fieldType.inferred = true;
-  }
-
   @override
   addInput(TypeInformation other) {
     throw UnsupportedError('addInput');
@@ -2071,10 +2067,14 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
 
 /// A [FieldInRecordTypeInformation] holds the input of one position of a
 /// [RecordTypeInformation].
-class FieldInRecordTypeInformation extends InferredTypeInformation {
+class FieldInRecordTypeInformation extends TypeInformation {
   final int indexInShape;
-  FieldInRecordTypeInformation(super.abstractValueDomain, super.context,
-      this.indexInShape, super.parentType);
+  final TypeInformation parentType;
+  FieldInRecordTypeInformation(AbstractValueDomain abstractValueDomain,
+      MemberTypeInformation? context, this.indexInShape, this.parentType)
+      : super(abstractValueDomain.uncomputedType, context) {
+    parentType.addUser(this);
+  }
 
   @override
   accept(TypeInformationVisitor visitor) {
@@ -2083,6 +2083,11 @@ class FieldInRecordTypeInformation extends InferredTypeInformation {
 
   @override
   String toString() => 'Field in Record $type';
+
+  @override
+  AbstractValue computeType(InferrerEngine inferrer) {
+    return parentType.type;
+  }
 }
 
 /// A [PhiElementTypeInformation] is an union of

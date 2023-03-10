@@ -165,6 +165,15 @@ extension IdentifierExtension on Identifier {
     return _readElement(this);
   }
 
+  SimpleIdentifier get simpleName {
+    final self = this;
+    if (self is SimpleIdentifier) {
+      return self;
+    } else {
+      return (self as PrefixedIdentifier).identifier;
+    }
+  }
+
   Element? get writeElement {
     return _writeElement(this);
   }

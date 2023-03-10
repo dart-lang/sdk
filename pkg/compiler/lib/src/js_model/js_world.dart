@@ -52,7 +52,8 @@ class JClosedWorld implements World {
 
   // [_allFunctions] is created lazily because it is not used when we switch
   // from a frontend to a backend model before inference.
-  late final FunctionSet _allFunctions = FunctionSet(liveInstanceMembers);
+  late final FunctionSet _allFunctions =
+      FunctionSet(liveInstanceMembers.followedBy(recordData.allGetters));
 
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
 

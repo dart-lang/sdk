@@ -4344,6 +4344,8 @@ AbstractBool _typeTest(
     if (expressionIsNull.isPotentiallyTrue) {
       if (dartType.isObject) return AbstractBool.Maybe;
     }
+  } else if (expressionIsNull.isDefinitelyTrue && _nullIs(dartType)) {
+    return AbstractBool.True;
   }
 
   if (checkedAbstractValue.isPrecise &&

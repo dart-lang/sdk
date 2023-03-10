@@ -12902,13 +12902,20 @@ CompileTimeErrorCode:
 
       int f(C c) => c.b;
       ```
-  SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
-    problemMessage: "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype '{1}' is '{2}'."
+  SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED:
+    sharedName: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+    problemMessage: "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype '{1}' is 'base'."
     comment: |-
       Parameters:
       0: the name of the subtype that is not 'base', 'final', or 'sealed'
-      1: the name of the supertype which is 'base' or 'final'
-      2: the modifier on the supertype
+      1: the name of the 'base' supertype
+  SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
+    sharedName: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+    problemMessage: "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype '{1}' is 'final'."
+    comment: |-
+      Parameters:
+      0: the name of the subtype that is not 'base', 'final', or 'sealed'
+      1: the name of the 'final' supertype
   SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
     problemMessage: The type '{0}' of this parameter isn't a subtype of the type '{1}' of the associated super constructor parameter.
     correctionMessage: Try removing the explicit type annotation from the parameter.
@@ -22882,6 +22889,13 @@ WarningCode:
       ```dart
       var s = new Set<int>();
       ```
+  SDK_VERSION_SINCE:
+    problemMessage: "This API is available since SDK {0}, but constraints '{1}' don't guarantee it."
+    correctionMessage: Try updating the SDK constraints.
+    comment: |-
+      Parameters:
+      0: the version specified in the `@Since()` annotation
+      1: the SDK version constraints
   SDK_VERSION_UI_AS_CODE:
     problemMessage: "The for, if, and spread elements weren't supported until version 2.3.0, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.

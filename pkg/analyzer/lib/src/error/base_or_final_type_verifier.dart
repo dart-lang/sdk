@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -11,7 +10,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Helper for verifying that subelements of a base or final element must be
 /// base, final, or sealed.
@@ -33,8 +31,8 @@ class BaseOrFinalTypeVerifier {
   /// Check to ensure the subelement of a base or final element must be base,
   /// final, or sealed. Otherwise, an error is reported on that element.
   ///
-  /// See [CompileTimeErrorCode.
-  /// SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED]
+  /// See [CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED],
+  /// [CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED]
   void checkElement(ClassOrMixinElementImpl element) {
     if (_elementToBaseOrFinalSuperElement.containsKey(element)) {
       // We've already visited this element. Don't check it again.
@@ -43,14 +41,29 @@ class BaseOrFinalTypeVerifier {
       _elementToBaseOrFinalSuperElement[element] = null;
     }
 
-    List<InterfaceType> supertypes = [];
-    supertypes.addIfNotNull(element.supertype);
-    supertypes.addAll(element.interfaces);
-    supertypes.addAll(element.mixins);
-    if (element is MixinElementImpl) {
-      supertypes.addAll(element.superclassConstraints);
+    final supertype = element.supertype;
+    if (supertype != null && _checkSupertypes([supertype], element)) {
+      return;
     }
+    if (_checkSupertypes(element.interfaces, element)) {
+      return;
+    }
+    if (_checkSupertypes(element.mixins, element)) {
+      return;
+    }
+    if (_checkSupertypes(element.interfaces, element)) {
+      return;
+    }
+    if (element is MixinElementImpl &&
+        _checkSupertypes(element.superclassConstraints, element,
+            areSuperclassConstraints: true)) {
+      return;
+    }
+  }
 
+  bool _checkSupertypes(
+      List<InterfaceType> supertypes, ClassOrMixinElementImpl subElement,
+      {bool areSuperclassConstraints = false}) {
     for (final supertype in supertypes) {
       final supertypeElement = supertype.element;
       if (supertypeElement is ClassOrMixinElementImpl) {
@@ -60,11 +73,13 @@ class BaseOrFinalTypeVerifier {
 
         // Return early if an error has been reported to prevent reporting
         // multiple errors on one element.
-        if (_reportRestrictionError(element, supertypeElement)) {
-          return;
+        if (_reportRestrictionError(subElement, supertypeElement,
+            isSuperclassConstraint: areSuperclassConstraints)) {
+          return true;
         }
       }
     }
+    return false;
   }
 
   /// Checks whether a `final`, `base` or `interface` modifier can be ignored.
@@ -91,7 +106,8 @@ class BaseOrFinalTypeVerifier {
   ///
   /// Reports an error based on the modifier of the superElement.
   bool _reportRestrictionError(
-      ClassOrMixinElementImpl element, ClassOrMixinElementImpl superElement) {
+      ClassOrMixinElementImpl element, ClassOrMixinElementImpl superElement,
+      {bool isSuperclassConstraint = false}) {
     final cachedBaseOrFinalSuperElement =
         _elementToBaseOrFinalSuperElement[superElement];
     final hasCachedBaseOrFinalSuperElement =
@@ -133,19 +149,28 @@ class BaseOrFinalTypeVerifier {
         )
       ];
 
-      _errorReporter.reportErrorForElement(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          element,
-          [
-            element.displayName,
-            baseOrFinalSuperElement.displayName,
-            baseOrFinalSuperElement.isBase
-                ? Keyword.BASE.lexeme
-                : Keyword.FINAL.lexeme
-          ],
-          hasCachedBaseOrFinalSuperElement ? contextMessage : null);
-      return true;
+      if (baseOrFinalSuperElement.isFinal) {
+        if (!isSuperclassConstraint &&
+            baseOrFinalSuperElement.library != element.library) {
+          // If you can't extend, implement or mix in a final element outside of
+          // its library anyways, it's not helpful to report a subelement
+          // modifier error.
+          return false;
+        }
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+            element,
+            [element.displayName, baseOrFinalSuperElement.displayName],
+            hasCachedBaseOrFinalSuperElement ? contextMessage : null);
+        return true;
+      } else if (baseOrFinalSuperElement.isBase) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+            element,
+            [element.displayName, baseOrFinalSuperElement.displayName],
+            hasCachedBaseOrFinalSuperElement ? contextMessage : null);
+        return true;
+      }
     }
 
     return false;

@@ -2156,7 +2156,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           b.i64_const(2011);
           break;
         case "runtimeType":
-        case "_runtimeType":
           wrap(ConstantExpression(TypeLiteralConstant(NullType())), resultType);
           break;
         default:

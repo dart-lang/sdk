@@ -386,6 +386,12 @@ class _TypeOperations implements TypeOperations<_Type> {
     // TODO(johnniwinther): Support future or types in testing.
     return null;
   }
+
+  @override
+  _Type? getMapValueType(_Type type) {
+    // TODO(johnniwinther): Support map types in testing.
+    return null;
+  }
 }
 
 class _EnumOperations

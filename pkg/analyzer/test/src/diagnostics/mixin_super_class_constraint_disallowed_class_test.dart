@@ -46,11 +46,8 @@ mixin M on Enum {}
     await assertErrorsInCode(r'''
 mixin M on int {}
 ''', [
-      error(
-          CompileTimeErrorCode
-              .SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          6,
-          1),
+      error(CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          6, 1),
       error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
           11, 3),
     ]);

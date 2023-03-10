@@ -16,6 +16,9 @@ import 'package:pub_semver/pub_semver.dart';
 /// A visitor that finds code that assumes a later version of the SDK than the
 /// minimum version required by the SDK constraints in `pubspec.yaml`.
 class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
+  /// TODO(scheglov) Fix pre-existing violations and remove.
+  static bool shouldCheckSinceSdkVersion = false;
+
   /// The error reporter to be used to report errors.
   final ErrorReporter _errorReporter;
 
@@ -124,12 +127,33 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       _checkUiAsCode ??= !before_2_2_2.intersect(_versionConstraint).isEmpty;
 
   @override
+  void visitArgumentList(ArgumentList node) {
+    // Check (optional) positional arguments.
+    // Named arguments are checked in [NamedExpression].
+    for (final argument in node.arguments) {
+      if (argument is! NamedExpression) {
+        final parameter = argument.staticParameterElement;
+        _checkSinceSdkVersion(parameter, node, errorNode: argument);
+      }
+    }
+
+    super.visitArgumentList(node);
+  }
+
+  @override
   void visitAsExpression(AsExpression node) {
     if (checkConstantUpdate2018 && node.inConstantContext) {
       _errorReporter.reportErrorForNode(
           WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT, node);
     }
     super.visitAsExpression(node);
+  }
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _checkSinceSdkVersion(node.readElement, node);
+    _checkSinceSdkVersion(node.writeElement, node);
+    super.visitAssignmentExpression(node);
   }
 
   @override
@@ -172,6 +196,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorName(ConstructorName node) {
+    _checkSinceSdkVersion(node.staticElement, node);
+    super.visitConstructorName(node);
+  }
+
+  @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     if (checkExtensionMethods) {
       _errorReporter.reportErrorForToken(
@@ -197,6 +227,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     _inUiAsCode = true;
     super.visitForElement(node);
     _inUiAsCode = wasInUiAsCode;
+  }
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _checkSinceSdkVersion(node.staticElement, node);
+    super.visitFunctionExpressionInvocation(node);
   }
 
   @override
@@ -233,6 +269,30 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMethodInvocation(MethodInvocation node) {
+    _checkSinceSdkVersion(node.methodName.staticElement, node);
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    _checkSinceSdkVersion(node.name.staticElement, node);
+    super.visitNamedType(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    _checkSinceSdkVersion(node.staticElement, node);
+    super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    _checkSinceSdkVersion(node.propertyName.staticElement, node);
+    super.visitPropertyAccess(node);
+  }
+
+  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     if (node.isSet && checkSetLiterals && !_inSetLiteral) {
       _errorReporter.reportErrorForNode(
@@ -254,6 +314,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
+    _checkSinceSdkVersion(node.staticElement, node);
     var element = node.staticElement;
     if (checkFutureAndStream &&
         element is InterfaceElement &&
@@ -287,6 +348,54 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     _inUiAsCode = wasInUiAsCode;
   }
 
+  void _checkSinceSdkVersion(
+    Element? element,
+    AstNode target, {
+    AstNode? errorNode,
+  }) {
+    if (!shouldCheckSinceSdkVersion) {
+      return;
+    }
+
+    if (element != null) {
+      final sinceSdkVersion = element.sinceSdkVersion;
+      if (sinceSdkVersion != null) {
+        if (!_versionConstraint.requiresAtLeast(sinceSdkVersion)) {
+          if (errorNode == null) {
+            if (target is AssignmentExpression) {
+              target = target.leftHandSide;
+            }
+            if (target is ConstructorName) {
+              errorNode = target.name ?? target.type.name.simpleName;
+            } else if (target is FunctionExpressionInvocation) {
+              errorNode = target.argumentList;
+            } else if (target is MethodInvocation) {
+              errorNode = target.methodName;
+            } else if (target is NamedType) {
+              errorNode = target.name.simpleName;
+            } else if (target is PrefixedIdentifier) {
+              errorNode = target.identifier;
+            } else if (target is PropertyAccess) {
+              errorNode = target.propertyName;
+            } else if (target is SimpleIdentifier) {
+              errorNode = target;
+            } else {
+              throw UnimplementedError('(${target.runtimeType}) $target');
+            }
+          }
+          _errorReporter.reportErrorForNode(
+            WarningCode.SDK_VERSION_SINCE,
+            errorNode,
+            [
+              sinceSdkVersion.toString(),
+              _versionConstraint.toString(),
+            ],
+          );
+        }
+      }
+    }
+  }
+
   /// Given that the [node] is only valid when the ui-as-code feature is
   /// enabled, check that the code will not be executed with a version of the
   /// SDK that does not support the feature.
@@ -307,5 +416,24 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT, node);
     }
+  }
+}
+
+extension on VersionConstraint {
+  bool requiresAtLeast(Version version) {
+    final self = this;
+    if (self is Version) {
+      return self == version;
+    }
+    if (self is VersionRange) {
+      final min = self.min;
+      if (min == null) {
+        return false;
+      } else {
+        return min >= version;
+      }
+    }
+    // We don't know, but will not complain.
+    return true;
   }
 }

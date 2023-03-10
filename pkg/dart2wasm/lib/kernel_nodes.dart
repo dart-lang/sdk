@@ -162,12 +162,14 @@ mixin KernelNodes {
   // dart:core various procedures
   late final Procedure objectNoSuchMethod =
       index.getProcedure("dart:core", "Object", "noSuchMethod");
-  late final Procedure objectRuntimeType =
-      index.getProcedure("dart:core", "Object", "get:_runtimeType");
+  late final Procedure objectGetTypeArguments =
+      index.getProcedure("dart:core", "Object", "_getTypeArguments");
   late final Procedure nullToString =
       index.getProcedure("dart:core", "Object", "_nullToString");
   late final Procedure nullNoSuchMethod =
       index.getProcedure("dart:core", "Object", "_nullNoSuchMethod");
+  late final Procedure recordGetRecordRuntimeType =
+      index.getProcedure("dart:core", "Record", "_getRecordRuntimeType");
   late final Procedure stringEquals =
       index.getProcedure("dart:core", "_StringBase", "==");
   late final Procedure stringInterpolate =
@@ -212,6 +214,10 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "Error", "_throw");
 
   // dart:core type procedures
+  late final Procedure getActualRuntimeType =
+      index.getTopLevelProcedure("dart:core", "_getActualRuntimeType");
+  late final Procedure getMasqueradedRuntimeType =
+      index.getTopLevelProcedure("dart:core", "_getMasqueradedRuntimeType");
   late final Procedure isSubtype =
       index.getTopLevelProcedure("dart:core", "_isSubtype");
   late final Procedure isTypeSubtype =

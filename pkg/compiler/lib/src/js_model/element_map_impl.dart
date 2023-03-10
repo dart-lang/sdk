@@ -2195,8 +2195,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return sb.toString();
   }
 
+  /// [getters] is an out parameter that gathers all the getters created for
+  /// this shape.
   IndexedClass generateRecordShapeClass(
-      RecordShape shape, InterfaceType supertype) {
+      RecordShape shape, InterfaceType supertype, List<MemberEntity> getters) {
     JLibrary library = supertype.element.library as JLibrary;
 
     String name = _nameForShape(shape);
@@ -2225,6 +2227,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           : shape.fieldNames[i - shape.positionalFieldCount];
       Name memberName = Name(name, null);
       final getter = JRecordGetter(classEntity, memberName);
+      getters.add(getter);
 
       // The function type of a dynamic getter is a function of no arguments
       // that returns `dynamic` (any other top would be ok too).

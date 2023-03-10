@@ -4,18 +4,34 @@
 
 /*member: main:[null]*/
 main() {
-  getRecord1();
   useRecord1();
+  useRecord2();
+  useRecord3();
 }
 
 // TODO(50701): This should be a record type.
 /*member: getRecord1:[null|subclass=Object]*/
 (num, num) getRecord1() => (1, 1);
-
+/*member: getRecord2:[null|subclass=Object]*/
+(bool, bool) getRecord2() => (true, false);
+/*member: getRecord3:[null|subclass=Object]*/
+dynamic getRecord3() => ("a", "b");
 
 // TODO(50701): This should be a constant or JSUint31.
 /*member: useRecord1:[subclass=JSNumber]*/
 useRecord1() {
   final r = getRecord1();
   return r.$1;
+}
+
+/*member: useRecord2:[subtype=bool]*/
+useRecord2() {
+  final r = getRecord2();
+  return r.$2;
+}
+
+/*member: useRecord3:Union([exact=JSBool], [exact=JSString], [exact=JSUInt31])*/
+useRecord3() {
+  final r = getRecord3();
+  return r.$2;
 }

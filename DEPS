@@ -50,7 +50,7 @@ vars = {
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
-  "co19_rev": "7b4f3e723211011878e185db6fa57fbafabd6bb7",
+  "co19_rev": "6472c72a65dac708a4f420666837a37c7ff4f54d",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "93b818c9cf570a63cbea56508e393770787fd5ab",
 
@@ -100,7 +100,7 @@ vars = {
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "perfetto_rev": "b8da07095979310818f0efde2ef3c69ea70d62c5",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
-  "protobuf_gn_rev": "5f87ef9990fc4f4ffd76b3f5b0138562178db8bc",
+  "protobuf_gn_rev": "f872f05cb0378eef9a7a2609076929f0f35b4141",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
@@ -168,22 +168,22 @@ vars = {
   "string_scanner_rev": "29e471ea98762db8052cca0e6a69ef9c7999abed",
   "sync_http_rev": "36a1bd086798cbdb48e7541b05e5a14b5e5bb56b",
   "term_glyph_rev": "d275a8f7482b6a5e4f15d0da6feb66c24f52eb94",
-  "test_rev": "92da93a83615f2bc0483aa00e6a85c4f89d616e4",
+  "test_rev": "3ba78f15538399073d0b5aba4ec19b1378af1625",
   "test_descriptor_rev": "1d4a967dd17874f3835af30720e9820c74977569",
   "test_process_rev": "f76d0b8fcf078d629cb57f859db79be93d6323d5",
   "test_reflective_loader_rev": "c4c2d5c3f94a96f3fc79e9e28944fba391bc544c",
-  "tools_rev": "a1c35060d920122ecbecb8c5a389b58ccbceb125",
+  "tools_rev": "bed358ea8ca10551c710282be96cf6e95620fb24",
   "typed_data_rev": "f858046fb420cf644e7d8cb86b7893f2830d8a6c",
   "usage_rev": "399770f45ed2d384d79395c0341a04fb25609a4d",
   "vector_math_rev": "1e4d000f55512ca55d0fcef4e13fc03010d54251",
   "watcher_rev": "5968409e1d73e21e75fc22a6481d5efaef7f3558",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "e2fe7f665997ab8e28aa76a8b26483f9903221a8",
-  "webdev_rev": "c007560346a53728920362e5ccaa7eaae85301a7",
+  "webdev_rev": "cfe97534b33d37c7e0bbac2a3576085f74f2eaa3",
   "webdriver_rev": "562aa06353d513586b806ce1c9655dac3971879f",
   "webkit_inspection_protocol_rev": "8401098ace995e4dcd9855a2741c2dacccaa780b",
-  "yaml_rev": "a6d8781744d34c391368664b4c1e174f0433bbb6",
-  "yaml_edit_rev": "998eea2e4fc474a5e95cfea117e4233d35c3069b",
+  "yaml_rev": "0f80b12978f066b3547632dec4a273649138fae4",
+  "yaml_edit_rev": "6abc42a74b76700ad02fa1c1ebd94951b62626b9",
 
   # Windows deps
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",

@@ -4449,14 +4449,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the subtype that is not 'base', 'final', or 'sealed'
-  ///  1: the name of the supertype which is 'base' or 'final'
-  ///  2: the modifier on the supertype
+  ///  1: the name of the 'base' supertype
   static const CompileTimeErrorCode
-      SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED =
-      CompileTimeErrorCode(
+      SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED = CompileTimeErrorCode(
     'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
     "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
-        "'{1}' is '{2}'.",
+        "'{1}' is 'base'.",
+    uniqueName: 'SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the subtype that is not 'base', 'final', or 'sealed'
+  ///  1: the name of the 'final' supertype
+  static const CompileTimeErrorCode
+      SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED = CompileTimeErrorCode(
+    'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+    "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
+        "'{1}' is 'final'.",
+    uniqueName: 'SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
   );
 
   ///  Parameters:
@@ -6724,6 +6734,16 @@ class WarningCode extends AnalyzerErrorCode {
         "required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the version specified in the `@Since()` annotation
+  ///  1: the SDK version constraints
+  static const WarningCode SDK_VERSION_SINCE = WarningCode(
+    'SDK_VERSION_SINCE',
+    "This API is available since SDK {0}, but constraints '{1}' don't "
+        "guarantee it.",
+    correctionMessage: "Try updating the SDK constraints.",
   );
 
   ///  No parameters.

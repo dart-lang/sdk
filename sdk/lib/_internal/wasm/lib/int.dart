@@ -34,9 +34,6 @@ final class _BoxedInt extends int {
   /// Dummy factory to silence error about missing superclass constructor.
   external factory _BoxedInt();
 
-  @override
-  Type get runtimeType => int;
-
   external num operator +(num other);
   external num operator -(num other);
   external num operator *(num other);

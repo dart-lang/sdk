@@ -723,6 +723,7 @@ import 'sdk_version_is_expression_in_const_context_test.dart'
     as sdk_version_is_expression_in_const_context;
 import 'sdk_version_never_test.dart' as sdk_version_never;
 import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
+import 'sdk_version_since_test.dart' as sdk_version_since;
 import 'sdk_version_ui_as_code_in_const_context_test.dart'
     as sdk_version_ui_as_code_in_const_context;
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
@@ -741,9 +742,11 @@ import 'spread_expression_from_deferred_library_test.dart'
 import 'static_access_to_instance_member_test.dart'
     as static_access_to_instance_member;
 import 'strict_raw_type_test.dart' as strict_raw_type;
-import 'subtype_of_base_or_final_is_not_base_final_or_sealed_test.dart'
-    as subtype_of_base_or_final_is_not_base_final_or_sealed;
+import 'subtype_of_base_is_not_base_final_or_sealed_test.dart'
+    as subtype_of_base_is_not_base_final_or_sealed;
 import 'subtype_of_ffi_class_test.dart' as subtype_of_ffi_class;
+import 'subtype_of_final_is_not_base_final_or_sealed_test.dart'
+    as subtype_of_final_is_not_base_final_or_sealed;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'subtype_of_struct_class_test.dart' as subtype_of_struct_class;
 import 'super_formal_parameter_type_is_not_subtype_of_associated_test.dart'
@@ -1343,6 +1346,7 @@ main() {
     sdk_version_is_expression_in_const_context.main();
     sdk_version_never.main();
     sdk_version_set_literal.main();
+    sdk_version_since.main();
     sdk_version_ui_as_code.main();
     sdk_version_ui_as_code_in_const_context.main();
     sealed_class_subtype_outside_of_library.main();
@@ -1353,8 +1357,9 @@ main() {
     spread_expression_from_deferred_library.main();
     static_access_to_instance_member.main();
     strict_raw_type.main();
-    subtype_of_base_or_final_is_not_base_final_or_sealed.main();
+    subtype_of_base_is_not_base_final_or_sealed.main();
     subtype_of_ffi_class.main();
+    subtype_of_final_is_not_base_final_or_sealed.main();
     subtype_of_sealed_class.main();
     subtype_of_struct_class.main();
     super_formal_parameter_type_is_not_subtype_of_associated.main();
