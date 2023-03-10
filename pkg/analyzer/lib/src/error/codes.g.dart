@@ -4265,6 +4265,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "instead.",
   );
 
+  ///  Parameters:
+  ///  0: the operand type
+  ///  1: the parameter type of the invoked operator
+  ///  2: the name of the invoked operator
+  static const CompileTimeErrorCode
+      RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE = CompileTimeErrorCode(
+    'RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
+    "The constant expression type '{0}' is not assignable to the parameter "
+        "type '{1}' of the '{2}' operator.",
+  );
+
   static const CompileTimeErrorCode
       RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL =
       CompileTimeErrorCode(

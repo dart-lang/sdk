@@ -2992,19 +2992,6 @@ class _MiniAstErrors
   StackTrace? _assertInErrorRecoveryStack;
 
   @override
-  void argumentTypeNotAssignable({
-    required Expression argument,
-    required Type argumentType,
-    required Type parameterType,
-  }) {
-    _recordError('argumentTypeNotAssignable', {
-      'argument': argument,
-      'argumentType': argumentType,
-      'parameterType': parameterType,
-    });
-  }
-
-  @override
   void assertInErrorRecovery() {
     if (_accumulatedErrors.isEmpty) {
       _assertInErrorRecoveryStack ??= StackTrace.current;
@@ -3179,6 +3166,19 @@ class _MiniAstErrors
       {required Node pattern, required Node context}) {
     _recordError('refutablePatternInIrrefutableContext',
         {'pattern': pattern, 'context': context});
+  }
+
+  @override
+  void relationalPatternOperandTypeNotAssignable({
+    required Pattern pattern,
+    required Type operandType,
+    required Type parameterType,
+  }) {
+    _recordError('relationalPatternOperandTypeNotAssignable', {
+      'pattern': pattern,
+      'operandType': operandType,
+      'parameterType': parameterType,
+    });
   }
 
   @override

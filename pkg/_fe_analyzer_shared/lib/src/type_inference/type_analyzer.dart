@@ -1653,9 +1653,10 @@ mixin TypeAnalyzer<
       Type argumentType =
           isEquality ? operations.promoteToNonNull(operandType) : operandType;
       if (!operations.isAssignableTo(argumentType, operator.parameterType)) {
-        argumentTypeNotAssignableError = errors.argumentTypeNotAssignable(
-          argument: operand,
-          argumentType: argumentType,
+        argumentTypeNotAssignableError =
+            errors.relationalPatternOperandTypeNotAssignable(
+          pattern: node,
+          operandType: argumentType,
           parameterType: operator.parameterType,
         );
       }
@@ -2511,14 +2512,6 @@ abstract class TypeAnalyzerErrors<
     Type extends Object,
     Pattern extends Node,
     Error> implements TypeAnalyzerErrorsBase {
-  /// Called if [argument] has type [argumentType], which is not assignable
-  /// to [parameterType].
-  Error argumentTypeNotAssignable({
-    required Expression argument,
-    required Type argumentType,
-    required Type parameterType,
-  });
-
   /// Called if pattern support is disabled and a case constant's static type
   /// doesn't properly match the scrutinee's static type.
   Error caseExpressionTypeMismatch(
@@ -2626,6 +2619,14 @@ abstract class TypeAnalyzerErrors<
   /// TODO(paulberry): move this error reporting to the parser.
   Error refutablePatternInIrrefutableContext(
       {required Node pattern, required Node context});
+
+  /// Called if the operand of the [pattern] has the type [operandType], which
+  /// is not assignable to [parameterType] of the invoked relational operator.
+  Error relationalPatternOperandTypeNotAssignable({
+    required Pattern pattern,
+    required Type operandType,
+    required Type parameterType,
+  });
 
   /// Called if the [returnType] of the invoked relational operator is not
   /// assignable to `bool`.

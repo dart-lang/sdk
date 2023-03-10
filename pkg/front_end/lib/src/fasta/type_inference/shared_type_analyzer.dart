@@ -37,19 +37,6 @@ class SharedTypeAnalyzerErrors
       required this.isNonNullableByDefault});
 
   @override
-  InvalidExpression argumentTypeNotAssignable({
-    required Expression argument,
-    required DartType argumentType,
-    required DartType parameterType,
-  }) {
-    return helper.buildProblem(
-        templateArgumentTypeNotAssignable.withArguments(
-            argumentType, parameterType, isNonNullableByDefault),
-        argument.fileOffset,
-        noLength);
-  }
-
-  @override
   void assertInErrorRecovery() {
     // TODO(paulberry): figure out how to do this.
   }
@@ -165,12 +152,6 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void patternDoesNotAllowLate({required TreeNode pattern}) {
-    // TODO(johnniwinther): Is late even supported by the grammar or parser?
-    throw new UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
   InvalidExpression nonExhaustiveSwitch(
       {required TreeNode node, required DartType scrutineeType}) {
     // Report the error on the scrutinee expression, to match what the full
@@ -186,6 +167,12 @@ class SharedTypeAnalyzerErrors
             scrutineeType.toText(textStrategy), isNonNullableByDefault),
         fileOffset,
         noLength);
+  }
+
+  @override
+  void patternDoesNotAllowLate({required TreeNode pattern}) {
+    // TODO(johnniwinther): Is late even supported by the grammar or parser?
+    throw new UnimplementedError('TODO(paulberry)');
   }
 
   @override
@@ -215,6 +202,19 @@ class SharedTypeAnalyzerErrors
       {required covariant Pattern pattern, required TreeNode context}) {
     return helper.buildProblem(messageRefutablePatternInIrrefutableContext,
         pattern.fileOffset, noLength);
+  }
+
+  @override
+  InvalidExpression relationalPatternOperandTypeNotAssignable({
+    required covariant RelationalPattern pattern,
+    required DartType operandType,
+    required DartType parameterType,
+  }) {
+    return helper.buildProblem(
+        templateArgumentTypeNotAssignable.withArguments(
+            operandType, parameterType, isNonNullableByDefault),
+        pattern.expression.fileOffset,
+        noLength);
   }
 
   @override
