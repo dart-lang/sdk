@@ -8,7 +8,7 @@ typedef RR = core::Record;
 typedef AR2 = self::A<core::Record>;
 typedef AR3 = self::A<core::Record>;
 typedef AR4 = self::A<self::A<core::Record>>;
-abstract class A<X extends core::Object? = dynamic> extends core::Object {
+abstract mixin class A<X extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::X%>
     ;
 }

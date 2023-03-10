@@ -1,23 +1,7 @@
-abstract class A9 {
+abstract mixin class A9 {
   bool operator ==(Object other);
   int get hashCode;
   int get index;
-}
-
-class A1 {
-  int get hashCode => 42;
-}
-
-class A2 {
-  int get values => 42;
-}
-
-class A3 {
-  int get index => 42;
-}
-
-class A4 {
-  bool operator ==(Object other) => true;
 }
 
 enum E1 with A1 { element }
@@ -56,5 +40,21 @@ mixin M7 {
   int get index => 42;
 }
 mixin M8 {
+  bool operator ==(Object other) => true;
+}
+
+mixin class A1 {
+  int get hashCode => 42;
+}
+
+mixin class A2 {
+  int get values => 42;
+}
+
+mixin class A3 {
+  int get index => 42;
+}
+
+mixin class A4 {
   bool operator ==(Object other) => true;
 }

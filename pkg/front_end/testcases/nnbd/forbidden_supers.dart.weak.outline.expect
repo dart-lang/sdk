@@ -154,7 +154,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class Aoo extends core::Object {
+mixin class Aoo extends core::Object {
   synthetic constructor •() → self::Aoo
     ;
 }

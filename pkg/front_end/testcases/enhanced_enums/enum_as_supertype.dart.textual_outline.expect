@@ -1,10 +1,10 @@
-abstract class A extends Enum {
+abstract mixin class A extends Enum {
   int get foo => index;
 }
 
 enum EA with A { element }
 
-abstract class B implements Enum {
+abstract mixin class B implements Enum {
   int get foo => index;
 }
 

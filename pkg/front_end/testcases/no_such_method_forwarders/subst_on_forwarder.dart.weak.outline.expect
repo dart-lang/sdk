@@ -7,7 +7,7 @@ abstract class I<T extends core::Object? = dynamic> extends core::Object {
     ;
   abstract method foo() → self::I::T%;
 }
-class M extends core::Object {
+mixin class M extends core::Object {
   synthetic constructor •() → self::M
     ;
   method noSuchMethod(core::Invocation i) → dynamic

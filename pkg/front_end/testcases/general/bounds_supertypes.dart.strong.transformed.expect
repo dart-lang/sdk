@@ -62,36 +62,36 @@ library /*isNonNullableByDefault*/;
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // class ExtendsS1 extends G {} // Error
 //                         ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:31:25: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class ExtendsS2 extends G<dynamic> {} // Error
 //                         ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:33:25: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class ExtendsS3 extends G<Class> {} // Error
 //                         ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:35:25: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class ExtendsS4 extends G<Class<dynamic>> {} // Error
 //                         ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:41:25: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Object' is from 'dart:core'.
@@ -99,18 +99,18 @@ library /*isNonNullableByDefault*/;
 // Try changing type arguments so that they conform to the bounds.
 // class ExtendsS7 extends G<Object> {} // Error
 //                         ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:43:25: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class ExtendsS8 extends G<int> {} // Error
 //                         ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:45:31: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
@@ -172,36 +172,36 @@ library /*isNonNullableByDefault*/;
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // class ImplementsS1 implements G {} // Error
 //                               ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:63:31: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class ImplementsS2 implements G<dynamic> {} // Error
 //                               ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:65:31: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class ImplementsS3 implements G<Class> {} // Error
 //                               ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:67:31: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class ImplementsS4 implements G<Class<dynamic>> {} // Error
 //                               ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:73:31: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Object' is from 'dart:core'.
@@ -209,18 +209,18 @@ library /*isNonNullableByDefault*/;
 // Try changing type arguments so that they conform to the bounds.
 // class ImplementsS7 implements G<Object> {} // Error
 //                               ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:75:31: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class ImplementsS8 implements G<int> {} // Error
 //                               ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:77:19: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
@@ -337,36 +337,36 @@ library /*isNonNullableByDefault*/;
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // enum EnumImplementsS1 implements G /* Error */ { a }
 //                                  ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:127:34: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // enum EnumImplementsS2 implements G<dynamic> /* Error */ { a }
 //                                  ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:129:34: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // enum EnumImplementsS3 implements G<Class> /* Error */ { a }
 //                                  ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:131:34: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // enum EnumImplementsS4 implements G<Class<dynamic>> /* Error */ { a }
 //                                  ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:137:34: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Object' is from 'dart:core'.
@@ -374,18 +374,18 @@ library /*isNonNullableByDefault*/;
 // Try changing type arguments so that they conform to the bounds.
 // enum EnumImplementsS7 implements G<Object> /* Error */ { a }
 //                                  ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:139:34: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // enum EnumImplementsS8 implements G<int> /* Error */ { a }
 //                                  ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:141:22: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
@@ -502,36 +502,36 @@ library /*isNonNullableByDefault*/;
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // mixin MixinOnS1 on G {} // Error
 //                    ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:191:20: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // mixin MixinOnS2 on G<dynamic> {} // Error
 //                    ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:193:20: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // mixin MixinOnS3 on G<Class> {} // Error
 //                    ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:195:20: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // mixin MixinOnS4 on G<Class<dynamic>> {} // Error
 //                    ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:201:20: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Object' is from 'dart:core'.
@@ -539,18 +539,18 @@ library /*isNonNullableByDefault*/;
 // Try changing type arguments so that they conform to the bounds.
 // mixin MixinOnS7 on G<Object> {} // Error
 //                    ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:203:20: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // mixin MixinOnS8 on G<int> {} // Error
 //                    ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:217:28: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Object' is from 'dart:core'.
@@ -577,54 +577,54 @@ library /*isNonNullableByDefault*/;
 // Try changing type arguments so that they conform to the bounds.
 // extension ExtensionOnS7 on G<Object> {} // Error
 //                            ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:235:28: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // extension ExtensionOnS8 on G<int> {} // Error
 //                            ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:93:19: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // class WithS1 with G {} // Error
 //                   ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:95:19: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class WithS2 with G<dynamic> {} // Error
 //                   ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:97:19: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class WithS3 with G<Class> {} // Error
 //                   ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:99:19: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class WithS4 with G<Class<dynamic>> {} // Error
 //                   ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:105:19: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Object' is from 'dart:core'.
@@ -632,54 +632,54 @@ library /*isNonNullableByDefault*/;
 // Try changing type arguments so that they conform to the bounds.
 // class WithS7 with G<Object> {} // Error
 //                   ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:107:19: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class WithS8 with G<int> {} // Error
 //                   ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:157:22: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // enum EnumWithS1 with G /* Error */ { a }
 //                      ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:159:22: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // enum EnumWithS2 with G<dynamic> /* Error */ { a }
 //                      ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:161:22: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // enum EnumWithS3 with G<Class> /* Error */ { a }
 //                      ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:163:22: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // enum EnumWithS4 with G<Class<dynamic>> /* Error */ { a }
 //                      ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:169:22: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Object' is from 'dart:core'.
@@ -687,24 +687,24 @@ library /*isNonNullableByDefault*/;
 // Try changing type arguments so that they conform to the bounds.
 // enum EnumWithS7 with G<Object> /* Error */ { a }
 //                      ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 // pkg/front_end/testcases/general/bounds_supertypes.dart:171:22: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // enum EnumWithS8 with G<int> /* Error */ { a }
 //                      ^
-// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:15: Context: This is the type variable whose bound isn't conformed to.
+// mixin class G<X extends Class<X>> {}
+//               ^
 //
 import self as self;
 import "dart:core" as core;
 
 typedef F<X extends self::Class<X> = self::Class<dynamic>> = self::Class<X>;
-class Class<T extends core::Object? = dynamic> extends core::Object {
+mixin class Class<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::T%>
     : super core::Object::•()
     ;
@@ -714,7 +714,7 @@ class ConcreteClass extends core::Object implements self::Class<self::ConcreteCl
     : super core::Object::•()
     ;
 }
-class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
+mixin class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
   synthetic constructor •() → self::G<self::G::X>
     : super core::Object::•()
     ;

@@ -1,3 +1,4 @@
+// @dart = 2.19
 abstract mixin class B {}
 
 mixin M {}

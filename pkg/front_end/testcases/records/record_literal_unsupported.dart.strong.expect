@@ -7,7 +7,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:8:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (0, 1);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -15,7 +15,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:9:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (0, b: 1);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -23,7 +23,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:10:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (a: 0, b: 1);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -31,7 +31,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:11:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (a: 0, 1);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -39,7 +39,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:12:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (int, String);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -47,7 +47,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:16:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (a: 0, b: 1, c: 2, d: 3);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -55,7 +55,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:17:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (a: 0, b: 1, d: 2, c: 3);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -63,7 +63,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:18:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (a: 0, d: 1, b: 2, c: 3);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -71,7 +71,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:19:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (d: 0, a: 1, b: 2, c: 3);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -79,7 +79,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:20:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (0, 1, 2, a: 3, b: 4, c: 5);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -87,7 +87,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:21:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (0, 1, a: 2, 3, b: 4, c: 5);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -95,7 +95,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:22:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (0, 1, a: 2, b: 3, 4, c: 5);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -103,7 +103,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:23:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (0, 1, a: 2, b: 3, c: 4, 5);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -111,7 +111,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:24:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (0, a: 1, 2, 3, b: 4, c: 5);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -119,7 +119,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:25:3: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   (a: 0, 1, 2, 3, b: 4, c: 5);
 //   ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -127,7 +127,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:30:5: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //     (a: this, 0);
 //     ^
 // pkg/front_end/testcases/records/record_literal_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.

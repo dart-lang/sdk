@@ -24,7 +24,7 @@ library /*isNonNullableByDefault*/;
 //   void set extendedAbstractSetter(int i);
 //            ^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:19:7: Error: The non-abstract class 'Mixin' is missing implementations for these members:
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:19:13: Error: The non-abstract class 'Mixin' is missing implementations for these members:
 //  - Mixin.extendedAbstractMixedInAbstractSetter=
 //  - Mixin.extendedConcreteMixedInAbstractSetter=
 //  - Mixin.mixedInAbstractSetter=
@@ -34,8 +34,8 @@ library /*isNonNullableByDefault*/;
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
 //
-// class Mixin {
-//       ^^^^^
+// mixin class Mixin {
+//             ^^^^^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:30:12: Context: 'Mixin.extendedAbstractMixedInAbstractSetter=' is defined here.
 //   void set extendedAbstractMixedInAbstractSetter(int i);
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -112,7 +112,7 @@ class Super extends core::Object {
   set extendedConcreteMixedInAbstractSetter(core::int i) → void {}
   abstract set extendedAbstractMixedInAbstractSetter(core::int i) → void;
 }
-class Mixin extends core::Object {
+mixin class Mixin extends core::Object {
   synthetic constructor •() → self::Mixin
     : super core::Object::•()
     ;

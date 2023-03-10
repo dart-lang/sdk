@@ -7,7 +7,7 @@ abstract class I extends core::Object {
     ;
   abstract method foo() → void;
 }
-class A extends core::Object implements self::I {
+mixin class A extends core::Object implements self::I {
   synthetic constructor •() → self::A
     ;
   method noSuchMethod(core::Invocation i) → dynamic
@@ -33,10 +33,10 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:13:7 -> SymbolConstant(#foo)
-Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:13:7 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:13:7 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:13:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:13:13 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:13:13 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:13:13 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:13:13 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:17:7 -> SymbolConstant(#foo)
 Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:17:7 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:17:7 -> ListConstant(const <dynamic>[])

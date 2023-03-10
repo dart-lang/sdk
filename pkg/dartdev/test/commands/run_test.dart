@@ -118,7 +118,7 @@ void run() {
     // VM service).
     //
     // See https://github.com/dart-lang/sdk/issues/50230
-    p = project(sdkConstraint: VersionConstraint.parse('>=2.19.0 <3.0.0'));
+    p = project(sdkConstraint: VersionConstraint.parse('>=3.0.0-0 <4.0.0'));
     p.file('main.dart', 'void main(args) { print("Record: \${(1, 2)}"); }');
     ProcessResult result = await p.run([
       'run',

@@ -37,9 +37,11 @@ class DeprecatedImplementsFunctionTest extends FixProcessorTest {
 
   Future<void> test_oneName() async {
     await resolveTestCode('''
+// @dart = 2.19
 abstract class C implements Function {}
 ''');
     await assertHasFix('''
+// @dart = 2.19
 abstract class C {}
 ''');
   }

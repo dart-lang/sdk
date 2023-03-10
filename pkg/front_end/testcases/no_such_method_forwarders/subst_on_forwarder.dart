@@ -10,7 +10,7 @@ abstract class I<T> {
   T foo();
 }
 
-class M {
+mixin class M {
   dynamic noSuchMethod(Invocation i) {
     return null;
   }

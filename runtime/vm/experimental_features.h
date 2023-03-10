@@ -14,6 +14,8 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  sealed_class,
+  class_modifiers,
   nonfunction_type_aliases,
   non_nullable,
   extension_methods,

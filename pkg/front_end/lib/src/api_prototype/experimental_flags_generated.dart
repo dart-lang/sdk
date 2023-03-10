@@ -61,7 +61,7 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag classModifiers = const ExperimentalFlag(
       name: 'class-modifiers',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
@@ -201,11 +201,11 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(2, 19));
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag sealedClass = const ExperimentalFlag(
       name: 'sealed-class',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),

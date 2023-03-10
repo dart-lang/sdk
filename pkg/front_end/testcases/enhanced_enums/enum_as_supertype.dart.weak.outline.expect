@@ -2,14 +2,22 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/enum_as_supertype.dart:9:14: Error: The class 'A' can't be used as a mixin because it extends a class other than 'Object'.
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype.dart:5:32: Error: The class 'Enum' can't be extended outside of its library because it's an interface class.
+// abstract mixin class A extends Enum {
+//                                ^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype.dart:5:32: Error: The class 'A' can't be used as a mixin because it extends a class other than 'Object'.
+// abstract mixin class A extends Enum {
+//                                ^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype.dart:10:14: Error: The class 'A' can't be used as a mixin because it extends a class other than 'Object'.
 // enum EA with A { element } // Error.
 //              ^
 //
 import self as self;
 import "dart:core" as core;
 
-abstract class A extends core::Enum {
+abstract mixin class A extends core::Enum {
   synthetic constructor •() → self::A
     ;
   get foo() → core::int
@@ -30,7 +38,7 @@ class EA extends self::_EA&_Enum&A /*isEnum*/  {
   method _enumToString() → core::String
     return "EA.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class B extends core::Object implements core::Enum {
+abstract mixin class B extends core::Object implements core::Enum {
   synthetic constructor •() → self::B
     ;
   get foo() → core::int
@@ -96,12 +104,12 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:9:6 -> ListConstant(const <EA*>[const EA{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:9:18 -> InstanceConstant(const EA{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:15:6 -> ListConstant(const <EB*>[const EB{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:15:18 -> InstanceConstant(const EB{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:21:6 -> ListConstant(const <EM*>[const EM{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:21:18 -> InstanceConstant(const EM{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:27:6 -> ListConstant(const <EN*>[const EN{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:27:18 -> InstanceConstant(const EN{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:10:6 -> ListConstant(const <EA*>[const EA{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:10:18 -> InstanceConstant(const EA{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:17:6 -> ListConstant(const <EB*>[const EB{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:17:18 -> InstanceConstant(const EB{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:24:6 -> ListConstant(const <EM*>[const EM{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:24:18 -> InstanceConstant(const EM{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:31:6 -> ListConstant(const <EN*>[const EN{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:31:18 -> InstanceConstant(const EN{})
 Extra constant evaluation: evaluated: 32, effectively constant: 8

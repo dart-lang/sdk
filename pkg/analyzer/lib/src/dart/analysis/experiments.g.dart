@@ -140,8 +140,8 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.class_modifiers,
     isExpired: IsExpired.class_modifiers,
     documentation: 'Class modifiers',
-    experimentalReleaseVersion: Version.parse('3.0.0'),
-    releaseVersion: null,
+    experimentalReleaseVersion: null,
+    releaseVersion: Version.parse('3.0.0'),
   );
 
   static final const_functions = ExperimentalFeature(
@@ -314,7 +314,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
     documentation: 'Records',
-    experimentalReleaseVersion: Version.parse('3.0.0'),
+    experimentalReleaseVersion: null,
     releaseVersion: null,
   );
 
@@ -324,8 +324,8 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
     documentation: 'Sealed class',
-    experimentalReleaseVersion: Version.parse('3.0.0'),
-    releaseVersion: null,
+    experimentalReleaseVersion: null,
+    releaseVersion: Version.parse('3.0.0'),
   );
 
   static final set_literals = ExperimentalFeature(
@@ -414,7 +414,7 @@ class ExperimentalFeatures {
 /// enabled by default.
 class IsEnabledByDefault {
   /// Default state of the experiment "class-modifiers"
-  static const bool class_modifiers = false;
+  static const bool class_modifiers = true;
 
   /// Default state of the experiment "const-functions"
   static const bool const_functions = false;
@@ -468,7 +468,7 @@ class IsEnabledByDefault {
   static const bool records = false;
 
   /// Default state of the experiment "sealed-class"
-  static const bool sealed_class = false;
+  static const bool sealed_class = true;
 
   /// Default state of the experiment "set-literals"
   static const bool set_literals = true;

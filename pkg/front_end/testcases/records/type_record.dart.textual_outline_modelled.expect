@@ -4,8 +4,6 @@ R foo9() => throw '';
 RR foo11() => throw '';
 Record foo1() => throw '';
 
-abstract class A<X> {}
-
 abstract class A1 extends A<Record> {}
 
 abstract class A2 implements A<Record> {}
@@ -19,6 +17,8 @@ abstract class A5 extends AR2 {}
 abstract class A6 extends AR3 {}
 
 abstract class A7 extends AR4 {}
+
+abstract mixin class A<X> {}
 
 bar(Record record) {}
 dynamic foo12(R r) => null;
