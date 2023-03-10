@@ -4000,18 +4000,6 @@ static void RemoveBreakpoint(Thread* thread, JSONStream* js) {
   PrintSuccess(js);
 }
 
-static ClassPtr GetMetricsClass(Thread* thread) {
-  Zone* zone = thread->zone();
-  const Library& prof_lib = Library::Handle(zone, Library::DeveloperLibrary());
-  ASSERT(!prof_lib.IsNull());
-  const String& metrics_cls_name = String::Handle(zone, String::New("Metrics"));
-  ASSERT(!metrics_cls_name.IsNull());
-  const Class& metrics_cls =
-      Class::Handle(zone, prof_lib.LookupClass(metrics_cls_name));
-  ASSERT(!metrics_cls.IsNull());
-  return metrics_cls.ptr();
-}
-
 static void HandleNativeMetricsList(Thread* thread, JSONStream* js) {
   JSONObject obj(js);
   obj.AddProperty("type", "MetricList");
@@ -4054,50 +4042,6 @@ static void HandleNativeMetric(Thread* thread, JSONStream* js, const char* id) {
   PrintInvalidParamError(js, "metricId");
 }
 
-static void HandleDartMetricsList(Thread* thread, JSONStream* js) {
-  Zone* zone = thread->zone();
-  const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(thread));
-  const auto& error = metrics_cls.EnsureIsFinalized(Thread::Current());
-  ASSERT(error == Error::null());
-  const String& print_metrics_name =
-      String::Handle(String::New("_printMetrics"));
-  ASSERT(!print_metrics_name.IsNull());
-  const Function& print_metrics = Function::Handle(
-      zone, metrics_cls.LookupStaticFunctionAllowPrivate(print_metrics_name));
-  ASSERT(!print_metrics.IsNull());
-  const Array& args = Object::empty_array();
-  const Object& result =
-      Object::Handle(zone, DartEntry::InvokeFunction(print_metrics, args));
-  ASSERT(!result.IsNull());
-  ASSERT(result.IsString());
-  TextBuffer* buffer = js->buffer();
-  buffer->AddString(String::Cast(result).ToCString());
-}
-
-static void HandleDartMetric(Thread* thread, JSONStream* js, const char* id) {
-  Zone* zone = thread->zone();
-  const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(thread));
-  const String& print_metric_name = String::Handle(String::New("_printMetric"));
-  ASSERT(!print_metric_name.IsNull());
-  const Function& print_metric = Function::Handle(
-      zone, metrics_cls.LookupStaticFunctionAllowPrivate(print_metric_name));
-  ASSERT(!print_metric.IsNull());
-  const String& arg0 = String::Handle(String::New(id));
-  ASSERT(!arg0.IsNull());
-  const Array& args = Array::Handle(Array::New(1));
-  ASSERT(!args.IsNull());
-  args.SetAt(0, arg0);
-  const Object& result =
-      Object::Handle(zone, DartEntry::InvokeFunction(print_metric, args));
-  if (!result.IsNull()) {
-    ASSERT(result.IsString());
-    TextBuffer* buffer = js->buffer();
-    buffer->AddString(String::Cast(result).ToCString());
-    return;
-  }
-  PrintInvalidParamError(js, "metricId");
-}
-
 static const MethodParameter* const get_isolate_metric_list_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     NULL,
@@ -4108,8 +4052,6 @@ static void GetIsolateMetricList(Thread* thread, JSONStream* js) {
   if (js->HasParam("type")) {
     if (js->ParamIs("type", "Native")) {
       native_metrics = true;
-    } else if (js->ParamIs("type", "Dart")) {
-      native_metrics = false;
     } else {
       PrintInvalidParamError(js, "type");
       return;
@@ -4118,11 +4060,7 @@ static void GetIsolateMetricList(Thread* thread, JSONStream* js) {
     PrintMissingParamError(js, "type");
     return;
   }
-  if (native_metrics) {
-    HandleNativeMetricsList(thread, js);
-  } else {
-    HandleDartMetricsList(thread, js);
-  }
+  HandleNativeMetricsList(thread, js);
 }
 
 static const MethodParameter* const get_isolate_metric_params[] = {
@@ -4136,25 +4074,16 @@ static void GetIsolateMetric(Thread* thread, JSONStream* js) {
     PrintMissingParamError(js, "metricId");
     return;
   }
-  // Verify id begins with "metrics/".
-  static const char* const kMetricIdPrefix = "metrics/";
-  static intptr_t kMetricIdPrefixLen = strlen(kMetricIdPrefix);
-  if (strncmp(metric_id, kMetricIdPrefix, kMetricIdPrefixLen) != 0) {
+  // Verify id begins with "metrics/native/".
+  static const char* const kNativeMetricIdPrefix = "metrics/native/";
+  static intptr_t kNativeMetricIdPrefixLen = strlen(kNativeMetricIdPrefix);
+  if (strncmp(metric_id, kNativeMetricIdPrefix, kNativeMetricIdPrefixLen) !=
+      0) {
     PrintInvalidParamError(js, "metricId");
     return;
   }
-  // Check if id begins with "metrics/native/".
-  static const char* const kNativeMetricIdPrefix = "metrics/native/";
-  static intptr_t kNativeMetricIdPrefixLen = strlen(kNativeMetricIdPrefix);
-  const bool native_metric =
-      strncmp(metric_id, kNativeMetricIdPrefix, kNativeMetricIdPrefixLen) == 0;
-  const char* id = metric_id + (native_metric ? kNativeMetricIdPrefixLen
-                                              : kMetricIdPrefixLen);
-  if (native_metric) {
-    HandleNativeMetric(thread, js, id);
-  } else {
-    HandleDartMetric(thread, js, id);
-  }
+  const char* id = metric_id + kNativeMetricIdPrefixLen;
+  HandleNativeMetric(thread, js, id);
 }
 
 static void SetVMTimelineFlags(Thread* thread, JSONStream* js) {
