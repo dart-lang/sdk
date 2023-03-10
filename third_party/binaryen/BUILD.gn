@@ -4,6 +4,14 @@
 
 import("../../sdk_args.gni")
 
+config("binaryen_warnings") {
+  if (is_clang) {
+    cflags = [ "-Wno-unused-but-set-parameter" ]
+  } else if (!is_win) {
+    cflags = [ "-Wno-unused-variable" ]
+  }
+}
+
 action("generate_needed_files") {
   script = "generate_needed_files.py"
 
@@ -31,24 +39,31 @@ action("generate_needed_files") {
 
 source_set("binaryen_sources") {
   src_dirs = [
-    rebase_path("src/src/ir", root_build_dir),
-    rebase_path("src/src/asmjs", root_build_dir),
-    rebase_path("src/src/cfg", root_build_dir),
-    rebase_path("src/src/passes", root_build_dir),
-    rebase_path("src/src/support", root_build_dir),
-    rebase_path("src/src/wasm", root_build_dir),
-    rebase_path("src/src/tools/fuzzing", root_build_dir),
-    rebase_path("src/src/emscripten-optimizer", root_build_dir),
+    "src/src/ir",
+    "src/src/asmjs",
+    "src/src/cfg",
+    "src/src/passes",
+    "src/src/support",
+    "src/src/wasm",
+    "src/src/tools/fuzzing",
+    "src/src/emscripten-optimizer",
   ]
 
   # We avoid listing all sources manually, this means when updating
   # binaryen in DEPS (or manually editing) one has to ensure to
   # re-run GN in DEPS to ensure new dependencies are picked up.
   # (this lowers the maintenance burden of GN build support for binaryen)
-  sources = exec_script("list_sources.py",
-                        src_dirs,
+  sources = []
+  foreach(src_dir, src_dirs) {
+    foreach(src_file,
+            exec_script("list_sources.py",
+                        [ rebase_path(src_dir, root_build_dir) ],
                         "list lines",
-                        [ "$default_git_folder/logs/HEAD" ])
+                        [ "$default_git_folder/logs/HEAD" ])) {
+      sources += [ "$src_dir/$src_file" ]
+    }
+  }
+
   include_dirs = [ "src/src" ]
 
   # Ensure WasmIntrinsics.cpp/config.h files are generated.
@@ -59,6 +74,11 @@ source_set("binaryen_sources") {
 
   # Ensure generated config.h file is include path.
   include_dirs += [ "$target_gen_dir" ]
+
+  configs += [
+    "//build/config/compiler:enable_exceptions",
+    ":binaryen_warnings",
+  ]
 }
 
 template("wasm_tool") {
@@ -72,6 +92,11 @@ template("wasm_tool") {
     include_dirs = [ "src/src" ]
     deps = [ ":binaryen_sources" ]
     forward_variables_from(invoker, "*")
+
+    configs += [
+      "//build/config/compiler:enable_exceptions",
+      ":binaryen_warnings",
+    ]
   }
 }
 
