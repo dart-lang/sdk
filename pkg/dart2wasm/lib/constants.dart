@@ -582,8 +582,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         tearOffConstant.function.namedParameters.map((p) => p.name!).toList();
     ClosureRepresentation representation = translator.closureLayouter
         .getClosureRepresentation(0, positionalCount, names)!;
+    ClosureRepresentation instantiationRepresentation = translator
+        .closureLayouter
+        .getClosureRepresentation(types.length, positionalCount, names)!;
     w.StructType struct = representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
+
+    final tearOffConstantInfo = ensureConstant(tearOffConstant)!;
 
     w.DefinedFunction makeDynamicCallEntry() {
       final w.DefinedFunction function = m.addFunction(
@@ -671,7 +676,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      b.global_get(translator.globals.dummyStructGlobal); // Dummy context
+
+      // Context is not used by the vtable functions, but it's needed for
+      // closure equality checks to work (`_Closure._equals`).
+      b.global_get(tearOffConstantInfo.global);
+      for (final ty in types) {
+        b.global_get(ty.global);
+      }
+      b.struct_new(instantiationRepresentation.instantiationContextStruct!);
+
       makeVtable();
       constants.instantiateConstant(
           function, b, functionTypeConstant, this.types.nonNullableTypeType);

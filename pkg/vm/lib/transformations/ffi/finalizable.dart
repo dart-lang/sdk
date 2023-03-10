@@ -539,7 +539,8 @@ mixin FinalizableTransformer on Transformer {
         ':expressionValueWrappedFinalizable',
         initializer: expression,
         type: staticTypeContext!.getExpressionType(expression),
-        isFinal: true);
+        isFinal: true,
+        isSynthesized: true);
     return BlockExpression(
       Block(<Statement>[
         resultVariable,

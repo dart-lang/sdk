@@ -109,7 +109,7 @@ static method yieldAsync() → asy::Stream<dynamic> async* {}
 static method caseReturn1(self::Enum e) → self::Enum {
   #L1:
   {
-    final self::Enum #0#0 = e;
+    final synthesized self::Enum #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return e;
@@ -126,7 +126,7 @@ static method caseReturn1(self::Enum e) → self::Enum {
 static method caseReturn2(self::Enum e) → self::Enum {
   #L2:
   {
-    final self::Enum #0#0 = e;
+    final synthesized self::Enum #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return e;
@@ -182,7 +182,7 @@ static method localFunctions() → dynamic {
   function caseReturn1(self::Enum e) → self::Enum {
     #L3:
     {
-      final self::Enum #0#0 = e;
+      final synthesized self::Enum #0#0 = e;
       if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
         {
           return e;
@@ -199,7 +199,7 @@ static method localFunctions() → dynamic {
   function caseReturn2(self::Enum e) → self::Enum {
     #L4:
     {
-      final self::Enum #1#0 = e;
+      final synthesized self::Enum #1#0 = e;
       if(#C3 =={core::Object::==}{(core::Object) → core::bool} #1#0) {
         {
           return e;

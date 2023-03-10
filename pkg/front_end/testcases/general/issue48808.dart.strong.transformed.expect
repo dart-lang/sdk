@@ -17,7 +17,7 @@ Try removing the 'const' modifier.
   for (const x in [1, 2, 3]) print(x);
              ^";
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int x = :sync-for-iterator.{core::Iterator::current}{core::int};
         core::print(x);

@@ -11,7 +11,7 @@ static method main() → void {
   #L1:
   {
     dynamic x;
-    final dynamic #0#0 = new core::Object::•() as{ForNonNullableByDefault} dynamic;
+    final synthesized dynamic #0#0 = new core::Object::•() as{ForNonNullableByDefault} dynamic;
     if(#0#0 is{ForNonNullableByDefault} core::Object && (let final core::int #t1 = x = self::_extension#0|get#q(#0#0{core::Object}) in true)) {
       {
         core::print(x);

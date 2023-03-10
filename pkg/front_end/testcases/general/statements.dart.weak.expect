@@ -69,7 +69,7 @@ static method main() → dynamic {
   }
   #L1:
   {
-    final core::int #0#0 = 1;
+    final synthesized core::int #0#0 = 1;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || #C2 =={core::num::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("Hello from switch case!");
@@ -85,7 +85,7 @@ static method main() → dynamic {
   #L2:
   {
     core::int #t3 = -1;
-    final core::int #1#0 = 4;
+    final synthesized core::int #1#0 = 4;
     if(#C2 =={core::num::==}{(core::Object) → core::bool} #1#0)
       #t3 = 0;
     else
@@ -145,7 +145,7 @@ static method main() → dynamic {
   #L8:
   {
     core::int #t4 = -1;
-    final core::int #2#0 = 4;
+    final synthesized core::int #2#0 = 4;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #2#0)
       #t4 = 0;
     else

@@ -15,7 +15,7 @@ abstract class Incomplete extends ffi::AbiSpecificInteger /*hasConstConstructor*
 }
 @#C15
 class IncompleteStruct extends ffi::Struct {
-  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] core::Object #typedDataBase) → self::IncompleteStruct
+  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::IncompleteStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=()->i]  get a0() → core::int
@@ -28,14 +28,14 @@ class IncompleteStruct extends ffi::Struct {
 }
 @#C24
 class IncompleteArrayStruct extends ffi::Struct {
-  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] core::Object #typedDataBase) → self::IncompleteArrayStruct
+  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::IncompleteArrayStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get a0() → ffi::Array<self::Incomplete>
     return new ffi::Array::_<self::Incomplete>( block {
-      core::Object #typedDataBase = [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object};
-      core::int #offset = #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
-    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<self::Incomplete>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::Pointer.address] [@vm.inferred-type.metadata=int] #typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in throw "Attempt to execute code removed by Dart AOT compiler (TFA)", #C20, #C25);
+      synthesized core::Object #typedDataBase = [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object};
+      synthesized core::int #offset = #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<self::Incomplete>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::Pointer.address] [@vm.inferred-type.metadata=int] #typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in throw "Attempt to execute code removed by Dart AOT compiler (TFA)", #C20, #C25);
 [@vm.unboxing-info.metadata=()->i]  @#C8
   static get #sizeOf() → core::int*
     return [@vm.inferred-type.metadata=dart.core::_Smi (value: 400)] ffi::_checkAbiSpecificIntegerMapping<core::int>(#C27.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});

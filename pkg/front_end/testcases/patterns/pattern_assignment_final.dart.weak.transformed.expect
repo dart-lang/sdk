@@ -49,7 +49,7 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   definitelyAssignedFinal = 10;
   definitelyAssignedLateFinal = 20;
   block {
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     if(!(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, core::Object?) && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:31:4: Error: Can't assign to the final variable 'initializedFinal'.
   (initializedFinal, // Error
    ^^^^^^^^^^^^^^^^" && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:32:7: Error: Late final variable 'initializedLateFinal' definitely assigned.
@@ -58,23 +58,23 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
       throw new _in::ReachabilityError::•();
   } =>#0#0;
   block {
-    final dynamic #1#0 = y;
+    final synthesized dynamic #1#0 = y;
     if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t2 = definitelyUnassignedLateFinal = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true) && (let final dynamic #t3 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:35:5: Error: Final variable 'definitelyAssignedFinal' might already be assigned at this point.
     definitelyAssignedFinal] = y; // Error
     ^^^^^^^^^^^^^^^^^^^^^^^")))
       throw new _in::ReachabilityError::•();
   } =>#1#0;
   block {
-    final dynamic #2#0 = z;
+    final synthesized dynamic #2#0 = z;
     function ##2#3#initializer() → dynamic
       return #2#0{self::Class}.{self::Class::field2}{dynamic};
-    late final dynamic #2#3 = ##2#3#initializer(){() → dynamic};
+    late final synthesized dynamic #2#3 = ##2#3#initializer(){() → dynamic};
     function ##2#9#initializer() → dynamic
       return #2#3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final dynamic #2#9 = ##2#9#initializer(){() → dynamic};
+    late final synthesized dynamic #2#9 = ##2#9#initializer(){() → dynamic};
     function ##2#16#initializer() → dynamic
       return #2#3{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-    late final dynamic #2#16 = ##2#16#initializer(){() → dynamic};
+    late final synthesized dynamic #2#16 = ##2#16#initializer(){() → dynamic};
     if(!(#2#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t4 = #2#0{self::Class}.{self::Class::field1}{dynamic} in invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:36:17: Error: Late final variable 'definitelyAssignedLateFinal' definitely assigned.
   Class(field1: definitelyAssignedLateFinal, // Error
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#3 is{ForNonNullableByDefault} core::List<dynamic> && #2#3{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9 is{ForNonNullableByDefault} core::List<dynamic> && #2#9{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t5 = #2#9{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:37:17: Error: Final variable 'notDefinitelyAssignedFinal' might already be assigned at this point.

@@ -19,9 +19,9 @@ static final field _la::_Cell _#MyInt|a = new _la::_Cell::named("MyInt|a");
 static final field _la::_Cell _#MyInt|b = new _la::_Cell::named("MyInt|b");
 static get MyInt|a() → core::int
   return self2::_#MyInt|a.{_la::_Cell::readField}<core::int>(){() → core::int};
-static set MyInt|a(core::int value) → void
+static set MyInt|a(synthesized core::int value) → void
   return self2::_#MyInt|a.{_la::_Cell::value} = value;
 static get MyInt|b() → core::int
   return self2::_#MyInt|b.{_la::_Cell::readField}<core::int>(){() → core::int};
-static set MyInt|b(core::int value) → void
+static set MyInt|b(synthesized core::int value) → void
   return self2::_#MyInt|b.{_la::_Cell::value} = value;

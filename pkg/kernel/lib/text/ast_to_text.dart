@@ -2606,6 +2606,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeModifier(node.isCovariantByClass, 'covariant-by-class');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
+    writeModifier(node.isSynthesized && node.name != null, 'synthesized');
     bool hasImplicitInitializer = node.initializer is NullLiteral ||
         (node.initializer is ConstantExpression &&
             (node.initializer as ConstantExpression).constant is NullConstant);

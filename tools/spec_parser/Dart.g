@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // CHANGES:
+// v0.32 Remove unused non-terminal `patterns`.
+//
 // v0.31 Inline `identifierNotFUNCTION` into `identifier`. Replace all
 // other references with `identifier` to match the spec.
 //
@@ -1036,10 +1038,6 @@ asOperator
 
 pattern
     :    logicalOrPattern
-    ;
-
-patterns
-    :    pattern (',' pattern)* ','?
     ;
 
 logicalOrPattern

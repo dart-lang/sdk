@@ -8,7 +8,7 @@ static method main() → void {
   core::int inner = 0;
   #L1:
   {
-    final core::int #1#0 = outer;
+    final synthesized core::int #1#0 = outer;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #1#0) {
       {
         whereWasI.{core::List::add}("outer 0"){(core::String) → void};
@@ -22,7 +22,7 @@ static method main() → void {
             #L2:
             {
               core::int #t1 = -1;
-              final core::int #0#0 = inner;
+              final synthesized core::int #0#0 = inner;
               if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
                 #t1 = 0;
               else

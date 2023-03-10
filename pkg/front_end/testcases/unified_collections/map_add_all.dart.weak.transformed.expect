@@ -12,7 +12,7 @@ static method useAddAll() → void {
   core::Map<core::int*, core::int*>* map1 = block {
     final core::Map<core::int*, core::int*>* #t1 = <core::int*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = (dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = (dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t2 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -23,7 +23,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = (dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = (dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t5 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -35,7 +35,7 @@ static method useAddAll() → void {
     }
     #t1.{core::Map::addAll}{Invariant}(intMap){(core::Map<core::int*, core::int*>*) →* void};
     {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = numMap1.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = numMap1.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t8 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -46,7 +46,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = numMap2.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = numMap2.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t11 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -61,7 +61,7 @@ static method useAddAll() → void {
   core::Map<core::num*, core::num*>* map2 = block {
     final core::Map<core::num*, core::num*>* #t14 = <core::num*, core::num*>{};
     {
-      core::Iterator<core::MapEntry<core::num*, core::num*>>* :sync-for-iterator = (dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::num*>>*};
+      synthesized core::Iterator<core::MapEntry<core::num*, core::num*>>* :sync-for-iterator = (dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::num*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t15 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::num*>};
         {
@@ -72,7 +72,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<core::MapEntry<core::num*, core::num*>>* :sync-for-iterator = (dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::num*>>*};
+      synthesized core::Iterator<core::MapEntry<core::num*, core::num*>>* :sync-for-iterator = (dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::num*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t18 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::num*>};
         {
@@ -91,7 +91,7 @@ static method useAddAll() → void {
     final core::Map<core::int*, core::int*>* #t21 = <core::int*, core::int*>{};
     final core::Map<dynamic, dynamic>* #t22 = dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*;
     if(!(#t22 == null)) {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t22.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t22.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t23 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -103,7 +103,7 @@ static method useAddAll() → void {
     }
     final core::Map<dynamic, dynamic>* #t26 = dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*;
     if(!(#t26 == null)) {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t26.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t26.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t27 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -118,7 +118,7 @@ static method useAddAll() → void {
       #t21.{core::Map::addAll}{Invariant}(#t30){(core::Map<core::int*, core::int*>*) →* void};
     final core::Map<dynamic, dynamic>* #t31 = numMap1;
     if(!(#t31 == null)) {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t31.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t31.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t32 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -130,7 +130,7 @@ static method useAddAll() → void {
     }
     final core::Map<dynamic, dynamic>* #t35 = numMap2;
     if(!(#t35 == null)) {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t35.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t35.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t36 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -146,7 +146,7 @@ static method useAddAll() → void {
     final core::Map<core::num*, core::num*>* #t39 = <core::num*, core::num*>{};
     final core::Map<dynamic, dynamic>* #t40 = dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*;
     if(!(#t40 == null)) {
-      core::Iterator<core::MapEntry<core::num*, core::num*>>* :sync-for-iterator = #t40.{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::num*>>*};
+      synthesized core::Iterator<core::MapEntry<core::num*, core::num*>>* :sync-for-iterator = #t40.{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::num*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t41 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::num*>};
         {
@@ -158,7 +158,7 @@ static method useAddAll() → void {
     }
     final core::Map<dynamic, dynamic>* #t44 = dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*;
     if(!(#t44 == null)) {
-      core::Iterator<core::MapEntry<core::num*, core::num*>>* :sync-for-iterator = #t44.{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::num*>>*};
+      synthesized core::Iterator<core::MapEntry<core::num*, core::num*>>* :sync-for-iterator = #t44.{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::num*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t45 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::num*>};
         {
@@ -182,7 +182,7 @@ static method useAddAll() → void {
   core::Map<core::int*, core::int*>* map5 = block {
     final core::Map<core::int*, core::int*>* #t51 = <core::int*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = (dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = (dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t52 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -193,7 +193,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = (dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = (dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t55 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -205,7 +205,7 @@ static method useAddAll() → void {
     }
     #t51.{core::Map::addAll}{Invariant}(intMap){(core::Map<core::int*, core::int*>*) →* void};
     {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = numMap1.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = numMap1.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t58 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -216,7 +216,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = numMap2.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = numMap2.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t61 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -240,7 +240,7 @@ static method useAddAll() → void {
     final core::Map<core::int*, core::int*>* #t65 = <core::int*, core::int*>{};
     final core::Map<dynamic, dynamic>* #t66 = dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*;
     if(!(#t66 == null)) {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t66.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t66.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t67 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -252,7 +252,7 @@ static method useAddAll() → void {
     }
     final core::Map<dynamic, dynamic>* #t70 = dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*;
     if(!(#t70 == null)) {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t70.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t70.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t71 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -267,7 +267,7 @@ static method useAddAll() → void {
       #t65.{core::Map::addAll}{Invariant}(#t74){(core::Map<core::int*, core::int*>*) →* void};
     final core::Map<dynamic, dynamic>* #t75 = numMap1;
     if(!(#t75 == null)) {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t75.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t75.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t76 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -279,7 +279,7 @@ static method useAddAll() → void {
     }
     final core::Map<dynamic, dynamic>* #t79 = numMap2;
     if(!(#t79 == null)) {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t79.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t79.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t80 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
         {
@@ -328,7 +328,7 @@ static method expect(core::Map<dynamic, dynamic>* map1, core::Map<dynamic, dynam
     throw "Unexpected length. Expected ${map1.{core::Map::length}{core::int*}}, actual ${map2.{core::Map::length}{core::int*}}.";
   }
   {
-    core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = map1.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>*>*}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>*>*};
+    synthesized core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = map1.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>*>*}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>*>*};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::MapEntry<dynamic, dynamic>* entry = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<dynamic, dynamic>*};
       {

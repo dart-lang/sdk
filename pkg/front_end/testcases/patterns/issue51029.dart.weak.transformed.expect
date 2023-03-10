@@ -26,7 +26,7 @@ static method logger(core::String s) → void {
 }
 static method main() → dynamic {
   {
-    final dynamic #0#0 = new self::Square::•(2.0, #C2);
+    final synthesized dynamic #0#0 = new self::Square::•(2.0, #C2);
     if(!(let final core::double #t1 = #0#0{self::Square}.{self::Square::area}{core::double} in true))
       throw new _in::ReachabilityError::•();
   }

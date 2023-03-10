@@ -9,13 +9,13 @@ static method test1(dynamic x) → dynamic
     core::int i;
     core::int n;
     {
-      final dynamic #0#0 = x;
+      final synthesized dynamic #0#0 = x;
       function ##0#6#initializer() → dynamic
         return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-      late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+      late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
       function ##0#7#initializer() → dynamic
         return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-      late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
+      late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
       if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = i = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = n = #0#7{core::int} in true))))
         throw new _in::ReachabilityError::•();
     }
@@ -31,13 +31,13 @@ static method test2(dynamic x) → dynamic
     core::int i;
     core::int n;
     {
-      final dynamic #0#0 = x;
+      final synthesized dynamic #0#0 = x;
       function ##0#6#initializer() → dynamic
         return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-      late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+      late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
       function ##0#7#initializer() → dynamic
         return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-      late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
+      late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
       if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = i = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t8 = n = #0#7{core::int} in true))))
         throw new _in::ReachabilityError::•();
     }
@@ -54,10 +54,10 @@ static method test3(dynamic x, dynamic another) → dynamic
     core::int i1;
     dynamic n1;
     {
-      final dynamic #0#0 = x;
+      final synthesized dynamic #0#0 = x;
       function ##0#6#initializer() → dynamic
         return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-      late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+      late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
       if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t12 = i1 = #0#6{core::int} in true)) && (let final dynamic #t13 = n1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true)))
         throw new _in::ReachabilityError::•();
     }
@@ -67,10 +67,10 @@ static method test3(dynamic x, dynamic another) → dynamic
       core::int i2;
       dynamic n2;
       {
-        final dynamic #1#0 = x{core::List<dynamic>};
+        final synthesized dynamic #1#0 = x{core::List<dynamic>};
         function ##1#6#initializer() → dynamic
           return #1#0{core::List<dynamic>}.{core::List::[]}(2){(core::int) → dynamic};
-        late final dynamic #1#6 = ##1#6#initializer(){() → dynamic};
+        late final synthesized dynamic #1#6 = ##1#6#initializer(){() → dynamic};
         if(!(#1#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t16 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && (let final dynamic #t17 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && (#1#6 is{ForNonNullableByDefault} core::int && (let final core::int #t18 = i2 = #1#6{core::int} in true)) && (let final dynamic #t19 = n2 = #1#0{core::List<dynamic>}.{core::List::[]}(3){(core::int) → dynamic} in true)))
           throw new _in::ReachabilityError::•();
       }
@@ -115,7 +115,7 @@ static method mapToString(core::Map<dynamic, dynamic> map) → dynamic {
   core::List<core::String> entryStrings = block {
     final core::List<core::String> #t22 = core::_GrowableList::•<core::String>(0);
     {
-      core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = map.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>>};
+      synthesized core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = map.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::MapEntry<dynamic, dynamic> entry = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<dynamic, dynamic>};
         #t22.{core::List::add}{Invariant}("${entry.{core::MapEntry::key}{dynamic}}:${entry.{core::MapEntry::value}{dynamic}}"){(core::String) → void};

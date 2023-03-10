@@ -11159,8 +11159,8 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// The name of the variable or parameter as provided in the source code.
   ///
   /// If this variable is synthesized, for instance the variable of a [Let]
-  /// expression, the name is in most cases `null`.
-  String? name;
+  /// expression, the name can be `null`.
+  String? _name;
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
 
@@ -11173,7 +11173,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// Should be null in other cases.
   Expression? initializer; // May be null.
 
-  VariableDeclaration(this.name,
+  VariableDeclaration(this._name,
       {this.initializer,
       this.type = const DynamicType(),
       int flags = -1,
@@ -11184,6 +11184,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isLate = false,
       bool isRequired = false,
       bool isLowered = false,
+      bool isSynthesized = false,
       bool hasDeclaredInitializer = false}) {
     // ignore: unnecessary_null_comparison
     assert(type != null);
@@ -11199,7 +11200,10 @@ class VariableDeclaration extends Statement implements Annotatable {
       this.isRequired = isRequired;
       this.isLowered = isLowered;
       this.hasDeclaredInitializer = hasDeclaredInitializer;
+      this.isSynthesized = isSynthesized;
     }
+    assert(_name != null || this.isSynthesized,
+        "Only synthesized variables can have no name.");
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
@@ -11221,6 +11225,19 @@ class VariableDeclaration extends Statement implements Annotatable {
     this.isRequired = isRequired;
     this.isLowered = isLowered;
     this.hasDeclaredInitializer = true;
+    this.isSynthesized = true;
+  }
+
+  /// The name of the variable as provided in the source code.
+  ///
+  /// The name of a variable can only be omitted if the variable is synthesized.
+  /// Otherwise, its name is as provided in the source code.
+  String? get name => _name;
+
+  void set name(String? value) {
+    assert(value != null || isSynthesized,
+        "Only synthesized variables can have no name.");
+    _name = value;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
@@ -11232,6 +11249,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   static const int FlagRequired = 1 << 6;
   static const int FlagCovariantByDeclaration = 1 << 7;
   static const int FlagLowered = 1 << 8;
+  static const int FlagSynthesized = 1 << 9;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -11272,6 +11290,13 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// Lowering is used for instance of encoding of 'this' in extension instance
   /// members and encoding of late locals.
   bool get isLowered => flags & FlagLowered != 0;
+
+  /// Whether this variable is synthesized, that is, it is _not_ declared in
+  /// the source code.
+  ///
+  /// The name of a variable can only be omitted if the variable is synthesized.
+  /// Otherwise, its name is as provided in the source code.
+  bool get isSynthesized => flags & FlagSynthesized != 0;
 
   /// Whether the variable has an initializer, either by declaration or copied
   /// from an original declaration.
@@ -11332,6 +11357,12 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   void set isLowered(bool value) {
     flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
+  }
+
+  void set isSynthesized(bool value) {
+    assert(
+        value || _name != null, "Only synthesized variables can have no name.");
+    flags = value ? (flags | FlagSynthesized) : (flags & ~FlagSynthesized);
   }
 
   void set hasDeclaredInitializer(bool value) {
@@ -15934,7 +15965,7 @@ final NamedExpression dummyNamedExpression =
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final VariableDeclaration dummyVariableDeclaration =
-    new VariableDeclaration(null);
+    new VariableDeclaration(null, isSynthesized: true);
 
 /// Non-nullable [TypeParameter] dummy value.
 ///

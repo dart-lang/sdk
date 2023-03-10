@@ -142,7 +142,8 @@ VariableDeclaration createVariableCache(Expression expression, DartType type) {
 /// Creates an uninitialized [VariableDeclaration] of the static [type].
 VariableDeclaration createUninitializedVariable(DartType type,
     {required int fileOffset}) {
-  return new VariableDeclaration(null, type: type)..fileOffset = fileOffset;
+  return new VariableDeclaration(null, type: type, isSynthesized: true)
+    ..fileOffset = fileOffset;
 }
 
 /// Creates an initialized (but mutable) [VariableDeclaration] of the static
@@ -150,7 +151,8 @@ VariableDeclaration createUninitializedVariable(DartType type,
 VariableDeclaration createInitializedVariable(
     Expression expression, DartType type,
     {required int fileOffset}) {
-  return new VariableDeclaration(null, initializer: expression, type: type)
+  return new VariableDeclaration(null,
+      initializer: expression, type: type, isSynthesized: true)
     ..fileOffset = fileOffset;
 }
 

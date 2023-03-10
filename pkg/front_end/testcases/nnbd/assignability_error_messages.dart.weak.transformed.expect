@@ -234,7 +234,7 @@ static method foo(self::B? x, core::List<self::B?> l, core::Map<self::B?, self::
   <A, A>{...m2}; // Error.
             ^": null};
   {
-    core::Iterator<self::B?> :sync-for-iterator = l.{core::Iterable::iterator}{core::Iterator<self::B?>};
+    synthesized core::Iterator<self::B?> :sync-for-iterator = l.{core::Iterable::iterator}{core::Iterator<self::B?>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final self::B? #t1 = :sync-for-iterator.{core::Iterator::current}{self::B?};
       {
@@ -248,7 +248,7 @@ Try changing the type of the variable.
     }
   }
   {
-    core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:36:15: Error: The type 'List<B>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<B>?' is nullable and 'Iterable<dynamic>' isn't.
+    synthesized core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:36:15: Error: The type 'List<B>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<B>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'Iterable' is from 'dart:core'.
@@ -326,7 +326,7 @@ static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, co
   <List<A>, List<A>>{...m}; // Error.
                         ^"};
   {
-    core::Iterator<core::List<self::B?>> :sync-for-iterator = l.{core::Iterable::iterator}{core::Iterator<core::List<self::B?>>};
+    synthesized core::Iterator<core::List<self::B?>> :sync-for-iterator = l.{core::Iterable::iterator}{core::Iterator<core::List<self::B?>>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::List<self::B?> #t2 = :sync-for-iterator.{core::Iterator::current}{core::List<self::B?>};
       {

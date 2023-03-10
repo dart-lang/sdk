@@ -15,7 +15,7 @@ static method test1(dynamic x) → dynamic
   return block {
     core::double? #t1;
     core::double r;
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     if(#0#0 is{ForNonNullableByDefault} self::Circle && (let final core::double #t2 = r = #0#0{self::Circle}.{self::Circle::radius}{core::double} in true) && r.{core::num::>}(0){(core::num) → core::bool})
       #t1 = r.{core::double::*}(r){(core::num) → core::double}.{core::double::*}(#C1){(core::num) → core::double};
     else
@@ -29,16 +29,16 @@ static method test2(dynamic x) → dynamic
     core::int b;
     core::String a#1;
     core::String b#1;
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     function ##0#4#initializer() → core::bool
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
-    late final core::bool #0#4 = ##0#4#initializer(){() → core::bool};
+    late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#6#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     function ##0#7#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-    late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
+    late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t4 = a = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t5 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
       return a.{core::num::+}(b){(core::num) → core::int};
     }) is{ForNonNullableByDefault} dynamic)
@@ -59,16 +59,16 @@ static method test3(dynamic x) → dynamic {
     core::int b;
     core::String a#1;
     core::String b#1;
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     function ##0#4#initializer() → core::bool
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
-    late final core::bool #0#4 = ##0#4#initializer(){() → core::bool};
+    late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#6#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     function ##0#7#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-    late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
+    late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t8 = a = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t9 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
       return a.{core::num::+}(b){(core::num) → core::int};
     }) is{ForNonNullableByDefault} dynamic) {

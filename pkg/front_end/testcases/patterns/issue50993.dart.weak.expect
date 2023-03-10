@@ -5,7 +5,7 @@ import "dart:core" as core;
 static method test1(core::int value) → core::String {
   #L1:
   {
-    final core::int #0#0 = value;
+    final synthesized core::int #0#0 = value;
     if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
       {
         return "case <2";
@@ -23,7 +23,7 @@ static method test1(core::int value) → core::String {
 static method test2(core::int value) → core::String {
   #L2:
   {
-    final core::int #0#0 = value;
+    final synthesized core::int #0#0 = value;
     if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
       {
         return "case <2";
@@ -41,7 +41,7 @@ static method test2(core::int value) → core::String {
 static method test3(core::int value) → core::String {
   #L3:
   {
-    final core::int #0#0 = value;
+    final synthesized core::int #0#0 = value;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
       {
         return "case 2";
@@ -59,7 +59,7 @@ static method test3(core::int value) → core::String {
 static method test4(core::int value) → core::String {
   #L4:
   {
-    final core::int #0#0 = value;
+    final synthesized core::int #0#0 = value;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
       {
         return "case 2";
@@ -81,7 +81,7 @@ static method test4(core::int value) → core::String {
 static method test5(core::int value) → core::String {
   #L5:
   {
-    final core::int #0#0 = value;
+    final synthesized core::int #0#0 = value;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
       {
         return "case 2";
@@ -103,7 +103,7 @@ static method test5(core::int value) → core::String {
 static method test6(core::int value) → core::String {
   #L6:
   {
-    final core::int #0#0 = value;
+    final synthesized core::int #0#0 = value;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
       {
         return "case 2";

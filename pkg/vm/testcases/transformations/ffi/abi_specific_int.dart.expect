@@ -22,7 +22,7 @@ class WCharStruct extends ffi::Struct {
   synthetic constructor •() → self::WCharStruct
     : super ffi::Struct::•()
     ;
-  constructor #fromTypedDataBase(core::Object #typedDataBase) → self::WCharStruct
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::WCharStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
   @#C75
@@ -46,15 +46,15 @@ class WCharArrayStruct extends ffi::Struct {
   synthetic constructor •() → self::WCharArrayStruct
     : super ffi::Struct::•()
     ;
-  constructor #fromTypedDataBase(core::Object #typedDataBase) → self::WCharArrayStruct
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::WCharArrayStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
   @#C84
   get a0() → ffi::Array<self::WChar>
     return new ffi::Array::_<self::WChar>( block {
-      core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase}{core::Object};
-      core::int #offset = #C76.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
-    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<self::WChar>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C88.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List}, #C79, #C89);
+      synthesized core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase}{core::Object};
+      synthesized core::int #offset = #C76.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<self::WChar>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C88.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List}, #C79, #C89);
   @#C84
   set a0(ffi::Array<self::WChar> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C76.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue.{ffi::Array::_typedDataBase}{core::Object}, #C1, #C88.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});

@@ -16,14 +16,14 @@ static method main() → dynamic {
       if(self::oracle() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
         #t1.{core::List::add}{Invariant}(4){(core::int) → void};
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
         #t1.{core::List::add}{Invariant}(i){(core::int) → void};
       }
     }
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
         if(self::oracle() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
@@ -46,14 +46,14 @@ static method main() → dynamic {
       if(self::oracle() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
         #t2.{core::Set::add}{Invariant}(4){(core::int) → core::bool};
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
         #t2.{core::Set::add}{Invariant}(i){(core::int) → core::bool};
       }
     }
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
         if(self::oracle() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
@@ -76,14 +76,14 @@ static method main() → dynamic {
       if(self::oracle() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
         #t3.{core::Map::[]=}{Invariant}(4, 4){(core::int, core::int) → void};
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
         #t3.{core::Map::[]=}{Invariant}(i, i){(core::int, core::int) → void};
       }
     }
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
         if(self::oracle() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)

@@ -16,7 +16,7 @@ static method main() → void {
   late self::Foo foo;
   if(new core::DateTime::now().{core::DateTime::millisecond}{core::int}.{core::num::%}(2){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
     :foo:finalizableValue = foo = block {
-      final self::Foo :expressionValueWrappedFinalizable = new self::Foo::•();
+      final synthesized self::Foo :expressionValueWrappedFinalizable = new self::Foo::•();
       _in::reachabilityFence(:foo:finalizableValue);
     } =>:expressionValueWrappedFinalizable;
   }
@@ -26,7 +26,7 @@ static method main() → void {
     _in::reachabilityFence(:foo2:finalizableValue);
   }
   {
-    core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
       {

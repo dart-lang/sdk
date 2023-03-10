@@ -525,7 +525,7 @@ static method callReturningNever(() → Never f) → dynamic {
 static method switchOnEnum(uns::E e) → dynamic {
   #L1:
   {
-    final uns::E #0#0 = e;
+    final synthesized uns::E #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return;
@@ -542,7 +542,7 @@ static method switchOnEnum(uns::E e) → dynamic {
 static method switchOnEnumWithBreak(uns::E e) → dynamic {
   #L2:
   {
-    final uns::E #0#0 = e;
+    final synthesized uns::E #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         break #L2;
@@ -559,7 +559,7 @@ static method switchOnEnumWithBreak(uns::E e) → dynamic {
 static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
   #L3:
   {
-    final uns::E #0#0 = e;
+    final synthesized uns::E #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         break #L3;
@@ -573,7 +573,7 @@ static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
 static method switchOnEnumWithFallThrough2(uns::E e) → dynamic {
   #L4:
   {
-    final uns::E #0#0 = e;
+    final synthesized uns::E #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0 || #C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
     }
   }

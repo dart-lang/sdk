@@ -12,7 +12,7 @@ static method main() → dynamic {
     #t1.{core::List::addAll}{Invariant}(list1){(core::Iterable<core::int?>) → void};
     #t1.{core::List::addAll}{Invariant}(list2){(core::Iterable<core::int?>) → void};
     {
-      core::Iterator<dynamic> :sync-for-iterator = (list3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = (list3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -42,7 +42,7 @@ static method main() → dynamic {
     #t7.{core::Set::addAll}{Invariant}(set1){(core::Iterable<core::int?>) → void};
     #t7.{core::Set::addAll}{Invariant}(set2){(core::Iterable<core::int?>) → void};
     {
-      core::Iterator<dynamic> :sync-for-iterator = (set3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = (set3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t8 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -63,7 +63,7 @@ static method main() → dynamic {
     #t10.{core::Map::addAll}{Invariant}(map1){(core::Map<core::int?, core::String?>) → void};
     #t10.{core::Map::addAll}{Invariant}(map2){(core::Map<core::int?, core::String?>) → void};
     {
-      core::Iterator<core::MapEntry<core::int?, core::String?>> :sync-for-iterator = (map3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int?, core::String?>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int?, core::String?>>};
+      synthesized core::Iterator<core::MapEntry<core::int?, core::String?>> :sync-for-iterator = (map3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int?, core::String?>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int?, core::String?>>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic> #t11 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int?, core::String?>};
         {

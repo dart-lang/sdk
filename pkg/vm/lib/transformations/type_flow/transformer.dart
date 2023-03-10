@@ -207,7 +207,8 @@ class MoveFieldInitializers {
           initExpr = CloneVisitorNotMembers().clone(initExpr);
         }
         final Initializer newInit = initializedFields.contains(f)
-            ? LocalInitializer(VariableDeclaration(null, initializer: initExpr))
+            ? LocalInitializer(VariableDeclaration(null,
+                initializer: initExpr, isSynthesized: true))
             : FieldInitializer(f, initExpr);
         newInit.parent = c;
         newInitializers.add(newInit);
@@ -892,7 +893,8 @@ class FieldMorpher {
     Procedure accessor;
     if (isSetter) {
       final isAbstract = !shaker.isFieldSetterReachable(field);
-      final parameter = new VariableDeclaration('value', type: field.type)
+      final parameter = new VariableDeclaration('value',
+          type: field.type, isSynthesized: true)
         ..isCovariantByDeclaration = field.isCovariantByDeclaration
         ..isCovariantByClass = field.isCovariantByClass
         ..fileOffset = field.fileOffset;
@@ -1092,8 +1094,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   TreeNode _makeUnreachableInitializer(List<Expression> args) {
-    return new LocalInitializer(
-        new VariableDeclaration(null, initializer: _makeUnreachableCall(args)));
+    return new LocalInitializer(new VariableDeclaration(null,
+        initializer: _makeUnreachableCall(args), isSynthesized: true));
   }
 
   NarrowNotNull? _getNullTest(TreeNode node) =>
@@ -1484,8 +1486,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
           "Field should be reachable: ${field}");
       if (!shaker.retainField(field)) {
         if (mayHaveSideEffects(node.value)) {
-          return LocalInitializer(
-              VariableDeclaration(null, initializer: node.value));
+          return LocalInitializer(VariableDeclaration(null,
+              initializer: node.value, isSynthesized: true));
         } else {
           return removalSentinel!;
         }

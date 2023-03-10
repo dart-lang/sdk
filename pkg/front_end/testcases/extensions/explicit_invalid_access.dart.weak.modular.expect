@@ -44,7 +44,7 @@ static method errors(self::Class c) → dynamic {
   Extension(c);
   ^^^^^^^^^";
   block {
-    final dynamic #0#0 = 42;
+    final synthesized dynamic #0#0 = 42;
     if(!true)
       throw new _in::ReachabilityError::•();
   } =>#0#0;

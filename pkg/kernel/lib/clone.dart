@@ -578,11 +578,11 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
         node,
         new VariableDeclaration(node.name,
             initializer: cloneOptional(node.initializer),
-            type: visitType(node.type))
+            type: visitType(node.type),
+            flags: node.flags)
           ..annotations = cloneAnnotations && !node.annotations.isEmpty
               ? node.annotations.map(clone).toList()
               : const <Expression>[]
-          ..flags = node.flags
           ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset));
   }
 

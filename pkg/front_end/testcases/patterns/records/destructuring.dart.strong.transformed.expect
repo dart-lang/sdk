@@ -15,7 +15,7 @@ static method main(core::List<core::String> arguments) → void {
   final core::double lat;
   final core::double long;
   {
-    final dynamic #0#0 = self::getLocation("Aarhus");
+    final synthesized dynamic #0#0 = self::getLocation("Aarhus");
     if(!((let final core::double #t1 = lat = #0#0{(core::double, core::double)}.$1{core::double} in true) && (let final core::double #t2 = long = #0#0{(core::double, core::double)}.$2{core::double} in true)))
       throw new _in::ReachabilityError::•();
   }

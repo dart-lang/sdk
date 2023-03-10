@@ -41,7 +41,7 @@ static method foldInitialSpread1() → void {
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t3 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -60,7 +60,7 @@ static method foldInitialSpread1() → void {
   core::Set<core::int*>* set = block {
     final core::Set<core::int*>* #t6 = new col::_Set::•<core::int*>();
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t7 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -82,7 +82,7 @@ static method foldInitialSpread2() → void {
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t9 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -101,7 +101,7 @@ static method foldInitialSpread2() → void {
   core::Set<core::int*>* set = block {
     final core::Set<core::int*>* #t12 = new col::_Set::•<core::int*>();
     {
-      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t13 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -123,7 +123,7 @@ static method foldInitialSpread3() → void {
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t15 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t16 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -142,7 +142,7 @@ static method foldInitialSpread3() → void {
   core::Set<core::int*>* set = block {
     final core::Set<core::int*>* #t18 = new col::_Set::•<core::int*>();
     {
-      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t19 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {

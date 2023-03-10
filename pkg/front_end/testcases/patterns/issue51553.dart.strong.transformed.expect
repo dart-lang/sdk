@@ -6,7 +6,7 @@ static method main() → dynamic {
   #L1:
   {
     core::int #t1 = -1;
-    final core::int #0#0 = 0;
+    final synthesized core::int #0#0 = 0;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
       #t1 = 0;
     else

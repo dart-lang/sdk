@@ -190,6 +190,9 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     '_instantiatedRepresentationType':
         FieldRule(name: 'instantiatedRepresentationType'),
   },
+  'VariableDeclaration': {
+    '_name': FieldRule(name: 'name'),
+  },
 };
 
 /// Data that determines exceptions to how fields are used.

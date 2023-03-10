@@ -13,8 +13,8 @@ static method foo() → dynamic {
 }
 static method bar(dynamic d) → dynamic async* {
   {
-    asy::Stream<dynamic> :stream = d as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>;
-    asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+    synthesized asy::Stream<dynamic> :stream = d as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>;
+    synthesized asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
     try
       while (let dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         dynamic x = :for-iterator.{asy::_StreamIterator::current}{dynamic};
@@ -38,7 +38,7 @@ static method main() → dynamic {
   }
   while (false)
   {
-    core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>("Hello from for-in!").{core::Iterable::iterator}{core::Iterator<core::String>};
+    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>("Hello from for-in!").{core::Iterable::iterator}{core::Iterator<core::String>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::String s = :sync-for-iterator.{core::Iterator::current}{core::String};
       {
@@ -47,7 +47,7 @@ static method main() → dynamic {
     }
   }
   {
-    core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>("Hello from for-in without block!").{core::Iterable::iterator}{core::Iterator<core::String>};
+    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>("Hello from for-in without block!").{core::Iterable::iterator}{core::Iterator<core::String>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::String s = :sync-for-iterator.{core::Iterator::current}{core::String};
       core::print(s);
@@ -55,7 +55,7 @@ static method main() → dynamic {
   }
   dynamic s;
   {
-    core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::_literal1<dynamic>("Hello from for-in without decl!").{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::_literal1<dynamic>("Hello from for-in without decl!").{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
@@ -65,7 +65,7 @@ static method main() → dynamic {
     }
   }
   {
-    core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::_literal1<dynamic>("Hello from for-in without decl and block!").{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::_literal1<dynamic>("Hello from for-in without decl and block!").{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t3 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
@@ -103,7 +103,7 @@ static method main() → dynamic {
   }
   #L1:
   {
-    final core::int #0#0 = 1;
+    final synthesized core::int #0#0 = 1;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || #C2 =={core::num::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("Hello from switch case!");
@@ -119,7 +119,7 @@ static method main() → dynamic {
   #L2:
   {
     core::int #t4 = -1;
-    final core::int #1#0 = 4;
+    final synthesized core::int #1#0 = 4;
     if(#C2 =={core::num::==}{(core::Object) → core::bool} #1#0)
       #t4 = 0;
     else
@@ -179,7 +179,7 @@ static method main() → dynamic {
   #L8:
   {
     core::int #t5 = -1;
-    final core::int #2#0 = 4;
+    final synthesized core::int #2#0 = 4;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #2#0)
       #t5 = 0;
     else

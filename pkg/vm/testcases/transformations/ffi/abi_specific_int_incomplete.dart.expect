@@ -22,7 +22,7 @@ class IncompleteStruct extends ffi::Struct {
   synthetic constructor •() → self::IncompleteStruct
     : super ffi::Struct::•()
     ;
-  constructor #fromTypedDataBase(core::Object #typedDataBase) → self::IncompleteStruct
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::IncompleteStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
   @#C37
@@ -46,15 +46,15 @@ class IncompleteArrayStruct extends ffi::Struct {
   synthetic constructor •() → self::IncompleteArrayStruct
     : super ffi::Struct::•()
     ;
-  constructor #fromTypedDataBase(core::Object #typedDataBase) → self::IncompleteArrayStruct
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::IncompleteArrayStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
   @#C46
   get a0() → ffi::Array<self::Incomplete>
     return new ffi::Array::_<self::Incomplete>( block {
-      core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase}{core::Object};
-      core::int #offset = #C38.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
-    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<self::Incomplete>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, ffi::_checkAbiSpecificIntegerMapping<core::int>(#C48.{core::List::[]}(ffi::_abi()){(core::int) → core::int*})){([core::int, core::int?]) → typ::Uint8List}, #C41, #C49);
+      synthesized core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase}{core::Object};
+      synthesized core::int #offset = #C38.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<self::Incomplete>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, ffi::_checkAbiSpecificIntegerMapping<core::int>(#C48.{core::List::[]}(ffi::_abi()){(core::int) → core::int*})){([core::int, core::int?]) → typ::Uint8List}, #C41, #C49);
   @#C46
   set a0(ffi::Array<self::Incomplete> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C38.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue.{ffi::Array::_typedDataBase}{core::Object}, #C4, ffi::_checkAbiSpecificIntegerMapping<core::int>(#C48.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}));

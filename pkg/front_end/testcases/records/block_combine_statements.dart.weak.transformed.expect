@@ -5,7 +5,7 @@ import "dart:_internal" as _in;
 
 static method main() → void {
   {
-    core::Iterator<(core::Iterable<core::int>, core::Iterable<core::int>)> :sync-for-iterator = self::split<core::int>(core::_GrowableList::_literal3<core::int>(1, 2, 3)).{core::Iterable::iterator}{core::Iterator<(core::Iterable<core::int>, core::Iterable<core::int>)>};
+    synthesized core::Iterator<(core::Iterable<core::int>, core::Iterable<core::int>)> :sync-for-iterator = self::split<core::int>(core::_GrowableList::_literal3<core::int>(1, 2, 3)).{core::Iterable::iterator}{core::Iterator<(core::Iterable<core::int>, core::Iterable<core::int>)>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       (core::Iterable<core::int>, core::Iterable<core::int>) _ = :sync-for-iterator.{core::Iterator::current}{(core::Iterable<core::int>, core::Iterable<core::int>)};
       {}
@@ -16,7 +16,7 @@ static method split<A extends core::Object? = dynamic>(core::Iterable<self::spli
   return block {
     core::Iterable<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)> #t1;
     self::split::A% x;
-    final core::Iterable<self::split::A%> #1#0 = it;
+    final synthesized core::Iterable<self::split::A%> #1#0 = it;
     if(#C1 =={core::Object::==}{(core::Object) → core::bool} #1#0.{core::Iterable::isEmpty}{core::bool})
       #t1 = core::_GrowableList::_literal1<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)>((new _in::EmptyIterable::•<self::split::A%>(), new _in::EmptyIterable::•<self::split::A%>()));
     else
@@ -24,14 +24,14 @@ static method split<A extends core::Object? = dynamic>(core::Iterable<self::spli
         #t1 = (() → core::Iterable<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)> sync* {
           yield(new _in::EmptyIterable::•<self::split::A%>(), it);
           {
-            core::Iterator<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)> :sync-for-iterator = self::split<self::split::A%>(it.{core::Iterable::skip}(1){(core::int) → core::Iterable<self::split::A%>}).{core::Iterable::iterator}{core::Iterator<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)>};
+            synthesized core::Iterator<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)> :sync-for-iterator = self::split<self::split::A%>(it.{core::Iterable::skip}(1){(core::int) → core::Iterable<self::split::A%>}).{core::Iterable::iterator}{core::Iterator<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)>};
             for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
               final(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>) #t3 = :sync-for-iterator.{core::Iterator::current}{(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)};
               {
                 core::Iterable<self::split::A%> ls;
                 core::Iterable<self::split::A%> rs;
                 {
-                  final dynamic #0#0 = #t3;
+                  final synthesized dynamic #0#0 = #t3;
                   if(!((let final core::Iterable<self::split::A%> #t4 = ls = #0#0{(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)}.$1{core::Iterable<self::split::A%>} in true) && (let final core::Iterable<self::split::A%> #t5 = rs = #0#0{(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)}.$2{core::Iterable<self::split::A%>} in true)))
                     throw new _in::ReachabilityError::•();
                 }

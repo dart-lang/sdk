@@ -5,7 +5,7 @@ import "dart:core" as core;
 static method method(Never n) → dynamic {
   #L1:
   {
-    final Never #0#0 = n;
+    final synthesized Never #0#0 = n;
     if(#0#0 =={core::Object::==}{(dynamic) → Never} #C1) {
     }
   }

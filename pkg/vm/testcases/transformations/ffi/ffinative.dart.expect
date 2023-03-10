@@ -34,7 +34,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t1 = this;
       final core::int #t2 = v;
       final void #t3 = self::NativeClassy::_goodHasReceiverPointer$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t1);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t1);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else
@@ -58,7 +58,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t7 = this;
       final self::NativeClassy #t8 = v;
       final void #t9 = self::NativeClassy::_goodHasReceiverPtrAndHandle$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t7);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t7);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else
@@ -71,7 +71,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t10 = this;
       final core::bool #t11 = blah;
       final core::String? #t12 = _in::unsafeCast<core::String?>(self::NativeClassy::_meh$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t10);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t10);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else
@@ -83,7 +83,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t13 = this;
       final core::bool #t14 = self::NativeClassy::_blah$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t13);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t13);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else
@@ -95,7 +95,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t15 = this;
       final core::bool #t16 = self::NativeClassy::_myField$Getter$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t15);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t15);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else
@@ -108,7 +108,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t17 = this;
       final core::bool #t18 = value;
       final void #t19 = self::NativeClassy::_myField$Setter$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t17);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t17);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else

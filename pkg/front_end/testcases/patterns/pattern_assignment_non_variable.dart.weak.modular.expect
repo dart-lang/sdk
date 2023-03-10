@@ -41,7 +41,7 @@ class Class extends self::Super {
   method method(dynamic o, dynamic parameter) → dynamic {
     dynamic local;
     block {
-      final dynamic #0#0 = o;
+      final synthesized dynamic #0#0 = o;
       if(!(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?) && (let final dynamic #t1 = local = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$1{core::Object?} in true) && (let final dynamic #t2 = parameter = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$2{core::Object?} in true) && true && true && true && true))
         throw new _in::ReachabilityError::•();
     } =>#0#0;

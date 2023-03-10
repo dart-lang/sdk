@@ -14,7 +14,7 @@ static const field core::int annotation = #C1;
 static method f(dynamic x) → dynamic {
   invalid-type a;
   {
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t1 = a = #0#0{invalid-type}{<invalid>}.f in true)))
       throw new _in::ReachabilityError::•();
   }

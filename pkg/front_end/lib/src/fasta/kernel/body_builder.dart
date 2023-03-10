@@ -2751,7 +2751,7 @@ class BodyBuilder extends StackListenerImpl
             orPatternJointVariables: [
               for (VariableDeclaration leftVariable in left.declaredVariables)
                 forest.createVariableDeclaration(
-                    leftVariable.fileOffset, leftVariable.name)
+                    leftVariable.fileOffset, leftVariable.name!)
             ]));
         break;
       default:
@@ -4088,7 +4088,7 @@ class BodyBuilder extends StackListenerImpl
         intermediateVariables.add(intermediateVariable);
 
         VariableDeclaration internalVariable = forest.createVariableDeclaration(
-            variable.fileOffset, variable.name,
+            variable.fileOffset, variable.name!,
             initializer: forest.createVariableGet(
                 variable.fileOffset, intermediateVariable));
         internalVariables.add(internalVariable);
@@ -7357,7 +7357,7 @@ class BodyBuilder extends StackListenerImpl
     } else {
       VariableDeclaration variable = elements.syntheticVariableDeclaration =
           forest.createVariableDeclaration(offsetForToken(forToken), null,
-              isFinal: true);
+              isFinal: true, isSynthesized: true);
       if (lvalue is Generator) {
         /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
         ///

@@ -174,8 +174,9 @@ class _RecordClassGenerator {
   /// Generate a constructor with name `_`. Named fields are passed in sorted
   /// order.
   Constructor _generateConstructor(RecordShape shape, List<Field> fields) {
-    final List<VariableDeclaration> positionalParameters =
-        List.generate(fields.length, (i) => VariableDeclaration('field$i'));
+    final List<VariableDeclaration> positionalParameters = List.generate(
+        fields.length,
+        (i) => VariableDeclaration('field$i', isSynthesized: true));
 
     final List<Initializer> initializers = List.generate(
         fields.length,
@@ -295,8 +296,8 @@ class _RecordClassGenerator {
       Nullability.nonNullable,
     );
 
-    final VariableDeclaration parameter =
-        VariableDeclaration('other', type: nullableObjectType);
+    final VariableDeclaration parameter = VariableDeclaration('other',
+        type: nullableObjectType, isSynthesized: true);
 
     final List<Statement> statements = [];
 

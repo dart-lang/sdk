@@ -166,7 +166,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           isCovariantByDeclaration: isCovariantByDeclaration,
           isRequired: isRequiredNamed,
           hasDeclaredInitializer: hasDeclaredInitializer,
-          isLowered: isExtensionThis)
+          isLowered: isExtensionThis,
+          isSynthesized: name == noNameSentinel)
         ..fileOffset = charOffset;
     }
     return variable!;

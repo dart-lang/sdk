@@ -17,7 +17,7 @@ static const field core::int var9 = #C3;
 static method basicSwitch(core::int x) → core::int {
   #L1:
   {
-    final core::int #0#0 = x;
+    final synthesized core::int #0#0 = x;
     if(#C7 =={core::num::==}{(core::Object) → core::bool} #0#0) {
       {
         return 100;
@@ -35,7 +35,7 @@ static method basicSwitch(core::int x) → core::int {
 static method multipleCaseSwitch(core::int x) → core::int {
   #L2:
   {
-    final core::int #0#0 = x;
+    final synthesized core::int #0#0 = x;
     if(#C7 =={core::num::==}{(core::Object) → core::bool} #0#0 || #C8 =={core::num::==}{(core::Object) → core::bool} #0#0) {
       {
         return 100;
@@ -53,7 +53,7 @@ static method continueLabelSwitch(core::int x) → core::int {
   #L3:
   {
     core::int #t1 = -1;
-    final core::int #0#0 = x;
+    final synthesized core::int #0#0 = x;
     if(#C7 =={core::num::==}{(core::Object) → core::bool} #0#0)
       #t1 = 0;
     else
