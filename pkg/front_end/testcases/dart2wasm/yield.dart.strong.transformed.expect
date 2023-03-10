@@ -9,9 +9,9 @@ static method method(core::Iterable<core::int> iterable) → core::Iterable<core
   yield* iterable;
 }
 static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::int> {
-  asy::StreamController<core::Object?> #controller = asy::StreamController::•<core::Object?>();
-  () → asy::Future<void> #body = () → asy::Future<void> async /* futureValueType= void */ {
-    asy::Completer<core::bool> #completer = asy::Completer::•<core::bool>();
+  synthesized asy::StreamController<core::Object?> #controller = asy::StreamController::•<core::Object?>();
+  synthesized () → asy::Future<void> #body = () → asy::Future<void> async /* futureValueType= void */ {
+    synthesized asy::Completer<core::bool> #completer = asy::Completer::•<core::bool>();
     #controller.{asy::StreamController::add}(#completer){(core::Object?) → void};
     await #completer.{asy::Completer::future}{() → asy::Future<core::bool>};
     {
@@ -28,11 +28,11 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
         await #completer.{asy::Completer::future}{() → asy::Future<core::bool>};
       }
       {
-        asy::_StreamIterator<core::int> #forIterator = new asy::_StreamIterator::•<core::int>(stream);
-        core::bool #jumpSentinel = #C1;
+        synthesized asy::_StreamIterator<core::int> #forIterator = new asy::_StreamIterator::•<core::int>(stream);
+        synthesized core::bool #jumpSentinel = #C1;
         try {
           for (; #jumpSentinel = await #forIterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}; ) {
-            core::int #awaitForVar = #forIterator.{asy::_StreamIterator::current}{core::int};
+            synthesized core::int #awaitForVar = #forIterator.{asy::_StreamIterator::current}{core::int};
             {
               #controller.{asy::StreamController::add}(#awaitForVar){(core::Object?) → void};
               #completer = asy::Completer::•<core::bool>();
@@ -49,10 +49,10 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
     }
     #controller.{asy::StreamController::close}(){() → asy::Future<dynamic>};
   };
-  core::bool #isFirst = #C2;
-  core::bool #isEven = #C1;
+  synthesized core::bool #isFirst = #C2;
+  synthesized core::bool #isEven = #C1;
   #controller.{asy::StreamController::add}(#C3){(core::Object?) → void};
-  return #controller.{asy::StreamController::stream}{() → asy::Stream<core::Object?>}.{asy::Stream::asyncMap}<core::Object?>((core::Object? value) → FutureOr<core::Object?> async /* futureValueType= core::Object? */ {
+  return #controller.{asy::StreamController::stream}{() → asy::Stream<core::Object?>}.{asy::Stream::asyncMap}<core::Object?>((synthesized core::Object? value) → FutureOr<core::Object?> async /* futureValueType= core::Object? */ {
     if(#isFirst) {
       #body(){() → asy::Future<void>};
       return #C3;
@@ -60,12 +60,12 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
     if(value is asy::Completer<core::bool>)
       value.{asy::Completer::complete}(#C2){([FutureOr<core::bool>?]) → void};
     return value;
-  }){((core::Object?) → FutureOr<core::Object?>) → asy::Stream<core::Object?>}.{asy::Stream::where}((core::Object? value) → core::Object? {
+  }){((core::Object?) → FutureOr<core::Object?>) → asy::Stream<core::Object?>}.{asy::Stream::where}((synthesized core::Object? value) → core::Object? {
     if(#isFirst) {
       #isFirst = #C1;
       return #C1;
     }
-    core::bool keep = #isEven;
+    synthesized core::bool keep = #isEven;
     #isEven = !#isEven;
     return keep;
   }){((core::Object?) → core::bool) → asy::Stream<core::Object?>}.{asy::Stream::cast}<core::int>(){() → asy::Stream<core::int>};

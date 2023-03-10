@@ -16,7 +16,7 @@ static method main() → void {
   late self::Foo foo;
   if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::_IntegerImplementation.%] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.core::DateTime.millisecond] [@vm.inferred-type.metadata=int] new core::DateTime::now().{core::DateTime::millisecond}{core::int}.{core::num::%}(2){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
     :foo:finalizableValue = foo = block {
-      final self::Foo :expressionValueWrappedFinalizable = new self::Foo::•();
+      final synthesized self::Foo :expressionValueWrappedFinalizable = new self::Foo::•();
       _in::reachabilityFence(:foo:finalizableValue);
     } =>:expressionValueWrappedFinalizable;
   }
@@ -26,7 +26,7 @@ static method main() → void {
     _in::reachabilityFence(:foo2:finalizableValue);
   }
   {
-    core::Iterator<core::int> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<dart.core::int>] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<dart.core::int>] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::int i = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current}{core::int};
       {

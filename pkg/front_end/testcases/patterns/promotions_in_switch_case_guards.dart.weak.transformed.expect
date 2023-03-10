@@ -8,7 +8,7 @@ static method test(core::String? x) → dynamic {
     core::String? foobar;
     core::String? foobar#1;
     core::String? foobar#2;
-    final core::String? #0#0 = x;
+    final synthesized core::String? #0#0 = x;
     dynamic #t1;
     if((!(#0#0 == null) ?{core::bool} #0#0{core::String} is{ForNonNullableByDefault} core::String? && (let final core::String #t2 = foobar = #0#0{core::String} in true) : false) && foobar{core::String} is{ForNonNullableByDefault} Never && (let final core::String? #t3 = #t1 = foobar in true) || #0#0 is{ForNonNullableByDefault} core::String? && (let final core::String? #t4 = foobar#1 = #0#0 in true) && !(foobar#1 == null) && (let final core::String? #t5 = #t1 = foobar#1 in true) || (let final core::String? #t6 = #0#0! in #0#0! is{ForNonNullableByDefault} core::String? && (let final core::String? #t7 = foobar#2 = #0#0! in true)) && foobar#2{core::String} =={core::String::==}{(core::Object) → core::bool} "foobar" && (let final core::String? #t8 = #t1 = foobar#2 in true)) {
       core::String? foobar = #t1{core::String?};

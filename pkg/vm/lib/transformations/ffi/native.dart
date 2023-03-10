@@ -270,7 +270,10 @@ class FfiNativeTransformer extends FfiTransformer {
             ? nativeFieldWrapperClass1Type
             : dartParameterType);
     return VariableDeclaration(variableDeclarationTemporaryName,
-        initializer: initializer, type: wrappedType, isFinal: true);
+        initializer: initializer,
+        type: wrappedType,
+        isFinal: true,
+        isSynthesized: true);
   }
 
   Expression _getTemporary(
@@ -285,7 +288,9 @@ class FfiNativeTransformer extends FfiTransformer {
 
       if (checkForNullptr) {
         final pointerAddressVar = VariableDeclaration("#pointerAddress",
-            initializer: pointerAddress, type: coreTypes.intNonNullableRawType);
+            initializer: pointerAddress,
+            type: coreTypes.intNonNullableRawType,
+            isSynthesized: true);
         pointerAddress = BlockExpression(
           Block([
             pointerAddressVar,
@@ -383,7 +388,8 @@ class FfiNativeTransformer extends FfiTransformer {
     final result = VariableDeclaration(variableDeclarationTemporaryName,
         initializer: resultInitializer,
         type: dartFunctionType.returnType,
-        isFinal: true);
+        isFinal: true,
+        isSynthesized: true);
 
     invocation.arguments = Arguments(callArguments);
 

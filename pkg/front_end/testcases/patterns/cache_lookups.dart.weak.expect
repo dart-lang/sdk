@@ -19,11 +19,11 @@ static method test(dynamic o) → dynamic {
   #L1:
   {
     core::int a;
-    final dynamic #0#0 = o;
-    late final core::int #0#2 = #0#0{self::Class}.{self::Class::field}{core::int};
-    late final core::bool #0#10 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
-    late final dynamic #0#12 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final dynamic #0#13 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    final synthesized dynamic #0#0 = o;
+    late final synthesized core::int #0#2 = #0#0{self::Class}.{self::Class::field}{core::int};
+    late final synthesized core::bool #0#10 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
+    late final synthesized dynamic #0#12 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#13 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     if(#0#0 is{ForNonNullableByDefault} self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 || #0#0 is{ForNonNullableByDefault} self::Class && #C3 =={core::num::==}{(core::Object) → core::bool} #0#2) {
       {
         core::print("Class");

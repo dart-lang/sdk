@@ -39,7 +39,8 @@ class LateVarInitTransformer {
     final functionType =
         fnNode.computeThisFunctionType(Nullability.nonNullable);
     final fn = FunctionDeclaration(
-        VariableDeclaration("#${node.name}#initializer", type: functionType),
+        VariableDeclaration("#${node.name}#initializer",
+            type: functionType, isSynthesized: true),
         fnNode);
     node.initializer = LocalFunctionInvocation(fn.variable, Arguments([]),
         functionType: functionType)

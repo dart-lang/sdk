@@ -303,7 +303,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<core::int*>* list100 = block {
     final core::List<core::int*>* #t40 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<core::num*>* :sync-for-iterator = listNum.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = listNum.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t41 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -316,7 +316,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::num*, core::int*>* map100 = block {
     final core::Map<core::num*, core::int*>* #t43 = <core::num*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::num*, core::int*>>* :sync-for-iterator = mapIntNum.{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::num*, core::int*>>* :sync-for-iterator = mapIntNum.{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t44 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::int*>};
         {
@@ -330,7 +330,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<core::int*>* list110 = block {
     final core::List<core::int*>* #t47 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t48 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -343,7 +343,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::num*, core::int*>* map110 = block {
     final core::Map<core::num*, core::int*>* #t50 = <core::num*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::num*, core::int*>>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::num*, core::int*>>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t51 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::int*>};
         {

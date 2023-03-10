@@ -31,8 +31,8 @@ static method foo() → core::Map<self::C<core::String>, core::int>
 static method test() → dynamic {
   core::int a1;
   {
-    final dynamic #0#0 = self::foo();
-    final const dynamic #0#4 = invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
+    final synthesized dynamic #0#0 = self::foo();
+    final const synthesized dynamic #0#4 = invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
   var {const C(:var t): a1} = foo();
              ^";
     if(!(#0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::containsKey}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.

@@ -7,7 +7,7 @@ static method test1(dynamic x) → dynamic
     final core::Map<core::int, core::int> #t1 = <core::int, core::int>{};
     #t1.{core::Map::[]=}{Invariant}(1, 1){(core::int, core::int) → void};
     core::int y;
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = y = #0#0{core::int} in true))
       #t1.{core::Map::[]=}{Invariant}(2, y){(core::int, core::int) → void};
     #t1.{core::Map::[]=}{Invariant}(3, 3){(core::int, core::int) → void};
@@ -17,7 +17,7 @@ static method test2(dynamic x) → dynamic
     final core::Map<core::int, core::Object?> #t3 = <core::int, core::Object?>{};
     #t3.{core::Map::[]=}{Invariant}(1, 1){(core::int, core::Object?) → void};
     core::String y;
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     if(#0#0 is{ForNonNullableByDefault} core::String && (let final dynamic #t4 = y = #0#0{core::String} in true))
       #t3.{core::Map::[]=}{Invariant}(2, y){(core::int, core::Object?) → void};
     else
@@ -29,7 +29,7 @@ static method test3(dynamic x) → dynamic
     final core::Map<core::int, core::Object> #t5 = <core::int, core::Object>{};
     #t5.{core::Map::[]=}{Invariant}(1, 1){(core::int, core::Object) → void};
     core::bool b;
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     if(#0#0 is{ForNonNullableByDefault} core::bool && (let final dynamic #t6 = b = #0#0{core::bool} in true) && b)
       #t5.{core::Map::[]=}{Invariant}(2, b){(core::int, core::Object) → void};
     #t5.{core::Map::[]=}{Invariant}(3, 3){(core::int, core::Object) → void};

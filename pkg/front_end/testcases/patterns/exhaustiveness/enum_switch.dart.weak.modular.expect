@@ -84,7 +84,7 @@ class GenericEnum<T extends core::Object? = dynamic> extends core::_Enum /*isEnu
 static method exhaustiveSwitch(self::Enum e) → void {
   #L1:
   {
-    final self::Enum #0#0 = e;
+    final synthesized self::Enum #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a");
@@ -110,7 +110,7 @@ static method exhaustiveSwitch(self::Enum e) → void {
 static method nonExhaustiveSwitch1(self::Enum e) → void {
   #L2:
   {
-    final self::Enum #0#0 = e;
+    final synthesized self::Enum #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a");
@@ -129,7 +129,7 @@ static method nonExhaustiveSwitch1(self::Enum e) → void {
 static method nonExhaustiveSwitch2(self::Enum e) → void {
   #L3:
   {
-    final self::Enum #0#0 = e;
+    final synthesized self::Enum #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a");
@@ -148,7 +148,7 @@ static method nonExhaustiveSwitch2(self::Enum e) → void {
 static method nonExhaustiveSwitch3(self::Enum e) → void {
   #L4:
   {
-    final self::Enum #0#0 = e;
+    final synthesized self::Enum #0#0 = e;
     if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("b");
@@ -167,7 +167,7 @@ static method nonExhaustiveSwitch3(self::Enum e) → void {
 static method nonExhaustiveSwitch4(self::Enum e) → void {
   #L5:
   {
-    final self::Enum #0#0 = e;
+    final synthesized self::Enum #0#0 = e;
     if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("b");
@@ -179,7 +179,7 @@ static method nonExhaustiveSwitch4(self::Enum e) → void {
 static method nonExhaustiveSwitchWithDefault(self::Enum e) → void {
   #L6:
   {
-    final self::Enum #0#0 = e;
+    final synthesized self::Enum #0#0 = e;
     if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("b");
@@ -197,7 +197,7 @@ static method nonExhaustiveSwitchWithDefault(self::Enum e) → void {
 static method exhaustiveNullableSwitch(self::Enum? e) → void {
   #L7:
   {
-    final self::Enum? #0#0 = e;
+    final synthesized self::Enum? #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a");
@@ -230,7 +230,7 @@ static method exhaustiveNullableSwitch(self::Enum? e) → void {
 static method nonExhaustiveNullableSwitch1(self::Enum? e) → void {
   #L8:
   {
-    final self::Enum? #0#0 = e;
+    final synthesized self::Enum? #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a");
@@ -256,7 +256,7 @@ static method nonExhaustiveNullableSwitch1(self::Enum? e) → void {
 static method nonExhaustiveNullableSwitch2(self::Enum? e) → void {
   #L9:
   {
-    final self::Enum? #0#0 = e;
+    final synthesized self::Enum? #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a");
@@ -282,7 +282,7 @@ static method nonExhaustiveNullableSwitch2(self::Enum? e) → void {
 static method unreachableCase1(self::Enum e) → void {
   #L10:
   {
-    final self::Enum #0#0 = e;
+    final synthesized self::Enum #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a1");
@@ -315,7 +315,7 @@ static method unreachableCase1(self::Enum e) → void {
 static method unreachableCase2(self::Enum e) → void {
   #L11:
   {
-    final self::Enum #0#0 = e;
+    final synthesized self::Enum #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a1");
@@ -341,7 +341,7 @@ static method unreachableCase2(self::Enum e) → void {
 static method unreachableCase3(self::Enum e) → void {
   #L12:
   {
-    final self::Enum #0#0 = e;
+    final synthesized self::Enum #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a");
@@ -374,7 +374,7 @@ static method unreachableCase3(self::Enum e) → void {
 static method unreachableCase4(self::Enum? e) → void {
   #L13:
   {
-    final self::Enum? #0#0 = e;
+    final synthesized self::Enum? #0#0 = e;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a");
@@ -414,7 +414,7 @@ static method unreachableCase4(self::Enum? e) → void {
 static method exhaustiveGenericSwitch(self::GenericEnum<dynamic> e) → void {
   #L14:
   {
-    final self::GenericEnum<dynamic> #0#0 = e;
+    final synthesized self::GenericEnum<dynamic> #0#0 = e;
     if(#C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a");
@@ -440,7 +440,7 @@ static method exhaustiveGenericSwitch(self::GenericEnum<dynamic> e) → void {
 static method exhaustiveGenericSwitchTyped(self::GenericEnum<core::int> e) → void {
   #L15:
   {
-    final self::GenericEnum<core::int> #0#0 = e;
+    final synthesized self::GenericEnum<core::int> #0#0 = e;
     if(#C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a");

@@ -6,10 +6,10 @@ static method test1(dynamic x) → dynamic
   return block {
     final core::List<core::int> #t1 = core::_GrowableList::_literal1<core::int>(1);
     core::int y;
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     function ##0#6#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#6{core::int} in true)))
       #t1.{core::List::add}{Invariant}(y){(core::int) → void};
     #t1.{core::List::add}{Invariant}(1){(core::int) → void};
@@ -18,7 +18,7 @@ static method test2(dynamic x) → dynamic
   return block {
     final core::List<core::Object?> #t3 = core::_GrowableList::_literal1<core::Object?>(2);
     core::String y;
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y = #0#0{core::String} in true))
       #t3.{core::List::add}{Invariant}(y){(core::Object?) → void};
     else
@@ -29,7 +29,7 @@ static method test3(dynamic x) → dynamic
   return block {
     final core::List<core::Object> #t5 = core::_GrowableList::_literal1<core::Object>(3);
     core::bool b;
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     if(#0#0 is{ForNonNullableByDefault} core::bool && (let final core::bool #t6 = b = #0#0{core::bool} in true) && b)
       #t5.{core::List::add}{Invariant}(b){(core::Object) → void};
     #t5.{core::List::add}{Invariant}(3){(core::Object) → void};

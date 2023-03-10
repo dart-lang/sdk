@@ -8,7 +8,7 @@ static method test1(dynamic x, dynamic another) → dynamic {
     final core::Map<dynamic, dynamic> #t1 = <dynamic, dynamic>{};
     #t1.{core::Map::[]=}{Invariant}(1, 1){(dynamic, dynamic) → void};
     core::String y;
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t2 = y = #0#0{core::String} in true))
       #t1.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
     #t1.{core::Map::[]=}{Invariant}(3, 3){(dynamic, dynamic) → void};
@@ -20,7 +20,7 @@ static method test2(core::bool b, dynamic x, dynamic another) → dynamic {
     #t3.{core::Map::[]=}{Invariant}(1, 1){(dynamic, dynamic) → void};
     if(b) {
       core::String y;
-      final dynamic #0#0 = x;
+      final synthesized dynamic #0#0 = x;
       if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y = #0#0{core::String} in true))
         #t3.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
     }
@@ -32,12 +32,12 @@ static method test3(dynamic x, dynamic y, dynamic another) → dynamic {
     final core::Map<dynamic, dynamic> #t5 = <dynamic, dynamic>{};
     #t5.{core::Map::[]=}{Invariant}(1, 1){(dynamic, dynamic) → void};
     core::int x2;
-    final dynamic #1#0 = x;
+    final synthesized dynamic #1#0 = x;
     if(#1#0 is{ForNonNullableByDefault} core::int && (let final core::int #t6 = x2 = #1#0{core::int} in true))
       #t5.{core::Map::[]=}{Invariant}(2, x2){(dynamic, dynamic) → void};
     else {
       core::int y2;
-      final dynamic #0#0 = y;
+      final synthesized dynamic #0#0 = y;
       if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = y2 = #0#0{core::int} in true))
         #t5.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
     }
@@ -66,7 +66,7 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
 static method mapToString(core::Map<dynamic, dynamic> map) → dynamic {
   core::List<core::String> entryStrings = core::_GrowableList::•<core::String>(0);
   {
-    core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = map.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>>};
+    synthesized core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = map.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::MapEntry<dynamic, dynamic> entry = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<dynamic, dynamic>};
       {

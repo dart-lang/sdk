@@ -1499,6 +1499,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
       bool isLate = false,
       bool isRequired = false,
       bool isLowered = false,
+      bool isSynthesized = false,
       this.isStaticLate = false})
       : isImplicitlyTyped = type == null,
         isLocalFunction = isLocalFunction,
@@ -1512,6 +1513,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
             isLate: isLate,
             isRequired: isRequired,
             isLowered: isLowered,
+            isSynthesized: isSynthesized,
             hasDeclaredInitializer: hasDeclaredInitializer);
 
   VariableDeclarationImpl.forEffect(Expression initializer)

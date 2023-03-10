@@ -684,7 +684,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         if (target != null) {
           if (target is Field) {
             useTypesFrom = FunctionNode(null, positionalParameters: [
-              VariableDeclaration("value", type: target.type)
+              VariableDeclaration("value",
+                  type: target.type, isSynthesized: true)
             ]);
           } else {
             useTypesFrom = target.function!;

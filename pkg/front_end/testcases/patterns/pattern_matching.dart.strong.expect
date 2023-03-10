@@ -31,7 +31,7 @@ static method calculateArea(self::Shape shape) → core::double
     core::double #t1;
     core::double l;
     core::double r;
-    final self::Shape #0#0 = shape;
+    final synthesized self::Shape #0#0 = shape;
     if(#0#0 is{ForNonNullableByDefault} self::Square && (let final dynamic #t2 = l = #0#0{self::Square}.{self::Square::length}{core::double} in true))
       #t1 = l.{core::double::*}(l){(core::num) → core::double};
     else

@@ -4843,7 +4843,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Catch? _visitCatch(List<Catch> clauses) {
     if (clauses.isEmpty) return null;
 
-    var caughtError = VariableDeclaration('#e');
+    var caughtError = VariableDeclaration('#e', isSynthesized: true);
     var savedRethrow = _rethrowParameter;
     _rethrowParameter = caughtError;
 
@@ -4851,12 +4851,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // don't shadow any names.
     var exceptionParameter =
         (clauses.length == 1 ? clauses[0].exception : null) ??
-            VariableDeclaration('#ex');
+            VariableDeclaration('#ex', isSynthesized: true);
 
     var stackTraceParameter =
         (clauses.length == 1 ? clauses[0].stackTrace : null) ??
             (clauses.any((c) => c.stackTrace != null)
-                ? VariableDeclaration('#st')
+                ? VariableDeclaration('#st', isSynthesized: true)
                 : null);
 
     js_ast.Statement catchBody = js_ast.Throw(_emitVariableRef(caughtError));

@@ -41,8 +41,8 @@ static method stream() → asy::Stream<FutureOr<self::Class>> async* {
 }
 static method main() → dynamic async /* futureValueType= dynamic */ {
   {
-    asy::Stream<FutureOr<self::Class>> :stream = self::stream();
-    asy::_StreamIterator<FutureOr<self::Class>>? :for-iterator = new asy::_StreamIterator::•<FutureOr<self::Class>>(:stream);
+    synthesized asy::Stream<FutureOr<self::Class>> :stream = self::stream();
+    synthesized asy::_StreamIterator<FutureOr<self::Class>>? :for-iterator = new asy::_StreamIterator::•<FutureOr<self::Class>>(:stream);
     try
       while (let dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         FutureOr<self::Class>cls = :for-iterator.{asy::_StreamIterator::current}{FutureOr<self::Class>};

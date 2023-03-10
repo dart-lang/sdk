@@ -15,7 +15,7 @@ static method foo<T extends core::Object? = dynamic>((self::foo::T%) → void f)
 static method test1() → dynamic {
   self::A x;
   {
-    final dynamic #0#0 = self::foo<self::A>((self::A a) → void => a.{self::A::foo}{core::int});
+    final synthesized dynamic #0#0 = self::foo<self::A>((self::A a) → void => a.{self::A::foo}{core::int});
     if(!(#0#0{core::List<self::A>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final self::A #t1 = x = #0#0{core::List<self::A>}.{core::List::[]}(0){(core::int) → self::A} in true)))
       throw new _in::ReachabilityError::•();
   }
@@ -24,7 +24,7 @@ static method test2() → dynamic {
   core::Object? x;
   core::List<core::Object?> y;
   {
-    final dynamic #0#0 = self::foo<core::Object?>((core::Object? e) → void => e);
+    final synthesized dynamic #0#0 = self::foo<core::Object?>((core::Object? e) → void => e);
     if(!(#0#0{core::List<core::Object?>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::Object? #t2 = x = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?} in true) && (let final core::List<core::Object?> #t3 = y = #0#0{core::List<core::Object?>}.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::Object?>} in true)))
       throw new _in::ReachabilityError::•();
   }

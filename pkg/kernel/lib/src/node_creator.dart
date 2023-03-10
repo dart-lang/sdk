@@ -1081,7 +1081,8 @@ class NodeCreator {
         ]);
       case StatementKind.FunctionDeclaration:
         return FunctionDeclaration(
-            VariableDeclaration(null), _createFunctionNode())
+            VariableDeclaration(null, isSynthesized: true),
+            _createFunctionNode())
           ..fileOffset = _needFileOffset();
       case StatementKind.IfStatement:
         return _createOneOf(_pendingStatements, kind, index, [

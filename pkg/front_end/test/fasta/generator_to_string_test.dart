@@ -114,7 +114,8 @@ Future<void> main() async {
     String assignmentOperator = "+=";
     TypeDeclarationBuilder declaration = new TypeVariableBuilder.fromKernel(
         new TypeParameter("T"), libraryBuilder);
-    VariableDeclaration variable = new VariableDeclaration(null);
+    VariableDeclaration variable =
+        new VariableDeclaration(null, isSynthesized: true);
 
     TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null, null);
     engine.prepareTopLevel(coreTypes, hierarchy);

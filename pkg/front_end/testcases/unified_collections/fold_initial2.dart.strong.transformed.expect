@@ -34,7 +34,7 @@ static method foldInitialSpread1() → void {
   core::List<core::int> list = block {
     final core::List<core::int> #t3 = core::_GrowableList::•<core::int>(0);
     {
-      core::Iterator<dynamic> :sync-for-iterator = (initial as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = (initial as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -53,7 +53,7 @@ static method foldInitialSpread1() → void {
   core::Set<core::int> set = block {
     final core::Set<core::int> #t6 = new col::_Set::•<core::int>();
     {
-      core::Iterator<dynamic> :sync-for-iterator = (initial as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = (initial as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t7 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {

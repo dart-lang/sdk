@@ -497,19 +497,19 @@ class _JSLowerer extends Transformer {
     // before being invoked. If the callback takes optional parameters then, the
     // second argument will be a `double` indicating the last defined argument.
     int parameterId = 1;
-    final callbackVariable =
-        VariableDeclaration('callback', type: _nonNullableObjectType);
+    final callbackVariable = VariableDeclaration('callback',
+        type: _nonNullableObjectType, isSynthesized: true);
     VariableDeclaration? argumentsLength;
     if (_needsArgumentsLength(function)) {
       argumentsLength = VariableDeclaration('argumentsLength',
-          type: _coreTypes.doubleNonNullableRawType);
+          type: _coreTypes.doubleNonNullableRawType, isSynthesized: true);
     }
 
     // Initialize variable declarations.
     List<VariableDeclaration> positionalParameters = [];
     for (int j = 0; j < function.positionalParameters.length; j++) {
       positionalParameters.add(VariableDeclaration('x${parameterId++}',
-          type: _nullableWasmExternRefType));
+          type: _nullableWasmExternRefType, isSynthesized: true));
     }
 
     // Build the body of a function trampoline. To support default arguments, we
@@ -584,7 +584,7 @@ class _JSLowerer extends Transformer {
         FunctionNode(null,
             positionalParameters: [
               VariableDeclaration('dartFunction',
-                  type: _nonNullableWasmExternRefType)
+                  type: _nonNullableWasmExternRefType, isSynthesized: true)
             ],
             returnType: _nonNullableWasmExternRefType),
         fileUri,
@@ -631,8 +631,8 @@ class _JSLowerer extends Transformer {
         _createFunctionTrampoline(node, type, boxExternRef: false);
     Procedure jsWrapperFunction =
         _getJSWrapperFunction(type, functionTrampolineName, node.fileUri);
-    VariableDeclaration v =
-        VariableDeclaration('#var', initializer: argument, type: type);
+    VariableDeclaration v = VariableDeclaration('#var',
+        initializer: argument, type: type, isSynthesized: true);
     return Let(
         v,
         ConditionalExpression(
@@ -700,7 +700,7 @@ class _JSLowerer extends Transformer {
     for (int j = 0; j < originalParameters.length; j++) {
       String parameterString = 'x$j';
       dartPositionalParameters.add(VariableDeclaration(parameterString,
-          type: _nullableWasmExternRefType));
+          type: _nullableWasmExternRefType, isSynthesized: true));
       jsParameterStrings.add(parameterString);
     }
 
@@ -764,7 +764,9 @@ class _JSLowerer extends Transformer {
     if (returnType == _coreTypes.intNullableRawType ||
         returnType == _coreTypes.intNonNullableRawType) {
       VariableDeclaration v = VariableDeclaration('#var',
-          initializer: expression, type: returnTypeOverride);
+          initializer: expression,
+          type: returnTypeOverride,
+          isSynthesized: true);
       return Let(
           v,
           ConditionalExpression(
@@ -884,8 +886,8 @@ class _JSLowerer extends Transformer {
       Expression originalArgument = originalArguments[j];
       String parameterString = 'x$j';
       DartType type = originalArgument.getStaticType(_staticTypeContext);
-      dartPositionalParameters
-          .add(VariableDeclaration(parameterString, type: type));
+      dartPositionalParameters.add(VariableDeclaration(parameterString,
+          type: type, isSynthesized: true));
       if (originalArgument is! VariableGet) {
         allArgumentsAreGet = false;
       }

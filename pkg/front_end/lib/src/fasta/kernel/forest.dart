@@ -739,7 +739,8 @@ class Forest {
       bool isConst = false,
       bool isInitializingFormal = false,
       bool isCovariantByDeclaration = false,
-      bool isLocalFunction = false}) {
+      bool isLocalFunction = false,
+      bool isSynthesized = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new VariableDeclarationImpl(name,
@@ -750,6 +751,7 @@ class Forest {
         isInitializingFormal: isInitializingFormal,
         isCovariantByDeclaration: isCovariantByDeclaration,
         isLocalFunction: isLocalFunction,
+        isSynthesized: isSynthesized,
         hasDeclaredInitializer: initializer != null)
       ..fileOffset = fileOffset;
   }

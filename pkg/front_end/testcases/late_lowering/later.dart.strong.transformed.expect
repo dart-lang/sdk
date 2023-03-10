@@ -122,7 +122,7 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
     core::print("baz");
   }
   {
-    core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>("baz").{core::Iterable::iterator}{core::Iterator<core::String>};
+    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>("baz").{core::Iterable::iterator}{core::Iterator<core::String>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::String s = :sync-for-iterator.{core::Iterator::current}{core::String};
       {
@@ -138,8 +138,8 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
 }
 static method hest() → dynamic async /* futureValueType= dynamic */ {
   {
-    asy::Stream<core::String> :stream = asy::Stream::fromIterable<core::String>(core::_GrowableList::_literal1<core::String>("hest"));
-    asy::_StreamIterator<core::String>? :for-iterator = new asy::_StreamIterator::•<core::String>(:stream);
+    synthesized asy::Stream<core::String> :stream = asy::Stream::fromIterable<core::String>(core::_GrowableList::_literal1<core::String>("hest"));
+    synthesized asy::_StreamIterator<core::String>? :for-iterator = new asy::_StreamIterator::•<core::String>(:stream);
     try
       while (let dynamic #t6 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         core::String s = :for-iterator.{asy::_StreamIterator::current}{core::String};

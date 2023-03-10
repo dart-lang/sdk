@@ -1453,8 +1453,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.declare(variable, variable.type, initialized: true);
     flowAnalysis.forEach_bodyBegin(node);
 
-    VariableDeclaration tempVariable =
-        new VariableDeclaration(null, type: inferredType, isFinal: true);
+    VariableDeclaration tempVariable = new VariableDeclaration(null,
+        type: inferredType, isFinal: true, isSynthesized: true);
     VariableGet variableGet = new VariableGet(tempVariable)
       ..fileOffset = variable.fileOffset;
     TreeNode parent = variable.parent!;

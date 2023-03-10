@@ -754,7 +754,8 @@ class TestHarness {
     enclosingLibrary.addTypedef(node);
   }
 
-  VariableDeclaration makeVariable() => new VariableDeclaration(null);
+  VariableDeclaration makeVariable() =>
+      new VariableDeclaration(null, isSynthesized: true);
 
   TypeParameter makeTypeParameter([String? name]) {
     return new TypeParameter(name, objectLegacyRawType, const DynamicType());

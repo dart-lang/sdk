@@ -45,13 +45,13 @@ static method main() → void {
           final self::MyFinalizable finalizable14 = new self::MyFinalizable::•();
           if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::DateTime.millisecondsSinceEpoch] [@vm.inferred-type.metadata=int] new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 100) {
             throw block {
-              final core::Exception :expressionValueWrappedFinalizable = core::Exception::•("foo");
+              final synthesized core::Exception :expressionValueWrappedFinalizable = core::Exception::•("foo");
               _in::reachabilityFence(finalizable14);
             } =>:expressionValueWrappedFinalizable;
           }
           if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::DateTime.millisecondsSinceEpoch] [@vm.inferred-type.metadata=int] new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 101) {
             throw block {
-              final core::Error :expressionValueWrappedFinalizable = new core::Error::•();
+              final synthesized core::Error :expressionValueWrappedFinalizable = new core::Error::•();
               _in::reachabilityFence(finalizable);
               _in::reachabilityFence(finalizable13);
               _in::reachabilityFence(finalizable14);
@@ -68,7 +68,7 @@ static method main() → void {
       finally {
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::DateTime.millisecondsSinceEpoch] [@vm.inferred-type.metadata=int] new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 1000) {
           throw block {
-            final core::Exception :expressionValueWrappedFinalizable = core::Exception::•("bar");
+            final synthesized core::Exception :expressionValueWrappedFinalizable = core::Exception::•("bar");
             _in::reachabilityFence(finalizable13);
           } =>:expressionValueWrappedFinalizable;
         }
@@ -210,7 +210,7 @@ static method main() → void {
     _in::reachabilityFence(finalizable16);
   }
   {
-    core::Iterator<ffi::Finalizable> :sync-for-iterator = [@vm.inferred-type.metadata=!] [@vm.inferred-type.metadata=!] core::Iterable::generate<ffi::Finalizable>((core::int index) → self::MyFinalizable => new self::MyFinalizable::•()).{core::Iterable::iterator}{core::Iterator<ffi::Finalizable>};
+    synthesized core::Iterator<ffi::Finalizable> :sync-for-iterator = [@vm.inferred-type.metadata=!] [@vm.inferred-type.metadata=!] core::Iterable::generate<ffi::Finalizable>((core::int index) → self::MyFinalizable => new self::MyFinalizable::•()).{core::Iterable::iterator}{core::Iterator<ffi::Finalizable>};
     for (; [@vm.inferred-type.metadata=dart.core::bool] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final ffi::Finalizable finalizable17 = [@vm.inferred-type.metadata=#lib::MyFinalizable] :sync-for-iterator.{core::Iterator::current}{ffi::Finalizable};
       {

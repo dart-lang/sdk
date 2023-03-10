@@ -68,7 +68,7 @@ class B extends core::_Enum /*isEnum*/  {
 static method a1(self::A? a) → core::int? {
   #L1:
   {
-    final self::A? #0#0 = a;
+    final synthesized self::A? #0#0 = a;
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return 0;
@@ -79,7 +79,7 @@ static method a1(self::A? a) → core::int? {
 static method a2(self::A? a) → core::int? {
   #L2:
   {
-    final self::A? #0#0 = a;
+    final synthesized self::A? #0#0 = a;
     if(#0#0 == null) {
       {
         return null;
@@ -96,7 +96,7 @@ static method a2(self::A? a) → core::int? {
 static method b1(self::B b) → core::int {
   #L3:
   {
-    final self::B #0#0 = b;
+    final synthesized self::B #0#0 = b;
     if(#C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return 0;
@@ -113,7 +113,7 @@ static method b1(self::B b) → core::int {
 static method b2(self::B? b) → core::int? {
   #L4:
   {
-    final self::B? #0#0 = b;
+    final synthesized self::B? #0#0 = b;
     if(#0#0 == null) {
       {
         return null;
@@ -130,7 +130,7 @@ static method b2(self::B? b) → core::int? {
 static method c1(mai::C? c) → core::int? {
   #L5:
   {
-    final mai::C? #0#0 = c;
+    final synthesized mai::C? #0#0 = c;
     if(#C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return 0;
@@ -141,7 +141,7 @@ static method c1(mai::C? c) → core::int? {
 static method c2(mai::C? c) → core::int? {
   #L6:
   {
-    final mai::C? #0#0 = c;
+    final synthesized mai::C? #0#0 = c;
     if(#0#0 == null) {
       {
         return null;
@@ -158,7 +158,7 @@ static method c2(mai::C? c) → core::int? {
 static method d1(mai::D d) → core::int {
   #L7:
   {
-    final mai::D #0#0 = d;
+    final synthesized mai::D #0#0 = d;
     if(#C12 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return 0;
@@ -175,7 +175,7 @@ static method d1(mai::D d) → core::int {
 static method d2(mai::D? d) → core::int? {
   #L8:
   {
-    final mai::D? #0#0 = d;
+    final synthesized mai::D? #0#0 = d;
     if(#0#0 == null) {
       {
         return null;

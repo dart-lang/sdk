@@ -14,6 +14,6 @@ library from "org-dartlang-test:///late_statics_lib.dart" as lat2 {
   static final field _late_helper::_Cell _#a = new _late_helper::_Cell::named("a");
   static get a() → dart.core::int
     return lat2::_#a.{_late_helper::_Cell::readField}<dart.core::int>(){() → dart.core::int};
-  static set a(dart.core::int value) → void
+  static set a(synthesized dart.core::int value) → void
     return lat2::_#a.{_late_helper::_Cell::value} = value;
 }

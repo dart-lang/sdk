@@ -754,7 +754,8 @@ class FfiTransformer extends Transformer {
       Expression length, int fileOffset) {
     final typedDataVar = VariableDeclaration("#typedData",
         initializer: typedData,
-        type: InterfaceType(typedDataClass, Nullability.nonNullable))
+        type: InterfaceType(typedDataClass, Nullability.nonNullable),
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     return Let(
         typedDataVar,
@@ -800,10 +801,14 @@ class FfiTransformer extends Transformer {
   Expression typedDataBaseOffset(Expression typedDataBase, Expression offset,
       Expression length, DartType dartType, int fileOffset) {
     final typedDataBaseVar = VariableDeclaration("#typedDataBase",
-        initializer: typedDataBase, type: coreTypes.objectNonNullableRawType)
+        initializer: typedDataBase,
+        type: coreTypes.objectNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     final offsetVar = VariableDeclaration("#offset",
-        initializer: offset, type: coreTypes.intNonNullableRawType)
+        initializer: offset,
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     return BlockExpression(
         Block([typedDataBaseVar, offsetVar]),

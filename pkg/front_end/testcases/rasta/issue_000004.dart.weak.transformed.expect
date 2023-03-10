@@ -9,7 +9,7 @@ static field core::int global = 0;
 static method fact4() → dynamic {
   core::int f = 1;
   {
-    core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal4<core::int>(1, 2, 3, 4).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal4<core::int>(1, 2, 3, 4).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::int n = :sync-for-iterator.{core::Iterator::current}{core::int};
       {
@@ -23,7 +23,7 @@ static method fact5() → dynamic {
   core::int f = 1;
   core::int n;
   {
-    core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal5<core::int>(1, 2, 3, 4, 5).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal5<core::int>(1, 2, 3, 4, 5).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::int #t1 = :sync-for-iterator.{core::Iterator::current}{core::int};
       {
@@ -37,7 +37,7 @@ static method fact5() → dynamic {
 static method fact6() → dynamic {
   core::int f = 1;
   {
-    core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal6<core::int>(1, 2, 3, 4, 5, 6).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal6<core::int>(1, 2, 3, 4, 5, 6).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::int #t2 = :sync-for-iterator.{core::Iterator::current}{core::int};
       {

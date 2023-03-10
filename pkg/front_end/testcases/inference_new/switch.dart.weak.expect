@@ -12,7 +12,7 @@ static method f<T extends core::Object? = dynamic>() → self::f::T%
 static method test(self::C<core::int> x) → void {
   #L1:
   {
-    final self::C<core::int> #0#0 = x;
+    final synthesized self::C<core::int> #0#0 = x;
     if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::int y = 0;

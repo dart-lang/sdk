@@ -29,7 +29,7 @@ static method test(dynamic value, core::bool expected) → void {
   core::bool matched;
   #L1:
   {
-    final dynamic #0#0 = value;
+    final synthesized dynamic #0#0 = value;
     if(#C2 =={core::List::==}{(core::Object) → core::bool} #0#0) {
       {
         matched = true;

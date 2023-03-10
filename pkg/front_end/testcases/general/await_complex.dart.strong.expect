@@ -192,7 +192,7 @@ static method controlFlow() → dynamic async /* futureValueType= dynamic */ {
     }
     #L1:
     {
-      final core::int #0#0 = await func<core::int>(2){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ ;
+      final synthesized core::int #0#0 = await func<core::int>(2){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ ;
       if(#C3 =={core::num::==}{(core::Object) → core::bool} #0#0) {
         {
           break #L1;
