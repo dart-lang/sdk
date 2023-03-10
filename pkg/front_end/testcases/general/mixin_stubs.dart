@@ -9,7 +9,7 @@ abstract class Super {
   void abstractExtendsAbstractMixin();
 }
 
-abstract class MixinClass {
+abstract mixin class MixinClass {
   void concreteExtendsConcreteMixin() {}
   void concreteExtendsAbstractMixin();
   void concreteMixin() {}

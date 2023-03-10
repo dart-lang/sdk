@@ -541,7 +541,7 @@ WithBeforeExtends:
   problemMessage: "The extends clause must be before the with clause."
   correctionMessage: "Try moving the extends clause before the with clause."
   analyzerCode: ParserErrorCode.WITH_BEFORE_EXTENDS
-  script: "class B {} class C {} class A with B extends C {}"
+  script: "mixin B {} class C {} class A with B extends C {}"
 
 ImplementsBeforeExtends:
   index: 44
@@ -596,8 +596,8 @@ MultipleClauses:
   analyzerCode: ParserErrorCode.MULTIPLE_CLAUSES
   index: 121
   script:
-    - "class B {} enum A implements B implements C, D { v; }"
-    - "class B {} enum A with B with C, D { v; }"
+    - "mixin B {} enum A implements B implements C, D { v; }"
+    - "mixin B {} enum A with B with C, D { v; }"
 
 OutOfOrderClauses:
   problemMessage: "The '#string' clause must come before the '#string2' clause."
@@ -5891,6 +5891,7 @@ MixinInheritsFromNotObject:
   problemMessage: "The class '#name' can't be used as a mixin because it extends a class other than 'Object'."
   analyzerCode: MIXIN_INHERITS_FROM_NOT_OBJECT
   script: |
+    // @dart=2.19
     class Base {}
     class Mixin extends Base {}
     class C extends Base with Mixin {}

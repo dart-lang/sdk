@@ -14,7 +14,7 @@ class A {
   foo() {}
 }
 
-class B implements I {
+mixin class B implements I {
   noSuchMethod(_) => null;
 }
 

@@ -132,21 +132,41 @@ features:
 
   records:
     help: "Records"
-    experimentalReleaseVersion: "2.19.0"
+    validation: |
+      final x = (1, 2);
+      void main() {
+        final x = ('feature', 'enabled');
+        print('${x.$1} ${x.$2}');
+      }
 
   patterns:
     help: "Patterns"
+    validation: |
+      void main() {
+        final [x, y] = ['feature', 'enabled'];
+        print('$x $y');
+      }
 
   inline-class:
     help: "Inline class"
 
   sealed-class:
     help: "Sealed class"
-    experimentalReleaseVersion: "3.0.0"
+    enabledIn: '3.0.0'
+    validation: |
+      sealed class A {}
+      void main() {
+        print('feature enabled');
+      }
 
   class-modifiers:
     help: "Class modifiers"
-    experimentalReleaseVersion: "3.0.0"
+    enabledIn: '3.0.0'
+    validation: |
+      interface class A {}
+      void main() {
+        print('feature enabled');
+      }
 
 # Experiment flag only used for testing.
   test-experiment:

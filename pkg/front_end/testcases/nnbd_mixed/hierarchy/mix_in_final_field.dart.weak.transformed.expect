@@ -24,7 +24,7 @@ library /*isNonNullableByDefault*/;
 //   abstract final int extendedAbstractMixedInConcreteField;
 //                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_final_field.dart:19:7: Error: The non-abstract class 'Mixin' is missing implementations for these members:
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_final_field.dart:19:13: Error: The non-abstract class 'Mixin' is missing implementations for these members:
 //  - Mixin.extendedAbstractMixedInAbstractField
 //  - Mixin.extendedConcreteMixedInAbstractField
 //  - Mixin.mixedInAbstractField
@@ -34,8 +34,8 @@ library /*isNonNullableByDefault*/;
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
 //
-// class Mixin {
-//       ^^^^^
+// mixin class Mixin {
+//             ^^^^^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_final_field.dart:30:22: Context: 'Mixin.extendedAbstractMixedInAbstractField' is defined here.
 //   abstract final int extendedAbstractMixedInAbstractField;
 //                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -112,7 +112,7 @@ class Super extends core::Object {
   abstract get extendedAbstractMixedInConcreteField() → core::int;
   abstract get extendedAbstractMixedInAbstractField() → core::int;
 }
-class Mixin extends core::Object {
+mixin class Mixin extends core::Object {
   final field core::int mixedInConcreteField = 0;
   final field core::int extendedConcreteMixedInConcreteField = 0;
   final field core::int extendedAbstractMixedInConcreteField = 0;

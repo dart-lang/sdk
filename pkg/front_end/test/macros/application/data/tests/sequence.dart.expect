@@ -110,10 +110,7 @@ class Class7d extends self::_Class7d&Class7b&Class7c {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-17 */ method2() → dynamic {}
 }
 @#C2
-class Class7c extends core::Object {
-  synthetic constructor •() → self::Class7c
-    : super core::Object::•()
-    ;
+class Class7c extends core::Object /*isMixinDeclaration*/  {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-16 */ method() → dynamic {}
 }
 abstract class _Class7b&Object&Class7a = core::Object with self::Class7a /*isAnonymousMixin,hasConstConstructor*/  {
@@ -131,10 +128,7 @@ class Class7b extends self::_Class7b&Object&Class7a {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-15 */ method1() → dynamic {}
 }
 @#C2
-class Class7a extends core::Object {
-  synthetic constructor •() → self::Class7a
-    : super core::Object::•()
-    ;
+class Class7a extends core::Object /*isMixinDeclaration*/  {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-14 */ method() → dynamic {}
 }
 

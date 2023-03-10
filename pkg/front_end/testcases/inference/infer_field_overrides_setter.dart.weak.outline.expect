@@ -7,7 +7,7 @@ abstract class A extends core::Object {
     ;
   abstract set x(core::int? value) → void;
 }
-class B extends core::Object {
+mixin class B extends core::Object {
   synthetic constructor •() → self::B
     ;
   set x(core::int? value) → void

@@ -11,7 +11,7 @@ import 'dart:_interceptors' show Interceptor, findInterceptorForType;
 
 doFoo(r, x) => '$x,${r.oof()},${r.miz()}';
 
-class M {
+mixin M {
   miz() => 'M';
 }
 

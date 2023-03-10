@@ -16,7 +16,7 @@ class Super {
   void extendedAbstractMixedInAbstractMethod();
 }
 
-class Mixin {
+mixin class Mixin {
   void mixedInConcreteMethod(int i) {}
 
   void mixedInAbstractMethod(int i);

@@ -2,25 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class A extends Enum { // Ok.
+abstract mixin class A extends Enum {
+  // Error.
   int get foo => index;
 }
 
 enum EA with A { element } // Error.
 
-abstract class B implements Enum { // Ok.
+abstract mixin class B implements Enum {
+  // Ok.
   int get foo => index;
 }
 
 enum EB with B { element }
 
-mixin M on Enum { // Ok.
+mixin M on Enum {
+  // Ok.
   int get foo => index;
 }
 
 enum EM with M { element }
 
-mixin N implements Enum { // Ok.
+mixin N implements Enum {
+  // Ok.
   int get foo => index;
 }
 
@@ -33,7 +37,6 @@ expectEquals(x, y) {
 }
 
 main() {
-  expectEquals(EA.element.foo, EA.element.index);
   expectEquals(EB.element.foo, EB.element.index);
   expectEquals(EM.element.foo, EM.element.index);
   expectEquals(EN.element.foo, EN.element.index);

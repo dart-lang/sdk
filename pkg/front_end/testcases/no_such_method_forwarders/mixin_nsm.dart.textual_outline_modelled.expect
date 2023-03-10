@@ -4,14 +4,14 @@ abstract class Interface {
 
 class Class = Super with Mixin implements Interface;
 
-class Mixin {
+class Super {
+  void method2(num n) {}
+  void method3(num n) {}
+}
+
+mixin class Mixin {
   dynamic noSuchMethod(_) => null;
   void method1(int i);
   void method2(covariant int i);
   void method3(num n);
-}
-
-class Super {
-  void method2(num n) {}
-  void method3(num n) {}
 }

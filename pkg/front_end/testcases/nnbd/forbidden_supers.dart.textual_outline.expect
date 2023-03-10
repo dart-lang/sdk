@@ -1,4 +1,4 @@
-class Aoo {}
+mixin class Aoo {}
 class Boo {}
 class Coo extends Boo with Aoo? {}
 class Doo extends Aoo? {}

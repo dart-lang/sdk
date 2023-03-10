@@ -9,7 +9,7 @@ abstract class A {
   void set x(int? value);
 }
 
-class B {
+mixin class B {
   void set x(int? value) {}
 }
 

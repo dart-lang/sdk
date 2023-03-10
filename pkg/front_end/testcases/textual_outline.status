@@ -51,7 +51,6 @@ extensions/issue38712: FormatterCrash
 extensions/issue38745: FormatterCrash
 general/annotation_eof: FormatterCrash
 general/bad_setter_abstract: FormatterCrash
-general/base_class_declaration: FormatterCrash
 general/bug31124: FormatterCrash
 general/clone_function_type: FormatterCrash
 general/constants/js_semantics/number_folds: FormatterCrash
@@ -86,7 +85,6 @@ general/extension_types_feature_not_enabled: FormatterCrash
 general/function_type_default_value: FormatterCrash
 general/incomplete_field_formal_parameter: FormatterCrash
 general/inline_class_declaration: FormatterCrash
-general/interface_class_declaration: FormatterCrash
 general/invalid_operator2: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/invalid_super_initializer: FormatterCrash

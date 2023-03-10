@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A1 {
+mixin class A1 {
   int get hashCode => 42;
 }
 
@@ -10,7 +10,7 @@ enum E1 with A1 { // Error.
   element
 }
 
-class A2 {
+mixin class A2 {
   int get values => 42;
 }
 
@@ -18,7 +18,7 @@ enum E2 with A2 { // Error.
   element
 }
 
-class A3 {
+mixin class A3 {
   int get index => 42;
 }
 
@@ -26,7 +26,7 @@ enum E3 with A3 { // Error.
   element
 }
 
-class A4 {
+mixin class A4 {
   bool operator==(Object other) => true;
 }
 
@@ -66,7 +66,7 @@ enum E8 with M8 { // Error.
   element
 }
 
-abstract class A9 {
+abstract mixin class A9 {
   int get index;
   int get hashCode;
   bool operator==(Object other);

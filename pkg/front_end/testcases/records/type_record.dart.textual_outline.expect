@@ -1,4 +1,4 @@
-abstract class A<X> {}
+abstract mixin class A<X> {}
 
 typedef R = Record;
 typedef AR = A<Record>;

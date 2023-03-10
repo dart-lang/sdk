@@ -10,7 +10,7 @@ abstract class I {
   void foo();
 }
 
-class A implements I {
+mixin class A implements I {
   dynamic noSuchMethod(Invocation i) => null;
 }
 

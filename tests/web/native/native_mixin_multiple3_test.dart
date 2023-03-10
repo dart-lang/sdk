@@ -13,13 +13,13 @@ class E extends D {
   foo() => 'E.foo';
 }
 
-class M1 {}
+mixin M1 {}
 
-class M2 {
+mixin M2 {
   foo() => 'M2.foo';
 }
 
-class M3 {}
+mixin M3 {}
 
 @Native("A")
 class A {

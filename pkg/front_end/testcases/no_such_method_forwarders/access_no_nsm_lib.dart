@@ -4,7 +4,7 @@
 
 import 'access_no_nsm.dart';
 
-class SuperClass {
+mixin class SuperClass {
   void _inaccessibleMethod1() {}
   void accessibleMethod() {}
 }

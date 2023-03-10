@@ -25,7 +25,7 @@ class I<X extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-class M0<T extends core::Object? = dynamic> extends core::Object implements self::I<self::M0::T%> {
+mixin class M0<T extends core::Object? = dynamic> extends core::Object implements self::I<self::M0::T%> {
   synthetic constructor •() → self::M0<self::M0::T%>
     : super core::Object::•()
     ;

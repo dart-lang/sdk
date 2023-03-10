@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Class<T> {}
+mixin class Class<T> {}
 
 class ConcreteClass implements Class<ConcreteClass> {}
 
 typedef F<X extends Class<X>> = Class<X>;
 
-class G<X extends Class<X>> {}
+mixin class G<X extends Class<X>> {}
 
 class ExtendsT1 extends F {} // Error
 

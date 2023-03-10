@@ -1,9 +1,9 @@
-abstract class A {
-  String toString() => "A";
-}
-
 abstract class B implements Enum {
   String toString() => "B";
+}
+
+abstract mixin class A {
+  String toString() => "A";
 }
 
 checkEqual(x, y) {}

@@ -127,7 +127,7 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///access_no_nsm.dart";
 
-class SuperClass extends core::Object {
+mixin class SuperClass extends core::Object {
   synthetic constructor •() → acc::SuperClass
     ;
   method _inaccessibleMethod1() → void
