@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// **WARNING**:
-/// The following types will be sealed in the near future. Do *not* subtype
-/// the types in this library as the subtypes will be broken.
-
 /// A library for JS interop. Includes a JS type hierarchy to facilitate sound
 /// interop with JS. The JS type hierarchy is modeled after the actual type
 /// hierarchy in JS, and not the Dart type hierarchy.
@@ -14,6 +10,14 @@
 /// implementation. JS backends currently support conflating Dart types and JS
 /// types, whereas Wasm backends do not. Over time we will try and unify backend
 /// semantics as much as possible.
+///
+/// **WARNING**:
+/// The following types will be sealed in the near future. Do *not* subtype
+/// the types in this library as the subtypes will be broken.
+///
+/// {@category Web}
+library dart.js_interop;
+
 import 'dart:_js_types' as js_types;
 import 'dart:typed_data';
 
@@ -33,11 +37,11 @@ typedef JSAny = js_types.JSAny;
 /// primitives. This is the only allowed `on` type for inline classes written by
 /// users to model JS interop objects. See https://dart.dev/web/js-interop for
 /// more details on how to use JS interop.
-/// TODO(srujzs): This class _must_ be sealed before we can make this library
-/// public. Either use the CFE mechanisms that exist today, or use the Dart 3
-/// sealed classes feature.
-/// TODO(joshualitt): Do we need to seal any other JS types on JS backends? We
-/// probably want to seal all JS types on Wasm backends.
+// TODO(srujzs): This class _must_ be sealed before we can make this library
+// public. Either use the CFE mechanisms that exist today, or use the Dart 3
+// sealed classes feature.
+// TODO(joshualitt): Do we need to seal any other JS types on JS backends? We
+// probably want to seal all JS types on Wasm backends.
 typedef JSObject = js_types.JSObject;
 
 /// The type of all JS functions, [JSFunction] <: [JSObject].
@@ -46,7 +50,7 @@ typedef JSFunction = js_types.JSFunction;
 /// The type of all Dart functions adapted to be callable from JS. We only allow
 /// a subset of Dart functions to be callable from JS, [JSExportedDartFunction]
 /// <: [JSFunction].
-/// TODO(joshualitt): Detail exactly what are the requirements.
+// TODO(joshualitt): Detail exactly what are the requirements.
 typedef JSExportedDartFunction = js_types.JSExportedDartFunction;
 
 /// The type of JS promises and promise-like objects, [JSPromise] <: [JSObject].
@@ -80,9 +84,9 @@ typedef JSUint32Array = js_types.JSUint32Array;
 typedef JSFloat32Array = js_types.JSFloat32Array;
 typedef JSFloat64Array = js_types.JSFloat64Array;
 
-/// The various JS primitive types. Crucially, unlike the Dart type hierarchy,
-/// none of these are subtypes of [JSObject], but rather they are logically
-/// subtypes of [JSAny].
+// The various JS primitive types. Crucially, unlike the Dart type hierarchy,
+// none of these are subtypes of [JSObject], but rather they are logically
+// subtypes of [JSAny].
 
 /// The type of JS numbers, [JSNumber] <: [JSAny].
 typedef JSNumber = js_types.JSNumber;
@@ -100,8 +104,8 @@ typedef JSString = js_types.JSString;
 /// null`, users should use the provided helpers below to determine if it is
 /// safe to downcast a potentially `JSNullable` or `JSUndefineable` object to a
 /// defined and non-null JS type.
-/// TODO(joshualitt): Investigate whether or not it will be possible to reify
-/// `JSUndefined` and `JSNull` on all backends.
+// TODO(joshualitt): Investigate whether or not it will be possible to reify
+// `JSUndefined` and `JSNull` on all backends.
 extension NullableUndefineableJSAnyExtension on JSAny? {
   external bool get isUndefined;
   external bool get isNull;
@@ -113,10 +117,10 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
 /// no actual object will be returned.
 typedef JSVoid = js_types.JSVoid;
 
-/// Extension members to support conversions between Dart types and JS types.
-/// Not all Dart types can be converted to JS types and vice versa.
-/// TODO(joshualitt): We might want to investigate using inline classes instead
-/// of extension methods for these methods.
+// Extension members to support conversions between Dart types and JS types.
+// Not all Dart types can be converted to JS types and vice versa.
+// TODO(joshualitt): We might want to investigate using inline classes instead
+// of extension methods for these methods.
 
 /// [JSExportedDartFunction] <-> [Function]
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
@@ -141,9 +145,9 @@ extension JSPromiseToFuture on JSPromise {
   external Future<JSAny?> get toDart;
 }
 
-/// TODO(joshualitt): On Wasm backends List / Array conversion methods will
-/// copy, and on JS backends they will not. We should find a path towards
-/// consistent semantics.
+// TODO(joshualitt): On Wasm backends List / Array conversion methods will
+// copy, and on JS backends they will not. We should find a path towards
+// consistent semantics.
 /// [JSArrayBuffer] <-> [ByteBuffer]
 extension JSArrayBufferToByteBuffer on JSArrayBuffer {
   external ByteBuffer get toDart;
