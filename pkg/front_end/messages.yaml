@@ -3440,6 +3440,7 @@ SwitchExpressionNotSubtype:
   problemMessage: "Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression."
   script:
     - |
+      // @dart=2.19
       void f() {
         switch (42) {
           case "foo": break;

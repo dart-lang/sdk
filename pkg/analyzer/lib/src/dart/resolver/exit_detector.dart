@@ -504,6 +504,11 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _visitStatements(node.statements);
 
   @override
+  bool visitSwitchPatternCase(SwitchPatternCase node) {
+    return _visitStatements(node.statements);
+  }
+
+  @override
   bool visitSwitchStatement(SwitchStatement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;

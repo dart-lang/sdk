@@ -44,6 +44,8 @@ const char* GetExperimentalFeatureName(ExperimentalFeature feature) {
       "super-parameters",
       "inference-update-1",
       "unnamed-libraries",
+      "records",
+      "patterns",
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureNames));
   return kFeatureNames[static_cast<int>(feature)];

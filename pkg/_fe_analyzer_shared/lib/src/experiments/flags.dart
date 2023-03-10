@@ -123,14 +123,14 @@ enum ExperimentalFlag {
 
   patterns(
       name: 'patterns',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
 
   records(
       name: 'records',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
