@@ -4048,11 +4048,8 @@ static const MethodParameter* const get_isolate_metric_list_params[] = {
 };
 
 static void GetIsolateMetricList(Thread* thread, JSONStream* js) {
-  bool native_metrics = false;
   if (js->HasParam("type")) {
-    if (js->ParamIs("type", "Native")) {
-      native_metrics = true;
-    } else {
+    if (!js->ParamIs("type", "Native")) {
       PrintInvalidParamError(js, "type");
       return;
     }
