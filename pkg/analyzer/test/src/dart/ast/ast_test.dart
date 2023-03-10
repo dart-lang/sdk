@@ -298,6 +298,21 @@ class C {
     assertInContext("C()}", true);
   }
 
+  test_inConstantContext_instanceCreation_switch_false() {
+    parse('''
+f(v) {
+  switch (v) {
+  case C():
+    break;
+  }
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", false);
+  }
+
   test_inConstantContext_instanceCreation_switch_true() {
     parse('''
 f(v) {
