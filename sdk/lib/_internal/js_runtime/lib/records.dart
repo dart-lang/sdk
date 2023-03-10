@@ -19,9 +19,13 @@ abstract final class _Record implements Record {
 
   Type get runtimeType {
     // TODO(51040): Consider caching.
+    return newRti.getRuntimeTypeOfRecord(this);
+  }
+
+  newRti.Rti _getRti() {
     String recipe =
         JS('', '#[#]', this, JS_GET_NAME(JsGetName.RECORD_SHAPE_TYPE_PROPERTY));
-    return newRti.getRuntimeTypeOfRecord(recipe, _getFieldValues());
+    return newRti.evaluateRtiForRecord(recipe, _getFieldValues());
   }
 
   @override
@@ -86,6 +90,13 @@ abstract final class _Record implements Record {
   }
 
   static final List<List<Object>?> _computedFieldKeys = [];
+}
+
+/// Entrypoint for rti library. Calls rti.evaluateRtiForRecord with components
+/// of the record.
+@pragma('dart2js:as:trust')
+newRti.Rti getRtiForRecord(Object? record) {
+  return (record as _Record)._getRti();
 }
 
 /// The empty record.
