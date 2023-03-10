@@ -54,7 +54,7 @@ dart.ci_sandbox_builder(
     notifies = None,
     priority = priority.normal,
     properties = {
-        "$fuchsia/goma": {"server": "goma.chromium.org"},
+        "$flutter/goma": {"server": "goma.chromium.org"},
         "config_name": "host_linux",
         "environment": "unused",
         "goma_jobs": "200",
@@ -73,7 +73,7 @@ dart.try_builder(
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
     execution_timeout = 120 * time.minute,
     properties = {
-        "$fuchsia/goma": {"server": "goma.chromium.org"},
+        "$flutter/goma": {"server": "goma.chromium.org"},
         "builder_name_suffix": "-try",
         "config_name": "host_linux",
         "environment": "unused",
