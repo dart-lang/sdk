@@ -294,6 +294,48 @@ void f(A a) {
     ]);
   }
 
+  test_class_indexRead() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('2.15')
+  int operator[](int index) => 0;
+}
+''');
+
+    await verifyVersion2('>=2.14.0', '''
+import 'dart:foo';
+
+void f(A a) {
+  a[0];
+}
+''', expectedErrors: [
+      error(WarningCode.SDK_VERSION_SINCE, 37, 1),
+    ]);
+  }
+
+  test_class_indexWrite() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('2.15')
+  operator[]=(int index, int value) {}
+}
+''');
+
+    await verifyVersion2('>=2.14.0', '''
+import 'dart:foo';
+
+void f(A a) {
+  a[0] = 0;
+}
+''', expectedErrors: [
+      error(WarningCode.SDK_VERSION_SINCE, 37, 1),
+    ]);
+  }
+
   test_class_instanceCreation_prefixed() async {
     _addDartFooLibrary(r'''
 import 'dart:_internal';
@@ -682,6 +724,43 @@ void f() {
 }
 ''', expectedErrors: [
       error(WarningCode.SDK_VERSION_SINCE, 35, 2),
+    ]);
+  }
+
+  test_enum_index_onConcreteEnum() async {
+    await verifyVersion2('>=2.12.0', '''
+enum E { v }
+
+void f(E e) {
+  e.index;
+}
+''', expectedErrors: []);
+  }
+
+  test_enum_index_onDartCoreEnum() async {
+    await verifyVersion2('>=2.12.0', '''
+void f(Enum e) {
+  e.index;
+}
+''', expectedErrors: [
+      error(WarningCode.SDK_VERSION_SINCE, 7, 4),
+      error(WarningCode.SDK_VERSION_SINCE, 21, 5),
+    ]);
+  }
+
+  test_enum_index_onDartCoreEnum_fromOtherLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+Enum get myEnum => throw 0;
+''');
+
+    await verifyVersion2('>=2.12.0', '''
+import 'a.dart';
+
+void f() {
+  myEnum.index;
+}
+''', expectedErrors: [
+      error(WarningCode.SDK_VERSION_SINCE, 38, 5),
     ]);
   }
 

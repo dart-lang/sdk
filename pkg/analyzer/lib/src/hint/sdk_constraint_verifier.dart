@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -133,7 +134,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     for (final argument in node.arguments) {
       if (argument is! NamedExpression) {
         final parameter = argument.staticParameterElement;
-        _checkSinceSdkVersion(parameter, node, errorNode: argument);
+        _checkSinceSdkVersion(parameter, node, errorEntity: argument);
       }
     }
 
@@ -251,6 +252,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIndexExpression(IndexExpression node) {
+    _checkSinceSdkVersion(node.staticElement, node);
+    super.visitIndexExpression(node);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     if (checkConstantUpdate2018 && node.inConstantContext) {
       _errorReporter.reportErrorForNode(
@@ -351,7 +358,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void _checkSinceSdkVersion(
     Element? element,
     AstNode target, {
-    AstNode? errorNode,
+    SyntacticEntity? errorEntity,
   }) {
     if (!shouldCheckSinceSdkVersion) {
       return;
@@ -361,31 +368,37 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       final sinceSdkVersion = element.sinceSdkVersion;
       if (sinceSdkVersion != null) {
         if (!_versionConstraint.requiresAtLeast(sinceSdkVersion)) {
-          if (errorNode == null) {
+          if (errorEntity == null) {
+            if (!_shouldReportEnumIndex(target, element)) {
+              return;
+            }
             if (target is AssignmentExpression) {
               target = target.leftHandSide;
             }
             if (target is ConstructorName) {
-              errorNode = target.name ?? target.type.name.simpleName;
+              errorEntity = target.name ?? target.type.name.simpleName;
             } else if (target is FunctionExpressionInvocation) {
-              errorNode = target.argumentList;
+              errorEntity = target.argumentList;
+            } else if (target is IndexExpression) {
+              errorEntity = target.leftBracket;
             } else if (target is MethodInvocation) {
-              errorNode = target.methodName;
+              errorEntity = target.methodName;
             } else if (target is NamedType) {
-              errorNode = target.name.simpleName;
+              errorEntity = target.name.simpleName;
             } else if (target is PrefixedIdentifier) {
-              errorNode = target.identifier;
+              errorEntity = target.identifier;
             } else if (target is PropertyAccess) {
-              errorNode = target.propertyName;
+              errorEntity = target.propertyName;
             } else if (target is SimpleIdentifier) {
-              errorNode = target;
+              errorEntity = target;
             } else {
               throw UnimplementedError('(${target.runtimeType}) $target');
             }
           }
-          _errorReporter.reportErrorForNode(
+          _errorReporter.reportErrorForOffset(
             WarningCode.SDK_VERSION_SINCE,
-            errorNode,
+            errorEntity.offset,
+            errorEntity.length,
             [
               sinceSdkVersion.toString(),
               _versionConstraint.toString(),
@@ -415,6 +428,31 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
         node.thisOrAncestorOfType<TypedLiteral>()!.isConst) {
       _errorReporter.reportErrorForNode(
           WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT, node);
+    }
+  }
+
+  /// Returns `false` if [element] is the `index` property, and the target
+  /// of [node] is exactly the `Enum` class from `dart:core`. We have already
+  /// checked that the property is not available to the enclosing package.
+  ///
+  /// Returns `true` if [element] is something else, or if the target is a
+  /// concrete enum. The `index` was always available for concrete enums,
+  /// but there was no common `Enum` supertype for all enums.
+  static bool _shouldReportEnumIndex(AstNode node, Element element) {
+    if (element is PropertyAccessorElement && element.name == 'index') {
+      DartType? targetType;
+      if (node is PrefixedIdentifier) {
+        targetType = node.prefix.staticType;
+      } else if (node is PropertyAccess) {
+        targetType = node.realTarget.staticType;
+      }
+      if (targetType != null) {
+        final targetElement = targetType.element;
+        return targetElement is ClassElement && targetElement.isDartCoreEnum;
+      }
+      return false;
+    } else {
+      return true;
     }
   }
 }
