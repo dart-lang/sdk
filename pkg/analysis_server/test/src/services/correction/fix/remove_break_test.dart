@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +20,7 @@ void main() {
 @reflectiveTest
 class RemoveBreakBulkTest extends BulkFixProcessorTest {
   @override
-  List<String> get experiments => ['patterns', 'records'];
+  List<Feature> get experiments => [Feature.patterns, Feature.records];
 
   @override
   String get lintCode => LintNames.unnecessary_breaks;
@@ -53,7 +54,7 @@ f() {
 @reflectiveTest
 class RemoveBreakTest extends FixProcessorLintTest {
   @override
-  List<String> get experiments => ['patterns', 'records'];
+  List<Feature> get experiments => [Feature.patterns, Feature.records];
 
   @override
   FixKind get kind => DartFixKind.REMOVE_BREAK;

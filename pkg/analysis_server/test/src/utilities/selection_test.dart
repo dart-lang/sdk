@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,12 +20,6 @@ void main() {
 
 @reflectiveTest
 class SelectionTest extends AbstractSingleUnitTest {
-  @override
-  List<String> get experiments => [
-        ...super.experiments,
-        EnableString.patterns,
-      ];
-
   Future<void> assertMembers(
       {String prefix = '', required String postfix}) async {
     var nodes = await nodesInRange('''

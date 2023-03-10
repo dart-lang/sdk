@@ -27,7 +27,7 @@ import 'src/utilities/mock_packages.dart';
 
 /// TODO(scheglov) this is duplicate
 class AnalysisOptionsFileConfig {
-  final List<String> experiments;
+  final List<Feature> experiments;
   final bool implicitCasts;
   final bool implicitDynamic;
   final List<String> lints;
@@ -52,7 +52,12 @@ class AnalysisOptionsFileConfig {
     if (experiments.isNotEmpty) {
       buffer.writeln('  enable-experiment:');
       for (var experiment in experiments) {
-        buffer.writeln('    - $experiment');
+        final experimentalFlag = experiment.experimentalFlag;
+        if (experimentalFlag != null) {
+          buffer.writeln('    - ${experiment.experimentalFlag}');
+        } else {
+          throw ArgumentError('Not experimental: $experiment');
+        }
       }
     }
     buffer.writeln('  language:');
@@ -214,15 +219,13 @@ class ContextResolutionTest with ResourceProviderMixin {
 }
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest {
-  // If experiments are needed,
-  // add `import 'package:analyzer/dart/analysis/features.dart';`
-  // and list the necessary experiments here.
-  List<String> get experiments => [
-        Feature.class_modifiers.enableString,
-        Feature.macros.enableString,
-        Feature.patterns.enableString,
-        Feature.records.enableString,
-        Feature.sealed_class.enableString,
+  List<Feature> get experiments => [
+        Feature.class_modifiers,
+        Feature.inline_class,
+        Feature.macros,
+        Feature.patterns,
+        Feature.records,
+        Feature.sealed_class,
       ];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
