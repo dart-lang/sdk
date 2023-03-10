@@ -691,6 +691,8 @@ import 'referenced_before_declaration_test.dart'
     as referenced_before_declaration;
 import 'refutable_pattern_in_irrefutable_context_test.dart'
     as refutable_pattern_in_irrefutable_context;
+import 'relational_pattern_operand_type_not_assignable_test.dart'
+    as relational_pattern_operand_type_not_assignable;
 import 'relational_pattern_operator_return_type_not_assignable_to_bool_test.dart'
     as relational_pattern_operator_return_type_not_assignable_to_bool;
 import 'removed_lint_use_test.dart' as removed_lint_in_ignore;
@@ -1324,6 +1326,7 @@ main() {
     redirect_to_type_alias_expands_to_type_parameter.main();
     referenced_before_declaration.main();
     refutable_pattern_in_irrefutable_context.main();
+    relational_pattern_operand_type_not_assignable.main();
     relational_pattern_operator_return_type_not_assignable_to_bool.main();
     removed_lint_in_ignore.main();
     replaced_lint_in_ignore.main();

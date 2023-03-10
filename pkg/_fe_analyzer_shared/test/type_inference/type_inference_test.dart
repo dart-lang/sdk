@@ -3633,13 +3633,13 @@ main() {
           h.run([
             ifCase(
               expr('int').checkContext('?'),
-              relationalPattern('>', expr('String')..errorId = 'OPERAND'),
+              relationalPattern('>', expr('String'))..errorId = 'PATTERN',
               [],
             ).checkIr('ifCase(expr(int), >(expr(String), '
                 'matchedType: int), variables(), true, block(), noop)')
           ], expectedErrors: {
-            'argumentTypeNotAssignable(argument: OPERAND, '
-                'argumentType: String, parameterType: num)'
+            'relationalPatternOperandTypeNotAssignable(pattern: PATTERN, '
+                'operandType: String, parameterType: num)'
           });
         });
         test('return type is not assignable to bool', () {

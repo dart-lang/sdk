@@ -29,19 +29,6 @@ class SharedTypeAnalyzerErrors
   SharedTypeAnalyzerErrors(this._errorReporter);
 
   @override
-  void argumentTypeNotAssignable({
-    required Expression argument,
-    required DartType argumentType,
-    required DartType parameterType,
-  }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-      argument,
-      [argumentType, parameterType],
-    );
-  }
-
-  @override
   void assertInErrorRecovery() {}
 
   @override
@@ -230,6 +217,19 @@ class SharedTypeAnalyzerErrors
     _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
       pattern,
+    );
+  }
+
+  @override
+  void relationalPatternOperandTypeNotAssignable({
+    required covariant RelationalPatternImpl pattern,
+    required DartType operandType,
+    required DartType parameterType,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+      pattern.operand,
+      [operandType, parameterType, pattern.operator.lexeme],
     );
   }
 
