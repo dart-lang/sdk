@@ -248,26 +248,31 @@ RESULT: x_0
 ------------ switch1 ------------
 %selector = _Parameter #0 [_T (dart.core::int)+?]
 t1* = _Call direct [#lib::C1.] (_T (#lib::C1))
-t2* = _Call direct [#lib::C2.] (_T (#lib::C2))
-t3* = _Call direct [#lib::C3.] (_T (#lib::C3))
-x_2 = _Join [dynamic] (t3, t1)
-x_3 = _Join [dynamic] (x_2, t2)
-RESULT: x_3
+t2* = _Call [dart.core::num.==] (_T (dart.core::int)+?, _T (dart.core::int)+?)
+t3* = _Call direct [#lib::C2.] (_T (#lib::C2))
+t4* = _Call [dart.core::num.==] (_T (dart.core::int)+?, _T (dart.core::int)+?)
+t5* = _Call direct [#lib::C3.] (_T (#lib::C3))
+x_0 = _Join [dynamic] (t5, t1)
+x_1 = _Join [dynamic] (x_0, t3)
+RESULT: x_1
 ------------ switch2 ------------
 %selector = _Parameter #0 [_T (dart.core::int)+?]
 t1 = _Call direct [#lib::C1.] (_T (#lib::C1))
-t2* = _Call direct [#lib::C2.] (_T (#lib::C2))
-t3* = _Call direct [#lib::C3.] (_T (#lib::C3))
-x_2 = _Join [dynamic] (t3, t2)
-RESULT: x_2
+t2* = _Call [dart.core::num.==] (_T (dart.core::int)+?, _T (dart.core::int)+?)
+t3* = _Call direct [#lib::C2.] (_T (#lib::C2))
+t4* = _Call direct [#lib::C3.] (_T (#lib::C3))
+x_0 = _Join [dynamic] (t4, t3)
+RESULT: x_0
 ------------ switch3 ------------
 %selector = _Parameter #0 [_T (dart.core::int)+?]
 t1* = _Call direct [#lib::C1.] (_T (#lib::C1))
-t2* = _Call direct [#lib::C2.] (_T (#lib::C2))
-x_1 = _Join [dynamic] (t1, t2)
-t4 = _Call direct [#lib::foo] (x_1)
-t5* = _Call direct [#lib::C3.] (_T (#lib::C3))
-x_2 = _Join [dynamic] (t1, t5)
+t2* = _Call [dart.core::num.==] (_T (dart.core::int)+?, _T (dart.core::int)+?)
+t3* = _Call [dart.core::num.==] (_T (dart.core::int)+?, _T (dart.core::int)+?)
+t4* = _Call direct [#lib::C2.] (_T (#lib::C2))
+x_1 = _Join [dynamic] (t1, t4)
+t6 = _Call direct [#lib::foo] (x_1)
+t7* = _Call direct [#lib::C3.] (_T (#lib::C3))
+x_2 = _Join [dynamic] (t1, t7)
 RESULT: x_2
 ------------ cast1 ------------
 %x = _Parameter #0 [_T ANY?]
