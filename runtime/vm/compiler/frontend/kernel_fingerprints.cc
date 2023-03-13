@@ -688,8 +688,10 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kInstanceCreation:
     case kFileUriExpression:
     case kStaticTearOff:
-      // These nodes are internal to the front end and
-      // removed by the constant evaluator.
+    case kSwitchExpression:
+    case kPatternAssignment:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();
@@ -831,6 +833,11 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateVariableDeclarationFingerprint();  // read variable.
       CalculateFunctionNodeFingerprint();         // read function node.
       return;
+    case kIfCaseStatement:
+    case kPatternSwitchStatement:
+    case kPatternVariableDeclaration:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("statement", tag);
       UNREACHABLE();

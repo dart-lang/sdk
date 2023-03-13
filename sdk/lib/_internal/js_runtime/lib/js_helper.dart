@@ -64,13 +64,15 @@ import 'dart:_rti' as newRti
     show
         createRuntimeType,
         evalInInstance,
+        evaluateRtiForRecord,
         getRuntimeType,
         getRuntimeTypeOfRecord,
         getTypeFromTypesTable,
         instanceTypeName,
         instantiatedGenericFunctionType,
         pairwiseIsTest,
-        throwTypeError;
+        throwTypeError,
+        Rti;
 
 import 'dart:_load_library_priority';
 

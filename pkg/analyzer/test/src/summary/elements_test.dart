@@ -4677,7 +4677,7 @@ library
                                 type: double
                               name: a @78
                               declaredElement: a@78
-                              declaredElementType: double
+                                type: double
                             rightParenthesis: ) @79
                           declaredElement: GenericFunctionTypeElement
                             parameters
@@ -24606,7 +24606,7 @@ library
                         type: String
                       name: a @52
                       declaredElement: a@52
-                      declaredElementType: String
+                        type: String
                     rightParenthesis: ) @53
                   declaredElement: GenericFunctionTypeElement
                     parameters
@@ -24678,7 +24678,7 @@ library
                         type: String
                       name: a @52
                       declaredElement: a@52
-                      declaredElementType: String
+                        type: String
                     rightParenthesis: ) @53
                   declaredElement: GenericFunctionTypeElement
                     parameters
@@ -24763,9 +24763,9 @@ library
                               type: int?
                             name: a @63
                             declaredElement: a@63
-                            declaredElementType: int?
+                              type: int?
                           declaredElement: a@63
-                          declaredElementType: int?
+                            type: int?
                         rightDelimiter: } @64
                         rightParenthesis: ) @65
                       declaredElement: GenericFunctionTypeElement
@@ -24846,9 +24846,9 @@ library
                               type: int?
                             name: a @63
                             declaredElement: a@63
-                            declaredElementType: int?
+                              type: int?
                           declaredElement: a@63
-                          declaredElementType: int?
+                            type: int?
                         rightDelimiter: ] @64
                         rightParenthesis: ) @65
                       declaredElement: GenericFunctionTypeElement
@@ -24929,9 +24929,9 @@ library
                               type: int
                             name: a @71
                             declaredElement: a@71
-                            declaredElementType: int
+                              type: int
                           declaredElement: a@71
-                          declaredElementType: int
+                            type: int
                         rightDelimiter: } @72
                         rightParenthesis: ) @73
                       declaredElement: GenericFunctionTypeElement
@@ -25009,7 +25009,7 @@ library
                             type: int
                           name: a @61
                           declaredElement: a@61
-                          declaredElementType: int
+                            type: int
                         rightParenthesis: ) @62
                       declaredElement: GenericFunctionTypeElement
                         parameters

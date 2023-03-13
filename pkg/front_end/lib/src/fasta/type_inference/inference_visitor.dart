@@ -1848,6 +1848,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const StatementInferenceResult();
   }
 
+  @override
   StatementInferenceResult visitIfCaseStatement(IfCaseStatement node) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
@@ -8077,6 +8078,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(rhsResult.inferredType, node);
   }
 
+  @override
   ExpressionInferenceResult visitSwitchExpression(
       SwitchExpression node, DartType typeContext) {
     if (node.cases.isEmpty) {
@@ -8098,6 +8100,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analyzeSwitchExpression(
             node, expression, node.cases.length, typeContext);
     DartType valueType = analysisResult.type;
+    node.staticType = valueType;
 
     assert(checkStack(node, stackBase, [
       /* scrutineeType = */ ValueKinds.DartType,
@@ -8325,6 +8328,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         : const StatementInferenceResult();
   }
 
+  @override
   StatementInferenceResult visitPatternSwitchStatement(
       PatternSwitchStatement node) {
     int? stackBase;
@@ -9021,6 +9025,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const StatementInferenceResult();
   }
 
+  @override
   StatementInferenceResult visitPatternVariableDeclaration(
       PatternVariableDeclaration node) {
     int? stackBase;
@@ -9621,7 +9626,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   void dispatchPattern(SharedMatchContext context, TreeNode node) {
     if (node is Pattern) {
-      node.acceptPattern1(this, context);
+      node.accept1(this, context);
     } else {
       analyzeConstantPattern(context, node, node as Expression);
     }
@@ -10122,7 +10127,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
       replacement =
-          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
     }
 
     DartType inferredType = analysisResult.staticType;
@@ -10154,7 +10160,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
       replacement =
-          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
     }
 
     pushRewrite(replacement ?? node);
@@ -10178,7 +10185,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.refutablePatternInIrrefutableContextError;
     if (error != null) {
       replacement =
-          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
     }
 
     node.expressionType = analysisResult.expressionType;
@@ -10258,7 +10266,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.refutablePatternInIrrefutableContextError;
     if (error != null) {
       replacement =
-          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
     }
 
     Object? rewrite = popRewrite();
@@ -10326,7 +10335,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.refutablePatternInIrrefutableContextError;
     if (error != null) {
       replacement =
-          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
     }
 
     Object? rewrite = popRewrite();
@@ -10470,7 +10480,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
       replacement =
-          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
     }
 
     for (int i = node.patterns.length - 1; i >= 0; i--) {
@@ -10479,6 +10490,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (error != null) {
         node.patterns[i] = new InvalidPattern(error,
             declaredVariables: node.patterns[i].declaredVariables)
+          ..fileOffset = error.fileOffset
           ..parent = node;
       } else if (!identical(rewrite, node.patterns[i])) {
         node.patterns[i] = (rewrite as Pattern)..parent = node;
@@ -10524,7 +10536,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
       replacement =
-          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
     }
 
     for (int i = node.fields.length - 1; i >= 0; i--) {
@@ -10535,6 +10548,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (error != null) {
         field.pattern = new InvalidPattern(error,
             declaredVariables: field.pattern.declaredVariables)
+          ..fileOffset = error.fileOffset
           ..parent = field;
       } else if (!identical(rewrite, field.pattern)) {
         field.pattern = (rewrite as Pattern)..parent = field;
@@ -10551,95 +10565,75 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     for (NamedPattern field in node.fields) {
-      String? fieldNameString;
-      if (field.name.isNotEmpty) {
-        fieldNameString = field.name;
-      } else {
-        // The name is defined by the nested variable pattern.
-        Pattern nestedPattern = field.pattern;
-        if (nestedPattern is VariablePattern) {
-          fieldNameString = nestedPattern.name;
-        }
-      }
+      field.fieldName = new Name(field.name, libraryBuilder.library);
 
-      if (fieldNameString != null) {
-        field.fieldName = new Name(fieldNameString,
-            fieldNameString.startsWith("_") ? libraryBuilder.library : null);
+      ObjectAccessTarget fieldTarget = findInterfaceMember(
+          node.objectType, field.fieldName, field.fileOffset,
+          includeExtensionMethods: true,
+          callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
-        ObjectAccessTarget fieldTarget = findInterfaceMember(
-            node.objectType, field.fieldName, field.fileOffset,
-            includeExtensionMethods: true,
-            callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-
-        switch (fieldTarget.kind) {
-          case ObjectAccessTargetKind.instanceMember:
-            field.target = fieldTarget.member!;
-            field.resultType = fieldTarget.getGetterType(this);
-            field.accessKind = ObjectAccessKind.Instance;
-            break;
-          case ObjectAccessTargetKind.objectMember:
-            field.target = fieldTarget.member!;
-            field.resultType = fieldTarget.getGetterType(this);
-            field.accessKind = ObjectAccessKind.Object;
-            break;
-          case ObjectAccessTargetKind.recordNamed:
-            field.recordType =
-                node.objectType.resolveTypeParameterType as RecordType;
-            field.accessKind = ObjectAccessKind.RecordNamed;
-            break;
-          case ObjectAccessTargetKind.recordIndexed:
-            field.recordType =
-                node.objectType.resolveTypeParameterType as RecordType;
-            field.accessKind = ObjectAccessKind.RecordIndexed;
-            field.recordFieldIndex = fieldTarget.recordFieldIndex!;
-            break;
-          case ObjectAccessTargetKind.nullableInstanceMember:
-          case ObjectAccessTargetKind.nullableExtensionMember:
-          case ObjectAccessTargetKind.nullableInlineClassMember:
-          case ObjectAccessTargetKind.nullableRecordIndexed:
-          case ObjectAccessTargetKind.nullableRecordNamed:
-          case ObjectAccessTargetKind.nullableCallFunction:
-          case ObjectAccessTargetKind.missing:
-          case ObjectAccessTargetKind.ambiguous:
-            field.pattern = new InvalidPattern(
-                createMissingPropertyGet(
-                    field.fileOffset, node.objectType, field.fieldName),
-                declaredVariables: field.pattern.declaredVariables)
-              ..parent = field;
-            field.accessKind = ObjectAccessKind.Error;
-            break;
-          case ObjectAccessTargetKind.invalid:
-            field.accessKind = ObjectAccessKind.Invalid;
-            break;
-          case ObjectAccessTargetKind.callFunction:
-            field.accessKind = ObjectAccessKind.FunctionTearOff;
-            break;
-          case ObjectAccessTargetKind.superMember:
-          case ObjectAccessTargetKind.inlineClassRepresentation:
-          case ObjectAccessTargetKind.nullableInlineClassRepresentation:
-            problems.unsupported('Object field target $fieldTarget',
-                node.fileOffset, helper.uri);
-          case ObjectAccessTargetKind.extensionMember:
-          case ObjectAccessTargetKind.inlineClassMember:
-            field.accessKind = ObjectAccessKind.Static;
-            field.functionType = fieldTarget.getFunctionType(this);
-            field.typeArguments = fieldTarget.receiverTypeArguments;
-            field.target = fieldTarget.member;
-            break;
-          case ObjectAccessTargetKind.dynamic:
-            field.accessKind = ObjectAccessKind.Dynamic;
-            break;
-          case ObjectAccessTargetKind.never:
-            field.accessKind = ObjectAccessKind.Dynamic;
-            break;
-        }
-      } else {
-        field.accessKind = ObjectAccessKind.Error;
-        field.pattern = new InvalidPattern(
-            helper.buildProblem(messageUnspecifiedGetterNameInObjectPattern,
-                node.fileOffset, noLength),
-            declaredVariables: field.pattern.declaredVariables)
-          ..parent = field;
+      switch (fieldTarget.kind) {
+        case ObjectAccessTargetKind.instanceMember:
+          field.target = fieldTarget.member!;
+          field.resultType = fieldTarget.getGetterType(this);
+          field.accessKind = ObjectAccessKind.Instance;
+          break;
+        case ObjectAccessTargetKind.objectMember:
+          field.target = fieldTarget.member!;
+          field.resultType = fieldTarget.getGetterType(this);
+          field.accessKind = ObjectAccessKind.Object;
+          break;
+        case ObjectAccessTargetKind.recordNamed:
+          field.recordType =
+              node.objectType.resolveTypeParameterType as RecordType;
+          field.accessKind = ObjectAccessKind.RecordNamed;
+          break;
+        case ObjectAccessTargetKind.recordIndexed:
+          field.recordType =
+              node.objectType.resolveTypeParameterType as RecordType;
+          field.accessKind = ObjectAccessKind.RecordIndexed;
+          field.recordFieldIndex = fieldTarget.recordFieldIndex!;
+          break;
+        case ObjectAccessTargetKind.nullableInstanceMember:
+        case ObjectAccessTargetKind.nullableExtensionMember:
+        case ObjectAccessTargetKind.nullableInlineClassMember:
+        case ObjectAccessTargetKind.nullableRecordIndexed:
+        case ObjectAccessTargetKind.nullableRecordNamed:
+        case ObjectAccessTargetKind.nullableCallFunction:
+        case ObjectAccessTargetKind.missing:
+        case ObjectAccessTargetKind.ambiguous:
+          field.pattern = new InvalidPattern(
+              createMissingPropertyGet(
+                  field.fileOffset, node.objectType, field.fieldName),
+              declaredVariables: field.pattern.declaredVariables)
+            ..fileOffset = field.fileOffset
+            ..parent = field;
+          field.accessKind = ObjectAccessKind.Error;
+          break;
+        case ObjectAccessTargetKind.invalid:
+          field.accessKind = ObjectAccessKind.Invalid;
+          break;
+        case ObjectAccessTargetKind.callFunction:
+          field.accessKind = ObjectAccessKind.FunctionTearOff;
+          break;
+        case ObjectAccessTargetKind.superMember:
+        case ObjectAccessTargetKind.inlineClassRepresentation:
+        case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+          problems.unsupported(
+              'Object field target $fieldTarget', node.fileOffset, helper.uri);
+        case ObjectAccessTargetKind.extensionMember:
+        case ObjectAccessTargetKind.inlineClassMember:
+          field.accessKind = ObjectAccessKind.Static;
+          field.functionType = fieldTarget.getFunctionType(this);
+          field.typeArguments = fieldTarget.receiverTypeArguments;
+          field.target = fieldTarget.member;
+          break;
+        case ObjectAccessTargetKind.dynamic:
+          field.accessKind = ObjectAccessKind.Dynamic;
+          break;
+        case ObjectAccessTargetKind.never:
+          field.accessKind = ObjectAccessKind.Dynamic;
+          break;
       }
     }
 
@@ -10697,7 +10691,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             analysisResult.argumentTypeNotAssignableError;
     if (error != null) {
       replacement =
-          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
     }
 
     Object? rewrite = popRewrite();
@@ -10738,7 +10733,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             invokeTarget.isNever);
 
         node.functionType = invokeTarget.getFunctionType(this);
-        node.accessKind = RelationAccessKind.Instance;
+        node.accessKind = RelationalAccessKind.Instance;
         Procedure? target = invokeTarget.member as Procedure?;
         if (target == null) {
           target = findInterfaceMember(
@@ -10759,7 +10754,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case ObjectAccessTargetKind.instanceMember:
             node.functionType = invokeTarget.getFunctionType(this);
             node.target = invokeTarget.member as Procedure;
-            node.accessKind = RelationAccessKind.Instance;
+            node.accessKind = RelationalAccessKind.Instance;
             break;
           case ObjectAccessTargetKind.nullableInstanceMember:
           case ObjectAccessTargetKind.nullableExtensionMember:
@@ -10770,7 +10765,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 createMissingMethodInvocation(
                     node.fileOffset, node.matchedType, node.name,
                     isExpressionInvocation: false),
-                declaredVariables: node.declaredVariables);
+                declaredVariables: node.declaredVariables)
+              ..fileOffset = node.fileOffset;
             break;
           case ObjectAccessTargetKind.objectMember:
           case ObjectAccessTargetKind.superMember:
@@ -10789,16 +10785,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             node.functionType = invokeTarget.getFunctionType(this);
             node.typeArguments = invokeTarget.receiverTypeArguments;
             node.target = invokeTarget.member as Procedure;
-            node.accessKind = RelationAccessKind.Static;
+            node.accessKind = RelationalAccessKind.Static;
             break;
           case ObjectAccessTargetKind.dynamic:
-            node.accessKind = RelationAccessKind.Dynamic;
+            node.accessKind = RelationalAccessKind.Dynamic;
             break;
           case ObjectAccessTargetKind.never:
-            node.accessKind = RelationAccessKind.Never;
+            node.accessKind = RelationalAccessKind.Never;
             break;
           case ObjectAccessTargetKind.invalid:
-            node.accessKind = RelationAccessKind.Invalid;
+            node.accessKind = RelationalAccessKind.Invalid;
             break;
         }
         break;
@@ -10834,7 +10830,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
       replacement =
-          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
     }
 
     DartType mapType = analysisResult.requiredType;
@@ -10916,10 +10913,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       InvalidExpression? error = analysisResult.duplicateRestPatternErrors?[i];
       if (error != null) {
         node.entries[i] = new MapPatternEntry(
-            new ConstantPattern(new NullLiteral()),
-            new InvalidPattern(error,
-                declaredVariables: node.entries[i].value.declaredVariables),
-            node.entries[i].fileOffset)
+          new NullLiteral(),
+          new InvalidPattern(error,
+              declaredVariables: node.entries[i].value.declaredVariables)
+            ..fileOffset = error.fileOffset,
+        )
+          ..fileOffset = node.entries[i].fileOffset
           ..parent = node;
       }
       if (!identical(node.entries[i], rewrite)) {
@@ -10985,7 +10984,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             analysisResult.duplicateRecordPatternFieldErrors?.values.first;
     if (error != null) {
       replacement =
-          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
     }
 
     DartType recordType = analysisResult.requiredType;
@@ -11028,6 +11028,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
+  @override
   ExpressionInferenceResult visitPatternAssignment(
       PatternAssignment node, DartType typeContext) {
     int? stackBase;
@@ -11122,7 +11123,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                       .withArguments(node.variable.name!),
                   node.fileOffset,
                   node.variable.name!.length),
-              declaredVariables: node.declaredVariables);
+              declaredVariables: node.declaredVariables)
+            ..fileOffset = node.fileOffset;
         }
       } else if (variable.isStaticLate) {
         if (!isDefinitelyUnassigned) {
@@ -11132,7 +11134,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                       .withArguments(node.variable.name!),
                   node.fileOffset,
                   node.variable.name!.length),
-              declaredVariables: node.declaredVariables);
+              declaredVariables: node.declaredVariables)
+            ..fileOffset = node.fileOffset;
         }
       } else if (variable.isFinal && variable.hasDeclaredInitializer) {
         replacement = new InvalidPattern(
@@ -11141,7 +11144,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                     .withArguments(node.variable.name!),
                 node.fileOffset,
                 node.variable.name!.length),
-            declaredVariables: node.declaredVariables);
+            declaredVariables: node.declaredVariables)
+          ..fileOffset = node.fileOffset;
       }
     }
 
@@ -11153,7 +11157,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
       replacement ??=
-          new InvalidPattern(error, declaredVariables: node.declaredVariables);
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
     }
 
     pushRewrite(replacement ?? node);
@@ -11329,34 +11334,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return null;
     } else {
       return new shared.MapPatternEntry<Expression, Pattern>(
-          key: (element.key as ConstantPattern).expression,
-          value: element.value);
+          key: element.key, value: element.value);
     }
   }
 
   @override
-  void handleMapPatternEntry(Pattern container, TreeNode entryElement) {
-    entryElement as MapPatternEntry;
-    ConstantPattern keyPattern = entryElement.key as ConstantPattern;
-    Pattern valuePattern = entryElement.value;
-    bool isChanged = false;
-
+  void handleMapPatternEntry(Pattern container,
+      covariant MapPatternEntry entryElement, DartType keyType) {
     Object? rewrite = popRewrite();
-    if (!identical(rewrite, valuePattern)) {
-      valuePattern = rewrite as Pattern;
-      isChanged = true;
+    if (!identical(rewrite, entryElement.value)) {
+      entryElement.value = rewrite as Pattern..parent = entryElement;
     }
 
     rewrite = popRewrite();
-    if (!identical(rewrite, keyPattern.expression)) {
-      keyPattern.expression = (rewrite as Expression)..parent = keyPattern;
-      isChanged = true;
+    if (!identical(rewrite, entryElement.key)) {
+      entryElement.key = (rewrite as Expression)..parent = entryElement;
     }
 
-    if (isChanged) {
-      entryElement = new MapPatternEntry(
-          keyPattern, valuePattern, entryElement.fileOffset);
-    }
+    entryElement.keyType = keyType;
 
     pushRewrite(entryElement);
   }

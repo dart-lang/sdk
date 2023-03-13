@@ -3293,6 +3293,27 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   void _emitString(String str) => wrap(StringLiteral(str),
       translator.translateType(translator.coreTypes.stringNonNullableRawType));
+
+  @override
+  void visitPatternSwitchStatement(PatternSwitchStatement node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw new UnsupportedError("CodeGenerator.visitPatternSwitchStatement");
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw new UnsupportedError("CodeGenerator.visitPatternVariableDeclaration");
+  }
+
+  @override
+  void visitIfCaseStatement(IfCaseStatement node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw new UnsupportedError("CodeGenerator.visitIfCaseStatement");
+  }
 }
 
 class TryBlockFinalizer {

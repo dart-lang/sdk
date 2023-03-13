@@ -20,7 +20,8 @@ import 'dart:_foreign_helper'
         LEGACY_TYPE_REF;
 import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
-import 'dart:_js_helper' show createRecordTypePredicate;
+import 'dart:_js_helper' as records
+    show createRecordTypePredicate, getRtiForRecord;
 import 'dart:_js_names'
     show getSpecializedTestTag, unmangleGlobalNameIfPreservedAnyways;
 import 'dart:_js_shared_embedded_names';
@@ -833,9 +834,23 @@ Rti getTypeFromTypesTable(int index) {
   return _Utils.asRti(type);
 }
 
+/// Called from [Object.runtimeType] and [Interceptor.runtimeType].
 Type getRuntimeType(Object? object) {
   Rti rti = _instanceFunctionType(object) ?? instanceType(object);
   return createRuntimeType(rti);
+}
+
+/// Called from [_Record.runtimeType]
+Type getRuntimeTypeOfRecord(Object record) {
+  Rti recordRti = records.getRtiForRecord(record);
+  return createRuntimeType(recordRti);
+}
+
+/// Returns the [Rti] for the structural record type or structural function type
+/// or interface type of [object].
+Rti _structuralTypeOf(Object? object) {
+  if (object is Record) return records.getRtiForRecord(object);
+  return _instanceFunctionType(object) ?? instanceType(object);
 }
 
 /// Called from generated code.
@@ -864,43 +879,30 @@ _Type _createRuntimeType(Rti rti) {
       _createAndCacheRuntimeType(starErasedRti);
 }
 
-Type getRuntimeTypeOfRecord(String recordRecipe, List valuesList) {
+Rti evaluateRtiForRecord(String recordRecipe, List valuesList) {
   JSArray values = JS('', '#', valuesList);
   final length = values.length;
   if (length == 0) {
     // TODO(50081): Remove this when DDC can handle `TYPE_REF<()>`.
     if (JS_GET_FLAG('DEV_COMPILER')) {
-      throw UnimplementedError('getRuntimeTypeOfRecord not supported for DDC');
+      throw UnimplementedError('evaluateRtiForRecord not supported for DDC');
     } else {
-      return createRuntimeType(TYPE_REF<()>());
+      return TYPE_REF<()>();
     }
   }
 
   Rti bindings = _rtiEval(
-      _fieldTypeForRuntimeTypeOfRecord(values[0]),
+      _structuralTypeOf(values[0]),
       '${Recipe.pushDynamicString}'
       '${Recipe.startTypeArgumentsString}'
       '0'
       '${Recipe.endTypeArgumentsString}');
 
   for (int i = 1; i < length; i++) {
-    bindings = _rtiBind(bindings, _fieldTypeForRuntimeTypeOfRecord(values[i]));
+    bindings = _rtiBind(bindings, _structuralTypeOf(values[i]));
   }
 
-  final recordRti = _rtiEval(bindings, recordRecipe);
-  return createRuntimeType(recordRti);
-}
-
-Rti _fieldTypeForRuntimeTypeOfRecord(Object? object) {
-  // Since some objects override `get runtimeType`, we call that to get the
-  // type, otherwise we print e.g. `int` as `JSInt`.
-
-  // TODO(50081): SDK types that override `.runtimeType` are 'reasonable' in
-  // that they return the type of some interface. Get clarity on whether
-  // user-defined overrides of `.runtimeType` can affect the result of a record
-  // with a field of the type with the override.
-  Type type = object.runtimeType;
-  return (type as _Type)._rti;
+  return _rtiEval(bindings, recordRecipe);
 }
 
 /// Called from generated code in the constant pool.
@@ -1021,7 +1023,8 @@ Object? _simpleSpecializedIsTest(Rti testRti) {
 Object? _recordSpecializedIsTest(Rti testRti) {
   final partialShapeTag = Rti._getRecordPartialShapeTag(testRti);
   final fieldRtis = Rti._getRecordFields(testRti);
-  final predicate = createRecordTypePredicate(partialShapeTag, fieldRtis);
+  final predicate =
+      records.createRecordTypePredicate(partialShapeTag, fieldRtis);
   return predicate ?? RAW_DART_FUNCTION_REF(_isNever);
 }
 
@@ -1157,10 +1160,7 @@ Object? _generalNullableAsCheckImplementation(Object? object) {
 }
 
 void _failedAsCheck(Object? object, Rti testRti) {
-  // We need to generate an Rti for a record type to print it here.
-  Rti objectRti = instanceOrFunctionType(object, testRti);
-  String message =
-      _Error.compose(object, objectRti, _rtiToString(testRti, null));
+  String message = _Error.compose(object, _rtiToString(testRti, null));
   throw _TypeError.fromMessage(message);
 }
 
@@ -1184,9 +1184,9 @@ class _Error extends Error {
   _Error(this._message);
 
   static String compose(
-      Object? object, Rti? objectRti, String checkedTypeDescription) {
+      Object? object, String checkedTypeDescription) {
     String objectDescription = Error.safeToString(object);
-    objectRti ??= instanceType(object);
+    Rti objectRti = _structuralTypeOf(object);
     String objectTypeDescription = _rtiToString(objectRti, null);
     return "${objectDescription}:"
         " type '${objectTypeDescription}'"
@@ -1201,7 +1201,7 @@ class _TypeError extends _Error implements TypeError {
   _TypeError.fromMessage(String message) : super('TypeError: $message');
 
   factory _TypeError.forType(object, String type) {
-    return _TypeError.fromMessage(_Error.compose(object, null, type));
+    return _TypeError.fromMessage(_Error.compose(object, type));
   }
 
   @override

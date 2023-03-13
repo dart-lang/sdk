@@ -63,7 +63,7 @@ GenericFunctionType
           staticType: null
         type: double
       declaredElement: @-1
-      declaredElementType: double
+        type: double
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
     parameters

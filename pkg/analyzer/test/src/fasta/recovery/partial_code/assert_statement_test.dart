@@ -37,7 +37,8 @@ class AssertStatementTest extends PartialCodeTest {
                 'labeled',
                 'localFunctionNonVoid',
                 'localFunctionVoid',
-                'return'
+                'return',
+                'switch',
               ]),
           TestDescriptor(
               'condition',

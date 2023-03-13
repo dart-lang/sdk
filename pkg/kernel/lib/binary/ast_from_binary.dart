@@ -2131,6 +2131,11 @@ class BinaryBuilder {
   }
 
   VariableDeclaration readVariableReference() {
+    readUInt30(); // offset of the variable declaration in the binary.
+    return _readVariableReferenceInternal();
+  }
+
+  VariableDeclaration _readVariableReferenceInternal() {
     int index = readUInt30();
     if (index >= variableStack.length) {
       throw fail('Unexpected variable index: $index. '
@@ -2348,6 +2353,10 @@ class BinaryBuilder {
         return _readBlockExpression();
       case Tag.Instantiation:
         return _readInstantiation();
+      case Tag.SwitchExpression:
+        return _readSwitchExpression();
+      case Tag.PatternAssignment:
+        return _readPatternAssignment();
       default:
         throw fail('unexpected expression tag: $tag');
     }
@@ -2370,7 +2379,6 @@ class BinaryBuilder {
 
   Expression _readVariableGet() {
     int offset = readOffset();
-    readUInt30(); // offset of the variable declaration in the binary.
     return new VariableGet(readVariableReference(), readDartTypeOption())
       ..fileOffset = offset;
   }
@@ -2384,7 +2392,6 @@ class BinaryBuilder {
 
   Expression _readVariableSet() {
     int offset = readOffset();
-    readUInt30(); // offset of the variable declaration in the binary.
     return new VariableSet(readVariableReference(), readExpression())
       ..fileOffset = offset;
   }
@@ -2588,7 +2595,6 @@ class BinaryBuilder {
 
   Expression _readLocalFunctionInvocation() {
     int offset = readOffset();
-    readUInt30(); // offset of the variable declaration in the binary.
     VariableDeclaration variable = readVariableReference();
     return new LocalFunctionInvocation(variable, readArguments(),
         functionType: readDartType() as FunctionType)
@@ -2946,6 +2952,497 @@ class BinaryBuilder {
     return new MapLiteralEntry(readExpression(), readExpression());
   }
 
+  Pattern _readPattern() {
+    int tag = readByte();
+    switch (tag) {
+      case Tag.AndPattern:
+        return _readAndPattern();
+      case Tag.AssignedVariablePattern:
+        return _readAssignedVariablePattern();
+      case Tag.CastPattern:
+        return _readCastPattern();
+      case Tag.ConstantPattern:
+        return _readConstantPattern();
+      case Tag.InvalidPattern:
+        return _readInvalidPattern();
+      case Tag.ListPattern:
+        return _readListPattern();
+      case Tag.MapPattern:
+        return _readMapPattern();
+      case Tag.NamedPattern:
+        return _readNamedPattern();
+      case Tag.NullAssertPattern:
+        return _readNullAssertPattern();
+      case Tag.NullCheckPattern:
+        return _readNullCheckPattern();
+      case Tag.ObjectPattern:
+        return _readObjectPattern();
+      case Tag.OrPattern:
+        return _readOrPattern();
+      case Tag.RecordPattern:
+        return _readRecordPattern();
+      case Tag.RelationalPattern:
+        return _readRelationalPattern();
+      case Tag.RestPattern:
+        return _readRestPattern();
+      case Tag.VariablePattern:
+        return _readVariablePattern();
+      case Tag.WildcardPattern:
+        return _readWildcardPattern();
+      default:
+        throw fail('unexpected pattern tag: $tag');
+    }
+  }
+
+  Pattern? _readOptionalPattern() {
+    return readAndCheckOptionTag() ? _readPattern() : null;
+  }
+
+  /// Read an optional type. Returns the type if present and
+  /// [InvalidType.unsetType] otherwise.
+  DartType _readUnsetType() {
+    DartType? type = readDartTypeOption();
+    return type ?? InvalidType.unsetType;
+  }
+
+  /// Read an optional record type. Returns the record type if present and
+  /// [RecordType.unsetRecordType] otherwise.
+  RecordType _readUnsetRecordType() {
+    RecordType? type = readDartTypeOption() as RecordType?;
+    return type ?? RecordType.unsetRecordType;
+  }
+
+  /// Read an optional function type. Return the function type if present and
+  /// [FunctionType.unsetFunctionType] otherwise.
+  FunctionType _readUnsetFunctionType() {
+    FunctionType? type = readDartTypeOption() as FunctionType?;
+    return type ?? FunctionType.unsetFunctionType;
+  }
+
+  List<Pattern> _readPatternList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfPattern;
+    }
+    return new List<Pattern>.generate(length, (_) => _readPattern(),
+        growable: useGrowableLists);
+  }
+
+  List<NamedPattern> _readNamedPatternList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfNamedPattern;
+    }
+    return new List<NamedPattern>.generate(
+        length, (_) => _readPattern() as NamedPattern,
+        growable: useGrowableLists);
+  }
+
+  List<VariableDeclaration> _readVariableReferenceList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfVariableDeclaration;
+    }
+    return new List<VariableDeclaration>.generate(
+        length, (_) => readVariableReference(),
+        growable: useGrowableLists);
+  }
+
+  List<MapPatternEntry> _readMapPatternEntryList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfMapPatternEntry;
+    }
+    return new List<MapPatternEntry>.generate(
+        length, (_) => _readMapPatternEntry(),
+        growable: useGrowableLists);
+  }
+
+  AndPattern _readAndPattern() {
+    int fileOffset = readOffset();
+    return new AndPattern(_readPattern(), _readPattern())
+      ..fileOffset = fileOffset;
+  }
+
+  AssignedVariablePattern _readAssignedVariablePattern() {
+    int fileOffset = readOffset();
+    VariableDeclaration variable = readVariableReference();
+    DartType matchedType = _readUnsetType();
+    bool needsCheck = readByte() == 1;
+    return AssignedVariablePattern(variable)
+      ..fileOffset = fileOffset
+      ..matchedType = matchedType
+      ..needsCheck = needsCheck;
+  }
+
+  CastPattern _readCastPattern() {
+    int fileOffset = readOffset();
+    return new CastPattern(_readPattern(), readDartType())
+      ..fileOffset = fileOffset;
+  }
+
+  ConstantPattern _readConstantPattern() {
+    int fileOffset = readOffset();
+    Expression expression = readExpression();
+    DartType expressionType = _readUnsetType();
+    Reference? equalsTargetReference = readNullableMemberReference();
+    FunctionType equalsType = _readUnsetFunctionType();
+    return new ConstantPattern(expression)
+      ..expressionType = expressionType
+      ..equalsTargetReference = equalsTargetReference
+      ..equalsType = equalsType
+      ..fileOffset = fileOffset;
+  }
+
+  InvalidPattern _readInvalidPattern() {
+    int fileOffset = readOffset();
+    Expression invalidExpression = readExpression();
+    List<VariableDeclaration> declaredVariables =
+        readAndPushVariableDeclarationList();
+    return InvalidPattern(invalidExpression,
+        declaredVariables: declaredVariables)
+      ..fileOffset = fileOffset;
+  }
+
+  ListPattern _readListPattern() {
+    int fileOffset = readOffset();
+    DartType? typeArgument = readDartTypeOption();
+    List<Pattern> patterns = _readPatternList();
+    DartType matchedType = _readUnsetType();
+    int flags = readByte();
+    bool needsCheck = flags & 0x1 != 0;
+    bool hasRestPattern = flags & 0x2 != 0;
+    DartType listType = _readUnsetType();
+    Reference? lengthTargetReference = readNullableMemberReference();
+    DartType? lengthType = _readUnsetType();
+    Reference? lengthCheckTargetReference = readNullableMemberReference();
+    FunctionType lengthCheckType = _readUnsetFunctionType();
+    Reference? sublistTargetReference = readNullableMemberReference();
+    FunctionType sublistType = _readUnsetFunctionType();
+    Reference? minusTargetReference = readNullableMemberReference();
+    FunctionType minusType = _readUnsetFunctionType();
+    Reference? indexGetTargetReference = readNullableMemberReference();
+    FunctionType indexGetType = _readUnsetFunctionType();
+    return new ListPattern(typeArgument, patterns)
+      ..matchedType = matchedType
+      ..needsCheck = needsCheck
+      ..listType = listType
+      ..hasRestPattern = hasRestPattern
+      ..lengthTargetReference = lengthTargetReference
+      ..lengthType = lengthType
+      ..lengthCheckTargetReference = lengthCheckTargetReference
+      ..lengthCheckType = lengthCheckType
+      ..sublistTargetReference = sublistTargetReference
+      ..sublistType = sublistType
+      ..minusTargetReference = minusTargetReference
+      ..minusType = minusType
+      ..indexGetTargetReference = indexGetTargetReference
+      ..indexGetType = indexGetType
+      ..fileOffset = fileOffset;
+  }
+
+  MapPattern _readMapPattern() {
+    int fileOffset = readOffset();
+    DartType? keyType = readDartTypeOption();
+    DartType? valueType = readDartTypeOption();
+    List<MapPatternEntry> entries = _readMapPatternEntryList();
+    DartType matchedType = _readUnsetType();
+    int flags = readByte();
+    bool needsCheck = flags & 0x1 != 0;
+    bool hasRestPattern = flags & 0x2 != 0;
+    DartType mapType = _readUnsetType();
+    Reference? lengthTargetReference = readNullableMemberReference();
+    DartType? lengthType = _readUnsetType();
+    Reference? lengthCheckTargetReference = readNullableMemberReference();
+    FunctionType lengthCheckType = _readUnsetFunctionType();
+    Reference? containsKeyTargetReference = readNullableMemberReference();
+    FunctionType containsKeyType = _readUnsetFunctionType();
+    Reference? indexGetTargetReference = readNullableMemberReference();
+    FunctionType indexGetType = _readUnsetFunctionType();
+    return new MapPattern(keyType, valueType, entries)
+      ..matchedType = matchedType
+      ..needsCheck = needsCheck
+      ..mapType = mapType
+      ..hasRestPattern = hasRestPattern
+      ..lengthTargetReference = lengthTargetReference
+      ..lengthType = lengthType
+      ..lengthCheckTargetReference = lengthCheckTargetReference
+      ..lengthCheckType = lengthCheckType
+      ..containsKeyTargetReference = containsKeyTargetReference
+      ..containsKeyType = containsKeyType
+      ..indexGetTargetReference = indexGetTargetReference
+      ..indexGetType = indexGetType
+      ..fileOffset = fileOffset;
+  }
+
+  NamedPattern _readNamedPattern() {
+    int fileOffset = readOffset();
+    String name = readStringReference();
+    Pattern pattern = _readPattern();
+    Name fieldName = readName();
+    ObjectAccessKind accessKind = ObjectAccessKind.values[readByte()];
+    Reference? targetReference = readNullableMemberReference();
+    DartType? resultType = readDartTypeOption();
+    RecordType? recordType = readDartTypeOption() as RecordType?;
+    int recordFieldIndex = readUInt30();
+    FunctionType? functionType = readDartTypeOption() as FunctionType?;
+    List<DartType>? typeArguments;
+    if (readAndCheckOptionTag()) {
+      typeArguments = readDartTypeList();
+    }
+    return new NamedPattern(name, pattern)
+      ..fieldName = fieldName
+      ..accessKind = accessKind
+      ..targetReference = targetReference
+      ..resultType = resultType
+      ..recordType = recordType
+      ..recordFieldIndex = recordFieldIndex
+      ..functionType = functionType
+      ..typeArguments = typeArguments
+      ..fileOffset = fileOffset;
+  }
+
+  NullAssertPattern _readNullAssertPattern() {
+    int fileOffset = readOffset();
+    Pattern pattern = _readPattern();
+    return new NullAssertPattern(pattern)..fileOffset = fileOffset;
+  }
+
+  NullCheckPattern _readNullCheckPattern() {
+    int fileOffset = readOffset();
+    Pattern pattern = _readPattern();
+    return new NullCheckPattern(pattern)..fileOffset = fileOffset;
+  }
+
+  ObjectPattern _readObjectPattern() {
+    int fileOffset = readOffset();
+    DartType type = readDartType();
+    List<NamedPattern> fields = _readNamedPatternList();
+    DartType matchedType = _readUnsetType();
+    bool needsCheck = readByte() == 1;
+    DartType objectType = _readUnsetType();
+    return new ObjectPattern(type, fields)
+      ..matchedType = matchedType
+      ..needsCheck = needsCheck
+      ..objectType = objectType
+      ..fileOffset = fileOffset;
+  }
+
+  OrPattern _readOrPattern() {
+    int fileOffset = readOffset();
+    Pattern left = _readPattern();
+    Pattern right = _readPattern();
+    List<VariableDeclaration> orPatternJointVariables =
+        _readVariableReferenceList();
+    return new OrPattern(left, right,
+        orPatternJointVariables: orPatternJointVariables)
+      ..fileOffset = fileOffset;
+  }
+
+  RecordPattern _readRecordPattern() {
+    int fileOffset = readOffset();
+    List<Pattern> patterns = _readPatternList();
+    RecordType type = _readUnsetRecordType();
+    DartType matchedType = _readUnsetType();
+    bool needsCheck = readByte() == 1;
+    RecordType recordType = _readUnsetRecordType();
+    return new RecordPattern(patterns)
+      ..type = type
+      ..matchedType = matchedType
+      ..needsCheck = needsCheck
+      ..recordType = recordType
+      ..fileOffset = fileOffset;
+  }
+
+  RelationalPattern _readRelationalPattern() {
+    int fileOffset = readOffset();
+    RelationalPatternKind kind = RelationalPatternKind.values[readByte()];
+    Expression expression = readExpression();
+    DartType expressionType = _readUnsetType();
+    DartType matchedType = _readUnsetType();
+    RelationalAccessKind accessKind = RelationalAccessKind.values[readByte()];
+    Name name = readName();
+    Reference? targetReference = readNullableMemberReference();
+    List<DartType>? typeArguments;
+    if (readAndCheckOptionTag()) {
+      typeArguments = readDartTypeList();
+    }
+    FunctionType functionType = _readUnsetFunctionType();
+    return new RelationalPattern(kind, expression)
+      ..expressionType = expressionType
+      ..matchedType = matchedType
+      ..accessKind = accessKind
+      ..name = name
+      ..targetReference = targetReference
+      ..typeArguments = typeArguments
+      ..functionType = functionType
+      ..fileOffset = fileOffset;
+  }
+
+  RestPattern _readRestPattern() {
+    int fileOffset = readOffset();
+    Pattern? subPattern = _readOptionalPattern();
+    return new RestPattern(subPattern)..fileOffset = fileOffset;
+  }
+
+  VariablePattern _readVariablePattern() {
+    int fileOffset = readOffset();
+    DartType? type = readDartTypeOption();
+    VariableDeclaration variable = readVariableDeclaration();
+    DartType matchedType = _readUnsetType();
+    return new VariablePattern(type, variable)
+      ..matchedType = matchedType
+      ..fileOffset = fileOffset;
+  }
+
+  WildcardPattern _readWildcardPattern() {
+    int fileOffset = readOffset();
+    DartType? type = readDartTypeOption();
+    return new WildcardPattern(type)..fileOffset = fileOffset;
+  }
+
+  MapPatternEntry _readMapPatternEntry() {
+    int tag = readByte();
+    switch (tag) {
+      case Tag.MapPatternEntry:
+        int fileOffset = readOffset();
+        Expression key = readExpression();
+        Pattern value = _readPattern();
+        DartType keyType = _readUnsetType();
+        return new MapPatternEntry(key, value)
+          ..keyType = keyType
+          ..fileOffset = fileOffset;
+      case Tag.MapPatternRestEntry:
+        int fileOffset = readOffset();
+        return new MapPatternRestEntry()..fileOffset = fileOffset;
+      default:
+        throw fail('unexpected pattern tag: $tag');
+    }
+  }
+
+  SwitchExpression _readSwitchExpression() {
+    int fileOffset = readOffset();
+    Expression expression = readExpression();
+    DartType expressionType = _readUnsetType();
+    List<SwitchExpressionCase> cases = _readSwitchExpressionCaseList();
+    DartType staticType = _readUnsetType();
+    return new SwitchExpression(expression, cases)
+      ..expressionType = expressionType
+      ..staticType = staticType
+      ..fileOffset = fileOffset;
+  }
+
+  List<SwitchExpressionCase> _readSwitchExpressionCaseList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfSwitchExpressionCase;
+    }
+    return new List<SwitchExpressionCase>.generate(
+        length, (_) => _readSwitchExpressionCase(),
+        growable: useGrowableLists);
+  }
+
+  SwitchExpressionCase _readSwitchExpressionCase() {
+    int fileOffset = readOffset();
+    PatternGuard patternGuard = _readPatternGuard();
+    Expression expression = readExpression();
+    return new SwitchExpressionCase(patternGuard, expression)
+      ..fileOffset = fileOffset;
+  }
+
+  PatternGuard _readPatternGuard() {
+    int fileOffset = readOffset();
+    Pattern pattern = _readPattern();
+    Expression? guard = readExpressionOption();
+    return new PatternGuard(pattern, guard)..fileOffset = fileOffset;
+  }
+
+  IfCaseStatement _readIfCaseStatement() {
+    int fileOffset = readOffset();
+    Expression expression = readExpression();
+    PatternGuard patternGuard = _readPatternGuard();
+    Statement then = readStatement();
+    Statement? otherwise = readStatementOption();
+    DartType matchedValueType = _readUnsetType();
+    return new IfCaseStatement(expression, patternGuard, then, otherwise)
+      ..matchedValueType = matchedValueType
+      ..fileOffset = fileOffset;
+  }
+
+  PatternAssignment _readPatternAssignment() {
+    int fileOffset = readOffset();
+    Pattern pattern = _readPattern();
+    Expression expression = readExpression();
+    DartType matchedValueType = _readUnsetType();
+    return new PatternAssignment(pattern, expression)
+      ..matchedValueType = matchedValueType
+      ..fileOffset = fileOffset;
+  }
+
+  PatternVariableDeclaration _readPatternVariableDeclaration() {
+    int fileOffset = readOffset();
+    Pattern pattern = _readPattern();
+    Expression expression = readExpression();
+    bool isFinal = readByte() == 1;
+    DartType matchedValueType = _readUnsetType();
+    return new PatternVariableDeclaration(pattern, expression, isFinal: isFinal)
+      ..matchedValueType = matchedValueType
+      ..fileOffset = fileOffset;
+  }
+
+  PatternSwitchStatement _readPatternSwitchStatement() {
+    int fileOffset = readOffset();
+    Expression expression = readExpression();
+    DartType expressionType = _readUnsetType();
+    int count = readUInt30();
+    List<PatternSwitchCase> cases;
+    if (!useGrowableLists && count == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      cases = emptyListOfPatternSwitchCase;
+    } else {
+      cases = new List<PatternSwitchCase>.generate(
+          count,
+          (_) => new PatternSwitchCase([], [], dummyStatement,
+              isDefault: false, hasLabel: false, jointVariables: []),
+          growable: useGrowableLists);
+    }
+    switchCaseStack.addAll(cases);
+    for (int i = 0; i < cases.length; ++i) {
+      _readPatternSwitchCaseInto(cases[i]);
+    }
+    switchCaseStack.length -= count;
+    return new PatternSwitchStatement(expression, cases)
+      ..expressionType = expressionType
+      ..fileOffset = fileOffset;
+  }
+
+  void _readPatternSwitchCaseInto(PatternSwitchCase caseNode) {
+    int variableCount = readUInt30();
+    for (int i = 0; i < variableCount; ++i) {
+      caseNode.jointVariables.add(readVariableDeclaration()..parent = caseNode);
+    }
+    int caseCount = readUInt30();
+    for (int i = 0; i < caseCount; ++i) {
+      caseNode.caseOffsets.add(readOffset());
+      caseNode.patternGuards.add(_readPatternGuard()..parent = caseNode);
+    }
+    int flags = readByte();
+    caseNode.isDefault = (flags & 0x1) != 0;
+    caseNode.hasLabel = (flags & 0x2) != 0;
+    caseNode.body = readStatement()..parent = caseNode;
+  }
+
   List<Statement> readStatementList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
@@ -3033,6 +3530,12 @@ class BinaryBuilder {
         return _readYieldStatement();
       case Tag.FunctionDeclaration:
         return _readFunctionDeclaration();
+      case Tag.IfCaseStatement:
+        return _readIfCaseStatement();
+      case Tag.PatternVariableDeclaration:
+        return _readPatternVariableDeclaration();
+      case Tag.PatternSwitchStatement:
+        return _readPatternSwitchStatement();
       default:
         throw fail('unexpected statement tag: $tag');
     }

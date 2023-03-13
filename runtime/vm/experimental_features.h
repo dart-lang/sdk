@@ -31,6 +31,8 @@ enum class ExperimentalFeature {
   super_parameters,
   inference_update_1,
   unnamed_libraries,
+  records,
+  patterns,
 };
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature);

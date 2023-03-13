@@ -4147,6 +4147,16 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitThisExpression(ThisExpression node) => defaultExpression(node);
+
+  @override
+  Constant visitSwitchExpression(SwitchExpression node) {
+    throw new UnimplementedError("visitSwitchExpression");
+  }
+
+  @override
+  Constant visitPatternAssignment(PatternAssignment node) {
+    throw new UnimplementedError("visitPatternAssignment");
+  }
 }
 
 class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {

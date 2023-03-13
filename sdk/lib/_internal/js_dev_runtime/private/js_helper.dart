@@ -850,3 +850,11 @@ void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
 Object? createRecordTypePredicate(Object? partialShapeTag, Object? fieldRtis) {
   throw UnimplementedError('createRecordTypePredicate');
 }
+
+/// Entrypoint for rti library. Calls rti.evaluateRtiForRecord with components
+/// of the record.
+///
+/// [getRtiForRecord] is currently unused by DDC.
+Never getRtiForRecord(Object? record) {
+  throw UnimplementedError('getRtiForRecord');
+}

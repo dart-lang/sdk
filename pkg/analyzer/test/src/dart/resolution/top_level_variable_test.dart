@@ -55,7 +55,7 @@ VariableDeclaration
             parameter: SimpleFormalParameter
               name: z
               declaredElement: @99::@parameter::z
-              declaredElementType: Object?
+                type: Object?
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
@@ -119,7 +119,7 @@ VariableDeclaration
             parameter: SimpleFormalParameter
               name: z
               declaredElement: @107::@parameter::z
-              declaredElementType: String
+                type: String
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>

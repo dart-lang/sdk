@@ -130,23 +130,6 @@ features:
   inference-update-2:
     help: "Type promotion for fields"
 
-  records:
-    help: "Records"
-    validation: |
-      final x = (1, 2);
-      void main() {
-        final x = ('feature', 'enabled');
-        print('${x.$1} ${x.$2}');
-      }
-
-  patterns:
-    help: "Patterns"
-    validation: |
-      void main() {
-        final [x, y] = ['feature', 'enabled'];
-        print('$x $y');
-      }
-
   inline-class:
     help: "Inline class"
 
@@ -335,3 +318,21 @@ features:
     validation: |
       library;
       void main() => print('feature enabled');
+
+  records:
+    help: "Records"
+    enabledIn: '3.0.0'
+    validation: |
+      final x = ('feature', a: 'enabled');
+      void main() {
+        print('${x.$1} ${x.a}');
+      }
+
+  patterns:
+    help: "Patterns"
+    enabledIn: '3.0.0'
+    validation: |
+      void main() {
+        final [a, b] = ['feature', 'enabled'];
+        print('$a $b');
+      }

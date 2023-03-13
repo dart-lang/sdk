@@ -7385,6 +7385,42 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ];
     return header;
   }
+
+  @override
+  js_ast.Statement visitIfCaseStatement(IfCaseStatement node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError('ProgramCompiler.visitIfCaseStatement');
+  }
+
+  @override
+  js_ast.Expression visitPatternAssignment(PatternAssignment node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError('ProgramCompiler.visitPatternAssignment');
+  }
+
+  @override
+  js_ast.Statement visitPatternSwitchStatement(PatternSwitchStatement node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError('ProgramCompiler.visitPatternSwitchStatement');
+  }
+
+  @override
+  js_ast.Statement visitPatternVariableDeclaration(
+      PatternVariableDeclaration node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError('ProgramCompiler.visitPatternVariableDeclaration');
+  }
+
+  @override
+  js_ast.Expression visitSwitchExpression(SwitchExpression node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError('ProgramCompiler.visitSwitchExpression');
+  }
 }
 
 bool _isInlineJSFunction(Statement? body) {

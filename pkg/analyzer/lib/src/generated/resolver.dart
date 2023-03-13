@@ -1127,6 +1127,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void handleMapPatternEntry(
     DartPattern container,
     covariant MapPatternEntryImpl entry,
+    DartType keyType,
   ) {
     entry.key = popRewrite()!;
   }

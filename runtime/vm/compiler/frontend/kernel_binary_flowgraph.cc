@@ -1182,8 +1182,10 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kInstanceCreation:
     case kFileUriExpression:
     case kStaticTearOff:
-      // These nodes are internal to the front end and
-      // removed by the constant evaluator.
+    case kSwitchExpression:
+    case kPatternAssignment:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();
@@ -1239,6 +1241,11 @@ Fragment StreamingFlowGraphBuilder::BuildStatement(TokenPosition* position) {
       return BuildVariableDeclaration(position);
     case kFunctionDeclaration:
       return BuildFunctionDeclaration(offset, position);
+    case kIfCaseStatement:
+    case kPatternSwitchStatement:
+    case kPatternVariableDeclaration:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("statement", tag);
       UNREACHABLE();

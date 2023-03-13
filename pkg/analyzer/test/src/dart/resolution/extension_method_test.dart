@@ -576,7 +576,7 @@ GenericFunctionType
           staticType: null
         type: int
       declaredElement: @-1
-      declaredElementType: int
+        type: int
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
     parameters
@@ -607,7 +607,7 @@ GenericFunctionType
           staticType: null
         type: int*
       declaredElement: @-1
-      declaredElementType: int*
+        type: int*
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
     parameters
@@ -801,7 +801,7 @@ GenericFunctionType
           staticType: null
         type: String
       declaredElement: @-1
-      declaredElementType: String
+        type: String
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
     parameters
@@ -832,7 +832,7 @@ GenericFunctionType
           staticType: null
         type: String*
       declaredElement: @-1
-      declaredElementType: String*
+        type: String*
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
     parameters

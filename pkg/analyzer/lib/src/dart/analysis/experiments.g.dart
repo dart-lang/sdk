@@ -305,7 +305,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.patterns,
     documentation: 'Patterns',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.0.0'),
   );
 
   static final records = ExperimentalFeature(
@@ -315,7 +315,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.records,
     documentation: 'Records',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.0.0'),
   );
 
   static final sealed_class = ExperimentalFeature(
@@ -462,10 +462,10 @@ class IsEnabledByDefault {
   static const bool nonfunction_type_aliases = true;
 
   /// Default state of the experiment "patterns"
-  static const bool patterns = false;
+  static const bool patterns = true;
 
   /// Default state of the experiment "records"
-  static const bool records = false;
+  static const bool records = true;
 
   /// Default state of the experiment "sealed-class"
   static const bool sealed_class = true;

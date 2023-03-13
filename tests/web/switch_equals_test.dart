@@ -2,11 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// In Dart 3.0, any type can be used in a switch case, even if it doesn't have
-// primitive equality.
 // @dart=2.19
-
-// SharedOptions=--enable-experiment=patterns,records
 
 class SuperClass {
   const SuperClass();
