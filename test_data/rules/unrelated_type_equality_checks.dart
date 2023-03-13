@@ -182,7 +182,7 @@ class ClassBase {}
 
 class DerivedClass1 extends ClassBase {}
 
-abstract class Mixin {}
+mixin Mixin {}
 
 class DerivedClass2 extends ClassBase with Mixin {}
 
