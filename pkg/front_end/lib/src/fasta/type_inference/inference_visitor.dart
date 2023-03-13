@@ -11339,9 +11339,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleMapPatternEntry(Pattern container, TreeNode entryElement) {
-    entryElement as MapPatternEntry;
-
+  void handleMapPatternEntry(Pattern container,
+      covariant MapPatternEntry entryElement, DartType keyType) {
     Object? rewrite = popRewrite();
     if (!identical(rewrite, entryElement.value)) {
       entryElement.value = rewrite as Pattern..parent = entryElement;
@@ -11351,6 +11350,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (!identical(rewrite, entryElement.key)) {
       entryElement.key = (rewrite as Expression)..parent = entryElement;
     }
+
+    entryElement.keyType = keyType;
 
     pushRewrite(entryElement);
   }

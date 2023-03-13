@@ -1646,7 +1646,7 @@ type AndPattern extends Pattern {
   Byte tag = 128;
   FileOffset fileOffset;
   Pattern left;
-  Pattern right;  
+  Pattern right;
 }
 
 type AssignedVariablePattern extends Pattern {
@@ -1677,7 +1677,7 @@ type InvalidPattern extends Pattern {
   Byte tag = 132;
   FileOffset fileOffset;
   Expression invalidExpression;
-  List<VariableDeclarationPlain> declaredVariables; 
+  List<VariableDeclarationPlain> declaredVariables;
 }
 
 type ListPattern extends Pattern {

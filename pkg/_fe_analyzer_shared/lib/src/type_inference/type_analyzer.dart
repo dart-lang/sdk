@@ -1082,13 +1082,13 @@ mixin TypeAnalyzer<
       Node element = elements[i];
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
-        analyzeExpression(entry.key, keyContext);
+        Type keyType = analyzeExpression(entry.key, keyContext);
         flow.pushSubpattern(valueType);
         dispatchPattern(
           context.withUnnecessaryWildcardKind(null),
           entry.value,
         );
-        handleMapPatternEntry(node, element);
+        handleMapPatternEntry(node, element, keyType);
         flow.popSubpattern();
       } else {
         assert(isRestPatternElement(element));
@@ -2171,7 +2171,8 @@ mixin TypeAnalyzer<
   /// Called after visiting an entry element in a map pattern.
   ///
   /// Stack effect: pushes (MapPatternElement).
-  void handleMapPatternEntry(Pattern container, Node entryElement);
+  void handleMapPatternEntry(
+      Pattern container, Node entryElement, Type keyType);
 
   /// Called after visiting a rest element in a map pattern.
   ///

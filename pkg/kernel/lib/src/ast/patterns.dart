@@ -33,8 +33,7 @@ class ConstantPattern extends Pattern {
   Expression expression;
 
   /// Static type of the expression as computed during inference.
-  // TODO(johnniwinther): Initialize this to `InvalidType.unsetType`.
-  DartType expressionType = const DynamicType();
+  DartType expressionType = InvalidType.unsetType;
 
   /// Reference to the `operator ==` procedure on [expression].
   ///
@@ -1435,8 +1434,7 @@ class MapPatternEntry extends TreeNode {
   Expression key;
   Pattern value;
 
-  // TODO(johnniwinther): Initialize this to `InvalidType.unsetType`.
-  DartType keyType = const DynamicType();
+  DartType keyType = InvalidType.unsetType;
 
   MapPatternEntry(this.key, this.value) {
     key.parent = this;

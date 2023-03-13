@@ -3790,7 +3790,8 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleMapPatternEntry(Pattern container, Node entryElement) {
+  void handleMapPatternEntry(
+      Pattern container, Node entryElement, Type keyType) {
     _irBuilder.apply('mapPatternEntry', [Kind.expression, Kind.pattern],
         Kind.mapPatternElement,
         location: entryElement.location);
