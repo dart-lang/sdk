@@ -8,17 +8,78 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PreferMixinTest);
+    defineReflectiveTests(PreferMixinTestLanguage219);
+    defineReflectiveTests(PreferMixinTestLanguage300);
   });
 }
 
-@reflectiveTest
-class PreferMixinTest extends LintRuleTest {
-  @override
-  List<String> get experiments => ['sealed-classes', 'class-modifiers'];
-
+abstract class BasePreferMixinTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_mixin';
+
+  test_legacyCoreClasses() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+import 'dart:convert';
+
+abstract class I with IterableMixin {}
+abstract class L with ListMixin {}
+abstract class MM with MapMixin {}
+abstract class S with SetMixin {}
+abstract class SCS with StringConversionSinkMixin {}
+''');
+  }
+
+  test_mixedInMixin_ok() async {
+    await assertNoDiagnostics(r'''
+mixin M {}
+
+class C with M {}
+''');
+  }
+
+  test_mixedInTypeAlias_ok() async {
+    await assertNoDiagnostics(r'''
+mixin M {}
+
+typedef AAA = M;
+
+abstract class CCC with AAA { }
+''');
+  }
+}
+
+@reflectiveTest
+class PreferMixinTestLanguage219 extends BasePreferMixinTest
+    with LanguageVersion219Mixin {
+  test_mixedInClass() async {
+    await assertDiagnostics(r'''
+class A {}
+
+class B extends Object with A {}
+''', [
+      lint(40, 1),
+    ]);
+  }
+
+  test_mixedInClass_typAlias() async {
+    await assertDiagnostics(r'''
+class A {}
+
+typedef AA = A;
+
+abstract class CC with AA { }
+''', [
+      lint(52, 2),
+    ]);
+  }
+}
+
+@reflectiveTest
+class PreferMixinTestLanguage300 extends BasePreferMixinTest
+    with LanguageVersion300Mixin {
+  @override
+  List<String> get experiments => ['class-modifiers'];
 
   /// https://github.com/dart-lang/linter/issues/4065
   test_mixinClass() async {
