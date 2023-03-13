@@ -224,6 +224,33 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
     b.f64_const(constant.value);
     return w.NumType.f64;
   }
+
+  @override
+  w.ValueType visitInstanceConstant(InstanceConstant constant) {
+    if (constant.classNode == translator.wasmI32Class) {
+      int value = (constant.fieldValues.values.single as IntConstant).value;
+      b.i32_const(value);
+      return w.NumType.i32;
+    }
+    if (constant.classNode == translator.wasmI64Class) {
+      int value = (constant.fieldValues.values.single as IntConstant).value;
+      b.i64_const(value);
+      return w.NumType.i64;
+    }
+    if (constant.classNode == translator.wasmF32Class) {
+      double value =
+          (constant.fieldValues.values.single as DoubleConstant).value;
+      b.f32_const(value);
+      return w.NumType.f32;
+    }
+    if (constant.classNode == translator.wasmF64Class) {
+      double value =
+          (constant.fieldValues.values.single as DoubleConstant).value;
+      b.f64_const(value);
+      return w.NumType.f64;
+    }
+    return super.visitInstanceConstant(constant);
+  }
 }
 
 class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
