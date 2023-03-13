@@ -118,22 +118,24 @@ class _Visitor extends SimpleAstVisitor {
 
       var enumConstants = enumDescription.enumConstants;
       for (var member in statement.members) {
-        if (member is SwitchCase) {
-          var expression = member.expression.unParenthesized;
-          if (expression is Identifier) {
-            var element = expression.staticElement;
-            if (element is PropertyAccessorElement) {
-              enumConstants.remove(element.variable.computeConstantValue());
-            } else if (element is VariableElement) {
-              enumConstants.remove(element.computeConstantValue());
-            }
-          } else if (expression is PropertyAccess) {
-            var element = expression.propertyName.staticElement;
-            if (element is PropertyAccessorElement) {
-              enumConstants.remove(element.variable.computeConstantValue());
-            } else if (element is VariableElement) {
-              enumConstants.remove(element.computeConstantValue());
-            }
+        Expression? expression;
+        if (member is SwitchPatternCase) {
+          var pattern = member.guardedPattern.pattern.unParenthesized;
+          if (pattern is ConstantPattern) {
+            expression = pattern.expression.unParenthesized;
+          }
+        } else if (member is SwitchCase) {
+          expression = member.expression.unParenthesized;
+        }
+        if (expression is Identifier) {
+          var variable = expression.staticElement.variableElement;
+          if (variable is VariableElement) {
+            enumConstants.remove(variable.computeConstantValue());
+          }
+        } else if (expression is PropertyAccess) {
+          var variable = expression.propertyName.staticElement.variableElement;
+          if (variable is VariableElement) {
+            enumConstants.remove(variable.computeConstantValue());
           }
         }
         if (member is SwitchDefault) {
@@ -156,5 +158,13 @@ class _Visitor extends SimpleAstVisitor {
         );
       }
     }
+  }
+}
+
+extension on Element? {
+  Element? get variableElement {
+    var self = this;
+    if (self is PropertyAccessorElement) return self.variable;
+    return self;
   }
 }
