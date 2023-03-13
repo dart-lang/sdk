@@ -8,11 +8,11 @@
 import "package:expect/expect.dart";
 import 'dart:collection';
 
-class Crash extends StringBuffer {
+class Crash extends Expando<String> {
   Crash() : super();
 }
 
 void main() {
   Crash expando = new Crash();
-  Expect.isTrue(expando is StringBuffer);
+  Expect.isTrue(expando is Expando);
 }

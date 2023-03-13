@@ -62,36 +62,13 @@
     a shared supertype locking them to a specific name for moving backwards.
 
 - **Breaking change when migrating code to Dart 3.0**:
-  Some changes to platform libraries only affect code when that code is migrated
+  Some changes to platform libraries only affect code when it is migrated
   to language version 3.0.
-  - The `Function` type can no longer be implemented, extended or mixed in.
+  - The `Function` type can no longer be implemented.
     Since Dart 2.0 writing `implements Function` has been allowed
     for backwards compatibility, but it has not had any effect.
-    In Dart 3.0, the `Function` type is `final` and cannot be subtyped,
-    preventing code from mistakenly assuming it works.
-  - The following declarations can only be implemented, not extended:
-    * `Comparable`
-    * `Exception`
-    * `Iterator`
-    * `Pattern`
-    * `Match`
-    * `RegExp`
-    * `RegExpMatch`
-    * `StackTrace`
-    * `StringSink`
-    None of these declarations contained any implementation to inherit,
-    and are marked as `interface` to signify that they are only intended
-    as interfaces.
-  - The following declarations can no longer be implemented or extended:
-    * `MapEntry`
-    * `OutOfMemoryError`
-    * `StackOverflowError`
-    * `Expando`
-    * `WeakReference`
-    * `Finalizer`
-    The `MapEntry` value class is restricted to enable later optimizations.
-    The remaining classes are tightly coupled to the platform and not
-    intended to be subclassed or implemented.
+    In Dart 3.0, the `Function` type is `final` and cannot be implemented
+    by class-modifier aware code.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`List.filled`]: https://api.dart.dev/stable/2.18.6/dart-core/List/List.filled.html
