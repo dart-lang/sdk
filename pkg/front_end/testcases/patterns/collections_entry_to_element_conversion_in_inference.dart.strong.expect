@@ -40,9 +40,11 @@ static method test3(dynamic x, dynamic another) → core::Iterable<dynamic> {
   return block {
     final core::Set<dynamic> #t11 = col::LinkedHashSet::•<dynamic>();
     for (final dynamic #t12 in x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
-      final synthesized dynamic #0#0 = #t12;
-      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is{ForNonNullableByDefault} core::int))
-        throw new _in::ReachabilityError::•();
+      {
+        final synthesized dynamic #0#0 = #t12;
+        if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is{ForNonNullableByDefault} core::int))
+          throw new _in::ReachabilityError::•();
+      }
       for (final has-declared-initializer dynamic #t13 in another as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
         final dynamic #t14 = #t13 as{TypeError,ForNonNullableByDefault} dynamic;
         #t11.{core::Set::add}{Invariant}(#t14){(dynamic) → core::bool};
