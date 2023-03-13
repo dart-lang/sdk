@@ -34,7 +34,7 @@ class EmptyFileSize2 implements SizeWithKilobytes { // LINT
   double get inKilobytes => 0.0;
 }
 
-abstract class SizeClassMixin { // OK
+mixin SizeClassMixin { // OK
   int get inBytes => 0;
 
   @override

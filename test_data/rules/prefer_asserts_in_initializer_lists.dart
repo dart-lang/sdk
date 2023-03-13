@@ -86,7 +86,7 @@ class C extends B {
 }
 
 // no lint for mixin attributes
-class Mixin {
+mixin Mixin {
   var a;
 }
 
