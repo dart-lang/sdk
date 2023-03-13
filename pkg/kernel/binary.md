@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 97;
+  UInt32 formatVersion = 98;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -565,6 +565,9 @@ type FunctionNode {
 }
 
 type VariableReference {
+  // Byte offset in the binary for the variable declaration (without tag).
+  UInt variableDeclarationPosition;
+
   // Reference to the Nth variable in scope, with 0 being the
   // first variable declared in the outermost scope, and larger
   // numbers being the variables declared later in a given scope,
@@ -599,8 +602,6 @@ type InvalidExpression extends Expression {
 type VariableGet extends Expression {
   Byte tag = 20;
   FileOffset fileOffset;
-  // Byte offset in the binary for the variable declaration (without tag).
-  UInt variableDeclarationPosition;
   VariableReference variable;
   Option<DartType> promotedType;
 }
@@ -616,8 +617,6 @@ type SpecializedVariableGet extends Expression {
 type VariableSet extends Expression {
   Byte tag = 21;
   FileOffset fileOffset;
-  // Byte offset in the binary for the variable declaration (without tag).
-  UInt variableDeclarationPosition;
   VariableReference variable;
   Expression value;
 }
@@ -863,8 +862,6 @@ type FunctionTearOff extends Expression {
 type LocalFunctionInvocation extends Expression {
   Byte tag = 127;
   FileOffset fileOffset;
-  // Byte offset in the binary for the variable declaration (without tag).
-  UInt variableDeclarationPosition;
   VariableReference variable;
   Arguments arguments;
   DartType functionType;
@@ -1641,6 +1638,285 @@ type TypeParameter {
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
   DartType defaultType; // type used when the parameter is not passed
+}
+
+abstract type Pattern extends TreeNode {}
+
+type AndPattern extends Pattern {
+  Byte tag = 128;
+  FileOffset fileOffset;
+  Pattern left;
+  Pattern right;  
+}
+
+type AssignedVariablePattern extends Pattern {
+  Byte tag = 129;
+  FileOffset fileOffset;
+  VariableReference variable;
+  Option<DartType> matchedType;
+  Byte needsCheck;
+}
+
+type CastPattern extends Pattern {
+  Byte tag = 130;
+  FileOffset fileOffset;
+  Pattern pattern;
+  DartType type;
+}
+
+type ConstantPattern extends Pattern {
+  Byte tag = 131;
+  FileOffset fileOffset;
+  Expression expression;
+  DartType expressionType;
+  Option<MemberReference> equalsTargetReference;
+  Option<DartType> equalsType;
+}
+
+type InvalidPattern extends Pattern {
+  Byte tag = 132;
+  FileOffset fileOffset;
+  Expression invalidExpression;
+  List<VariableDeclarationPlain> declaredVariables; 
+}
+
+type ListPattern extends Pattern {
+  Byte tag = 133;
+  FileOffset fileOffset;
+  Option<DartType> typeArgument;
+  List<Pattern> patterns;
+  Option<DartType> matchedType;
+  Byte flags { needsCheck, hasRestPattern };
+  Option<DartType> listType;
+  Option<MemberReference> lengthTargetReference;
+  Option<DartType> lengthType;
+  Option<MemberReference> lengthCheckTargetReference;
+  Option<DartType> lengthCheckType;
+  Option<MemberReference> sublistTargetReference;
+  Option<DartType> sublistType;
+  Option<MemberReference> minusTargetReference;
+  Option<DartType> minusType;
+  Option<MemberReference> indexGetTargetReference;
+  Option<DartType> indexGetType;
+}
+
+type MapPattern extends Pattern {
+  Byte tag = 134;
+  FileOffset fileOffset;
+  Option<DartType> keyType;
+  Option<DartType> valueType;
+  List<MapPatternEntry> entries;
+  Option<DartType> matchedType;
+  Byte flags { needsCheck, hasRestPattern };
+  Option<DartType> mapType;
+  Option<MemberReference> lengthTargetReference;
+  Option<DartType> lengthType;
+  Option<MemberReference> lengthCheckTargetReference;
+  Option<DartType> lengthCheckType;
+  Option<MemberReference> containsKeyTargetReference;
+  Option<DartType> containsKeyType;
+  Option<MemberReference> indexGetTargetReference;
+  Option<DartType> indexGetType;
+}
+
+type MapPatternEntry extends TreeNode {
+  Byte tag = 145;
+  FileOffset fileOffset;
+  Expression key;
+  Pattern value;
+  Option<DartType> keyType;
+}
+
+type MapPatternRestEntry extends TreeNode {
+  Byte tag = 146;
+  FileOffset fileOffset;
+}
+
+/*
+enum ObjectAccessKind {
+  Object,
+  Instance,
+  Static,
+  RecordNamed,
+  RecordIndexed,
+  Dynamic,
+  Never,
+  Invalid,
+  FunctionTearOff,
+  Error,
+}
+*/
+
+type NamedPattern extends Pattern {
+  Byte tag = 135;
+  FileOffset fileOffset;
+  StringReference name;
+  Pattern pattern;
+  Name fieldName;
+  Byte accessKind; // Index into the ObjectAccessKind enum above.
+  Option<MemberReference> targetReference;
+  Option<DartType> resultType;
+  Option<DartType> recordType;
+  UInt30 recordFieldIndex;
+  Option<DartType> functionType;
+  Option<List<DartType>> typeArguments;
+}
+
+type NullAssertPattern extends Pattern {
+  Byte tag = 136;
+  FileOffset fileOffset;
+  Pattern pattern;
+}
+
+type NullCheckPattern extends Pattern {
+  Byte tag = 137;
+  FileOffset fileOffset;
+  Pattern pattern;
+}
+
+type ObjectPattern extends Pattern {
+  Byte tag = 138;
+  FileOffset fileOffset;
+  DartType type;
+  List<NamedPattern> fields;
+  Option<DartType> matchedType;
+  Byte needsCheck;
+  Option<DartType> objectType;
+}
+
+type OrPattern extends Pattern {
+  Byte tag = 139;
+  FileOffset fileOffset;
+  Pattern left;
+  Pattern right;
+  List<VariableReference> orPatternJointVariables;
+}
+
+type RecordPattern extends Pattern {
+  Byte tag = 140;
+  FileOffset fileOffset;
+  List<Pattern> patterns;
+  Option<DartType> type;
+  Option<DartType> matchedType;
+  Byte needsCheck;
+  Option<DartType> recordType;
+}
+
+/*
+enum RelationalPatternKind {
+  equals,
+  notEquals,
+  lessThan,
+  lessThanEqual,
+  greaterThan,
+  greaterThanEqual,
+}
+
+enum RelationalAccessKind {
+  Instance,
+  Static,
+  Dynamic,
+  Never,
+  Invalid,
+}
+*/
+
+type RelationalPattern extends Pattern {
+  Byte tag = 141;
+  FileOffset fileOffset;
+  Byte kind; // Index into the RelationalPatternKind enum above.
+  Expression expression;
+  Option<DartType> expressionType;
+  Option<DartType> matchedType;
+  Byte accessKind;  // Index into the RelationalAccessKind enum above.
+  Name name;
+  Option<MemberReference> targetReference;
+  Option<List<DartType>> typeArguments;
+  Option<DartType> functionType;
+}
+
+type RestPattern extends Pattern {
+  Byte tag = 142;
+  FileOffset fileOffset;
+  Option<Pattern> subPattern;
+}
+
+type VariablePattern extends Pattern {
+  Byte tag = 143;
+  FileOffset fileOffset;
+  Option<DartType> type;
+  VariableDeclaration variable;
+  Option<DartType> matchedType;
+}
+
+type WildcardPattern extends Pattern {
+  Byte tag = 144;
+  FileOffset fileOffset;
+  Option<DartType> type;
+}
+
+type PatternGuard extends TreeNode {
+  FileOffset fileOffset;
+  Pattern pattern;
+  Option<Expression> guard;
+}
+
+type SwitchExpression extends Expression {
+  Byte tag = 148;
+  FileOffset fileOffset;
+  Expression expression;
+  Option<DartType> expressionType;
+  List<SwitchExpressionCase> cases;
+  Option<DartType> staticType;
+}
+
+type SwitchExpressionCase extends TreeNode {
+  FileOffset fileOffset;
+  PatternGuard patternGuard;
+  Expression expression;
+}
+
+type IfCaseStatement extends Statement {
+  Byte tag = 149;
+  FileOffset fileOffset;
+  Expression expression;
+  PatternGuard patternGuard;
+  Statement then;
+  Option<Statement> otherwise;
+  Option<DartType> matchedValueType;
+}
+
+type PatternAssignment extends Expression {
+  Byte tag = 150;
+  FileOffset fileOffset;
+  Pattern pattern;
+  Expression expression;
+  Option<DartType> matchedValueType;
+}
+
+type PatternVariableDeclaration extends Statement {
+  Byte tag = 151;
+  FileOffset fileOffset;
+  Pattern pattern;
+  Expression initializer;
+  Byte isFinal;
+  Option<DartType> matchedValueType;
+}
+
+type PatternSwitchStatement extends Statement {
+  Byte tag = 147;
+  FileOffset fileOffset;
+  Expression expression;
+  Option<DartType> expressionType;
+  List<PatternSwitchCase> cases;
+}
+
+type PatternSwitchCase extends TreeNode {
+  // Note: there is no tag on PatternSwitchCase
+  List<VariableDeclaration> jointVariables;
+  List<Pair<FileOffset, PatternGuard>> patternGuards;
+  Byte flags; // {isDefault, hasLabel}
+  Statement body;
 }
 
 ```

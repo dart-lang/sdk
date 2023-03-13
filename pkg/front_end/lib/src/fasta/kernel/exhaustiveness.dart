@@ -14,7 +14,6 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'internal_ast.dart';
 
 /// AST printer strategy used by default in `CfeTypeOperations.typeToString`.
 const AstTextStrategy textStrategy = const AstTextStrategy(
@@ -472,7 +471,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         if (entry is MapPatternRestEntry) {
           hasRest = true;
         } else {
-          Expression expression = (entry.key as ConstantPattern).expression;
+          Expression expression = entry.key;
           // TODO(johnniwinther): Assert that we have a constant value.
           Constant? constant = constants[expression];
           if (constant == null) {

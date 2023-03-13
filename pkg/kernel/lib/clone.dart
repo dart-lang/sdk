@@ -885,6 +885,169 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
         clone(node.expression),
         node.typeArguments.map(visitType).toList());
   }
+
+  @override
+  TreeNode defaultPattern(Pattern node) {
+    throw 'Unimplemented clone for Kernel member: $node';
+  }
+
+  @override
+  TreeNode visitAndPattern(AndPattern node) {
+    return new AndPattern(clone(node.left), clone(node.right));
+  }
+
+  @override
+  TreeNode visitAssignedVariablePattern(AssignedVariablePattern node) {
+    return new AssignedVariablePattern(getVariableClone(node.variable)!)
+      ..matchedType = visitType(node.matchedType)
+      ..needsCheck = node.needsCheck;
+  }
+
+  @override
+  TreeNode visitCastPattern(CastPattern node) {
+    return new CastPattern(clone(node.pattern), visitType(node.type));
+  }
+
+  @override
+  TreeNode visitConstantPattern(ConstantPattern node) {
+    return new ConstantPattern(clone(node.expression));
+  }
+
+  @override
+  TreeNode visitInvalidPattern(InvalidPattern node) {
+    return new InvalidPattern(clone(node.invalidExpression),
+        declaredVariables:
+            node.declaredVariables.map((e) => getVariableClone(e)!).toList());
+  }
+
+  @override
+  TreeNode visitListPattern(ListPattern node) {
+    return new ListPattern(visitOptionalType(node.typeArgument),
+        node.patterns.map(clone).toList());
+  }
+
+  @override
+  TreeNode visitMapPattern(MapPattern node) {
+    return new MapPattern(visitOptionalType(node.keyType),
+        visitOptionalType(node.valueType), node.entries.map(clone).toList());
+  }
+
+  @override
+  TreeNode visitMapPatternEntry(MapPatternEntry node) {
+    return new MapPatternEntry(clone(node.key), clone(node.value));
+  }
+
+  @override
+  TreeNode visitMapPatternRestEntry(MapPatternRestEntry node) {
+    return new MapPatternRestEntry();
+  }
+
+  @override
+  TreeNode visitNamedPattern(NamedPattern node) {
+    return new NamedPattern(node.name, clone(node.pattern));
+  }
+
+  @override
+  TreeNode visitNullAssertPattern(NullAssertPattern node) {
+    return new NullAssertPattern(clone(node.pattern));
+  }
+
+  @override
+  TreeNode visitNullCheckPattern(NullCheckPattern node) {
+    return new NullCheckPattern(clone(node.pattern));
+  }
+
+  @override
+  TreeNode visitObjectPattern(ObjectPattern node) {
+    return new ObjectPattern(
+        visitType(node.type), node.fields.map(clone).toList());
+  }
+
+  @override
+  TreeNode visitOrPattern(OrPattern node) {
+    return new OrPattern(clone(node.left), clone(node.right),
+        orPatternJointVariables: node.orPatternJointVariables
+            .map((e) => getVariableClone(e)!)
+            .toList());
+  }
+
+  @override
+  TreeNode visitRecordPattern(RecordPattern node) {
+    return new RecordPattern(node.patterns.map(clone).toList());
+  }
+
+  @override
+  TreeNode visitRelationalPattern(RelationalPattern node) {
+    return new RelationalPattern(node.kind, clone(node.expression));
+  }
+
+  @override
+  TreeNode visitRestPattern(RestPattern node) {
+    return new RestPattern(cloneOptional(node.subPattern));
+  }
+
+  @override
+  TreeNode visitVariablePattern(VariablePattern node) {
+    return new VariablePattern(
+        visitOptionalType(node.type), clone(node.variable));
+  }
+
+  @override
+  TreeNode visitWildcardPattern(WildcardPattern node) {
+    return new WildcardPattern(visitOptionalType(node.type));
+  }
+
+  @override
+  TreeNode visitPatternGuard(PatternGuard node) {
+    return new PatternGuard(node.pattern, node.guard);
+  }
+
+  @override
+  TreeNode visitPatternSwitchCase(PatternSwitchCase node) {
+    return new PatternSwitchCase(new List<int>.of(node.caseOffsets),
+        node.patternGuards.map(clone).toList(), clone(node.body),
+        isDefault: node.isDefault,
+        hasLabel: node.hasLabel,
+        jointVariables:
+            node.jointVariables.map((e) => getVariableClone(e)!).toList());
+  }
+
+  @override
+  TreeNode visitPatternSwitchStatement(PatternSwitchStatement node) {
+    return new PatternSwitchStatement(
+        clone(node.expression), node.cases.map(clone).toList());
+  }
+
+  @override
+  TreeNode visitSwitchExpression(SwitchExpression node) {
+    return new SwitchExpression(
+        clone(node.expression), node.cases.map(clone).toList())
+      ..staticType = visitType(node.staticType);
+  }
+
+  @override
+  TreeNode visitSwitchExpressionCase(SwitchExpressionCase node) {
+    return new SwitchExpressionCase(
+        clone(node.patternGuard), clone(node.expression));
+  }
+
+  @override
+  TreeNode visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    return new PatternVariableDeclaration(
+        clone(node.pattern), clone(node.initializer),
+        isFinal: node.isFinal);
+  }
+
+  @override
+  TreeNode visitPatternAssignment(PatternAssignment node) {
+    return new PatternAssignment(clone(node.pattern), clone(node.expression));
+  }
+
+  @override
+  TreeNode visitIfCaseStatement(IfCaseStatement node) {
+    return new IfCaseStatement(clone(node.expression), clone(node.patternGuard),
+        clone(node.then), cloneOptional(node.otherwise));
+  }
 }
 
 /// Visitor that return a clone of a tree, maintaining references to cloned

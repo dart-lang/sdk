@@ -64,6 +64,7 @@ const Set<String> _interchangeableClasses = const {
   'Constant',
   'DartType',
   'Initializer',
+  'Pattern',
 };
 
 /// Names of subclasses of [NamedNode] that do _not_ have `visitXReference` or
@@ -192,6 +193,24 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   },
   'VariableDeclaration': {
     '_name': FieldRule(name: 'name'),
+  },
+  'AssignedVariablePattern': {
+    'variable': FieldRule(isDeclaration: false),
+  },
+  'InvalidPattern': {
+    'declaredVariables': FieldRule(isDeclaration: true),
+  },
+  'OrPattern': {
+    'orPatternJointVariables': FieldRule(isDeclaration: false),
+  },
+  'VariablePattern': {
+    'variable': FieldRule(isDeclaration: true),
+  },
+  'PatternSwitchCase': {
+    'jointVariables': FieldRule(isDeclaration: true),
+  },
+  'PatternSwitchStatement': {
+    'cases': FieldRule(isDeclaration: true),
   },
 };
 

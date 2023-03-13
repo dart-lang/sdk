@@ -87,6 +87,8 @@ import 'src/non_null.dart';
 import 'src/printer.dart';
 import 'src/text_util.dart';
 
+part 'src/ast/patterns.dart';
+
 /// Any type of node in the IR.
 abstract class Node {
   const Node();
@@ -11829,6 +11831,8 @@ class InvalidType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.write("<invalid>");
   }
+
+  static final InvalidType unsetType = new InvalidType();
 }
 
 class DynamicType extends DartType {
@@ -12350,6 +12354,10 @@ class FunctionType extends DartType {
     printer.write(")");
     printer.writeNullability(declaredNullability);
   }
+
+  /// Sentinel [FunctionType] value used for non-nullable [FunctionType] fields.
+  static final FunctionType unsetFunctionType =
+      new FunctionType(const [], const InvalidType(), Nullability.nonNullable);
 }
 
 /// A use of a [Typedef] as a type.
@@ -13467,6 +13475,9 @@ class RecordType extends DartType {
     }
     printer.write(")");
   }
+
+  static final RecordType unsetRecordType =
+      new RecordType([const InvalidType()], const [], Nullability.nonNullable);
 }
 
 /// Value set for variance of a type parameter X in a type term T.
@@ -15645,6 +15656,16 @@ final List<Statement> emptyListOfStatement =
 final List<SwitchCase> emptyListOfSwitchCase =
     List.filled(0, dummySwitchCase, growable: false);
 
+/// Almost const <SwitchExpressionCase>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<SwitchExpressionCase> emptyListOfSwitchExpressionCase =
+    List.filled(0, dummySwitchExpressionCase, growable: false);
+
+/// Almost const <PatternSwitchCase>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<PatternSwitchCase> emptyListOfPatternSwitchCase =
+    List.filled(0, dummyPatternSwitchCase, growable: false);
+
 /// Almost const <Catch>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Catch> emptyListOfCatch =
@@ -15958,6 +15979,24 @@ final Expression dummyExpression = new NullLiteral();
 /// constructor.
 final NamedExpression dummyNamedExpression =
     new NamedExpression('', dummyExpression);
+
+/// Almost const <Pattern>[], but not const in an attempt to avoid
+/// polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Pattern> emptyListOfPattern =
+    List.filled(0, dummyPattern, growable: false);
+
+/// Almost const <NamedPattern>[], but not const in an attempt to avoid
+/// polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<NamedPattern> emptyListOfNamedPattern =
+    List.filled(0, dummyNamedPattern, growable: false);
+
+/// Almost const <MapPatternEntry>[], but not const in an attempt to avoid
+/// polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<MapPatternEntry> emptyListOfMapPatternEntry =
+    List.filled(0, dummyMapPatternEntry, growable: false);
 
 /// Non-nullable [VariableDeclaration] dummy value.
 ///

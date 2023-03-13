@@ -11,7 +11,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import '../fasta_codes.dart';
-import '../kernel/internal_ast.dart';
 import 'inference_helper.dart';
 
 /// Implementation of [TypeAnalyzerErrors] that reports errors using the

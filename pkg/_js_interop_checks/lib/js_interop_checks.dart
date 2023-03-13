@@ -35,7 +35,7 @@ import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 // Used for importing CFE utility functions for constructor tear-offs.
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart';
+import 'package:kernel/kernel.dart' hide Pattern;
 import 'package:kernel/target/targets.dart';
 
 import 'src/js_interop.dart';

@@ -5,7 +5,7 @@
 import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart';
+import 'package:kernel/kernel.dart' hide Pattern;
 
 Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');

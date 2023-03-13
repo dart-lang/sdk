@@ -180,6 +180,32 @@ class Tag {
   // 126 is occupied by [FunctionTearOff] (expression).
   // 127 is occupied by [LocalFunctionInvocation] (expression).
 
+  // Patterns and patterns-related nodes
+  static const int AndPattern = 128;
+  static const int AssignedVariablePattern = 129;
+  static const int CastPattern = 130;
+  static const int ConstantPattern = 131;
+  static const int InvalidPattern = 132;
+  static const int ListPattern = 133;
+  static const int MapPattern = 134;
+  static const int NamedPattern = 135;
+  static const int NullAssertPattern = 136;
+  static const int NullCheckPattern = 137;
+  static const int ObjectPattern = 138;
+  static const int OrPattern = 139;
+  static const int RecordPattern = 140;
+  static const int RelationalPattern = 141;
+  static const int RestPattern = 142;
+  static const int VariablePattern = 143;
+  static const int WildcardPattern = 144;
+  static const int MapPatternEntry = 145;
+  static const int MapPatternRestEntry = 146;
+  static const int PatternSwitchStatement = 147;
+  static const int SwitchExpression = 148;
+  static const int IfCaseStatement = 149;
+  static const int PatternAssignment = 150;
+  static const int PatternVariableDeclaration = 151;
+
   static const int SpecializedTagHighBits = 0xE0; // 0b11100000
   static const int SpecializedTagMask = 0xF8; //    0b11111000
   static const int SpecializedPayloadMask = 0x7; // 0b00000111
@@ -196,7 +222,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 97;
+  static const int BinaryFormatVersion = 98;
 }
 
 abstract class ConstantTag {

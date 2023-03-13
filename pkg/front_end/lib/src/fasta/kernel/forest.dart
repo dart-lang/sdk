@@ -981,6 +981,149 @@ class Forest {
     return new TypedefTearOff(typeParameters, expression, typeArguments)
       ..fileOffset = fileOffset;
   }
+
+  AndPattern createAndPattern(int fileOffset, Pattern left, Pattern right) {
+    return new AndPattern(left, right)..fileOffset = fileOffset;
+  }
+
+  AssignedVariablePattern createAssignedVariablePattern(
+      int fileOffset, VariableDeclaration variable) {
+    return new AssignedVariablePattern(variable)..fileOffset = fileOffset;
+  }
+
+  CastPattern createCastPattern(
+      int fileOffset, Pattern pattern, DartType type) {
+    return new CastPattern(pattern, type)..fileOffset = fileOffset;
+  }
+
+  ConstantPattern createConstantPattern(Expression expression) {
+    return new ConstantPattern(expression)..fileOffset = expression.fileOffset;
+  }
+
+  InvalidPattern createInvalidPattern(Expression expression,
+      {required List<VariableDeclaration> declaredVariables}) {
+    return new InvalidPattern(expression, declaredVariables: declaredVariables)
+      ..fileOffset = expression.fileOffset;
+  }
+
+  ListPattern createListPattern(
+      int fileOffset, DartType? typeArgument, List<Pattern> patterns) {
+    return new ListPattern(typeArgument, patterns)..fileOffset = fileOffset;
+  }
+
+  MapPattern createMapPattern(int fileOffset, DartType? keyType,
+      DartType? valueType, List<MapPatternEntry> entries) {
+    return new MapPattern(keyType, valueType, entries)..fileOffset = fileOffset;
+  }
+
+  MapPatternEntry createMapPatternEntry(
+      int fileOffset, Expression key, Pattern value) {
+    return new MapPatternEntry(key, value)..fileOffset = fileOffset;
+  }
+
+  MapPatternRestEntry createMapPatternRestEntry(int fileOffset) {
+    return new MapPatternRestEntry()..fileOffset = fileOffset;
+  }
+
+  NamedPattern createNamedPattern(
+      int fileOffset, String name, Pattern pattern) {
+    return new NamedPattern(name, pattern)..fileOffset = fileOffset;
+  }
+
+  NullAssertPattern createNullAssertPattern(int fileOffset, Pattern pattern) {
+    return new NullAssertPattern(pattern)..fileOffset = fileOffset;
+  }
+
+  NullCheckPattern createNullCheckPattern(int fileOffset, Pattern pattern) {
+    return new NullCheckPattern(pattern)..fileOffset = fileOffset;
+  }
+
+  ObjectPattern createObjectPattern(
+      int fileOffset, DartType type, List<NamedPattern> fields) {
+    return new ObjectPattern(type, fields)..fileOffset = fileOffset;
+  }
+
+  OrPattern createOrPattern(int fileOffset, Pattern left, Pattern right,
+      {required List<VariableDeclaration> orPatternJointVariables}) {
+    return new OrPattern(left, right,
+        orPatternJointVariables: orPatternJointVariables)
+      ..fileOffset = fileOffset;
+  }
+
+  RecordPattern createRecordPattern(int fileOffset, List<Pattern> patterns) {
+    return new RecordPattern(patterns)..fileOffset = fileOffset;
+  }
+
+  RelationalPattern createRelationalPattern(
+      int fileOffset, RelationalPatternKind kind, Expression expression) {
+    return new RelationalPattern(kind, expression)..fileOffset = fileOffset;
+  }
+
+  RestPattern createRestPattern(int fileOffset, Pattern? subPattern) {
+    return new RestPattern(subPattern)..fileOffset = fileOffset;
+  }
+
+  VariablePattern createVariablePattern(
+      int fileOffset, DartType? type, VariableDeclaration variable) {
+    return new VariablePattern(type, variable)..fileOffset = fileOffset;
+  }
+
+  WildcardPattern createWildcardPattern(int fileOffset, DartType? type) {
+    return new WildcardPattern(type)..fileOffset = fileOffset;
+  }
+
+  PatternGuard createPatternGuard(int fileOffset, Pattern pattern,
+      [Expression? guard]) {
+    return new PatternGuard(pattern, guard)..fileOffset = fileOffset;
+  }
+
+  PatternSwitchCase createPatternSwitchCase(int fileOffset,
+      List<int> caseOffsets, List<PatternGuard> patternGuards, Statement body,
+      {required bool isDefault,
+      required bool hasLabel,
+      required List<VariableDeclaration> jointVariables}) {
+    return new PatternSwitchCase(caseOffsets, patternGuards, body,
+        isDefault: isDefault,
+        hasLabel: hasLabel,
+        jointVariables: jointVariables)
+      ..fileOffset = fileOffset;
+  }
+
+  PatternSwitchStatement createPatternSwitchStatement(
+      int fileOffset, Expression expression, List<PatternSwitchCase> cases) {
+    return new PatternSwitchStatement(expression, cases)
+      ..fileOffset = fileOffset;
+  }
+
+  SwitchExpressionCase createSwitchExpressionCase(
+      int fileOffset, PatternGuard patternGuard, Expression expression) {
+    return new SwitchExpressionCase(patternGuard, expression)
+      ..fileOffset = fileOffset;
+  }
+
+  SwitchExpression createSwitchExpression(
+      int fileOffset, Expression expression, List<SwitchExpressionCase> cases) {
+    return new SwitchExpression(expression, cases)..fileOffset = fileOffset;
+  }
+
+  PatternVariableDeclaration createPatternVariableDeclaration(
+      int fileOffset, Pattern pattern, Expression initializer,
+      {required bool isFinal}) {
+    return new PatternVariableDeclaration(pattern, initializer,
+        isFinal: isFinal)
+      ..fileOffset = fileOffset;
+  }
+
+  PatternAssignment createPatternAssignment(
+      int fileOffset, Pattern pattern, Expression expression) {
+    return new PatternAssignment(pattern, expression)..fileOffset = fileOffset;
+  }
+
+  IfCaseStatement createIfCaseStatement(int fileOffset, Expression expression,
+      PatternGuard patternGuard, Statement then, Statement? otherwise) {
+    return new IfCaseStatement(expression, patternGuard, then, otherwise)
+      ..fileOffset = fileOffset;
+  }
 }
 
 class _VariablesDeclaration extends Statement {

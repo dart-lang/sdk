@@ -6,7 +6,6 @@ import 'package:front_end/src/fasta/type_inference/delayed_expressions.dart';
 import 'package:front_end/src/fasta/type_inference/matching_cache.dart';
 import 'package:kernel/ast.dart';
 
-import '../kernel/internal_ast.dart';
 import '../names.dart';
 
 /// Visitor that creates the [DelayedExpression] needed to match expressions,
@@ -19,7 +18,7 @@ class MatchingExpressionVisitor
 
   DelayedExpression visitPattern(
       Pattern node, CacheableExpression matchedExpression) {
-    return node.acceptPattern1(this, matchedExpression);
+    return node.accept1(this, matchedExpression);
   }
 
   @override
@@ -308,10 +307,8 @@ class MatchingExpressionVisitor
 
     for (MapPatternEntry entry in node.entries) {
       if (entry is MapPatternRestEntry) continue;
-      ConstantPattern keyPattern = entry.key as ConstantPattern;
       CacheableExpression keyExpression =
-          matchingCache.createConstantExpression(
-              keyPattern.expression, keyPattern.expressionType);
+          matchingCache.createConstantExpression(entry.key, entry.keyType);
 
       CacheableExpression containsExpression =
           matchingCache.createContainsKeyExpression(
@@ -428,8 +425,8 @@ class MatchingExpressionVisitor
               fileOffset: field.fileOffset);
           break;
         case ObjectAccessKind.RecordIndexed:
-          expression = new DelayedRecordIndexGet(typedMatchedExpression,
-              field.recordType!, field.recordFieldIndex!,
+          expression = new DelayedRecordIndexGet(
+              typedMatchedExpression, field.recordType!, field.recordFieldIndex,
               fileOffset: field.fileOffset);
           break;
         case ObjectAccessKind.Dynamic:
@@ -580,12 +577,12 @@ class MatchingExpressionVisitor
         DelayedExpression expression;
         Member? staticTarget;
         switch (node.accessKind) {
-          case RelationAccessKind.Instance:
+          case RelationalAccessKind.Instance:
             expression = new DelayedInstanceInvocation(
                 matchedExpression, node.target!, node.functionType!, [constant],
                 fileOffset: node.fileOffset);
             break;
-          case RelationAccessKind.Static:
+          case RelationalAccessKind.Static:
             expression = new DelayedExtensionInvocation(
                 node.target!,
                 [matchedExpression, constant],
@@ -594,7 +591,7 @@ class MatchingExpressionVisitor
                 fileOffset: node.fileOffset);
             staticTarget = node.target;
             break;
-          case RelationAccessKind.Dynamic:
+          case RelationalAccessKind.Dynamic:
             expression = new DelayedDynamicInvocation(
                 matchedExpression,
                 node.name,
@@ -603,7 +600,7 @@ class MatchingExpressionVisitor
                 const DynamicType(),
                 fileOffset: node.fileOffset);
             break;
-          case RelationAccessKind.Never:
+          case RelationalAccessKind.Never:
             expression = new DelayedDynamicInvocation(
                 matchedExpression,
                 node.name,
@@ -612,7 +609,7 @@ class MatchingExpressionVisitor
                 const NeverType.nonNullable(),
                 fileOffset: node.fileOffset);
             break;
-          case RelationAccessKind.Invalid:
+          case RelationalAccessKind.Invalid:
             expression = new DelayedDynamicInvocation(
                 matchedExpression,
                 node.name,

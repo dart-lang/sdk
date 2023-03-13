@@ -18,7 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kSupportedKernelFormatVersion = 97;
+static const uint32_t kSupportedKernelFormatVersion = 98;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -147,6 +147,30 @@ static const uint32_t kSupportedKernelFormatVersion = 97;
   V(FunctionInvocation, 125)                                                   \
   V(FunctionTearOff, 126)                                                      \
   V(LocalFunctionInvocation, 127)                                              \
+  V(AndPattern, 128)                                                           \
+  V(AssignedVariablePattern, 129)                                              \
+  V(CastPattern, 130)                                                          \
+  V(ConstantPattern, 131)                                                      \
+  V(InvalidPattern, 132)                                                       \
+  V(ListPattern, 133)                                                          \
+  V(MapPattern, 134)                                                           \
+  V(NamedPattern, 135)                                                         \
+  V(NullAssertPattern, 136)                                                    \
+  V(NullCheckPattern, 137)                                                     \
+  V(ObjectPattern, 138)                                                        \
+  V(OrPattern, 139)                                                            \
+  V(RecordPattern, 140)                                                        \
+  V(RelationalPattern, 141)                                                    \
+  V(RestPattern, 142)                                                          \
+  V(VariablePattern, 143)                                                      \
+  V(WildcardPattern, 144)                                                      \
+  V(MapPatternEntry, 145)                                                      \
+  V(MapPatternRestEntry, 146)                                                  \
+  V(PatternSwitchStatement, 147)                                               \
+  V(SwitchExpression, 148)                                                     \
+  V(IfCaseStatement, 149)                                                      \
+  V(PatternAssignment, 150)                                                    \
+  V(PatternVariableDeclaration, 151)                                           \
   V(SpecializedVariableGet, 224)                                               \
   V(SpecializedVariableSet, 232)                                               \
   V(SpecializedIntLiteral, 240)

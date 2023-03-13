@@ -3395,6 +3395,12 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitSetConcatenation(SetConcatenation node) => EXPRESSION;
+
+  @override
+  int visitSwitchExpression(SwitchExpression node) => PRIMARY;
+
+  @override
+  int visitPatternAssignment(PatternAssignment node) => EXPRESSION;
 }
 
 String procedureKindToString(ProcedureKind kind) {
