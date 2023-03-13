@@ -66,7 +66,7 @@ typedef Comparator<T> = int Function(T a, T b);
 /// The [DateTime] class has no comparison operators, instead it has the more
 /// precisely named [DateTime.isBefore] and [DateTime.isAfter], which both
 /// agree with [DateTime.compareTo].
-abstract class Comparable<T> {
+abstract interface class Comparable<T> {
   /// Compares this object to another object.
   ///
   /// Returns a value like a [Comparator] when comparing `this` to [other].

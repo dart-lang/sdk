@@ -100,7 +100,7 @@ extension JSObjectExtension on JSObject {
   external void operator []=(String key, Object? value);
 }
 
-class JSArrayIteratorAdapter<T> extends Iterator<T> {
+class JSArrayIteratorAdapter<T> implements Iterator<T> {
   final JSArray array;
   int index = -1;
 

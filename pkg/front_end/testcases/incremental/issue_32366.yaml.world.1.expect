@@ -1,9 +1,9 @@
 main = main::main;
 library from "org-dartlang-test:///main.dart" as main {
 
-  abstract class AIterator extends dart.core::Iterator<dynamic> {
+  abstract class AIterator extends dart.core::Object implements dart.core::Iterator<dynamic> {
     synthetic constructor •() → main::AIterator
-      : super dart.core::Iterator::•()
+      : super dart.core::Object::•()
       ;
   }
   class Foo extends dart.core::Object {

@@ -30,9 +30,9 @@ library from "org-dartlang-test:///main.dart" as main {
 //            ^
 //
 
-  abstract class BIterator extends dart.core::Iterator<dynamic> {
+  abstract class BIterator extends dart.core::Object implements dart.core::Iterator<dynamic> {
     synthetic constructor •() → main::BIterator
-      : super dart.core::Iterator::•()
+      : super dart.core::Object::•()
       ;
   }
   class Foo extends dart.core::Object {
