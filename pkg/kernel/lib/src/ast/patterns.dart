@@ -45,6 +45,11 @@ class ConstantPattern extends Pattern {
   /// This is set during inference.
   FunctionType equalsType = FunctionType.unsetFunctionType;
 
+  /// The [Constant] value for this constant pattern.
+  ///
+  /// This is set during constant evaluation.
+  Constant? value;
+
   ConstantPattern(this.expression) {
     expression.parent = this;
   }
@@ -695,6 +700,11 @@ class RelationalPattern extends Pattern {
   ///
   /// This is set during inference.
   FunctionType? functionType;
+
+  /// The [Constant] value for the [expression].
+  ///
+  /// This is set during constant evaluation.
+  Constant? expressionValue;
 
   RelationalPattern(this.kind, this.expression) {
     expression.parent = this;
@@ -1436,6 +1446,11 @@ class MapPatternEntry extends TreeNode {
 
   DartType keyType = InvalidType.unsetType;
 
+  /// The [Constant] value for the [key] expression.
+  ///
+  /// This is set during constant evaluation.
+  Constant? keyValue;
+
   MapPatternEntry(this.key, this.value) {
     key.parent = this;
     value.parent = this;
@@ -1509,6 +1524,14 @@ class MapPatternRestEntry extends TreeNode implements MapPatternEntry {
   @override
   void set value(Pattern value) =>
       throw new UnsupportedError('MapPatternRestEntry.value=');
+
+  @override
+  Constant? get keyValue =>
+      throw new UnsupportedError('MapPatternRestEntry.keyValue');
+
+  @override
+  void set keyValue(Constant? value) =>
+      throw new UnsupportedError('MapPatternRestEntry.keyValue=');
 
   @override
   R accept<R>(TreeVisitor<R> v) {
@@ -1665,7 +1688,9 @@ class PatternSwitchCase extends TreeNode implements SwitchCase {
       {required this.isDefault,
       required this.hasLabel,
       required this.jointVariables}) {
+    setParents(patternGuards, this);
     setParents(jointVariables, this);
+    body.parent = this;
   }
 
   @override

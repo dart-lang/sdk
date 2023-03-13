@@ -127,7 +127,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// If the type being switched on is nullable, then this set also includes a
   /// value of `null` if no case head has been seen yet that handles `null`.
   Set<Field?>? _enumFields;
-  List<SwitchCaseInfo> _switchCasePatternInfo = [];
 
   /// Stack for obtaining rewritten expressions and statements.  After
   /// [dispatchExpression] or [dispatchStatement] visits a node for type
@@ -8056,8 +8055,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     Set<Field?>? previousEnumFields = _enumFields;
-    List<SwitchCaseInfo> previousSwitchPatternInfo = _switchCasePatternInfo;
-    _switchCasePatternInfo = [];
 
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
@@ -8096,14 +8093,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    if (libraryBuilder.libraryFeatures.patterns.isEnabled) {
-      SwitchInfo info = new SwitchInfo(
-          node, scrutineeType, _switchCasePatternInfo,
-          mustBeExhaustive: true, fileOffset: node.expression.fileOffset);
-      libraryBuilder.loader.target.exhaustivenessInfo.registerSwitchInfo(info);
-    }
-
-    _switchCasePatternInfo = previousSwitchPatternInfo;
     _enumFields = previousEnumFields;
 
     assert(checkStack(node, stackBase, [/*empty*/]));
@@ -8117,8 +8106,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStackBase(node, stackBase = stackHeight));
 
     Set<Field?>? previousEnumFields = _enumFields;
-    List<SwitchCaseInfo> previousSwitchPatternInfo = _switchCasePatternInfo;
-    _switchCasePatternInfo = [];
     Expression expression = node.expression;
     SwitchStatementTypeAnalysisResult<DartType, InvalidExpression>
         analysisResult =
@@ -8194,20 +8181,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ..parent = node);
     }
 
-    if (libraryBuilder.libraryFeatures.patterns.isEnabled) {
-      if (computeIsAlwaysExhaustiveType(
-          analysisResult.scrutineeType, coreTypes)) {
-        SwitchInfo info = new SwitchInfo(
-            node, analysisResult.scrutineeType, _switchCasePatternInfo,
-            mustBeExhaustive: !analysisResult.hasDefault,
-            fileOffset: node.expression.fileOffset);
-        libraryBuilder.loader.target.exhaustivenessInfo
-            .registerSwitchInfo(info);
-      }
-    }
-
-    _switchCasePatternInfo = previousSwitchPatternInfo;
-
     assert(checkStack(node, stackBase, [/*empty*/]));
 
     return replacement != null
@@ -8220,9 +8193,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       PatternSwitchStatement node) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
-
-    List<SwitchCaseInfo> previousSwitchPatternInfo = _switchCasePatternInfo;
-    _switchCasePatternInfo = [];
 
     SwitchStatementTypeAnalysisResult<DartType, InvalidExpression>
         analysisResult =
@@ -8295,20 +8265,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
       }
     }
-
-    if (libraryBuilder.libraryFeatures.patterns.isEnabled) {
-      if (computeIsAlwaysExhaustiveType(
-          analysisResult.scrutineeType, coreTypes)) {
-        SwitchInfo info = new SwitchInfo(
-            node, analysisResult.scrutineeType, _switchCasePatternInfo,
-            mustBeExhaustive: !analysisResult.hasDefault,
-            fileOffset: node.expression.fileOffset);
-        libraryBuilder.loader.target.exhaustivenessInfo
-            .registerSwitchInfo(info);
-      }
-    }
-
-    _switchCasePatternInfo = previousSwitchPatternInfo;
 
     return const StatementInferenceResult();
   }
@@ -9545,8 +9501,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         handleConstantPattern(expression);
 
         pushRewrite(case_);
-        _switchCasePatternInfo.add(new ExpressionCaseInfo(expression,
-            fileOffset: case_.caseOffsets[subIndex]));
       } else {
         PatternGuard patternGuard =
             (case_ as PatternSwitchCase).patternGuards[subIndex];
@@ -9573,9 +9527,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
 
         pushRewrite(case_);
-        _switchCasePatternInfo.add(new PatternCaseInfo(patternGuard.pattern,
-            hasGuard: patternGuard.guard != null,
-            fileOffset: case_.caseOffsets[subIndex]));
       }
     } else {
       SwitchExpressionCase switchExpressionCase =
@@ -9609,9 +9560,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           handleConstantPattern(pattern.expression);
         }
       }
-      _switchCasePatternInfo.add(new PatternCaseInfo(patternGuard.pattern,
-          hasGuard: patternGuard.guard != null,
-          fileOffset: switchExpressionCase.fileOffset));
     }
 
     return result;

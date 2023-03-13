@@ -83,7 +83,6 @@ import 'constant_evaluator.dart' as constants
         transformProcedure,
         ConstantCoverage,
         ConstantEvaluationData;
-import 'exhaustiveness.dart';
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
 import 'macro/macro.dart';
@@ -162,8 +161,6 @@ class KernelTarget extends TargetImplementation {
   final ProcessedOptions _options;
 
   final Benchmarker? benchmarker;
-
-  final ExhaustivenessInfo exhaustivenessInfo = new ExhaustivenessInfo();
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       this.uriTranslator)
@@ -1539,7 +1536,6 @@ class KernelTarget extends TargetImplementation {
             environment,
             new KernelConstantErrorReporter(loader),
             evaluationMode,
-            exhaustivenessInfo,
             evaluateAnnotations: true,
             enableTripleShift: globalFeatures.tripleShift.isEnabled,
             enableConstFunctions: globalFeatures.constFunctions.isEnabled,
@@ -1548,11 +1544,6 @@ class KernelTarget extends TargetImplementation {
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             exhaustivenessDataForTesting:
                 loader.dataForTesting?.exhaustivenessData);
-    // TODO(johnniwinther): We don't handle exhaustive for switch expression
-    // occurring in constant context. These are error cases. Find a way to
-    // support this.
-    /*assert(exhaustivenessInfo.isEmpty,
-        "Unhandled exhaustiveness for ${exhaustivenessInfo.nodes}.");*/
     ticker.logMs("Evaluated constants");
 
     markLibrariesUsed(constantEvaluationData.visitedLibraries);
@@ -1601,15 +1592,12 @@ class KernelTarget extends TargetImplementation {
       environment,
       new KernelConstantErrorReporter(loader),
       evaluationMode,
-      exhaustivenessInfo,
       evaluateAnnotations: true,
       enableTripleShift: globalFeatures.tripleShift.isEnabled,
       enableConstFunctions: globalFeatures.constFunctions.isEnabled,
       enableConstructorTearOff: globalFeatures.constructorTearoffs.isEnabled,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
     );
-    assert(exhaustivenessInfo.isEmpty,
-        "Unhandled exhaustiveness for ${exhaustivenessInfo.nodes}.");
     ticker.logMs("Evaluated constants");
 
     backendTarget.performTransformationsOnProcedure(
