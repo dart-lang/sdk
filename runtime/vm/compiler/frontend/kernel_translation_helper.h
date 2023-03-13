@@ -447,7 +447,7 @@ class VariableDeclarationHelper {
 
   TokenPosition position_ = TokenPosition::kNoSource;
   TokenPosition equals_position_ = TokenPosition::kNoSource;
-  uint8_t flags_ = 0;
+  uint32_t flags_ = 0;
   StringIndex name_index_;
   intptr_t annotation_count_ = 0;
 

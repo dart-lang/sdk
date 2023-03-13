@@ -7226,6 +7226,9 @@ class ContextScope : public Object {
   bool IsConstAt(intptr_t scope_index) const;
   void SetIsConstAt(intptr_t scope_index, bool is_const) const;
 
+  bool IsInvisibleAt(intptr_t scope_index) const;
+  void SetIsInvisibleAt(intptr_t scope_index, bool is_invisible) const;
+
   AbstractTypePtr TypeAt(intptr_t scope_index) const;
   void SetTypeAt(intptr_t scope_index, const AbstractType& type) const;
 

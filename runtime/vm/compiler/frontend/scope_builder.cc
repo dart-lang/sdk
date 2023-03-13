@@ -1352,6 +1352,9 @@ void ScopeBuilder::VisitVariableDeclaration() {
     variable->set_is_late();
     variable->set_late_init_offset(initializer_offset);
   }
+  if (helper.IsSynthesized()) {
+    variable->set_invisible(true);
+  }
 
   scope_->AddVariable(variable);
   result_->locals.Insert(kernel_offset, variable);
