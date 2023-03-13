@@ -549,23 +549,31 @@ class Intrinsifier {
     w.ValueType leftType = typeOfExp(node.left);
     w.ValueType rightType = typeOfExp(node.right);
 
-    // Compare bool or Pointer
-    if (leftType == boolType && rightType == boolType) {
+    // Compare bool, Pointer or WasmI32.
+    if (leftType == w.NumType.i32 && rightType == w.NumType.i32) {
       codeGen.wrap(node.left, w.NumType.i32);
       codeGen.wrap(node.right, w.NumType.i32);
       b.i32_eq();
       return w.NumType.i32;
     }
 
-    // Compare int
-    if (leftType == intType && rightType == intType) {
+    // Compare int or WasmI64.
+    if (leftType == w.NumType.i64 && rightType == w.NumType.i64) {
       codeGen.wrap(node.left, w.NumType.i64);
       codeGen.wrap(node.right, w.NumType.i64);
       b.i64_eq();
       return w.NumType.i32;
     }
 
-    // Compare double
+    // Compare WasmF32.
+    if (leftType == w.NumType.f32 && rightType == w.NumType.f32) {
+      codeGen.wrap(node.left, w.NumType.f32);
+      codeGen.wrap(node.right, w.NumType.f32);
+      b.f32_eq();
+      return w.NumType.i32;
+    }
+
+    // Compare double or WasmF64.
     if (leftType == doubleType && rightType == doubleType) {
       codeGen.wrap(node.left, w.NumType.f64);
       codeGen.wrap(node.right, w.NumType.f64);
