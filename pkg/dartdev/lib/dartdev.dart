@@ -40,29 +40,21 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
   int? exitCode = 1;
   try {
     VmInteropHandler.initialize(port);
-
-    // TODO(sigurdm): Remove when top-level pub is removed.
-    if (args[0] == '__deprecated_pub') {
-      // This is the entry-point supporting the top-level `pub` script.
-      // ignore: deprecated_member_use
-      exitCode = await deprecatedpubCommand().run(args.skip(1));
-    } else {
-      if (args.contains('run')) {
-        // These flags have a format that can't be handled by package:args, so while
-        // they are valid flags we'll assume the VM has verified them by this point.
-        args = args
-            .where(
-              (element) => !(element.contains('--observe') ||
-                  element.contains('--enable-vm-service') ||
-                  element.contains('--devtools')),
-            )
-            .toList();
-      }
-
-      // Finally, call the runner to execute the command; see DartdevRunner.
-      final runner = DartdevRunner(args);
-      exitCode = await runner.run(args);
+    if (args.contains('run')) {
+      // These flags have a format that can't be handled by package:args, so while
+      // they are valid flags we'll assume the VM has verified them by this point.
+      args = args
+          .where(
+            (element) => !(element.contains('--observe') ||
+                element.contains('--enable-vm-service') ||
+                element.contains('--devtools')),
+          )
+          .toList();
     }
+
+    // Finally, call the runner to execute the command; see DartdevRunner.
+    final runner = DartdevRunner(args);
+    exitCode = await runner.run(args);
   } on UsageException catch (e) {
     // TODO(sigurdm): It is unclear when a UsageException gets to here, and
     // when it is in DartdevRunner.runCommand.
