@@ -404,11 +404,15 @@ _extra_builder(
 )
 
 #vm|legacy|jit
-_builder("vm-kernel-linux-debug-x64", category = "vm|legacy|jit|d")
-_builder(
+_extra_builder(
+    "vm-kernel-linux-debug-x64",
+    category = "vm|legacy|jit|d",
+    channels = ["try"],
+)
+_extra_builder(
     "vm-kernel-linux-release-x64",
     category = "vm|legacy|jit|r",
-    on_cq = True,
+    channels = ["try"],
 )
 _extra_builder(
     "vm-kernel-checked-linux-release-x64",
