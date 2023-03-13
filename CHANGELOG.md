@@ -139,6 +139,13 @@
   removed.  See [#49536](https://github.com/dart-lang/sdk/issues/49536) for
   details.
 
+#### `dart:math`
+
+- **Breaking change when migrating code to Dart 3.0**:
+  Some changes to platform libraries only affect code when it is migrated
+  to language version 3.0.
+  - The `Random` interface can only be implemented, not extended.
+
 #### `dart:io`
 
 - Deprecated `NetworkInterface.listSupported`. Has always returned true since
