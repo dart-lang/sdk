@@ -63,6 +63,18 @@ basic_cq("dart-docker")
 basic_cq("homebrew-dart")
 basic_cq("recipes")
 
+def empty_cq(repository):
+    luci.cq_group(
+        name = repository,
+        watch = cq.refset(DART_GERRIT + repository, refs = ["refs/heads/main"]),
+        allow_submit_with_open_deps = True,
+        tree_status_host = "dart-status.appspot.com",
+        retry_config = cq.RETRY_NONE,
+        verifiers = None,
+    )
+
+empty_cq("monorepo")
+
 luci.list_view(
     name = "cq",
     title = "SDK CQ Console",
