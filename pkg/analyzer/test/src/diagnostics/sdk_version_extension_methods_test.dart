@@ -16,13 +16,13 @@ main() {
 @reflectiveTest
 class SdkVersionExtensionMethodsTest extends SdkConstraintVerifierTest {
   test_extension_equals() async {
-    await verifyVersion('2.6.0', '''
+    await verifyVersion('>=2.6.0', '''
 extension E on int {}
 ''');
   }
 
   test_extension_lessThan() async {
-    await verifyVersion('2.2.0', '''
+    await verifyVersion('>=2.2.0', '''
 extension E on int {}
 ''', expectedErrors: [
       error(WarningCode.SDK_VERSION_EXTENSION_METHODS, 0, 9),
@@ -30,7 +30,7 @@ extension E on int {}
   }
 
   test_extensionOverride_equals() async {
-    await verifyVersion('2.6.0', '''
+    await verifyVersion('>=2.6.0', '''
 extension E on int {
   int get a => 0;
 }
@@ -41,7 +41,7 @@ void f() {
   }
 
   test_extensionOverride_lessThan() async {
-    await verifyVersion('2.2.0', '''
+    await verifyVersion('>=2.2.0', '''
 extension E on int {
   int get a => 0;
 }

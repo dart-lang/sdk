@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class SdkVersionAsyncExportedFromCoreTest extends SdkConstraintVerifierTest {
   test_equals_explicitImportOfAsync() async {
-    await verifyVersion('2.1.0', '''
+    await verifyVersion('>=2.1.0', '''
 import 'dart:async';
 
 Future<int> zero() async => 0;
@@ -27,7 +27,7 @@ Future<int> zero() async => 0;
   }
 
   test_equals_explicitImportOfCore() async {
-    await verifyVersion('2.1.0', '''
+    await verifyVersion('>=2.1.0', '''
 import 'dart:core';
 
 Future<int> zero() async => 0;
@@ -38,7 +38,7 @@ Future<int> zero() async => 0;
     newFile('$testPackageLibPath/exporter.dart', '''
 export 'dart:async';
 ''');
-    await verifyVersion('2.1.0', '''
+    await verifyVersion('>=2.1.0', '''
 import 'exporter.dart';
 
 Future<int> zero() async => 0;
@@ -46,7 +46,7 @@ Future<int> zero() async => 0;
   }
 
   test_equals_implicitImportOfCore() async {
-    await verifyVersion('2.1.0', '''
+    await verifyVersion('>=2.1.0', '''
 Future<int> zero() async => 0;
 ''');
   }
@@ -80,7 +80,7 @@ Future<int> zero() async => 0;
   }
 
   test_lessThan_explicitImportOfAsync() async {
-    await verifyVersion('2.0.0', '''
+    await verifyVersion('>=2.0.0', '''
 import 'dart:async';
 
 Future<int> zero() async => 0;
@@ -88,7 +88,7 @@ Future<int> zero() async => 0;
   }
 
   test_lessThan_explicitImportOfCore() async {
-    await verifyVersion('2.0.0', '''
+    await verifyVersion('>=2.0.0', '''
 import 'dart:core' show Future, int;
 
 Future<int> zero() async => 0;
@@ -101,7 +101,7 @@ Future<int> zero() async => 0;
     newFile('$testPackageLibPath/exporter.dart', '''
 export 'dart:async';
 ''');
-    await verifyVersion('2.0.0', '''
+    await verifyVersion('>=2.0.0', '''
 import 'exporter.dart';
 
 Future<int> zero() async => 0;
@@ -109,7 +109,7 @@ Future<int> zero() async => 0;
   }
 
   test_lessThan_implicitImportOfCore() async {
-    await verifyVersion('2.0.0', '''
+    await verifyVersion('>=2.0.0', '''
 Future<int> zero() async => 0;
 ''', expectedErrors: [
       error(WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 0, 6),
@@ -147,25 +147,25 @@ Future<int> zero() async => 0;
   }
 
   test_lessThan_onlyReferencedInExport_hide() async {
-    await verifyVersion('2.0.0', '''
+    await verifyVersion('>=2.0.0', '''
 export 'dart:async' hide Future;
 ''');
   }
 
   test_lessThan_onlyReferencedInExport_show() async {
-    await verifyVersion('2.0.0', '''
+    await verifyVersion('>=2.0.0', '''
 export 'dart:async' show Future;
 ''');
   }
 
   test_lessThan_onlyReferencedInImport_hide() async {
-    await verifyVersion('2.0.0', '''
+    await verifyVersion('>=2.0.0', '''
 import 'dart:core' hide Future;
 ''');
   }
 
   test_lessThan_onlyReferencedInImport_show() async {
-    await verifyVersion('2.0.0', '''
+    await verifyVersion('>=2.0.0', '''
 import 'dart:core' show Future;
 ''');
   }
