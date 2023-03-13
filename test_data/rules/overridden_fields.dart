@@ -10,6 +10,10 @@ class Base {
   Object something = 'change';
 }
 
+mixin BaseMixin {
+  Object something = 'change';
+}
+
 class Bad1 extends Base {
   final x = 1, field = 'ipsum'; // LINT
 }
@@ -19,7 +23,7 @@ class Bad2 extends Base {
   Object something = 'done'; // LINT
 }
 
-class Bad3 extends Object with Base {
+class Bad3 extends Object with BaseMixin {
   @override
   Object something = 'done'; // LINT
 }
@@ -115,13 +119,17 @@ abstract class BB {
   abstract String s;
 }
 
+mixin AbstractMixin {
+  abstract String s;
+}
+
 class AA extends BB {
   /// Overriding abstracts in NNBD is OK.
   @override
   String s = ''; // OK
 }
 
-class AAA with BB {
+class AAA with AbstractMixin {
   @override
   String s = ''; // OK
 }

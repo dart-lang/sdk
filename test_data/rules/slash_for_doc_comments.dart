@@ -49,7 +49,7 @@ class C {}
 var D = String;
 
 /** Z */ //LINT
-class Z = B with C;
+class Z = B with M1;
 
 /** M1 */ //LINT
 mixin M1 {}

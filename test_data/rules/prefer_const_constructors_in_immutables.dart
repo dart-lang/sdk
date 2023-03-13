@@ -41,7 +41,7 @@ class D {
   D.c4(a) : _a = '${a ? a : ''}'; // LINT
 }
 
-class Mixin1 {}
+mixin Mixin1 {}
 
 class E extends A with Mixin1 {
   // no lint because const leads to error : Const constructor can't be declared for a class with a mixin.

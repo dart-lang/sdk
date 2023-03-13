@@ -46,7 +46,7 @@ class Public1 {}
 
 class Public2 extends Public4<_Private1> {}
 
-class Public3 extends Object with _Private2<int> {}
+class Public3 extends Object with _PrivateMixin<int> {}
 
 class Public4<T> implements _Private2<T> {}
 
@@ -57,6 +57,8 @@ class _Private1 {
 }
 
 class _Private2<E> {}
+
+mixin _PrivateMixin<E> {}
 
 // Mixins
 
