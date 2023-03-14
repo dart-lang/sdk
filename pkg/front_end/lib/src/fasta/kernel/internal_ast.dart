@@ -3435,6 +3435,11 @@ class IfCaseElement extends InternalExpression with ControlFlowElement {
   Expression? otherwise;
   List<Statement> prelude;
 
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  DartType matchedValueType = InvalidType.unsetType;
+
   IfCaseElement(
       {required this.prelude,
       required this.expression,
@@ -3511,6 +3516,11 @@ class IfCaseMapEntry extends TreeNode
   MapLiteralEntry then;
   MapLiteralEntry? otherwise;
   List<Statement> prelude;
+
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  DartType matchedValueType = InvalidType.unsetType;
 
   IfCaseMapEntry(
       {required this.prelude,
