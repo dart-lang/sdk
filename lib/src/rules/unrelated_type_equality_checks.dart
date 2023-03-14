@@ -142,11 +142,10 @@ bool _hasNonComparableOperands(TypeSystem typeSystem, BinaryExpression node) {
   }
   return !left.isNullLiteral &&
       !right.isNullLiteral &&
-      typesAreUnrelated(typeSystem, leftType, rightType) &&
-      !(_isFixNumIntX(leftType) && _isCoreInt(rightType));
+      _nonComparable(typeSystem, leftType, rightType);
 }
 
-bool _isCoreInt(DartType type) => type.isDartCoreInt;
+bool _isCoreInt(DartType? type) => type != null && type.isDartCoreInt;
 
 bool _isFixNumIntX(DartType type) {
   // todo(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
@@ -158,6 +157,11 @@ bool _isFixNumIntX(DartType type) {
   if (!uri.isScheme('package')) return false;
   return uri.pathSegments.firstOrNull == 'fixnum';
 }
+
+bool _nonComparable(
+        TypeSystem typeSystem, DartType leftType, DartType? rightType) =>
+    typesAreUnrelated(typeSystem, leftType, rightType) &&
+    !(_isFixNumIntX(leftType) && _isCoreInt(rightType));
 
 class UnrelatedTypeEqualityChecks extends LintRule {
   static const LintCode code = LintCode('unrelated_type_equality_checks',
@@ -179,6 +183,7 @@ class UnrelatedTypeEqualityChecks extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context.typeSystem);
     registry.addBinaryExpression(this, visitor);
+    registry.addRelationalPattern(this, visitor);
   }
 }
 
@@ -191,9 +196,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     var isDartCoreBoolean = node.staticType?.isDartCoreBool ?? false;
-    if (!isDartCoreBoolean ||
-        (node.operator.type != TokenType.EQ_EQ &&
-            node.operator.type != TokenType.BANG_EQ)) {
+    if (!isDartCoreBoolean || !_isEqualityTest(node.operator)) {
       return;
     }
 
@@ -201,4 +204,18 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLint(node);
     }
   }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    var valueType = node.matchedValueType;
+    if (valueType == null) return;
+    if (!_isEqualityTest(node.operator)) return;
+    var operandType = node.operand.staticType;
+    if (_nonComparable(typeSystem, valueType, operandType)) {
+      rule.reportLint(node);
+    }
+  }
+
+  bool _isEqualityTest(Token operator) =>
+      operator.type == TokenType.EQ_EQ || operator.type == TokenType.BANG_EQ;
 }

@@ -105,6 +105,8 @@ import 'unnecessary_overrides_test.dart' as unnecessary_overrides;
 import 'unnecessary_parenthesis_test.dart' as unnecessary_parenthesis;
 import 'unnecessary_string_escapes_test.dart' as unnecessary_string_escapes;
 import 'unreachable_from_main_test.dart' as unreachable_from_main;
+import 'unrelated_type_equality_checks_test.dart'
+    as unrelated_type_equality_checks;
 import 'use_build_context_synchronously_test.dart'
     as use_build_context_synchronously;
 import 'use_enums_test.dart' as use_enums;
@@ -193,6 +195,7 @@ void main() {
   unnecessary_parenthesis.main();
   unnecessary_string_escapes.main();
   unreachable_from_main.main();
+  unrelated_type_equality_checks.main();
   use_build_context_synchronously.main();
   use_enums.main();
   use_is_even_rather_than_modulo.main();
