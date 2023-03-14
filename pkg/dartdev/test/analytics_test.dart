@@ -19,7 +19,8 @@ List<Map> extractAnalytics(ProcessResult result) {
       .toList();
 }
 
-Future<void> main() async {
+void main() {
+  final experiments = experimentsWithValidation();
   group('DisabledAnalytics', disabledAnalyticsObject);
 
   group('VM -> CLI --analytics flag smoke test:', () {
@@ -67,7 +68,6 @@ Future<void> main() async {
 '''));
   });
 
-  final experiments = await experimentsWithValidation();
   group('Sending analytics', () {
     test('help', () async {
       final p = project(logAnalytics: true);

@@ -11,10 +11,10 @@ import 'package:test/test.dart';
 import '../experiment_util.dart';
 import '../utils.dart';
 
-Future<void> main() async {
+void main() {
   ensureRunFromSdkBinDart();
 
-  final experiments = await experimentsWithValidation();
+  final experiments = experimentsWithValidation();
   group('test', () => defineTest(experiments), timeout: longTimeout);
 }
 

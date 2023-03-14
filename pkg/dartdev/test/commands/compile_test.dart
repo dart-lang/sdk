@@ -389,7 +389,10 @@ void defineCompileTests() {
     expect(result.stdout, contains('I love AOT'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  }, skip: isRunningOnIA32);
+  },
+      skip: isRunningOnIA32 ||
+          // Allow on MacOS after dart-lang/sdk#51707 is fixed.
+          Platform.isMacOS);
 
   test('Compile and run kernel snapshot', () async {
     final p = project(mainSrc: 'void main() { print("I love kernel"); }');
@@ -1281,6 +1284,9 @@ void main() {
       // Now perform the same basic compile and run test with the signed
       // dartaotruntime.
       await basicCompileTest();
-    }, skip: isRunningOnIA32);
+    },
+        skip: isRunningOnIA32 ||
+            // Allow on MacOS after dart-lang/sdk#51707 is fixed.
+            Platform.isMacOS);
   }
 }

@@ -4,6 +4,8 @@
 
 @TestOn('windows')
 
+import 'dart:io';
+
 import 'package:dartdev/src/processes.dart';
 import 'package:test/test.dart';
 
@@ -35,7 +37,7 @@ void main() {
       // 233384kb == 227MB
       expect(result.memoryMb, 227);
     });
-  });
+  }, skip: !Platform.isWindows);
 
   group('info windows', () {
     late TestProject p;
@@ -56,5 +58,5 @@ void main() {
       expect(output, contains('| Memory'));
       expect(output, contains('| dart.exe '));
     });
-  }, timeout: longTimeout);
+  }, timeout: longTimeout, skip: !Platform.isWindows);
 }

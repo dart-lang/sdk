@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -17,12 +16,26 @@ void main() {
 /// Enable to run from local source (useful in development).
 const runFromSource = false;
 
+final bullet = '•';
+final nonAnsiBullet = '-';
+
+/// Allow for different bullets; depending on how the test harness is run,
+/// subprocesses may decide to give us ansi bullets or normal bullets.
+/// TODO(jcollins): find a way to detect which one we should be expecting.
+Matcher stringContainsInOrderWithVariableBullets(List<String> substrings) {
+  var substitutedSubstrings = substrings;
+  if (substrings.any((s) => s.contains(bullet))) {
+    substitutedSubstrings =
+        substrings.map((s) => s.replaceAll(bullet, nonAnsiBullet)).toList();
+  }
+  return anyOf(stringContainsInOrder(substrings),
+      stringContainsInOrder(substitutedSubstrings));
+}
+
 void defineFix() {
   TestProject? p;
 
   late ProcessResult result;
-
-  final bullet = Logger.standard().ansi.bullet;
 
   setUp(() => p = null);
 
@@ -136,7 +149,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             'Applying fixes...',
             'lib${Platform.pathSeparator}main.dart',
             '  prefer_single_quotes $bullet 1 fix',
@@ -166,7 +179,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             '3 proposed fixes in 1 file.',
             'lib${Platform.pathSeparator}main.dart',
             '  annotate_overrides $bullet 1 fix',
@@ -201,7 +214,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             '1 proposed fix in 1 file.',
             'lib${Platform.pathSeparator}main.dart',
             '  prefer_single_quotes $bullet 1 fix',
@@ -229,7 +242,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             "Unable to compute fixes: The diagnostic '_undefined_' is not defined by the analyzer.",
           ]));
     });
@@ -251,7 +264,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             'Applying fixes...',
             'main.dart',
             '  prefer_single_quotes $bullet 1 fix',
@@ -281,7 +294,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             'Applying fixes...',
             'lib${Platform.pathSeparator}main.dart',
             '  prefer_single_quotes $bullet 1 fix',
@@ -299,7 +312,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             "Unable to compute fixes: The diagnostic '_undefined_' is not defined by the analyzer.",
           ]));
     });
@@ -323,7 +336,8 @@ linter:
           workingDir: p!.dirPath);
       expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
-      expect(result.stdout, stringContainsInOrder(['Nothing to fix!']));
+      expect(result.stdout,
+          stringContainsInOrderWithVariableBullets(['Nothing to fix!']));
     });
 
     test('--apply --code=(multiple: one undefined)', () async {
@@ -353,7 +367,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             "Unable to compute fixes: The diagnostic '_undefined_' is not defined by the analyzer.",
           ]));
     });
@@ -385,7 +399,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             'Applying fixes...',
             'lib${Platform.pathSeparator}main.dart',
             '  prefer_single_quotes $bullet 1 fix',
@@ -416,7 +430,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             'Applying fixes...',
             'lib${Platform.pathSeparator}main.dart',
             '  prefer_single_quotes $bullet 1 fix',
@@ -441,7 +455,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             'Applying fixes...',
             'lib${Platform.pathSeparator}main.dart',
             '  prefer_single_quotes $bullet 1 fix',
@@ -466,7 +480,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             'Applying fixes...',
             'lib${Platform.pathSeparator}main.dart',
             '  prefer_double_quotes $bullet 2 fixes',
@@ -531,7 +545,7 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
-          stringContainsInOrder([
+          stringContainsInOrderWithVariableBullets([
             'Applying fixes...',
             'lib${Platform.pathSeparator}main.dart',
             '  prefer_single_quotes $bullet 1 fix',
