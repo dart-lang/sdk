@@ -172,7 +172,7 @@ vars = {
   "test_descriptor_rev": "1d4a967dd17874f3835af30720e9820c74977569",
   "test_process_rev": "f76d0b8fcf078d629cb57f859db79be93d6323d5",
   "test_reflective_loader_rev": "c4c2d5c3f94a96f3fc79e9e28944fba391bc544c",
-  "tools_rev": "bed358ea8ca10551c710282be96cf6e95620fb24",
+  "tools_rev": "e5353aa3ae4bcaa75cd0ac48a6e47035c57df942",
   "typed_data_rev": "f858046fb420cf644e7d8cb86b7893f2830d8a6c",
   "usage_rev": "399770f45ed2d384d79395c0341a04fb25609a4d",
   "vector_math_rev": "1e4d000f55512ca55d0fcef4e13fc03010d54251",
