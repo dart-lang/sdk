@@ -1,0 +1,78 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+import "dart:collection";
+
+abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V extends core::Object? = dynamic> = core::Object with col::MapMixin<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MyMap&Object&MapMixin<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>
+    : super core::Object::•()
+    ;
+  mixin-super-stub method containsKey(core::Object? key) → core::bool
+    return super.{col::MapMixin::containsKey}(key);
+  abstract mixin-stub operator [](core::Object? key) → self::_MyMap&Object&MapMixin::V?; -> col::MapMixin::[]
+  abstract mixin-stub operator []=(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class self::_MyMap&Object&MapMixin::V% value) → void; -> col::MapMixin::[]=
+  abstract mixin-stub method clear() → void; -> col::MapMixin::clear
+  abstract mixin-stub method remove(core::Object? key) → self::_MyMap&Object&MapMixin::V?; -> col::MapMixin::remove
+  abstract mixin-stub get keys() → core::Iterable<self::_MyMap&Object&MapMixin::K%>; -> col::MapMixin::keys
+  mixin-super-stub method cast<RK extends core::Object? = dynamic, RV extends core::Object? = dynamic>() → core::Map<self::_MyMap&Object&MapMixin::cast::RK%, self::_MyMap&Object&MapMixin::cast::RV%>
+    return super.{col::MapMixin::cast}<self::_MyMap&Object&MapMixin::cast::RK%, self::_MyMap&Object&MapMixin::cast::RV%>();
+  mixin-super-stub method forEach((self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void action) → void
+    return super.{col::MapMixin::forEach}(action);
+  mixin-super-stub method addAll(covariant-by-class core::Map<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%> other) → void
+    return super.{col::MapMixin::addAll}(other);
+  mixin-super-stub method containsValue(core::Object? value) → core::bool
+    return super.{col::MapMixin::containsValue}(value);
+  mixin-super-stub method putIfAbsent(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class () → self::_MyMap&Object&MapMixin::V% ifAbsent) → self::_MyMap&Object&MapMixin::V%
+    return super.{col::MapMixin::putIfAbsent}(key, ifAbsent);
+  mixin-super-stub method update(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class (self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V% update, {covariant-by-class () →? self::_MyMap&Object&MapMixin::V% ifAbsent}) → self::_MyMap&Object&MapMixin::V%
+    return super.{col::MapMixin::update}(key, update, ifAbsent: ifAbsent);
+  mixin-super-stub method updateAll(covariant-by-class (self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V% update) → void
+    return super.{col::MapMixin::updateAll}(update);
+  mixin-super-stub get entries() → core::Iterable<core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>>
+    return super.{col::MapMixin::entries};
+  mixin-super-stub method map<K2 extends core::Object? = dynamic, V2 extends core::Object? = dynamic>((self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → core::MapEntry<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%> transform) → core::Map<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%>
+    return super.{col::MapMixin::map}<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%>(transform);
+  mixin-super-stub method addEntries(covariant-by-class core::Iterable<core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>> newEntries) → void
+    return super.{col::MapMixin::addEntries}(newEntries);
+  mixin-super-stub method removeWhere((self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → core::bool test) → void
+    return super.{col::MapMixin::removeWhere}(test);
+  mixin-super-stub get length() → core::int
+    return super.{col::MapMixin::length};
+  mixin-super-stub get isEmpty() → core::bool
+    return super.{col::MapMixin::isEmpty};
+  mixin-super-stub get isNotEmpty() → core::bool
+    return super.{col::MapMixin::isNotEmpty};
+  mixin-super-stub get values() → core::Iterable<self::_MyMap&Object&MapMixin::V%>
+    return super.{col::MapMixin::values};
+  mixin-super-stub method toString() → core::String
+    return super.{col::MapMixin::toString}();
+}
+class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends self::_MyMap&Object&MapMixin<self::MyMap::K%, self::MyMap::V%> {
+  field core::int containsKeyCount;
+  field core::int indexGetCount;
+  final field core::Map<self::MyMap::K%, self::MyMap::V%> _map;
+  constructor •(core::Map<self::MyMap::K%, self::MyMap::V%> _map) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
+    ;
+  method containsKey(core::Object? key) → core::bool
+    ;
+  operator [](core::Object? key) → self::MyMap::V?
+    ;
+  operator []=(covariant-by-class self::MyMap::K% key, covariant-by-class self::MyMap::V% value) → void
+    ;
+  method clear() → void
+    ;
+  get keys() → core::Iterable<self::MyMap::K%>
+    ;
+  method remove(core::Object? key) → self::MyMap::V?
+    ;
+}
+static method method(core::Map<core::int, core::String> m) → core::int
+  ;
+static method test(core::Map<core::int, core::String> map, {required core::int expectedValue, required core::int expectedContainsKeyCount, required core::int expectedIndexGetCount}) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual, dynamic message) → dynamic
+  ;

@@ -283,7 +283,10 @@ static method unreachableCase1(self::Enum e) → void {
   #L10:
   {
     final synthesized self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+    function ##0#2#initializer() → core::bool
+      return #C3 =={core::Object::==}{(core::Object) → core::bool} #0#0;
+    late final synthesized core::bool #0#2 = ##0#2#initializer(){() → core::bool};
+    if(#0#2) {
       {
         core::print("a1");
         break #L10;
@@ -297,7 +300,7 @@ static method unreachableCase1(self::Enum e) → void {
         }
       }
       else
-        if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        if(#0#2) {
           {
             core::print("a2");
             break #L10;
@@ -316,7 +319,10 @@ static method unreachableCase2(self::Enum e) → void {
   #L11:
   {
     final synthesized self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+    function ##0#2#initializer() → core::bool
+      return #C3 =={core::Object::==}{(core::Object) → core::bool} #0#0;
+    late final synthesized core::bool #0#2 = ##0#2#initializer(){() → core::bool};
+    if(#0#2) {
       {
         core::print("a1");
         break #L11;
@@ -330,7 +336,7 @@ static method unreachableCase2(self::Enum e) → void {
         }
       }
       else
-        if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        if(#0#2) {
           {
             core::print("a2");
             break #L11;
@@ -375,6 +381,9 @@ static method unreachableCase4(self::Enum? e) → void {
   #L13:
   {
     final synthesized self::Enum? #0#0 = e;
+    function ##0#8#initializer() → core::bool
+      return #0#0 == null;
+    late final synthesized core::bool #0#8 = ##0#8#initializer(){() → core::bool};
     if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("a");
@@ -396,14 +405,14 @@ static method unreachableCase4(self::Enum? e) → void {
           }
         }
         else
-          if(#0#0 == null) {
+          if(#0#8) {
             {
               core::print("null1");
               break #L13;
             }
           }
           else
-            if(#0#0 == null) {
+            if(#0#8) {
               {
                 core::print("null2");
                 break #L13;
