@@ -323,6 +323,31 @@ void main(List<String> args) => print("$b $args");
     expect(result.exitCode, 0);
   });
 
+  test('with accepted VM flags related to the timeline', () async {
+    p = project(
+        mainSrc: 'import "dart:developer";'
+            'void main() {'
+            'Timeline.startSync("sync");'
+            'Timeline.finishSync();'
+            '}');
+
+    final result = await p.run([
+      '--timeline-recorder=file',
+      'run',
+      '--timeline-streams=Dart',
+      p.relativeFilePath
+    ]);
+
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, isEmpty);
+    expect(result.exitCode, 0);
+    expect(
+        p
+            .findFile(path.join(p.dirPath, 'dart-timeline.json'))!
+            .readAsStringSync(),
+        contains('"name":"sync","cat":"Dart"'));
+  });
+
   test('fails when provided verbose VM flags', () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
 
