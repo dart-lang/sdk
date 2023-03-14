@@ -83,36 +83,36 @@ def add_postponed_alt_console_entries():
 
 # vm|jit
 _extra_builder(
-    "vm-kernel-nnbd-linux-debug-x64",
+    "vm-linux-debug-x64",
     category = "vm|jit|d",
     on_cq = True,
 )
 _extra_builder(
-    "vm-kernel-nnbd-linux-release-x64",
+    "vm-linux-release-x64",
     category = "vm|jit|r",
     on_cq = True,
 )
 _nightly_builder(
-    "vm-kernel-nnbd-linux-debug-ia32",
+    "vm-linux-debug-ia32",
     category = "vm|jit|d3",
     channels = ["try"],
     properties = slow_shards,
 )
 _nightly_builder(
-    "vm-kernel-nnbd-linux-release-ia32",
+    "vm-linux-release-ia32",
     category = "vm|jit|r3",
     channels = ["try"],
 )
 _extra_builder(
-    "vm-kernel-nnbd-linux-release-simarm",
+    "vm-linux-release-simarm",
     category = "vm|jit|ra",
 )
 _extra_builder(
-    "vm-kernel-nnbd-linux-release-simarm64",
+    "vm-linux-release-simarm64",
     category = "vm|jit|ra6",
 )
 _nightly_builder(
-    "vm-kernel-nnbd-linux-debug-simriscv64",
+    "vm-linux-debug-simriscv64",
     category = "vm|jit|rv",
     channels = ["try"],
 )
@@ -124,43 +124,43 @@ _extra_builder(
     properties = {"shard_timeout": (120 * time.minute) // time.second},
 )
 _nightly_builder(
-    "vm-kernel-nnbd-mac-debug-arm64",
+    "vm-mac-debug-arm64",
     category = "vm|jit|m1d",
     channels = ["try"],
     dimensions = [mac, arm64],
     properties = [no_android, slow_shards],
 )
 _builder(
-    "vm-kernel-nnbd-mac-debug-x64",
+    "vm-mac-debug-x64",
     category = "vm|jit|md",
     dimensions = mac,
     properties = slow_shards,
 )
 _builder(
-    "vm-kernel-nnbd-mac-release-arm64",
+    "vm-mac-release-arm64",
     category = "vm|jit|m1r",
     dimensions = [mac, arm64],
     properties = no_android,
 )
 _builder(
-    "vm-kernel-nnbd-mac-release-x64",
+    "vm-mac-release-x64",
     category = "vm|jit|mr",
     dimensions = mac,
 )
 _nightly_builder(
-    "vm-kernel-nnbd-win-release-ia32",
+    "vm-win-release-ia32",
     category = "vm|jit|wr3",
     channels = ["try"],
     dimensions = windows,
 )
 _builder(
-    "vm-kernel-nnbd-win-debug-x64",
+    "vm-win-debug-x64",
     category = "vm|jit|wd",
     properties = slow_shards,
     dimensions = windows,
 )
 _builder(
-    "vm-kernel-nnbd-win-release-x64",
+    "vm-win-release-x64",
     category = "vm|jit|wr",
     dimensions = windows,
 )
