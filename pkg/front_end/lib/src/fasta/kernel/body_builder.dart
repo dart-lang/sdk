@@ -4196,7 +4196,7 @@ class BodyBuilder extends StackListenerImpl
       if (variableOrExpression is PatternVariableDeclaration) {
         result = forest.createPatternForMapEntry(offsetForToken(forToken),
             patternVariableDeclaration: variableOrExpression,
-            prelude: intermediateVariables!,
+            intermediateVariables: intermediateVariables!,
             variables: variables,
             condition: condition,
             updates: updates,
@@ -4212,7 +4212,7 @@ class BodyBuilder extends StackListenerImpl
       if (variableOrExpression is PatternVariableDeclaration) {
         result = forest.createPatternForElement(offsetForToken(forToken),
             patternVariableDeclaration: variableOrExpression,
-            prelude: intermediateVariables!,
+            intermediateVariables: intermediateVariables!,
             variables: variables,
             condition: condition,
             updates: updates,

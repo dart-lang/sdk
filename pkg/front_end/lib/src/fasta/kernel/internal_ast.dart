@@ -3563,7 +3563,7 @@ class PatternForElement extends InternalExpression
     with ControlFlowElement
     implements ForElement {
   PatternVariableDeclaration patternVariableDeclaration;
-  List<Statement> prelude;
+  List<VariableDeclaration> intermediateVariables;
 
   @override
   final List<VariableDeclaration> variables; // May be empty, but not null.
@@ -3579,7 +3579,7 @@ class PatternForElement extends InternalExpression
 
   PatternForElement(
       {required this.patternVariableDeclaration,
-      required this.prelude,
+      required this.intermediateVariables,
       required this.variables,
       required this.condition,
       required this.updates,
@@ -3628,7 +3628,7 @@ class PatternForMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntry
     implements ForMapEntry {
   PatternVariableDeclaration patternVariableDeclaration;
-  List<Statement> prelude;
+  List<VariableDeclaration> intermediateVariables;
 
   @override
   final List<VariableDeclaration> variables;
@@ -3644,7 +3644,7 @@ class PatternForMapEntry extends TreeNode
 
   PatternForMapEntry(
       {required this.patternVariableDeclaration,
-      required this.prelude,
+      required this.intermediateVariables,
       required this.variables,
       required this.condition,
       required this.updates,

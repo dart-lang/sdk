@@ -328,7 +328,7 @@ class Forest {
 
   PatternForElement createPatternForElement(int fileOffset,
       {required PatternVariableDeclaration patternVariableDeclaration,
-      required List<Statement> prelude,
+      required List<VariableDeclaration> intermediateVariables,
       required List<VariableDeclaration> variables,
       required Expression? condition,
       required List<Expression> updates,
@@ -337,7 +337,7 @@ class Forest {
     assert(fileOffset != null);
     return new PatternForElement(
         patternVariableDeclaration: patternVariableDeclaration,
-        prelude: prelude,
+        intermediateVariables: intermediateVariables,
         variables: variables,
         condition: condition,
         updates: updates,
@@ -359,7 +359,7 @@ class Forest {
 
   PatternForMapEntry createPatternForMapEntry(int fileOffset,
       {required PatternVariableDeclaration patternVariableDeclaration,
-      required List<Statement> prelude,
+      required List<VariableDeclaration> intermediateVariables,
       required List<VariableDeclaration> variables,
       required Expression? condition,
       required List<Expression> updates,
@@ -368,7 +368,7 @@ class Forest {
     assert(fileOffset != null);
     return new PatternForMapEntry(
         patternVariableDeclaration: patternVariableDeclaration,
-        prelude: prelude,
+        intermediateVariables: intermediateVariables,
         variables: variables,
         condition: condition,
         updates: updates,

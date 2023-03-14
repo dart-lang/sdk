@@ -854,7 +854,7 @@ Expression convertToElement(
     if (entry is PatternForMapEntry) {
       PatternForElement result = new PatternForElement(
           patternVariableDeclaration: entry.patternVariableDeclaration,
-          prelude: entry.prelude,
+          intermediateVariables: entry.intermediateVariables,
           variables: entry.variables,
           condition: entry.condition,
           updates: entry.updates,
@@ -969,7 +969,7 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
     if (element is PatternForElement) {
       PatternForMapEntry result = new PatternForMapEntry(
           patternVariableDeclaration: element.patternVariableDeclaration,
-          prelude: element.prelude,
+          intermediateVariables: element.intermediateVariables,
           variables: element.variables,
           condition: element.condition,
           updates: element.updates,

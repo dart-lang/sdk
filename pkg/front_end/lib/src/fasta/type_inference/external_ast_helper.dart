@@ -150,8 +150,8 @@ VariableDeclaration createUninitializedVariable(DartType type,
 /// [type].
 VariableDeclaration createInitializedVariable(
     Expression expression, DartType type,
-    {required int fileOffset}) {
-  return new VariableDeclaration(null,
+    {required int fileOffset, String? name}) {
+  return new VariableDeclaration(name,
       initializer: expression, type: type, isSynthesized: true)
     ..fileOffset = fileOffset;
 }
