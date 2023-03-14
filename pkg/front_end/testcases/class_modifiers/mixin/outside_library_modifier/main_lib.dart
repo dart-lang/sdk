@@ -7,3 +7,5 @@ base class BaseClass {}
 interface class InterfaceClass {}
 
 final class FinalClass {}
+
+sealed class SealedClass {}

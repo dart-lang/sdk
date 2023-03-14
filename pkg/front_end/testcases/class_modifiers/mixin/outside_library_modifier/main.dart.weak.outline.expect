@@ -24,6 +24,14 @@ library /*isNonNullableByDefault*/;
 // class FinalWith with FinalClass {}
 //       ^
 //
+// pkg/front_end/testcases/class_modifiers/mixin/outside_library_modifier/main.dart:13:23: Error: The class 'SealedClass' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// class SealedWith with SealedClass {}
+//                       ^
+//
+// pkg/front_end/testcases/class_modifiers/mixin/outside_library_modifier/main.dart:13:23: Error: The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+// class SealedWith with SealedClass {}
+//                       ^
+//
 import self as self;
 import "dart:core" as core;
 import "main_lib.dart" as mai;
@@ -57,6 +65,15 @@ class FinalWith extends self::_FinalWith&Object&FinalClass {
   synthetic constructor •() → self::FinalWith
     ;
 }
+abstract sealed class _SealedWith&Object&SealedClass = core::Object with mai::SealedClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SealedWith&Object&SealedClass
+    : super core::Object::•()
+    ;
+}
+class SealedWith extends self::_SealedWith&Object&SealedClass {
+  synthetic constructor •() → self::SealedWith
+    ;
+}
 
 library /*isNonNullableByDefault*/;
 import self as mai;
@@ -72,5 +89,9 @@ interface class InterfaceClass extends core::Object {
 }
 final class FinalClass extends core::Object {
   synthetic constructor •() → mai::FinalClass
+    ;
+}
+abstract sealed class SealedClass extends core::Object {
+  synthetic constructor •() → mai::SealedClass
     ;
 }

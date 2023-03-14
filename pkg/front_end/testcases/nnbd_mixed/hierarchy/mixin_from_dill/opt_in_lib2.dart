@@ -4,4 +4,4 @@
 
 import 'opt_in_lib1.dart';
 
-class Mixin2 implements Interface2 {}
+mixin class Mixin2 implements Interface2 {}

@@ -2151,12 +2151,7 @@ severity: $severity
       Map<ClassBuilder, ClassBuilder> classToBaseOrFinalSuperClass) {
     bool isClassModifiersEnabled(ClassBuilder typeBuilder) =>
         typeBuilder.libraryBuilder.library.languageVersion >=
-            ExperimentalFlag.classModifiers.experimentEnabledVersion &&
-        // TODO (kallentu): Only enable with classes that have the
-        // 'classModifiers' experiment enabled right now, otherwise the
-        // change breaks core libraries. Remove when class modifiers are
-        // done.
-        cls.libraryBuilder.libraryFeatures.classModifiers.isEnabled;
+        ExperimentalFlag.classModifiers.experimentEnabledVersion;
 
     bool isSealedClassEnabled(ClassBuilder typeBuilder) =>
         typeBuilder.libraryBuilder.library.languageVersion >=
@@ -2179,8 +2174,8 @@ severity: $severity
     /// or if the library is a pre-class-modifiers-feature language version
     /// library.
     bool mayIgnoreClassModifiers(ClassBuilder supertypeDeclaration) {
-      // Only use this to ignore `final`, `base`, and `interface`.
-      // Nobody can ignore `abstract`, `sealed` or `mixin`.
+      // Only use this to ignore `final`, `base`, `interface`, and `mixin`.
+      // Nobody can ignore `abstract` or `sealed`.
 
       // We already know the library cannot ignore modifiers.
       if (isExempt == false) return false;
@@ -2327,12 +2322,12 @@ severity: $severity
         if (isClassModifiersEnabled(mixedInTypeDeclaration)) {
           checkForBaseFinalRestriction(mixedInTypeDeclaration);
 
-          // Check for implicit class mixins.
-          // Only classes declared with a 'mixin' modifier are allowed to be
-          // mixed in.
+          // Check for classes being used as mixins. Only classes declared with
+          // a 'mixin' modifier are allowed to be mixed in.
           if (cls.isMixinApplication &&
               !mixedInTypeDeclaration.isMixinDeclaration &&
-              !mixedInTypeDeclaration.isMixinClass) {
+              !mixedInTypeDeclaration.isMixinClass &&
+              !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {
             cls.addProblem(
                 templateCantUseClassAsMixin
                     .withArguments(mixedInTypeDeclaration.fullNameForErrors),
@@ -2359,16 +2354,23 @@ severity: $severity
         }
 
         // Report error for mixing in a sealed mixin outside of its library.
-        // Assume these are all mixin declarations and cannot be classes.
         if (isSealedClassEnabled(mixedInTypeDeclaration) &&
             mixedInTypeDeclaration.isSealed &&
             cls.libraryBuilder.origin !=
                 mixedInTypeDeclaration.libraryBuilder.origin) {
-          cls.addProblem(
-              templateSealedMixinSubtypeOutsideOfLibrary
-                  .withArguments(mixedInTypeDeclaration.fullNameForErrors),
-              mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-              noLength);
+          if (mixedInTypeDeclaration.isMixinDeclaration) {
+            cls.addProblem(
+                templateSealedMixinSubtypeOutsideOfLibrary
+                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
+                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
+                noLength);
+          } else {
+            cls.addProblem(
+                templateSealedClassSubtypeOutsideOfLibrary
+                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
+                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
+                noLength);
+          }
         }
       }
     }

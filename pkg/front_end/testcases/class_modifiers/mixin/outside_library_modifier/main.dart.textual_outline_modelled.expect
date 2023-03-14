@@ -5,3 +5,5 @@ class BaseWith with BaseClass {}
 class FinalWith with FinalClass {}
 
 class InterfaceWith with InterfaceClass {}
+
+class SealedWith with SealedClass {}
