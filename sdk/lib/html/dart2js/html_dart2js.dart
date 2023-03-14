@@ -1,18 +1,16 @@
-/**
- * HTML elements and other resources for web-based applications that need to
- * interact with the browser and the DOM (Document Object Model).
- *
- * This library includes DOM element types, CSS styling, local storage,
- * media, speech, events, and more.
- * To get started,
- * check out the [Element] class, the base class for many of the HTML
- * DOM types.
- *
- * For information on writing web apps with Dart, see https://dart.dev/web.
- *
- * {@category Web}
- * {@canonicalFor dart:_internal.HttpStatus}
- */
+/// HTML elements and other resources for web-based applications that need to
+/// interact with the browser and the DOM (Document Object Model).
+///
+/// This library includes DOM element types, CSS styling, local storage,
+/// media, speech, events, and more.
+/// To get started,
+/// check out the [Element] class, the base class for many of the HTML
+/// DOM types.
+///
+/// For information on writing web apps with Dart, see https://dart.dev/web.
+///
+/// {@category Web}
+/// {@canonicalFor dart:_internal.HttpStatus}
 library dart.dom.html;
 
 import 'dart:async';
@@ -5908,7 +5906,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
   // Important note: CssStyleDeclarationSet does NOT implement every method
   // available in CssStyleDeclaration. Some of the methods don't make so much
-  // sense in terms of having a resonable value to return when you're
+  // sense in terms of having a reasonable value to return when you're
   // considering a list of Elements. You will need to manually add any of the
   // items in the MEMBERS set if you want that functionality.
 }
@@ -13049,7 +13047,7 @@ class Element extends Node
   }
 
   /**
-   * Finds all descendant elements of this element that match the specified
+   * Finds all descendent elements of this element that match the specified
    * group of selectors.
    *
    * [selectors] should be a string using CSS selector syntax.
@@ -23491,7 +23489,7 @@ class Node extends EventTarget {
   /**
    * Returns a copy of this node.
    *
-   * If [deep] is `true`, then all of this node's children and descendents are
+   * If [deep] is `true`, then all of this node's children and descendants are
    * copied as well. If [deep] is `false`, then only this node is copied.
    *
    * ## Other resources
@@ -36870,7 +36868,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   // A collection of static methods for DomTokenList. These methods are a
-  // work-around for the lack of annotations to express the full behaviour of
+  // workaround for the lack of annotations to express the full behaviour of
   // the DomTokenList methods.
 
   static DomTokenList _classListOf(Element e) => JS(

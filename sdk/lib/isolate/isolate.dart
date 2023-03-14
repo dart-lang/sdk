@@ -9,7 +9,6 @@
 ///
 /// *NOTE*: The `dart:isolate` library is currently only supported by the
 /// [Dart Native](https://dart.dev/overview#platform) platform.
-
 ///
 /// To use this library in your code:
 /// ```dart
