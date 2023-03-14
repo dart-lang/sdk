@@ -77,6 +77,7 @@ import 'prefer_constructors_over_static_methods_test.dart'
     as prefer_constructors_over_static_methods;
 import 'prefer_contains_test.dart' as prefer_contains;
 import 'prefer_final_fields_test.dart' as prefer_final_fields;
+import 'prefer_final_locals_test.dart' as prefer_final_locals;
 import 'prefer_final_parameters_test.dart' as prefer_final_parameters;
 import 'prefer_generic_function_type_aliases_test.dart'
     as prefer_generic_function_type_aliases;
@@ -169,6 +170,7 @@ void main() {
   prefer_constructors_over_static_methods.main();
   prefer_contains.main();
   prefer_final_fields.main();
+  prefer_final_locals.main();
   prefer_final_parameters.main();
   prefer_generic_function_type_aliases.main();
   prefer_relative_imports.main();
