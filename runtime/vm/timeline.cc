@@ -37,19 +37,18 @@ namespace dart {
 
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
 DEFINE_FLAG(bool, startup_timeline, false, "Record the startup timeline");
-// TODO(derekx): Remove this flag in Dart 3.1.
 DEFINE_FLAG(
     bool,
     systrace_timeline,
     false,
     "Record the timeline to the platform's tracing service if there is one");
 DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline backend");
-// TODO(derekx): Remove this flag in Dart 3.1.
-DEFINE_FLAG(charp,
-            timeline_dir,
-            NULL,
-            "Enable all timeline trace streams and output VM global trace into "
-            "specified directory.");
+DEFINE_FLAG(
+    charp,
+    timeline_dir,
+    NULL,
+    "Enable all timeline trace streams and output VM global trace "
+    "into specified directory. This flag is ignored by the file recorder.");
 DEFINE_FLAG(charp,
             timeline_streams,
             NULL,
@@ -119,37 +118,12 @@ static TimelineEventRecorder* CreateDefaultTimelineRecorder() {
 }
 
 static TimelineEventRecorder* CreateTimelineRecorder() {
-  ASSERT(FLAG_timeline_recorder != nullptr);
-  const char* flag = FLAG_timeline_recorder;
+  // Some flags require that we use the endless recorder.
+
+  const char* flag =
+      FLAG_timeline_recorder != nullptr ? FLAG_timeline_recorder : "";
 
   if (FLAG_systrace_timeline) {
-    OS::PrintErr(
-        "Warning: the --systrace-timeline flag is deprecated and will be "
-        "removed in Dart SDK v3.1. Please use --timeline-recorder=systrace "
-        "instead.\n");
-  }
-  if (FLAG_timeline_dir != nullptr) {
-    OS::PrintErr(
-        "Warning: the --timeline-dir flag is deprecated and will be removed in "
-        "Dart SDK v3.1. Please use --timeline-recorder=file:path/to/file.json "
-        "instead.\n");
-  }
-
-  if (static_cast<intptr_t>(FLAG_complete_timeline) +
-          static_cast<intptr_t>(FLAG_startup_timeline) +
-          static_cast<intptr_t>(FLAG_systrace_timeline) +
-          static_cast<intptr_t>(FLAG_timeline_dir != nullptr) +
-          static_cast<intptr_t>(
-              strcmp(FLAG_timeline_recorder, DEFAULT_TIMELINE_RECORDER) != 0) >
-      1) {
-    OS::PrintErr(
-        "Warning: please provide at most one of the following flags at a time: "
-        "{--complete-timeline, --startup-timeline, --systrace-timeline, "
-        "--timeline-dir, --timeline-recorder}. The current conflict will be "
-        "handled by falling back to the " DEFAULT_TIMELINE_RECORDER
-        " recorder.\n");
-    return CreateDefaultTimelineRecorder();
-  } else if (FLAG_systrace_timeline) {
     flag = "systrace";
   } else if (FLAG_timeline_dir != nullptr || FLAG_complete_timeline) {
     flag = "endless";
@@ -179,6 +153,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   if (Utils::StrStartsWith(flag, "file") &&
       (flag[4] == '\0' || flag[4] == ':' || flag[4] == '=')) {
     const char* filename = flag[4] == '\0' ? "dart-timeline.json" : &flag[5];
+    FLAG_timeline_dir = nullptr;
     return new TimelineEventFileRecorder(filename);
   }
 
@@ -205,7 +180,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   if (strlen(flag) > 0 && strcmp(flag, DEFAULT_TIMELINE_RECORDER) != 0) {
     OS::PrintErr(
         "Warning: requested %s timeline recorder which is not supported, "
-        "defaulting to the " DEFAULT_TIMELINE_RECORDER " recorder\n",
+        "defaulting to " DEFAULT_TIMELINE_RECORDER " recorder\n",
         flag);
   }
 
@@ -291,7 +266,6 @@ void Timeline::Cleanup() {
 
 #ifndef PRODUCT
   if (FLAG_timeline_dir != NULL) {
-    ASSERT(strcmp(recorder_->name(), "file") != 0);
     recorder_->WriteTo(FLAG_timeline_dir);
   }
 #endif
@@ -1240,32 +1214,29 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
     const intptr_t process_id,
     const intptr_t trace_id,
     const char* thread_name) {
-  ASSERT(FLAG_timeline_recorder != nullptr);
-  if (
+  if (FLAG_timeline_recorder != nullptr &&
       // There is no way to retrieve track metadata when a callback or systrace
       // recorder is in use, so we don't need to update the map in these cases.
-      FLAG_systrace_timeline ||
-      strcmp("callback", FLAG_timeline_recorder) == 0 ||
-      strcmp("systrace", FLAG_timeline_recorder) == 0) {
-    return;
-  }
-  MutexLocker ml(&track_uuid_to_track_metadata_lock_);
+      strcmp("callback", FLAG_timeline_recorder) != 0 &&
+      strcmp("systrace", FLAG_timeline_recorder) != 0) {
+    MutexLocker ml(&track_uuid_to_track_metadata_lock_);
 
-  void* key = reinterpret_cast<void*>(trace_id);
-  const intptr_t hash = Utils::WordHash(trace_id);
-  SimpleHashMap::Entry* entry =
-      track_uuid_to_track_metadata_.Lookup(key, hash, true);
-  if (entry->value == nullptr) {
-    entry->value = new TimelineTrackMetadata(
-        process_id, trace_id,
-        Utils::CreateCStringUniquePtr(
-            Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
-  } else {
-    TimelineTrackMetadata* value =
-        static_cast<TimelineTrackMetadata*>(entry->value);
-    ASSERT(process_id == value->pid());
-    value->set_track_name(Utils::CreateCStringUniquePtr(
-        Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
+    void* key = reinterpret_cast<void*>(trace_id);
+    const intptr_t hash = Utils::WordHash(trace_id);
+    SimpleHashMap::Entry* entry =
+        track_uuid_to_track_metadata_.Lookup(key, hash, true);
+    if (entry->value == nullptr) {
+      entry->value = new TimelineTrackMetadata(
+          process_id, trace_id,
+          Utils::CreateCStringUniquePtr(
+              Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
+    } else {
+      TimelineTrackMetadata* value =
+          static_cast<TimelineTrackMetadata*>(entry->value);
+      ASSERT(process_id == value->pid());
+      value->set_track_name(Utils::CreateCStringUniquePtr(
+          Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
+    }
   }
 }
 
