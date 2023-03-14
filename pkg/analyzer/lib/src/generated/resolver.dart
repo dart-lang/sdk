@@ -92,6 +92,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
@@ -3677,9 +3678,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       genericMetadataIsEnabled: genericMetadataIsEnabled,
     );
     inferrer.constrainReturnType(declaredType, contextType);
-    return inferrer.partialInfer().map((typeArgument) {
+    return inferrer.partialInfer().mapIndexed((index, typeArgument) {
       if (typeArgument is UnknownInferredType) {
-        return typeProvider.dynamicType;
+        final bound = typeParameters[index].bound;
+        return bound ?? typeProvider.dynamicType;
       } else {
         return typeArgument;
       }

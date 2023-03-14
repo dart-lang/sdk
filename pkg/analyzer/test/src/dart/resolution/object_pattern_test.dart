@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ObjectPatternResolutionTest extends PubPackageResolutionTest {
-  test_class_generic_noTypeArguments_infer_interfaceType() async {
+  test_class_generic_noTypeArguments_infer_fromSuperType() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}
 class B<T> extends A<T> {}
@@ -41,7 +41,33 @@ ObjectPattern
 ''');
   }
 
-  test_class_generic_noTypeArguments_infer_interfaceType_viaTypeAlias() async {
+  test_class_generic_noTypeArguments_infer_useBounds() async {
+    await assertNoErrorsInCode(r'''
+class A<T extends num> {}
+
+void f(Object? x) {
+  switch (x) {
+    case A():
+      break;
+  }
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A<num>
+  leftParenthesis: (
+  rightParenthesis: )
+  matchedValueType: Object?
+''');
+  }
+
+  test_class_generic_noTypeArguments_infer_viaTypeAlias() async {
     await assertNoErrorsInCode(r'''
 class A<T, U> {}
 class B<T, U> extends A<T, U> {}
