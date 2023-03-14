@@ -18,11 +18,11 @@ main() {
 @reflectiveTest
 class DynamicBoundedTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _assertDynamicBounded(dynamicNone);
+    _assertDynamicBounded(dynamicType);
   }
 
   test_dynamic_typeParameter_hasBound_dynamic() {
-    var T = typeParameter('T', bound: dynamicNone);
+    var T = typeParameter('T', bound: dynamicType);
 
     _assertDynamicBounded(
       typeParameterTypeNone(T),
@@ -41,7 +41,7 @@ class DynamicBoundedTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
 
     _assertDynamicBounded(
-      typeParameterTypeNone(T, promotedBound: dynamicNone),
+      typeParameterTypeNone(T, promotedBound: dynamicType),
     );
   }
 
@@ -67,7 +67,7 @@ class DynamicBoundedTest extends AbstractTypeSystemTest {
     );
 
     _assertNotDynamicBounded(
-      functionTypeNone(returnType: dynamicNone),
+      functionTypeNone(returnType: dynamicType),
     );
   }
 
@@ -99,7 +99,7 @@ class DynamicBoundedTest extends AbstractTypeSystemTest {
 @reflectiveTest
 class FunctionBoundedTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _assertNotFunctionBounded(dynamicNone);
+    _assertNotFunctionBounded(dynamicType);
   }
 
   test_dynamic_typeParameter_hasBound_functionType_none() {
@@ -210,7 +210,7 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
     );
 
     _assertFunctionBounded(
-      functionTypeNone(returnType: dynamicNone),
+      functionTypeNone(returnType: dynamicType),
     );
   }
 

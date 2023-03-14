@@ -45,17 +45,17 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
   test_notContravariant_covariant_top() {
     _check(objectQuestion, 'Never');
     _check(objectStar, 'Never');
-    _check(dynamicNone, 'Never');
+    _check(dynamicType, 'Never');
     _check(voidNone, 'Never');
 
     _check(listNone(objectQuestion), 'List<Never>');
     _check(listNone(objectStar), 'List<Never>');
-    _check(listNone(dynamicNone), 'List<Never>');
+    _check(listNone(dynamicType), 'List<Never>');
     _check(listNone(voidNone), 'List<Never>');
 
     _check(futureOrNone(objectQuestion), 'Never');
     _check(futureOrNone(objectStar), 'Never');
-    _check(futureOrNone(dynamicNone), 'Never');
+    _check(futureOrNone(dynamicType), 'Never');
     _check(futureOrNone(voidNone), 'Never');
     _check(futureOrNone(futureOrNone(voidNone)), 'Never');
 
@@ -94,7 +94,7 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
     );
 
     var F_dynamic = F.instantiate(
-      typeArguments: [dynamicNone],
+      typeArguments: [dynamicType],
       nullabilitySuffix: NullabilitySuffix.none,
     );
     _check(F_dynamic, 'Never Function(Never)');
@@ -132,15 +132,15 @@ class ReplaceTopBottomWithoutNullSafetyTest
 
   test_covariant_top() {
     _check(objectStar, 'Null*');
-    _check(dynamicNone, 'Null*');
+    _check(dynamicType, 'Null*');
     _check(voidNone, 'Null*');
 
     _check(listStar(objectStar), 'List<Null*>*');
-    _check(listStar(dynamicNone), 'List<Null*>*');
+    _check(listStar(dynamicType), 'List<Null*>*');
     _check(listStar(voidNone), 'List<Null*>*');
 
     _check(futureOrStar(objectStar), 'Null*');
-    _check(futureOrStar(dynamicNone), 'Null*');
+    _check(futureOrStar(dynamicType), 'Null*');
     _check(futureOrStar(voidNone), 'Null*');
     _check(futureOrStar(futureOrStar(voidNone)), 'Null*');
 

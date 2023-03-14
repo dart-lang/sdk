@@ -156,7 +156,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
   test_functionType_hasTypeFormals_bounds_different_top() {
     var T1 = typeParameter('T1', bound: voidNone);
-    var S1 = typeParameter('S1', bound: dynamicNone);
+    var S1 = typeParameter('S1', bound: dynamicType);
     _checkMatch(
       [T],
       functionTypeNone(returnType: T_none, typeFormals: [T1]),
@@ -735,8 +735,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       check1(typeArgument2, typeArgument1, expectedConstraint);
     }
 
-    check(objectQuestion, dynamicNone, 'Object? <: T <: _');
-    check(objectStar, dynamicNone, 'Object? <: T <: _');
+    check(objectQuestion, dynamicType, 'Object? <: T <: _');
+    check(objectStar, dynamicType, 'Object? <: T <: _');
     check(voidNone, objectQuestion, 'Object? <: T <: _');
     check(voidNone, objectStar, 'Object? <: T <: _');
   }
@@ -804,7 +804,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     matchNoConstraints(listQuestion(T_none));
     matchNoConstraints(stringQuestion);
     matchNoConstraints(voidNone);
-    matchNoConstraints(dynamicNone);
+    matchNoConstraints(dynamicType);
     matchNoConstraints(objectQuestion);
     matchNoConstraints(nullNone);
     matchNoConstraints(
@@ -820,7 +820,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     _checkMatch(
       [T],
       numQuestion,
-      dynamicNone,
+      dynamicType,
       true,
       ['_ <: T <: _'],
     );
@@ -849,7 +849,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var U = typeParameter('U', bound: objectNone);
     var U_star = typeParameterTypeStar(U);
 
-    _checkMatch([U], dynamicNone, U_star, false, ['dynamic <: U <: _']);
+    _checkMatch([U], dynamicType, U_star, false, ['dynamic <: U <: _']);
     _checkMatch([U], voidNone, U_star, false, ['void <: U <: _']);
   }
 
@@ -860,7 +860,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var U = typeParameter('U', bound: objectNone);
     var U_question = typeParameterTypeQuestion(U);
 
-    _checkMatch([U], dynamicNone, U_question, false, ['Object <: U <: _']);
+    _checkMatch([U], dynamicType, U_question, false, ['Object <: U <: _']);
     _checkMatch([U], voidNone, U_question, false, ['Object <: U <: _']);
   }
 
@@ -1247,7 +1247,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     _checkMatch([T], intNone, objectNone, false, ['_ <: T <: _']);
     _checkNotMatch([T], intQuestion, objectNone, false);
 
-    _checkNotMatch([T], dynamicNone, objectNone, false);
+    _checkNotMatch([T], dynamicType, objectNone, false);
 
     {
       var U = typeParameter('U', bound: numQuestion);
@@ -1300,7 +1300,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   /// If `Q` is `dynamic`, `Object?`, or `void` then the match holds under
   /// no constraints.
   test_right_top() {
-    _checkMatch([T], intNone, dynamicNone, false, ['_ <: T <: _']);
+    _checkMatch([T], intNone, dynamicType, false, ['_ <: T <: _']);
     _checkMatch([T], intNone, objectQuestion, false, ['_ <: T <: _']);
     _checkMatch([T], intNone, voidNone, false, ['_ <: T <: _']);
   }
