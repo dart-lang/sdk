@@ -63,8 +63,8 @@ class DocumentColorPresentationHandler
   /// the code that will be inserted.
   ///
   /// [invocationString] is written immediately after [colorType] in [editRange].
-  Future<ColorPresentation> _createColorPresentation(
-    ResolvedUnitResult unit, {
+  Future<ColorPresentation> _createColorPresentation({
+    required ResolvedUnitResult unit,
     required SourceRange editRange,
     required InterfaceElement colorType,
     required String label,
@@ -153,7 +153,7 @@ class DocumentColorPresentationHandler
         '0x${colorValue.toRadixString(16).toUpperCase().padLeft(8, '0')}';
 
     final colorFromARGB = await _createColorPresentation(
-      unit,
+      unit: unit,
       editRange: editRange,
       colorType: colorType,
       label: 'Color.fromARGB($alpha, $red, $green, $blue)',
@@ -162,7 +162,7 @@ class DocumentColorPresentationHandler
     );
 
     final colorFromRGBO = await _createColorPresentation(
-      unit,
+      unit: unit,
       editRange: editRange,
       colorType: colorType,
       label: 'Color.fromRGBO($red, $green, $blue, $opacity)',
@@ -171,7 +171,7 @@ class DocumentColorPresentationHandler
     );
 
     final colorDefault = await _createColorPresentation(
-      unit,
+      unit: unit,
       editRange: editRange,
       colorType: colorType,
       label: 'Color($colorValueHex)',

@@ -46,7 +46,6 @@ import 'external_ast_helper.dart';
 import 'inference_helper.dart' show InferenceHelper;
 import 'inference_results.dart';
 import 'inference_visitor.dart';
-import 'matching_cache.dart';
 import 'object_access_target.dart';
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 import 'type_demotion.dart';
@@ -211,17 +210,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       isNonNullableByDefault ? const NeverType.nonNullable() : const NullType();
 
   StaticTypeContext get staticTypeContext => _inferrer.staticTypeContext;
-
-  int _matchCacheIndex = 0;
-
-  MatchingCache createMatchingCache() {
-    return new MatchingCache(_matchCacheIndex++, coreTypes,
-        useLowering: libraryBuilder.loader.target.backendTarget
-            .isLateLocalLoweringEnabled(
-                hasInitializer: true,
-                isFinal: true,
-                isPotentiallyNullable: true));
-  }
 
   DartType computeGreatestClosure(DartType type) {
     return greatestClosure(type, const DynamicType(), bottomType);

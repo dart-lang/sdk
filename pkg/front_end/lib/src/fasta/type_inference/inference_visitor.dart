@@ -53,14 +53,11 @@ import '../source/constructor_declaration.dart';
 import '../source/source_library_builder.dart';
 import '../uri_offset.dart';
 import 'closure_context.dart';
-import 'delayed_expressions.dart';
 import 'external_ast_helper.dart';
 import 'for_in.dart';
 import 'inference_helper.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
-import 'matching_cache.dart';
-import 'matching_expressions.dart';
 import 'object_access_target.dart';
 import 'shared_type_analyzer.dart';
 import 'stack_values.dart';
@@ -2283,61 +2280,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ..parent = patternVariableDeclaration;
       }
 
-      MatchingCache matchingCache = createMatchingCache();
-      MatchingExpressionVisitor matchingExpressionVisitor =
-          new MatchingExpressionVisitor(matchingCache);
-      // TODO(cstefantsova): Do we need a more precise type for the variable?
-      DartType matchedType = const DynamicType();
-      CacheableExpression matchedExpression =
-          matchingCache.createRootExpression(
-              patternVariableDeclaration.initializer, matchedType);
-
-      DelayedExpression matchingExpression = matchingExpressionVisitor
-          .visitPattern(patternVariableDeclaration.pattern, matchedExpression);
-
-      matchingExpression.registerUse();
-
-      Expression readMatchingExpression =
-          matchingExpression.createExpression(typeSchemaEnvironment);
-
-      List<Statement> replacementStatements = [
-        ...matchingCache.declarations,
-        // TODO(cstefantsova): Figure out the right exception to throw.
-        createIfStatement(
-            createNot(readMatchingExpression),
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                coreTypes.reachabilityErrorConstructor,
-                createArguments([], fileOffset: element.fileOffset),
-                fileOffset: element.fileOffset))),
-            fileOffset: element.fileOffset),
-      ];
-      if (replacementStatements.length > 1) {
-        // If we need local declarations, create a new block to avoid naming
-        // collision with declarations in the same parent block.
-        replacementStatements = [
-          createBlock(replacementStatements, fileOffset: element.fileOffset)
-        ];
+      List<VariableDeclaration> declaredVariables =
+          patternVariableDeclaration.pattern.declaredVariables;
+      assert(declaredVariables.length == element.intermediateVariables.length);
+      assert(declaredVariables.length == element.variables.length);
+      for (int i = 0; i < declaredVariables.length; i++) {
+        DartType type = declaredVariables[i].type;
+        element.intermediateVariables[i].type = type;
+        element.variables[i].type = type;
       }
-      replacementStatements = [
-        ...patternVariableDeclaration.pattern.declaredVariables,
-        ...replacementStatements,
-      ];
-
-      for (Statement preludeStatement in element.prelude) {
-        StatementInferenceResult inferenceResult =
-            inferStatement(preludeStatement);
-        if (!inferenceResult.hasChanged) {
-          replacementStatements.add(preludeStatement);
-        } else {
-          if (inferenceResult.statementCount == 1) {
-            replacementStatements.add(inferenceResult.statement);
-          } else {
-            replacementStatements.addAll(inferenceResult.statements);
-          }
-        }
-      }
-
-      element.prelude = replacementStatements;
     }
     // TODO(johnniwinther): Use _visitStatements instead.
     List<VariableDeclaration>? variables;
@@ -2862,7 +2813,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ForStatement loop = _createForStatement(element.fileOffset,
         element.variables, element.condition, element.updates, loopBody);
     libraryBuilder.loader.dataForTesting?.registerAlias(element, loop);
-    body.addAll(element.prelude);
+    body.add(element.patternVariableDeclaration);
+    body.addAll(element.intermediateVariables);
     body.add(loop);
   }
 
@@ -3205,7 +3157,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ForStatement loop = _createForStatement(entry.fileOffset, entry.variables,
         entry.condition, entry.updates, loopBody);
     libraryBuilder.loader.dataForTesting?.registerAlias(entry, loop);
-    body.addAll(entry.prelude);
+    body.add(entry.patternVariableDeclaration);
+    body.addAll(entry.intermediateVariables);
     body.add(loop);
   }
 
@@ -4240,61 +4193,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ..parent = patternVariableDeclaration;
       }
 
-      MatchingCache matchingCache = createMatchingCache();
-      MatchingExpressionVisitor matchingExpressionVisitor =
-          new MatchingExpressionVisitor(matchingCache);
-      // TODO(cstefantsova): Do we need a more precise type for the variable?
-      DartType matchedType = const DynamicType();
-      CacheableExpression matchedExpression =
-          matchingCache.createRootExpression(
-              patternVariableDeclaration.initializer, matchedType);
-
-      DelayedExpression matchingExpression = matchingExpressionVisitor
-          .visitPattern(patternVariableDeclaration.pattern, matchedExpression);
-
-      matchingExpression.registerUse();
-
-      Expression readMatchingExpression =
-          matchingExpression.createExpression(typeSchemaEnvironment);
-
-      List<Statement> replacementStatements = [
-        ...matchingCache.declarations,
-        // TODO(cstefantsova): Figure out the right exception to throw.
-        createIfStatement(
-            createNot(readMatchingExpression),
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                coreTypes.reachabilityErrorConstructor,
-                createArguments([], fileOffset: entry.fileOffset),
-                fileOffset: entry.fileOffset))),
-            fileOffset: entry.fileOffset),
-      ];
-      if (replacementStatements.length > 1) {
-        // If we need local declarations, create a new block to avoid naming
-        // collision with declarations in the same parent block.
-        replacementStatements = [
-          createBlock(replacementStatements, fileOffset: entry.fileOffset)
-        ];
+      List<VariableDeclaration> declaredVariables =
+          patternVariableDeclaration.pattern.declaredVariables;
+      assert(declaredVariables.length == entry.intermediateVariables.length);
+      assert(declaredVariables.length == entry.variables.length);
+      for (int i = 0; i < declaredVariables.length; i++) {
+        DartType type = declaredVariables[i].type;
+        entry.intermediateVariables[i].type = type;
+        entry.variables[i].type = type;
       }
-      replacementStatements = [
-        ...patternVariableDeclaration.pattern.declaredVariables,
-        ...replacementStatements,
-      ];
-
-      for (Statement preludeStatement in entry.prelude) {
-        StatementInferenceResult inferenceResult =
-            inferStatement(preludeStatement);
-        if (!inferenceResult.hasChanged) {
-          replacementStatements.add(preludeStatement);
-        } else {
-          if (inferenceResult.statementCount == 1) {
-            replacementStatements.add(inferenceResult.statement);
-          } else {
-            replacementStatements.addAll(inferenceResult.statements);
-          }
-        }
-      }
-
-      entry.prelude = replacementStatements;
     }
     // TODO(johnniwinther): Use _visitStatements instead.
     List<VariableDeclaration>? variables;
