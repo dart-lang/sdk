@@ -515,7 +515,7 @@ linter:
 ''');
 
     var sortedRules = rules
-        .where((r) => !r.state.isDeprecated)
+        .where((r) => !r.state.isDeprecated && !r.state.isRemoved)
         .map((r) => r.name)
         .toList()
       ..sort();
