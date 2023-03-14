@@ -29,8 +29,8 @@ class JSValue {
   JSValue(this._ref);
 
   // This is currently only used in js_util.
-  // TODO(joshualitt): Investigate migrating `js_util` to js types. It should be
-  // non-breaking for js backends, and a tractable migration for wasm backends.
+  // TODO(joshualitt): Remove [box] and [unbox] once `JSNull` is boxed and users
+  // have been migrated over to the helpers in `dart:js_interop`.
   static JSValue? box(WasmExternRef? ref) =>
       isDartNull(ref) ? null : JSValue(ref);
 
