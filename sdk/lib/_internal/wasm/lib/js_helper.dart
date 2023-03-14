@@ -32,7 +32,7 @@ class JSValue {
   // TODO(joshualitt): Investigate migrating `js_util` to js types. It should be
   // non-breaking for js backends, and a tractable migration for wasm backends.
   static JSValue? box(WasmExternRef? ref) =>
-      isDartNull(ref) ? null : JSValue(ref!);
+      isDartNull(ref) ? null : JSValue(ref);
 
   // We need to handle the case of a nullable [JSValue] to match the semantics
   // of the JS backends.
