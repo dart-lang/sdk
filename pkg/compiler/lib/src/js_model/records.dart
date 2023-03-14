@@ -101,11 +101,14 @@ class RecordData {
   List<RecordRepresentation> representationsForShapes() =>
       [..._shapeToRepresentation.values];
 
-  RecordRepresentation representationForShape(RecordShape shape) {
-    return _shapeToRepresentation[shape] ??
-        (throw StateError('representationForShape $shape'));
+  /// Returns the representation for a shape.  Returns `null` if the record
+  /// shape is not instantiated.
+  RecordRepresentation? representationForShape(RecordShape shape) {
+    return _shapeToRepresentation[shape];
   }
 
+  /// This should only be called at record creation sites, ensuring that there
+  /// is a representation.
   RecordRepresentation representationForStaticType(RecordType type) {
     // TODO(49718): Implement specialization when fields have types that allow
     // better code for `==` and `.hashCode`.
@@ -114,7 +117,9 @@ class RecordData {
     // 'static' type of a constant record where the type is generated from the
     // field values.
 
-    return representationForShape(type.shape);
+    return representationForShape(type.shape) ??
+        (throw StateError('representationForStaticType $type '
+            'for uninstantiated shape ${type.shape}'));
   }
 
   /// Returns `null` if [cls] is not a record representation.
@@ -122,10 +127,13 @@ class RecordData {
     return _classToRepresentation[cls];
   }
 
-  /// Returns field and possibly index for accessing into a shape.
+  /// Returns field and possibly index for accessing into a shape. The shape
+  /// needs to have a representation, so calls may need to be guarded by
+  /// checking that there is a representation for the shape
+  /// ([representationForShape]).
   RecordAccessPath pathForAccess(RecordShape shape, int indexInShape) {
     // TODO(sra): Cache lookup.
-    final representation = representationForShape(shape);
+    final representation = representationForShape(shape)!;
     final cls = representation.cls;
     if (representation.usesList) {
       final field = _elementMap.elementEnvironment
