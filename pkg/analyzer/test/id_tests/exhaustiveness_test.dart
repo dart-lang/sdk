@@ -71,9 +71,11 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
       List<Space>? caseSpaces = _exhaustivenessData.switchCases[node];
       if (scrutineeType != null && caseSpaces != null) {
         Set<String> fieldsOfInterest = {};
+        Set<Key> keysOfInterest = {};
         for (Space caseSpace in caseSpaces) {
           for (SingleSpace singleSpace in caseSpace.singleSpaces) {
             fieldsOfInterest.addAll(singleSpace.fields.keys);
+            keysOfInterest.addAll(singleSpace.additionalFields.keys);
           }
         }
         features[Tags.scrutineeType] = staticTypeToText(scrutineeType);
@@ -81,13 +83,14 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
           features[Tags.scrutineeFields] =
               fieldsToText(scrutineeType.fields, fieldsOfInterest);
         }
-        String? subtypes = typesToText(scrutineeType.subtypes);
+        String? subtypes =
+            typesToText(scrutineeType.getSubtypes(keysOfInterest));
         if (subtypes != null) {
           features[Tags.subtypes] = subtypes;
         }
         if (scrutineeType.isSealed) {
           String? expandedSubtypes =
-              typesToText(expandSealedSubtypes(scrutineeType));
+              typesToText(expandSealedSubtypes(scrutineeType, keysOfInterest));
           if (subtypes != expandedSubtypes && expandedSubtypes != null) {
             features[Tags.expandedSubtypes] = expandedSubtypes;
           }

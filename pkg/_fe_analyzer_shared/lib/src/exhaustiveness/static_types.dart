@@ -69,6 +69,14 @@ abstract class TypeOperations<Type extends Object> {
   /// otherwise.
   Type? getMapValueType(Type type);
 
+  /// Returns the element type `E` if [type] implements `List<E>` or `null`
+  /// otherwise.
+  Type? getListElementType(Type type);
+
+  /// Returns the list type `List<E>` if [type] implements `List<E>` or `null`
+  /// otherwise.
+  Type? getListType(Type type);
+
   /// Returns a human-readable representation of the [type].
   String typeToString(Type type);
 }
@@ -146,7 +154,7 @@ class ExhaustivenessCache<
     EnumClass extends Object,
     EnumElement extends Object,
     EnumElementValue extends Object> implements FieldLookup<Type> {
-  final TypeOperations<Type> _typeOperations;
+  final TypeOperations<Type> typeOperations;
   final EnumOperations<Type, EnumClass, EnumElement, EnumElementValue>
       enumOperations;
   final SealedClassOperations<Type, Class> _sealedClassOperations;
@@ -163,19 +171,19 @@ class ExhaustivenessCache<
 
   /// Cache for the [StaticType] for `bool`.
   late BoolStaticType _boolStaticType =
-      new BoolStaticType(_typeOperations, this, _typeOperations.boolType);
+      new BoolStaticType(typeOperations, this, typeOperations.boolType);
 
   /// Cache for [StaticType]s for fields available on a [Type].
   Map<Type, Map<String, StaticType>> _fieldCache = {};
 
   ExhaustivenessCache(
-      this._typeOperations, this.enumOperations, this._sealedClassOperations);
+      this.typeOperations, this.enumOperations, this._sealedClassOperations);
 
   /// Returns the [EnumInfo] for [enumClass].
   EnumInfo<Type, EnumClass, EnumElement, EnumElementValue> _getEnumInfo(
       EnumClass enumClass) {
     return _enumInfo[enumClass] ??=
-        new EnumInfo(_typeOperations, this, enumOperations, enumClass);
+        new EnumInfo(typeOperations, this, enumOperations, enumClass);
   }
 
   /// Returns the [SealedClassInfo] for [sealedClass].
@@ -191,56 +199,62 @@ class ExhaustivenessCache<
 
   /// Returns the [StaticType] for [type].
   StaticType getStaticType(Type type) {
-    if (_typeOperations.isNeverType(type)) {
+    if (typeOperations.isNeverType(type)) {
       return StaticType.neverType;
-    } else if (_typeOperations.isNullType(type)) {
+    } else if (typeOperations.isNullType(type)) {
       return StaticType.nullType;
-    } else if (_typeOperations.isNonNullableObject(type)) {
+    } else if (typeOperations.isNonNullableObject(type)) {
       return StaticType.nonNullableObject;
-    } else if (_typeOperations.isNullableObject(type) ||
-        _typeOperations.isDynamic(type)) {
+    } else if (typeOperations.isNullableObject(type) ||
+        typeOperations.isDynamic(type)) {
       return StaticType.nullableObject;
     }
 
     StaticType staticType;
-    Type nonNullable = _typeOperations.getNonNullable(type);
-    if (_typeOperations.isBoolType(nonNullable)) {
+    Type nonNullable = typeOperations.getNonNullable(type);
+    if (typeOperations.isBoolType(nonNullable)) {
       staticType = _boolStaticType;
-    } else if (_typeOperations.isRecordType(nonNullable)) {
-      staticType = new RecordStaticType(_typeOperations, this, nonNullable);
+    } else if (typeOperations.isRecordType(nonNullable)) {
+      staticType = new RecordStaticType(typeOperations, this, nonNullable);
     } else {
       Type? futureOrTypeArgument =
-          _typeOperations.getFutureOrTypeArgument(nonNullable);
+          typeOperations.getFutureOrTypeArgument(nonNullable);
       if (futureOrTypeArgument != null) {
         StaticType typeArgument = getStaticType(futureOrTypeArgument);
         StaticType futureType = getStaticType(
-            _typeOperations.instantiateFuture(futureOrTypeArgument));
+            typeOperations.instantiateFuture(futureOrTypeArgument));
         staticType = new FutureOrStaticType(
-            _typeOperations, this, nonNullable, typeArgument, futureType);
+            typeOperations, this, nonNullable, typeArgument, futureType);
       } else {
         EnumClass? enumClass = enumOperations.getEnumClass(nonNullable);
         if (enumClass != null) {
           staticType = new EnumStaticType(
-              _typeOperations, this, nonNullable, _getEnumInfo(enumClass));
+              typeOperations, this, nonNullable, _getEnumInfo(enumClass));
         } else {
           Class? sealedClass =
               _sealedClassOperations.getSealedClass(nonNullable);
           if (sealedClass != null) {
             staticType = new SealedClassStaticType(
-                _typeOperations,
+                typeOperations,
                 this,
                 nonNullable,
                 this,
                 _sealedClassOperations,
                 _getSealedClassInfo(sealedClass));
           } else {
-            staticType =
-                new TypeBasedStaticType(_typeOperations, this, nonNullable);
+            Type? listType = typeOperations.getListType(nonNullable);
+            if (listType == nonNullable) {
+              staticType =
+                  new ListTypeStaticType(typeOperations, this, nonNullable);
+            } else {
+              staticType =
+                  new TypeBasedStaticType(typeOperations, this, nonNullable);
+            }
           }
         }
       }
     }
-    if (_typeOperations.isNullable(type)) {
+    if (typeOperations.isNullable(type)) {
       staticType = staticType.nullable;
     }
     return staticType;
@@ -256,7 +270,7 @@ class ExhaustivenessCache<
   /// Creates a new unique [StaticType].
   StaticType getUnknownStaticType() {
     return getUniqueStaticType<Object>(
-        _typeOperations.nullableObjectType, new Object(), '?');
+        typeOperations.nullableObjectType, new Object(), '?');
   }
 
   /// Returns a [StaticType] of the given [type] with the given
@@ -265,15 +279,27 @@ class ExhaustivenessCache<
   /// This is used for constants that are neither bool nor enum values.
   StaticType getUniqueStaticType<Identity extends Object>(
       Type type, Identity uniqueValue, String textualRepresentation) {
-    Type nonNullable = _typeOperations.getNonNullable(type);
+    Type nonNullable = typeOperations.getNonNullable(type);
     StaticType staticType = _uniqueTypeMap[uniqueValue] ??=
         new RestrictedStaticType(
-            _typeOperations,
+            typeOperations,
             this,
             nonNullable,
             new IdentityRestriction<Identity>(uniqueValue),
             textualRepresentation);
-    if (_typeOperations.isNullable(type)) {
+    if (typeOperations.isNullable(type)) {
+      staticType = staticType.nullable;
+    }
+    return staticType;
+  }
+
+  /// Returns a [StaticType] of the list [type] with the given [identity] .
+  StaticType getListStaticType(Type type, ListTypeIdentity<Type> identity) {
+    Type nonNullable = typeOperations.getNonNullable(type);
+    StaticType staticType = _uniqueTypeMap[identity] ??=
+        new ListPatternStaticType(
+            typeOperations, this, nonNullable, identity, identity.toString());
+    if (typeOperations.isNullable(type)) {
       staticType = staticType.nullable;
     }
     return staticType;
@@ -281,10 +307,11 @@ class ExhaustivenessCache<
 
   /// Returns a [StaticType] of the map [type] with the given [identity] .
   StaticType getMapStaticType(Type type, MapTypeIdentity<Type> identity) {
-    Type nonNullable = _typeOperations.getNonNullable(type);
-    StaticType staticType = _uniqueTypeMap[identity] ??= new MapTypeStaticType(
-        _typeOperations, this, nonNullable, identity, identity.toString());
-    if (_typeOperations.isNullable(type)) {
+    Type nonNullable = typeOperations.getNonNullable(type);
+    StaticType staticType = _uniqueTypeMap[identity] ??=
+        new MapPatternStaticType(
+            typeOperations, this, nonNullable, identity, identity.toString());
+    if (typeOperations.isNullable(type)) {
       staticType = staticType.nullable;
     }
     return staticType;
@@ -296,7 +323,7 @@ class ExhaustivenessCache<
     if (fields == null) {
       _fieldCache[type] = fields = {};
       for (MapEntry<String, Type> entry
-          in _typeOperations.getFieldTypes(type).entries) {
+          in typeOperations.getFieldTypes(type).entries) {
         fields[entry.key] = getStaticType(entry.value);
       }
     }
@@ -306,9 +333,19 @@ class ExhaustivenessCache<
   @override
   StaticType? getAdditionalFieldType(Type type, Key key) {
     if (key is MapKey) {
-      Type? keyType = _typeOperations.getMapValueType(type);
-      if (keyType != null) {
-        return getStaticType(keyType);
+      Type? valueType = typeOperations.getMapValueType(type);
+      if (valueType != null) {
+        return getStaticType(valueType);
+      }
+    } else if (key is HeadKey || key is TailKey) {
+      Type? elementType = typeOperations.getListElementType(type);
+      if (elementType != null) {
+        return getStaticType(elementType);
+      }
+    } else if (key is RestKey) {
+      Type? listType = typeOperations.getListType(type);
+      if (listType != null) {
+        return getStaticType(listType);
       }
     }
     return null;
@@ -438,7 +475,7 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
   bool get isSealed => true;
 
   @override
-  Iterable<StaticType> get subtypes => enumElements;
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => enumElements;
 
   List<StaticType> get enumElements => _enumElements ??= _createEnumElements();
 
@@ -507,7 +544,8 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
   bool get isSealed => true;
 
   @override
-  Iterable<StaticType> get subtypes => _subtypes ??= _createSubtypes();
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) =>
+      _subtypes ??= _createSubtypes();
 
   List<StaticType> _createSubtypes() {
     List<StaticType> subtypes = [];
@@ -619,7 +657,8 @@ class BoolStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
           _fieldLookup, _type, const IdentityRestriction<bool>(false), 'false');
 
   @override
-  Iterable<StaticType> get subtypes => [trueType, falseType];
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) =>
+      [trueType, falseType];
 }
 
 /// [StaticType] for a record type.
@@ -699,15 +738,16 @@ class FutureOrStaticType<Type extends Object>
   bool get isSealed => true;
 
   @override
-  Iterable<StaticType> get subtypes => [_typeArgument, _futureType];
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) =>
+      [_typeArgument, _futureType];
 }
 
 /// [StaticType] for a map pattern type using a [MapTypeIdentity] for its
 /// uniqueness.
-class MapTypeStaticType<Type extends Object>
+class MapPatternStaticType<Type extends Object>
     extends RestrictedStaticType<Type, MapTypeIdentity<Type>> {
-  MapTypeStaticType(super.typeOperations, super.fieldLookup, super.type,
-      MapTypeIdentity<Type> super.restriction, super.name);
+  MapPatternStaticType(super.typeOperations, super.fieldLookup, super.type,
+      super.restriction, super.name);
 
   @override
   String spaceToText(
@@ -732,13 +772,14 @@ class MapTypeStaticType<Type extends Object>
   }
 }
 
-/// Identity object used for creating a unique [MapTypeStaticType] for a
+/// Identity object used for creating a unique [MapPatternStaticType] for a
 /// map pattern.
 ///
 /// The uniqueness is defined by the key and value types, the key values of
 /// the map pattern, and whether the map pattern has a rest element.
 ///
-/// This identity ensures that we can detect
+/// This identity ensures that we can detect overlap between map patterns with
+/// the same set of keys.
 class MapTypeIdentity<Type extends Object> implements Restriction<Type> {
   final Type keyType;
   final Type valueType;
@@ -810,8 +851,205 @@ class MapTypeIdentity<Type extends Object> implements Restriction<Type> {
   }
 }
 
+/// [StaticType] for a list type which can be divided into subtypes of
+/// [ListPatternStaticType].
+///
+/// This is used to support exhaustiveness checking for list types by
+/// contextually dividing the list into relevant cases for checking.
+///
+/// For instance, the exhaustiveness can be achieved by a single pattern
+///
+///     case [...]:
+///
+/// or by two disjoint patterns:
+///
+///     case []:
+///     case [_, ...]:
+///
+/// When checking for exhaustiveness, witness candidates are created and tested
+/// against the available cases. This means that the chosen candidates must be
+/// matched by at least one case or the candidate is considered a witness of
+/// non-exhaustiveness.
+///
+/// Looking at the first example, we could choose `[...]`, the list of
+/// arbitrary size, as a candidate. This works for the first example, since the
+/// case `[...]` matches the list of arbitrary size. But if we tried to use this
+/// on the second example it would fail, since neither `[]` nor `[_, ...]` fully
+/// matches the list of arbitrary size.
+///
+/// A solution could be to choose candidates `[]` and `[_, ...]`, the empty list
+/// and the list of 1 or more elements. This would work for the first example,
+/// since `[...]` matches both the empty list and the list of 1 or more
+/// elements. It also works for the second example, since `[]` matches the empty
+/// list and `[_, ...]` matches the list of 1 or more elements.
+///
+/// But now comes a third way of exhaustively matching a list:
+///
+///     case []:
+///     case [_]:
+///     case [_, _, ...]:
+///
+/// and our candidates no longer work, since while `[]` does match the empty
+/// list, neither `[_]` nor `[_, _, ...]` matches the list of 1 or more
+/// elements.
+///
+/// This shows us that there can be no fixed set of witness candidates that we
+/// can use to match a list type.
+///
+/// What we do instead, is to create the set of witness candidates based on the
+/// cases that should match it. We find the maximal number, n, of fixed, i.e.
+/// non-rest, elements in the cases, and then create the lists of sizes 0 to n-1
+/// and the list of n or more elements as the witness candidates.
+class ListTypeStaticType<Type extends Object>
+    extends TypeBasedStaticType<Type> {
+  ListTypeStaticType(super.typeOperations, super.fieldLookup, super.type);
+
+  @override
+  bool get isSealed => true;
+
+  @override
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) {
+    int maxHeadSize = 0;
+    int maxTailSize = 0;
+    for (Key key in keysOfInterest) {
+      if (key is HeadKey) {
+        if (key.index >= maxHeadSize) {
+          maxHeadSize = key.index + 1;
+        }
+      } else if (key is TailKey) {
+        if (key.index >= maxTailSize) {
+          maxTailSize = key.index + 1;
+        }
+      }
+    }
+    int maxSize = maxHeadSize + maxTailSize;
+    List<StaticType> subtypes = [];
+    Type elementType = _typeOperations.getListElementType(_type)!;
+    String typeArgumentText;
+    if (_typeOperations.isDynamic(elementType)) {
+      typeArgumentText = '';
+    } else {
+      typeArgumentText = '<${_typeOperations.typeToString(elementType)}>';
+    }
+    for (int size = 0; size < maxSize; size++) {
+      ListTypeIdentity<Type> identity = new ListTypeIdentity(
+          elementType, typeArgumentText,
+          size: size, hasRest: false);
+      subtypes.add(new ListPatternStaticType<Type>(
+          _typeOperations, _fieldLookup, _type, identity, identity.toString()));
+    }
+    ListTypeIdentity<Type> identity = new ListTypeIdentity(
+        elementType, typeArgumentText,
+        size: maxSize, hasRest: true);
+    subtypes.add(new ListPatternStaticType<Type>(
+        _typeOperations, _fieldLookup, _type, identity, identity.toString()));
+    return subtypes;
+  }
+}
+
+/// [StaticType] for a list pattern type using a [ListTypeIdentity] for its
+/// uniqueness.
+class ListPatternStaticType<Type extends Object>
+    extends RestrictedStaticType<Type, ListTypeIdentity<Type>> {
+  ListPatternStaticType(super.typeOperations, super.fieldLookup, super.type,
+      super.restriction, super.name);
+
+  @override
+  String spaceToText(
+      Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(restriction.typeArgumentText);
+    buffer.write('[');
+
+    bool first = true;
+    additionalSpaceFields.forEach((Key key, Space space) {
+      if (!first) buffer.write(', ');
+      if (key is RestKey) {
+        buffer.write('...');
+      }
+      buffer.write(space);
+      first = false;
+    });
+
+    buffer.write(']');
+    return buffer.toString();
+  }
+}
+
+/// Identity object used for creating a unique [ListPatternStaticType] for a
+/// list pattern.
+///
+/// The uniqueness is defined by the element type, the number of elements at the
+/// start of the list, whether the list pattern has a rest element, and the
+/// number elements at the end of the list, after the rest element.
+class ListTypeIdentity<Type extends Object> implements Restriction<Type> {
+  final Type elementType;
+  final int size;
+  final bool hasRest;
+  final String typeArgumentText;
+
+  ListTypeIdentity(this.elementType, this.typeArgumentText,
+      {required this.size, required this.hasRest});
+
+  @override
+  late final int hashCode = Object.hash(elementType, size, hasRest);
+
+  @override
+  bool get isUnrestricted {
+    // The map pattern containing only a rest pattern covers the whole type.
+    return hasRest && size == 0;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ListTypeIdentity<Type> &&
+        elementType == other.elementType &&
+        size == other.size &&
+        hasRest == other.hasRest;
+  }
+
+  @override
+  bool isSubtypeOf(TypeOperations<Type> typeOperations, Restriction other) {
+    if (other.isUnrestricted) return true;
+    if (other is! ListTypeIdentity<Type>) return false;
+    if (!typeOperations.isSubtypeOf(elementType, other.elementType)) {
+      return false;
+    }
+    if (other.hasRest) {
+      return size >= other.size;
+    } else if (hasRest) {
+      return false;
+    } else {
+      return size == other.size;
+    }
+  }
+
+  @override
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(typeArgumentText);
+    sb.write('[');
+    String comma = '';
+    for (int i = 0; i < size; i++) {
+      sb.write(comma);
+      sb.write('()');
+      comma = ', ';
+    }
+    if (hasRest) {
+      sb.write(comma);
+      sb.write('...');
+      comma = ', ';
+    }
+    sb.write(']');
+    return sb.toString();
+  }
+}
+
 /// Mixin for creating [Space]s from [Pattern]s.
 mixin SpaceCreator<Pattern extends Object, Type extends Object> {
+  TypeOperations<Type> get typeOperations;
+
   /// Creates a [StaticType] for an unknown type.
   ///
   /// This is used when the type of the pattern is unknown or can't be
@@ -822,6 +1060,9 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// Creates the [StaticType] for [type]. If [nonNull] is `true`, the created
   /// type is non-nullable.
   StaticType createStaticType(Type type, {required bool nonNull});
+
+  /// Creates the [StaticType] for the list [type] with the given [identity].
+  StaticType createListType(Type type, ListTypeIdentity<Type> identity);
 
   /// Creates the [StaticType] for the map [type] with the given [identity].
   StaticType createMapType(Type type, MapTypeIdentity<Type> identity);
@@ -954,29 +1195,87 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   }
 
   /// Creates the [Space] at [path] for a list pattern.
-  Space createListSpace(Path path) {
-    // TODO(johnniwinther): Support list patterns. This not only
-    //  requires a new interpretation of [Space] fields that handles the
-    //  relation between concrete lengths, rest patterns with/without
-    //  subpattern, and list of arbitrary size and content, but also for the
-    //  runtime to check for lengths < 0.
-    return createUnknownSpace(path);
+  Space createListSpace(Path path,
+      {required Type type,
+      required Type elementType,
+      required List<Pattern> headElements,
+      required Pattern? restElement,
+      required List<Pattern> tailElements,
+      required bool hasRest,
+      required bool hasExplicitTypeArgument}) {
+    Map<Key, Space> additionalFields = {};
+    int headSize = headElements.length;
+    int tailSize = tailElements.length;
+    for (int index = 0; index < headSize; index++) {
+      Key key = new HeadKey(index);
+      additionalFields[key] = dispatchPattern(
+          path.add(key.name), headElements[index],
+          nonNull: false);
+    }
+    if (hasRest) {
+      Key key = new RestKey(headSize, tailSize);
+      if (restElement != null) {
+        additionalFields[key] =
+            dispatchPattern(path.add(key.name), restElement, nonNull: false);
+      } else {
+        additionalFields[key] =
+            new Space(path.add(key.name), StaticType.nullableObject);
+      }
+    }
+    for (int index = 0; index < tailSize; index++) {
+      Key key = new TailKey(index);
+      additionalFields[key] = dispatchPattern(
+          path.add(key.name), tailElements[tailElements.length - index - 1],
+          nonNull: false);
+    }
+    String typeArgumentText;
+    if (hasExplicitTypeArgument) {
+      StringBuffer sb = new StringBuffer();
+      sb.write('<');
+      sb.write(typeOperations.typeToString(elementType));
+      sb.write('>');
+      typeArgumentText = sb.toString();
+    } else {
+      typeArgumentText = '';
+    }
+
+    ListTypeIdentity<Type> identity = new ListTypeIdentity(
+        elementType, typeArgumentText,
+        size: headSize + tailSize, hasRest: hasRest);
+    return new Space(path, createListType(type, identity),
+        additionalFields: additionalFields);
   }
 
   /// Creates the [Space] at [path] for a map pattern.
-  Space createMapSpace(Path path, Type type, MapTypeIdentity<Type> identity,
-      Map<Key, Pattern> subPatterns) {
-    assert(
-        identity.keys.length == subPatterns.length &&
-            identity.keys.containsAll(subPatterns.keys),
-        "Key mismatch: identity has ${identity.keys}, "
-        "subpatterns have ${subPatterns.keys}.");
+  Space createMapSpace(Path path,
+      {required Type type,
+      required Type keyType,
+      required Type valueType,
+      required Map<MapKey, Pattern> entries,
+      required bool hasRest,
+      required bool hasExplicitTypeArguments}) {
     Map<Key, Space> additionalFields = {};
-    for (MapEntry<Key, Pattern> entry in subPatterns.entries) {
-      String name = '[${entry.key}]';
-      additionalFields[entry.key] =
-          dispatchPattern(path.add(name), entry.value, nonNull: false);
+    for (MapEntry<Key, Pattern> entry in entries.entries) {
+      Key key = entry.key;
+      additionalFields[key] =
+          dispatchPattern(path.add(key.name), entry.value, nonNull: false);
     }
+    String typeArgumentsText;
+    if (hasExplicitTypeArguments) {
+      StringBuffer sb = new StringBuffer();
+      sb.write('<');
+      sb.write(typeOperations.typeToString(keyType));
+      sb.write(', ');
+      sb.write(typeOperations.typeToString(valueType));
+      sb.write('>');
+      typeArgumentsText = sb.toString();
+    } else {
+      typeArgumentsText = '';
+    }
+
+    MapTypeIdentity<Type> identity = new MapTypeIdentity(
+        keyType, valueType, entries.keys.toSet(), typeArgumentsText,
+        hasRest: hasRest);
     return new Space(path, createMapType(type, identity),
         additionalFields: additionalFields);
   }

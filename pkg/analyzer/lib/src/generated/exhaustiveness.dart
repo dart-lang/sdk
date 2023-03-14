@@ -197,6 +197,21 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
+  DartType? getListElementType(DartType type) {
+    InterfaceType? listType =
+        type.asInstanceOf(_typeSystem.typeProvider.listElement);
+    if (listType != null) {
+      return listType.typeArguments[0];
+    }
+    return null;
+  }
+
+  @override
+  DartType? getListType(DartType type) {
+    return type.asInstanceOf(_typeSystem.typeProvider.listElement);
+  }
+
+  @override
   DartType? getMapValueType(DartType type) {
     InterfaceType? mapType =
         type.asInstanceOf(_typeSystem.typeProvider.mapElement);
@@ -321,6 +336,15 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
   });
 
   @override
+  TypeOperations<DartType> get typeOperations => cache.typeOperations;
+
+  @override
+  StaticType createListType(
+      DartType type, ListTypeIdentity<DartType> identity) {
+    return cache.getListStaticType(type, identity);
+  }
+
+  @override
   StaticType createMapType(DartType type, MapTypeIdentity<DartType> identity) {
     return cache.getMapStaticType(type, identity);
   }
@@ -404,7 +428,34 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
     } else if (pattern is RelationalPattern) {
       return createRelationalSpace(path);
     } else if (pattern is ListPattern) {
-      return createListSpace(path);
+      DartType? elementType;
+      var typeArguments = pattern.typeArguments;
+      if (typeArguments != null && typeArguments.arguments.length == 1) {
+        elementType = typeArguments.arguments[0].typeOrThrow;
+      }
+      elementType ??= cache.typeSystem.typeProvider.dynamicType;
+      List<DartPattern> headElements = [];
+      DartPattern? restElement;
+      List<DartPattern> tailElements = [];
+      bool hasRest = false;
+      for (ListPatternElement element in pattern.elements) {
+        if (element is RestPatternElement) {
+          restElement = element.pattern;
+          hasRest = true;
+        } else if (hasRest) {
+          tailElements.add(element as DartPattern);
+        } else {
+          headElements.add(element as DartPattern);
+        }
+      }
+      return createListSpace(path,
+          type: cache.typeSystem.typeProvider.listType(elementType),
+          elementType: elementType,
+          headElements: headElements,
+          tailElements: tailElements,
+          restElement: restElement,
+          hasRest: hasRest,
+          hasExplicitTypeArgument: pattern.typeArguments != null);
     } else if (pattern is MapPattern) {
       DartType? keyType;
       DartType? valueType;
@@ -432,26 +483,13 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         }
       }
 
-      String typeArgumentsText;
-      if (keyType is! DynamicType && valueType is! DynamicType) {
-        StringBuffer sb = StringBuffer();
-        sb.write('<');
-        sb.write(keyType);
-        sb.write(', ');
-        sb.write(valueType);
-        sb.write('>');
-        typeArgumentsText = sb.toString();
-      } else {
-        typeArgumentsText = '';
-      }
-
-      return createMapSpace(
-          path,
-          cache.typeSystem.typeProvider.mapType(keyType, valueType),
-          MapTypeIdentity(
-              keyType, valueType, entries.keys.toSet(), typeArgumentsText,
-              hasRest: hasRest),
-          entries);
+      return createMapSpace(path,
+          type: cache.typeSystem.typeProvider.mapType(keyType, valueType),
+          keyType: keyType,
+          valueType: valueType,
+          entries: entries,
+          hasRest: hasRest,
+          hasExplicitTypeArguments: pattern.typeArguments != null);
     } else if (pattern is ConstantPattern) {
       final value = constantPatternValues[pattern];
       if (value != null) {

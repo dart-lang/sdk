@@ -72,7 +72,11 @@ abstract class StaticType {
   StaticType get nonNullable;
 
   /// The immediate subtypes of this type.
-  Iterable<StaticType> get subtypes;
+  ///
+  /// The [keysOfInterest] of interest are the keys used in one of the case
+  /// rows. This is used to select how a `List` type should be divided into
+  /// subtypes that should be used for testing the exhaustiveness of a list.
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest);
 
   /// Returns a textual representation of a single space consisting of this
   /// type and the provided [fields] and [additionalFields].
@@ -93,7 +97,7 @@ abstract class _BaseStaticType implements StaticType {
   StaticType? getAdditionalField(Key key) => null;
 
   @override
-  Iterable<StaticType> get subtypes => const [];
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => const [];
 
   @override
   String spaceToText(
@@ -180,7 +184,7 @@ class _NullType extends NullableStaticType {
   }
 
   @override
-  Iterable<StaticType> get subtypes {
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) {
     // Avoid splitting into [nullType] and [neverType].
     return const [];
   }
@@ -198,7 +202,8 @@ class NullableStaticType extends _BaseStaticType {
   bool get isSealed => true;
 
   @override
-  Iterable<StaticType> get subtypes => [underlying, StaticType.nullType];
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) =>
+      [underlying, StaticType.nullType];
 
   @override
   bool isSubtypeOf(StaticType other) {
@@ -287,8 +292,9 @@ class WrappedStaticType extends NonNullableStaticType {
   String get name => wrappedType.name;
 
   @override
-  Iterable<StaticType> get subtypes =>
-      wrappedType.subtypes.map((e) => new WrappedStaticType(e, impliedType));
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => wrappedType
+      .getSubtypes(keysOfInterest)
+      .map((e) => new WrappedStaticType(e, impliedType));
 
   @override
   bool isSubtypeOfInternal(StaticType other) {
@@ -307,13 +313,27 @@ class WrappedStaticType extends NonNullableStaticType {
   }
 }
 
-abstract class Key {}
+/// A value that defines the key of an additional field.
+///
+/// This is used for accessing entries in maps and elements in lists.
+abstract class Key implements Comparable<Key> {
+  String get name;
 
+  @override
+  int compareTo(Key other) {
+    return name.compareTo(name);
+  }
+}
+
+/// An entry in a map whose key is a constant [value].
 class MapKey extends Key {
   final Object value;
-  final String textualRepresentation;
+  final String valueAsText;
 
-  MapKey(this.value, this.textualRepresentation);
+  MapKey(this.value, this.valueAsText);
+
+  @override
+  String get name => '[$valueAsText]';
 
   @override
   int get hashCode => value.hashCode;
@@ -325,5 +345,76 @@ class MapKey extends Key {
   }
 
   @override
-  String toString() => textualRepresentation;
+  String toString() => valueAsText;
+}
+
+/// An element in a list accessed by an [index] from the start of the list.
+class HeadKey extends Key {
+  final int index;
+
+  HeadKey(this.index);
+
+  @override
+  String get name => '[$index]';
+
+  @override
+  int get hashCode => index.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is HeadKey && index == other.index;
+  }
+
+  @override
+  String toString() => 'HeadKey($index)';
+}
+
+/// An element in a list accessed by an [index] from the end of the list, that
+/// is, the [index]th last element.
+class TailKey extends Key {
+  final int index;
+
+  TailKey(this.index);
+
+  @override
+  String get name => '[${-(index + 1)}]';
+
+  @override
+  int get hashCode => index.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is TailKey && index == other.index;
+  }
+
+  @override
+  String toString() => 'TailKey($index)';
+}
+
+/// A sublist of a list from the [headSize]th index to the [tailSize]th last
+/// index.
+class RestKey extends Key {
+  final int headSize;
+  final int tailSize;
+
+  RestKey(this.headSize, this.tailSize);
+
+  @override
+  String get name => '[$headSize:${-tailSize}]';
+
+  @override
+  int get hashCode => Object.hash(headSize, tailSize);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is RestKey &&
+        headSize == other.headSize &&
+        tailSize == other.tailSize;
+  }
+
+  @override
+  String toString() => 'RestKey($headSize,$tailSize)';
 }

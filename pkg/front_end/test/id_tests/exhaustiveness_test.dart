@@ -5,6 +5,7 @@
 import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/test_helper.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
@@ -70,21 +71,24 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
     if (result != null) {
       Features features = new Features();
       features[Tags.scrutineeType] = staticTypeToText(result.scrutineeType);
-      String? subtypes = typesToText(result.scrutineeType.subtypes);
-      if (subtypes != null) {
-        features[Tags.subtypes] = subtypes;
-      }
-      if (result.scrutineeType.isSealed) {
-        String? expandedSubtypes =
-            typesToText(expandSealedSubtypes(result.scrutineeType));
-        if (subtypes != expandedSubtypes && expandedSubtypes != null) {
-          features[Tags.expandedSubtypes] = expandedSubtypes;
-        }
-      }
+      Set<Key> keysOfInterest = {};
       Set<String> fieldsOfInterest = {};
       for (Space caseSpace in result.caseSpaces) {
         for (SingleSpace singleSpace in caseSpace.singleSpaces) {
           fieldsOfInterest.addAll(singleSpace.fields.keys);
+          keysOfInterest.addAll(singleSpace.additionalFields.keys);
+        }
+      }
+      String? subtypes =
+          typesToText(result.scrutineeType.getSubtypes(keysOfInterest));
+      if (subtypes != null) {
+        features[Tags.subtypes] = subtypes;
+      }
+      if (result.scrutineeType.isSealed) {
+        String? expandedSubtypes = typesToText(
+            expandSealedSubtypes(result.scrutineeType, keysOfInterest));
+        if (subtypes != expandedSubtypes && expandedSubtypes != null) {
+          features[Tags.expandedSubtypes] = expandedSubtypes;
         }
       }
       if (fieldsOfInterest.isNotEmpty) {

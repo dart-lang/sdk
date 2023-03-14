@@ -133,5 +133,5 @@ void main() {
 }
 
 void expectExpand(StaticType type, String expected) {
-  expect(expandSealedSubtypes(type).join('|'), expected);
+  expect(expandSealedSubtypes(type, const {}).join('|'), expected);
 }

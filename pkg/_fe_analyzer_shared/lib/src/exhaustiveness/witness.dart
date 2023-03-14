@@ -84,6 +84,12 @@ Witness? _unmatched(List<List<Space>> caseRows, List<Space> valuePatterns,
   // Look down the first column of tests.
   Space firstValuePatterns = valuePatterns[0];
 
+  Set<Key> keysOfInterest = {};
+  for (List<Space> caseRow in caseRows) {
+    for (SingleSpace singleSpace in caseRow.first.singleSpaces) {
+      keysOfInterest.addAll(singleSpace.additionalFields.keys);
+    }
+  }
   for (SingleSpace firstValuePattern in firstValuePatterns.singleSpaces) {
     // TODO(johnniwinther): Right now, this brute force expands all subtypes of
     // sealed types and considers them individually. It would be faster to look
@@ -91,7 +97,8 @@ Witness? _unmatched(List<List<Space>> caseRows, List<Space> valuePatterns,
     // expand subtypes that are actually tested.
     // Split the type into its sealed subtypes and consider each one separately.
     // This enables it to filter rows more effectively.
-    List<StaticType> subtypes = expandSealedSubtypes(firstValuePattern.type);
+    List<StaticType> subtypes =
+        expandSealedSubtypes(firstValuePattern.type, keysOfInterest);
     for (StaticType subtype in subtypes) {
       Witness? result = _filterByType(subtype, caseRows, firstValuePattern,
           valuePatterns, witnessPredicates, firstValuePatterns.path);
@@ -152,13 +159,21 @@ Witness? _filterByType(
       ...firstPattern.fields.keys
   };
 
+  Set<Key> additionalFieldKeys = {
+    ...firstSingleSpaceValue.additionalFields.keys,
+    for (SingleSpace firstPattern in remainingRowFirstSingleSpaces)
+      ...firstPattern.additionalFields.keys
+  };
+
   // Sorting isn't necessary, but makes the behavior deterministic.
-  List<String> sorted = fieldNames.toList()..sort();
+  List<String> sortedFieldNames = fieldNames.toList()..sort();
+  List<Key> sortedAdditionalFieldKeys = additionalFieldKeys.toList()..sort();
 
   // Remove the first column from the value list and replace it with any
   // expanded fields.
   valueSpaces = [
-    ..._expandFields(sorted, firstSingleSpaceValue, type, path),
+    ..._expandFields(sortedFieldNames, sortedAdditionalFieldKeys,
+        firstSingleSpaceValue, type, path),
     ...valueSpaces.skip(1)
   ];
 
@@ -166,8 +181,12 @@ Witness? _filterByType(
   // fields.
   for (int i = 0; i < remainingRows.length; i++) {
     remainingRows[i] = [
-      ..._expandFields(sorted, remainingRowFirstSingleSpaces[i],
-          remainingRowFirstSingleSpaces[i].type, path),
+      ..._expandFields(
+          sortedFieldNames,
+          sortedAdditionalFieldKeys,
+          remainingRowFirstSingleSpaces[i],
+          remainingRowFirstSingleSpaces[i].type,
+          path),
       ...remainingRows[i].skip(1)
     ];
   }
@@ -176,17 +195,23 @@ Witness? _filterByType(
   return _unmatched(remainingRows, valueSpaces, extendedWitness);
 }
 
-/// Given a list of [fieldNames] and a [singleSpace], generates a list of
-/// single spaces, one for each named field.
+/// Given a list of [fieldNames] and [additionalFieldKeys], and a [singleSpace],
+/// generates a list of single spaces, one for each named field and additional
+/// field key.
 ///
-/// When [singleSpace] contains a field with that name, extracts it into the
-/// resulting list. Otherwise, the [singleSpace] doesn't care about that field,
-/// so inserts a default [Space] that matches all values for the field.
+/// When [singleSpace] contains a field with that name or an additional field
+/// with the key, extracts it into the resulting list. Otherwise, the
+/// [singleSpace] doesn't care about that field, so inserts a default [Space]
+/// that matches all values for the field.
 ///
 /// In other words, this unpacks a set of fields so that the main algorithm can
 /// add them to the worklist.
-List<Space> _expandFields(List<String> fieldNames, SingleSpace singleSpace,
-    StaticType type, Path path) {
+List<Space> _expandFields(
+    List<String> fieldNames,
+    List<Key> additionalFieldKeys,
+    SingleSpace singleSpace,
+    StaticType type,
+    Path path) {
   profile.count('_expandFields');
   List<Space> result = <Space>[];
   for (String fieldName in fieldNames) {
@@ -200,20 +225,34 @@ List<Space> _expandFields(List<String> fieldNames, SingleSpace singleSpace,
           type.fields[fieldName] ?? StaticType.nullableObject));
     }
   }
-
+  for (Key key in additionalFieldKeys) {
+    Space? field = singleSpace.additionalFields[key];
+    if (field != null) {
+      result.add(field);
+    } else {
+      // This pattern doesn't test this field, so add a pattern for the
+      // field that matches all values. This way the columns stay aligned.
+      result.add(new Space(path.add(key.name),
+          type.getAdditionalField(key) ?? StaticType.nullableObject));
+    }
+  }
   return result;
 }
 
 /// Recursively expands [type] with its subtypes if its sealed.
 ///
 /// Otherwise, just returns [type].
-List<StaticType> expandSealedSubtypes(StaticType type) {
+List<StaticType> expandSealedSubtypes(
+    StaticType type, Set<Key> keysOfInterest) {
   profile.count('expandSealedSubtypes');
-  if (!type.isSealed) return [type];
-
-  return {
-    for (StaticType subtype in type.subtypes) ...expandSealedSubtypes(subtype)
-  }.toList();
+  if (!type.isSealed) {
+    return [type];
+  } else {
+    return {
+      for (StaticType subtype in type.getSubtypes(keysOfInterest))
+        ...expandSealedSubtypes(subtype, keysOfInterest)
+    }.toList();
+  }
 }
 
 /// The main pattern for matching types and destructuring.
