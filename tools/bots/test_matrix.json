@@ -847,13 +847,6 @@
         ]
       }
     },
-    "dartk-fuchsia-(debug|product|release)-(x64|x64c)": {
-      "options": {
-        "vm-options": [
-          "--no-sound-null-safety"
-        ]
-      }
-    },
     "dartk-linux-debug-(ia32|x64)-canary": {
       "options": {
         "builder-tag": "canary",
@@ -885,11 +878,6 @@
     "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|x64|x64c|simriscv32|simriscv64)": {
       "options": {
         "enable-asserts": true,
-        "builder-tag": "vm_nnbd"
-      }
-    },
-    "dartk-strong-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|simriscv32|simriscv64|x64|x64c)": {
-      "options": {
         "builder-tag": "vm_nnbd"
       }
     },
@@ -2007,103 +1995,6 @@
     },
     {
       "builders": [
-        "vm-kernel-nnbd-linux-debug-ia32",
-        "vm-kernel-nnbd-linux-debug-simriscv64",
-        "vm-kernel-nnbd-linux-release-simarm",
-        "vm-kernel-nnbd-linux-release-simarm64",
-        "vm-kernel-nnbd-mac-debug-arm64",
-        "vm-kernel-nnbd-mac-debug-x64",
-        "vm-kernel-nnbd-win-debug-x64",
-        "vm-kernel-nnbd-win-release-ia32"
-      ],
-      "meta": {
-        "description": "This configuration is for the VM nnbd builder group."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm nnbd tests in strong mode",
-          "arguments": [
-            "-ndartk-strong-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 6
-        },
-        {
-          "name": "vm co19 nnbd tests in strong mode",
-          "arguments": [
-            "-ndartk-strong-${system}-${mode}-${arch}",
-            "co19"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 8
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-nnbd-linux-debug-x64",
-        "vm-kernel-nnbd-linux-release-ia32",
-        "vm-kernel-nnbd-linux-release-x64",
-        "vm-kernel-nnbd-mac-release-arm64",
-        "vm-kernel-nnbd-mac-release-x64",
-        "vm-kernel-nnbd-win-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is for the VM nnbd builder group."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm nnbd tests in weak mode with asserts",
-          "arguments": [
-            "-ndartk-weak-asserts-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 6
-        },
-        {
-          "name": "vm co19 nnbd tests in weak mode with asserts",
-          "arguments": [
-            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
-            "co19"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 8
-        },
-        {
-          "name": "vm nnbd tests in strong mode",
-          "arguments": [
-            "-ndartk-strong-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 6
-        },
-        {
-          "name": "vm co19 nnbd tests in strong mode",
-          "arguments": [
-            "-ndartk-strong-${system}-${mode}-${arch}",
-            "co19"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 8
-        }
-      ]
-    },
-    {
-      "builders": [
         "vm-kernel-linux-release-x64",
         "vm-kernel-linux-debug-x64"
       ],
@@ -2134,6 +2025,23 @@
           ],
           "fileset": "vm-kernel",
           "shards": 10
+        },
+        {
+          "name": "vm nnbd tests in weak mode with asserts",
+          "arguments": [
+            "-ndartk-weak-asserts-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 6
+        },
+        {
+          "name": "vm co19 nnbd tests in weak mode with asserts",
+          "arguments": [
+            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
         }
       ]
     },
