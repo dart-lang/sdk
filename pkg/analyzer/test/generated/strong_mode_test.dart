@@ -3087,6 +3087,7 @@ FunctionDeclaration
         staticType: Null
       semicolon: ;
     declaredElement: self::@function::f
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   declaredElement: self::@function::f
     type: T Function<T>(T)
@@ -3129,6 +3130,7 @@ FunctionDeclaration
         staticType: Null*
       semicolon: ;
     declaredElement: self::@function::f
+      type: T* Function<T>(T*)*
     staticType: T* Function<T>(T*)*
   declaredElement: self::@function::f
     type: T* Function<T>(T*)*
@@ -3188,6 +3190,7 @@ FunctionDeclaration
         staticType: Null
       semicolon: ;
     declaredElement: self::@function::f
+      type: T Function<T extends num>(T)
     staticType: T Function<T extends num>(T)
   declaredElement: self::@function::f
     type: T Function<T extends num>(T)
@@ -3237,6 +3240,7 @@ FunctionDeclaration
         staticType: Null*
       semicolon: ;
     declaredElement: self::@function::f
+      type: T* Function<T extends num*>(T*)*
     staticType: T* Function<T extends num*>(T*)*
   declaredElement: self::@function::f
     type: T* Function<T extends num*>(T*)*
