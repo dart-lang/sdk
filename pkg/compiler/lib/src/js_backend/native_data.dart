@@ -29,8 +29,11 @@ class NativeBasicDataBuilder {
   /// The JavaScript classes implemented via typed JavaScript interop.
   final Map<ClassEntity, String> _jsInteropClasses = {};
 
-  /// JavaScript interop classes annotated with `@anonymous`
+  /// JavaScript interop classes annotated with `@anonymous`.
   final Set<ClassEntity> _anonymousJsInteropClasses = {};
+
+  /// JavaScript interop classes annotated with `@staticInterop`.
+  final Set<ClassEntity> _staticInteropClasses = {};
 
   /// The JavaScript members implemented via typed JavaScript interop.
   final Map<MemberEntity, String> _jsInteropMembers = {};
@@ -84,7 +87,9 @@ class NativeBasicDataBuilder {
   /// class [element], other the js interop name is expected to be computed
   /// later.
   void markAsJsInteropClass(ClassEntity element,
-      {required String name, required bool isAnonymous}) {
+      {required String name,
+      required bool isAnonymous,
+      required bool isStaticInterop}) {
     assert(
         !_closed,
         failedAt(
@@ -94,6 +99,9 @@ class NativeBasicDataBuilder {
     _jsInteropClasses[element] = name;
     if (isAnonymous) {
       _anonymousJsInteropClasses.add(element);
+    }
+    if (isStaticInterop) {
+      _staticInteropClasses.add(element);
     }
   }
 
@@ -120,6 +128,7 @@ class NativeBasicDataBuilder {
         _jsInteropLibraries,
         _jsInteropClasses,
         _anonymousJsInteropClasses,
+        _staticInteropClasses,
         _jsInteropMembers);
   }
 
@@ -153,6 +162,9 @@ class NativeBasicData {
   /// JavaScript interop classes annotated with `@anonymous`
   final Set<ClassEntity> _anonymousJsInteropClasses;
 
+  /// JavaScript interop classes annotated with `@staticInterop`
+  final Set<ClassEntity> _staticInteropClasses;
+
   /// The JavaScript members implemented via typed JavaScript interop.
   final Map<MemberEntity, String?> _jsInteropMembers;
 
@@ -163,6 +175,7 @@ class NativeBasicData {
       this._jsInteropLibraries,
       this._jsInteropClasses,
       this._anonymousJsInteropClasses,
+      this._staticInteropClasses,
       this._jsInteropMembers);
 
   factory NativeBasicData.fromIr(
@@ -172,6 +185,7 @@ class NativeBasicData {
     Map<LibraryEntity, String> jsInteropLibraries = {};
     Map<ClassEntity, String> jsInteropClasses = {};
     Set<ClassEntity> anonymousJsInteropClasses = {};
+    Set<ClassEntity> staticInteropClasses = {};
     Map<MemberEntity, String?> jsInteropMembers = {};
 
     data.forEachNativeClass((ir.Class node, String text) {
@@ -182,11 +196,14 @@ class NativeBasicData {
           name;
     });
     data.forEachJsInteropClass((ir.Class node, String name,
-        {required bool isAnonymous}) {
+        {required bool isAnonymous, required bool isStaticInterop}) {
       ClassEntity cls = map.getClass(node);
       jsInteropClasses[cls] = name;
       if (isAnonymous) {
         anonymousJsInteropClasses.add(cls);
+      }
+      if (isStaticInterop) {
+        staticInteropClasses.add(cls);
       }
     });
     data.forEachJsInteropMember((ir.Member node, String? name) {
@@ -198,8 +215,15 @@ class NativeBasicData {
       jsInteropMembers[map.getMember(node)] = name;
     });
 
-    return NativeBasicData(env, false, nativeClassTagInfo, jsInteropLibraries,
-        jsInteropClasses, anonymousJsInteropClasses, jsInteropMembers);
+    return NativeBasicData(
+        env,
+        false,
+        nativeClassTagInfo,
+        jsInteropLibraries,
+        jsInteropClasses,
+        anonymousJsInteropClasses,
+        staticInteropClasses,
+        jsInteropMembers);
   }
 
   /// Deserializes a [NativeBasicData] object from [source].
@@ -218,6 +242,7 @@ class NativeBasicData {
     Map<ClassEntity, String> jsInteropClasses =
         source.readClassMap(source.readString);
     Set<ClassEntity> anonymousJsInteropClasses = source.readClasses().toSet();
+    Set<ClassEntity> staticInteropClasses = source.readClasses().toSet();
     Map<MemberEntity, String?> jsInteropMembers = source
         .readMemberMap((MemberEntity member) => source.readStringOrNull());
     source.end(tag);
@@ -228,6 +253,7 @@ class NativeBasicData {
         jsInteropLibraries,
         jsInteropClasses,
         anonymousJsInteropClasses,
+        staticInteropClasses,
         jsInteropMembers);
   }
 
@@ -242,6 +268,7 @@ class NativeBasicData {
     sink.writeLibraryMap(_jsInteropLibraries, sink.writeString);
     sink.writeClassMap(_jsInteropClasses, sink.writeString);
     sink.writeClasses(_anonymousJsInteropClasses);
+    sink.writeClasses(_staticInteropClasses);
     sink.writeMemberMap(_jsInteropMembers,
         (MemberEntity member, String? name) => sink.writeStringOrNull(name));
     sink.end(tag);
@@ -346,6 +373,8 @@ class NativeBasicData {
         map.toBackendClassMap(_jsInteropClasses, identity);
     Set<ClassEntity> anonymousJsInteropClasses =
         map.toBackendClassSet(_anonymousJsInteropClasses);
+    Set<ClassEntity> staticInteropClasses =
+        map.toBackendClassSet(_staticInteropClasses);
     Map<MemberEntity, String?> jsInteropMembers =
         map.toBackendMemberMap(_jsInteropMembers, identity);
     return NativeBasicData(
@@ -355,6 +384,7 @@ class NativeBasicData {
         jsInteropLibraries,
         jsInteropClasses,
         anonymousJsInteropClasses,
+        staticInteropClasses,
         jsInteropMembers);
   }
 }
@@ -562,6 +592,10 @@ class NativeData implements NativeBasicData {
       _nativeBasicData._anonymousJsInteropClasses;
 
   @override
+  Set<ClassEntity> get _staticInteropClasses =>
+      _nativeBasicData._staticInteropClasses;
+
+  @override
   Map<ClassEntity, String> get _jsInteropClasses =>
       _nativeBasicData._jsInteropClasses;
 
@@ -572,6 +606,11 @@ class NativeData implements NativeBasicData {
   /// Returns `true` if [element] has an `@Anonymous` annotation.
   bool isAnonymousJsInteropClass(ClassEntity element) {
     return _anonymousJsInteropClasses.contains(element);
+  }
+
+  /// Returns `true` if [element] has an `@staticInterop` annotation.
+  bool isStaticInteropClass(ClassEntity element) {
+    return _staticInteropClasses.contains(element);
   }
 
   @override

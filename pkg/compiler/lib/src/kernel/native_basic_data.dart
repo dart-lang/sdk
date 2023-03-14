@@ -100,10 +100,13 @@ class KernelAnnotationProcessor {
       String? className = annotationData.getJsInteropClassName(classNode);
       if (className != null) {
         bool isAnonymous = annotationData.isAnonymousJsInteropClass(classNode);
+        bool isStaticInterop = annotationData.isStaticInteropClass(classNode);
         // TODO(johnniwinther): Report an error if the class is anonymous but
         // has a non-empty name.
         _nativeBasicDataBuilder.markAsJsInteropClass(cls,
-            name: className, isAnonymous: isAnonymous);
+            name: className,
+            isAnonymous: isAnonymous,
+            isStaticInterop: isStaticInterop);
         // TODO(johnniwinther): It is unclear whether library can be implicitly
         // js-interop. For now we allow it.
         isJsLibrary = true;

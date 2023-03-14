@@ -18,6 +18,7 @@ class IrAnnotationData {
   final Map<ir.Class, String> _jsInteropClassNames = {};
   final Set<ir.Class> _anonymousJsInteropClasses = {};
   final Map<ir.Member, String> _jsInteropMemberNames = {};
+  final Set<ir.Class> _staticInteropClasses = {};
 
   final Map<ir.Member, List<PragmaAnnotationData>> _memberPragmaAnnotations =
       {};
@@ -52,6 +53,10 @@ class IrAnnotationData {
   bool isAnonymousJsInteropClass(ir.Class node) =>
       _anonymousJsInteropClasses.contains(node);
 
+  // Returns `true` if [node] is annotated with `@staticInterop`.
+  bool isStaticInteropClass(ir.Class node) =>
+      _staticInteropClasses.contains(node);
+
   // Returns the text from the `@JS(<text>)` annotation of [node], if any.
   String? getJsInteropMemberName(ir.Member node) => _jsInteropMemberNames[node];
 
@@ -68,9 +73,13 @@ class IrAnnotationData {
   }
 
   void forEachJsInteropClass(
-      void Function(ir.Class, String, {required bool isAnonymous}) f) {
+      void Function(ir.Class, String,
+              {required bool isAnonymous, required bool isStaticInterop})
+          f) {
     _jsInteropClassNames.forEach((ir.Class node, String name) {
-      f(node, name, isAnonymous: isAnonymousJsInteropClass(node));
+      f(node, name,
+          isAnonymous: isAnonymousJsInteropClass(node),
+          isStaticInterop: isStaticInteropClass(node));
     });
   }
 
@@ -214,6 +223,11 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
           if (isAnonymousJsInteropClass) {
             data._anonymousJsInteropClasses.add(cls);
           }
+
+          bool isStaticInteropClass = _isStaticInterop(constant);
+          if (isStaticInteropClass) {
+            data._staticInteropClasses.add(cls);
+          }
         }
       }
       for (ir.Member member in cls.members) {
@@ -313,6 +327,14 @@ String? _getJsInteropName(ir.Constant constant) {
 bool _isAnonymousJsInterop(ir.Constant constant) {
   return constant is ir.InstanceConstant &&
       constant.classNode.name == '_Anonymous' &&
+      (constant.classNode.enclosingLibrary.importUri == Uris.package_js ||
+          constant.classNode.enclosingLibrary.importUri ==
+              Uris.dart__js_annotations);
+}
+
+bool _isStaticInterop(ir.Constant constant) {
+  return constant is ir.InstanceConstant &&
+      constant.classNode.name == '_StaticInterop' &&
       (constant.classNode.enclosingLibrary.importUri == Uris.package_js ||
           constant.classNode.enclosingLibrary.importUri ==
               Uris.dart__js_annotations);
