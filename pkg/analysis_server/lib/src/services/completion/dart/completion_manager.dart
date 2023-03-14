@@ -365,7 +365,7 @@ class DartCompletionRequest {
     );
 
     var opType = OpType.forCompletion(target, offset);
-    if (contextType != null && contextType.isVoid) {
+    if (contextType is VoidType) {
       opType.includeVoidReturnSuggestions = true;
     }
 

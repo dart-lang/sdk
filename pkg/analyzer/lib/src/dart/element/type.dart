@@ -1462,6 +1462,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   @override
   int get hashCode => 2;
 
+  @Deprecated('Use `is VoidType` instead')
   @override
   bool get isVoid => true;
 

@@ -899,8 +899,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     } else if (nativeReturnType == _PrimitiveDartType.bool) {
       return dartType.isDartCoreBool;
     } else if (nativeReturnType == _PrimitiveDartType.void_) {
-      return dartType.isVoid;
-    } else if (dartType.isVoid) {
+      return dartType is VoidType;
+    } else if (dartType is VoidType) {
       // Don't allow other native subtypes if the Dart return type is void.
       return nativeReturnType == _PrimitiveDartType.void_;
     } else if (nativeReturnType == _PrimitiveDartType.handle) {
@@ -1077,7 +1077,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     // TODO(brianwilkerson) Validate that `f` is a top-level function.
     final DartType R = (T as FunctionType).returnType;
-    if ((FT as FunctionType).returnType.isVoid ||
+    if ((FT as FunctionType).returnType is VoidType ||
         R.isPointer ||
         R.isHandle ||
         R.isCompoundSubtype) {

@@ -20,6 +20,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -314,7 +315,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       if (node is MethodInvocation) {
         var invocation = node;
         var element = invocation.methodName.staticElement;
-        if (element is ExecutableElement && element.returnType.isVoid) {
+        if (element is ExecutableElement && element.returnType is VoidType) {
           if (singleExpression == null) {
             return RefactoringStatus.fatal(
                 'Cannot extract the void expression.',

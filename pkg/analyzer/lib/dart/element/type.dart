@@ -122,6 +122,7 @@ abstract class DartType {
   bool get isDynamic;
 
   /// Return `true` if this type represents the type 'void'.
+  @Deprecated('Use `is VoidType` instead')
   bool get isVoid;
 
   /// Return the name of this type, or `null` if the type does not have a name,

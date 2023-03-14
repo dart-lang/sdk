@@ -1579,12 +1579,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (returnType == null) return;
 
       bool isReturnVoid;
-      if (returnType.isVoid) {
+      if (returnType is VoidType) {
         isReturnVoid = true;
       } else if (returnType is ParameterizedType &&
           (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr)) {
         var typeArguments = returnType.typeArguments;
-        isReturnVoid = typeArguments.length == 1 && typeArguments.first.isVoid;
+        isReturnVoid =
+            typeArguments.length == 1 && typeArguments.first is VoidType;
       } else {
         isReturnVoid = false;
       }

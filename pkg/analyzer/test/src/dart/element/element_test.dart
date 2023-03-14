@@ -2015,6 +2015,7 @@ class VoidTypeImplTest extends AbstractTypeSystemTest {
   /// Reference {code VoidTypeImpl.getInstance()}.
   final DartType _voidType = VoidTypeImpl.instance;
 
+  @deprecated
   void test_isVoid() {
     expect(_voidType.isVoid, isTrue);
   }

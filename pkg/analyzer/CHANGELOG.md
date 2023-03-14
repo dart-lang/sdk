@@ -1,3 +1,6 @@
+## 5.8.0-dev
+* Deprecated `DartType.isVoid`, use `is VoidType` instead.
+
 ## 5.7.1
 * Require SDK `>=2.19.0 <3.0.0` to use `PathNotFoundException` from `dart:io`.
 

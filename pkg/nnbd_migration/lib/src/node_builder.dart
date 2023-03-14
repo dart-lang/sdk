@@ -531,7 +531,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitTypeAnnotation(TypeAnnotation node) {
     var type = node.type!;
     var target = safeTarget.withCodeRef(node);
-    if (type.isVoid || type.isDynamic) {
+    if (type is VoidType || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(target);
       var decoratedType = DecoratedType(type, nullabilityNode);
       _variables.recordDecoratedTypeAnnotation(source, node, decoratedType);
