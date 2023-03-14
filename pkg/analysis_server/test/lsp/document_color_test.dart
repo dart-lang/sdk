@@ -40,17 +40,17 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
   /// const is not implied like in a const context.
   Future<void> test_colorConstant_addsConst_switchExpression() async {
     content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    void f(Color color) {
-      const x = Colors.red;
-      var a = switch (color) {
-        [!x!] => 'red',
-        const Color.fromARGB(255, 100, 0, 0) => 'dark-red',
-        _ => 'unknown',
-      };
-    }
-    ''';
+void f(Color color) {
+  const x = Colors.red;
+  var a = switch (color) {
+    [!x!] => 'red',
+    const Color.fromARGB(255, 100, 0, 0) => 'dark-red',
+    _ => 'unknown',
+  };
+}
+''';
 
     await _checkPresentations(
       select: Color(alpha: 1, red: 1, green: 0, blue: 0),
@@ -64,11 +64,11 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_colorConstant_constContext() async {
     content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    const x = Colors.white;
-    const white = [!x!];
-    ''';
+const x = Colors.white;
+const white = [!x!];
+''';
 
     await _checkPresentations(
       select: Color(alpha: 1, red: 1, green: 0, blue: 0),
@@ -82,11 +82,11 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_colorConstant_nonConst() async {
     content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    const x = Colors.white;
-    var white = [!x!];
-    ''';
+const x = Colors.white;
+var white = [!x!];
+''';
 
     await _checkPresentations(
       select: Color(alpha: 1, red: 1, green: 0, blue: 0),
@@ -103,16 +103,16 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
   /// const is not implied like in a const context.
   Future<void> test_colorConstant_prefixed_addsConst_switchExpression() async {
     content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    void f(Color color) {
-      var a = switch (color) {
-        [!Colors.red!] => 'red',
-        const Color.fromARGB(255, 100, 0, 0) => 'dark-red',
-        _ => 'unknown',
-      };
-    }
-    ''';
+void f(Color color) {
+  var a = switch (color) {
+    [!Colors.red!] => 'red',
+    const Color.fromARGB(255, 100, 0, 0) => 'dark-red',
+    _ => 'unknown',
+  };
+}
+''';
 
     await _checkPresentations(
       select: Color(alpha: 1, red: 1, green: 0, blue: 0),
@@ -126,10 +126,10 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_colorConstant_prefixed_constContext() async {
     content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    const white = [!Colors.white!];
-    ''';
+const white = [!Colors.white!];
+''';
 
     await _checkPresentations(
       select: Color(alpha: 1, red: 1, green: 0, blue: 0),
@@ -143,10 +143,10 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_colorConstant_prefixed_nonConst() async {
     content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    var white = [!Colors.white!];
-    ''';
+var white = [!Colors.white!];
+''';
 
     await _checkPresentations(
       select: Color(alpha: 1, red: 1, green: 0, blue: 0),
@@ -161,10 +161,10 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
   /// If a color is in a const context, we should not insert 'const'.
   Future<void> test_colorConstructor_constContext() async {
     content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    const white = [!Color(0xFFFFFFFF)!];
-    ''';
+const white = [!Color(0xFFFFFFFF)!];
+''';
 
     await _checkPresentations(
       select: Color(alpha: 1, red: 1, green: 0, blue: 0),
@@ -179,10 +179,10 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
   /// If a color already has 'const' ahead of it, we should not insert another.
   Future<void> test_colorConstructor_constKeyword() async {
     content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    var white = const [!Color(0xFFFFFFFF)!];
-    ''';
+var white = const [!Color(0xFFFFFFFF)!];
+''';
 
     await _checkPresentations(
       select: Color(alpha: 1, red: 1, green: 0, blue: 0),
@@ -196,10 +196,10 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_colorConstructor_nonConst() async {
     content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    var white = [!Color(0xFFFFFFFF)!];
-    ''';
+var white = [!Color(0xFFFFFFFF)!];
+''';
 
     await _checkPresentations(
       select: Color(alpha: 1, red: 1, green: 0, blue: 0),
@@ -242,10 +242,10 @@ const white = [!Colors.white!];
   Future<void> test_outsideAnalysisRoot() async {
     testFilePath = convertPath('/home/other/test.dart');
     content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    const white = [!Color(0xFFFFFFFF)!];
-    ''';
+const white = [!Color(0xFFFFFFFF)!];
+''';
 
     await _checkPresentations(
       select: Color(alpha: 1, red: 1, green: 0, blue: 0),
@@ -318,10 +318,10 @@ class DocumentColorTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_simpleColor() async {
     final content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    const red = [!Colors.red!];
-    ''';
+const red = [!Colors.red!];
+''';
     final code = TestCode.parse(content);
     newFile(mainFilePath, code.code);
     await initialize();
