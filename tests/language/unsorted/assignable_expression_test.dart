@@ -23,10 +23,8 @@ main() {
 //^^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
 // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
-// [cfe] The 'patterns' language feature is disabled for this library.
-// ^
-// [cfe] Only local variables or formal parameters can be used in pattern assignments.
-// [cfe] The 'patterns' language feature is disabled for this library.
+//         ^
+// [cfe] Can't assign to a parenthesized expression.
   (variable)++;
   //       ^
   // [cfe] Can't assign to a parenthesized expression.
@@ -42,9 +40,8 @@ main() {
 //^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
 // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
-// [cfe] The 'patterns' language feature is disabled for this library.
-//   ^
-// [cfe] Refutable patterns can't be used in an irrefutable context.
+//        ^
+// [cfe] Can't assign to a parenthesized expression.
   (C.field)++;
   //      ^
   // [cfe] Can't assign to a parenthesized expression.
@@ -62,12 +59,8 @@ main() {
 //^^^^^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
 // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
-// [cfe] The 'patterns' language feature is disabled for this library.
-// ^
-// [cfe] Only local variables or formal parameters can be used in pattern assignments.
-// [cfe] The 'patterns' language feature is disabled for this library.
-//         ^
-// [cfe] Expected ')' before this.
+//            ^
+// [cfe] Can't assign to a parenthesized expression.
   (variable[0])++;
   //          ^
   // [cfe] Can't assign to a parenthesized expression.
@@ -83,9 +76,8 @@ main() {
 //^^^^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
 // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
-// [cfe] The 'patterns' language feature is disabled for this library.
-//        ^
-// [cfe] Refutable patterns can't be used in an irrefutable context.
+//           ^
+// [cfe] Can't assign to a parenthesized expression.
   (C.field[0])++;
   //         ^
   // [cfe] Can't assign to a parenthesized expression.
@@ -101,9 +93,8 @@ main() {
 //^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
 // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
-// [cfe] The 'patterns' language feature is disabled for this library.
-// ^
-// [cfe] The 'patterns' language feature is disabled for this library.
+//  ^
+// [cfe] Can't assign to a parenthesized expression.
   (a)++;
   //^
   // [cfe] Can't assign to a parenthesized expression.
@@ -118,9 +109,6 @@ main() {
   var funcnuf = (x) => ((x))=((x)) <= (x);
   //                   ^^^^^
   // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
-  // [cfe] The 'patterns' language feature is disabled for this library.
-  //                    ^
-  // [cfe] The 'patterns' language feature is disabled for this library.
-  //                     ^
-  // [cfe] The 'patterns' language feature is disabled for this library.
+  //                       ^
+  // [cfe] Can't assign to a parenthesized expression.
 }

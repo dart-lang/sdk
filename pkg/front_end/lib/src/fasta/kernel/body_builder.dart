@@ -1858,7 +1858,7 @@ class BodyBuilder extends StackListenerImpl
       {bool doFinishConstructor = true}) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: globalFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled);
     if (!token.isEof) {
       token = parser.parseInitializers(token);
       checkEmpty(token.charOffset);
@@ -1880,7 +1880,7 @@ class BodyBuilder extends StackListenerImpl
   Expression parseFieldInitializer(Token token) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: globalFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled);
     Token endToken =
         parser.parseExpression(parser.syntheticPreviousToken(token));
     assert(checkState(token, [
@@ -1898,7 +1898,7 @@ class BodyBuilder extends StackListenerImpl
   Expression parseAnnotation(Token token) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: globalFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled);
     Token endToken = parser.parseMetadata(parser.syntheticPreviousToken(token));
     assert(checkState(token, [ValueKinds.Expression]));
     Expression annotation = pop() as Expression;
@@ -1909,7 +1909,7 @@ class BodyBuilder extends StackListenerImpl
   ArgumentsImpl parseArguments(Token token) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: globalFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled);
     token = parser.parseArgumentsRest(token);
     ArgumentsImpl arguments = pop() as ArgumentsImpl;
     checkEmpty(token.charOffset);

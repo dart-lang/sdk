@@ -1215,7 +1215,7 @@ severity: $severity
     if (tokens == null) return;
     OutlineBuilder listener = new OutlineBuilder(library);
     new ClassMemberParser(listener,
-            allowPatterns: target.globalFeatures.patterns.isEnabled)
+            allowPatterns: library.libraryFeatures.patterns.isEnabled)
         .parseUnit(tokens);
   }
 
@@ -1248,7 +1248,7 @@ severity: $severity
         target.benchmarker?.beginSubdivide(
             BenchmarkSubdivides.body_buildBody_benchmark_specific_diet_parser);
         DietParser parser = new DietParser(new ForwardingListener(),
-            allowPatterns: target.globalFeatures.patterns.isEnabled);
+            allowPatterns: library.libraryFeatures.patterns.isEnabled);
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
       }
@@ -1256,7 +1256,7 @@ severity: $severity
         target.benchmarker?.beginSubdivide(
             BenchmarkSubdivides.body_buildBody_benchmark_specific_parser);
         Parser parser = new Parser(new ForwardingListener(),
-            allowPatterns: target.globalFeatures.patterns.isEnabled);
+            allowPatterns: library.libraryFeatures.patterns.isEnabled);
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
       }
@@ -1264,7 +1264,7 @@ severity: $severity
 
     DietListener listener = createDietListener(library);
     DietParser parser = new DietParser(listener,
-        allowPatterns: target.globalFeatures.patterns.isEnabled);
+        allowPatterns: library.libraryFeatures.patterns.isEnabled);
     parser.parseUnit(tokens);
     for (LibraryBuilder part in library.parts) {
       if (part.partOfLibrary != library) {
@@ -1342,7 +1342,7 @@ severity: $severity
     return listener.parseSingleExpression(
         new Parser(listener,
             useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-            allowPatterns: target.globalFeatures.patterns.isEnabled),
+            allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled),
         token,
         parameters);
   }

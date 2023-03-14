@@ -1,81 +1,4 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:36:10: Error: The 'patterns' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
-//     case [42]:
-//          ^
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:5:1: Context: This is the annotation that opts out this library from the 'patterns' language feature.
-// // @dart=2.18
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:39:15: Error: The 'patterns' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
-//     case <num>[42]:
-//               ^
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:5:1: Context: This is the annotation that opts out this library from the 'patterns' language feature.
-// // @dart=2.18
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:50:10: Error: The 'patterns' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
-//     case {42: 'foo'}:
-//          ^
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:5:1: Context: This is the annotation that opts out this library from the 'patterns' language feature.
-// // @dart=2.18
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:53:23: Error: The 'patterns' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
-//     case <num, Object>{42: 'foo'}:
-//                       ^
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:5:1: Context: This is the annotation that opts out this library from the 'patterns' language feature.
-// // @dart=2.18
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:56:15: Error: The 'patterns' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
-//     case Const(42):
-//               ^
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:5:1: Context: This is the annotation that opts out this library from the 'patterns' language feature.
-// // @dart=2.18
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:56:16: Error: A pattern field in an object pattern must be named.
-// Try adding a pattern name or ':' before the pattern.
-//     case Const(42):
-//                ^
-//
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:56:10: Error: The 'patterns' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
-//     case Const(42):
-//          ^^^^^
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:5:1: Context: This is the annotation that opts out this library from the 'patterns' language feature.
-// // @dart=2.18
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:59:20: Error: The 'patterns' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
-//     case Const<num>(42):
-//                    ^
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:5:1: Context: This is the annotation that opts out this library from the 'patterns' language feature.
-// // @dart=2.18
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:59:21: Error: A pattern field in an object pattern must be named.
-// Try adding a pattern name or ':' before the pattern.
-//     case Const<num>(42):
-//                     ^
-//
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:59:10: Error: The 'patterns' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
-//     case Const<num>(42):
-//          ^^^^^
-// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:5:1: Context: This is the annotation that opts out this library from the 'patterns' language feature.
-// // @dart=2.18
-// ^^^^^^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -103,59 +26,49 @@ static method main() → dynamic {
 static method test(dynamic value, core::bool expected) → void {
   core::bool matched;
   #L1:
-  {
-    final synthesized dynamic #0#0 = value;
-    synthesized core::bool #0#4;
-    synthesized core::bool #0#4#isSet = false;
-    synthesized dynamic #0#6;
-    synthesized core::bool #0#6#isSet = false;
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t1 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #C1 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool* #t2 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic})) {
+  switch(value) {
+    #L2:
+    case #C2:
       {
         matched = true;
         break #L1;
       }
-    }
-    else
-      if(#0#0 is{ForNonNullableByDefault} core::List<core::num> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t3 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #C1 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{core::num} #0#6{core::num} : let final core::bool* #t4 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num})) {
-        {
-          matched = true;
-          break #L1;
-        }
+    #L3:
+    case #C3:
+      {
+        matched = true;
+        break #L1;
       }
-      else
-        if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t5 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C4 =={core::String::==}{(core::Object) → core::bool} #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) {
-          {
-            matched = true;
-            break #L1;
-          }
-        }
-        else
-          if(#0#0 is{ForNonNullableByDefault} core::Map<core::num, core::Object> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t6 = #0#4#isSet = true in #0#4 = #0#0{core::Map<core::num, core::Object>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #0#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C4 =={core::String::==}{(core::Object) → core::bool} #0#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) {
-            {
-              matched = true;
-              break #L1;
-            }
-          }
-          else
-            if(#0#0 is{ForNonNullableByDefault} self::Const<dynamic>) {
-              {
-                matched = true;
-                break #L1;
-              }
-            }
-            else
-              if(#0#0 is{ForNonNullableByDefault} self::Const<core::num>) {
-                {
-                  matched = true;
-                  break #L1;
-                }
-              }
-              else {
-                {
-                  matched = false;
-                  break #L1;
-                }
-              }
+    #L4:
+    case #C5:
+      {
+        matched = true;
+        break #L1;
+      }
+    #L5:
+    case #C6:
+      {
+        matched = true;
+        break #L1;
+      }
+    #L6:
+    case #C7:
+      {
+        matched = true;
+        break #L1;
+      }
+    #L7:
+    case #C8:
+      {
+        matched = true;
+        break #L1;
+      }
+    #L8:
+    default:
+      {
+        matched = false;
+        break #L1;
+      }
   }
   if(!(matched =={core::Object::==}{(core::Object) → core::bool} expected)) {
     core::print("FAIL: ${value} ${matched ?{core::String} "matched" : "didn't match"}");
@@ -171,7 +84,6 @@ constants  {
   #C6 = <core::num*, core::Object*>{#C1:#C4}
   #C7 = self::Const<core::int*> {value:#C1}
   #C8 = self::Const<core::num*> {value:#C1}
-  #C9 = 1
 }
 
 
