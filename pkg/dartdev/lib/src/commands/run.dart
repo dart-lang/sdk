@@ -129,7 +129,19 @@ class RunCommand extends DartdevCommand {
         ..addFlag(
           'enable-asserts',
           help: 'Enable assert statements.',
-        );
+        )
+        ..addOption('timeline-recorder',
+            help: 'Selects the timeline recorder to use.\n'
+                'Valid recorders include: none, ring, endless, startup, '
+                'systrace, file, callback.\n'
+                'Defaults to ring.',
+            valueHelp: 'recorder');
+    } else {
+      argParser.addOption('timeline-recorder',
+          help: 'Selects the timeline recorder to use.\n'
+              'Valid recorders include: none, systrace, file, callback.\n'
+              'Defaults to none.',
+          valueHelp: 'recorder');
     }
     argParser.addOption(
       'verbosity',

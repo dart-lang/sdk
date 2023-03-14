@@ -332,8 +332,8 @@ void main(List<String> args) => print("$b $args");
             '}');
 
     final result = await p.run([
-      '--timeline-recorder=file',
       'run',
+      '--timeline-recorder=file',
       '--timeline-streams=Dart',
       p.relativeFilePath
     ]);
