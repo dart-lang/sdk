@@ -1856,7 +1856,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (withElement is ClassElementImpl &&
               !withElement.isMixinClass &&
               withElement.library.featureSet
-                  .isEnabled(Feature.class_modifiers)) {
+                  .isEnabled(Feature.class_modifiers) &&
+              !_mayIgnoreClassModifiers(withElement.library)) {
             errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.CLASS_USED_AS_MIXIN,
                 withMixin,

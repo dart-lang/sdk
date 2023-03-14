@@ -140,7 +140,6 @@ mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
 ''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 69, 8),
       error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 69, 8),
     ]);
 
