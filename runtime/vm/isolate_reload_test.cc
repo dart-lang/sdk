@@ -2273,6 +2273,133 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
                SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_EnumShapeChange) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.Apple;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A'),\n"
+      "  Banana('Banana', 'B');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.initial;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("A", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumShapeChangeAdd) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.Apple;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A'),\n"
+      "  Banana('Banana', 'B'),\n"
+      "  Cherry('Cherry', 'C');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return Fruit.Cherry.initial;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("C", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumShapeChangeRemove) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.Banana;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Banana", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Deleted enum value from Fruit",
+               SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumShapeChangeValues) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.values;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("[Fruit.Apple, Fruit.Banana]", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A'),\n"
+      "  Banana('Banana', 'B'),\n"
+      "  Cherry('Cherry', 'C');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("[Fruit.Apple, Fruit.Banana, Fruit.Cherry]",
+               SimpleInvokeStr(lib, "main"));
+}
+
 TEST_CASE(IsolateReload_ConstantIdentical) {
   const char* kScript =
       "class Fruit {\n"

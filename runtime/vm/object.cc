@@ -20598,16 +20598,6 @@ InstancePtr Instance::NewAlreadyFinalized(const Class& cls, Heap::Space space) {
   return static_cast<InstancePtr>(raw);
 }
 
-InstancePtr Instance::NewFromCidAndSize(ClassTable* class_table,
-                                        classid_t cid,
-                                        Heap::Space heap) {
-  const intptr_t instance_size = class_table->SizeAt(cid);
-  ASSERT(instance_size > 0);
-  ObjectPtr raw = Object::Allocate(cid, instance_size, heap,
-                                   Instance::ContainsCompressedPointers());
-  return static_cast<InstancePtr>(raw);
-}
-
 bool Instance::IsValidFieldOffset(intptr_t offset) const {
   Thread* thread = Thread::Current();
   REUSABLE_CLASS_HANDLESCOPE(thread);
