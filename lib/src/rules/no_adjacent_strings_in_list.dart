@@ -57,6 +57,7 @@ class NoAdjacentStringsInList extends LintRule {
     registry.addIfElement(this, visitor);
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);
+    registry.addSwitchPatternCase(this, visitor);
   }
 }
 
@@ -65,10 +66,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
+  void check(AstNode? element) {
+    if (element is AdjacentStrings) {
+      rule.reportLint(element);
+    }
+  }
+
   @override
   void visitForElement(ForElement node) {
     if (node.body is AdjacentStrings) {
-      rule.reportLint(node.body);
+      check(node.body);
     }
   }
 
@@ -76,26 +83,29 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitIfElement(IfElement node) {
     if (node.elseElement == null && node.thenElement is AdjacentStrings) {
       rule.reportLint(node.thenElement);
-    } else if (node.elseElement is AdjacentStrings) {
-      rule.reportLint(node.elseElement);
+    } else {
+      check(node.elseElement);
     }
   }
 
   @override
   void visitListLiteral(ListLiteral node) {
-    for (var e in node.elements) {
-      if (e is AdjacentStrings) {
-        rule.reportLint(e);
-      }
-    }
+    node.elements.forEach(check);
   }
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     if (node.isMap) return;
-    for (var e in node.elements) {
-      if (e is AdjacentStrings) {
-        rule.reportLint(e);
+    node.elements.forEach(check);
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    var pattern = node.guardedPattern.pattern.unParenthesized;
+    if (pattern is! ListPattern) return;
+    for (var element in pattern.elements) {
+      if (element is ConstantPattern) {
+        check(element.expression.unParenthesized);
       }
     }
   }
