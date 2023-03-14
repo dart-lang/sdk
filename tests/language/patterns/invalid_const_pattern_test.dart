@@ -95,7 +95,7 @@ class Class {
       case switch (o) { _ => true }: // Error
       //   ^^^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
-      // [cfe] Not a constant expression.
+      // [cfe] Switch expression is not a constant expression.
       //           ^
       // [cfe] Not a constant expression.
       case await 0: // Error
@@ -189,7 +189,7 @@ class Class {
       case const switch (o) { _ => true }: // Error
       //         ^^^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
-      // [cfe] Not a constant expression.
+      // [cfe] Switch expression is not a constant expression.
       //                 ^
       // [cfe] Not a constant expression.
       case const await 0: // Error

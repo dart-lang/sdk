@@ -58,9 +58,11 @@ static method test3(dynamic x, dynamic another) → core::Iterable<dynamic> {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t12 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final synthesized dynamic #0#0 = #t12;
-          if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is{ForNonNullableByDefault} core::int))
-            throw new _in::ReachabilityError::•();
+          {
+            final synthesized dynamic #0#0 = #t12;
+            if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is{ForNonNullableByDefault} core::int))
+              throw new _in::ReachabilityError::•();
+          }
           {
             synthesized core::Iterator<dynamic> :sync-for-iterator = (another as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
             for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {

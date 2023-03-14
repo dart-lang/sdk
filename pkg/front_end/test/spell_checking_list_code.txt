@@ -1668,6 +1668,7 @@ unsound
 unsubstituted
 untouched
 unusual
+unvisited
 unwrapper
 unwraps
 unwritten
