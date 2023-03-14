@@ -41,7 +41,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -61,7 +61,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -82,7 +82,7 @@ class A<T> {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -103,7 +103,7 @@ class A<T> {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -124,7 +124,7 @@ class A<T> {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -145,7 +145,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -168,7 +168,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -191,7 +191,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -214,7 +214,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -239,7 +239,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -261,7 +261,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -283,7 +283,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -304,7 +304,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -325,7 +325,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -344,7 +344,7 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo' as foo;
 
 void f() {
@@ -363,7 +363,7 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -384,7 +384,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -406,7 +406,7 @@ void foo(
 }) {}
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -428,7 +428,7 @@ void foo(
 ]) {}
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -449,7 +449,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -470,7 +470,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -507,7 +507,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -547,7 +547,7 @@ class A {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {
@@ -568,7 +568,7 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo' as foo;
 
 void f(foo.A<int> a) {}
@@ -585,7 +585,7 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A<int> a) {}
@@ -602,11 +602,11 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion2('2.15.0', '''
+    await verifyVersion('2.15.0', '''
 import 'dart:foo';
 
 void f(A a) {}
-''', expectedErrors: []);
+''');
   }
 
   test_constraints_exact_greater() async {
@@ -617,7 +617,7 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion2('2.16.0', '''
+    await verifyVersion('2.16.0', '''
 import 'dart:foo';
 
 void f(A a) {}
@@ -634,7 +634,7 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion2('2.14.0', '''
+    await verifyVersion('2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {}
@@ -651,11 +651,11 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion2('>2.15.0', '''
+    await verifyVersion('>2.15.0', '''
 import 'dart:foo';
 
 void f(A a) {}
-''', expectedErrors: []);
+''');
   }
 
   test_constraints_greaterOrEq_equal() async {
@@ -666,11 +666,11 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion2('>=2.15.0', '''
+    await verifyVersion('>=2.15.0', '''
 import 'dart:foo';
 
 void f(A a) {}
-''', expectedErrors: []);
+''');
   }
 
   test_constraints_greaterOrEq_greater() async {
@@ -681,11 +681,11 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion2('>=2.16.0', '''
+    await verifyVersion('>=2.16.0', '''
 import 'dart:foo';
 
 void f(A a) {}
-''', expectedErrors: []);
+''');
   }
 
   test_constraints_greaterOrEq_less() async {
@@ -696,7 +696,7 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(A a) {}
@@ -716,7 +716,7 @@ enum E {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -728,17 +728,17 @@ void f() {
   }
 
   test_enum_index_onConcreteEnum() async {
-    await verifyVersion2('>=2.12.0', '''
+    await verifyVersion('>=2.12.0', '''
 enum E { v }
 
 void f(E e) {
   e.index;
 }
-''', expectedErrors: []);
+''');
   }
 
   test_enum_index_onDartCoreEnum() async {
-    await verifyVersion2('>=2.12.0', '''
+    await verifyVersion('>=2.12.0', '''
 void f(Enum e) {
   e.index;
 }
@@ -753,7 +753,7 @@ void f(Enum e) {
 Enum get myEnum => throw 0;
 ''');
 
-    await verifyVersion2('>=2.12.0', '''
+    await verifyVersion('>=2.12.0', '''
 import 'a.dart';
 
 void f() {
@@ -774,7 +774,7 @@ enum E {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(E a) {}
@@ -793,7 +793,7 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -814,7 +814,7 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -836,7 +836,7 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -857,7 +857,7 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -878,7 +878,7 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -897,7 +897,7 @@ import 'dart:_internal';
 typedef void X(int _);
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(X a) {}
@@ -914,7 +914,7 @@ import 'dart:_internal';
 typedef X = List<int>;
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(X a) {}
@@ -931,7 +931,7 @@ import 'dart:_internal';
 mixin M<T> {}
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f(M<int> a) {}
@@ -948,7 +948,7 @@ import 'dart:_internal';
 void bar() {}
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo' as foo;
 
 void f() {
@@ -967,7 +967,7 @@ import 'dart:_internal';
 void foo() {}
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {
@@ -986,7 +986,7 @@ import 'dart:_internal';
 const v = 0;
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo' as foo;
 
 void f() {
@@ -1005,7 +1005,7 @@ import 'dart:_internal';
 const v = 0;
 ''');
 
-    await verifyVersion2('>=2.14.0', '''
+    await verifyVersion('>=2.14.0', '''
 import 'dart:foo';
 
 void f() {

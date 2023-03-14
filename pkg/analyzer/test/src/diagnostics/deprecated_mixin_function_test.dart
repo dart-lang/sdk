@@ -28,7 +28,6 @@ class A extends Object with Function {}
 // @dart = 2.19
 class A extends Object with Function {}
 ''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 44, 8),
       error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 44, 8),
     ]);
   }

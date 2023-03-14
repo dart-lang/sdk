@@ -4553,6 +4553,9 @@ class EquivalenceStrategy {
     if (!checkConstantPattern_equalsType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkConstantPattern_value(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkConstantPattern_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -4780,6 +4783,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkRelationalPattern_functionType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRelationalPattern_expressionValue(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkRelationalPattern_fileOffset(visitor, node, other)) {
@@ -5035,6 +5041,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkMapPatternEntry_keyType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkMapPatternEntry_keyValue(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkMapPatternEntry_fileOffset(visitor, node, other)) {
@@ -8707,6 +8716,11 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.equalsType, other.equalsType, 'equalsType');
   }
 
+  bool checkConstantPattern_value(
+      EquivalenceVisitor visitor, ConstantPattern node, ConstantPattern other) {
+    return visitor.checkNodes(node.value, other.value, 'value');
+  }
+
   bool checkPattern_fileOffset(
       EquivalenceVisitor visitor, Pattern node, Pattern other) {
     return checkTreeNode_fileOffset(visitor, node, other);
@@ -8968,6 +8982,12 @@ class EquivalenceStrategy {
       RelationalPattern node, RelationalPattern other) {
     return visitor.checkNodes(
         node.functionType, other.functionType, 'functionType');
+  }
+
+  bool checkRelationalPattern_expressionValue(EquivalenceVisitor visitor,
+      RelationalPattern node, RelationalPattern other) {
+    return visitor.checkNodes(
+        node.expressionValue, other.expressionValue, 'expressionValue');
   }
 
   bool checkRelationalPattern_fileOffset(EquivalenceVisitor visitor,
@@ -9248,6 +9268,11 @@ class EquivalenceStrategy {
   bool checkMapPatternEntry_keyType(
       EquivalenceVisitor visitor, MapPatternEntry node, MapPatternEntry other) {
     return visitor.checkNodes(node.keyType, other.keyType, 'keyType');
+  }
+
+  bool checkMapPatternEntry_keyValue(
+      EquivalenceVisitor visitor, MapPatternEntry node, MapPatternEntry other) {
+    return visitor.checkNodes(node.keyValue, other.keyValue, 'keyValue');
   }
 
   bool checkMapPatternEntry_fileOffset(

@@ -54,7 +54,6 @@ Component transformComponent(
     Map<String, String> environmentDefines,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
-    ExhaustivenessInfo? exhaustivenessInfo,
     {required bool evaluateAnnotations,
     required bool desugarSets,
     required bool enableTripleShift,
@@ -83,7 +82,7 @@ Component transformComponent(
       new TypeEnvironment(coreTypes, hierarchy);
 
   transformLibraries(component, component.libraries, target, environmentDefines,
-      typeEnvironment, errorReporter, evaluationMode, exhaustivenessInfo,
+      typeEnvironment, errorReporter, evaluationMode,
       enableTripleShift: enableTripleShift,
       enableConstFunctions: enableConstFunctions,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
@@ -100,7 +99,6 @@ ConstantEvaluationData transformLibraries(
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
-    ExhaustivenessInfo? exhaustivenessInfo,
     {required bool evaluateAnnotations,
     required bool enableTripleShift,
     required bool enableConstFunctions,
@@ -129,7 +127,6 @@ ConstantEvaluationData transformLibraries(
       typeEnvironment,
       errorReporter,
       evaluationMode,
-      exhaustivenessInfo,
       exhaustivenessDataForTesting: exhaustivenessDataForTesting);
   for (final Library library in libraries) {
     constantsTransformer.convertLibrary(library);
@@ -148,7 +145,6 @@ void transformProcedure(
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
-    ExhaustivenessInfo? exhaustivenessInfo,
     {required bool evaluateAnnotations,
     required bool enableTripleShift,
     required bool enableConstFunctions,
@@ -175,8 +171,7 @@ void transformProcedure(
       component,
       typeEnvironment,
       errorReporter,
-      evaluationMode,
-      exhaustivenessInfo);
+      evaluationMode);
   constantsTransformer.visitProcedure(procedure, null);
 }
 
@@ -406,7 +401,6 @@ class ConstantsTransformer extends RemovingTransformer {
   /// Cache used for checking exhaustiveness.
   late final CfeExhaustivenessCache exhaustivenessCache;
 
-  final ExhaustivenessInfo? exhaustivenessInfo;
   final ExhaustivenessDataForTesting? _exhaustivenessDataForTesting;
 
   ConstantsTransformer(
@@ -421,7 +415,6 @@ class ConstantsTransformer extends RemovingTransformer {
       this.typeEnvironment,
       ErrorReporter errorReporter,
       EvaluationMode evaluationMode,
-      this.exhaustivenessInfo,
       {ExhaustivenessDataForTesting? exhaustivenessDataForTesting})
       : this.backend = target.constantsBackend,
         this.isLateLocalLoweringEnabled = target.isLateLocalLoweringEnabled(
@@ -822,7 +815,8 @@ class ConstantsTransformer extends RemovingTransformer {
     return super.visitSwitchCase(node, removalSentinel);
   }
 
-  TreeNode _transformBlock(Block node, TreeNode? removalSentinel) {
+  @override
+  TreeNode visitBlock(Block node, TreeNode? removalSentinel) {
     int storeIndex = 0;
     List<Statement> statements = node.statements;
     for (int i = 0; i < statements.length; ++i) {
@@ -863,80 +857,10 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
-  TreeNode visitBlock(Block node, TreeNode? removalSentinel) {
-    return _handleExhaustiveness(
-        node, node, () => _transformBlock(node, removalSentinel));
-  }
-
-  @override
-  TreeNode visitBlockExpression(
-      BlockExpression node, TreeNode? removalSentinel) {
-    return _handleExhaustiveness(
-        node, node, () => super.visitBlockExpression(node, removalSentinel));
-  }
-
-  TreeNode _handleExhaustiveness(
-      TreeNode node, TreeNode replacement, TreeNode Function() f) {
-    TreeNode result;
-    SwitchInfo? switchInfo = exhaustivenessInfo?.getSwitchInfo(node);
-    if (switchInfo != null) {
-      Map<Expression, Constant>? previousConstantPatternValues =
-          constantEvaluator.constantPatternValues;
-      Map<Expression, Constant> constantPatternValues =
-          constantEvaluator.constantPatternValues = {};
-      result = f();
-      StaticType type =
-          exhaustivenessCache.getStaticType(switchInfo.expressionType);
-      List<Space> cases = [];
-      PatternConverter patternConverter = new PatternConverter(
-          exhaustivenessCache, constantPatternValues, _staticTypeContext!);
-      for (SwitchCaseInfo caseInfo in switchInfo.cases) {
-        cases.add(caseInfo.createSpace(patternConverter));
-      }
-      List<ExhaustivenessError> errors = reportErrors(type, cases);
-      if (!useFallbackExhaustivenessAlgorithm) {
-        for (ExhaustivenessError error in errors) {
-          if (error is UnreachableCaseError) {
-            constantEvaluator.errorReporter.report(
-                constantEvaluator.createLocatedMessageWithOffset(
-                    node,
-                    switchInfo.cases[error.index].fileOffset,
-                    messageUnreachableSwitchCase));
-          } else if (error is NonExhaustiveError &&
-              switchInfo.mustBeExhaustive) {
-            Library library = constantEvaluator.libraryOf(node);
-            constantEvaluator.errorReporter.report(
-                constantEvaluator.createLocatedMessageWithOffset(
-                    node,
-                    switchInfo.fileOffset,
-                    templateNonExhaustiveSwitch.withArguments(
-                        switchInfo.expressionType,
-                        '${error.witness}',
-                        library.isNonNullableByDefault)));
-          }
-        }
-      }
-      if (_exhaustivenessDataForTesting != null) {
-        _exhaustivenessDataForTesting!.switchResults[replacement] =
-            new ExhaustivenessResult(
-                type,
-                cases,
-                switchInfo.cases
-                    .map((SwitchCaseInfo info) => info.fileOffset)
-                    .toList(),
-                errors);
-      }
-
-      constantEvaluator.constantPatternValues = previousConstantPatternValues;
-    } else {
-      result = f();
-    }
-    return result;
-  }
-
-  @override
   TreeNode visitPatternSwitchStatement(
       PatternSwitchStatement node, TreeNode? removalSentinel) {
+    super.visitPatternSwitchStatement(node, removalSentinel);
+
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache);
@@ -971,10 +895,7 @@ class ConstantsTransformer extends RemovingTransformer {
           (int headIndex) {
         Pattern pattern = switchCase.patternGuards[headIndex].pattern;
         DelayedExpression matchingExpression =
-            matchingExpressionVisitor.visitPattern(
-                pattern,
-                // TODO(johnniwinther): Handle promoted scrutinee types.
-                matchedExpression);
+            matchingExpressionVisitor.visitPattern(pattern, matchedExpression);
         matchingExpression.registerUse();
         return matchingExpression;
       });
@@ -1166,40 +1087,92 @@ class ConstantsTransformer extends RemovingTransformer {
     // TODO(johnniwinther): Remove this work-around for the `libraryOf`
     //  function.
     replacementStatement..parent = node.parent;
-    return _handleExhaustiveness(
-        node, replacementStatement, () => transform(replacementStatement));
+
+    if (computeIsAlwaysExhaustiveType(
+        node.expressionType, typeEnvironment.coreTypes)) {
+      List<PatternGuard> patternGuards = [];
+      for (PatternSwitchCase switchCase in node.cases) {
+        patternGuards.addAll(switchCase.patternGuards);
+      }
+      _checkExhaustiveness(
+          node, replacementStatement, node.expressionType, patternGuards,
+          hasDefault: node.hasDefault, fileOffset: node.expression.fileOffset);
+    }
+    // TODO(johnniwinther): Remove this work-around for the `libraryOf`
+    //  function.
+    replacementStatement..parent = node.parent;
+    // TODO(johnniwinther): Avoid transform of [replacement] by generating
+    //  already constant evaluated lowering.
+    return transform(replacementStatement);
+  }
+
+  void _checkExhaustiveness(TreeNode node, TreeNode replacement,
+      DartType expressionType, List<PatternGuard> patternGuards,
+      {required int fileOffset, required bool hasDefault}) {
+    StaticType type = exhaustivenessCache.getStaticType(expressionType);
+    List<Space> cases = [];
+    PatternConverter patternConverter =
+        new PatternConverter(exhaustivenessCache, {}, {}, _staticTypeContext!);
+    for (PatternGuard patternGuard in patternGuards) {
+      cases.add(patternConverter.createRootSpace(patternGuard.pattern,
+          hasGuard: patternGuard.guard != null));
+    }
+    List<ExhaustivenessError> errors = reportErrors(type, cases);
+    if (!useFallbackExhaustivenessAlgorithm) {
+      for (ExhaustivenessError error in errors) {
+        if (error is UnreachableCaseError) {
+          constantEvaluator.errorReporter.report(
+              constantEvaluator.createLocatedMessageWithOffset(
+                  node,
+                  patternGuards[error.index].fileOffset,
+                  messageUnreachableSwitchCase));
+        } else if (error is NonExhaustiveError && !hasDefault) {
+          Library library = constantEvaluator.libraryOf(node);
+          constantEvaluator.errorReporter.report(
+              constantEvaluator.createLocatedMessageWithOffset(
+                  node,
+                  fileOffset,
+                  templateNonExhaustiveSwitch.withArguments(expressionType,
+                      '${error.witness}', library.isNonNullableByDefault)));
+        }
+      }
+    }
+    if (_exhaustivenessDataForTesting != null) {
+      _exhaustivenessDataForTesting!.switchResults[replacement] =
+          new ExhaustivenessResult(type, cases,
+              patternGuards.map((c) => c.fileOffset).toList(), errors);
+    }
   }
 
   @override
   TreeNode visitSwitchStatement(
       SwitchStatement node, TreeNode? removalSentinel) {
-    return _handleExhaustiveness(node, node, () {
-      TreeNode result = super.visitSwitchStatement(node, removalSentinel);
-      Library library = constantEvaluator.libraryOf(node);
-      // ignore: unnecessary_null_comparison
-      if (library != null) {
-        for (SwitchCase switchCase in node.cases) {
-          for (Expression caseExpression in switchCase.expressions) {
-            if (caseExpression is ConstantExpression) {
-              if (!constantEvaluator
-                  .hasPrimitiveEqual(caseExpression.constant)) {
-                constantEvaluator.errorReporter.report(
-                    constantEvaluator.createLocatedMessage(
-                        caseExpression,
-                        templateConstEvalCaseImplementsEqual.withArguments(
-                            caseExpression.constant,
-                            constantEvaluator.isNonNullableByDefault)),
-                    null);
-              }
-            } else {
-              // If caseExpression is not ConstantExpression, an error is
-              // reported elsewhere.
+    //return _handleExhaustiveness(node, node, () {
+    TreeNode result = super.visitSwitchStatement(node, removalSentinel);
+    Library library = constantEvaluator.libraryOf(node);
+    // ignore: unnecessary_null_comparison
+    if (library != null) {
+      for (SwitchCase switchCase in node.cases) {
+        for (Expression caseExpression in switchCase.expressions) {
+          if (caseExpression is ConstantExpression) {
+            if (!constantEvaluator.hasPrimitiveEqual(caseExpression.constant)) {
+              constantEvaluator.errorReporter.report(
+                  constantEvaluator.createLocatedMessage(
+                      caseExpression,
+                      templateConstEvalCaseImplementsEqual.withArguments(
+                          caseExpression.constant,
+                          constantEvaluator.isNonNullableByDefault)),
+                  null);
             }
+          } else {
+            // If caseExpression is not ConstantExpression, an error is
+            // reported elsewhere.
           }
         }
       }
-      return result;
-    });
+    }
+    return result;
+    //});
   }
 
   @override
@@ -1348,8 +1321,34 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitConstantPattern(
+      ConstantPattern node, TreeNode? removalSentinel) {
+    TreeNode result = super.visitConstantPattern(node, removalSentinel);
+    node.value = evaluateWithContext(node, node.expression);
+    return result;
+  }
+
+  @override
+  TreeNode visitMapPatternEntry(
+      MapPatternEntry node, TreeNode? removalSentinel) {
+    TreeNode result = super.visitMapPatternEntry(node, removalSentinel);
+    node.keyValue = evaluateWithContext(node, node.key);
+    return result;
+  }
+
+  @override
+  TreeNode visitRelationalPattern(
+      RelationalPattern node, TreeNode? removalSentinel) {
+    TreeNode result = super.visitRelationalPattern(node, removalSentinel);
+    node.expressionValue = evaluateWithContext(node, node.expression);
+    return result;
+  }
+
+  @override
   TreeNode visitSwitchExpression(
       SwitchExpression node, TreeNode? removalSentinel) {
+    super.visitSwitchExpression(node, removalSentinel);
+
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache);
@@ -1435,11 +1434,19 @@ class ConstantsTransformer extends RemovingTransformer {
         createVariableGet(valueVariable),
         fileOffset: node.fileOffset);
 
+    List<PatternGuard> patternGuards = [];
+    for (SwitchExpressionCase switchCase in node.cases) {
+      patternGuards.add(switchCase.patternGuard);
+    }
+    _checkExhaustiveness(node, replacement, node.expressionType, patternGuards,
+        hasDefault: false, fileOffset: node.expression.fileOffset);
+
     // TODO(johnniwinther): Remove this work-around for the `libraryOf`
     //  function.
     replacement..parent = node.parent;
-    return _handleExhaustiveness(
-        node, replacement, () => transform(replacement));
+    // TODO(johnniwinther): Avoid transform of [replacement] by generating
+    //  already constant evaluated lowering.
+    return transform(replacement);
   }
 
   @override
@@ -1671,7 +1678,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   /// When verifying a switch statement/expression the constant values of the
   /// contained [Expression]s are cached here. The cache is released once
   /// the exhaustiveness of the switch has been checked.
-  Map<Expression, Constant>? constantPatternValues;
+  Map<ConstantPattern, Constant>? constantPatternValues;
+  Map<MapPatternEntry, Constant>? mapPatternKeyValues;
 
   ConstantEvaluator(this.dartLibrarySupport, this.backend, this.component,
       this._environmentDefines, this.typeEnvironment, this.errorReporter,
@@ -2040,16 +2048,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         // ConstantExpressions just pointing to an actual constant can be
         // short-circuited. Note that it's accepted instead of just returned to
         // get canonicalization.
-        Constant result = node.accept(this);
-        constantPatternValues?[node] = result;
-        return result;
+        return node.accept(this);
       }
     } else if (node is BasicLiteral) {
       // Basic literals (string literals, int literals, double literals,
       // bool literals and null literals) can be short-circuited too.
-      Constant result = node.accept(this);
-      constantPatternValues?[node] = result;
-      return result;
+      return node.accept(this);
     }
 
     bool wasUnevaluated = seenUnevaluatedChild;
@@ -2111,7 +2115,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       result = evaluatedResult;
     }
     seenUnevaluatedChild = wasUnevaluated || result is UnevaluatedConstant;
-    constantPatternValues?[node] = result;
     return result;
   }
 

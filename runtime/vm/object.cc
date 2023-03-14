@@ -18610,6 +18610,17 @@ void ContextScope::SetIsConstAt(intptr_t scope_index, bool is_const) const {
             is_const);
 }
 
+bool ContextScope::IsInvisibleAt(intptr_t scope_index) const {
+  return GetFlagAt(scope_index,
+                   UntaggedContextScope::VariableDesc::kIsInvisible);
+}
+
+void ContextScope::SetIsInvisibleAt(intptr_t scope_index,
+                                    bool is_invisible) const {
+  SetFlagAt(scope_index, UntaggedContextScope::VariableDesc::kIsInvisible,
+            is_invisible);
+}
+
 intptr_t ContextScope::LateInitOffsetAt(intptr_t scope_index) const {
   return Smi::Value(untag()->late_init_offset_at(scope_index));
 }

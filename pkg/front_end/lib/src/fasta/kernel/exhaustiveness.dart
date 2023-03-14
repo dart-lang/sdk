@@ -341,78 +341,17 @@ class CfeExhaustivenessCache
             new CfeSealedClassOperations(constantEvaluator.typeEnvironment));
 }
 
-abstract class SwitchCaseInfo {
-  int get fileOffset;
-
-  Space createSpace(PatternConverter patternConverter);
-}
-
-class ExpressionCaseInfo extends SwitchCaseInfo {
-  final Expression expression;
-
-  @override
-  final int fileOffset;
-
-  ExpressionCaseInfo(this.expression, {required this.fileOffset});
-
-  @override
-  Space createSpace(PatternConverter patternConverter) {
-    return patternConverter.convertExpressionToSpace(
-        expression, const Path.root());
-  }
-}
-
-class PatternCaseInfo extends SwitchCaseInfo {
-  final Pattern pattern;
-
-  final bool hasGuard;
-
-  @override
-  final int fileOffset;
-
-  PatternCaseInfo(this.pattern,
-      {required this.hasGuard, required this.fileOffset});
-
-  @override
-  Space createSpace(PatternConverter patternConverter) {
-    return patternConverter.createRootSpace(pattern, hasGuard: hasGuard);
-  }
-}
-
-class SwitchInfo {
-  final TreeNode node;
-  final DartType expressionType;
-  final List<SwitchCaseInfo> cases;
-  final bool mustBeExhaustive;
-  final int fileOffset;
-
-  SwitchInfo(this.node, this.expressionType, this.cases,
-      {required this.mustBeExhaustive, required this.fileOffset});
-}
-
-class ExhaustivenessInfo {
-  Map<TreeNode, SwitchInfo> _switchInfo = {};
-
-  void registerSwitchInfo(SwitchInfo info) {
-    _switchInfo[info.node] = info;
-  }
-
-  SwitchInfo? getSwitchInfo(TreeNode node) => _switchInfo.remove(node);
-
-  bool get isEmpty => _switchInfo.isEmpty;
-
-  Iterable<TreeNode> get nodes => _switchInfo.keys;
-}
-
 class PatternConverter with SpaceCreator<Pattern, DartType> {
   final CfeExhaustivenessCache cache;
-  final Map<Node, Constant?> constants;
+  final Map<ConstantPattern, Constant> constantPatternValues;
+  final Map<MapPatternEntry, Constant> mapPatternKeyValues;
   final StaticTypeContext context;
 
-  PatternConverter(this.cache, this.constants, this.context);
+  PatternConverter(this.cache, this.constantPatternValues,
+      this.mapPatternKeyValues, this.context);
 
   Space convertExpressionToSpace(Expression expression, Path path) {
-    Constant? constant = constants[expression];
+    Constant? constant = constantPatternValues[expression];
     return convertConstantToSpace(constant, path: path);
   }
 
@@ -428,7 +367,9 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
     } else if (pattern is VariablePattern) {
       return createVariableSpace(path, pattern.variable.type, nonNull: nonNull);
     } else if (pattern is ConstantPattern) {
-      return convertExpressionToSpace(pattern.expression, path);
+      return convertConstantToSpace(
+          pattern.value ?? constantPatternValues[pattern],
+          path: path);
     } else if (pattern is RecordPattern) {
       List<Pattern> positional = [];
       Map<String, Pattern> named = {};
@@ -471,9 +412,8 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         if (entry is MapPatternRestEntry) {
           hasRest = true;
         } else {
-          Expression expression = entry.key;
           // TODO(johnniwinther): Assert that we have a constant value.
-          Constant? constant = constants[expression];
+          Constant? constant = entry.keyValue ?? mapPatternKeyValues[entry];
           if (constant == null) {
             return createUnknownSpace(path);
           }

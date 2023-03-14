@@ -76,21 +76,22 @@ T newObject<T>() => JSValue(newObjectRaw()!) as T;
 JSValue _newArray() => JSValue(newArrayRaw()!);
 
 @patch
-bool hasProperty(Object o, String name) =>
-    hasPropertyRaw(jsifyRaw(o)!, name.toJS().toExternRef());
+bool hasProperty(Object o, Object name) =>
+    hasPropertyRaw(jsifyRaw(o)!, jsifyRaw(name)!);
 
 @patch
-T getProperty<T>(Object o, String name) =>
-    dartifyRaw(getPropertyRaw(jsifyRaw(o)!, name.toJS().toExternRef())) as T;
+T getProperty<T>(Object o, Object name) =>
+    dartifyRaw(getPropertyRaw(jsifyRaw(o)!, jsifyRaw(name)!)) as T;
 
 @patch
-T setProperty<T>(Object o, String name, T? value) => dartifyRaw(setPropertyRaw(
-    jsifyRaw(o)!, name.toJS().toExternRef(), jsifyRaw(value))) as T;
+T setProperty<T>(Object o, Object name, T? value) =>
+    dartifyRaw(setPropertyRaw(jsifyRaw(o)!, jsifyRaw(name)!, jsifyRaw(value)))
+        as T;
 
 @patch
 T callMethod<T>(Object o, String method, List<Object?> args) =>
-    dartifyRaw(callMethodVarArgsRaw(jsifyRaw(o)!, method.toJS().toExternRef(),
-        args.toJS().toExternRef())) as T;
+    dartifyRaw(callMethodVarArgsRaw(
+        jsifyRaw(o)!, jsifyRaw(method)!, args.toJS().toExternRef())) as T;
 
 @patch
 bool instanceof(Object? o, Object type) =>

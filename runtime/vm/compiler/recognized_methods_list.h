@@ -320,7 +320,7 @@ namespace dart {
   V(::, reachabilityFence, ReachabilityFence, 0x730f2b7f)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb99d2ee1)                          \
   V(_Future, timeout, FutureTimeout, 0xe21f0bf8)                               \
-  V(Future, wait, FutureWait, 0xec000425)                                      \
+  V(Future, wait, FutureWait, 0x22f98225)                                      \
   V(_RootZone, runUnary, RootZoneRunUnary, 0x64397ecb)                         \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0xbf5d3892)       \
   V(::, has63BitSmis, Has63BitSmis, 0xf61b56f1)                                \
@@ -338,8 +338,8 @@ namespace dart {
   V(_BigIntImpl, _rsh, Bigint_rsh, 0xde13d61f)                                 \
   V(_BigIntImpl, _absAdd, Bigint_absAdd, 0x2ac27a31)                           \
   V(_BigIntImpl, _absSub, Bigint_absSub, 0x710dc9ab)                           \
-  V(_BigIntImpl, _mulAdd, Bigint_mulAdd, 0xa63c77fd)                           \
-  V(_BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0x16a81645)                           \
+  V(_BigIntImpl, _mulAdd, Bigint_mulAdd, 0x3d567bfd)                           \
+  V(_BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0x8fb49645)                           \
   V(_BigIntImpl, _estimateQuotientDigit, Bigint_estimateQuotientDigit,         \
     0x16d58948)                                                                \
   V(_BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod, 0xdc9e8f54)        \
