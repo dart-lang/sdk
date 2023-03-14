@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_types.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 
 class TestEnvironment {
   late final _TypeOperations _typeOperations = new _TypeOperations(this);

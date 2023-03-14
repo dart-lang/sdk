@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
+import 'exhaustive.dart';
+import 'space.dart';
 
 import 'static_type.dart';
 

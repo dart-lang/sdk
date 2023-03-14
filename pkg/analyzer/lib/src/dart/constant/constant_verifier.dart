@@ -5,7 +5,7 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';

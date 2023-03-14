@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_types.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
