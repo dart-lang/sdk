@@ -2622,7 +2622,7 @@ class ResourceHandle {
 
   factory ResourceHandle.fromWritePipe(WritePipe pipe) {
     _WritePipe wp = pipe as _WritePipe;
-    return ResourceHandle.fromFile(wp._randomAccessFile);
+    return ResourceHandle.fromFile(wp._file);
   }
 }
 

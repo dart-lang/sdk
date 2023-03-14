@@ -454,9 +454,6 @@ abstract class File implements FileSystemEntity {
 
   /// Creates a new independent [IOSink] for the file.
   ///
-  /// The [IOSink] may accumulate added data in memory until it is closed or
-  /// flushed.
-  ///
   /// The [IOSink] must be closed when no longer used, to free
   /// system resources.
   ///

@@ -186,173 +186,22 @@ class _FileStream extends Stream<List<int>> {
   }
 }
 
-/// An adapter that transforms a [RandomAccessFile] into an [IOSink].
-///
-/// The adapter will eagerly write the data provided by [add] to the
-/// [RandomAccessFile]. Since [add] is expected to return immediately and does
-/// not return a [Future], any errors encountered during the eager write (e.g.
-/// a file IO error) will be saved and thrown when [flush] or [close] are
-/// called. If the event loop queue is not being serviced then only the first
-/// call to [add] will result in a write.
-///
-/// The adapter coalesces small [add]s into a single write. This prevents the
-/// pathological case where [RandomAccessFile.writeFrom] is called once per
-/// byte [add]ed.
-class _RandomAccessFileIOSync implements IOSink {
-  static const _writeBufferSize = 64 * 1024;
-
-  // A queue of write calls to make.
-  Queue<List<int>> _buffers = Queue();
-
+class _FileStreamConsumer extends StreamConsumer<List<int>> {
   File? _file;
   Future<RandomAccessFile> _openFuture;
 
-  final Completer<File?> _doneCompleter = new Completer();
-  // Tracks whether [_writeBuffers] is currently running.
-  Completer<File?> _pendingWriteBuffers = Completer()..complete();
-
-  bool _isClosed = false;
-  bool _isBound = false;
-
-  Object? _error;
-  StackTrace? _stackTrace;
-
-  _RandomAccessFileIOSync(File file, FileMode mode, Encoding encoding)
+  _FileStreamConsumer(File file, FileMode mode)
       : _file = file,
-        _openFuture = file.open(mode: mode),
-        encoding = encoding;
+        _openFuture = file.open(mode: mode);
 
-  _RandomAccessFileIOSync.fromStdio(int fd, Encoding encoding)
-      : _openFuture = new Future.value(_File._openStdioSync(fd)),
-        encoding = encoding;
+  _FileStreamConsumer.fromStdio(int fd)
+      : _openFuture = new Future.value(_File._openStdioSync(fd));
 
-  _RandomAccessFileIOSync.fromRandomAccessFile(
-      RandomAccessFile f, Encoding encoding)
-      : _openFuture = Future.value(f),
-        encoding = encoding;
+  _FileStreamConsumer.fromRandomAccessFile(RandomAccessFile f)
+      : _openFuture = Future.value(f);
 
-  Encoding encoding;
-
-  /// Returns whether the next item in [_buffers] will fit in the current write
-  /// buffer.
-  @pragma('vm:prefer-inline')
-  bool _willNextBufferFit(int bufferOffset) =>
-      _buffers.isNotEmpty &&
-      bufferOffset + _buffers.first.length < _writeBufferSize;
-
-  /// Accumulate as much data as possible into a single buffer and then make
-  /// a single [RandomAccessFile.writeFrom] call.
-  Future<RandomAccessFile> _smallWrite(
-      RandomAccessFile openFile, List<int> initialData) {
-    final buffer = Uint8List(_writeBufferSize);
-    var bufferOffset = initialData.length;
-    buffer.setRange(0, bufferOffset, initialData);
-
-    do {
-      final data = _buffers.removeFirst();
-      buffer.setRange(bufferOffset, bufferOffset + data.length, data);
-      bufferOffset += data.length;
-    } while (_willNextBufferFit(bufferOffset));
-    return openFile.writeFrom(buffer, 0, bufferOffset);
-  }
-
-  /// Write all of the data in [_buffers].
-  Future<File?> _writeBuffers() async {
-    assert(_pendingWriteBuffers.isCompleted);
-    assert(_error == null);
-
-    if (_buffers.isEmpty) {
-      return Future.value(_file);
-    }
-
-    _pendingWriteBuffers = Completer();
-    try {
-      final openFile = await _openFuture;
-      while (_buffers.isNotEmpty) {
-        final data = _buffers.removeFirst();
-        if (_willNextBufferFit(data.length)) {
-          await _smallWrite(openFile, data);
-        } else {
-          await openFile.writeFrom(data);
-        }
-      }
-    } on FileSystemException catch (e, st) {
-      if (_error == null) {
-        _error = e;
-        _stackTrace = st;
-      }
-      _pendingWriteBuffers.completeError(e, st);
-      return _pendingWriteBuffers.future;
-    }
-
-    _pendingWriteBuffers.complete(_file);
-    return _pendingWriteBuffers.future;
-  }
-
-  void _add(List<int> data) {
-    if (_error != null) {
-      return;
-    }
-
-    if (data.isEmpty) {
-      return;
-    }
-
-    _buffers.add(data);
-    if (_pendingWriteBuffers.isCompleted) {
-      // If [_writeBuffers] is not currently running then run it but don't
-      // wait for this results.
-      _writeBuffers();
-    }
-  }
-
-  void add(List<int> data) {
-    if (_isClosed) {
-      throw StateError("${_file?.path ?? "IOSink"} is closed");
-    }
-    if (_isBound) {
-      throw StateError("${_file?.path ?? "IOSink"} is bound to a stream");
-    }
-
-    _add(data);
-  }
-
-  void addError(Object error, [StackTrace? stackTrace]) {
-    if (_isClosed) {
-      throw StateError("${_file?.path ?? "IOSink"} is closed");
-    }
-    if (_isBound) {
-      throw StateError("${_file?.path ?? "IOSink"} is bound to a stream");
-    }
-
-    _error = error;
-    _stackTrace = stackTrace;
-    _doneCompleter.completeError(error, stackTrace);
-  }
-
-  Future<File?> addStream(Stream<List<int>> stream) async {
-    if (_isClosed) {
-      throw StateError("${_file?.path ?? "IOSink"} is closed");
-    }
-    if (_isBound) {
-      throw StateError("${_file?.path ?? "IOSink"} is bound to a stream");
-    }
-    if (_error != null) return done;
-    _isBound = true;
-
-    await _pendingWriteBuffers.future;
-
-    // Write each [stream] item as it appears to work with code that expects
-    // the data to be fully written when the Stream is done even if
-    // [addStream] has not completed.
-    // ```dart
-    // final sink = file.openWrite();
-    // final controller = StreamController<List<int>>();
-    // sink.addStream(controller.stream);  // Not awaited!
-    // controller.add(<int>[1, 2, 3, 4, 5]);
-    // await controller.close();
-    // ```
-    Completer<File?> completer = new Completer<File?>();
+  Future<File?> addStream(Stream<List<int>> stream) {
+    Completer<File?> completer = new Completer<File?>.sync();
     _openFuture.then((openedFile) {
       late StreamSubscription<List<int>> _subscription;
       void error(e, StackTrace stackTrace) {
@@ -374,95 +223,11 @@ class _RandomAccessFileIOSync implements IOSink {
         completer.complete(_file);
       }, onError: error, cancelOnError: true);
     }).catchError(completer.completeError);
-    return completer.future.whenComplete(() => _isBound = false);
+    return completer.future;
   }
 
-  Future<File?> close() {
-    if (_isClosed) {
-      return _doneCompleter.future;
-    }
-    if (_isBound) {
-      throw StateError("${_file?.path ?? "IOSink"} is bound to a stream");
-    }
-
-    _isClosed = true;
-    _openFuture.then((file) {
-      _flush().then(
-          (_) => file.close().then((_) => _doneCompleter.complete(_file),
-              onError: _doneCompleter.completeError),
-          // Attempt to close the file even if _flush() fails.
-          onError: (e, st) => file.close().then(
-              (_) => _doneCompleter.completeError(e, st),
-              onError: (_) => _doneCompleter.completeError(e, st)));
-    }, onError: _doneCompleter.completeError);
-
-    // The [Future] returned by [close] is documented to be identical to the
-    // [Future] returned by [done].
-    return _doneCompleter.future;
-  }
-
-  Future<File?> get done => _doneCompleter.future;
-
-  Future<File?> _flush() {
-    if (_error != null) {
-      final error = _error!;
-      final stack = _stackTrace;
-      _error = null;
-      _stackTrace = null;
-      return Future.error(error, stack);
-    }
-
-    _isBound = true;
-    if (_pendingWriteBuffers.isCompleted) {
-      // If [_buffers] is not currently being written then just start a
-      // new write. If there is no data to write then [_pendingWriteBuffers] will
-      // complete immediately.
-      _writeBuffers();
-    }
-    return _pendingWriteBuffers.future.whenComplete(() => _isBound = false);
-  }
-
-  Future<File?> flush() {
-    if (_isClosed) {
-      throw StateError("${_file?.path ?? "IOSink"} is closed");
-    }
-    if (_isBound) {
-      throw StateError("${_file?.path ?? "IOSink"} is bound to a stream");
-    }
-
-    return _flush();
-  }
-
-  void write(Object? obj) {
-    String string = '$obj';
-    if (string.isEmpty) return;
-    add(encoding.encode(string));
-  }
-
-  void writeAll(Iterable objects, [String separator = ""]) {
-    Iterator iterator = objects.iterator;
-    if (!iterator.moveNext()) return;
-    if (separator.isEmpty) {
-      do {
-        write(iterator.current);
-      } while (iterator.moveNext());
-    } else {
-      write(iterator.current);
-      while (iterator.moveNext()) {
-        write(separator);
-        write(iterator.current);
-      }
-    }
-  }
-
-  void writeCharCode(int charCode) {
-    write(new String.fromCharCode(charCode));
-  }
-
-  void writeln([Object? object = ""]) {
-    write(object);
-    write("\n");
-  }
+  Future<File?> close() =>
+      _openFuture.then((openedFile) => openedFile.close()).then((_) => _file);
 }
 
 // Class for encapsulating the native implementation of files.
@@ -747,7 +512,8 @@ class _File extends FileSystemEntity implements File {
         mode != FileMode.writeOnlyAppend) {
       throw new ArgumentError('Invalid file mode for this operation');
     }
-    return new _RandomAccessFileIOSync(this, mode, encoding);
+    var consumer = new _FileStreamConsumer(this, mode);
+    return new IOSink(consumer, encoding: encoding);
   }
 
   Future<Uint8List> readAsBytes() {
@@ -1349,12 +1115,11 @@ class _ReadPipe extends _FileStream implements ReadPipe {
   _ReadPipe(RandomAccessFile file) : super.forRandomAccessFile(file);
 }
 
-class _WritePipe extends _RandomAccessFileIOSync implements WritePipe {
-  RandomAccessFile _randomAccessFile;
-
-  _WritePipe(RandomAccessFile file)
-      : _randomAccessFile = file,
-        super.fromRandomAccessFile(file, utf8);
+class _WritePipe extends _IOSinkImpl implements WritePipe {
+  RandomAccessFile _file;
+  _WritePipe(file)
+      : this._file = file,
+        super(_FileStreamConsumer.fromRandomAccessFile(file), utf8);
 }
 
 class _Pipe implements Pipe {
