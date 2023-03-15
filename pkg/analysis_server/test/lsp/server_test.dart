@@ -28,7 +28,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   /// rebuild loop.
   /// https://github.com/Dart-Code/Dart-Code/issues/4280
   Future<void> test_analysisRoot_doesNotExist() async {
-    const notExistingPath = '/does/not/exist';
+    final notExistingPath = convertPath('/does/not/exist');
     resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
     await initialize(workspaceFolders: [Uri.file(notExistingPath)]);
 
@@ -47,7 +47,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_analysisRoot_existsAndDoesNotExist() async {
-    const notExistingPath = '/does/not/exist';
+    final notExistingPath = convertPath('/does/not/exist');
     resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
 
     // Track diagnostics for the file to ensure we're analyzing the existing
