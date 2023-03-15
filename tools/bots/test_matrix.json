@@ -619,6 +619,12 @@
         ]
       }
     },
+    "dart2js-hostasserts-linux-d8": {
+      "options": {
+        "host-checked": true,
+        "timeout": 240
+      }
+    },
     "dart2js-hostasserts-weak-linux-x64-(d8|chrome)": {
       "options": {
         "host-checked": true,
@@ -626,11 +632,31 @@
         "builder-tag": "dart2js-weak"
       }
     },
+    "dart2js-hostasserts-linux-(d8|chrome)-unsound": {
+      "options": {
+        "host-checked": true,
+        "timeout": 240,
+        "builder-tag": "dart2js-weak",
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
+      }
+    },
     "dart2js-hostasserts-weak-max-fragments-linux-x64-d8": {
       "options": {
         "host-checked": true,
         "timeout": 240,
         "builder-tag": "dart2js-weak",
+        "dart2js-options": [
+          "--merge-fragments-threshold=3",
+          "--simple-load-ids"
+        ]
+      }
+    },
+    "dart2js-hostasserts-minified-fragments-linux-d8": {
+      "options": {
+        "host-checked": true,
+        "timeout": 240,
         "dart2js-options": [
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
