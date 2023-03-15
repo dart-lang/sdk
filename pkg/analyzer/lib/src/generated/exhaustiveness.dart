@@ -304,6 +304,11 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
           fieldTypes[accessor.name] = accessor.type.returnType;
         }
       }
+      for (MethodElement method in type.methods) {
+        if (!method.isStatic) {
+          fieldTypes[method.name] = method.type;
+        }
+      }
     }
     return fieldTypes;
   }

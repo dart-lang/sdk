@@ -120,7 +120,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
         DartType? fieldType;
         if (member is Field) {
           fieldType = member.getterType;
-        } else if (member is Procedure && member.isGetter) {
+        } else if (member is Procedure && !member.isSetter) {
           fieldType = member.getterType;
         }
         if (fieldType != null) {
