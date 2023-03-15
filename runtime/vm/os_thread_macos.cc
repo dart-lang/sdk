@@ -226,7 +226,7 @@ void OSThread::Join(ThreadJoinId id) {
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
+  COMPILE_ASSERT(sizeof(id) <= sizeof(intptr_t));
   return reinterpret_cast<intptr_t>(id);
 }
 

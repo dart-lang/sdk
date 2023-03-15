@@ -264,7 +264,7 @@ void OSThread::Join(ThreadJoinId id) {
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
+  COMPILE_ASSERT(sizeof(id) <= sizeof(intptr_t));
 #if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   return static_cast<intptr_t>(id);
 #elif defined(DART_HOST_OS_MACOS)
