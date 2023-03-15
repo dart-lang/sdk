@@ -494,12 +494,6 @@
         ]
       }
     },
-    "dart2js-weak-(linux|mac|win)-x64-d8": {
-      "options": {
-        "builder-tag": "dart2js-weak",
-        "use-sdk": true
-      }
-    },
     "dart2js-(linux|win)-firefox": {
       "options": {
         "use-sdk": true,
@@ -533,7 +527,7 @@
         ]
       }
     },
-    "dart2js-minified-csp-(linux|mac|win)-chrome": {
+    "dart2js-minified-csp-linux-chrome": {
       "options": {
         "minified": true,
         "csp": true,
@@ -543,7 +537,7 @@
         ]
       }
     },
-    "dart2js-minified-csp-max-fragments-(linux|mac|win)-chrome": {
+    "dart2js-minified-csp-max-fragments-linux-chrome": {
       "options": {
         "minified": true,
         "csp": true,
@@ -555,7 +549,7 @@
         ]
       }
     },
-    "dart2js-minified-(linux|mac|win)-d8": {
+    "dart2js-minified-linux-d8": {
       "options": {
         "minified": true,
         "use-sdk": true,
@@ -564,7 +558,7 @@
         ]
       }
     },
-    "dart2js-minified-hostasserts-weak-max-fragments-(linux|win)-x64-d8": {
+    "dart2js-minified-hostasserts-weak-max-fragments-linux-x64-d8": {
       "options": {
         "minified": true,
         "host-checked": true,
@@ -577,7 +571,7 @@
         ]
       }
     },
-    "dart2js-production-(linux|mac|win)-d8": {
+    "dart2js-production-linux-d8": {
       "options": {
         "builder-tag": "dart2js_production",
         "use-sdk": true,
@@ -587,7 +581,7 @@
         ]
       }
     },
-    "dart2js-o0-(linux|mac|win)-d8": {
+    "dart2js-o0-linux-d8": {
       "options": {
         "builder-tag": "dart2js_o0",
         "use-sdk": true,
@@ -597,7 +591,7 @@
         ]
       }
     },
-    "dart2js-canary-(linux|mac|win)-d8": {
+    "dart2js-canary-linux-d8": {
       "options": {
         "builder-tag": "dart2js_canary",
         "host-checked": true,
@@ -607,7 +601,7 @@
         ]
       }
     },
-    "dart2js-canary-(linux|mac|win)-chrome": {
+    "dart2js-canary-linux-chrome": {
       "options": {
         "host-checked": true,
         "timeout": 240,
@@ -616,7 +610,7 @@
         ]
       }
     },
-    "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8": {
+    "dart2js-hostasserts-linux-ia32-d8": {
       "options": {
         "host-checked": true,
         "timeout": 240,
@@ -625,14 +619,14 @@
         ]
       }
     },
-    "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {
+    "dart2js-hostasserts-weak-linux-x64-(d8|chrome)": {
       "options": {
         "host-checked": true,
         "timeout": 240,
         "builder-tag": "dart2js-weak"
       }
     },
-    "dart2js-hostasserts-weak-max-fragments-(linux|win)-x64-(d8|chrome)": {
+    "dart2js-hostasserts-weak-max-fragments-linux-x64-d8": {
       "options": {
         "host-checked": true,
         "timeout": 240,
@@ -643,21 +637,14 @@
         ]
       }
     },
-    "dart2js-hostasserts-weak-mac-x64-(d8|chrome)": {
-      "options": {
-        "host-checked": true,
-        "timeout": 240,
-        "builder-tag": "dart2js-weak"
-      }
-    },
-    "dart2js-hostasserts-strong-(linux|win)-x64-(d8|chrome)": {
+    "dart2js-hostasserts-strong-linux-x64-(d8|chrome)": {
       "options": {
         "host-checked": true,
         "timeout": 240,
         "builder-tag": "dart2js-strong"
       }
     },
-    "dart2js-hostasserts-strong-max-fragments-(linux|win)-x64-(d8|chrome)": {
+    "dart2js-hostasserts-strong-max-fragments-linux-x64-d8": {
       "options": {
         "host-checked": true,
         "timeout": 240,
@@ -666,13 +653,6 @@
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
-      }
-    },
-    "dart2js-hostasserts-strong-mac-x64-(d8|chrome)": {
-      "options": {
-        "host-checked": true,
-        "timeout": 240,
-        "builder-tag": "dart2js-strong"
       }
     },
     "dart2wasm-hostasserts-linux-x64-d8": {
