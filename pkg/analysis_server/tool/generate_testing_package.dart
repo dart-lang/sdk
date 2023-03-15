@@ -84,12 +84,11 @@ void main(List<String> args) async {
     var importIndexStep =
         importGraphTier == 0 ? -1 : (lIndex - 1) ~/ importGraphTier;
     var content = StringBuffer();
+    if (useJsonSerializable) {
+      content.writeln("import 'package:json_annotation/json_annotation.dart';");
+    }
     // Add imports in a library above tier 0.
     if (importGraphTier > 0) {
-      if (useJsonSerializable) {
-        content
-            .writeln("import 'package:json_annotation/json_annotation.dart';");
-      }
       if (useBarrelFile && lIndex > middleImportIndex) {
         content.writeln(import(testPackageLibUri('barrel.dart')));
       }
@@ -136,7 +135,7 @@ void main(List<String> args) async {
         content.writeln(
             '  factory C$classCounter.fromJson(Map<String, dynamic> json) => '
             '_\$C${classCounter}FromJson(json);');
-        content.writeln('Map<String, dynamic> toJson() => '
+        content.writeln('  Map<String, dynamic> toJson() => '
             '_\$C${classCounter}ToJson(this);');
       }
       for (var mIndex = 1; mIndex <= methodCount; mIndex++) {
