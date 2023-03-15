@@ -34,7 +34,7 @@ class FakeTypesBuilder extends TypesBuilder {
 
   @override
   TFClass getTFClass(Class c) =>
-      _classes[c] ??= new TFClass(++_classIdCounter, c);
+      _classes[c] ??= new TFClass(++_classIdCounter, c, null);
 }
 
 class FakeEntryPointsListener implements EntryPointsListener {

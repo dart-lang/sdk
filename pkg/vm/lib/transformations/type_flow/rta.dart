@@ -55,7 +55,7 @@ class ClassInfo extends TFClass {
 
   ClassInfo(int id, Class classNode, this.superclass, this.supertypes,
       this.calledDynamicSelectors, this.calledVirtualSelectors)
-      : super(id, classNode) {
+      : super(id, classNode, null) {
     supertypes.add(this);
     for (var sup in supertypes) {
       sup.subtypes.add(this);

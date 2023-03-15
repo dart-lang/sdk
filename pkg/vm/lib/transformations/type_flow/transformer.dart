@@ -519,17 +519,12 @@ class AnnotateKernel extends RecursiveVisitor {
             _unboxingInfo.getUnboxingInfoOfMember(member);
         if (unboxingInfoMetadata != null) {
           // Check for partitions that only have abstract methods should be marked as boxed.
-          if (unboxingInfoMetadata.returnInfo ==
-              UnboxingInfoMetadata.kUnboxingCandidate) {
-            unboxingInfoMetadata.returnInfo = UnboxingInfoMetadata.kBoxed;
+          if (unboxingInfoMetadata.returnInfo == UnboxingType.kUnknown) {
+            unboxingInfoMetadata.returnInfo = UnboxingType.kBoxed;
           }
-          for (int i = 0;
-              i < unboxingInfoMetadata.unboxedArgsInfo.length;
-              i++) {
-            if (unboxingInfoMetadata.unboxedArgsInfo[i] ==
-                UnboxingInfoMetadata.kUnboxingCandidate) {
-              unboxingInfoMetadata.unboxedArgsInfo[i] =
-                  UnboxingInfoMetadata.kBoxed;
+          for (int i = 0; i < unboxingInfoMetadata.argsInfo.length; i++) {
+            if (unboxingInfoMetadata.argsInfo[i] == UnboxingType.kUnknown) {
+              unboxingInfoMetadata.argsInfo[i] = UnboxingType.kBoxed;
             }
           }
           if (!unboxingInfoMetadata.isFullyBoxed) {

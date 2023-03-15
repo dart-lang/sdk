@@ -31,7 +31,7 @@ class TestTypeHierarchy extends TypeHierarchy {
 
   @override
   TFClass getTFClass(Class c) =>
-      classes[c] ??= new TFClass(++classIdCounter, c);
+      classes[c] ??= new TFClass(++classIdCounter, c, null);
 
   @override
   List<DartType> flattenedTypeArgumentsFor(Class klass) =>
@@ -105,10 +105,10 @@ main() {
     final c3 = new Class(name: 'T3', fileUri: dummyUri)..parent = dummyLibrary;
     final c4 = new Class(name: 'T4', fileUri: dummyUri)..parent = dummyLibrary;
 
-    final tfc1 = new TFClass(1, c1);
-    final tfc2 = new TFClass(2, c2);
-    final tfc3 = new TFClass(3, c3);
-    final tfc4 = new TFClass(4, c4);
+    final tfc1 = new TFClass(1, c1, null);
+    final tfc2 = new TFClass(2, c2, null);
+    final tfc3 = new TFClass(3, c3, null);
+    final tfc4 = new TFClass(4, c4, null);
 
     final empty = new EmptyType();
     final any = new AnyType();
@@ -296,9 +296,9 @@ main() {
     final c2 = new Class(name: 'C2', fileUri: dummyUri)..parent = dummyLibrary;
     final c3 = new Class(name: 'C3', fileUri: dummyUri)..parent = dummyLibrary;
 
-    final tfc1 = new TFClass(1, c1);
-    final tfc2 = new TFClass(2, c2);
-    final tfc3 = new TFClass(3, c3);
+    final tfc1 = new TFClass(1, c1, null);
+    final tfc2 = new TFClass(2, c2, null);
+    final tfc3 = new TFClass(3, c3, null);
 
     final t1a = new InterfaceType(c1, Nullability.legacy);
     final t1b = new InterfaceType(c1, Nullability.legacy);
