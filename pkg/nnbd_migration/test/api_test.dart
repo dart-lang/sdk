@@ -8493,6 +8493,30 @@ void _g(int i, Base base) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_override_parameter_type_unknown() async {
+    var content = '''
+abstract class Base {
+  void f(int/*!*/ i, int/*!*/ j);
+}
+class Derived extends Base {
+  void f(int i, int j) {
+    i + 1;
+  }
+}
+''';
+    var expected = '''
+abstract class Base {
+  void f(int i, int j);
+}
+class Derived extends Base {
+  void f(int i, int j) {
+    i + 1;
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_override_return_type_non_nullable() async {
     var content = '''
 abstract class Base {
