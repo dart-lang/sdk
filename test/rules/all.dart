@@ -55,6 +55,8 @@ import 'literal_only_boolean_expressions_test.dart'
 import 'missing_whitespace_between_adjacent_strings_test.dart'
     as missing_whitespace_between_adjacent_strings;
 import 'no_duplicate_case_values_test.dart' as no_duplicate_case_values;
+import 'no_leading_underscores_for_local_identifiers_test.dart'
+    as no_leading_underscores_for_local_identifiers;
 import 'non_adjacent_strings_in_list_test.dart' as no_adjacent_strings_in_list;
 import 'non_constant_identifier_names_test.dart'
     as non_constant_identifier_names;
@@ -158,6 +160,7 @@ void main() {
   missing_whitespace_between_adjacent_strings.main();
   no_adjacent_strings_in_list.main();
   no_duplicate_case_values.main();
+  no_leading_underscores_for_local_identifiers.main();
   non_constant_identifier_names.main();
   null_check_on_nullable_type_parameter.main();
   null_closures.main();
