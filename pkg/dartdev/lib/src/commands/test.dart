@@ -27,6 +27,16 @@ class TestCommand extends DartdevCommand {
   }
 
   @override
+  void printUsage() {
+    print('''Usage: dart test [arguments]
+
+Note: flags and options for this command are provided by the project's package:test dependency.
+If package:test is not included as a dev_dependency in the project's pubspec.yaml, no flags or options will be listed.
+
+Run "${runner!.executableName} help" to see global options.''');
+  }
+
+  @override
   FutureOr<int> run() async {
     final args = argResults!;
     try {
