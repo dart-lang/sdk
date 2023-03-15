@@ -58,6 +58,8 @@ import 'no_duplicate_case_values_test.dart' as no_duplicate_case_values;
 import 'non_adjacent_strings_in_list_test.dart' as no_adjacent_strings_in_list;
 import 'non_constant_identifier_names_test.dart'
     as non_constant_identifier_names;
+import 'null_check_on_nullable_type_parameter_test.dart'
+    as null_check_on_nullable_type_parameter;
 import 'null_closures_test.dart' as null_closures;
 import 'omit_local_variable_types_test.dart' as omit_local_variable_types;
 import 'one_member_abstracts_test.dart' as one_member_abstracts;
@@ -157,6 +159,7 @@ void main() {
   no_adjacent_strings_in_list.main();
   no_duplicate_case_values.main();
   non_constant_identifier_names.main();
+  null_check_on_nullable_type_parameter.main();
   null_closures.main();
   omit_local_variable_types.main();
   one_member_abstracts.main();

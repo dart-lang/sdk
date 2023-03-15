@@ -129,7 +129,7 @@ mixin LanguageVersion300Mixin on PubPackageResolutionTest {
 }
 
 abstract class LintRuleTest extends PubPackageResolutionTest {
-  bool get dumpAstOnFailures => false;
+  bool get dumpAstOnFailures => true;
 
   String? get lintRule;
 
