@@ -233,6 +233,27 @@ using Dart version 2.19, before upgrading to Dart version 3.0.
   contain only the characters: `^[a-zA-Z0-9._~+/=-]+$`. Before a failure would
   happen when attempting to send the authorization header.
 
+## 2.19.4 - 2023-03-08
+
+This is a patch release that:
+
+- Fixes mobile devices vm crashes caused by particular use of RegExp. (issue
+  [#121270][]).
+
+[#121270]: https://github.com/flutter/flutter/issues/121270
+
+## 2.19.3 - 2023-03-01
+
+This is a patch release that:
+
+- Updates DDC test and builder configuration. (issue [#51481][]).
+
+- Improves the performance of the Dart Analysis Server by limiting the analysis
+  context to 1. (issue [#50981][]).
+
+[#50981]: https://github.com/dart-lang/sdk/issues/50981
+[#51481]: https://github.com/dart-lang/sdk/issues/51481
+
 ## 2.19.2 - 2023-02-08
 
 This is a patch release that:
