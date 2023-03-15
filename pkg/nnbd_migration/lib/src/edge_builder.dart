@@ -2690,7 +2690,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // Be over conservative with public methods' arguments:
     // Unless we have reasons for non-nullability, assume they are nullable.
     // Soft edge to `always` node does exactly this.
-    if (declaredElement.isPublic &&
+    bool isOverride = false;
+    final thisClass = declaredElement.enclosingElement;
+    if (thisClass is InterfaceElement) {
+      final name = Name(thisClass.library.source.uri, declaredElement.name);
+      isOverride = _inheritanceManager.getOverridden2(thisClass, name) != null;
+    }
+    if (!isOverride &&
+        declaredElement.isPublic &&
         declaredElement is! PropertyAccessorElement &&
         // operator == treats `null` specially.
         !(declaredElement.isOperator && declaredElement.name == '==')) {
