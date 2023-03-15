@@ -6,6 +6,7 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dartdev/src/analysis_server.dart';
 import 'package:dartdev/src/commands/analyze.dart';
 import 'package:dartdev/src/sdk.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -229,7 +230,7 @@ void defineAnalyze() {
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
       expect(result.stdout, contains('A value of type '));
-      expect(result.stdout, contains('lib/main.dart:1:16 '));
+      expect(result.stdout, contains('lib${path.separator}main.dart:1:16 '));
       expect(result.stdout, contains('return_of_invalid_type'));
       expect(result.stdout, contains('2 issues found.'));
     });
@@ -286,7 +287,7 @@ void defineAnalyze() {
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
       expect(result.stdout, contains('A value of type '));
-      expect(result.stdout, contains('lib/main.dart:1:16 '));
+      expect(result.stdout, contains('lib${path.separator}main.dart:1:16 '));
       expect(result.stdout, contains('return_of_invalid_type'));
       expect(result.stdout, contains('1 issue found.'));
     });
@@ -397,9 +398,9 @@ void defineAnalyze() {
 
     expect(result.exitCode, equals(_warningExitCode));
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('lib/main.dart:2:6 '));
+    expect(result.stdout, contains('lib${path.separator}main.dart:2:6 '));
     expect(result.stdout, contains('TODO: Implement this - todo'));
-    expect(result.stdout, contains('lib/main.dart:3:6 '));
+    expect(result.stdout, contains('lib${path.separator}main.dart:3:6 '));
     expect(result.stdout, contains('FIXME: Fix this - fixme'));
     expect(result.stdout, contains('2 issues found.'));
   });
@@ -454,7 +455,7 @@ int f() {
   group('--packages', () {
     test('existing', () async {
       final foo = project(name: 'foo');
-      foo.file('lib/foo.dart', 'var my_foo = 0;');
+      foo.file('lib${path.separator}foo.dart', 'var my_foo = 0;');
 
       p = project(mainSrc: '''
 import 'package:foo/foo.dart';
@@ -572,7 +573,7 @@ void f() {
       expect(logger.stderrBuffer, isEmpty);
       final stdout = logger.stdoutBuffer.toString().trim();
       expect(stdout, contains('info'));
-      expect(stdout, contains('lib/test.dart:15:4'));
+      expect(stdout, contains('lib${path.separator}test.dart:15:4'));
       expect(stdout, contains('Foo bar baz.'));
       expect(stdout, contains('dead_code'));
     });
