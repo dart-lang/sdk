@@ -71,6 +71,7 @@ class UnnecessaryFinal extends LintRule {
     registry
       ..addFormalParameterList(this, visitor)
       ..addForStatement(this, visitor)
+      ..addDeclaredVariablePattern(this, visitor)
       ..addVariableDeclarationStatement(this, visitor);
   }
 }
@@ -80,18 +81,29 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
+  LintCode getErrorCode(Object? type) =>
+      type == null ? UnnecessaryFinal.withoutType : UnnecessaryFinal.withType;
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    var keyword = node.keyword;
+    keyword ??=
+        node.thisOrAncestorOfType<PatternVariableDeclaration>()?.keyword;
+    if (keyword == null) return;
+
+    var errorCode = getErrorCode(node.matchedValueType);
+    rule.reportLintForToken(keyword, errorCode: errorCode);
+  }
+
   @override
   void visitFormalParameterList(FormalParameterList parameterList) {
     for (var node in parameterList.parameters) {
       if (node.isFinal) {
         var keyword = _getFinal(node);
-        if (keyword == null) {
-          continue;
-        }
+        if (keyword == null) continue;
+
         var type = _getType(node);
-        var errorCode = type == null
-            ? UnnecessaryFinal.withoutType
-            : UnnecessaryFinal.withType;
+        var errorCode = getErrorCode(type);
         rule.reportLintForToken(keyword, errorCode: errorCode);
       }
     }
@@ -106,11 +118,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     // loop. `a` is a variable declared outside the loop.
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
-
       if (loopVariable.isFinal) {
-        var errorCode = loopVariable.type == null
-            ? UnnecessaryFinal.withoutType
-            : UnnecessaryFinal.withType;
+        var errorCode = getErrorCode(loopVariable.type);
         rule.reportLintForToken(loopVariable.keyword, errorCode: errorCode);
       }
     }
@@ -119,9 +128,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     if (node.variables.isFinal) {
-      var errorCode = node.variables.type == null
-          ? UnnecessaryFinal.withoutType
-          : UnnecessaryFinal.withType;
+      var errorCode = getErrorCode(node.variables.type);
       rule.reportLintForToken(node.variables.keyword, errorCode: errorCode);
     }
   }
