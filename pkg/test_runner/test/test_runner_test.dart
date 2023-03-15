@@ -17,7 +17,7 @@ import 'package:test_runner/src/test_file.dart';
 import "package:test_runner/src/test_progress.dart" as progress;
 import "package:test_runner/src/test_suite.dart";
 
-final DEFAULT_TIMEOUT = 10;
+final defaultTimeout = 10;
 
 List<String> packageOptions() {
   if (Platform.packageConfig != null) {
@@ -92,7 +92,7 @@ class CustomTestSuite extends TestSuite {
     var args = packageOptions();
     args.addAll([Platform.script.toFilePath(), name]);
     var command = ProcessCommand('custom', Platform.executable, args, {});
-    return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
+    return _makeTestCase(name, defaultTimeout, command, expectations);
   }
 
   TestCase _makeTestCase(String name, timeout, Command command,

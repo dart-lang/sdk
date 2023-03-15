@@ -357,15 +357,15 @@ class TestingServers {
       // Chrome respects the standardized Content-Security-Policy header,
       // whereas Firefox and IE10 use X-Content-Security-Policy. Safari
       // still uses the WebKit- prefixed version.
-      var content_header_value = "script-src 'self'; object-src 'self'";
+      var contentHeaderValue = "script-src 'self'; object-src 'self'";
       for (var header in [
         "Content-Security-Policy",
         "X-Content-Security-Policy"
       ]) {
-        response.headers.set(header, content_header_value);
+        response.headers.set(header, contentHeaderValue);
       }
       if (runtime == Runtime.safari) {
-        response.headers.set("X-WebKit-CSP", content_header_value);
+        response.headers.set("X-WebKit-CSP", contentHeaderValue);
       }
     }
     if (file.path.endsWith('.html')) {
@@ -415,7 +415,7 @@ class TestingServers {
 </head>
 <body>
 <h1>Not Found</h1>
-<p style='white-space:pre'>The file '$escapedPath\' could not be found.</p>
+<p style='white-space:pre'>The file '$escapedPath' could not be found.</p>
 </body>
 </html>
 """);

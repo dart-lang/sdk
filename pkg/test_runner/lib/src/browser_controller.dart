@@ -463,7 +463,7 @@ class IE extends Browser {
     // Allow popups from localhost
     await _setRegistryKey("$ieKey\\New Windows\\Allow", "127.0.0.1");
     // Disable IE first run wizard
-    await _setRegistryKey("$ieKey\Main", "DisableFirstRunCustomize",
+    await _setRegistryKey("$ieKey\\Main", "DisableFirstRunCustomize",
         data: "1", type: "REG_DWORD");
 
     var localAppData = Platform.environment['LOCALAPPDATA'];

@@ -600,7 +600,7 @@ class StandardTestSuite extends TestSuite {
   factory StandardTestSuite.forDirectory(
       TestConfiguration configuration, Path directory) {
     var name = directory.filename;
-    var status_paths = [
+    var statusPaths = [
       '$directory/$name.status',
       '$directory/.status',
       '$directory/${name}_app_jit.status',
@@ -615,7 +615,7 @@ class StandardTestSuite extends TestSuite {
       '$directory/${name}_vm.status',
     ];
 
-    return StandardTestSuite(configuration, name, directory, status_paths,
+    return StandardTestSuite(configuration, name, directory, statusPaths,
         recursive: true);
   }
 
