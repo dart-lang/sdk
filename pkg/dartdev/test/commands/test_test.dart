@@ -43,7 +43,7 @@ Usage: dart test [files or directories...]
     final result = await p.run(['help', 'test']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, contains(' tests for a project'));
+    expect(result.stdout, contains('Usage: dart test [arguments]'));
     expect(result.stderr, isEmpty);
   });
 
@@ -63,13 +63,13 @@ No pubspec.yaml file found - run this command in your project folder.
     var resultHelp = await p.run(['test', '--help']);
 
     expect(resultHelp.stderr, isEmpty);
-    expect(resultHelp.stdout, '''
-No pubspec.yaml file found - run this command in your project folder.
-
-Run tests for a project.
+    expect(resultHelp.stdout,
+        '''No pubspec.yaml file found - run this command in your project folder.
 
 Usage: dart test [arguments]
 
+Note: flags and options for this command are provided by the project's package:test dependency.
+If package:test is not included as a dev_dependency in the project's pubspec.yaml, no flags or options will be listed.
 
 Run "dart help" to see global options.
 ''');
