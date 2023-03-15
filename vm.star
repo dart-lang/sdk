@@ -361,6 +361,7 @@ _nightly_builder(
     channels = ["try"],
     dimensions = windows,
 )
+_low_priority_builder("vm-fuchsia-release-arm64", category = "vm|misc|f")
 _low_priority_builder("vm-fuchsia-release-x64", category = "vm|misc|f")
 
 # Our sysroot does not support gcc, we can't use goma on RBE for this builder
