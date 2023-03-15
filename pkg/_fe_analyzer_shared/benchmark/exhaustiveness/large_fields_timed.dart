@@ -4,8 +4,10 @@
 
 import 'dart:math';
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 
 import '../../test/exhaustiveness/env.dart';
 import '../../test/exhaustiveness/utils.dart';

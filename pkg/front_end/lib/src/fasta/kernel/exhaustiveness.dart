@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_types.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 import 'package:front_end/src/fasta/kernel/constant_evaluator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -168,6 +171,31 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   @override
   DartType? getFutureOrTypeArgument(DartType type) {
     return type is FutureOrType ? type.typeArgument : null;
+  }
+
+  @override
+  DartType? getListElementType(DartType type) {
+    type = type.resolveTypeParameterType;
+    if (type is InterfaceType) {
+      InterfaceType? listType = _classHierarchy.getTypeAsInstanceOf(
+          type, _typeEnvironment.coreTypes.listClass,
+          isNonNullableByDefault: true);
+      if (listType != null) {
+        return listType.typeArguments[0];
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType? getListType(DartType type) {
+    type = type.resolveTypeParameterType;
+    if (type is InterfaceType) {
+      return _classHierarchy.getTypeAsInstanceOf(
+          type, _typeEnvironment.coreTypes.listClass,
+          isNonNullableByDefault: true);
+    }
+    return null;
   }
 
   @override
@@ -401,9 +429,30 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
     } else if (pattern is RelationalPattern) {
       return createRelationalSpace(path);
     } else if (pattern is ListPattern) {
-      return createListSpace(path);
+      DartType elementType = pattern.typeArgument ?? const DynamicType();
+      bool hasRest = false;
+      List<Pattern> headPatterns = [];
+      Pattern? restPattern;
+      List<Pattern> tailPatterns = [];
+      for (Pattern element in pattern.patterns) {
+        if (element is RestPattern) {
+          hasRest = true;
+          restPattern = element.subPattern;
+        } else if (hasRest) {
+          tailPatterns.add(element);
+        } else {
+          headPatterns.add(element);
+        }
+      }
+      return createListSpace(path,
+          type: pattern.listType,
+          elementType: elementType,
+          headElements: headPatterns,
+          restElement: restPattern,
+          tailElements: tailPatterns,
+          hasRest: hasRest,
+          hasExplicitTypeArgument: pattern.typeArgument != null);
     } else if (pattern is MapPattern) {
-      // TODO(johnniwinther): We shouldn't see the inferred type arguments here.
       DartType keyType = pattern.keyType ?? const DynamicType();
       DartType valueType = pattern.valueType ?? const DynamicType();
       bool hasRest = false;
@@ -421,25 +470,16 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
           entries[key] = entry.value;
         }
       }
-      String typeArgumentsText;
-      if (keyType is! DynamicType && valueType is! DynamicType) {
-        StringBuffer sb = new StringBuffer();
-        sb.write('<');
-        sb.write(keyType.toText(textStrategy));
-        sb.write(', ');
-        sb.write(valueType.toText(textStrategy));
-        sb.write('>');
-        typeArgumentsText = sb.toString();
-      } else {
-        typeArgumentsText = '';
-      }
-      return createMapSpace(
-          path,
-          pattern.mapType,
-          new MapTypeIdentity(
-              keyType, valueType, entries.keys.toSet(), typeArgumentsText,
-              hasRest: hasRest),
-          entries);
+      return createMapSpace(path,
+          type: pattern.mapType,
+          keyType: keyType,
+          valueType: valueType,
+          entries: entries,
+          hasRest: hasRest,
+          // TODO(johnniwinther): We shouldn't see the inferred type arguments
+          //  here.
+          hasExplicitTypeArguments: pattern.keyType is! DynamicType &&
+              pattern.valueType is! DynamicType);
     }
     assert(false, "Unexpected pattern $pattern (${pattern.runtimeType}).");
     return createUnknownSpace(path);
@@ -496,9 +536,18 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
   }
 
   @override
+  StaticType createListType(
+      DartType type, ListTypeIdentity<DartType> identity) {
+    return cache.getListStaticType(type, identity);
+  }
+
+  @override
   StaticType createMapType(DartType type, MapTypeIdentity<DartType> identity) {
     return cache.getMapStaticType(type, identity);
   }
+
+  @override
+  TypeOperations<DartType> get typeOperations => cache.typeOperations;
 }
 
 bool computeIsAlwaysExhaustiveType(DartType type, CoreTypes coreTypes) {

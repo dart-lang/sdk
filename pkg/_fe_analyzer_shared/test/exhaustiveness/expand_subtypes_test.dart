@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:test/test.dart';
 
 import 'env.dart';
@@ -133,5 +133,5 @@ void main() {
 }
 
 void expectExpand(StaticType type, String expected) {
-  expect(expandSealedSubtypes(type).join('|'), expected);
+  expect(expandSealedSubtypes(type, const {}).join('|'), expected);
 }

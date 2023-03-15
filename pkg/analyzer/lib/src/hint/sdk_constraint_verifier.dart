@@ -17,9 +17,6 @@ import 'package:pub_semver/pub_semver.dart';
 /// A visitor that finds code that assumes a later version of the SDK than the
 /// minimum version required by the SDK constraints in `pubspec.yaml`.
 class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
-  /// TODO(scheglov) Fix pre-existing violations and remove.
-  static bool shouldCheckSinceSdkVersion = false;
-
   /// The error reporter to be used to report errors.
   final ErrorReporter _errorReporter;
 
@@ -360,10 +357,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     AstNode target, {
     SyntacticEntity? errorEntity,
   }) {
-    if (!shouldCheckSinceSdkVersion) {
-      return;
-    }
-
     if (element != null) {
       final sinceSdkVersion = element.sinceSdkVersion;
       if (sinceSdkVersion != null) {

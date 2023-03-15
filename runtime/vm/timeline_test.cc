@@ -394,8 +394,8 @@ TEST_CASE(TimelineTrackMetadataRace) {
   // map code.
   JSONStream js;
   TimelineEventFilter filter;
-  const ReportMetadataArguments report_metadata_1_arguments{&recorder};
-  const ReportMetadataArguments report_metadata_2_arguments{&recorder};
+  ReportMetadataArguments report_metadata_1_arguments{&recorder};
+  ReportMetadataArguments report_metadata_2_arguments{&recorder};
   OSThread::Start(
       "ReportMetadata1",
       [](uword arguments_ptr) {

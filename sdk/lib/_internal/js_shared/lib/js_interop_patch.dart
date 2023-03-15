@@ -6,7 +6,6 @@ import 'dart:_foreign_helper' show JS;
 import 'dart:_internal' show patch;
 import 'dart:_js_types';
 import 'dart:js_util';
-import 'dart:js_util';
 import 'dart:typed_data';
 
 /// Helper for working with the [JSAny?] top type in a backend agnostic way.

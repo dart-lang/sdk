@@ -3551,19 +3551,29 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             classRelation: staticType.relation, nullable: true)
         .abstractValue;
 
-    final path = _recordData.pathForAccess(shape, indexInShape);
-    if (path.index == null) {
-      HFieldGet fieldGet = HFieldGet(
-          path.field, receiver, type, sourceInformation,
-          isAssignable: false);
-      push(fieldGet);
+    if (_recordData.representationForShape(shape) != null) {
+      final path = _recordData.pathForAccess(shape, indexInShape);
+      if (path.index == null) {
+        HFieldGet fieldGet = HFieldGet(
+            path.field, receiver, type, sourceInformation,
+            isAssignable: false);
+        push(fieldGet);
+      } else {
+        HFieldGet fieldGet = HFieldGet(path.field, receiver,
+            _abstractValueDomain.constListType, sourceInformation,
+            isAssignable: false);
+        push(fieldGet);
+        final list = pop();
+        push(HIndex(
+            list, graph.addConstantInt(indexInShape, closedWorld), type));
+      }
     } else {
-      HFieldGet fieldGet = HFieldGet(path.field, receiver,
-          _abstractValueDomain.constListType, sourceInformation,
-          isAssignable: false);
-      push(fieldGet);
-      final list = pop();
-      push(HIndex(list, graph.addConstantInt(indexInShape, closedWorld), type));
+      // There are no records with this shape, so the path here must be
+      // infeasible.
+      push(HInvokeStatic(_commonElements.assertUnreachableMethod, [],
+          _abstractValueDomain.emptyType, const [])
+        ..sourceInformation = sourceInformation);
+      // TODO(50081): Should we make subsequent code unreachable?
     }
   }
 

@@ -2473,7 +2473,7 @@ class RecordType extends DartType {
     var count = types.length;
 
     var buffer = StringBuffer();
-    buffer.write('RecordType(');
+    buffer.write('(');
     for (var i = 0; i < count; i++) {
       if (i < posCount) {
         buffer.write('${types[i]}');

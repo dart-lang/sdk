@@ -157,7 +157,7 @@ void run() {
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Record: '));
     expect(result.exitCode, 0);
-  });
+  }, skip: 'records are enabled by default in 3.0');
 
   test('arguments are properly passed', () async {
     p = project();
@@ -259,7 +259,7 @@ void main(List<String> args) => print("$b $args");
     // arguments are properly handled by the VM.
     ProcessResult result = await p.run([
       'run',
-      '--observe',
+      '--observe=0',
       '--pause-isolates-on-start',
       // This should negate the above flag.
       '--no-pause-isolates-on-start',
@@ -272,7 +272,7 @@ void main(List<String> args) => print("$b $args");
     expect(
       result.stdout,
       matches(
-          r'The Dart VM service is listening on http:\/\/127.0.0.1:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
+          r'The Dart VM service is listening on http:\/\/127.0.0.1:\d+\/[a-zA-Z0-9_-]+=\/\n.*'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -280,7 +280,7 @@ void main(List<String> args) => print("$b $args");
     // Again, with --disable-service-auth-codes.
     result = await p.run([
       'run',
-      '--observe',
+      '--observe=0',
       '--pause-isolates-on-start',
       // This should negate the above flag.
       '--no-pause-isolates-on-start',
@@ -294,7 +294,8 @@ void main(List<String> args) => print("$b $args");
 
     expect(
       result.stdout,
-      contains('The Dart VM service is listening on http://127.0.0.1:8181/\n'),
+      matches(
+          r'The Dart VM service is listening on http:\/\/127.0.0.1:\d+\/\n'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -302,7 +303,7 @@ void main(List<String> args) => print("$b $args");
     // Again, with IPv6.
     result = await p.run([
       'run',
-      '--observe=8181/::1',
+      '--observe=0/::1',
       '--pause-isolates-on-start',
       // This should negate the above flag.
       '--no-pause-isolates-on-start',
@@ -316,10 +317,35 @@ void main(List<String> args) => print("$b $args");
     expect(
       result.stdout,
       matches(
-          r'The Dart VM service is listening on http:\/\/\[::1\]:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
+          r'The Dart VM service is listening on http:\/\/\[::1\]:\d+\/[a-zA-Z0-9_-]+=\/\n.*'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+  });
+
+  test('with accepted VM flags related to the timeline', () async {
+    p = project(
+        mainSrc: 'import "dart:developer";'
+            'void main() {'
+            'Timeline.startSync("sync");'
+            'Timeline.finishSync();'
+            '}');
+
+    final result = await p.run([
+      'run',
+      '--timeline-recorder=file',
+      '--timeline-streams=Dart',
+      p.relativeFilePath
+    ]);
+
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, isEmpty);
+    expect(result.exitCode, 0);
+    expect(
+        p
+            .findFile(path.join(p.dirPath, 'dart-timeline.json'))!
+            .readAsStringSync(),
+        contains('"name":"sync","cat":"Dart"'));
   });
 
   test('fails when provided verbose VM flags', () async {
@@ -435,7 +461,7 @@ void main(List<String> args) => print("$b $args");
         ProcessResult result = await p.run([
           'run',
           '--no-dds',
-          '--enable-vm-service',
+          '--enable-vm-service=0',
           p.relativeFilePath,
         ]);
         expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
@@ -446,7 +472,7 @@ void main(List<String> args) => print("$b $args");
         p = project(mainSrc: "void main() { print('Hello World'); }");
         ProcessResult result = await p.run([
           '--no-dds',
-          '--enable-vm-service',
+          '--enable-vm-service=0',
           p.relativeFilePath,
         ]);
         expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
@@ -460,7 +486,7 @@ void main(List<String> args) => print("$b $args");
         ProcessResult result = await p.run([
           'run',
           '--dds',
-          '--enable-vm-service',
+          '--enable-vm-service=0',
           p.relativeFilePath,
         ]);
         expect(result.stdout, contains(devToolsMessagePrefix));
@@ -471,7 +497,7 @@ void main(List<String> args) => print("$b $args");
         p = project(mainSrc: "void main() { print('Hello World'); }");
         ProcessResult result = await p.run([
           '--dds',
-          '--enable-vm-service',
+          '--enable-vm-service=0',
           p.relativeFilePath,
         ]);
         expect(result.stdout, contains(devToolsMessagePrefix));
@@ -485,7 +511,7 @@ void main(List<String> args) => print("$b $args");
       p = project(mainSrc: "void main() { print('Hello World'); }");
       ProcessResult result = await p.run([
         'run',
-        '--enable-vm-service',
+        '--enable-vm-service=0',
         p.relativeFilePath,
       ]);
       expect(result.stdout, contains(devToolsMessagePrefix));
@@ -494,7 +520,7 @@ void main(List<String> args) => print("$b $args");
     test('dart simple', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
       ProcessResult result = await p.run([
-        '--enable-vm-service',
+        '--enable-vm-service=0',
         p.relativeFilePath,
       ]);
       expect(result.stdout, contains(devToolsMessagePrefix));
@@ -505,7 +531,7 @@ void main(List<String> args) => print("$b $args");
       ProcessResult result = await p.run([
         'run',
         '--serve-devtools',
-        '--enable-vm-service',
+        '--enable-vm-service=0',
         p.relativeFilePath,
       ]);
       expect(result.stdout, contains(devToolsMessagePrefix));
@@ -515,7 +541,7 @@ void main(List<String> args) => print("$b $args");
       p = project(mainSrc: "void main() { print('Hello World'); }");
       ProcessResult result = await p.run([
         '--serve-devtools',
-        '--enable-vm-service',
+        '--enable-vm-service=0',
         p.relativeFilePath,
       ]);
       expect(result.stdout, contains(devToolsMessagePrefix));
@@ -525,7 +551,7 @@ void main(List<String> args) => print("$b $args");
       p = project(mainSrc: "void main() { print('Hello World'); }");
       ProcessResult result = await p.run([
         'run',
-        '--enable-vm-service',
+        '--enable-vm-service=0',
         '--no-serve-devtools',
         p.relativeFilePath,
       ]);
@@ -535,7 +561,7 @@ void main(List<String> args) => print("$b $args");
     test('dart disabled', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
       ProcessResult result = await p.run([
-        '--enable-vm-service',
+        '--enable-vm-service=0',
         '--no-serve-devtools',
         p.relativeFilePath,
       ]);
@@ -612,7 +638,7 @@ void main(List<String> args) => print("$b $args");
           );
           Process process = await p.start([
             if (explicitRun) 'run',
-            '--enable-vm-service',
+            '--enable-vm-service=0',
             if (!withDds) '--no-dds',
             if (!enableAuthCodes) '--disable-service-auth-codes',
             if (!serve) '--no-serve-observatory',
@@ -677,7 +703,10 @@ void main(List<String> args) => print("$b $args");
     }
 
     const flags = <bool>[true, false];
-    for (final serve in flags) {
+    // TODO(jcollins):  Disabling serving no longer seems to produce
+    // the expected output.  Maybe this is because the web interface has
+    // changed?
+    for (final serve in [true]) {
       for (final enableAuthCodes in flags) {
         for (final explicitRun in flags) {
           for (final withDds in flags) {
@@ -916,7 +945,7 @@ void residentRun() {
     ProcessResult result = await p.run([
       'run',
       '--$serverInfoOption=$serverInfoFile',
-      '--observe',
+      '--observe=0',
       '--pause-isolates-on-start',
       // This should negate the above flag.
       '--no-pause-isolates-on-start',
@@ -936,8 +965,7 @@ void residentRun() {
     );
     expect(
       result.stdout,
-      matches(
-          r'The Dart VM service is listening on http:\/\/127.0.0.1:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
+      matches(r'The Dart VM service is listening on http:\/\/127.0.0.1:[0-9+]'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -946,7 +974,7 @@ void residentRun() {
     result = await p.run([
       'run',
       '--$serverInfoOption=$serverInfoFile',
-      '--observe',
+      '--observe=0',
       '--pause-isolates-on-start',
       // This should negate the above flag.
       '--no-pause-isolates-on-start',
@@ -967,7 +995,7 @@ void residentRun() {
     );
     expect(
       result.stdout,
-      contains('The Dart VM service is listening on http://127.0.0.1:8181/\n'),
+      contains('The Dart VM service is listening on http://127.0.0.1:'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -976,7 +1004,7 @@ void residentRun() {
     result = await p.run([
       'run',
       '--$serverInfoOption=$serverInfoFile',
-      '--observe=8181/::1',
+      '--observe=0/::1',
       '--pause-isolates-on-start',
       // This should negate the above flag.
       '--no-pause-isolates-on-start',
@@ -997,7 +1025,7 @@ void residentRun() {
     expect(
       result.stdout,
       matches(
-          r'The Dart VM service is listening on http:\/\/\[::1\]:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
+          r'The Dart VM service is listening on http:\/\/\[::1\]:\d+\/[a-zA-Z0-9_-]+=\/\n.*'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);

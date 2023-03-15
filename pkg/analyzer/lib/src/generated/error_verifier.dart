@@ -4024,7 +4024,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var annotation = declaration.returnType;
     if (annotation != null) {
       DartType type = annotation.typeOrThrow;
-      if (!type.isVoid) {
+      if (type is! VoidType) {
         errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR, annotation);
       }
@@ -4038,7 +4038,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForNonVoidReturnTypeForSetter(TypeAnnotation? namedType) {
     if (namedType != null) {
       DartType type = namedType.typeOrThrow;
-      if (!type.isVoid) {
+      if (type is! VoidType) {
         errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, namedType);
       }

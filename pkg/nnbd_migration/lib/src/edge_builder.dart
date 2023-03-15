@@ -2273,7 +2273,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         ? NullabilityNode.forLUB(left.node, right.node)
         : _nullabilityNodeForGLB(astNode, left.node, right.node);
 
-    if (type!.isDynamic || type.isVoid) {
+    if (type!.isDynamic || type is VoidType) {
       return DecoratedType(type, node);
     } else if (leftType!.isBottom) {
       return right.withNode(node);
@@ -3905,7 +3905,7 @@ mixin _AssignmentChecker {
         return;
       }
     } else if (destinationType.isDynamic ||
-        destinationType.isVoid ||
+        destinationType is VoidType ||
         destinationType.isDartCoreObject) {
       // No further edges need to be created, since all types are trivially
       // subtypes of dynamic, Object, and void, since all are treated as
@@ -3979,7 +3979,7 @@ mixin _AssignmentChecker {
 
     if (sourceType.isDynamic ||
         sourceType.isDartCoreObject ||
-        sourceType.isVoid) {
+        sourceType is VoidType) {
       if (destinationType is InterfaceType) {
         for (final param in destinationType.element.typeParameters) {
           assert(param.bound == null,

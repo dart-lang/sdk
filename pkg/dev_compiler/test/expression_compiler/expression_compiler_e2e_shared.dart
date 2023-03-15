@@ -96,7 +96,7 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'r.runtimeType.toString()',
-          expectedResult: 'RecordType(bool, int)');
+          expectedResult: '(bool, int)');
     });
 
     test('simple record field one', () async {
@@ -124,7 +124,7 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'cr.runtimeType.toString()',
-          expectedResult: 'RecordType(bool, IdentityMap<String, int>)');
+          expectedResult: '(bool, IdentityMap<String, int>)');
     });
 
     test('complex record field one', () async {
@@ -152,7 +152,7 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'nr.runtimeType.toString()',
-          expectedResult: 'RecordType(bool, RecordType(bool, int))');
+          expectedResult: '(bool, (bool, int))');
     });
 
     test('nested record field one', () async {

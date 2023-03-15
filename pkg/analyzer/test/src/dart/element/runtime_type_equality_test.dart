@@ -26,13 +26,13 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   }
 
   test_dynamic() {
-    _equal(dynamicNone, dynamicNone);
-    _notEqual(dynamicNone, voidNone);
-    _notEqual(dynamicNone, intNone);
+    _equal(dynamicType, dynamicType);
+    _notEqual(dynamicType, voidNone);
+    _notEqual(dynamicType, intNone);
 
-    _notEqual(dynamicNone, neverNone);
-    _notEqual(dynamicNone, neverQuestion);
-    _notEqual(dynamicNone, neverStar);
+    _notEqual(dynamicType, neverNone);
+    _notEqual(dynamicType, neverQuestion);
+    _notEqual(dynamicType, neverStar);
   }
 
   test_functionType_parameters() {
@@ -328,7 +328,7 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
   test_void() {
     _equal(voidNone, voidNone);
-    _notEqual(voidNone, dynamicNone);
+    _notEqual(voidNone, dynamicType);
     _notEqual(voidNone, intNone);
 
     _notEqual(voidNone, neverNone);

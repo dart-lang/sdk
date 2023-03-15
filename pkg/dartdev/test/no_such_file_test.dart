@@ -9,11 +9,11 @@ import 'utils.dart';
 void main() {
   late TestProject p;
 
+  setUp(() async => p = project());
   tearDown(() async => await p.dispose());
 
   test('Ensure parsing fails after encountering invalid file', () async {
     // Regression test for https://github.com/dart-lang/sdk/issues/43991
-    p = project();
     final noArgsResult = await p.run(['foo.dart']);
     expect(noArgsResult.stderr, isNotEmpty);
     expect(noArgsResult.stdout, isEmpty);
@@ -28,7 +28,6 @@ void main() {
   test('Providing --snapshot VM option with invalid script fails gracefully',
       () async {
     // Regression test for https://github.com/dart-lang/sdk/issues/43785
-    p = project();
     final result = await p.run(['--snapshot=abc', 'foo.dart']);
     expect(result.stderr, isNotEmpty);
     expect(result.stderr, contains("Error when reading 'foo.dart':"));

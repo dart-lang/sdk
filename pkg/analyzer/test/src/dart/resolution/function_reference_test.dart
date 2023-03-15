@@ -4033,6 +4033,7 @@ FunctionReference
         leftBracket: {
         rightBracket: }
     declaredElement: @36
+      type: Null Function<T>(T)
     staticType: Null Function<T>(T)
   staticType: Null Function(int)
   typeArgumentTypes

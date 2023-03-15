@@ -67,8 +67,9 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitConstantPattern(
       ConstantPattern node, CacheableExpression matchedExpression) {
-    CacheableExpression constExpression = matchingCache
-        .createConstantExpression(node.expression, node.expressionType);
+    CacheableExpression constExpression =
+        matchingCache.createConstantExpression(node.value!, node.expressionType,
+            fileOffset: node.fileOffset);
     return matchingCache.createEqualsExpression(
         constExpression,
         matchedExpression,
@@ -308,7 +309,8 @@ class MatchingExpressionVisitor
     for (MapPatternEntry entry in node.entries) {
       if (entry is MapPatternRestEntry) continue;
       CacheableExpression keyExpression =
-          matchingCache.createConstantExpression(entry.key, entry.keyType);
+          matchingCache.createConstantExpression(entry.keyValue!, entry.keyType,
+              fileOffset: entry.key.fileOffset);
 
       CacheableExpression containsExpression =
           matchingCache.createContainsKeyExpression(
@@ -553,7 +555,8 @@ class MatchingExpressionVisitor
   DelayedExpression visitRelationalPattern(
       RelationalPattern node, CacheableExpression matchedExpression) {
     CacheableExpression constant = matchingCache.createConstantExpression(
-        node.expression, node.expressionType);
+        node.expressionValue!, node.expressionType,
+        fileOffset: node.expression.fileOffset);
 
     switch (node.kind) {
       case RelationalPatternKind.equals:

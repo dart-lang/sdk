@@ -120,24 +120,30 @@ class MemberHierarchyBuilder {
   /// visited.
   void forEachOverride(
       MemberEntity entity, IterationStep Function(MemberEntity override) f) {
+    forEachOverrideSkipVisited(entity, f, {entity});
+  }
+
+  void forEachOverrideSkipVisited(
+      MemberEntity entity,
+      IterationStep Function(MemberEntity override) f,
+      Set<MemberEntity> visited) {
     final overrides = _overrides[entity];
     if (overrides == null) return;
     for (final override in overrides) {
+      if (!visited.add(override)) continue;
       final result = f(override);
       if (result == IterationStep.SKIP_SUBCLASSES) continue;
       if (result == IterationStep.STOP) return;
-      forEachOverride(override, f);
+      forEachOverrideSkipVisited(override, f, visited);
     }
   }
 
   /// Check to see if any override of [match] is a target for a subclass call on
   /// [cls]. If not then the call can be concrete rather than virtual.
   bool _subclassNeedsVirtual(MemberEntity match, ClassEntity cls) {
-    final visited = <MemberEntity>{};
     bool needsVirtual = false;
     final classHierarchy = closedWorld.classHierarchy;
     forEachOverride(match, (override) {
-      if (!visited.add(override)) return IterationStep.SKIP_SUBCLASSES;
       if (classHierarchy.isSubclassOf(override.enclosingClass!, cls) ||
           closedWorld.hasAnySubclassThatMixes(cls, override.enclosingClass!)) {
         needsVirtual = true;

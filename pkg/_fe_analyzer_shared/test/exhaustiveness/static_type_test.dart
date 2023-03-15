@@ -170,7 +170,7 @@ void main() {
     var f = env.createClass('F', inherits: [e]);
 
     // Gets subtypes for sealed type.
-    var aSubtypes = a.subtypes.toList();
+    var aSubtypes = a.getSubtypes(const {}).toList();
     expect(
         aSubtypes,
         unorderedEquals([
@@ -180,11 +180,11 @@ void main() {
         ]));
 
     // Unsealed subtype.
-    var cSubtypes = c.subtypes.toList();
+    var cSubtypes = c.getSubtypes(const {}).toList();
     expect(cSubtypes, unorderedEquals([]));
 
     // Sealed subtype.
-    var eSubtypes = e.subtypes.toList();
+    var eSubtypes = e.getSubtypes(const {}).toList();
     expect(eSubtypes, unorderedEquals([WrappedStaticType(f, e)]));
   });
 }

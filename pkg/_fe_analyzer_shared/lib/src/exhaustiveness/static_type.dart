@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'key.dart';
+import 'space.dart';
 import 'witness.dart';
 
 /// A static type in the type system.
@@ -72,7 +74,11 @@ abstract class StaticType {
   StaticType get nonNullable;
 
   /// The immediate subtypes of this type.
-  Iterable<StaticType> get subtypes;
+  ///
+  /// The [keysOfInterest] of interest are the keys used in one of the case
+  /// rows. This is used to select how a `List` type should be divided into
+  /// subtypes that should be used for testing the exhaustiveness of a list.
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest);
 
   /// Returns a textual representation of a single space consisting of this
   /// type and the provided [fields] and [additionalFields].
@@ -93,7 +99,7 @@ abstract class _BaseStaticType implements StaticType {
   StaticType? getAdditionalField(Key key) => null;
 
   @override
-  Iterable<StaticType> get subtypes => const [];
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => const [];
 
   @override
   String spaceToText(
@@ -180,7 +186,7 @@ class _NullType extends NullableStaticType {
   }
 
   @override
-  Iterable<StaticType> get subtypes {
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) {
     // Avoid splitting into [nullType] and [neverType].
     return const [];
   }
@@ -198,7 +204,8 @@ class NullableStaticType extends _BaseStaticType {
   bool get isSealed => true;
 
   @override
-  Iterable<StaticType> get subtypes => [underlying, StaticType.nullType];
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) =>
+      [underlying, StaticType.nullType];
 
   @override
   bool isSubtypeOf(StaticType other) {
@@ -287,8 +294,9 @@ class WrappedStaticType extends NonNullableStaticType {
   String get name => wrappedType.name;
 
   @override
-  Iterable<StaticType> get subtypes =>
-      wrappedType.subtypes.map((e) => new WrappedStaticType(e, impliedType));
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => wrappedType
+      .getSubtypes(keysOfInterest)
+      .map((e) => new WrappedStaticType(e, impliedType));
 
   @override
   bool isSubtypeOfInternal(StaticType other) {
@@ -305,25 +313,4 @@ class WrappedStaticType extends NonNullableStaticType {
         wrappedType == other.wrappedType &&
         impliedType == other.impliedType;
   }
-}
-
-abstract class Key {}
-
-class MapKey extends Key {
-  final Object value;
-  final String textualRepresentation;
-
-  MapKey(this.value, this.textualRepresentation);
-
-  @override
-  int get hashCode => value.hashCode;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is MapKey && value == other.value;
-  }
-
-  @override
-  String toString() => textualRepresentation;
 }

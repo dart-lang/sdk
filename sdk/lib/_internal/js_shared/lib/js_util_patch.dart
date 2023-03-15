@@ -8,26 +8,49 @@ import 'dart:_js_helper'
     show convertDartClosureToJS, assertInterop, assertInteropArgs;
 import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
+import 'dart:typed_data';
+
+bool _noJsifyRequired(Object? o) =>
+    o == null ||
+    o is bool ||
+    o is num ||
+    o is String ||
+    o is Int8List ||
+    o is Uint8List ||
+    o is Uint8ClampedList ||
+    o is Int16List ||
+    o is Uint16List ||
+    o is Int32List ||
+    o is Uint32List ||
+    o is Float32List ||
+    o is Float64List ||
+    o is ByteBuffer ||
+    o is ByteData;
 
 @patch
 dynamic jsify(Object? object) {
-  var _convertedObjects = HashMap.identity();
+  if (_noJsifyRequired(object)) {
+    return object;
+  }
+  final _convertedObjects = HashMap<Object?, Object?>.identity();
 
   Object? _convert(Object? o) {
     // Fast path for primitives.
-    if (o == null || o is bool || o is num || o is String) return o;
+    if (_noJsifyRequired(o)) {
+      return o;
+    }
     if (_convertedObjects.containsKey(o)) {
       return _convertedObjects[o];
     }
-    if (o is Map) {
+    if (o is Map<Object?, Object?>) {
       final convertedMap = JS('=Object', '{}');
       _convertedObjects[o] = convertedMap;
       for (var key in o.keys) {
         JS('=Object', '#[#]=#', convertedMap, key, _convert(o[key]));
       }
       return convertedMap;
-    } else if (o is Iterable) {
-      var convertedList = [];
+    } else if (o is Iterable<Object?>) {
+      final convertedList = [];
       _convertedObjects[o] = convertedList;
       convertedList.addAll(o.map(_convert));
       return convertedList;
@@ -505,14 +528,54 @@ DateTime _dateToDateTime(date) {
   return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
 }
 
+bool _noDartifyRequired(Object? o) =>
+    o == null ||
+    JS(
+        'bool',
+        '''typeof # === 'boolean' ||
+                      typeof # === 'number' ||
+                      typeof # === 'string' ||
+                      # instanceof Int8Array ||
+                      # instanceof Uint8Array ||
+                      # instanceof Uint8ClampedArray ||
+                      # instanceof Int16Array ||
+                      # instanceof Uint16Array ||
+                      # instanceof Int32Array ||
+                      # instanceof Uint32Array ||
+                      # instanceof Float32Array ||
+                      # instanceof Float64Array ||
+                      # instanceof ArrayBuffer ||
+                      # instanceof DataView''',
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o);
+
 @patch
 Object? dartify(Object? o) {
-  var _convertedObjects = HashMap.identity();
+  if (_noDartifyRequired(o)) {
+    return o;
+  }
+
+  final _convertedObjects = HashMap<Object?, Object?>.identity();
 
   Object? convert(Object? o) {
     // Fast path for primitives.
-    if (o == null || o is bool || o is num || o is String) return o;
-    if (_convertedObjects.containsKey(o)) {
+    if (_noDartifyRequired(o)) {
+      return o;
+    }
+
+    if (_convertedObjects.containsKey(o!)) {
       return _convertedObjects[o];
     }
 
@@ -527,32 +590,32 @@ Object? dartify(Object? o) {
     }
 
     if (_isJavaScriptPromise(o)) {
-      return promiseToFuture(o);
+      return promiseToFuture<Object?>(o);
     }
 
     if (isJavaScriptSimpleObject(o)) {
-      Map<Object?, Object?> dartObject = {};
+      final dartObject = <Object?, Object?>{};
       _convertedObjects[o] = dartObject;
-      List<Object?> originalKeys = objectKeys(o);
-      List<Object?> dartKeys = [];
-      for (Object? key in originalKeys) {
+      final originalKeys = objectKeys(o);
+      final dartKeys = <Object?>[];
+      for (final key in originalKeys) {
         dartKeys.add(dartify(key));
       }
       for (int i = 0; i < originalKeys.length; i++) {
-        Object? jsKey = originalKeys[i];
-        Object? dartKey = dartKeys[i];
+        final jsKey = originalKeys[i];
+        final dartKey = dartKeys[i];
         if (jsKey != null) {
-          dartObject[dartKey] = convert(getProperty(o, jsKey));
+          dartObject[dartKey] = convert(getProperty<Object?>(o, jsKey));
         }
       }
       return dartObject;
     }
 
     if (isJavaScriptArray(o)) {
-      var l = JS<List>('returns:List;creates:;', '#', o);
-      List<Object?> dartObject = [];
+      final l = JS<List<Object?>>('returns:List;creates:;', '#', o);
+      final dartObject = <Object?>[];
       _convertedObjects[o] = dartObject;
-      int length = getProperty(o, 'length');
+      final length = getProperty<int>(o, 'length');
       for (int i = 0; i < length; i++) {
         dartObject.add(convert(l[i]));
       }

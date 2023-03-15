@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,18 +18,6 @@ main() {
 class SdkVersionSinceTest extends SdkConstraintVerifierTest {
   @override
   List<MockSdkLibrary> additionalMockSdkLibraries = [];
-
-  @override
-  void setUp() {
-    SdkConstraintVerifier.shouldCheckSinceSdkVersion = true;
-    super.setUp();
-  }
-
-  @override
-  Future<void> tearDown() async {
-    SdkConstraintVerifier.shouldCheckSinceSdkVersion = false;
-    await super.tearDown();
-  }
 
   test_class_constructor_formalParameter_optionalNamed() async {
     _addDartFooLibrary(r'''

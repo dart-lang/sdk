@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_types.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 
 class TestEnvironment {
   late final _TypeOperations _typeOperations = new _TypeOperations(this);
@@ -384,6 +385,18 @@ class _TypeOperations implements TypeOperations<_Type> {
   @override
   _Type? getFutureOrTypeArgument(_Type type) {
     // TODO(johnniwinther): Support future or types in testing.
+    return null;
+  }
+
+  @override
+  _Type? getListElementType(_Type type) {
+    // TODO(johnniwinther): Support list types in testing.
+    return null;
+  }
+
+  @override
+  _Type? getListType(_Type type) {
+    // TODO(johnniwinther): Support list types in testing.
     return null;
   }
 

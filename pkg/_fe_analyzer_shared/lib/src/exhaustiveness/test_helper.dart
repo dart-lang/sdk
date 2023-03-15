@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
+import 'exhaustive.dart';
+import 'space.dart';
 
 import 'static_type.dart';
 
@@ -18,7 +18,14 @@ class Tags {
 }
 
 /// Returns a textual representation for [space] used for testing.
-String spacesToText(Space space) => space.toString();
+String spacesToText(Space space) {
+  String text = space.toString();
+  if (text.startsWith('[') && text.endsWith(']')) {
+    // Avoid list-like syntax which collides with the [Features] encoding.
+    return '<$text>';
+  }
+  return text;
+}
 
 /// Returns a textual representation for [fields] used for testing.
 String fieldsToText(

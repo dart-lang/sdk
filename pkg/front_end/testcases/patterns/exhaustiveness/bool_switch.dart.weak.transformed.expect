@@ -172,7 +172,10 @@ static method unreachableCase1(core::bool b) → void {
     final synthesized invalid-type #0#0 = invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:80:11: Error: Undefined name 'e'.
   switch (e) /* Ok */ {
           ^";
-    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+    function ##0#2#initializer() → core::bool
+      return #C1 =={core::Object::==}{(core::Object) → core::bool} #0#0;
+    late final synthesized core::bool #0#2 = ##0#2#initializer(){() → core::bool};
+    if(#0#2) {
       {
         core::print("true1");
         break #L8;
@@ -186,7 +189,7 @@ static method unreachableCase1(core::bool b) → void {
         }
       }
       else
-        if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        if(#0#2) {
           {
             core::print("true2");
             break #L8;
@@ -224,6 +227,9 @@ static method unreachableCase3(core::bool? b) → void {
   #L10:
   {
     final synthesized core::bool? #0#0 = b;
+    function ##0#6#initializer() → core::bool
+      return #0#0 == null;
+    late final synthesized core::bool #0#6 = ##0#6#initializer(){() → core::bool};
     if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
@@ -238,14 +244,14 @@ static method unreachableCase3(core::bool? b) → void {
         }
       }
       else
-        if(#0#0 == null) {
+        if(#0#6) {
           {
             core::print("null1");
             break #L10;
           }
         }
         else
-          if(#0#0 == null) {
+          if(#0#6) {
             {
               core::print("null2");
               break #L10;

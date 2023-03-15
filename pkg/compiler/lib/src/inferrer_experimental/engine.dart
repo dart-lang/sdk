@@ -131,9 +131,18 @@ class InferrerEngine {
   /// [mask]. If [f] returns false, aborts the iteration.
   void forEachElementMatching(
       Selector selector, AbstractValue? mask, bool f(MemberEntity element)) {
-    Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
-    for (MemberEntity e in elements) {
-      if (!f(e)) return;
+    final targets = memberHierarchyBuilder.rootsForCall(mask, selector);
+    for (final target in targets) {
+      if (!target.member.isAbstract) {
+        if (!f(target.member)) return;
+      }
+      if (target.isVirtual) {
+        memberHierarchyBuilder.forEachOverride(target.member, (override) {
+          return (override.isAbstract || f(override))
+              ? IterationStep.CONTINUE
+              : IterationStep.STOP;
+        });
+      }
     }
   }
 
@@ -649,7 +658,8 @@ class InferrerEngine {
         member,
         body,
         globalLocalsMap.getLocalsMap(member),
-        closedWorld.elementMap.getStaticTypeProvider(member));
+        closedWorld.elementMap.getStaticTypeProvider(member),
+        memberHierarchyBuilder);
     return visitor.run();
   }
 
@@ -991,7 +1001,6 @@ class InferrerEngine {
       Set<MemberEntity> visited) {
     final member = target.member;
     IterationStep handleTarget(MemberEntity override) {
-      if (!visited.add(override)) return IterationStep.SKIP_SUBCLASSES;
       if (!override.isAbstract) {
         MemberTypeInformation info = types.getInferredTypeOfMember(override);
         info.addCall(callSiteType.caller, callSite);
@@ -1004,9 +1013,12 @@ class InferrerEngine {
       return IterationStep.CONTINUE;
     }
 
-    handleTarget(member);
+    if (visited.add(member)) {
+      handleTarget(member);
+    }
     if (target.isVirtual) {
-      memberHierarchyBuilder.forEachOverride(member, handleTarget);
+      memberHierarchyBuilder.forEachOverrideSkipVisited(
+          member, handleTarget, visited);
     }
   }
 
@@ -1188,8 +1200,9 @@ class InferrerEngine {
       sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     }
 
-    closedWorld.locateMembers(selector, mask).forEach((callee) {
-      _updateSideEffects(sideEffectsBuilder, selector, callee);
+    forEachElementMatching(selector, mask, (element) {
+      _updateSideEffects(sideEffectsBuilder, selector, element);
+      return true;
     });
 
     CallSiteTypeInformation info = DynamicCallSiteTypeInformation(

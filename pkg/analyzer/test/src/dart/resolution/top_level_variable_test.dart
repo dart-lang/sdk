@@ -72,6 +72,7 @@ VariableDeclaration
               staticElement: <null>
               staticType: dynamic
           declaredElement: @99
+            type: int Function(Object?)
           parameter: ParameterMember
             base: root::@parameter::b
             substitution: {T: String}
@@ -136,6 +137,7 @@ VariableDeclaration
               staticElement: dart:core::@class::String::@getter::length
               staticType: int
           declaredElement: @107
+            type: int Function(String)
           parameter: ParameterMember
             base: root::@parameter::b
             substitution: {T: String}

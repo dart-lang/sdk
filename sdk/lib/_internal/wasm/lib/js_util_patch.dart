@@ -15,8 +15,7 @@ import "dart:wasm";
 
 @patch
 dynamic jsify(Object? object) {
-  HashMap<Object?, Object?> convertedObjects =
-      HashMap<Object?, Object?>.identity();
+  final convertedObjects = HashMap<Object?, Object?>.identity();
   Object? convert(Object? o) {
     if (convertedObjects.containsKey(o)) {
       return convertedObjects[o];
@@ -25,7 +24,6 @@ dynamic jsify(Object? object) {
     if (o == null ||
         o is num ||
         o is bool ||
-        o is Function ||
         o is JSValue ||
         o is String ||
         o is Int8List ||
@@ -42,19 +40,19 @@ dynamic jsify(Object? object) {
       return JSValue(jsifyRaw(o));
     }
 
-    if (o is Map) {
-      JSValue convertedMap = newObject<JSValue>();
+    if (o is Map<Object?, Object?>) {
+      final convertedMap = newObject<JSValue>();
       convertedObjects[o] = convertedMap;
       for (final key in o.keys) {
-        JSValue? convertedKey = convert(key) as JSValue?;
+        final convertedKey = convert(key) as JSValue?;
         setPropertyRaw(convertedMap.toExternRef(), convertedKey?.toExternRef(),
             (convert(o[key]) as JSValue?)?.toExternRef());
       }
       return convertedMap;
-    } else if (o is Iterable) {
-      JSValue convertedIterable = _newArray();
+    } else if (o is Iterable<Object?>) {
+      final convertedIterable = _newArray();
       convertedObjects[o] = convertedIterable;
-      for (Object? item in o) {
+      for (final item in o) {
         callMethod(convertedIterable, 'push', [convert(item)]);
       }
       return convertedIterable;
@@ -188,8 +186,7 @@ List<Object?> objectKeys(Object? o) =>
 
 @patch
 Object? dartify(Object? object) {
-  HashMap<Object?, Object?> convertedObjects =
-      HashMap<Object?, Object?>.identity();
+  final convertedObjects = HashMap<Object?, Object?>.identity();
   Object? convert(Object? o) {
     if (convertedObjects.containsKey(o)) {
       return convertedObjects[o];
@@ -198,8 +195,8 @@ Object? dartify(Object? object) {
     // Because [List] needs to be shallowly converted across the interop
     // boundary, we have to double check for the case where a shallowly
     // converted [List] is passed back into [dartify].
-    if (o is List) {
-      List<Object?> converted = [];
+    if (o is List<Object?>) {
+      final converted = <Object?>[];
       for (final item in o) {
         converted.add(convert(item));
       }
@@ -236,12 +233,12 @@ Object? dartify(Object? object) {
     // TODO(joshualitt) handle Date and Promise.
 
     if (isJSSimpleObject(ref)) {
-      Map<Object?, Object?> dartMap = {};
+      final dartMap = <Object?, Object?>{};
       convertedObjects[o] = dartMap;
       // Keys will be a list of Dart [String]s.
-      List<Object?> keys = objectKeys(o);
+      final keys = objectKeys(o);
       for (int i = 0; i < keys.length; i++) {
-        Object? key = keys[i];
+        final key = keys[i];
         if (key != null) {
           dartMap[key] = convert(
               JSValue.box(getPropertyRaw(ref, (key as String).toExternRef())));
@@ -249,9 +246,9 @@ Object? dartify(Object? object) {
       }
       return dartMap;
     } else if (isJSArray(ref)) {
-      List<Object?> dartList = [];
+      final dartList = <Object?>[];
       convertedObjects[o] = dartList;
-      int length = getProperty<double>(o, 'length').toInt();
+      final length = getProperty<double>(o, 'length').toInt();
       for (int i = 0; i < length; i++) {
         dartList.add(convert(JSValue.box(objectReadIndex(ref, i.toDouble()))));
       }

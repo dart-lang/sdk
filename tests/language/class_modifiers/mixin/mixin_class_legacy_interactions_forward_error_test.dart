@@ -40,7 +40,7 @@ class C with Error {}
 class D with NotAMixinClass {}
 //           ^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
-// [cfe] unspecified
+// [cfe] The class 'NotAMixinClass' can't be used as a mixin because it isn't a mixin class nor a mixin.
 
 /// Test that it is not an error to mix in a mixin class from a 3.0 non core
 /// library.

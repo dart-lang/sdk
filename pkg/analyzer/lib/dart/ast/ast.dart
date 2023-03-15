@@ -1963,6 +1963,9 @@ abstract class EnumConstantDeclaration implements Declaration {
   /// not be resolved.
   ConstructorElement? get constructorElement;
 
+  @override
+  FieldElement? get declaredElement;
+
   /// Return the name of the constant.
   Token get name;
 

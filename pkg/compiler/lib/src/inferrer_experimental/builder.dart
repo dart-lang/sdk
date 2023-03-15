@@ -26,6 +26,7 @@ import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/js_world.dart';
 import '../native/behavior.dart';
 import '../options.dart';
+import '../universe/member_hierarchy.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../util/util.dart';
@@ -50,6 +51,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   final ir.Node? _analyzedNode;
   final KernelToLocalsMap _localsMap;
   final GlobalTypeInferenceElementData _memberData;
+  final MemberHierarchyBuilder _memberHierarchyBuilder;
   final bool _inGenerativeConstructor;
 
   DartTypes get _dartTypes => _closedWorld.dartTypes;
@@ -131,6 +133,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       this._analyzedNode,
       this._localsMap,
       this._staticTypeProvider,
+      this._memberHierarchyBuilder,
       [LocalState? previousState,
       Map<Local, FieldEntity>? capturedAndBoxed])
       : this._types = _inferrer.types,
@@ -1754,13 +1757,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     if (_inGenerativeConstructor && receiver is ir.ThisExpression) {
       final typedMask = _types.newTypedSelector(receiverType, mask);
       if (!_closedWorld.includesClosureCall(selector, typedMask)) {
-        Iterable<MemberEntity> targets =
-            _closedWorld.locateMembers(selector, typedMask);
+        Iterable<DynamicCallTarget> targets =
+            _memberHierarchyBuilder.rootsForCall(typedMask, selector);
         // We just recognized a field initialization of the form:
-        // `this.foo = 42`. If there is only one target, we can update
-        // its type.
-        if (targets.length == 1) {
-          MemberEntity single = targets.first;
+        // `this.foo = 42`. If there is only one non-virtual target, we can
+        // update its type. If the target is virtual then technically overrides
+        // of the target are also valid targets and we cannot make this update.
+        if (targets.length == 1 && !targets.single.isVirtual) {
+          MemberEntity single = targets.single.member;
           if (single is FieldEntity) {
             final field = single;
             _state.updateField(field, rhsType);
@@ -2003,6 +2007,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
         functionNode,
         _localsMap,
         _staticTypeProvider,
+        _memberHierarchyBuilder,
         closureState,
         _capturedAndBoxed);
     visitor.run();

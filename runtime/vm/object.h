@@ -1814,8 +1814,6 @@ class Class : public Object {
   bool TraceAllocation(IsolateGroup* isolate_group) const;
   void SetTraceAllocation(bool trace_allocation) const;
 
-  void ReplaceEnum(ProgramReloadContext* reload_context,
-                   const Class& old_enum) const;
   void CopyStaticFieldValues(ProgramReloadContext* reload_context,
                              const Class& old_cls) const;
   void PatchFieldsAndFunctions() const;
@@ -7907,10 +7905,6 @@ class Instance : public Object {
   void RawSetUnboxedFieldAtOffset(intptr_t offset, const T& value) const {
     *RawUnboxedFieldAddrAtOffset<T>(offset) = value;
   }
-
-  static InstancePtr NewFromCidAndSize(ClassTable* class_table,
-                                       classid_t cid,
-                                       Heap::Space heap = Heap::kNew);
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);

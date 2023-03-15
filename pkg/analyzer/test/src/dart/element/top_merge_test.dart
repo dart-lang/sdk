@@ -35,7 +35,7 @@ class TopMergeTest extends AbstractTypeSystemTest {
 
   test_dynamic() {
     // NNBD_TOP_MERGE(dynamic, dynamic) = dynamic
-    _check(dynamicNone, dynamicNone, dynamicNone);
+    _check(dynamicType, dynamicType, dynamicType);
   }
 
   test_function() {
@@ -55,7 +55,7 @@ class TopMergeTest extends AbstractTypeSystemTest {
       functionTypeNone(
         returnType: voidNone,
         parameters: [
-          requiredParameter(type: dynamicNone, name: 'a'),
+          requiredParameter(type: dynamicType, name: 'a'),
         ],
       ),
       functionTypeNone(
@@ -78,7 +78,7 @@ class TopMergeTest extends AbstractTypeSystemTest {
       functionTypeNone(
         returnType: voidNone,
         parameters: [
-          requiredParameter(type: dynamicNone),
+          requiredParameter(type: dynamicType),
         ],
       ),
       functionTypeNone(
@@ -201,7 +201,7 @@ class TopMergeTest extends AbstractTypeSystemTest {
 
   test_interface() {
     _check(
-      listNone(dynamicNone),
+      listNone(dynamicType),
       listNone(objectQuestion),
       listNone(objectQuestion),
     );
@@ -269,7 +269,7 @@ class TopMergeTest extends AbstractTypeSystemTest {
 
     // NNBD_TOP_MERGE(Object?, dynamic) = Object?
     // NNBD_TOP_MERGE(dynamic, Object?) = Object?
-    _check(objectQuestion, dynamicNone, objectQuestion);
+    _check(objectQuestion, dynamicType, objectQuestion);
   }
 
   test_objectStar() {
@@ -279,7 +279,7 @@ class TopMergeTest extends AbstractTypeSystemTest {
 
     // NNBD_TOP_MERGE(Object*, dynamic) = Object?
     // NNBD_TOP_MERGE(dynamic, Object*) = Object?
-    _check(objectStar, dynamicNone, objectQuestion);
+    _check(objectStar, dynamicType, objectQuestion);
   }
 
   test_typeParameter() {
@@ -308,7 +308,7 @@ class TopMergeTest extends AbstractTypeSystemTest {
 
     // NNBD_TOP_MERGE(void, dynamic) = Object?
     // NNBD_TOP_MERGE(dynamic, void) = Object?
-    _check(voidNone, dynamicNone, objectQuestion);
+    _check(voidNone, dynamicType, objectQuestion);
   }
 
   void _check(DartType T, DartType S, DartType expected) {

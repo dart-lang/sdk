@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -88,7 +89,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
           'Only class methods or top-level functions can be converted to getters.');
     }
     // returns a value
-    if (element.returnType.isVoid) {
+    if (element.returnType is VoidType) {
       return RefactoringStatus.fatal(
           'Cannot convert ${element.kind.displayName} returning void.');
     }

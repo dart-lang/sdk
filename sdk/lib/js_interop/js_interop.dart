@@ -265,6 +265,11 @@ extension DoubleToJSNumber on double {
   external JSNumber get toJS;
 }
 
+/// [num] -> [JSNumber].
+extension NumToJSExtension on num {
+  JSNumber get toJS => DoubleToJSNumber(toDouble()).toJS;
+}
+
 /// [JSBoolean] <-> [bool]
 extension JSBooleanToBool on JSBoolean {
   external bool get toDart;

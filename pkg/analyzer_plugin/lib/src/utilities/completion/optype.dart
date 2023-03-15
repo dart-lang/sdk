@@ -256,7 +256,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (0 <= index && index < parameters.length) {
         var param = parameters[index];
         var paramType = param.type;
-        if (paramType is FunctionType && paramType.returnType.isVoid) {
+        if (paramType is FunctionType && paramType.returnType is VoidType) {
           optype.includeVoidReturnSuggestions = true;
         }
         if (param.isNamed == true) {
@@ -574,7 +574,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (parent is FunctionExpression) {
         type = parent.staticType;
         if (type is FunctionType) {
-          if (type.returnType.isVoid) {
+          if (type.returnType is VoidType) {
             // TODO(brianwilkerson) Determine whether the return type can ever
             //  be inferred as void and remove this case if it can't be.
             optype.includeVoidReturnSuggestions = true;
@@ -585,7 +585,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
               if (parameter != null) {
                 var parameterType = parameter.type;
                 if (parameterType is FunctionType &&
-                    parameterType.returnType.isVoid) {
+                    parameterType.returnType is VoidType) {
                   optype.includeVoidReturnSuggestions = true;
                 }
               }
@@ -594,7 +594,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         }
       } else if (parent is MethodDeclaration) {
         type = parent.declaredElement?.returnType;
-        if (type != null && type.isVoid) {
+        if (type != null && type is VoidType) {
           optype.includeVoidReturnSuggestions = true;
         }
       }

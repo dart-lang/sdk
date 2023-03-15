@@ -109,7 +109,7 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     _check1(neverQuestion, 'Never?');
     _check1(neverStar, 'Never*');
 
-    _check1(dynamicNone, 'dynamic');
+    _check1(dynamicType, 'dynamic');
 
     _check1(
       functionTypeNone(returnType: stringNone, parameters: [
@@ -234,7 +234,7 @@ class GreatestClosureWithoutNullSafetyTest
     _check1(neverStar, 'Never*');
     _check1(nullStar, 'Null*');
 
-    _check1(dynamicNone, 'dynamic');
+    _check1(dynamicType, 'dynamic');
 
     _check1(
       functionTypeStar(returnType: stringStar, parameters: [

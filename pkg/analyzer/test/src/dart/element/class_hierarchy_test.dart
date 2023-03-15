@@ -53,7 +53,7 @@ class ClassHierarchyTest extends AbstractTypeSystemTest
 
   test_valid_merge() {
     _checkA(
-      typeArguments: [objectQuestion, dynamicNone],
+      typeArguments: [objectQuestion, dynamicType],
       interfaces: ['A<Object?>'],
     );
   }

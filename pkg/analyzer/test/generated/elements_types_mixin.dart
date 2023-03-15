@@ -47,9 +47,7 @@ mixin ElementsTypesMixin {
     return interfaceTypeStar(element);
   }
 
-  DartType get dynamicNone => DynamicTypeImpl.instance;
-
-  DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
+  DartType get dynamicType => DynamicTypeImpl.instance;
 
   InterfaceType get functionNone {
     var element = typeProvider.functionType.element;

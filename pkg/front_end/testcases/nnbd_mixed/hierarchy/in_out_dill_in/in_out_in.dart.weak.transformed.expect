@@ -316,7 +316,7 @@ library /*isNonNullableByDefault*/;
 import self as in_2;
 import "dart:core" as core;
 
-class Super extends core::Object {
+mixin class Super extends core::Object {
   synthetic constructor •() → in_2::Super
     : super core::Object::•()
     ;
@@ -335,7 +335,7 @@ abstract class SuperExtra extends core::Object {
   method optionalArgumentsMethod(core::int i, [core::int? j = #C1]) → core::int
     return i;
 }
-abstract class SuperQ extends core::Object {
+abstract mixin class SuperQ extends core::Object {
   synthetic constructor •() → in_2::SuperQ
     : super core::Object::•()
     ;

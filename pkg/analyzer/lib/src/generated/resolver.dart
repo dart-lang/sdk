@@ -92,6 +92,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
@@ -619,7 +620,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         errorCode = CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY;
       } else {
         var returnTypeBase = typeSystem.futureOrBase(returnType);
-        if (returnTypeBase.isVoid ||
+        if (returnTypeBase is VoidType ||
             returnTypeBase.isDynamic ||
             returnTypeBase.isDartCoreNull) {
           return;
@@ -3609,7 +3610,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         final targetFutureType = instanceOfFuture.typeArguments.first;
         final expectedReturnType = typeProvider.futureOrType(targetFutureType);
         final returnTypeBase = typeSystem.futureOrBase(expectedReturnType);
-        if (returnTypeBase.isVoid ||
+        if (returnTypeBase is VoidType ||
             returnTypeBase.isDynamic ||
             returnTypeBase.isDartCoreNull) {
           return;
@@ -3677,9 +3678,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       genericMetadataIsEnabled: genericMetadataIsEnabled,
     );
     inferrer.constrainReturnType(declaredType, contextType);
-    return inferrer.partialInfer().map((typeArgument) {
+    return inferrer.partialInfer().mapIndexed((index, typeArgument) {
       if (typeArgument is UnknownInferredType) {
-        return typeProvider.dynamicType;
+        final bound = typeParameters[index].bound;
+        return bound ?? typeProvider.dynamicType;
       } else {
         return typeArgument;
       }
@@ -3981,16 +3983,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } else if (nameNode is EnumConstantArguments) {
       var parent = nameNode.parent;
       if (parent is EnumConstantDeclaration) {
-        var declaredElement = parent.declaredElement;
-        if (declaredElement is VariableElement) {
-          name = declaredElement.type.getDisplayString(withNullability: true);
-        }
-      }
-    } else if (nameNode is EnumConstantDeclaration) {
-      var declaredElement = nameNode.declaredElement;
-      if (declaredElement is VariableElement) {
+        var declaredElement = parent.declaredElement!;
         name = declaredElement.type.getDisplayString(withNullability: true);
       }
+    } else if (nameNode is EnumConstantDeclaration) {
+      var declaredElement = nameNode.declaredElement!;
+      name = declaredElement.type.getDisplayString(withNullability: true);
     } else if (nameNode is Annotation) {
       var nameNodeName = nameNode.name;
       name = nameNodeName is PrefixedIdentifier

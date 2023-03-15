@@ -5,9 +5,10 @@
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/test_helper.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -71,9 +72,11 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
       List<Space>? caseSpaces = _exhaustivenessData.switchCases[node];
       if (scrutineeType != null && caseSpaces != null) {
         Set<String> fieldsOfInterest = {};
+        Set<Key> keysOfInterest = {};
         for (Space caseSpace in caseSpaces) {
           for (SingleSpace singleSpace in caseSpace.singleSpaces) {
             fieldsOfInterest.addAll(singleSpace.fields.keys);
+            keysOfInterest.addAll(singleSpace.additionalFields.keys);
           }
         }
         features[Tags.scrutineeType] = staticTypeToText(scrutineeType);
@@ -81,13 +84,14 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
           features[Tags.scrutineeFields] =
               fieldsToText(scrutineeType.fields, fieldsOfInterest);
         }
-        String? subtypes = typesToText(scrutineeType.subtypes);
+        String? subtypes =
+            typesToText(scrutineeType.getSubtypes(keysOfInterest));
         if (subtypes != null) {
           features[Tags.subtypes] = subtypes;
         }
         if (scrutineeType.isSealed) {
           String? expandedSubtypes =
-              typesToText(expandSealedSubtypes(scrutineeType));
+              typesToText(expandSealedSubtypes(scrutineeType, keysOfInterest));
           if (subtypes != expandedSubtypes && expandedSubtypes != null) {
             features[Tags.expandedSubtypes] = expandedSubtypes;
           }

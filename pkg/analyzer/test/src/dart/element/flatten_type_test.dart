@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class FlattenTypeTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _check(dynamicNone, 'dynamic');
+    _check(dynamicType, 'dynamic');
   }
 
   test_interfaceType() {
@@ -144,7 +144,7 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
 @reflectiveTest
 class FutureTypeTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _check(dynamicNone, null);
+    _check(dynamicType, null);
   }
 
   test_functionType() {

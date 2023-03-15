@@ -94,7 +94,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
       return;
     }
     var returnType = element.returnType;
-    if (returnType.isVoid) {
+    if (returnType is VoidType) {
       if (opType.includeVoidReturnSuggestions) {
         builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
       }

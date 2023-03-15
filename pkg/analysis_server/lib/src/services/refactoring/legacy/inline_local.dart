@@ -120,7 +120,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     var state = _initialState!;
     // remove declaration
     {
-      var range = utils.getLinesRangeStatements([(state.declarationStatement)]);
+      var range = utils.getLinesRangeStatements([state.declarationStatement]);
       doSourceChange_addElementEdit(
           change, unitElement, newSourceEdit_range(range, ''));
     }

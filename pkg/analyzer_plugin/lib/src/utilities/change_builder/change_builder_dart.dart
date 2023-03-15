@@ -484,7 +484,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           selectHere();
           writeln();
         }
-      } else if (returnType.isVoid) {
+      } else if (returnType is VoidType) {
         if (invokeSuper) {
           writeln();
           write(prefix2);
