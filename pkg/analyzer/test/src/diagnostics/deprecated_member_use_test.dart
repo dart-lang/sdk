@@ -785,6 +785,36 @@ class C {
 ''');
   }
 
+  test_inDeprecatedEnum() async {
+    await assertNoErrorsInCode(r'''
+@deprecated
+void f() {}
+
+@deprecated
+enum E {
+  one, two;
+
+  void m() {
+    f();
+  }
+}
+''');
+  }
+
+  test_inDeprecatedExtension() async {
+    await assertNoErrorsInCode(r'''
+@deprecated
+void f() {}
+
+@deprecated
+extension E on int {
+  void m() {
+    f();
+  }
+}
+''');
+  }
+
   test_inDeprecatedField() async {
     await assertNoErrorsInCode(r'''
 @deprecated
@@ -889,6 +919,38 @@ f(A a) {
 }
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 67, 4),
+    ]);
+  }
+
+  test_inEnum() async {
+    await assertErrorsInCode(r'''
+@deprecated
+void f() {}
+
+enum E {
+  one, two;
+
+  void m() {
+    f();
+  }
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 64, 1),
+    ]);
+  }
+
+  test_inExtension() async {
+    await assertErrorsInCode(r'''
+@deprecated
+void f() {}
+
+extension E on int {
+  void m() {
+    f();
+  }
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 63, 1),
     ]);
   }
 
