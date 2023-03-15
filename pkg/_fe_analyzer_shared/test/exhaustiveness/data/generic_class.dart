@@ -22,7 +22,7 @@ switchANum(A<num> o) {
   };
   var b = /*type=A<num>*/
   switch (o) {
-    A<dynamic>() /*cfe.space=A<num>*//*analyzer.space=A<dynamic>*/=> 0,
+    A<dynamic>() /*space=A<num>*/=> 0,
   };
   var c = /*type=A<num>*/
   switch (o) {
@@ -31,7 +31,7 @@ switchANum(A<num> o) {
   var d1 = /*type=A<num>*/
   switch (o) {
     A<int>() /*space=A<int>*/=> 0,
-    _ /*space=()*/=> 1,
+    _ /*space=A<num>*/=> 1,
   };
   var d2 = /*
    error=non-exhaustive:A<num>,
@@ -49,7 +49,7 @@ switchAGeneric<T>(A<T> o) {
   };
   var b = /*type=A<T>*/
   switch (o) {
-    A<dynamic>() /*cfe.space=A<T>*//*analyzer.space=A<dynamic>*/=> 0,
+    A<dynamic>() /*space=A<T>*/=> 0,
   };
   var c = /*type=A<T>*/
   switch (o) {
@@ -58,7 +58,7 @@ switchAGeneric<T>(A<T> o) {
   var d1 = /*type=A<T>*/
   switch (o) {
     A<int>() /*space=A<int>*/=> 0,
-    _ /*space=()*/=> 1,
+    _ /*space=A<T>*/=> 1,
   };
   var d2 = /*
    error=non-exhaustive:A<T>,

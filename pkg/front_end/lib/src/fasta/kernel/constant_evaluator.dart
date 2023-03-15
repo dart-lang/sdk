@@ -1114,7 +1114,7 @@ class ConstantsTransformer extends RemovingTransformer {
     PatternConverter patternConverter =
         new PatternConverter(exhaustivenessCache, {}, {}, _staticTypeContext!);
     for (PatternGuard patternGuard in patternGuards) {
-      cases.add(patternConverter.createRootSpace(patternGuard.pattern,
+      cases.add(patternConverter.createRootSpace(type, patternGuard.pattern,
           hasGuard: patternGuard.guard != null));
     }
     List<ExhaustivenessError> errors =

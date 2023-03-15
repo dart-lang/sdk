@@ -17,7 +17,10 @@ class E extends B {}
 and(A o1, A o2) {
   var a = /*type=A*/switch (o1) {
     A() && var a /*space=A*/=> 0,
-    _ /*space=()*/=> 1,
+    _ /*
+     error=unreachable,
+     space=A
+    */=> 1,
   };
 
   var b = /*type=A*/switch (o1) {

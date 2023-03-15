@@ -10,19 +10,28 @@ membersMethod(o) {
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
-    Typedef(:var hashCode) /*cfe.space=<invalid>(hashCode: int)*//*analyzer.space=Object?(hashCode: ())*/=> hashCode,
+    Typedef(:var hashCode) /*cfe.space=<invalid>(hashCode: int)*//*analyzer.space=Object?(hashCode: int)*/=> hashCode,
     Typedef(:var runtimeType) /*cfe.
      error=unreachable,
      space=<invalid>(runtimeType: Type)
-    *//*analyzer.space=Object?(runtimeType: ())*/=> runtimeType,
+    *//*analyzer.
+     error=unreachable,
+     space=Object?(runtimeType: Type)
+    */=> runtimeType,
     Typedef(:var toString) /*cfe.
      error=unreachable,
      space=<invalid>(toString: String Function())
-    *//*analyzer.space=Object?(toString: ())*/=> toString(),
+    *//*analyzer.
+     error=unreachable,
+     space=Object?(toString: String Function())
+    */=> toString(),
     Typedef(:var noSuchMethod) /*cfe.
      error=unreachable,
      space=<invalid>(noSuchMethod: dynamic Function(Invocation))
-    *//*analyzer.space=Object?(noSuchMethod: ())*/=> noSuchMethod,
+    *//*analyzer.
+     error=unreachable,
+     space=Object?(noSuchMethod: dynamic Function(Invocation))
+    */=> noSuchMethod,
     _ /*cfe.space=()*//*analyzer.
      error=unreachable,
      space=()
@@ -121,18 +130,27 @@ unreachableMethod(Typedef o) {
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
-    Typedef(:var hashCode) /*cfe.space=<invalid>(hashCode: int)*//*analyzer.space=Object?(hashCode: ())*/=> hashCode,
+    Typedef(:var hashCode) /*cfe.space=<invalid>(hashCode: int)*//*analyzer.space=Object?(hashCode: int)*/=> hashCode,
     Typedef(:var runtimeType) /*cfe.
      error=unreachable,
      space=<invalid>(runtimeType: Type)
-    *//*analyzer.space=Object?(runtimeType: ())*/=> runtimeType,
+    *//*analyzer.
+     error=unreachable,
+     space=Object?(runtimeType: Type)
+    */=> runtimeType,
     Typedef(:var toString) /*cfe.
      error=unreachable,
      space=<invalid>(toString: String Function())
-    *//*analyzer.space=Object?(toString: ())*/=> toString(),
+    *//*analyzer.
+     error=unreachable,
+     space=Object?(toString: String Function())
+    */=> toString(),
     Typedef(:var noSuchMethod) /*cfe.
      error=unreachable,
      space=<invalid>(noSuchMethod: dynamic Function(Invocation))
-    *//*analyzer.space=Object?(noSuchMethod: ())*/=> noSuchMethod,
+    *//*analyzer.
+     error=unreachable,
+     space=Object?(noSuchMethod: dynamic Function(Invocation))
+    */=> noSuchMethod,
   };
 }

@@ -353,6 +353,9 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
   });
 
   @override
+  ObjectFieldLookup get objectFieldLookup => cache;
+
+  @override
   TypeOperations<DartType> get typeOperations => cache.typeOperations;
 
   @override
@@ -367,9 +370,8 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
   }
 
   @override
-  StaticType createStaticType(DartType type, {required bool nonNull}) {
-    final staticType = cache.getStaticType(type);
-    return nonNull ? staticType.nonNullable : staticType;
+  StaticType createStaticType(DartType type) {
+    return cache.getStaticType(type);
   }
 
   @override
@@ -378,10 +380,11 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
   }
 
   @override
-  Space dispatchPattern(Path path, DartPattern pattern,
+  Space dispatchPattern(Path path, StaticType contextType, DartPattern pattern,
       {required bool nonNull}) {
     if (pattern is DeclaredVariablePatternImpl) {
-      return createVariableSpace(path, pattern.declaredElement!.type,
+      return createVariableSpace(
+          path, contextType, pattern.declaredElement!.type,
           nonNull: nonNull);
     } else if (pattern is ObjectPattern) {
       final fields = <String, DartPattern>{};
@@ -393,10 +396,11 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         }
         fields[name] = field.pattern;
       }
-      return createObjectSpace(path, pattern.type.typeOrThrow, fields,
+      return createObjectSpace(
+          path, contextType, pattern.type.typeOrThrow, fields,
           nonNull: nonNull);
     } else if (pattern is WildcardPattern) {
-      return createWildcardSpace(path, pattern.type?.typeOrThrow,
+      return createWildcardSpace(path, contextType, pattern.type?.typeOrThrow,
           nonNull: nonNull);
     } else if (pattern is RecordPatternImpl) {
       final positionalTypes = <DartType>[];
@@ -425,22 +429,24 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         nullabilitySuffix: NullabilitySuffix.none,
       );
       return createRecordSpace(
-          path, recordType, positionalPatterns, namedPatterns);
+          path, contextType, recordType, positionalPatterns, namedPatterns);
     } else if (pattern is LogicalOrPattern) {
       return createLogicalOrSpace(
-          path, pattern.leftOperand, pattern.rightOperand,
+          path, contextType, pattern.leftOperand, pattern.rightOperand,
           nonNull: nonNull);
     } else if (pattern is NullCheckPattern) {
-      return createNullCheckSpace(path, pattern.pattern);
+      return createNullCheckSpace(path, contextType, pattern.pattern);
     } else if (pattern is ParenthesizedPattern) {
-      return dispatchPattern(path, pattern.pattern, nonNull: nonNull);
+      return dispatchPattern(path, contextType, pattern.pattern,
+          nonNull: nonNull);
     } else if (pattern is NullAssertPattern) {
-      return createNullAssertSpace(path, pattern.pattern);
+      return createNullAssertSpace(path, contextType, pattern.pattern);
     } else if (pattern is CastPattern) {
-      return createCastSpace(path, pattern.pattern, nonNull: nonNull);
+      return createCastSpace(path, contextType, pattern.pattern,
+          nonNull: nonNull);
     } else if (pattern is LogicalAndPattern) {
       return createLogicalAndSpace(
-          path, pattern.leftOperand, pattern.rightOperand,
+          path, contextType, pattern.leftOperand, pattern.rightOperand,
           nonNull: nonNull);
     } else if (pattern is RelationalPattern) {
       return createRelationalSpace(path);

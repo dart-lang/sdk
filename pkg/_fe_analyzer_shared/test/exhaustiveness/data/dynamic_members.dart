@@ -12,10 +12,19 @@ membersMethod(o) {
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
-    Typedef(:var hashCode) /*space=Object?(hashCode: ())*/=> hashCode,
-    Typedef(:var runtimeType) /*space=Object?(runtimeType: ())*/=> runtimeType,
-    Typedef(:var toString) /*space=Object?(toString: ())*/=> toString(),
-    Typedef(:var noSuchMethod) /*space=Object?(noSuchMethod: ())*/=> noSuchMethod,
+    Typedef(:var hashCode) /*space=Object?(hashCode: int)*/=> hashCode,
+    Typedef(:var runtimeType) /*
+     error=unreachable,
+     space=Object?(runtimeType: Type)
+    */=> runtimeType,
+    Typedef(:var toString) /*
+     error=unreachable,
+     space=Object?(toString: String Function())
+    */=> toString(),
+    Typedef(:var noSuchMethod) /*
+     error=unreachable,
+     space=Object?(noSuchMethod: dynamic Function(Invocation))
+    */=> noSuchMethod,
     _ /*
      error=unreachable,
      space=()
@@ -91,9 +100,18 @@ unreachableMethod(Typedef o) {
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
-    Typedef(:var hashCode) /*space=Object?(hashCode: ())*/=> hashCode,
-    Typedef(:var runtimeType) /*space=Object?(runtimeType: ())*/=> runtimeType,
-    Typedef(:var toString) /*space=Object?(toString: ())*/=> toString(),
-    Typedef(:var noSuchMethod) /*space=Object?(noSuchMethod: ())*/=> noSuchMethod,
+    Typedef(:var hashCode) /*space=Object?(hashCode: int)*/=> hashCode,
+    Typedef(:var runtimeType) /*
+     error=unreachable,
+     space=Object?(runtimeType: Type)
+    */=> runtimeType,
+    Typedef(:var toString) /*
+     error=unreachable,
+     space=Object?(toString: String Function())
+    */=> toString(),
+    Typedef(:var noSuchMethod) /*
+     error=unreachable,
+     space=Object?(noSuchMethod: dynamic Function(Invocation))
+    */=> noSuchMethod,
   };
 }

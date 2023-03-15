@@ -27,7 +27,7 @@ typedMap(Map<int, A> map) {
     {} /*cfe.space=<int, A>{}*//*analyzer.space={}*/=> 0,
     {0: B b} /*cfe.space=<int, A>{0: B}*//*analyzer.space={0: B}*/=> 1,
     {0: C c} /*cfe.space=<int, A>{0: C}*//*analyzer.space={0: C}*/=> 2,
-    {0: _, 1: _} /*cfe.space=<int, A>{0: (), 1: ()}*//*analyzer.space={0: (), 1: ()}*/=> 3,
+    {0: _, 1: _} /*cfe.space=<int, A>{0: A, 1: A}*//*analyzer.space={0: (), 1: ()}*/=> 3,
     {0: B b, ... } /*cfe.space=<int, A>{0: B, ...}*//*analyzer.space={0: B, ...}*/=> 4,
     {0: C c, ... _} /*cfe.space=<int, A>{0: C, ...}*//*analyzer.space={0: C, ...}*/=> 5,
   };
@@ -43,11 +43,17 @@ typedMap(Map<int, A> map) {
   };
   var d = /*type=Map<int, B>*/switch (map) {
     {...} /*cfe.space=<int, B>{...}*//*analyzer.space={...}*/=> 0,
-    {1: _} /*cfe.space=<int, B>{1: ()}*//*analyzer.
+    {1: _} /*cfe.
+     error=unreachable,
+     space=<int, B>{1: B}
+    *//*analyzer.
      error=unreachable,
      space={1: ()}
     */=> 1,
-    {2: _, ...} /*cfe.space=<int, B>{2: (), ...}*//*analyzer.
+    {2: _, ...} /*cfe.
+     error=unreachable,
+     space=<int, B>{2: B, ...}
+    *//*analyzer.
      error=unreachable,
      space={2: (), ...}
     */=> 2,
@@ -75,7 +81,7 @@ unreachableAfterRestOnlyTyped(Map o) {
     {...} /*space={...}*/=> 0,
     <int, String>{0: _} /*
      error=unreachable,
-     space=<int, String>{0: ()}
+     space=<int, String>{0: String}
     */=> 1,
   };
 }
@@ -165,7 +171,7 @@ nonExhaustiveAfterSameKeys(Map o) {
 reachableAfterRestOnlyDifferentTypes(Map o) {
   return /*type=Map<dynamic, dynamic>*/switch (o) {
     <int, String>{...} /*space=<int, String>{...}*/=> 0,
-    <int, bool>{0: _} /*space=<int, bool>{0: ()}*/=> 1,
+    <int, bool>{0: _} /*space=<int, bool>{0: bool}*/=> 1,
     {...} /*space={...}*/=> 2,
   };
 }
@@ -176,7 +182,7 @@ nonExhaustiveAfterRestOnlyDifferentTypes(Map o) {
    type=Map<dynamic, dynamic>
   */switch (o) {
     <int, String>{...} /*space=<int, String>{...}*/=> 0,
-    <int, bool>{0: _} /*space=<int, bool>{0: ()}*/=> 1,
+    <int, bool>{0: _} /*space=<int, bool>{0: bool}*/=> 1,
   };
 }
 
@@ -200,16 +206,16 @@ nonExhaustiveAfterRestOnlyEmptyDifferentTypes(Map o) {
 
 reachableAfterRestDifferentTypes(Map o) {
     return /*type=Map<dynamic, dynamic>*/switch (o) {
-    <int, String>{0: _, ...} /*space=<int, String>{0: (), ...}*/=> 0,
-    <int, bool>{0: _} /*space=<int, bool>{0: ()}*/=> 1,
+    <int, String>{0: _, ...} /*space=<int, String>{0: String, ...}*/=> 0,
+    <int, bool>{0: _} /*space=<int, bool>{0: bool}*/=> 1,
     {...} /*space={...}*/=> 2,
   };
 }
 
 nonExhaustiveAfterRestDifferentTypes(Map o) {
   return /*type=Map<dynamic, dynamic>*/switch (o) {
-    <int, String>{0: _, ...} /*space=<int, String>{0: (), ...}*/=> 0,
-    <int, bool>{0: _} /*space=<int, bool>{0: ()}*/=> 1,
+    <int, String>{0: _, ...} /*space=<int, String>{0: String, ...}*/=> 0,
+    <int, bool>{0: _} /*space=<int, bool>{0: bool}*/=> 1,
     {...} /*space={...}*/=> 2,
   };
 }
@@ -252,8 +258,8 @@ nonExhaustiveAfterDifferentKeys(Map o) {
 
 reachableAfterDifferentTypes(Map o) {
   return /*type=Map<dynamic, dynamic>*/switch (o) {
-    <int, String>{0: _} /*space=<int, String>{0: ()}*/=> 0,
-    <int, bool>{0: _} /*space=<int, bool>{0: ()}*/=> 1,
+    <int, String>{0: _} /*space=<int, String>{0: String}*/=> 0,
+    <int, bool>{0: _} /*space=<int, bool>{0: bool}*/=> 1,
     {...} /*space={...}*/=> 2,
   };
 }
@@ -263,7 +269,7 @@ nonExhaustiveAfterDifferentTypes(Map o) {
    error=non-exhaustive:Map<dynamic, dynamic>,
    type=Map<dynamic, dynamic>
   */switch (o) {
-    <int, String>{0: _} /*space=<int, String>{0: ()}*/=> 0,
-    <int, bool>{0: _} /*space=<int, bool>{0: ()}*/=> 1,
+    <int, String>{0: _} /*space=<int, String>{0: String}*/=> 0,
+    <int, bool>{0: _} /*space=<int, bool>{0: bool}*/=> 1,
   };
 }

@@ -172,7 +172,7 @@ exhaustiveSwitchCatchAll<T extends A<T>>(A<T> a, Enum<T> e) {
     case Enum.c:
       print('c');
       break;
-    /*space=Enum<A<T>>*/
+    /*space=Enum<T>*/
     case Enum<A<T>> d:
       print('_');
       break;

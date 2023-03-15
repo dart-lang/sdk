@@ -316,6 +316,8 @@ class ExhaustivenessCache<
 mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   TypeOperations<Type> get typeOperations;
 
+  ObjectFieldLookup get objectFieldLookup;
+
   /// Creates a [StaticType] for an unknown type.
   ///
   /// This is used when the type of the pattern is unknown or can't be
@@ -323,9 +325,22 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// is neither matches anything nor is matched by anything.
   StaticType createUnknownStaticType();
 
-  /// Creates the [StaticType] for [type]. If [nonNull] is `true`, the created
-  /// type is non-nullable.
-  StaticType createStaticType(Type type, {required bool nonNull});
+  /// Creates the [StaticType] for [type].
+  StaticType createStaticType(Type type);
+
+  /// Creates the [StaticType] for [type] restricted by the [contextType].
+  /// If [nonNull] is `true`, the created type is non-nullable.
+  StaticType _createStaticTypeWithContext(StaticType contextType, Type type,
+      {required bool nonNull}) {
+    StaticType staticType = createStaticType(type);
+    if (contextType.isSubtypeOf(staticType)) {
+      staticType = contextType;
+    }
+    if (nonNull && staticType is NullableStaticType) {
+      staticType = staticType.underlying;
+    }
+    return staticType;
+  }
 
   /// Creates the [StaticType] for the list [type] with the given [identity].
   StaticType createListType(Type type, ListTypeIdentity<Type> identity);
@@ -335,15 +350,26 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
 
   /// Creates the [Space] for [pattern] at the given [path].
   ///
+  /// The [contextType] is the [StaticType] in which the pattern match is
+  /// performed. This is used to the restrict type of the created [Space] to
+  /// the types allowed by the context. For instance `Object(:var hashCode)` is
+  /// in itself unrestricted and would yield the top space for matching
+  /// `var hashCode`. Using the [contextType] `int`, as given by the type of
+  /// the `Object.hashCode`, the created space is all `int` values rather than
+  /// all values.
+  ///
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
-  Space dispatchPattern(Path path, Pattern pattern, {required bool nonNull});
+  Space dispatchPattern(Path path, StaticType contextType, Pattern pattern,
+      {required bool nonNull});
 
   /// Creates the root space for [pattern].
-  Space createRootSpace(Pattern pattern, {required bool hasGuard}) {
+  Space createRootSpace(StaticType contextType, Pattern pattern,
+      {required bool hasGuard}) {
     if (hasGuard) {
       return createUnknownSpace(const Path.root());
     } else {
-      return dispatchPattern(const Path.root(), pattern, nonNull: false);
+      return dispatchPattern(const Path.root(), contextType, pattern,
+          nonNull: false);
     }
   }
 
@@ -351,59 +377,73 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// [type].
   ///
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
-  Space createVariableSpace(Path path, Type type, {required bool nonNull}) {
-    return new Space(path, createStaticType(type, nonNull: nonNull));
+  Space createVariableSpace(Path path, StaticType contextType, Type type,
+      {required bool nonNull}) {
+    StaticType staticType =
+        _createStaticTypeWithContext(contextType, type, nonNull: nonNull);
+    return new Space(path, staticType);
   }
 
   /// Creates the [Space] at [path] for an object pattern of the required [type]
   /// and [fieldPatterns].
   ///
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
-  Space createObjectSpace(
-      Path path, Type type, Map<String, Pattern> fieldPatterns,
+  Space createObjectSpace(Path path, StaticType contextType, Type type,
+      Map<String, Pattern> fieldPatterns,
       {required bool nonNull}) {
+    StaticType staticType =
+        _createStaticTypeWithContext(contextType, type, nonNull: nonNull);
     Map<String, Space> fields = <String, Space>{};
     for (MapEntry<String, Pattern> entry in fieldPatterns.entries) {
       String name = entry.key;
-      fields[name] =
-          dispatchPattern(path.add(name), entry.value, nonNull: false);
+      StaticType fieldType = staticType.getField(objectFieldLookup, name) ??
+          StaticType.nullableObject;
+      fields[name] = dispatchPattern(path.add(name), fieldType, entry.value,
+          nonNull: false);
     }
-    StaticType staticType = createStaticType(type, nonNull: nonNull);
     return new Space(path, staticType, fields: fields);
   }
 
   /// Creates the [Space] at [path] for a record pattern of the required [type],
   /// [positionalFields], and [namedFields].
-  Space createRecordSpace(Path path, Type recordType,
+  Space createRecordSpace(Path path, StaticType contextType, Type recordType,
       List<Pattern> positionalFields, Map<String, Pattern> namedFields) {
+    StaticType staticType =
+        _createStaticTypeWithContext(contextType, recordType, nonNull: true);
     Map<String, Space> fields = <String, Space>{};
     for (int index = 0; index < positionalFields.length; index++) {
       String name = '\$${index + 1}';
-      fields[name] = dispatchPattern(path.add(name), positionalFields[index],
+      StaticType fieldType = staticType.getField(objectFieldLookup, name) ??
+          StaticType.nullableObject;
+      fields[name] = dispatchPattern(
+          path.add(name), fieldType, positionalFields[index],
           nonNull: false);
     }
     for (MapEntry<String, Pattern> entry in namedFields.entries) {
       String name = entry.key;
-      fields[name] =
-          dispatchPattern(path.add(name), entry.value, nonNull: false);
+      StaticType fieldType = staticType.getField(objectFieldLookup, name) ??
+          StaticType.nullableObject;
+      fields[name] = dispatchPattern(path.add(name), fieldType, entry.value,
+          nonNull: false);
     }
-    return new Space(path, createStaticType(recordType, nonNull: true),
-        fields: fields);
+    return new Space(path, staticType, fields: fields);
   }
 
   /// Creates the [Space] at [path] for a wildcard pattern with the declared
   /// [type].
   ///
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
-  Space createWildcardSpace(Path path, Type? type, {required bool nonNull}) {
+  Space createWildcardSpace(Path path, StaticType contextType, Type? type,
+      {required bool nonNull}) {
     if (type == null) {
-      if (nonNull) {
-        return new Space(path, StaticType.nonNullableObject);
-      } else {
-        return new Space(path, StaticType.nullableObject);
+      StaticType staticType = contextType;
+      if (nonNull && staticType is NullableStaticType) {
+        staticType = staticType.underlying;
       }
+      return new Space(path, staticType);
     } else {
-      StaticType staticType = createStaticType(type, nonNull: nonNull);
+      StaticType staticType =
+          _createStaticTypeWithContext(contextType, type, nonNull: nonNull);
       return new Space(path, staticType);
     }
   }
@@ -418,23 +458,25 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// [subPattern].
   ///
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
-  Space createCastSpace(Path path, Pattern subPattern,
+  Space createCastSpace(Path path, StaticType contextType, Pattern subPattern,
       {required bool nonNull}) {
     // TODO(johnniwinther): Handle types (sibling sealed types?) implicitly
     // handled by the throw of the invalid cast.
-    return dispatchPattern(path, subPattern, nonNull: nonNull);
+    return dispatchPattern(path, contextType, subPattern, nonNull: nonNull);
   }
 
   /// Creates the [Space] at [path] for a null check pattern with the given
   /// [subPattern].
-  Space createNullCheckSpace(Path path, Pattern subPattern) {
-    return dispatchPattern(path, subPattern, nonNull: true);
+  Space createNullCheckSpace(
+      Path path, StaticType contextType, Pattern subPattern) {
+    return dispatchPattern(path, contextType, subPattern, nonNull: true);
   }
 
   /// Creates the [Space] at [path] for a null assert pattern with the given
   /// [subPattern].
-  Space createNullAssertSpace(Path path, Pattern subPattern) {
-    Space space = dispatchPattern(path, subPattern, nonNull: true);
+  Space createNullAssertSpace(
+      Path path, StaticType contextType, Pattern subPattern) {
+    Space space = dispatchPattern(path, contextType, subPattern, nonNull: true);
     return space.union(new Space(path, StaticType.nullType));
   }
 
@@ -442,10 +484,11 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// [left] and [right] subpatterns.
   ///
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
-  Space createLogicalOrSpace(Path path, Pattern left, Pattern right,
+  Space createLogicalOrSpace(
+      Path path, StaticType contextType, Pattern left, Pattern right,
       {required bool nonNull}) {
-    Space aSpace = dispatchPattern(path, left, nonNull: nonNull);
-    Space bSpace = dispatchPattern(path, right, nonNull: nonNull);
+    Space aSpace = dispatchPattern(path, contextType, left, nonNull: nonNull);
+    Space bSpace = dispatchPattern(path, contextType, right, nonNull: nonNull);
     return aSpace.union(bSpace);
   }
 
@@ -453,10 +496,11 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// [left] and [right] subpatterns.
   ///
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
-  Space createLogicalAndSpace(Path path, Pattern left, Pattern right,
+  Space createLogicalAndSpace(
+      Path path, StaticType contextType, Pattern left, Pattern right,
       {required bool nonNull}) {
-    Space aSpace = dispatchPattern(path, left, nonNull: nonNull);
-    Space bSpace = dispatchPattern(path, right, nonNull: nonNull);
+    Space aSpace = dispatchPattern(path, contextType, left, nonNull: nonNull);
+    Space bSpace = dispatchPattern(path, contextType, right, nonNull: nonNull);
     return _createSpaceIntersection(path, aSpace, bSpace);
   }
 
@@ -469,31 +513,9 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       required List<Pattern> tailElements,
       required bool hasRest,
       required bool hasExplicitTypeArgument}) {
-    Map<Key, Space> additionalFields = {};
     int headSize = headElements.length;
     int tailSize = tailElements.length;
-    for (int index = 0; index < headSize; index++) {
-      Key key = new HeadKey(index);
-      additionalFields[key] = dispatchPattern(
-          path.add(key.name), headElements[index],
-          nonNull: false);
-    }
-    if (hasRest) {
-      Key key = new RestKey(headSize, tailSize);
-      if (restElement != null) {
-        additionalFields[key] =
-            dispatchPattern(path.add(key.name), restElement, nonNull: false);
-      } else {
-        additionalFields[key] =
-            new Space(path.add(key.name), StaticType.nullableObject);
-      }
-    }
-    for (int index = 0; index < tailSize; index++) {
-      Key key = new TailKey(index);
-      additionalFields[key] = dispatchPattern(
-          path.add(key.name), tailElements[tailElements.length - index - 1],
-          nonNull: false);
-    }
+
     String typeArgumentText;
     if (hasExplicitTypeArgument) {
       StringBuffer sb = new StringBuffer();
@@ -508,8 +530,39 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     ListTypeIdentity<Type> identity = new ListTypeIdentity(
         elementType, typeArgumentText,
         size: headSize + tailSize, hasRest: hasRest);
-    return new Space(path, createListType(type, identity),
-        additionalFields: additionalFields);
+
+    StaticType staticType = createListType(type, identity);
+
+    Map<Key, Space> additionalFields = {};
+    for (int index = 0; index < headSize; index++) {
+      Key key = new HeadKey(index);
+      StaticType fieldType =
+          staticType.getAdditionalField(key) ?? StaticType.nullableObject;
+      additionalFields[key] = dispatchPattern(
+          path.add(key.name), fieldType, headElements[index],
+          nonNull: false);
+    }
+    if (hasRest) {
+      Key key = new RestKey(headSize, tailSize);
+      StaticType fieldType =
+          staticType.getAdditionalField(key) ?? StaticType.nullableObject;
+      if (restElement != null) {
+        additionalFields[key] = dispatchPattern(
+            path.add(key.name), fieldType, restElement,
+            nonNull: false);
+      } else {
+        additionalFields[key] = new Space(path.add(key.name), fieldType);
+      }
+    }
+    for (int index = 0; index < tailSize; index++) {
+      Key key = new TailKey(index);
+      StaticType fieldType =
+          staticType.getAdditionalField(key) ?? StaticType.nullableObject;
+      additionalFields[key] = dispatchPattern(path.add(key.name), fieldType,
+          tailElements[tailElements.length - index - 1],
+          nonNull: false);
+    }
+    return new Space(path, staticType, additionalFields: additionalFields);
   }
 
   /// Creates the [Space] at [path] for a map pattern.
@@ -520,12 +573,6 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       required Map<MapKey, Pattern> entries,
       required bool hasRest,
       required bool hasExplicitTypeArguments}) {
-    Map<Key, Space> additionalFields = {};
-    for (MapEntry<Key, Pattern> entry in entries.entries) {
-      Key key = entry.key;
-      additionalFields[key] =
-          dispatchPattern(path.add(key.name), entry.value, nonNull: false);
-    }
     String typeArgumentsText;
     if (hasExplicitTypeArguments) {
       StringBuffer sb = new StringBuffer();
@@ -542,8 +589,18 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     MapTypeIdentity<Type> identity = new MapTypeIdentity(
         keyType, valueType, entries.keys.toSet(), typeArgumentsText,
         hasRest: hasRest);
-    return new Space(path, createMapType(type, identity),
-        additionalFields: additionalFields);
+    StaticType staticType = createMapType(type, identity);
+
+    Map<Key, Space> additionalFields = {};
+    for (MapEntry<Key, Pattern> entry in entries.entries) {
+      Key key = entry.key;
+      StaticType fieldType =
+          staticType.getAdditionalField(key) ?? StaticType.nullableObject;
+      additionalFields[key] = dispatchPattern(
+          path.add(key.name), fieldType, entry.value,
+          nonNull: false);
+    }
+    return new Space(path, staticType, additionalFields: additionalFields);
   }
 
   /// Creates the [Space] at [path] for a pattern with unknown space.
