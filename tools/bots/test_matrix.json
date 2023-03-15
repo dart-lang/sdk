@@ -13,7 +13,6 @@
     ],
     "web_platform": [
       ".dart_tool/package_config.json",
-      "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/ddc_outline_unsound.dill",
       "out/ReleaseX64/gen/utils/dartdevc/",
@@ -49,13 +48,10 @@
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
-      "tools/",
-      "xcodebuild/ReleaseIA32/dart-sdk/",
-      "xcodebuild/ReleaseX64/dart-sdk/"
+      "tools/"
     ],
     "web_platform_nnbd": [
       ".dart_tool/package_config.json",
-      "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/ddc_outline.dill",
       "out/ReleaseX64/ddc_outline_unsound.dill",
@@ -89,15 +85,10 @@
       "xcodebuild/ReleaseARM64/dart-sdk/",
       "xcodebuild/ReleaseARM64/ddc_outline.dill",
       "xcodebuild/ReleaseARM64/ddc_outline_unsound.dill",
-      "xcodebuild/ReleaseARM64/gen/utils/dartdevc/",
-      "xcodebuild/ReleaseIA32/dart-sdk/",
-      "xcodebuild/ReleaseX64/dart-sdk/"
+      "xcodebuild/ReleaseARM64/gen/utils/dartdevc/"
     ],
     "web_platform_hostasserts": [
       ".dart_tool/package_config.json",
-      "out/ReleaseIA32/dart",
-      "out/ReleaseIA32/dart2js_platform.dill",
-      "out/ReleaseIA32/dart2js_platform_unsound.dill",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
       "out/ReleaseX64/dart2js_platform_unsound.dill",
@@ -132,13 +123,7 @@
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
-      "tools/",
-      "xcodebuild/ReleaseIA32/dart",
-      "xcodebuild/ReleaseIA32/dart2js_platform.dill",
-      "xcodebuild/ReleaseIA32/dart2js_platform_unsound.dill",
-      "xcodebuild/ReleaseX64/dart",
-      "xcodebuild/ReleaseX64/dart2js_platform.dill",
-      "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
+      "tools/"
     ],
     "web_platform_hostasserts_nnbd": [
       ".dart_tool/package_config.json",
@@ -169,10 +154,7 @@
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
-      "tools/",
-      "xcodebuild/ReleaseX64/dart",
-      "xcodebuild/ReleaseX64/dart2js_platform.dill",
-      "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
+      "tools/"
     ],
     "dart2wasm_hostasserts": [
       ".dart_tool/package_config.json",
@@ -556,36 +538,11 @@
         "use-sdk": true
       }
     },
-    "dart2js-minified-csp-max-fragments-linux-chrome": {
-      "options": {
-        "minified": true,
-        "csp": true,
-        "timeout": 240,
-        "dart2js-options": [
-          "--merge-fragments-threshold=3",
-          "--simple-load-ids",
-          "--no-sound-null-safety"
-        ]
-      }
-    },
     "dart2js-minified-linux-d8": {
       "options": {
         "minified": true,
         "nnbd": "strong",
         "use-sdk": true
-      }
-    },
-    "dart2js-minified-hostasserts-weak-max-fragments-linux-x64-d8": {
-      "options": {
-        "minified": true,
-        "host-checked": true,
-        "timeout": 240,
-        "builder-tag": "dart2js-weak",
-        "dart2js-options": [
-          "--merge-fragments-threshold=3",
-          "--simple-load-ids",
-          "--no-sound-null-safety"
-        ]
       }
     },
     "dart2js-production-linux-d8": {
@@ -619,27 +576,11 @@
         "timeout": 240
       }
     },
-    "dart2js-hostasserts-linux-ia32-d8": {
-      "options": {
-        "host-checked": true,
-        "timeout": 240,
-        "dart2js-options": [
-          "--no-sound-null-safety"
-        ]
-      }
-    },
     "dart2js-hostasserts-linux-d8": {
       "options": {
         "host-checked": true,
         "nnbd": "strong",
         "timeout": 240
-      }
-    },
-    "dart2js-hostasserts-weak-linux-x64-(d8|chrome)": {
-      "options": {
-        "host-checked": true,
-        "timeout": 241,
-        "builder-tag": "dart2js-weak"
       }
     },
     "dart2js-hostasserts-linux-(d8|chrome)-unsound": {
@@ -658,17 +599,6 @@
         "timeout": 240
       }
     },
-    "dart2js-hostasserts-weak-max-fragments-linux-x64-d8": {
-      "options": {
-        "host-checked": true,
-        "timeout": 240,
-        "builder-tag": "dart2js-weak",
-        "dart2js-options": [
-          "--merge-fragments-threshold=3",
-          "--simple-load-ids"
-        ]
-      }
-    },
     "dart2js-hostasserts-minified-fragments-linux-d8": {
       "options": {
         "dart2js-options": [
@@ -678,24 +608,6 @@
         "host-checked": true,
         "nnbd": "strong",
         "timeout": 240
-      }
-    },
-    "dart2js-hostasserts-strong-linux-x64-(d8|chrome)": {
-      "options": {
-        "host-checked": true,
-        "timeout": 240,
-        "builder-tag": "dart2js-strong"
-      }
-    },
-    "dart2js-hostasserts-strong-max-fragments-linux-x64-d8": {
-      "options": {
-        "host-checked": true,
-        "timeout": 240,
-        "builder-tag": "dart2js-strong",
-        "dart2js-options": [
-          "--merge-fragments-threshold=3",
-          "--simple-load-ids"
-        ]
       }
     },
     "dart2wasm-hostasserts-linux-x64-d8": {
