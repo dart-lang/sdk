@@ -19,7 +19,6 @@ class ConvertToSwitchExpressionTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SWITCH_EXPRESSION;
 
-  @FailingTest(reason: 'Not yet implemented')
   Future<void> test_argument_switchExpression() async {
     await resolveTestCode('''
 enum Color {
@@ -29,14 +28,16 @@ enum Color {
 void f(Color color) {
   switch (color) {
     case Color.red:
-      print('red');
+      print('red'); // Red.
       break;
     case Color.blue:
       print('blue');
       break;
+    // Not green.
     case Color.green:
       throw 'Green is bad';
     case Color.yellow:
+      // Yellow is OK.
       print('yellow');
       break;
   }
@@ -49,16 +50,18 @@ enum Color {
     
 void f(Color color) {
   print(switch (color) {
-    Color.red => 'red',
+    Color.red => 'red', // Red.
     Color.blue => 'blue',
+    // Not green.
     Color.green => throw 'Green is bad',
-    Color.yellow => 'yellow'
+    Color.yellow => 
+      // Yellow is OK.
+      'yellow'
   });
 }
 ''');
   }
 
-  @FailingTest(reason: 'Not yet implemented')
   Future<void> test_assignment_switchExpression() async {
     await resolveTestCode('''
 enum Color {
@@ -72,11 +75,13 @@ String f(Color color) {
       name = 'red';
       break;
     case Color.blue:
-      name = 'blue';
+      name = 'blue'; // Blue!
       break;
+    // Not green.
     case Color.green:
       throw 'Green is bad';
     case Color.yellow:
+      // Yellow is OK.
       name = 'yellow';
       break;
   }
@@ -92,9 +97,12 @@ String f(Color color) {
   var name = '';
   name = switch (color) {
     Color.red => 'red',
-    Color.blue => 'blue',
+    Color.blue => 'blue', // Blue!
+    // Not green.
     Color.green => throw 'Green is bad',
-    Color.yellow => 'yellow'
+    Color.yellow =>
+      // Yellow is OK.
+      'yellow'
   };
   return name;
 }
