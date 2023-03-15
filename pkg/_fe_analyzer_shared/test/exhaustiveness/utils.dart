@@ -9,25 +9,29 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:test/test.dart';
 
 /// Test that [spaces] is exhaustive over [value].
-void expectExhaustive(Space value, List<Space> spaces) {
-  _expectExhaustive(value, spaces, true);
+void expectExhaustive(
+    ObjectFieldLookup fieldLookup, Space value, List<Space> spaces) {
+  _expectExhaustive(fieldLookup, value, spaces, true);
 }
 
 /// Test that [cases] are exhaustive over [type] if and only if all cases are
 /// included and that all subsets of the cases are not exhaustive.
-void expectExhaustiveOnlyAll(StaticType type, List<Object> cases) {
-  _testCases(type, cases, true);
+void expectExhaustiveOnlyAll(
+    ObjectFieldLookup fieldLookup, StaticType type, List<Object> cases) {
+  _testCases(fieldLookup, type, cases, true);
 }
 
 /// Test that [cases] are not exhaustive over [type]. Also test that omitting
 /// each case is still not exhaustive.
-void expectNeverExhaustive(StaticType type, List<Object> cases) {
-  _testCases(type, cases, false);
+void expectNeverExhaustive(
+    ObjectFieldLookup fieldLookup, StaticType type, List<Object> cases) {
+  _testCases(fieldLookup, type, cases, false);
 }
 
 /// Test that [spaces] is not exhaustive over [value].
-void expectNotExhaustive(Space value, List<Space> spaces) {
-  _expectExhaustive(value, spaces, false);
+void expectNotExhaustive(
+    ObjectFieldLookup fieldLookup, Space value, List<Space> spaces) {
+  _expectExhaustive(fieldLookup, value, spaces, false);
 }
 
 Map<String, Space> fieldsToSpace(Map<String, Object> fields, Path path) =>
@@ -60,8 +64,9 @@ Space ty(StaticType type, Map<String, Object> fields,
         [Path path = const Path.root()]) =>
     Space(path, type, fields: fieldsToSpace(fields, path));
 
-void _checkExhaustive(Space value, List<Space> spaces, bool expectation) {
-  var actual = isExhaustive(value, spaces);
+void _checkExhaustive(ObjectFieldLookup fieldLookup, Space value,
+    List<Space> spaces, bool expectation) {
+  var actual = isExhaustive(fieldLookup, value, spaces);
   if (expectation != actual) {
     if (expectation) {
       fail('Expected $spaces to cover $value but did not.');
@@ -71,21 +76,23 @@ void _checkExhaustive(Space value, List<Space> spaces, bool expectation) {
   }
 }
 
-void _expectExhaustive(Space value, List<Space> spaces, bool expectation) {
+void _expectExhaustive(ObjectFieldLookup fieldLookup, Space value,
+    List<Space> spaces, bool expectation) {
   test(
       '$value - ${spaces.join(' - ')} ${expectation ? 'is' : 'is not'} '
       'exhaustive', () {
-    _checkExhaustive(value, spaces, expectation);
+    _checkExhaustive(fieldLookup, value, spaces, expectation);
   });
 }
 
 /// Test that [cases] are not exhaustive over [type].
-void _testCases(StaticType type, List<Object> cases, bool expectation) {
+void _testCases(ObjectFieldLookup fieldLookup, StaticType type,
+    List<Object> cases, bool expectation) {
   var valueSpace = Space(const Path.root(), type);
   var spaces = parseSpaces(cases);
 
   test('$type with all cases', () {
-    _checkExhaustive(valueSpace, spaces, expectation);
+    _checkExhaustive(fieldLookup, valueSpace, spaces, expectation);
   });
 
   // With any single case removed, should also not be exhaustive.
@@ -94,7 +101,7 @@ void _testCases(StaticType type, List<Object> cases, bool expectation) {
     filtered.removeAt(i);
 
     test('$type without case ${spaces[i]}', () {
-      _checkExhaustive(valueSpace, filtered, false);
+      _checkExhaustive(fieldLookup, valueSpace, filtered, false);
     });
   }
 }

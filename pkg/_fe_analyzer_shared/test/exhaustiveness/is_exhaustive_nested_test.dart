@@ -24,28 +24,28 @@ void main() {
     var t = env.createRecordType({'x': a, 'y': b});
     var u = env.createRecordType({'w': t, 'z': t});
 
-    expectExhaustiveOnlyAll(u, [
+    expectExhaustiveOnlyAll(env, u, [
       ty(u, {
         w: ty(t, {x: a}),
         z: t
       }),
     ]);
 
-    expectExhaustiveOnlyAll(u, [
+    expectExhaustiveOnlyAll(env, u, [
       ty(u, {
         w: ty(t, {x: a, y: a}),
         z: ty(t, {x: a, y: a})
       }),
     ]);
 
-    expectExhaustiveOnlyAll(u, [
+    expectExhaustiveOnlyAll(env, u, [
       ty(u, {
         w: ty(t, {x: a, y: b}),
         z: ty(t, {x: a, y: b})
       }),
     ]);
 
-    expectExhaustiveOnlyAll(u, [
+    expectExhaustiveOnlyAll(env, u, [
       ty(u, {
         w: ty(t, {x: b}),
         z: t
@@ -56,7 +56,7 @@ void main() {
       }),
     ]);
 
-    expectExhaustiveOnlyAll(u, [
+    expectExhaustiveOnlyAll(env, u, [
       ty(u, {
         w: ty(t, {x: b, y: b}),
         z: ty(t, {x: b, y: b})
@@ -84,7 +84,7 @@ void main() {
     var c = env.createRecordType({'x': b});
     var d = env.createRecordType({'x': c});
 
-    expectExhaustiveOnlyAll(d, [
+    expectExhaustiveOnlyAll(env, d, [
       ty(d, {
         x: ty(c, {
           x: ty(b, {x: a})

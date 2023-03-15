@@ -24,7 +24,7 @@ void main() {
   var d = env.createClass('D', inherits: [a]);
   var t = env.createRecordType({'w': a, 'x': a, 'y': a, 'z': a});
 
-  expectExhaustiveOnlyAll(t, [
+  expectExhaustiveOnlyAll(env, t, [
     {'w': b, 'x': b, 'y': b, 'z': b},
     {'w': b, 'x': b, 'y': b, 'z': c},
     {'w': b, 'x': b, 'y': b, 'z': d},
@@ -111,9 +111,11 @@ void main() {
 
 /// Test that [cases] are exhaustive over [type] if and only if all cases are
 /// included and that all subsets of the cases are not exhaustive.
-void expectExhaustiveOnlyAll(StaticType type, List<Map<String, Object>> cases) {
+void expectExhaustiveOnlyAll(ObjectFieldLookup objectFieldLookup,
+    StaticType type, List<Map<String, Object>> cases) {
   var spaces = cases.map((c) => ty(type, c)).toList();
   profile.reset();
-  print(isExhaustive(Space(const Path.root(), type), spaces));
+  print(
+      isExhaustive(objectFieldLookup, Space(const Path.root(), type), spaces));
   profile.log();
 }

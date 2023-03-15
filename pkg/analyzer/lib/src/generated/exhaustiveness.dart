@@ -174,6 +174,9 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   DartType get boolType => _typeSystem.typeProvider.boolType;
 
   @override
+  DartType get nonNullableObjectType => _typeSystem.objectNone;
+
+  @override
   DartType get nullableObjectType => _typeSystem.objectQuestion;
 
   @override
@@ -317,6 +320,10 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
 /// Data gathered by the exhaustiveness computation, retained for testing
 /// purposes.
 class ExhaustivenessDataForTesting {
+  /// Access to interface for looking up `Object` members on non-interface
+  /// types.
+  final ObjectFieldLookup objectFieldLookup;
+
   /// Map from switch statement/expression nodes to the static type of the
   /// scrutinee.
   Map<AstNode, StaticType> switchScrutineeType = {};
@@ -330,6 +337,8 @@ class ExhaustivenessDataForTesting {
   /// Map from switch statement/expression/case nodes to the error reported
   /// on the node.
   Map<AstNode, ExhaustivenessError> errors = {};
+
+  ExhaustivenessDataForTesting(this.objectFieldLookup);
 }
 
 class PatternConverter with SpaceCreator<DartPattern, DartType> {

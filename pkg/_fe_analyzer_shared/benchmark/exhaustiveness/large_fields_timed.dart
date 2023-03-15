@@ -23,7 +23,7 @@ void main() {
   var d = env.createClass('D', inherits: [a]);
   var t = env.createRecordType({'w': a, 'x': a, 'y': a, 'z': a});
 
-  expectExhaustiveOnlyAll(t, [
+  expectExhaustiveOnlyAll(env, t, [
     {'w': b, 'x': b, 'y': b, 'z': b},
     {'w': b, 'x': b, 'y': b, 'z': c},
     {'w': b, 'x': b, 'y': b, 'z': d},
@@ -110,7 +110,8 @@ void main() {
 
 /// Test that [cases] are exhaustive over [type] if and only if all cases are
 /// included and that all subsets of the cases are not exhaustive.
-void expectExhaustiveOnlyAll(StaticType type, List<Map<String, Object>> cases) {
+void expectExhaustiveOnlyAll(ObjectFieldLookup objectFieldLookup,
+    StaticType type, List<Map<String, Object>> cases) {
   var valueSpace = Space(const Path.root(), type);
   var caseSpaces = cases.map((c) => ty(type, c)).toList();
 
@@ -120,7 +121,7 @@ void expectExhaustiveOnlyAll(StaticType type, List<Map<String, Object>> cases) {
   for (var j = 0; j < 100000; j++) {
     var watch = Stopwatch()..start();
     for (var i = 0; i < trials; i++) {
-      var actual = isExhaustive(valueSpace, caseSpaces);
+      var actual = isExhaustive(objectFieldLookup, valueSpace, caseSpaces);
       if (!actual) {
         throw 'Expected exhaustive';
       }

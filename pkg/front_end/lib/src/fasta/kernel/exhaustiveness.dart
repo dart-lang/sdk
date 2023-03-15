@@ -25,6 +25,10 @@ const AstTextStrategy textStrategy = const AstTextStrategy(
 /// Data gathered by the exhaustiveness computation, retained for testing
 /// purposes.
 class ExhaustivenessDataForTesting {
+  /// Access to interface for looking up `Object` members on non-interface
+  /// types.
+  ObjectFieldLookup? objectFieldLookup;
+
   /// Map from switch statement/expression nodes to the results of the
   /// exhaustiveness test.
   Map<Node, ExhaustivenessResult> switchResults = {};
@@ -95,6 +99,10 @@ class CfeTypeOperations implements TypeOperations<DartType> {
     return _typeEnvironment.isSubtypeOf(
         s, t, SubtypeCheckMode.withNullabilities);
   }
+
+  @override
+  DartType get nonNullableObjectType =>
+      _typeEnvironment.objectNonNullableRawType;
 
   @override
   DartType get nullableObjectType => _typeEnvironment.objectNullableRawType;

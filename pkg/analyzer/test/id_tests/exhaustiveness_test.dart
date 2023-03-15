@@ -81,8 +81,8 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
         }
         features[Tags.scrutineeType] = staticTypeToText(scrutineeType);
         if (fieldsOfInterest.isNotEmpty) {
-          features[Tags.scrutineeFields] =
-              fieldsToText(scrutineeType.fields, fieldsOfInterest);
+          features[Tags.scrutineeFields] = fieldsToText(scrutineeType,
+              _exhaustivenessData.objectFieldLookup, fieldsOfInterest);
         }
         String? subtypes =
             typesToText(scrutineeType.getSubtypes(keysOfInterest));

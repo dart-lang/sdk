@@ -26,6 +26,13 @@ abstract class StaticType {
   /// Includes inherited fields.
   Map<String, StaticType> get fields;
 
+  /// Returns the static type for the [name] in this static type, or `null` if
+  /// no such key exists.
+  ///
+  /// This is used to support implicit on the constant [StaticType]s
+  /// [nullableObject], [nonNullableObject], [nullType] and [neverType].
+  StaticType? getField(ObjectFieldLookup fieldLookup, String name);
+
   /// Returns the static type for the [key] in this static type, or `null` if
   /// no such key exists.
   ///
@@ -86,6 +93,13 @@ abstract class StaticType {
       Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields);
 }
 
+mixin _ObjectFieldMixin on _BaseStaticType {
+  @override
+  StaticType? getField(ObjectFieldLookup fieldLookup, String name) {
+    return fields[name] ?? fieldLookup.getObjectFieldType(name);
+  }
+}
+
 abstract class _BaseStaticType implements StaticType {
   const _BaseStaticType();
 
@@ -94,6 +108,11 @@ abstract class _BaseStaticType implements StaticType {
 
   @override
   Map<String, StaticType> get fields => const {};
+
+  @override
+  StaticType? getField(ObjectFieldLookup fieldLookup, String name) {
+    return fields[name];
+  }
 
   @override
   StaticType? getAdditionalField(Key key) => null;
@@ -106,8 +125,8 @@ abstract class _BaseStaticType implements StaticType {
       Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
     assert(additionalSpaceFields.isEmpty,
         "Additional fields not supported in ${runtimeType}.");
-    if (this == StaticType.nullableObject && fields.isEmpty) return '()';
-    if (this == StaticType.neverType && fields.isEmpty) return '∅';
+    if (this == StaticType.nullableObject && spaceFields.isEmpty) return '()';
+    if (this == StaticType.neverType && spaceFields.isEmpty) return '∅';
 
     // If there are no fields, just show the type.
     if (spaceFields.isEmpty) return name;
@@ -132,7 +151,7 @@ abstract class _BaseStaticType implements StaticType {
   String toString() => name;
 }
 
-class _NonNullableObject extends _BaseStaticType {
+class _NonNullableObject extends _BaseStaticType with _ObjectFieldMixin {
   const _NonNullableObject();
 
   @override
@@ -154,7 +173,7 @@ class _NonNullableObject extends _BaseStaticType {
   StaticType get nonNullable => this;
 }
 
-class _NeverType extends _BaseStaticType {
+class _NeverType extends _BaseStaticType with _ObjectFieldMixin {
   const _NeverType();
 
   @override
@@ -176,7 +195,7 @@ class _NeverType extends _BaseStaticType {
   StaticType get nonNullable => this;
 }
 
-class _NullType extends NullableStaticType {
+class _NullType extends NullableStaticType with _ObjectFieldMixin {
   const _NullType(super.underlying);
 
   @override
@@ -195,7 +214,7 @@ class _NullType extends NullableStaticType {
   String get name => 'Null';
 }
 
-class NullableStaticType extends _BaseStaticType {
+class NullableStaticType extends _BaseStaticType with _ObjectFieldMixin {
   final StaticType underlying;
 
   const NullableStaticType(this.underlying);
@@ -313,4 +332,11 @@ class WrappedStaticType extends NonNullableStaticType {
         wrappedType == other.wrappedType &&
         impliedType == other.impliedType;
   }
+}
+
+/// Interface for accessing the members defined on `Object`.
+abstract class ObjectFieldLookup {
+  /// Returns the [StaticType] for the member [name] defined on `Object`, or
+  /// `null` none exists.
+  StaticType? getObjectFieldType(String name);
 }

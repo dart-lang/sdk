@@ -28,14 +28,14 @@ String spacesToText(Space space) {
 }
 
 /// Returns a textual representation for [fields] used for testing.
-String fieldsToText(
-    Map<String, StaticType> fields, Set<String> fieldsOfInterest) {
+String fieldsToText(StaticType type, ObjectFieldLookup objectFieldLookup,
+    Set<String> fieldsOfInterest) {
   List<String> sortedNames = fieldsOfInterest.toList()..sort();
   StringBuffer sb = new StringBuffer();
   String comma = '';
   sb.write('{');
   for (String name in sortedNames) {
-    StaticType? fieldType = fields[name];
+    StaticType? fieldType = type.getField(objectFieldLookup, name);
     sb.write(comma);
     sb.write(name);
     sb.write(':');

@@ -11,8 +11,11 @@ import 'types.dart';
 /// Interface implemented by analyze/CFE to support type operations need for the
 /// shared [StaticType]s.
 abstract class TypeOperations<Type extends Object> {
-  /// Returns the type for `Object`.
+  /// Returns the type for `Object?`.
   Type get nullableObjectType;
+
+  /// Returns the type for the non-nullable `Object`.
+  Type get nonNullableObjectType;
 
   /// Returns `true` if [s] is a subtype of [t].
   bool isSubtypeOf(Type s, Type t);
@@ -100,11 +103,12 @@ abstract class FieldLookup<Type extends Object> {
 /// using the analyzer/CFE implementations of [TypeOperations],
 /// [EnumOperations], and [SealedClassOperations].
 class ExhaustivenessCache<
-    Type extends Object,
-    Class extends Object,
-    EnumClass extends Object,
-    EnumElement extends Object,
-    EnumElementValue extends Object> implements FieldLookup<Type> {
+        Type extends Object,
+        Class extends Object,
+        EnumClass extends Object,
+        EnumElement extends Object,
+        EnumElementValue extends Object>
+    implements FieldLookup<Type>, ObjectFieldLookup {
   final TypeOperations<Type> typeOperations;
   final EnumOperations<Type, EnumClass, EnumElement, EnumElementValue>
       enumOperations;
@@ -300,6 +304,11 @@ class ExhaustivenessCache<
       }
     }
     return null;
+  }
+
+  @override
+  StaticType? getObjectFieldType(String name) {
+    return getFieldTypes(typeOperations.nonNullableObjectType)[name];
   }
 }
 

@@ -6,7 +6,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 
-class TestEnvironment {
+class TestEnvironment implements ObjectFieldLookup {
   late final _TypeOperations _typeOperations = new _TypeOperations(this);
   late final _EnumOperations _enumOperations = new _EnumOperations();
   late final _SealedClassOperations _sealedClassOperations =
@@ -123,6 +123,11 @@ class TestEnvironment {
     }
     _Type type = new _RecordType([], namedTypes);
     return _exhaustivenessCache.getStaticType(type);
+  }
+
+  @override
+  StaticType? getObjectFieldType(String name) {
+    return _exhaustivenessCache.getObjectFieldType(name);
   }
 }
 
@@ -351,6 +356,9 @@ class _TypeOperations implements TypeOperations<_Type> {
       }
     }
   }
+
+  @override
+  _Type get nonNullableObjectType => _Type.Object;
 
   @override
   _Type get nullableObjectType => _Type.NullableObject;
