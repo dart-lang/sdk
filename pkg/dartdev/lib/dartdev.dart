@@ -82,10 +82,7 @@ class DartdevRunner extends CommandRunner<int> {
       'A command-line utility for Dart development';
 
   @override
-  final ArgParser argParser = ArgParser(
-    usageLineLength: dartdevUsageLineLength,
-    allowTrailingOptions: false,
-  );
+  late final ArgParser argParser;
 
   final bool verbose;
 
@@ -93,26 +90,9 @@ class DartdevRunner extends CommandRunner<int> {
 
   DartdevRunner(List<String> args)
       : verbose = args.contains('-v') || args.contains('--verbose'),
+        argParser = globalDartdevOptionsParser(
+            verbose: args.contains('-v') || args.contains('--verbose')),
         super('dart', '$dartdevDescription.') {
-    argParser.addFlag('verbose',
-        abbr: 'v', negatable: false, help: 'Show additional command output.');
-    argParser.addFlag('version',
-        negatable: false, help: 'Print the Dart SDK version.');
-    argParser.addFlag('enable-analytics',
-        negatable: false, help: 'Enable analytics.');
-    argParser.addFlag('disable-analytics',
-        negatable: false, help: 'Disable analytics.');
-
-    argParser.addFlag('diagnostics',
-        negatable: false, help: 'Show tool diagnostic output.', hide: !verbose);
-
-    argParser.addFlag(
-      'analytics',
-      negatable: true,
-      help: 'Disable analytics for this `dart *` run',
-      hide: true,
-    );
-
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CompilationServerCommand(verbose: verbose));
     addCommand(CompileCommand(verbose: verbose));
@@ -151,13 +131,16 @@ class DartdevRunner extends CommandRunner<int> {
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
     final stopwatch = Stopwatch()..start();
+    bool suppressAnalytics =
+        !topLevelResults['analytics'] || topLevelResults['suppress-analytics'];
+    if (topLevelResults.wasParsed('analytics')) {
+      io.stderr.writeln(
+          '`--[no-]analytics` is deprecated.  Use `--suppress-analytics` '
+          'to disable analytics for one run instead.');
+    }
     // The Analytics instance used to report information back to Google Analytics;
     // see lib/src/analytics.dart.
-    _analytics = createAnalyticsInstance(
-      topLevelResults.wasParsed('analytics')
-          ? !topLevelResults['analytics']
-          : false,
-    );
+    _analytics = createAnalyticsInstance(suppressAnalytics);
 
     // If we have not printed the analyticsNoticeOnFirstRunMessage to stdout,
     // the user is on a terminal, and the machine is not a bot, then print the

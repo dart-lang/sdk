@@ -35,6 +35,7 @@ class AnalysisServer {
     required this.commandName,
     required this.argResults,
     this.enabledExperiments = const [],
+    this.suppressAnalytics = false,
   });
 
   final String? cacheDirectoryPath;
@@ -44,6 +45,7 @@ class AnalysisServer {
   final String commandName;
   final ArgResults? argResults;
   final List<String> enabledExperiments;
+  final bool suppressAnalytics;
 
   Process? _process;
 
@@ -99,7 +101,7 @@ class AnalysisServer {
     preAnalysisServerStart?.call(commandName, analysisRoots, argResults);
     final command = [
       sdk.analysisServerSnapshot,
-      '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
+      if (suppressAnalytics) '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
       '--${Driver.CLIENT_ID}=dart-$commandName',
       '--disable-server-feature-completion',
       '--disable-server-feature-search',

@@ -6,10 +6,8 @@ import 'package:http/src/response.dart';
 import 'package:unified_analytics/src/config_handler.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
-/// An implementation of [Analytics] that's appropriate to use when running
-/// tests.
-// TODO(brianwilkerson) Remove this class when it's easier to create a test
-//  version of the `Analytics` class.
+/// An implementation of [Analytics] that's appropriate to use when analytics
+/// will be disabled for the current session, including tests.
 class NoopAnalytics implements Analytics {
   @override
   Map<String, ToolInfo> get parsedTools => throw UnimplementedError();

@@ -35,6 +35,17 @@ void main() {
       expect(command.analytics is DisabledAnalytics, true);
     });
 
+    test('--suppress-analytics', () {
+      command.runCommand(command.parse(['--suppress-analytics']));
+      expect(command.analytics is DisabledAnalytics, true);
+    });
+
+    test('--suppress-analytics and --analytics', () {
+      command
+          .runCommand(command.parse(['--analytics', '--suppress-analytics']));
+      expect(command.analytics is DisabledAnalytics, true);
+    });
+
     test('No flag', () {
       command.runCommand(command.parse([]));
       expect(command.analytics is! DisabledAnalytics, true);
