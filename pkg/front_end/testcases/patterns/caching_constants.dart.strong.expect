@@ -79,14 +79,14 @@ static method method(core::Map<core::int, core::String> m) → core::int {
     final synthesized core::Map<core::int, core::String> #0#0 = m;
     late final synthesized core::bool #0#3 = #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
     late final synthesized core::bool #0#4 = #0#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
-    late final synthesized dynamic #0#5 = #0#0.{core::Map::[]}(#C2){(core::Object?) → dynamic};
-    if(#0#3 && #0#4 && #C3 =={core::String::==}{(core::Object) → core::bool} #0#5{core::String}) {
+    late final synthesized core::String? #0#5 = #0#0.{core::Map::[]}(#C2){(core::Object?) → core::String?};
+    if(#0#3 && #0#4 && #C3 =={core::String::==}{(core::Object) → core::bool} #0#5) {
       {
         return 0;
       }
     }
     else
-      if(#0#3 && #0#4 && #C4 =={core::String::==}{(core::Object) → core::bool} #0#5{core::String}) {
+      if(#0#3 && #0#4 && #C4 =={core::String::==}{(core::Object) → core::bool} #0#5) {
         {
           return 1;
         }

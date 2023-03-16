@@ -29,7 +29,7 @@ static method test2(dynamic x, dynamic another) → core::Iterable<dynamic> {
   return block {
     final core::Set<dynamic> #t8 = col::LinkedHashSet::•<dynamic>();
     {
-      final synthesized invalid-type #0#0 = x;
+      final synthesized dynamic #0#0 = x;
       if(#0#0 is{ForNonNullableByDefault} core::String)
         for (final has-declared-initializer dynamic #t9 in another) {
           final dynamic #t10 = #t9 as{TypeError,ForNonNullableByDefault} dynamic;

@@ -1258,7 +1258,7 @@ class TypeCheckingVisitor
   @override
   DartType visitSwitchExpression(SwitchExpression node) {
     // TODO(johnniwinther): Implement this.
-    return node.staticType;
+    return node.staticType!;
   }
 
   @override

@@ -24,16 +24,16 @@ typedMap(Map<int, A> map) {
    error=non-exhaustive:Map<int, A>,
    type=Map<int, A>
   */switch (map) {
-    {} /*cfe.space=<int, A>{}*//*analyzer.space={}*/=> 0,
-    {0: B b} /*cfe.space=<int, A>{0: B}*//*analyzer.space={0: B}*/=> 1,
-    {0: C c} /*cfe.space=<int, A>{0: C}*//*analyzer.space={0: C}*/=> 2,
-    {0: _, 1: _} /*cfe.space=<int, A>{0: A, 1: A}*//*analyzer.space={0: (), 1: ()}*/=> 3,
-    {0: B b, ... } /*cfe.space=<int, A>{0: B, ...}*//*analyzer.space={0: B, ...}*/=> 4,
-    {0: C c, ... _} /*cfe.space=<int, A>{0: C, ...}*//*analyzer.space={0: C, ...}*/=> 5,
+    {} /*space={}*/=> 0,
+    {0: B b} /*space={0: B}*/=> 1,
+    {0: C c} /*space={0: C}*/=> 2,
+    {0: _, 1: _} /*cfe.space={0: A, 1: A}*//*analyzer.space={0: (), 1: ()}*/=> 3,
+    {0: B b, ... } /*space={0: B, ...}*/=> 4,
+    {0: C c, ... _} /*space={0: C, ...}*/=> 5,
   };
 
   var b = /*type=Map<int, A>*/switch (map) {
-    {...} /*cfe.space=<int, A>{...}*//*analyzer.space={...}*/=> 0,
+    {...} /*space={...}*/=> 0,
   };
   var c = /*
    error=non-exhaustive:Map<int, A>,
@@ -42,17 +42,14 @@ typedMap(Map<int, A> map) {
     <int, B>{...} /*space=<int, B>{...}*/=> 0,
   };
   var d = /*type=Map<int, B>*/switch (map) {
-    {...} /*cfe.space=<int, B>{...}*//*analyzer.space={...}*/=> 0,
-    {1: _} /*cfe.
-     error=unreachable,
-     space=<int, B>{1: B}
-    *//*analyzer.
+    {...} /*space={...}*/=> 0,
+    {1: _} /*
      error=unreachable,
      space={1: ()}
     */=> 1,
     {2: _, ...} /*cfe.
      error=unreachable,
-     space=<int, B>{2: B, ...}
+     space={2: B, ...}
     *//*analyzer.
      error=unreachable,
      space={2: (), ...}
@@ -69,7 +66,10 @@ exhaustiveRestOnly(Map o) {
 unreachableAfterRestOnly(Map o) {
   return /*type=Map<dynamic, dynamic>*/switch (o) {
     {...} /*space={...}*/=> 0,
-    {0: _} /*
+    {0: _} /*cfe.
+     error=unreachable,
+     space={0: A}
+    *//*analyzer.
      error=unreachable,
      space={0: ()}
     */=> 1,
@@ -98,8 +98,11 @@ unreachableAfterRestOnlyEmpty(Map o) {
 
 unreachableAfterRestSameKeys(Map o) {
   return /*type=Map<dynamic, dynamic>*/switch (o) {
-    {0: _, ...} /*space={0: (), ...}*/=> 0,
-    {0: _} /*
+    {0: _, ...} /*cfe.space={0: A, ...}*//*analyzer.space={0: (), ...}*/=> 0,
+    {0: _} /*cfe.
+     error=unreachable,
+     space={0: A}
+    *//*analyzer.
      error=unreachable,
      space={0: ()}
     */=> 1,
@@ -112,8 +115,11 @@ nonExhaustiveAfterRestSameKeys(Map o) {
    error=non-exhaustive:Map<dynamic, dynamic>,
    type=Map<dynamic, dynamic>
   */switch (o) {
-    {0: _, ...} /*space={0: (), ...}*/=> 0,
-    {0: _} /*
+    {0: _, ...} /*cfe.space={0: A, ...}*//*analyzer.space={0: (), ...}*/=> 0,
+    {0: _} /*cfe.
+     error=unreachable,
+     space={0: A}
+    *//*analyzer.
      error=unreachable,
      space={0: ()}
     */=> 1,
@@ -122,8 +128,11 @@ nonExhaustiveAfterRestSameKeys(Map o) {
 
 unreachableAfterRestMoreKeys(Map o) {
     return /*type=Map<dynamic, dynamic>*/switch (o) {
-      {0: _, ...} /*space={0: (), ...}*/=> 0,
-      {0: _, 1: _} /*
+      {0: _, ...} /*cfe.space={0: A, ...}*//*analyzer.space={0: (), ...}*/=> 0,
+      {0: _, 1: _} /*cfe.
+       error=unreachable,
+       space={0: A, 1: A}
+      *//*analyzer.
        error=unreachable,
        space={0: (), 1: ()}
       */=> 1,
@@ -136,8 +145,11 @@ nonExhaustiveAfterRestMoreKeys(Map o) {
    error=non-exhaustive:Map<dynamic, dynamic>,
    type=Map<dynamic, dynamic>
   */switch (o) {
-    {0: _, ...} /*space={0: (), ...}*/=> 0,
-    {0: _, 1: _} /*
+    {0: _, ...} /*cfe.space={0: A, ...}*//*analyzer.space={0: (), ...}*/=> 0,
+    {0: _, 1: _} /*cfe.
+     error=unreachable,
+     space={0: A, 1: A}
+    *//*analyzer.
      error=unreachable,
      space={0: (), 1: ()}
     */=> 1,
@@ -146,8 +158,8 @@ nonExhaustiveAfterRestMoreKeys(Map o) {
 
 unreachableAfterSameKeys(Map o) {
   return /*type=Map<dynamic, dynamic>*/switch (o) {
-    {0: _} /*space={0: ()}*/=> 0,
-    {0: 1} /*
+    {0: _} /*cfe.space={0: A}*//*analyzer.space={0: ()}*/=> 0,
+    {0: 1} /*cfe.space={0: 1}*//*analyzer.
      error=unreachable,
      space={0: 1}
     */=> 1,
@@ -160,8 +172,8 @@ nonExhaustiveAfterSameKeys(Map o) {
    error=non-exhaustive:Map<dynamic, dynamic>,
    type=Map<dynamic, dynamic>
   */switch (o) {
-    {0: _} /*space={0: ()}*/=> 0,
-    {0: 1} /*
+    {0: _} /*cfe.space={0: A}*//*analyzer.space={0: ()}*/=> 0,
+    {0: 1} /*cfe.space={0: 1}*//*analyzer.
      error=unreachable,
      space={0: 1}
     */=> 1,
@@ -222,7 +234,7 @@ nonExhaustiveAfterRestDifferentTypes(Map o) {
 
 reachableAfterRestDifferentKeys(Map o) {
   return /*type=Map<dynamic, dynamic>*/switch (o) {
-    {0: _, ...} /*space={0: (), ...}*/=> 0,
+    {0: _, ...} /*cfe.space={0: A, ...}*//*analyzer.space={0: (), ...}*/=> 0,
     {1: _} /*space={1: ()}*/=> 1,
     {...} /*space={...}*/=> 2,
   };
@@ -233,14 +245,14 @@ nonExhaustiveAfterRestDifferentKeys(Map o) {
    error=non-exhaustive:Map<dynamic, dynamic>,
    type=Map<dynamic, dynamic>
   */switch (o) {
-    {0: _, ...} /*space={0: (), ...}*/=> 0,
+    {0: _, ...} /*cfe.space={0: A, ...}*//*analyzer.space={0: (), ...}*/=> 0,
     {1: _} /*space={1: ()}*/=> 1,
   };
 }
 
 reachableAfterDifferentKeys(Map o) {
   return /*type=Map<dynamic, dynamic>*/switch (o) {
-    {0: _} /*space={0: ()}*/=> 0,
+    {0: _} /*cfe.space={0: A}*//*analyzer.space={0: ()}*/=> 0,
     {1: _} /*space={1: ()}*/=> 1,
     {...} /*space={...}*/=> 2,
   };
@@ -251,7 +263,7 @@ nonExhaustiveAfterDifferentKeys(Map o) {
    error=non-exhaustive:Map<dynamic, dynamic>,
    type=Map<dynamic, dynamic>
   */switch (o) {
-    {0: _} /*space={0: ()}*/=> 0,
+    {0: _} /*cfe.space={0: A}*//*analyzer.space={0: ()}*/=> 0,
     {1: _} /*space={1: ()}*/=> 1,
   };
 }

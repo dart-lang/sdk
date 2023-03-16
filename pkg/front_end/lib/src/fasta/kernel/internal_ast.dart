@@ -3438,7 +3438,7 @@ class IfCaseElement extends InternalExpression with ControlFlowElement {
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedValueType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
   IfCaseElement(
       {required this.prelude,
@@ -3498,6 +3498,7 @@ class IfCaseElement extends InternalExpression with ControlFlowElement {
         patternGuard: patternGuard,
         then: thenEntry,
         otherwise: otherwiseEntry)
+      ..matchedValueType = matchedValueType
       ..fileOffset = fileOffset;
     onConvertElement(this, result);
     return result;
@@ -3520,7 +3521,7 @@ class IfCaseMapEntry extends TreeNode
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedValueType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
   IfCaseMapEntry(
       {required this.prelude,

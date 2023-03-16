@@ -399,7 +399,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       for (NamedPattern field in pattern.fields) {
         fields[field.name] = field.pattern;
       }
-      return createObjectSpace(path, contextType, pattern.objectType, fields,
+      return createObjectSpace(path, contextType, pattern.lookupType!, fields,
           nonNull: nonNull);
     } else if (pattern is VariablePattern) {
       return createVariableSpace(path, contextType, pattern.variable.type,
@@ -419,7 +419,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         }
       }
       return createRecordSpace(
-          path, contextType, pattern.type, positional, named);
+          path, contextType, pattern.requiredType!, positional, named);
     } else if (pattern is WildcardPattern) {
       return createWildcardSpace(path, contextType, pattern.type,
           nonNull: nonNull);
@@ -460,7 +460,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         }
       }
       return createListSpace(path,
-          type: pattern.listType,
+          type: pattern.lookupType!,
           elementType: elementType,
           headElements: headPatterns,
           restElement: restPattern,
@@ -486,15 +486,13 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         }
       }
       return createMapSpace(path,
-          type: pattern.mapType,
+          type: pattern.lookupType!,
           keyType: keyType,
           valueType: valueType,
           entries: entries,
           hasRest: hasRest,
-          // TODO(johnniwinther): We shouldn't see the inferred type arguments
-          //  here.
-          hasExplicitTypeArguments: pattern.keyType is! DynamicType &&
-              pattern.valueType is! DynamicType);
+          hasExplicitTypeArguments:
+              pattern.keyType != null && pattern.valueType != null);
     }
     assert(false, "Unexpected pattern $pattern (${pattern.runtimeType}).");
     return createUnknownSpace(path);
