@@ -16,9 +16,6 @@ main() {
 class NonAdjacentStringsInListTestLanguage300 extends LintRuleTest
     with LanguageVersion300Mixin {
   @override
-  bool get dumpAstOnFailures => true;
-
-  @override
   String get lintRule => 'no_adjacent_strings_in_list';
 
   test_switchPattern() async {

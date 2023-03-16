@@ -16,9 +16,6 @@ main() {
 class UnrelatedTypeEqualityChecksTestLanguage300 extends LintRuleTest
     with LanguageVersion300Mixin {
   @override
-  bool get dumpAstOnFailures => true;
-
-  @override
   String get lintRule => 'unrelated_type_equality_checks';
 
   test_switchExpression() async {
