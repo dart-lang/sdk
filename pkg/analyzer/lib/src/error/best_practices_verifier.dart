@@ -380,6 +380,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCastPattern(CastPattern node) {
+    var type = node.type.type;
+    var matchedValueType = node.matchedValueType;
+    if (type != null &&
+        _typeSystem.isNonNullable(type) &&
+        matchedValueType != null &&
+        matchedValueType.isDartCoreNull) {
+      _errorReporter.reportErrorForNode(
+          WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, node);
+    }
+  }
+
+  @override
   void visitCatchClause(CatchClause node) {
     super.visitCatchClause(node);
     _checkForNullableTypeInCatchClause(node);
