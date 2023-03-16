@@ -658,21 +658,6 @@ action("write_revision_file") {
   ]
 }
 
-# Copy libraries.dart to lib/_internal/libraries.dart for backwards
-# compatibility.
-#
-# TODO(sigmund): stop copying libraries.dart. Old versions (<=0.25.1-alpha.4)
-# of the analyzer package do not support the new location of this file. We
-# should be able to remove the old file once we release a newer version of
-# analyzer and popular frameworks have migrated to use it.
-copy("copy_libraries_dart") {
-  visibility = [ ":create_common_sdk" ]
-  deps = [ ":copy_libraries" ]
-  sources = [ "lib/_internal/sdk_library_metadata/lib/libraries.dart" ]
-  outputs =
-      [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
-}
-
 # This rule copies the README file.
 copy("copy_readme") {
   visibility = [ ":create_common_sdk" ]
@@ -720,7 +705,6 @@ group("create_common_sdk") {
     ":copy_dartdev_dill_files",
     ":copy_dartdoc_files",
     ":copy_headers",
-    ":copy_libraries_dart",
     ":copy_libraries_specification",
     ":copy_license",
     ":copy_prebuilt_devtools",
