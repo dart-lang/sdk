@@ -180,7 +180,11 @@ class SharedTypeAnalyzerErrors
     required Expression expression,
     required DartType expressionType,
   }) {
-    throw new UnimplementedError('TODO(scheglov)');
+    return helper.buildProblem(
+        templateForInLoopTypeNotIterable.withArguments(expressionType,
+            coreTypes.iterableNonNullableRawType, isNonNullableByDefault),
+        expression.fileOffset,
+        noLength);
   }
 
   @override
