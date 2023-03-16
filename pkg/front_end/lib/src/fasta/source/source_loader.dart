@@ -18,7 +18,6 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show
         ErrorToken,
-        Keyword,
         LanguageVersionToken,
         Scanner,
         ScannerConfiguration,
@@ -2257,15 +2256,21 @@ severity: $severity
           !cls.isSealed &&
           !cls.cls.isAnonymousMixin &&
           !mayIgnoreClassModifiers(baseOrFinalSuperClass)) {
-        cls.addProblem(
-            templateSubtypeOfBaseOrFinalIsNotBaseFinalOrSealed.withArguments(
-                cls.fullNameForErrors,
-                baseOrFinalSuperClass.fullNameForErrors,
-                baseOrFinalSuperClass.isBase
-                    ? Keyword.BASE.lexeme
-                    : Keyword.FINAL.lexeme),
-            cls.charOffset,
-            noLength);
+        if (baseOrFinalSuperClass.isFinal) {
+          cls.addProblem(
+              templateSubtypeOfFinalIsNotBaseFinalOrSealed.withArguments(
+                  cls.fullNameForErrors,
+                  baseOrFinalSuperClass.fullNameForErrors),
+              cls.charOffset,
+              noLength);
+        } else if (baseOrFinalSuperClass.isBase) {
+          cls.addProblem(
+              templateSubtypeOfBaseIsNotBaseFinalOrSealed.withArguments(
+                  cls.fullNameForErrors,
+                  baseOrFinalSuperClass.fullNameForErrors),
+              cls.charOffset,
+              noLength);
+        }
       }
     }
 
@@ -2275,7 +2280,16 @@ severity: $severity
           unaliasDeclaration(supertypeBuilder);
       if (supertypeDeclaration is ClassBuilder) {
         if (isClassModifiersEnabled(supertypeDeclaration)) {
-          checkForBaseFinalRestriction(supertypeDeclaration);
+          if (cls.libraryBuilder.origin ==
+                  supertypeDeclaration.libraryBuilder.origin ||
+              !supertypeDeclaration.isFinal ||
+              cls.isMixinDeclaration) {
+            // Don't check base and final subtyping restriction if the supertype
+            // is a final type used outside of its library.
+            // However, we still check the base and final subtyping restriction
+            // if we are evaluating an 'on' clause.
+            checkForBaseFinalRestriction(supertypeDeclaration);
+          }
 
           if (cls.libraryBuilder.origin !=
                   supertypeDeclaration.libraryBuilder.origin &&
@@ -2320,7 +2334,13 @@ severity: $severity
           unaliasDeclaration(mixedInTypeBuilder);
       if (mixedInTypeDeclaration is ClassBuilder) {
         if (isClassModifiersEnabled(mixedInTypeDeclaration)) {
-          checkForBaseFinalRestriction(mixedInTypeDeclaration);
+          if (cls.libraryBuilder.origin ==
+                  mixedInTypeDeclaration.libraryBuilder.origin ||
+              !mixedInTypeDeclaration.isFinal) {
+            // Don't check base and final subtyping restriction if the supertype
+            // is a final type used outside of its library.
+            checkForBaseFinalRestriction(mixedInTypeDeclaration);
+          }
 
           // Check for classes being used as mixins. Only classes declared with
           // a 'mixin' modifier are allowed to be mixed in.
@@ -2382,7 +2402,16 @@ severity: $severity
             unaliasDeclaration(interfaceBuilder);
         if (interfaceDeclaration is ClassBuilder) {
           if (isClassModifiersEnabled(interfaceDeclaration)) {
-            checkForBaseFinalRestriction(interfaceDeclaration);
+            if (cls.libraryBuilder.origin ==
+                    interfaceDeclaration.libraryBuilder.origin ||
+                !interfaceDeclaration.isFinal ||
+                cls.cls.isAnonymousMixin) {
+              // Don't check base and final subtyping restriction if the
+              // supertype is a final type used outside of its library.
+              // However, we still check the base and final subtyping
+              // restriction if we are evaluating a multiple type 'on' clause.
+              checkForBaseFinalRestriction(interfaceDeclaration);
+            }
 
             if (cls.libraryBuilder.origin !=
                     interfaceDeclaration.libraryBuilder.origin &&
