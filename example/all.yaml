@@ -63,6 +63,7 @@ linter:
     - dangling_library_doc_comments
     - depend_on_referenced_packages
     - deprecated_consistency
+    - deprecated_member_use_from_same_package
     - diagnostic_describe_all_properties
     - directives_ordering
     - discarded_futures

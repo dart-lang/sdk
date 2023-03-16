@@ -68,6 +68,7 @@ import 'rules/curly_braces_in_flow_control_structures.dart';
 import 'rules/dangling_library_doc_comments.dart';
 import 'rules/depend_on_referenced_packages.dart';
 import 'rules/deprecated_consistency.dart';
+import 'rules/deprecated_member_use_from_same_package.dart';
 import 'rules/diagnostic_describe_all_properties.dart';
 import 'rules/directives_ordering.dart';
 import 'rules/discarded_futures.dart';
@@ -293,6 +294,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(DanglingLibraryDocComments())
     ..register(DependOnReferencedPackages())
     ..register(DeprecatedConsistency())
+    ..register(DeprecatedMemberUseFromSamePackage())
     ..register(DiagnosticsDescribeAllProperties())
     ..register(DirectivesOrdering())
     ..register(DiscardedFutures())

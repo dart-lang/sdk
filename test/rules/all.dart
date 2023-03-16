@@ -38,6 +38,8 @@ import 'constant_identifier_names_test.dart' as constant_identifier_names;
 import 'dangling_library_doc_comments_test.dart'
     as dangling_library_doc_comments;
 import 'deprecated_consistency_test.dart' as deprecated_consistency;
+import 'deprecated_member_use_from_same_package_test.dart'
+    as deprecated_member_use_from_same_package;
 import 'directives_ordering_test.dart' as directives_ordering;
 import 'discarded_futures_test.dart' as discarded_futures;
 import 'eol_at_end_of_file_test.dart' as eol_at_end_of_file;
@@ -146,6 +148,7 @@ void main() {
   constant_identifier_names.main();
   dangling_library_doc_comments.main();
   deprecated_consistency.main();
+  deprecated_member_use_from_same_package.main();
   directives_ordering.main();
   discarded_futures.main();
   eol_at_end_of_file.main();
