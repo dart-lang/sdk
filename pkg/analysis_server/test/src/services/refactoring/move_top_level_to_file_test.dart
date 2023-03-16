@@ -417,6 +417,291 @@ class A {}
     await expectNoCodeAction(simpleClassRefactorTitle);
   }
 
+  Future<void> test_sealedClass_extends() async {
+    var originalSource = '''
+sealed class [!Either!] {}
+
+class Left extends Either {}
+class Right extends Either {}
+
+class Neither {}
+''';
+    var modifiedSource = '''
+
+class Neither {}
+''';
+    var newFileName = 'either.dart';
+    var newFileContent = '''
+sealed class Either {}
+
+class Left extends Either {}
+class Right extends Either {}
+''';
+    await _multipleDeclarations(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        count: 3,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  /// The code action is not available if you select a subclass of a sealed
+  /// type.
+  Future<void> test_sealedClass_extends_subclass() async {
+    addTestSource('''
+sealed class Either {}
+
+class [!Left!] extends Either {}
+class Right extends Either {}
+''');
+
+    await initializeServer();
+    await expectNoCodeAction(null);
+  }
+
+  @failingTest
+  Future<void>
+      test_sealedClass_extends_superclass_withDirectSubclassInOtherPart() async {
+    // This test fails because we never look in the other parts, we only
+    // look in the current file. This means we will happily move Either.
+    addTestSource('''
+part 'part2.dart';
+
+sealed class [!Either!] {}
+''');
+    var otherFilePath = '$projectFolderPath/lib/part2.dart';
+    var otherFileContent = '''
+part of 'main.dart';
+
+class Left extends Either {}
+''';
+
+    addSource(otherFilePath, otherFileContent);
+
+    await initializeServer();
+    await expectNoCodeAction(null);
+  }
+
+  Future<void>
+      test_sealedClass_extends_superclass_withIndirectSubclass() async {
+    var originalSource = '''
+sealed class [!Either!] {}
+
+class Left extends Either {}
+class Right extends Either {}
+
+class LeftSub extends Left {}
+
+class Neither {}
+''';
+    // TODO(dantup): Track down where this extra newline is coming from.
+    var modifiedSource = '''
+import 'package:test/either.dart';
+
+
+class LeftSub extends Left {}
+
+class Neither {}
+''';
+    var newFileName = 'either.dart';
+    var newFileContent = '''
+sealed class Either {}
+
+class Left extends Either {}
+class Right extends Either {}
+''';
+    await _multipleDeclarations(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        count: 3,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_sealedClass_extends_superclassAndSubclass() async {
+    var originalSource = '''
+sealed class [!Either {}
+
+class Left!] extends Either {}
+class Right extends Either {}
+
+class Neither {}
+''';
+    var modifiedSource = '''
+
+class Neither {}
+''';
+    var newFileName = 'either.dart';
+    var newFileContent = '''
+sealed class Either {}
+
+class Left extends Either {}
+class Right extends Either {}
+''';
+    await _multipleDeclarations(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        count: 3,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_sealedClass_implements() async {
+    var originalSource = '''
+sealed class [!Either!] {}
+
+class Left implements Either {}
+class Right implements Either {}
+
+class Neither {}
+''';
+    var modifiedSource = '''
+
+class Neither {}
+''';
+    var newFileName = 'either.dart';
+    var newFileContent = '''
+sealed class Either {}
+
+class Left implements Either {}
+class Right implements Either {}
+''';
+    await _multipleDeclarations(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        count: 3,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_sealedClass_sealedSubclass_extends_superclass() async {
+    var originalSource = '''
+sealed class [!SealedRoot!] {}
+
+class Subclass extends SealedRoot {}
+sealed class SealedSubclass extends SealedRoot {}
+
+class SubSubclass extends SealedSubclass {}
+
+class SubSubSubclass extends SubSubclass {}
+''';
+    var modifiedSource = '''
+import 'package:test/sealed_root.dart';
+
+
+class SubSubSubclass extends SubSubclass {}
+''';
+    var newFileName = 'sealed_root.dart';
+    var newFileContent = '''
+sealed class SealedRoot {}
+
+class Subclass extends SealedRoot {}
+sealed class SealedSubclass extends SealedRoot {}
+
+class SubSubclass extends SealedSubclass {}
+''';
+    await _multipleDeclarations(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        count: 4,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_sealedMixin_implements() async {
+    var originalSource = '''
+sealed mixin [!Either!] {}
+
+class Left implements Either {}
+mixin Right implements Either {}
+
+class Neither {}
+''';
+    var modifiedSource = '''
+
+class Neither {}
+''';
+    var newFileName = 'either.dart';
+    var newFileContent = '''
+sealed mixin Either {}
+
+class Left implements Either {}
+mixin Right implements Either {}
+''';
+    await _multipleDeclarations(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        count: 3,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_sealedMixin_on_subclass() async {
+    addTestSource('''
+sealed mixin SealedMixin {}
+
+mixin [!OtherMixin!] on SealedMixin {}
+''');
+    await initializeServer();
+    await expectNoCodeAction(null);
+  }
+
+  Future<void> test_sealedMixin_on_superclass() async {
+    var originalSource = '''
+sealed mixin [!SealedMixin!] {}
+
+mixin MixinToMove on SealedMixin {}
+
+mixin MixinToStay on MixinToMove {}
+''';
+    var modifiedSource = '''
+import 'package:test/sealed_mixin.dart';
+
+
+mixin MixinToStay on MixinToMove {}
+''';
+    var newFileName = 'sealed_mixin.dart';
+    var newFileContent = '''
+sealed mixin SealedMixin {}
+
+mixin MixinToMove on SealedMixin {}
+''';
+    await _multipleDeclarations(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        count: 2,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_sealedMixin_with() async {
+    var originalSource = '''
+sealed mixin [!Either!] {}
+
+class Left with Either {}
+class Right with Either {}
+
+class Neither {}
+''';
+    var modifiedSource = '''
+
+class Neither {}
+''';
+    var newFileName = 'either.dart';
+    var newFileContent = '''
+sealed mixin Either {}
+
+class Left with Either {}
+class Right with Either {}
+''';
+    await _multipleDeclarations(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        count: 3,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
   Future<void> test_single_class_withTypeParameters() async {
     var originalSource = '''
 class A {}
