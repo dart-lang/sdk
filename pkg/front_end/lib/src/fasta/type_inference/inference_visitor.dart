@@ -2772,7 +2772,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     IfCaseStatement ifCaseStatement = _createIfCase(
         element.fileOffset,
         element.expression,
-        element.matchedValueType,
+        element.matchedValueType!,
         element.patternGuard,
         thenBody,
         elseBody);
@@ -3115,7 +3115,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     IfCaseStatement ifStatement = _createIfCase(
         entry.fileOffset,
         entry.expression,
-        entry.matchedValueType,
+        entry.matchedValueType!,
         entry.patternGuard,
         thenStatement,
         elseStatement);
@@ -9286,7 +9286,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return analyzeNullCheckOrAssertPatternSchema(node.pattern,
           isAssert: false);
     } else if (node is ObjectPattern) {
-      return analyzeObjectPatternSchema(node.type);
+      return analyzeObjectPatternSchema(node.requiredType);
     } else if (node is OrPattern) {
       return analyzeLogicalOrPatternSchema(node.left, node.right);
     } else if (node is RecordPattern) {
@@ -9732,7 +9732,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    node.matchedType = flow.getMatchedValueType();
+    node.matchedValueType = flow.getMatchedValueType();
 
     DeclaredVariablePatternResult<DartType, InvalidExpression> analysisResult =
         analyzeDeclaredVariablePattern(
@@ -9806,10 +9806,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = error.fileOffset;
     }
 
-    node.expressionType = analysisResult.expressionType;
+    DartType expressionType =
+        node.expressionType = analysisResult.expressionType;
 
     ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
-        node.expressionType, equalsName, node.fileOffset,
+        expressionType, equalsName, node.fileOffset,
         includeExtensionMethods: true,
         callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
     assert(equalsInvokeTarget.isInstanceMember ||
@@ -9998,89 +9999,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    node.matchedType = flow.getMatchedValueType();
-
-    DartType typeArgument = node.typeArgument ?? const DynamicType();
-    DartType targetListType = new InterfaceType(
-        coreTypes.listClass, Nullability.nonNullable, <DartType>[typeArgument]);
-
-    node.needsCheck = _needsCheck(
-        matchedType: node.matchedType, requiredType: targetListType);
-
-    if (node.needsCheck) {
-      node.listType = targetListType;
-    } else {
-      node.listType = node.matchedType;
-    }
-
-    ObjectAccessTarget lengthTarget = findInterfaceMember(
-        node.listType, lengthName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-    assert(lengthTarget.isInstanceMember);
-
-    node.lengthType = lengthTarget.getGetterType(this);
-    node.lengthTarget = lengthTarget.member!;
-
-    ObjectAccessTarget sublistInvokeTarget = findInterfaceMember(
-        node.listType, sublistName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-    assert(sublistInvokeTarget.isInstanceMember);
-
-    node.sublistTarget = sublistInvokeTarget.member as Procedure;
-    node.sublistType = sublistInvokeTarget.getFunctionType(this);
-
-    ObjectAccessTarget minusTarget = findInterfaceMember(
-        node.lengthType, minusName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-    assert(minusTarget.isInstanceMember);
-    assert(minusTarget.isSpecialCasedBinaryOperator(this));
-
-    node.minusTarget = minusTarget.member as Procedure;
-    node.minusType = replaceReturnType(
-        minusTarget.getFunctionType(this),
-        typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
-            node.lengthType, coreTypes.intNonNullableRawType,
-            isNonNullableByDefault: isNonNullableByDefault));
-
-    ObjectAccessTarget indexGetTarget = findInterfaceMember(
-        node.listType, indexGetName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-    assert(indexGetTarget.isInstanceMember);
-
-    node.indexGetTarget = indexGetTarget.member as Procedure;
-    node.indexGetType = indexGetTarget.getFunctionType(this);
-
-    for (Pattern pattern in node.patterns) {
-      if (pattern is RestPattern) {
-        node.hasRestPattern = true;
-        break;
-      }
-    }
-
-    if (node.hasRestPattern) {
-      ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
-          node.lengthType, greaterThanOrEqualsName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-      assert(greaterThanOrEqualTarget.isInstanceMember);
-
-      node.lengthCheckTarget = greaterThanOrEqualTarget.member as Procedure;
-      node.lengthCheckType = greaterThanOrEqualTarget.getFunctionType(this);
-    } else {
-      ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
-          node.lengthType, equalsName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-      assert(equalsInvokeTarget.isInstanceMember ||
-          equalsInvokeTarget.isObjectMember);
-
-      node.lengthCheckTarget = equalsInvokeTarget.member as Procedure;
-      node.lengthCheckType = equalsInvokeTarget.getFunctionType(this);
-    }
+    DartType matchedValueType =
+        node.matchedValueType = flow.getMatchedValueType();
 
     ListPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeListPattern(context, node,
@@ -10114,6 +10034,90 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
+    // TODO(johnniwinther): The required type computed by the type analyzer
+    // isn't trivially `List<dynamic>` in all cases. Does that matter for the
+    // lowering?
+    DartType requiredType = node.requiredType = analysisResult.requiredType;
+
+    node.needsCheck =
+        _needsCheck(matchedType: matchedValueType, requiredType: requiredType);
+
+    DartType lookupType;
+    if (node.needsCheck) {
+      lookupType = node.lookupType = requiredType;
+    } else {
+      lookupType = node.lookupType = matchedValueType;
+    }
+
+    ObjectAccessTarget lengthTarget = findInterfaceMember(
+        lookupType, lengthName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+    assert(lengthTarget.isInstanceMember);
+
+    DartType lengthType = node.lengthType = lengthTarget.getGetterType(this);
+    node.lengthTarget = lengthTarget.member!;
+
+    ObjectAccessTarget sublistInvokeTarget = findInterfaceMember(
+        lookupType, sublistName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    assert(sublistInvokeTarget.isInstanceMember);
+
+    node.sublistTarget = sublistInvokeTarget.member as Procedure;
+    node.sublistType = sublistInvokeTarget.getFunctionType(this);
+
+    ObjectAccessTarget minusTarget = findInterfaceMember(
+        lengthType, minusName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    assert(minusTarget.isInstanceMember);
+    assert(minusTarget.isSpecialCasedBinaryOperator(this));
+
+    node.minusTarget = minusTarget.member as Procedure;
+    node.minusType = replaceReturnType(
+        minusTarget.getFunctionType(this),
+        typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
+            lengthType, coreTypes.intNonNullableRawType,
+            isNonNullableByDefault: isNonNullableByDefault));
+
+    ObjectAccessTarget indexGetTarget = findInterfaceMember(
+        lookupType, indexGetName, node.fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    assert(indexGetTarget.isInstanceMember);
+
+    node.indexGetTarget = indexGetTarget.member as Procedure;
+    node.indexGetType = indexGetTarget.getFunctionType(this);
+
+    for (Pattern pattern in node.patterns) {
+      if (pattern is RestPattern) {
+        node.hasRestPattern = true;
+        break;
+      }
+    }
+
+    if (node.hasRestPattern) {
+      ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
+          lengthType, greaterThanOrEqualsName, node.fileOffset,
+          includeExtensionMethods: true,
+          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+      assert(greaterThanOrEqualTarget.isInstanceMember);
+
+      node.lengthCheckTarget = greaterThanOrEqualTarget.member as Procedure;
+      node.lengthCheckType = greaterThanOrEqualTarget.getFunctionType(this);
+    } else {
+      ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
+          lengthType, equalsName, node.fileOffset,
+          includeExtensionMethods: true,
+          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+      assert(equalsInvokeTarget.isInstanceMember ||
+          equalsInvokeTarget.isObjectMember);
+
+      node.lengthCheckTarget = equalsInvokeTarget.member as Procedure;
+      node.lengthCheckType = equalsInvokeTarget.getFunctionType(this);
+    }
+
     pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
@@ -10132,7 +10136,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    node.matchedType = flow.getMatchedValueType();
+    DartType matchedValueType =
+        node.matchedValueType = flow.getMatchedValueType();
 
     ObjectPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeObjectPattern(context, node,
@@ -10172,20 +10177,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    node.needsCheck =
-        _needsCheck(matchedType: node.matchedType, requiredType: node.type);
+    node.needsCheck = _needsCheck(
+        matchedType: matchedValueType, requiredType: node.requiredType);
 
+    DartType lookupType;
     if (node.needsCheck) {
-      node.objectType = node.type;
+      lookupType = node.lookupType = node.requiredType;
     } else {
-      node.objectType = node.matchedType;
+      lookupType = node.lookupType = matchedValueType;
     }
 
     for (NamedPattern field in node.fields) {
       field.fieldName = new Name(field.name, libraryBuilder.library);
 
       ObjectAccessTarget fieldTarget = findInterfaceMember(
-          node.objectType, field.fieldName, field.fileOffset,
+          lookupType, field.fieldName, field.fileOffset,
           includeExtensionMethods: true,
           callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
@@ -10201,13 +10207,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           field.accessKind = ObjectAccessKind.Object;
           break;
         case ObjectAccessTargetKind.recordNamed:
-          field.recordType =
-              node.objectType.resolveTypeParameterType as RecordType;
+          field.recordType = lookupType.resolveTypeParameterType as RecordType;
           field.accessKind = ObjectAccessKind.RecordNamed;
           break;
         case ObjectAccessTargetKind.recordIndexed:
-          field.recordType =
-              node.objectType.resolveTypeParameterType as RecordType;
+          field.recordType = lookupType.resolveTypeParameterType as RecordType;
           field.accessKind = ObjectAccessKind.RecordIndexed;
           field.recordFieldIndex = fieldTarget.recordFieldIndex!;
           break;
@@ -10221,7 +10225,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.ambiguous:
           field.pattern = new InvalidPattern(
               createMissingPropertyGet(
-                  field.fileOffset, node.objectType, field.fieldName),
+                  field.fileOffset, lookupType, field.fieldName),
               declaredVariables: field.pattern.declaredVariables)
             ..fileOffset = field.fileOffset
             ..parent = field;
@@ -10291,7 +10295,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    node.matchedType = flow.getMatchedValueType();
+    DartType matchedValueType =
+        node.matchedValueType = flow.getMatchedValueType();
 
     RelationalPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeRelationalPattern(context, node, node.expression);
@@ -10320,26 +10325,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType expressionType = analysisResult.operandType;
     node.expressionType = expressionType;
 
+    Name name;
     switch (node.kind) {
       case RelationalPatternKind.equals:
       case RelationalPatternKind.notEquals:
-        node.name = equalsName;
+        name = node.name = equalsName;
         break;
       case RelationalPatternKind.lessThan:
-        node.name = lessThanName;
+        name = node.name = lessThanName;
         break;
       case RelationalPatternKind.lessThanEqual:
-        node.name = lessThanOrEqualsName;
+        name = node.name = lessThanOrEqualsName;
         break;
       case RelationalPatternKind.greaterThan:
-        node.name = greaterThanName;
+        name = node.name = greaterThanName;
         break;
       case RelationalPatternKind.greaterThanEqual:
-        node.name = greaterThanOrEqualsName;
+        name = node.name = greaterThanOrEqualsName;
         break;
     }
     ObjectAccessTarget invokeTarget = findInterfaceMember(
-        node.matchedType, node.name, node.fileOffset,
+        matchedValueType, name, node.fileOffset,
         includeExtensionMethods: true,
         callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
     switch (node.kind) {
@@ -10380,7 +10386,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case ObjectAccessTargetKind.ambiguous:
             replacement ??= new InvalidPattern(
                 createMissingMethodInvocation(
-                    node.fileOffset, node.matchedType, node.name,
+                    node.fileOffset, matchedValueType, name,
                     isExpressionInvocation: false),
                 declaredVariables: node.declaredVariables)
               ..fileOffset = node.fileOffset;
@@ -10429,7 +10435,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    node.matchedType = flow.getMatchedValueType();
+    DartType matchedValueType =
+        node.matchedValueType = flow.getMatchedValueType();
 
     MapPatternTypeArguments<DartType>? typeArguments =
         node.keyType == null && node.valueType == null
@@ -10451,30 +10458,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = error.fileOffset;
     }
 
-    DartType mapType = analysisResult.requiredType;
-
-    // TODO(johnniwinther): How does `mapType` relate to `node.mapType`?
-    DartType keyType = node.keyType ?? const DynamicType();
-    DartType valueType = node.valueType ?? const DynamicType();
-    DartType targetMapType = new InterfaceType(
-        coreTypes.mapClass, Nullability.nonNullable, [keyType, valueType]);
+    // TODO(johnniwinther): The required type computed by the type analyzer
+    // isn't trivially `Map<dynamic, dynamic>` in all cases. Does that matter
+    // for the lowering?
+    DartType requiredType = node.requiredType = analysisResult.requiredType;
 
     node.needsCheck =
-        _needsCheck(matchedType: node.matchedType, requiredType: targetMapType);
+        _needsCheck(matchedType: matchedValueType, requiredType: requiredType);
 
+    DartType lookupType;
     if (node.needsCheck) {
-      node.mapType = targetMapType;
+      lookupType = node.lookupType = requiredType;
     } else {
-      node.mapType = node.matchedType;
+      lookupType = node.lookupType = matchedValueType;
     }
 
     ObjectAccessTarget lengthTarget = findInterfaceMember(
-        node.mapType, lengthName, node.fileOffset,
+        lookupType, lengthName, node.fileOffset,
         includeExtensionMethods: true,
         callSiteAccessKind: CallSiteAccessKind.getterInvocation);
     assert(lengthTarget.isInstanceMember);
 
-    node.lengthType = lengthTarget.getGetterType(this);
+    DartType lengthType = node.lengthType = lengthTarget.getGetterType(this);
     node.lengthTarget = lengthTarget.member!;
 
     // In map patterns the rest pattern can appear only in the end.
@@ -10483,7 +10488,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     if (node.hasRestPattern) {
       ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
-          node.lengthType, greaterThanOrEqualsName, node.fileOffset,
+          lengthType, greaterThanOrEqualsName, node.fileOffset,
           includeExtensionMethods: true,
           callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
       assert(greaterThanOrEqualTarget.isInstanceMember);
@@ -10492,7 +10497,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.lengthCheckType = greaterThanOrEqualTarget.getFunctionType(this);
     } else {
       ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
-          node.lengthType, equalsName, node.fileOffset,
+          lengthType, equalsName, node.fileOffset,
           includeExtensionMethods: true,
           callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
       assert(equalsInvokeTarget.isInstanceMember ||
@@ -10503,7 +10508,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     ObjectAccessTarget containsKeyTarget = findInterfaceMember(
-        targetMapType, containsKeyName, node.fileOffset,
+        lookupType, containsKeyName, node.fileOffset,
         includeExtensionMethods: true,
         callSiteAccessKind: CallSiteAccessKind.methodInvocation);
     assert(containsKeyTarget.isInstanceMember);
@@ -10512,7 +10517,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.containsKeyType = containsKeyTarget.getFunctionType(this);
 
     ObjectAccessTarget indexGetTarget = findInterfaceMember(
-        targetMapType, indexGetName, node.fileOffset,
+        lookupType, indexGetName, node.fileOffset,
         includeExtensionMethods: true,
         callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
     assert(indexGetTarget.isInstanceMember);
@@ -10542,14 +10547,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.entries[i] = (rewrite as MapPatternEntry)..parent = node;
       }
     }
-    if (mapType is InterfaceType) {
-      List<DartType>? mapTypeArguments = hierarchyBuilder
-          .getTypeArgumentsAsInstanceOf(mapType, coreTypes.mapClass);
-      if (mapTypeArguments != null && mapTypeArguments.length == 2) {
-        node.keyType = mapTypeArguments[0];
-        node.valueType = mapTypeArguments[1];
-      }
-    }
 
     pushRewrite(replacement ?? node);
 
@@ -10576,7 +10573,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    node.matchedType = flow.getMatchedValueType();
+    DartType matchedValueType =
+        node.matchedValueType = flow.getMatchedValueType();
 
     List<RecordPatternField<TreeNode, Pattern>> fields = [
       for (Pattern fieldPattern in node.patterns)
@@ -10605,22 +10603,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = error.fileOffset;
     }
 
-    DartType recordType = analysisResult.requiredType;
-    node.type = recordType as RecordType;
+    RecordType requiredType =
+        node.requiredType = analysisResult.requiredType as RecordType;
 
     // TODO(johnniwinther): How does `recordType` relate to `node.recordType`?
     node.needsCheck =
-        _needsCheck(matchedType: node.matchedType, requiredType: node.type);
+        _needsCheck(matchedType: matchedValueType, requiredType: requiredType);
     if (node.needsCheck) {
-      node.recordType = node.type;
+      node.lookupType = requiredType;
     } else {
-      DartType resolvedType = node.matchedType.resolveTypeParameterType;
+      DartType resolvedType = matchedValueType.resolveTypeParameterType;
       if (resolvedType is RecordType) {
-        node.recordType = resolvedType;
+        node.lookupType = resolvedType;
       } else {
         // In case of the matched type being an invalid type we use the
         // required type instead.
-        node.recordType = node.type;
+        node.lookupType = requiredType;
       }
     }
 
@@ -10685,9 +10683,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    node.matchedType = flow.getMatchedValueType();
+    DartType matchedValueType =
+        node.matchedValueType = flow.getMatchedValueType();
     node.needsCheck = _needsCheck(
-        matchedType: node.matchedType, requiredType: node.variable.type);
+        matchedType: matchedValueType, requiredType: node.variable.type);
 
     // TODO(johnniwinther): Share this through the type analyzer.
     Pattern? replacement;
@@ -10782,7 +10781,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (pattern is! ObjectPattern) return const InvalidType();
     // TODO(johnniwinther): Update this when language issue #2770 has been
     // resolved.
-    return pattern.type;
+    return pattern.requiredType;
   }
 
   @override

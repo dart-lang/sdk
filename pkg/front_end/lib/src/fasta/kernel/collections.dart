@@ -846,6 +846,7 @@ Expression convertToElement(
         otherwise: entry.otherwise == null
             ? null
             : convertToElement(entry.otherwise!, helper, onConvertMapEntry))
+      ..matchedValueType = entry.matchedValueType
       ..fileOffset = entry.fileOffset;
     onConvertMapEntry(entry, result);
     return result;
@@ -961,6 +962,7 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
         otherwise: element.otherwise == null
             ? null
             : convertToMapEntry(element.otherwise!, helper, onConvertElement))
+      ..matchedValueType = element.matchedValueType
       ..fileOffset = element.fileOffset;
     onConvertElement(element, result);
     return result;

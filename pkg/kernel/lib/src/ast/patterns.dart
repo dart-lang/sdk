@@ -33,7 +33,7 @@ class ConstantPattern extends Pattern {
   Expression expression;
 
   /// Static type of the expression as computed during inference.
-  DartType expressionType = InvalidType.unsetType;
+  DartType? expressionType;
 
   /// Reference to the `operator ==` procedure on [expression].
   ///
@@ -43,7 +43,7 @@ class ConstantPattern extends Pattern {
   /// The type of the `operator ==` procedure on [expression].
   ///
   /// This is set during inference.
-  FunctionType equalsType = FunctionType.unsetFunctionType;
+  FunctionType? equalsType;
 
   /// The [Constant] value for this constant pattern.
   ///
@@ -358,27 +358,37 @@ class NullCheckPattern extends Pattern {
 
 /// A [Pattern] for `<typeArgument>[pattern0, ... patternN]`.
 class ListPattern extends Pattern {
+  /// The element type argument as specified by the list pattern syntax.
   DartType? typeArgument;
+
   List<Pattern> patterns;
+
+  /// The required type of the pattern.
+  ///
+  /// This is the type the matched expression is checked against, if the
+  /// [matchedValueType] is not already a subtype of [requiredType].
+  ///
+  /// This is set during inference.
+  DartType? requiredType;
 
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
   /// If `true`, the matched expression must be checked to be a `List`.
   ///
   /// This is set during inference.
   bool needsCheck = false;
 
-  /// The type of the matched expression.
+  /// The most specific type of the matched expression. Either the
+  /// [requiredType] or the [matchedValueType] if it is a subtype of
+  /// [requiredType].
   ///
-  /// If [needsCheck] is `true`, this is the list type it was checked against.
-  /// Otherwise it is the type of the matched expression itself, which was,
-  /// in this case, already known to be a list type.
+  /// This is the type on which pattern accesses from [patterns] are looked up.
   ///
   /// This is set during inference.
-  DartType listType = InvalidType.unsetType;
+  DartType? lookupType;
 
   /// If `true`, this list pattern contains a rest pattern.
   ///
@@ -393,7 +403,7 @@ class ListPattern extends Pattern {
   /// The type of the `length` property of the list.
   ///
   /// This is set during inference.
-  DartType lengthType = InvalidType.unsetType;
+  DartType? lengthType;
 
   /// Reference to the method used to check the `length` of the list.
   ///
@@ -409,7 +419,7 @@ class ListPattern extends Pattern {
   /// Otherwise this is an `operator ==` method.
   ///
   /// This is set during inference.
-  FunctionType lengthCheckType = FunctionType.unsetFunctionType;
+  FunctionType? lengthCheckType;
 
   /// Reference to the target of the `sublist` method of the list.
   ///
@@ -423,7 +433,7 @@ class ListPattern extends Pattern {
   /// This is used if this pattern has a rest pattern with a subpattern.
   ///
   /// This is set during inference.
-  FunctionType sublistType = FunctionType.unsetFunctionType;
+  FunctionType? sublistType;
 
   /// Reference to the target of the `minus` method of the `length` of this
   /// list.
@@ -438,7 +448,7 @@ class ListPattern extends Pattern {
   /// This is used to compute tail indices if this pattern has a rest pattern.
   ///
   /// This is set during inference.
-  FunctionType minusType = FunctionType.unsetFunctionType;
+  FunctionType? minusType;
 
   /// Reference to the target of the `operator []` method of the list.
   ///
@@ -448,7 +458,7 @@ class ListPattern extends Pattern {
   /// The type of the `operator []` method of the list.
   ///
   /// This is set during inference.
-  FunctionType indexGetType = FunctionType.unsetFunctionType;
+  FunctionType? indexGetType;
 
   @override
   List<VariableDeclaration> get declaredVariables =>
@@ -568,29 +578,35 @@ class ListPattern extends Pattern {
 }
 
 class ObjectPattern extends Pattern {
-  DartType type;
+  /// The type specified as part of the object pattern syntax.
+  ///
+  /// This is the type the matched expression is checked against, if the
+  /// [matchedValueType] is not already a subtype of [requiredType].
+  DartType requiredType;
+
   final List<NamedPattern> fields;
 
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
-  /// If `true`, the matched expression must be checked to be of type [type].
+  /// If `true`, the matched expression must be checked to be of type
+  /// [requiredType].
   ///
   /// This is set during inference.
   bool needsCheck = false;
 
-  /// The type of the matched expression.
+  /// The most specific type of the matched expression. Either the
+  /// [requiredType] or the [matchedValueType] if it is a subtype of
+  /// [requiredType].
   ///
-  /// If [needsCheck] is `true`, this is the type it was checked against.
-  /// Otherwise it is the type of the matched expression itself, which was,
-  /// in this case, already known to be of the required type.
+  /// This is the type on which pattern accesses from [fields] are looked up.
   ///
   /// This is set during inference.
-  DartType objectType = InvalidType.unsetType;
+  DartType? lookupType;
 
-  ObjectPattern(this.type, this.fields) {
+  ObjectPattern(this.requiredType, this.fields) {
     setParents(fields, this);
   }
 
@@ -603,19 +619,19 @@ class ObjectPattern extends Pattern {
 
   @override
   void transformChildren(Transformer v) {
-    type = v.visitDartType(type);
+    requiredType = v.visitDartType(requiredType);
     v.transformList(fields, this);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    type = v.visitDartType(type, cannotRemoveSentinel);
+    requiredType = v.visitDartType(requiredType, cannotRemoveSentinel);
     v.transformList(fields, this, dummyNamedPattern);
   }
 
   @override
   void visitChildren(Visitor v) {
-    type.accept(v);
+    requiredType.accept(v);
     visitList(fields, v);
   }
 
@@ -626,7 +642,7 @@ class ObjectPattern extends Pattern {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeType(type);
+    printer.writeType(requiredType);
     printer.write('(');
     String comma = '';
     for (Pattern field in fields) {
@@ -661,12 +677,12 @@ class RelationalPattern extends Pattern {
   /// The type of the [expression].
   ///
   /// This is set during inference.
-  DartType expressionType = InvalidType.unsetType;
+  DartType? expressionType;
 
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
   /// The access kind for performing the relational operation of this pattern.
   ///
@@ -676,7 +692,7 @@ class RelationalPattern extends Pattern {
   /// The name of the relational operation called by this pattern.
   ///
   /// This is set during inference.
-  Name name = new Name('#');
+  Name? name;
 
   /// Reference to the target [Procedure] called by this pattern.
   ///
@@ -839,7 +855,7 @@ class AssignedVariablePattern extends Pattern {
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
   /// If `true`, the matched expression must be checked to be of the type
   /// of [variable].
@@ -884,28 +900,40 @@ class AssignedVariablePattern extends Pattern {
 }
 
 class MapPattern extends Pattern {
+  /// The key type arguments as specific in the map pattern syntax.
   DartType? keyType;
+
+  /// The value type arguments as specific in the map pattern syntax.
   DartType? valueType;
+
   final List<MapPatternEntry> entries;
+
+  /// The required type of the pattern.
+  ///
+  /// This is the type the matched expression is checked against, if the
+  /// [matchedValueType] is not already a subtype of [requiredType].
+  ///
+  /// This is set during inference.
+  DartType? requiredType;
 
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
   /// If `true`, the matched expression must be checked to be a `Map`.
   ///
   /// This is set during inference.
   bool needsCheck = false;
 
-  /// The type of the matched expression.
+  /// The most specific type of the matched expression. Either the
+  /// [requiredType] or the [matchedValueType] if it is a subtype of
+  /// [requiredType].
   ///
-  /// If [needsCheck] is `true`, this is the map type it was checked against.
-  /// Otherwise it is the type of the matched expression itself, which was,
-  /// in this case, already known to be a map type.
+  /// This is the type on which pattern accesses from [entries] are looked up.
   ///
   /// This is set during inference.
-  DartType mapType = InvalidType.unsetType;
+  DartType? lookupType;
 
   /// If `true`, this map pattern contains a rest pattern.
   ///
@@ -920,7 +948,7 @@ class MapPattern extends Pattern {
   /// The type of the `length` property of the map.
   ///
   /// This is set during inference.
-  DartType lengthType = InvalidType.unsetType;
+  DartType? lengthType;
 
   /// Reference to the method used to check the `length` of the map.
   ///
@@ -936,7 +964,7 @@ class MapPattern extends Pattern {
   /// Otherwise this is an `operator ==` method.
   ///
   /// This is set during inference.
-  FunctionType lengthCheckType = FunctionType.unsetFunctionType;
+  FunctionType? lengthCheckType;
 
   /// Reference to the target of the `containsKey` method of the map.
   ///
@@ -946,7 +974,7 @@ class MapPattern extends Pattern {
   /// The type of the `containsKey` method of the map.
   ///
   /// This is set during inference.
-  FunctionType containsKeyType = FunctionType.unsetFunctionType;
+  FunctionType? containsKeyType;
 
   /// Reference to the target of the `operator []` method of the map.
   ///
@@ -956,7 +984,7 @@ class MapPattern extends Pattern {
   /// The type of the `operator []` method of the map.
   ///
   /// This is set during inference.
-  FunctionType indexGetType = FunctionType.unsetFunctionType;
+  FunctionType? indexGetType;
 
   @override
   List<VariableDeclaration> get declaredVariables => [
@@ -1201,27 +1229,31 @@ class RecordPattern extends Pattern {
 
   /// The required type of the pattern.
   ///
+  /// This is the type the matched expression is checked against, if the
+  /// [matchedValueType] is not already a subtype of [requiredType].
+  ///
   /// This is set during inference.
-  RecordType type = RecordType.unsetRecordType;
+  RecordType? requiredType;
 
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
-  /// If `true`, the matched expression must be checked to be of type [type].
+  /// If `true`, the matched expression must be checked to be of type
+  /// [requiredType].
   ///
   /// This is set during inference.
   bool needsCheck = false;
 
-  /// The type of the matched expression.
+  /// The most specific type of the matched expression. Either the
+  /// [requiredType] or the [matchedValueType] if it is a subtype of
+  /// [requiredType].
   ///
-  /// If [needsCheck] is `true`, this is the record type it was checked against.
-  /// Otherwise it is the type of the matched expression itself, which was,
-  /// in this case, already known to be a record type.
+  /// This is the type on which pattern accesses from [patterns] are looked up.
   ///
   /// This is set during inference.
-  RecordType recordType = RecordType.unsetRecordType;
+  RecordType? lookupType;
 
   @override
   List<VariableDeclaration> get declaredVariables =>
@@ -1279,7 +1311,7 @@ class VariablePattern extends Pattern {
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
   @override
   List<VariableDeclaration> get declaredVariables => [variable];
@@ -1444,7 +1476,7 @@ class MapPatternEntry extends TreeNode {
   Expression key;
   Pattern value;
 
-  DartType keyType = InvalidType.unsetType;
+  DartType? keyType;
 
   /// The [Constant] value for the [key] expression.
   ///
@@ -1469,21 +1501,25 @@ class MapPatternEntry extends TreeNode {
   @override
   void transformChildren(Transformer v) {
     key = v.transform(key)..parent = this;
-    keyType = v.visitDartType(keyType);
+    if (keyType != null) {
+      keyType = v.visitDartType(keyType!);
+    }
     value = v.transform(value)..parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     key = v.transform(key)..parent = this;
-    keyType = v.visitDartType(keyType, cannotRemoveSentinel);
+    if (keyType != null) {
+      keyType = v.visitDartType(keyType!, cannotRemoveSentinel);
+    }
     value = v.transform(value)..parent = this;
   }
 
   @override
   void visitChildren(Visitor v) {
     key.accept(v);
-    keyType.accept(v);
+    keyType?.accept(v);
     value.accept(v);
   }
 
@@ -1511,11 +1547,11 @@ class MapPatternRestEntry extends TreeNode implements MapPatternEntry {
       throw new UnsupportedError('MapPatternRestEntry.key=');
 
   @override
-  DartType get keyType =>
+  DartType? get keyType =>
       throw new UnsupportedError('MapPatternRestEntry.keyType');
 
   @override
-  void set keyType(DartType value) =>
+  void set keyType(DartType? value) =>
       throw new UnsupportedError('MapPatternRestEntry.keyType=');
 
   @override
@@ -1775,7 +1811,7 @@ class PatternSwitchStatement extends Statement implements SwitchStatement {
   /// The type of the [expression].
   ///
   /// This is set during inference.
-  DartType expressionType = InvalidType.unsetType;
+  DartType? expressionType;
 
   PatternSwitchStatement(this.expression, this.cases) {
     expression.parent = this;
@@ -1902,12 +1938,12 @@ class SwitchExpression extends Expression {
   /// The type of the [expression].
   ///
   /// This is set during inference.
-  DartType expressionType = InvalidType.unsetType;
+  DartType? expressionType;
 
   /// The resulting type of the switch expression.
   ///
   /// This is set during inference.
-  DartType staticType = InvalidType.unsetType;
+  DartType? staticType;
 
   SwitchExpression(this.expression, this.cases) {
     expression.parent = this;
@@ -1928,25 +1964,29 @@ class SwitchExpression extends Expression {
   void transformChildren(Transformer v) {
     expression = v.transform(expression)..parent = this;
     v.transformList(cases, this);
-    staticType = v.visitDartType(staticType);
+    if (staticType != null) {
+      staticType = v.visitDartType(staticType!);
+    }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     expression = v.transform(expression)..parent = this;
     v.transformList(cases, this, dummySwitchExpressionCase);
-    staticType = v.visitDartType(staticType, cannotRemoveSentinel);
+    if (staticType != null) {
+      staticType = v.visitDartType(staticType!, cannotRemoveSentinel);
+    }
   }
 
   @override
   void visitChildren(Visitor v) {
     expression.accept(v);
     visitList(cases, v);
-    staticType.accept(v);
+    staticType?.accept(v);
   }
 
   @override
-  DartType getStaticTypeInternal(StaticTypeContext context) => staticType;
+  DartType getStaticTypeInternal(StaticTypeContext context) => staticType!;
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -1974,7 +2014,7 @@ class PatternVariableDeclaration extends Statement {
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedValueType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
   PatternVariableDeclaration(this.pattern, this.initializer,
       {required this.isFinal}) {
@@ -2036,7 +2076,7 @@ class PatternAssignment extends Expression {
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedValueType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
   PatternAssignment(this.pattern, this.expression) {
     pattern.parent = this;
@@ -2105,7 +2145,7 @@ class IfCaseStatement extends Statement {
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType matchedValueType = InvalidType.unsetType;
+  DartType? matchedValueType;
 
   IfCaseStatement(this.expression, this.patternGuard, this.then,
       [this.otherwise]) {

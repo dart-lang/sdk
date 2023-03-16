@@ -2693,23 +2693,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.receiver);
   }
 
-  /// Writes [type] if it isn't [InvalidType.unsetType].
-  void _writeUnsetType(DartType type) {
-    writeOptionalNode(identical(type, InvalidType.unsetType) ? null : type);
-  }
-
-  /// Writes [type] if it isn't [RecordType.unsetRecordType].
-  void _writeUnsetRecordType(RecordType type) {
-    writeOptionalNode(
-        identical(type, RecordType.unsetRecordType) ? null : type);
-  }
-
-  /// Writes [type] if it isn't [FunctionType.unsetFunctionType].
-  void _writeUnsetFunctionType(FunctionType type) {
-    writeOptionalNode(
-        identical(type, FunctionType.unsetFunctionType) ? null : type);
-  }
-
   void _writeVariableReference(VariableDeclaration variable) {
     int index = _getVariableIndex(variable);
     writeUInt30(variable.binaryOffsetNoTag);
@@ -2729,7 +2712,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.AssignedVariablePattern);
     writeOffset(node.fileOffset);
     _writeVariableReference(node.variable);
-    _writeUnsetType(node.matchedType);
+    writeOptionalNode(node.matchedValueType);
     writeByte(node.needsCheck ? 1 : 0);
   }
 
@@ -2746,9 +2729,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.ConstantPattern);
     writeOffset(node.fileOffset);
     writeNode(node.expression);
-    _writeUnsetType(node.expressionType);
+    writeOptionalNode(node.expressionType);
     writeNullAllowedReference(node.equalsTargetReference);
-    _writeUnsetFunctionType(node.equalsType);
+    writeOptionalNode(node.equalsType);
   }
 
   @override
@@ -2765,19 +2748,20 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOptionalNode(node.typeArgument);
     writeNodeList(node.patterns);
-    _writeUnsetType(node.matchedType);
+    writeOptionalNode(node.requiredType);
+    writeOptionalNode(node.matchedValueType);
     writeByte((node.needsCheck ? 0x1 : 0) | (node.hasRestPattern ? 0x2 : 0));
-    _writeUnsetType(node.listType);
+    writeOptionalNode(node.lookupType);
     writeNullAllowedReference(node.lengthTargetReference);
-    _writeUnsetType(node.lengthType);
+    writeOptionalNode(node.lengthType);
     writeNullAllowedReference(node.lengthCheckTargetReference);
-    _writeUnsetFunctionType(node.lengthCheckType);
+    writeOptionalNode(node.lengthCheckType);
     writeNullAllowedReference(node.sublistTargetReference);
-    _writeUnsetFunctionType(node.sublistType);
+    writeOptionalNode(node.sublistType);
     writeNullAllowedReference(node.minusTargetReference);
-    _writeUnsetFunctionType(node.minusType);
+    writeOptionalNode(node.minusType);
     writeNullAllowedReference(node.indexGetTargetReference);
-    _writeUnsetFunctionType(node.indexGetType);
+    writeOptionalNode(node.indexGetType);
   }
 
   @override
@@ -2787,17 +2771,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalNode(node.keyType);
     writeOptionalNode(node.valueType);
     writeNodeList(node.entries);
-    _writeUnsetType(node.matchedType);
+    writeOptionalNode(node.requiredType);
+    writeOptionalNode(node.matchedValueType);
     writeByte((node.needsCheck ? 0x1 : 0) | (node.hasRestPattern ? 0x2 : 0));
-    _writeUnsetType(node.mapType);
+    writeOptionalNode(node.lookupType);
     writeNullAllowedReference(node.lengthTargetReference);
-    _writeUnsetType(node.lengthType);
+    writeOptionalNode(node.lengthType);
     writeNullAllowedReference(node.lengthCheckTargetReference);
-    _writeUnsetFunctionType(node.lengthCheckType);
+    writeOptionalNode(node.lengthCheckType);
     writeNullAllowedReference(node.containsKeyTargetReference);
-    _writeUnsetFunctionType(node.containsKeyType);
+    writeOptionalNode(node.containsKeyType);
     writeNullAllowedReference(node.indexGetTargetReference);
-    _writeUnsetFunctionType(node.indexGetType);
+    writeOptionalNode(node.indexGetType);
   }
 
   @override
@@ -2806,7 +2791,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeNode(node.key);
     writeNode(node.value);
-    _writeUnsetType(node.keyType);
+    writeOptionalNode(node.keyType);
   }
 
   @override
@@ -2854,11 +2839,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitObjectPattern(ObjectPattern node) {
     writeByte(Tag.ObjectPattern);
     writeOffset(node.fileOffset);
-    writeDartType(node.type);
+    writeDartType(node.requiredType);
     writeNodeList(node.fields);
-    _writeUnsetType(node.matchedType);
+    writeOptionalNode(node.matchedValueType);
     writeByte(node.needsCheck ? 1 : 0);
-    _writeUnsetType(node.objectType);
+    writeOptionalNode(node.lookupType);
   }
 
   @override
@@ -2898,7 +2883,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.PatternSwitchStatement);
     writeOffset(node.fileOffset);
     writeNode(node.expression);
-    _writeUnsetType(node.expressionType);
+    writeOptionalNode(node.expressionType);
     writeSwitchCaseNodeList(node.cases);
     switchCaseIndexer.exit(node);
   }
@@ -2908,10 +2893,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.RecordPattern);
     writeOffset(node.fileOffset);
     writeNodeList(node.patterns);
-    _writeUnsetRecordType(node.type);
-    _writeUnsetType(node.matchedType);
+    writeOptionalNode(node.requiredType);
+    writeOptionalNode(node.matchedValueType);
     writeByte(node.needsCheck ? 1 : 0);
-    _writeUnsetRecordType(node.recordType);
+    writeOptionalNode(node.lookupType);
   }
 
   @override
@@ -2920,10 +2905,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeByte(node.kind.index);
     writeNode(node.expression);
-    _writeUnsetType(node.expressionType);
-    _writeUnsetType(node.matchedType);
+    writeOptionalNode(node.expressionType);
+    writeOptionalNode(node.matchedValueType);
     writeByte(node.accessKind.index);
-    writeName(node.name);
+    writeOptionalNode(node.name);
     writeNullAllowedReference(node.targetReference);
     if (node.typeArguments == null) {
       writeByte(Tag.Nothing);
@@ -2946,9 +2931,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.SwitchExpression);
     writeOffset(node.fileOffset);
     writeNode(node.expression);
-    _writeUnsetType(node.expressionType);
+    writeOptionalNode(node.expressionType);
     writeList(node.cases, visitSwitchExpressionCase);
-    _writeUnsetType(node.staticType);
+    writeOptionalNode(node.staticType);
   }
 
   @override
@@ -2964,7 +2949,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOptionalNode(node.type);
     writeVariableDeclaration(node.variable);
-    _writeUnsetType(node.matchedType);
+    writeOptionalNode(node.matchedValueType);
   }
 
   @override
@@ -2982,7 +2967,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.patternGuard);
     writeNode(node.then);
     writeOptionalNode(node.otherwise);
-    _writeUnsetType(node.matchedValueType);
+    writeOptionalNode(node.matchedValueType);
   }
 
   @override
@@ -2991,7 +2976,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeNode(node.pattern);
     writeNode(node.expression);
-    _writeUnsetType(node.matchedValueType);
+    writeOptionalNode(node.matchedValueType);
   }
 
   @override
@@ -3001,7 +2986,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.pattern);
     writeNode(node.initializer);
     writeByte(node.isFinal ? 1 : 0);
-    _writeUnsetType(node.matchedValueType);
+    writeOptionalNode(node.matchedValueType);
   }
 
   // ================================================================

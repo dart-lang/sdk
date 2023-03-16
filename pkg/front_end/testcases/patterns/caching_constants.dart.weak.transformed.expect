@@ -168,16 +168,16 @@ static method method(core::Map<core::int, core::String> m) → core::int {
     function ##0#4#initializer() → core::bool
       return #0#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
     late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
-    function ##0#5#initializer() → dynamic
-      return #0#0.{core::Map::[]}(#C2){(core::Object?) → dynamic};
-    late final synthesized dynamic #0#5 = ##0#5#initializer(){() → dynamic};
-    if(#0#3 && #0#4 && #C3 =={core::String::==}{(core::Object) → core::bool} #0#5{core::String}) {
+    function ##0#5#initializer() → core::String?
+      return #0#0.{core::Map::[]}(#C2){(core::Object?) → core::String?};
+    late final synthesized core::String? #0#5 = ##0#5#initializer(){() → core::String?};
+    if(#0#3 && #0#4 && #C3 =={core::String::==}{(core::Object) → core::bool} #0#5) {
       {
         return 0;
       }
     }
     else
-      if(#0#3 && #0#4 && #C4 =={core::String::==}{(core::Object) → core::bool} #0#5{core::String}) {
+      if(#0#3 && #0#4 && #C4 =={core::String::==}{(core::Object) → core::bool} #0#5) {
         {
           return 1;
         }

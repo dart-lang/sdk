@@ -4673,13 +4673,16 @@ class EquivalenceStrategy {
     if (!checkListPattern_patterns(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkListPattern_matchedType(visitor, node, other)) {
+    if (!checkListPattern_requiredType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkListPattern_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkListPattern_needsCheck(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkListPattern_listType(visitor, node, other)) {
+    if (!checkListPattern_lookupType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkListPattern_hasRestPattern(visitor, node, other)) {
@@ -4729,19 +4732,19 @@ class EquivalenceStrategy {
     if (other is! ObjectPattern) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkObjectPattern_type(visitor, node, other)) {
+    if (!checkObjectPattern_requiredType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkObjectPattern_fields(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkObjectPattern_matchedType(visitor, node, other)) {
+    if (!checkObjectPattern_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkObjectPattern_needsCheck(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkObjectPattern_objectType(visitor, node, other)) {
+    if (!checkObjectPattern_lookupType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkObjectPattern_fileOffset(visitor, node, other)) {
@@ -4767,7 +4770,7 @@ class EquivalenceStrategy {
     if (!checkRelationalPattern_expressionType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkRelationalPattern_matchedType(visitor, node, other)) {
+    if (!checkRelationalPattern_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkRelationalPattern_accessKind(visitor, node, other)) {
@@ -4822,7 +4825,7 @@ class EquivalenceStrategy {
     if (!checkAssignedVariablePattern_variable(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkAssignedVariablePattern_matchedType(visitor, node, other)) {
+    if (!checkAssignedVariablePattern_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkAssignedVariablePattern_needsCheck(visitor, node, other)) {
@@ -4851,13 +4854,16 @@ class EquivalenceStrategy {
     if (!checkMapPattern_entries(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkMapPattern_matchedType(visitor, node, other)) {
+    if (!checkMapPattern_requiredType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkMapPattern_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkMapPattern_needsCheck(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkMapPattern_mapType(visitor, node, other)) {
+    if (!checkMapPattern_lookupType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkMapPattern_hasRestPattern(visitor, node, other)) {
@@ -4948,16 +4954,16 @@ class EquivalenceStrategy {
     if (!checkRecordPattern_patterns(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkRecordPattern_type(visitor, node, other)) {
+    if (!checkRecordPattern_requiredType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkRecordPattern_matchedType(visitor, node, other)) {
+    if (!checkRecordPattern_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkRecordPattern_needsCheck(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkRecordPattern_recordType(visitor, node, other)) {
+    if (!checkRecordPattern_lookupType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkRecordPattern_fileOffset(visitor, node, other)) {
@@ -4980,7 +4986,7 @@ class EquivalenceStrategy {
     if (!checkVariablePattern_variable(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariablePattern_matchedType(visitor, node, other)) {
+    if (!checkVariablePattern_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkVariablePattern_fileOffset(visitor, node, other)) {
@@ -8817,10 +8823,16 @@ class EquivalenceStrategy {
         node.patterns, other.patterns, visitor.checkNodes, 'patterns');
   }
 
-  bool checkListPattern_matchedType(
+  bool checkListPattern_requiredType(
       EquivalenceVisitor visitor, ListPattern node, ListPattern other) {
     return visitor.checkNodes(
-        node.matchedType, other.matchedType, 'matchedType');
+        node.requiredType, other.requiredType, 'requiredType');
+  }
+
+  bool checkListPattern_matchedValueType(
+      EquivalenceVisitor visitor, ListPattern node, ListPattern other) {
+    return visitor.checkNodes(
+        node.matchedValueType, other.matchedValueType, 'matchedValueType');
   }
 
   bool checkListPattern_needsCheck(
@@ -8828,9 +8840,9 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.needsCheck, other.needsCheck, 'needsCheck');
   }
 
-  bool checkListPattern_listType(
+  bool checkListPattern_lookupType(
       EquivalenceVisitor visitor, ListPattern node, ListPattern other) {
-    return visitor.checkNodes(node.listType, other.listType, 'listType');
+    return visitor.checkNodes(node.lookupType, other.lookupType, 'lookupType');
   }
 
   bool checkListPattern_hasRestPattern(
@@ -8902,9 +8914,10 @@ class EquivalenceStrategy {
     return checkPattern_fileOffset(visitor, node, other);
   }
 
-  bool checkObjectPattern_type(
+  bool checkObjectPattern_requiredType(
       EquivalenceVisitor visitor, ObjectPattern node, ObjectPattern other) {
-    return visitor.checkNodes(node.type, other.type, 'type');
+    return visitor.checkNodes(
+        node.requiredType, other.requiredType, 'requiredType');
   }
 
   bool checkObjectPattern_fields(
@@ -8913,10 +8926,10 @@ class EquivalenceStrategy {
         node.fields, other.fields, visitor.checkNodes, 'fields');
   }
 
-  bool checkObjectPattern_matchedType(
+  bool checkObjectPattern_matchedValueType(
       EquivalenceVisitor visitor, ObjectPattern node, ObjectPattern other) {
     return visitor.checkNodes(
-        node.matchedType, other.matchedType, 'matchedType');
+        node.matchedValueType, other.matchedValueType, 'matchedValueType');
   }
 
   bool checkObjectPattern_needsCheck(
@@ -8924,9 +8937,9 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.needsCheck, other.needsCheck, 'needsCheck');
   }
 
-  bool checkObjectPattern_objectType(
+  bool checkObjectPattern_lookupType(
       EquivalenceVisitor visitor, ObjectPattern node, ObjectPattern other) {
-    return visitor.checkNodes(node.objectType, other.objectType, 'objectType');
+    return visitor.checkNodes(node.lookupType, other.lookupType, 'lookupType');
   }
 
   bool checkObjectPattern_fileOffset(
@@ -8950,10 +8963,10 @@ class EquivalenceStrategy {
         node.expressionType, other.expressionType, 'expressionType');
   }
 
-  bool checkRelationalPattern_matchedType(EquivalenceVisitor visitor,
+  bool checkRelationalPattern_matchedValueType(EquivalenceVisitor visitor,
       RelationalPattern node, RelationalPattern other) {
     return visitor.checkNodes(
-        node.matchedType, other.matchedType, 'matchedType');
+        node.matchedValueType, other.matchedValueType, 'matchedValueType');
   }
 
   bool checkRelationalPattern_accessKind(EquivalenceVisitor visitor,
@@ -9010,10 +9023,10 @@ class EquivalenceStrategy {
     return visitor.checkDeclarations(node.variable, other.variable, 'variable');
   }
 
-  bool checkAssignedVariablePattern_matchedType(EquivalenceVisitor visitor,
+  bool checkAssignedVariablePattern_matchedValueType(EquivalenceVisitor visitor,
       AssignedVariablePattern node, AssignedVariablePattern other) {
     return visitor.checkNodes(
-        node.matchedType, other.matchedType, 'matchedType');
+        node.matchedValueType, other.matchedValueType, 'matchedValueType');
   }
 
   bool checkAssignedVariablePattern_needsCheck(EquivalenceVisitor visitor,
@@ -9042,10 +9055,16 @@ class EquivalenceStrategy {
         node.entries, other.entries, visitor.checkNodes, 'entries');
   }
 
-  bool checkMapPattern_matchedType(
+  bool checkMapPattern_requiredType(
       EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
     return visitor.checkNodes(
-        node.matchedType, other.matchedType, 'matchedType');
+        node.requiredType, other.requiredType, 'requiredType');
+  }
+
+  bool checkMapPattern_matchedValueType(
+      EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
+    return visitor.checkNodes(
+        node.matchedValueType, other.matchedValueType, 'matchedValueType');
   }
 
   bool checkMapPattern_needsCheck(
@@ -9053,9 +9072,9 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.needsCheck, other.needsCheck, 'needsCheck');
   }
 
-  bool checkMapPattern_mapType(
+  bool checkMapPattern_lookupType(
       EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
-    return visitor.checkNodes(node.mapType, other.mapType, 'mapType');
+    return visitor.checkNodes(node.lookupType, other.lookupType, 'lookupType');
   }
 
   bool checkMapPattern_hasRestPattern(
@@ -9181,15 +9200,16 @@ class EquivalenceStrategy {
         node.patterns, other.patterns, visitor.checkNodes, 'patterns');
   }
 
-  bool checkRecordPattern_type(
-      EquivalenceVisitor visitor, RecordPattern node, RecordPattern other) {
-    return visitor.checkNodes(node.type, other.type, 'type');
-  }
-
-  bool checkRecordPattern_matchedType(
+  bool checkRecordPattern_requiredType(
       EquivalenceVisitor visitor, RecordPattern node, RecordPattern other) {
     return visitor.checkNodes(
-        node.matchedType, other.matchedType, 'matchedType');
+        node.requiredType, other.requiredType, 'requiredType');
+  }
+
+  bool checkRecordPattern_matchedValueType(
+      EquivalenceVisitor visitor, RecordPattern node, RecordPattern other) {
+    return visitor.checkNodes(
+        node.matchedValueType, other.matchedValueType, 'matchedValueType');
   }
 
   bool checkRecordPattern_needsCheck(
@@ -9197,9 +9217,9 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.needsCheck, other.needsCheck, 'needsCheck');
   }
 
-  bool checkRecordPattern_recordType(
+  bool checkRecordPattern_lookupType(
       EquivalenceVisitor visitor, RecordPattern node, RecordPattern other) {
-    return visitor.checkNodes(node.recordType, other.recordType, 'recordType');
+    return visitor.checkNodes(node.lookupType, other.lookupType, 'lookupType');
   }
 
   bool checkRecordPattern_fileOffset(
@@ -9217,10 +9237,10 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.variable, other.variable, 'variable');
   }
 
-  bool checkVariablePattern_matchedType(
+  bool checkVariablePattern_matchedValueType(
       EquivalenceVisitor visitor, VariablePattern node, VariablePattern other) {
     return visitor.checkNodes(
-        node.matchedType, other.matchedType, 'matchedType');
+        node.matchedValueType, other.matchedValueType, 'matchedValueType');
   }
 
   bool checkVariablePattern_fileOffset(

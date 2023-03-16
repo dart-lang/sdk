@@ -103,13 +103,13 @@ static method test2(core::List<core::Object?> x) → dynamic {
     function ##3#4#initializer() → core::Object?
       return #3#0.{core::List::[]}(0){(core::int) → core::Object?};
     late final synthesized core::Object? #3#4 = ##3#4#initializer(){() → core::Object?};
-    function ##3#9#initializer() → dynamic
-      return #3#4{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #3#9 = ##3#9#initializer(){() → dynamic};
-    function ##3#14#initializer() → dynamic
-      return #3#9{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #3#14 = ##3#14#initializer(){() → dynamic};
-    if(#3#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (#3#4 is{ForNonNullableByDefault} core::List<dynamic> && #3#4{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (#3#9{core::Object?} is{ForNonNullableByDefault} core::List<dynamic> && #3#9{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (!(#3#14 == null) ?{core::bool} let final core::Object #t10 = a = #3#14{core::Object} in true : false)))) {
+    function ##3#9#initializer() → core::Object?
+      return #3#4{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?};
+    late final synthesized core::Object? #3#9 = ##3#9#initializer(){() → core::Object?};
+    function ##3#14#initializer() → core::Object?
+      return #3#9{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?};
+    late final synthesized core::Object? #3#14 = ##3#14#initializer(){() → core::Object?};
+    if(#3#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (#3#4 is{ForNonNullableByDefault} core::List<core::Object?> && #3#4{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (#3#9 is{ForNonNullableByDefault} core::List<core::Object?> && #3#9{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (!(#3#14 == null) ?{core::bool} let final core::Object #t10 = a = #3#14{core::Object} in true : false)))) {
       return 3;
     }
   }

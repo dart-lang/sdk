@@ -899,7 +899,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitAssignedVariablePattern(AssignedVariablePattern node) {
     return new AssignedVariablePattern(getVariableClone(node.variable)!)
-      ..matchedType = visitType(node.matchedType)
+      ..matchedValueType = visitOptionalType(node.matchedValueType)
       ..needsCheck = node.needsCheck;
   }
 
@@ -960,7 +960,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitObjectPattern(ObjectPattern node) {
     return new ObjectPattern(
-        visitType(node.type), node.fields.map(clone).toList());
+        visitType(node.requiredType), node.fields.map(clone).toList());
   }
 
   @override
@@ -978,7 +978,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitRelationalPattern(RelationalPattern node) {
-    return new RelationalPattern(node.kind, clone(node.expression));
+    return new RelationalPattern(node.kind, clone(node.expression))
+      ..expressionType = visitOptionalType(node.expressionType);
   }
 
   @override
@@ -1015,14 +1016,16 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitPatternSwitchStatement(PatternSwitchStatement node) {
     return new PatternSwitchStatement(
-        clone(node.expression), node.cases.map(clone).toList());
+        clone(node.expression), node.cases.map(clone).toList())
+      ..expressionType = visitOptionalType(node.expressionType);
   }
 
   @override
   TreeNode visitSwitchExpression(SwitchExpression node) {
     return new SwitchExpression(
         clone(node.expression), node.cases.map(clone).toList())
-      ..staticType = visitType(node.staticType);
+      ..expressionType = visitOptionalType(node.expressionType)
+      ..staticType = visitOptionalType(node.staticType);
   }
 
   @override

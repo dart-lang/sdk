@@ -11831,8 +11831,6 @@ class InvalidType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.write("<invalid>");
   }
-
-  static final InvalidType unsetType = new InvalidType();
 }
 
 class DynamicType extends DartType {
@@ -12354,10 +12352,6 @@ class FunctionType extends DartType {
     printer.write(")");
     printer.writeNullability(declaredNullability);
   }
-
-  /// Sentinel [FunctionType] value used for non-nullable [FunctionType] fields.
-  static final FunctionType unsetFunctionType =
-      new FunctionType(const [], const InvalidType(), Nullability.nonNullable);
 }
 
 /// A use of a [Typedef] as a type.
@@ -13475,9 +13469,6 @@ class RecordType extends DartType {
     }
     printer.write(")");
   }
-
-  static final RecordType unsetRecordType =
-      new RecordType([const InvalidType()], const [], Nullability.nonNullable);
 }
 
 /// Value set for variance of a type parameter X in a type term T.

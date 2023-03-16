@@ -861,11 +861,12 @@ class ConstantsTransformer extends RemovingTransformer {
       PatternSwitchStatement node, TreeNode? removalSentinel) {
     super.visitPatternSwitchStatement(node, removalSentinel);
 
+    DartType scrutineeType = node.expressionType!;
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache);
-    CacheableExpression matchedExpression = matchingCache.createRootExpression(
-        node.expression, node.expressionType);
+    CacheableExpression matchedExpression =
+        matchingCache.createRootExpression(node.expression, scrutineeType);
 
     // matchResultVariable: int RVAR = -1;
     VariableDeclaration matchResultVariable = createInitializedVariable(
@@ -1089,13 +1090,13 @@ class ConstantsTransformer extends RemovingTransformer {
     replacementStatement..parent = node.parent;
 
     if (computeIsAlwaysExhaustiveType(
-        node.expressionType, typeEnvironment.coreTypes)) {
+        node.expressionType!, typeEnvironment.coreTypes)) {
       List<PatternGuard> patternGuards = [];
       for (PatternSwitchCase switchCase in node.cases) {
         patternGuards.addAll(switchCase.patternGuards);
       }
       _checkExhaustiveness(
-          node, replacementStatement, node.expressionType, patternGuards,
+          node, replacementStatement, scrutineeType, patternGuards,
           hasDefault: node.hasDefault, fileOffset: node.expression.fileOffset);
     }
     // TODO(johnniwinther): Remove this work-around for the `libraryOf`
@@ -1187,7 +1188,7 @@ class ConstantsTransformer extends RemovingTransformer {
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache);
     CacheableExpression matchedExpression = matchingCache.createRootExpression(
-        node.expression, node.matchedValueType);
+        node.expression, node.matchedValueType!);
     DelayedExpression matchingExpression = matchingExpressionVisitor
         .visitPattern(node.patternGuard.pattern, matchedExpression);
 
@@ -1351,15 +1352,16 @@ class ConstantsTransformer extends RemovingTransformer {
       SwitchExpression node, TreeNode? removalSentinel) {
     super.visitSwitchExpression(node, removalSentinel);
 
+    DartType scrutineeType = node.expressionType!;
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache);
-    CacheableExpression matchedExpression = matchingCache.createRootExpression(
-        node.expression, node.expressionType);
+    CacheableExpression matchedExpression =
+        matchingCache.createRootExpression(node.expression, scrutineeType);
 
     // valueVariable: `valueType` valueVariable;
     VariableDeclaration valueVariable = createUninitializedVariable(
-        node.staticType,
+        node.staticType!,
         fileOffset: node.fileOffset);
 
     List<Statement> replacementStatements = [];
@@ -1440,7 +1442,7 @@ class ConstantsTransformer extends RemovingTransformer {
     for (SwitchExpressionCase switchCase in node.cases) {
       patternGuards.add(switchCase.patternGuard);
     }
-    _checkExhaustiveness(node, replacement, node.expressionType, patternGuards,
+    _checkExhaustiveness(node, replacement, scrutineeType, patternGuards,
         hasDefault: false, fileOffset: node.expression.fileOffset);
 
     // TODO(johnniwinther): Remove this work-around for the `libraryOf`
@@ -1674,14 +1676,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       _staticTypeContext!.nonNullable == Nullability.nonNullable;
 
   late ConstantWeakener _weakener;
-
-  /// Cache of constant values used for exhaustiveness checking.
-  ///
-  /// When verifying a switch statement/expression the constant values of the
-  /// contained [Expression]s are cached here. The cache is released once
-  /// the exhaustiveness of the switch has been checked.
-  Map<ConstantPattern, Constant>? constantPatternValues;
-  Map<MapPatternEntry, Constant>? mapPatternKeyValues;
 
   ConstantEvaluator(this.dartLibrarySupport, this.backend, this.component,
       this._environmentDefines, this.typeEnvironment, this.errorReporter,
