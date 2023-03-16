@@ -1129,7 +1129,7 @@ class ConstantsTransformer extends RemovingTransformer {
                   patternGuards[error.index].fileOffset,
                   messageUnreachableSwitchCase));
         } else if (error is NonExhaustiveError && !hasDefault) {
-          Library library = constantEvaluator.libraryOf(node);
+          Library library = _staticTypeContext!.enclosingLibrary;
           constantEvaluator.errorReporter.report(
               constantEvaluator.createLocatedMessageWithOffset(
                   node,
@@ -1152,7 +1152,7 @@ class ConstantsTransformer extends RemovingTransformer {
       SwitchStatement node, TreeNode? removalSentinel) {
     //return _handleExhaustiveness(node, node, () {
     TreeNode result = super.visitSwitchStatement(node, removalSentinel);
-    Library library = constantEvaluator.libraryOf(node);
+    Library library = _staticTypeContext!.enclosingLibrary;
     // ignore: unnecessary_null_comparison
     if (library != null) {
       for (SwitchCase switchCase in node.cases) {
@@ -4197,8 +4197,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitSymbolLiteral(SymbolLiteral node) {
-    final Reference? libraryReference =
-        node.value.startsWith('_') ? libraryOf(node).reference : null;
+    final Reference? libraryReference = node.value.startsWith('_')
+        ? _staticTypeContext!.enclosingLibrary.reference
+        : null;
     return canonicalize(new SymbolConstant(node.value, libraryReference));
   }
 
@@ -4611,17 +4612,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // Probably unreachable.
     return createExpressionErrorConstant(node,
         templateNotConstantExpression.withArguments("Binary '$op' operation"));
-  }
-
-  // TODO(johnniwinther): Remove the need for this by adding a current library
-  // field.
-  Library libraryOf(TreeNode? node) {
-    // The tree structure of the kernel AST ensures we always have an enclosing
-    // library.
-    while (true) {
-      if (node is Library) return node;
-      node = node!.parent;
-    }
   }
 
   @override
