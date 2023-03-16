@@ -31,6 +31,7 @@ import 'src/commands/test.dart';
 import 'src/core.dart';
 import 'src/events.dart';
 import 'src/experiments.dart';
+import 'src/unified_analytics.dart';
 import 'src/utils.dart';
 import 'src/vm_interop_handler.dart';
 
@@ -175,6 +176,11 @@ class DartdevRunner extends CommandRunner<int> {
       // This block also potentially catches the case of (disableAnalytics &&
       // enableAnalytics), in which we favor the disabling of analytics.
       analytics.enabled = false;
+
+      // Disable sending data via the unified analytics package.
+      var unifiedAnalytics = createUnifiedAnalytics();
+      await unifiedAnalytics.setTelemetry(false);
+      unifiedAnalytics.close();
 
       // Alert the user that analytics has been disabled.
       print(analyticsDisabledNoticeMessage);

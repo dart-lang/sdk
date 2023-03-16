@@ -25,6 +25,10 @@ const AstTextStrategy textStrategy = const AstTextStrategy(
 /// Data gathered by the exhaustiveness computation, retained for testing
 /// purposes.
 class ExhaustivenessDataForTesting {
+  /// Access to interface for looking up `Object` members on non-interface
+  /// types.
+  ObjectFieldLookup? objectFieldLookup;
+
   /// Map from switch statement/expression nodes to the results of the
   /// exhaustiveness test.
   Map<Node, ExhaustivenessResult> switchResults = {};
@@ -95,6 +99,10 @@ class CfeTypeOperations implements TypeOperations<DartType> {
     return _typeEnvironment.isSubtypeOf(
         s, t, SubtypeCheckMode.withNullabilities);
   }
+
+  @override
+  DartType get nonNullableObjectType =>
+      _typeEnvironment.objectNonNullableRawType;
 
   @override
   DartType get nullableObjectType => _typeEnvironment.objectNullableRawType;
@@ -384,16 +392,18 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
   }
 
   @override
-  Space dispatchPattern(Path path, Pattern pattern, {required bool nonNull}) {
+  Space dispatchPattern(Path path, StaticType contextType, Pattern pattern,
+      {required bool nonNull}) {
     if (pattern is ObjectPattern) {
       Map<String, Pattern> fields = {};
       for (NamedPattern field in pattern.fields) {
         fields[field.name] = field.pattern;
       }
-      return createObjectSpace(path, pattern.objectType, fields,
+      return createObjectSpace(path, contextType, pattern.objectType, fields,
           nonNull: nonNull);
     } else if (pattern is VariablePattern) {
-      return createVariableSpace(path, pattern.variable.type, nonNull: nonNull);
+      return createVariableSpace(path, contextType, pattern.variable.type,
+          nonNull: nonNull);
     } else if (pattern is ConstantPattern) {
       return convertConstantToSpace(
           pattern.value ?? constantPatternValues[pattern],
@@ -408,20 +418,25 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
           positional.add(field);
         }
       }
-      return createRecordSpace(path, pattern.type, positional, named);
+      return createRecordSpace(
+          path, contextType, pattern.type, positional, named);
     } else if (pattern is WildcardPattern) {
-      return createWildcardSpace(path, pattern.type, nonNull: nonNull);
+      return createWildcardSpace(path, contextType, pattern.type,
+          nonNull: nonNull);
     } else if (pattern is OrPattern) {
-      return createLogicalOrSpace(path, pattern.left, pattern.right,
+      return createLogicalOrSpace(
+          path, contextType, pattern.left, pattern.right,
           nonNull: nonNull);
     } else if (pattern is NullCheckPattern) {
-      return createNullCheckSpace(path, pattern.pattern);
+      return createNullCheckSpace(path, contextType, pattern.pattern);
     } else if (pattern is NullAssertPattern) {
-      return createNullAssertSpace(path, pattern.pattern);
+      return createNullAssertSpace(path, contextType, pattern.pattern);
     } else if (pattern is CastPattern) {
-      return createCastSpace(path, pattern.pattern, nonNull: nonNull);
+      return createCastSpace(path, contextType, pattern.pattern,
+          nonNull: nonNull);
     } else if (pattern is AndPattern) {
-      return createLogicalAndSpace(path, pattern.left, pattern.right,
+      return createLogicalAndSpace(
+          path, contextType, pattern.left, pattern.right,
           nonNull: nonNull);
     } else if (pattern is InvalidPattern) {
       // These pattern do not add to the exhaustiveness coverage.
@@ -527,12 +542,8 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
   }
 
   @override
-  StaticType createStaticType(DartType type, {required bool nonNull}) {
-    StaticType staticType = cache.getStaticType(type);
-    if (nonNull) {
-      staticType = staticType.nonNullable;
-    }
-    return staticType;
+  StaticType createStaticType(DartType type) {
+    return cache.getStaticType(type);
   }
 
   @override
@@ -548,6 +559,9 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
 
   @override
   TypeOperations<DartType> get typeOperations => cache.typeOperations;
+
+  @override
+  ObjectFieldLookup get objectFieldLookup => cache;
 }
 
 bool computeIsAlwaysExhaustiveType(DartType type, CoreTypes coreTypes) {

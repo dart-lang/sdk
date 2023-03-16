@@ -477,6 +477,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    _deprecatedVerifier
+        .pushInDeprecatedValue(node.declaredElement!.hasDeprecated);
+
+    try {
+      super.visitEnumDeclaration(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     _deprecatedVerifier.exportDirective(node);
     _checkForInternalExport(node);
@@ -489,6 +501,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkForReturnOfDoNotStore(node.expression);
     }
     super.visitExpressionFunctionBody(node);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _deprecatedVerifier
+        .pushInDeprecatedValue(node.declaredElement!.hasDeprecated);
+
+    try {
+      super.visitExtensionDeclaration(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
   }
 
   @override

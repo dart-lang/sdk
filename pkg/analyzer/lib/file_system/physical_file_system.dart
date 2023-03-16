@@ -425,10 +425,12 @@ abstract class _PhysicalResource implements Resource {
     }
 
     final mappedEventsController = StreamController<WatchEvent>();
-    original.listen(
+    final subscription = original.listen(
       mappedEventsController.add,
       onError: (Object e) => mappedEventsController.addError(mapException(e)),
+      onDone: () => mappedEventsController.close(),
     );
+    mappedEventsController.onCancel = subscription.cancel;
     return mappedEventsController.stream;
   }
 }

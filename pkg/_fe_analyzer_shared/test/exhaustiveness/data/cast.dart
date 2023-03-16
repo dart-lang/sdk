@@ -61,7 +61,7 @@ sealedCast(B b1, B b2) {
    type=B
   */switch (b1) {
     /*space=C*/case C():
-    /*space=()*/case _ as D:
+    /*space=B*/case _ as D:
   }
   /*
    error=non-exhaustive:E,

@@ -24,15 +24,18 @@ import 'utils.dart';
 class TFClass {
   final int id;
   final Class classNode;
+  final RecordShape? recordShape;
 
   /// TFClass should not be instantiated directly.
   /// Instead, [TypeHierarchy.getTFClass] should be used to obtain [TFClass]
   /// instances specific to given [TypeHierarchy].
-  TFClass(this.id, this.classNode);
+  TFClass(this.id, this.classNode, this.recordShape);
 
   /// Returns ConcreteType corresponding to this class without
   /// any extra attributes.
   ConcreteType get concreteType => ConcreteType(this);
+
+  bool get isRecord => recordShape != null;
 
   @override
   int get hashCode => id;
@@ -54,7 +57,7 @@ class RecordShape {
       : numPositionalFields = type.positional.length,
         namedFields = type.named.isEmpty
             ? const <String>[]
-            : type.named.map((nt) => nt.name).toList();
+            : type.named.map((nt) => nt.name).toList(growable: false);
 
   int get numFields => numPositionalFields + namedFields.length;
 
@@ -63,6 +66,20 @@ class RecordShape {
       return "\$${i + 1}";
     } else {
       return namedFields[i - numPositionalFields];
+    }
+  }
+
+  RecordShape.readFromBinary(BinarySource source)
+      : numPositionalFields = source.readUInt30(),
+        namedFields = List<String>.generate(
+            source.readUInt30(), (_) => source.readStringReference(),
+            growable: false);
+
+  void writeToBinary(BinarySink sink) {
+    sink.writeUInt30(numPositionalFields);
+    sink.writeUInt30(namedFields.length);
+    for (int i = 0; i < namedFields.length; ++i) {
+      sink.writeStringReference(namedFields[i]);
     }
   }
 

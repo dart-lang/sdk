@@ -1114,10 +1114,11 @@ class ConstantsTransformer extends RemovingTransformer {
     PatternConverter patternConverter =
         new PatternConverter(exhaustivenessCache, {}, {}, _staticTypeContext!);
     for (PatternGuard patternGuard in patternGuards) {
-      cases.add(patternConverter.createRootSpace(patternGuard.pattern,
+      cases.add(patternConverter.createRootSpace(type, patternGuard.pattern,
           hasGuard: patternGuard.guard != null));
     }
-    List<ExhaustivenessError> errors = reportErrors(type, cases);
+    List<ExhaustivenessError> errors =
+        reportErrors(exhaustivenessCache, type, cases);
     if (!useFallbackExhaustivenessAlgorithm) {
       for (ExhaustivenessError error in errors) {
         if (error is UnreachableCaseError) {
@@ -1138,6 +1139,7 @@ class ConstantsTransformer extends RemovingTransformer {
       }
     }
     if (_exhaustivenessDataForTesting != null) {
+      _exhaustivenessDataForTesting!.objectFieldLookup ??= exhaustivenessCache;
       _exhaustivenessDataForTesting!.switchResults[replacement] =
           new ExhaustivenessResult(type, cases,
               patternGuards.map((c) => c.fileOffset).toList(), errors);

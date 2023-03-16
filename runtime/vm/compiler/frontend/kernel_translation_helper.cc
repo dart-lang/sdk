@@ -2009,18 +2009,39 @@ UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
   const auto info = new (helper_->zone_) UnboxingInfoMetadata();
   info->SetArgsCount(num_args);
   for (intptr_t i = 0; i < num_args; i++) {
-    const intptr_t arg_info = helper_->ReadByte();
-    assert(arg_info >= UnboxingInfoMetadata::kBoxed &&
-           arg_info < UnboxingInfoMetadata::kUnboxingCandidate);
-    info->unboxed_args_info[i] =
-        static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(arg_info);
+    info->unboxed_args_info[i] = ReadUnboxingType();
   }
-  const intptr_t return_info = helper_->ReadByte();
-  assert(return_info >= UnboxingInfoMetadata::kBoxed &&
-         return_info < UnboxingInfoMetadata::kUnboxingCandidate);
-  info->return_info =
-      static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(return_info);
+  info->return_info = ReadUnboxingType();
   return info;
+}
+
+UnboxingInfoMetadata::UnboxingType
+UnboxingInfoMetadataHelper::ReadUnboxingType() const {
+  const auto kind =
+      static_cast<UnboxingInfoMetadata::UnboxingKind>(helper_->ReadByte());
+  ASSERT(kind >= UnboxingInfoMetadata::kBoxed &&
+         kind < UnboxingInfoMetadata::kUnknown);
+  if (kind == UnboxingInfoMetadata::kRecord) {
+    // Read and register record shape.
+    const intptr_t num_positional = helper_->ReadUInt();
+    const intptr_t num_named = helper_->ReadUInt();
+    const Array* field_names = &Array::empty_array();
+    if (num_named > 0) {
+      auto& names = Array::Handle(helper_->zone_, Array::New(num_named));
+      for (intptr_t i = 0; i < num_named; ++i) {
+        const String& name = helper_->translation_helper_.DartSymbolObfuscate(
+            helper_->ReadStringReference());
+        names.SetAt(i, name);
+      }
+      names.MakeImmutable();
+      field_names = &names;
+    }
+    const intptr_t num_fields = num_positional + num_named;
+    const RecordShape shape = RecordShape::Register(
+        helper_->translation_helper_.thread(), num_fields, *field_names);
+    return {kind, shape};
+  }
+  return {kind, RecordShape::ForUnnamed(0)};
 }
 
 intptr_t KernelReaderHelper::ReaderOffset() const {
@@ -3725,25 +3746,22 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
       param_index + (function.HasThisParameter() ? 1 : 0);
 
   if (param_pos < function.maximum_unboxed_parameter_count()) {
-    switch (metadata->unboxed_args_info[param_index]) {
-      case UnboxingInfoMetadata::kUnboxedIntCandidate:
+    switch (metadata->unboxed_args_info[param_index].kind) {
+      case UnboxingInfoMetadata::kInt:
         function.set_unboxed_integer_parameter_at(param_pos);
         break;
-      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+      case UnboxingInfoMetadata::kDouble:
         if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
           function.set_unboxed_double_parameter_at(param_pos);
         }
         break;
-      case UnboxingInfoMetadata::kUnboxedRecordCandidate:
+      case UnboxingInfoMetadata::kRecord:
         UNREACHABLE();
         break;
-      case UnboxingInfoMetadata::kUnboxingCandidate:
+      case UnboxingInfoMetadata::kUnknown:
         UNREACHABLE();
         break;
       case UnboxingInfoMetadata::kBoxed:
-        break;
-      default:
-        UNREACHABLE();
         break;
     }
   }
@@ -3752,25 +3770,22 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
 static void SetupUnboxingInfoOfReturnValue(
     const Function& function,
     const UnboxingInfoMetadata* metadata) {
-  switch (metadata->return_info) {
-    case UnboxingInfoMetadata::kUnboxedIntCandidate:
+  switch (metadata->return_info.kind) {
+    case UnboxingInfoMetadata::kInt:
       function.set_unboxed_integer_return();
       break;
-    case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+    case UnboxingInfoMetadata::kDouble:
       if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
         function.set_unboxed_double_return();
       }
       break;
-    case UnboxingInfoMetadata::kUnboxedRecordCandidate:
+    case UnboxingInfoMetadata::kRecord:
       function.set_unboxed_record_return();
       break;
-    case UnboxingInfoMetadata::kUnboxingCandidate:
+    case UnboxingInfoMetadata::kUnknown:
       UNREACHABLE();
       break;
     case UnboxingInfoMetadata::kBoxed:
-      break;
-    default:
-      UNREACHABLE();
       break;
   }
 }

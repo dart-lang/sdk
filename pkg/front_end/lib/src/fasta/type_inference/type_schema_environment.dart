@@ -99,10 +99,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
       : super(coreTypes, hierarchy);
 
-  InterfaceType get objectNonNullableRawType {
-    return coreTypes.objectNonNullableRawType;
-  }
-
   InterfaceType functionRawType(Nullability nullability) {
     return coreTypes.functionRawType(nullability);
   }

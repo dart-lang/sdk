@@ -4105,7 +4105,8 @@ final List<Uint8List> _scannerTables = _createTables();
 ///   Set to another value if the URI is considered "not simple".
 ///   This is elaborated below.
 ///
-/// # Simple URIs
+/// ### Simple URIs
+///
 /// A URI is considered "simple" if it is in a normalized form containing no
 /// escapes. This allows us to skip normalization and checking whether escapes
 /// are valid, and to extract components without worrying about unescaping.

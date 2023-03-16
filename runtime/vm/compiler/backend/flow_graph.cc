@@ -14,6 +14,7 @@
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/compiler_timings.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
@@ -2013,9 +2014,13 @@ void FlowGraph::InsertRecordBoxing(Definition* def) {
     UNREACHABLE();
   }
   ASSERT(target != nullptr && !target->IsNull());
-  const auto& type = AbstractType::Handle(Z, target->result_type());
-  ASSERT(type.IsRecordType());
-  const RecordShape shape = RecordType::Cast(type).shape();
+
+  kernel::UnboxingInfoMetadata* unboxing_metadata =
+      kernel::UnboxingInfoMetadataOf(*target, Z);
+  ASSERT(unboxing_metadata != nullptr);
+  const RecordShape shape = unboxing_metadata->return_info.record_shape;
+  ASSERT(shape.num_fields() == 2);
+
   auto* x = new (Z)
       ExtractNthOutputInstr(new (Z) Value(def), 0, kTagged, kDynamicCid);
   auto* y = new (Z)

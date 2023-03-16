@@ -23,7 +23,7 @@ void main() {
     var c = env.createClass('C', inherits: [a]);
     var t = env.createRecordType({x: a, y: a});
 
-    expectExhaustiveOnlyAll(t, [
+    expectExhaustiveOnlyAll(env, t, [
       ty(t, {x: b, y: b}),
       ty(t, {x: b, y: c}),
       ty(t, {x: c, y: b}),
@@ -42,7 +42,7 @@ void main() {
     var d = env.createClass('D', inherits: [a]);
     var t = env.createRecordType({y: a, z: a});
 
-    expectExhaustiveOnlyAll(t, [
+    expectExhaustiveOnlyAll(env, t, [
       ty(t, {y: b, z: b}),
       ty(t, {y: b, z: c}),
       ty(t, {y: b, z: d}),
@@ -66,7 +66,7 @@ void main() {
     var d = env.createClass('D', inherits: [a]);
     var t = env.createRecordType({w: a, x: a, y: a, z: a});
 
-    expectExhaustiveOnlyAll(t, [
+    expectExhaustiveOnlyAll(env, t, [
       ty(t, {w: b, x: b, y: b, z: b}),
       ty(t, {w: b, x: b, y: b, z: c}),
       ty(t, {w: b, x: b, y: b, z: d}),
@@ -166,18 +166,18 @@ void main() {
     var f = env.createClass('F', inherits: [c]);
 
     var r = env.createRecordType({x: a, y: a});
-    expectExhaustiveOnlyAll(r, [
+    expectExhaustiveOnlyAll(env, r, [
       ty(r, {x: a, y: a}),
     ]);
 
-    expectExhaustiveOnlyAll(r, [
+    expectExhaustiveOnlyAll(env, r, [
       ty(r, {x: b, y: b}),
       ty(r, {x: b, y: c}),
       ty(r, {x: c, y: b}),
       ty(r, {x: c, y: c}),
     ]);
 
-    expectExhaustiveOnlyAll(r, [
+    expectExhaustiveOnlyAll(env, r, [
       ty(r, {x: b, y: d}),
       ty(r, {x: b, y: e}),
       ty(r, {x: b, y: f}),
@@ -198,7 +198,7 @@ void main() {
 
     // Not exhaustive even when known subtypes covered.
     var t = env.createRecordType({x: a, y: a});
-    expectNeverExhaustive(t, [
+    expectNeverExhaustive(env, t, [
       ty(t, {x: b, y: b}),
       ty(t, {x: b, y: c}),
       ty(t, {x: c, y: b}),
@@ -207,7 +207,7 @@ void main() {
 
     // Exhaustive if field static type is a covered subtype.
     var u = env.createRecordType({x: b, y: c});
-    expectExhaustiveOnlyAll(u, [
+    expectExhaustiveOnlyAll(env, u, [
       ty(u, {x: b, y: c}),
     ]);
   });
@@ -222,18 +222,18 @@ void main() {
     var c = env.createClass('C', inherits: [a]);
     var r = env.createRecordType({x: a, y: a, z: a});
 
-    expectNeverExhaustive(r, [
+    expectNeverExhaustive(env, r, [
       ty(r, {x: b}),
       ty(r, {y: b}),
       ty(r, {z: b}),
     ]);
 
-    expectExhaustiveOnlyAll(r, [
+    expectExhaustiveOnlyAll(env, r, [
       ty(r, {x: b, y: a}),
       ty(r, {x: c, z: a}),
     ]);
 
-    expectExhaustiveOnlyAll(r, [
+    expectExhaustiveOnlyAll(env, r, [
       ty(r, {x: b, y: b}),
       ty(r, {x: b, y: c}),
       ty(r, {x: c, y: b}),
@@ -251,20 +251,20 @@ void main() {
     var c = env.createClass('C', inherits: [a]);
     var r = env.createRecordType({x: a, y: b, z: c});
 
-    expectExhaustiveOnlyAll(r, [
+    expectExhaustiveOnlyAll(env, r, [
       ty(r, {x: a, y: b, z: c}),
     ]);
 
-    expectExhaustiveOnlyAll(r, [
+    expectExhaustiveOnlyAll(env, r, [
       ty(r, {x: b}),
       ty(r, {x: c}),
     ]);
 
-    expectExhaustiveOnlyAll(r, [
+    expectExhaustiveOnlyAll(env, r, [
       ty(r, {y: b}),
     ]);
 
-    expectExhaustiveOnlyAll(r, [
+    expectExhaustiveOnlyAll(env, r, [
       ty(r, {z: c}),
     ]);
   });

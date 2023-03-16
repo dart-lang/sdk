@@ -13,7 +13,8 @@ part of dart.async;
 /// It is a compile-time error for any class to extend, mix in or implement
 /// `FutureOr`.
 ///
-/// # Examples
+/// ### Examples
+///
 /// ```dart
 /// // The `Future<T>.then` function takes a callback [f] that returns either
 /// // an `S` or a `Future<S>`.
@@ -23,7 +24,8 @@ part of dart.async;
 /// void complete(FutureOr<T> value);
 /// ```
 ///
-/// # Advanced
+/// ### Advanced
+///
 /// The `FutureOr<int>` type is actually the "type union" of the types `int` and
 /// `Future<int>`. This type union is defined in such a way that
 /// `FutureOr<Object>` is both a super- and sub-type of `Object` (sub-type

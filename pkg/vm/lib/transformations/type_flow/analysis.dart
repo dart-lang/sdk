@@ -1006,7 +1006,6 @@ class _TFClassImpl extends TFClass {
   late final Map<Name, Member> _dispatchTargetsNonSetters =
       _initDispatchTargets(false);
   final _DependencyTracker dependencyTracker = new _DependencyTracker();
-  final RecordShape? recordShape;
 
   /// Flag indicating if this class has a noSuchMethod() method not inherited
   /// from Object.
@@ -1014,8 +1013,8 @@ class _TFClassImpl extends TFClass {
   bool? hasNonTrivialNoSuchMethod;
 
   _TFClassImpl(int id, Class classNode, this.superclass, this.supertypes,
-      this.recordShape)
-      : super(id, classNode) {
+      RecordShape? recordShape)
+      : super(id, classNode, recordShape) {
     supertypes.add(this);
   }
 

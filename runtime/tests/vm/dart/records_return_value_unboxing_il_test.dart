@@ -18,6 +18,7 @@ import 'package:vm/testing/il_matchers.dart';
 
 abstract class A {
   (int, {double y}) get record3;
+  Object record4();
 }
 
 class B implements A {
@@ -28,10 +29,15 @@ class B implements A {
   @pragma('vm:never-inline')
   @pragma('vm:testing:print-flow-graph')
   (int, {double y}) get record3 => (x, y: y);
+
+  @pragma('vm:never-inline')
+  @pragma('vm:testing:print-flow-graph')
+  Object record4() => (x, y);
 }
 
 class C extends A {
   (int, {double y}) get record3 => (1, y: 2);
+  Object record4() => (1, 2);
 }
 
 @pragma('vm:never-inline')
@@ -46,7 +52,7 @@ void test(int x, bool z, String foo, int bar, A obj1, A obj2) {
   final r3 = obj1.record3;
   print(r3.$1);
   print(r3.y);
-  final r4 = obj2.record3;
+  final r4 = obj2.record4();
   print(r4);
 }
 
@@ -77,6 +83,21 @@ void matchIL$getRecord2(FlowGraph graph) {
 }
 
 void matchIL$record3(FlowGraph graph) {
+  graph.match([
+    match.block('Graph'),
+    match.block('Function', [
+      'this' << match.Parameter(index: 0),
+      'x' << match.LoadField('this', slot: 'x'),
+      'y' << match.LoadField('this', slot: 'y'),
+      'x_boxed' << match.BoxInt64('x'),
+      'y_boxed' << match.Box('y'),
+      'pair' << match.MakePair('x_boxed', 'y_boxed'),
+      match.Return('pair'),
+    ]),
+  ]);
+}
+
+void matchIL$record4(FlowGraph graph) {
   graph.match([
     match.block('Graph'),
     match.block('Function', [

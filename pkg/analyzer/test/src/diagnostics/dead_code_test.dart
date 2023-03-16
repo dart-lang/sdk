@@ -75,6 +75,7 @@ Object f(int x) {
           error(HintCode.DEAD_CODE, 65, 10),
           error(HintCode.UNREACHABLE_SWITCH_CASE, 71, 2),
           error(HintCode.DEAD_CODE, 81, 6),
+          error(HintCode.UNREACHABLE_SWITCH_CASE, 83, 2),
         ]));
   }
 

@@ -1190,25 +1190,30 @@ class TableSelectorMetadataHelper : public MetadataHelper {
 // Information about a function regarding unboxed parameters and return value.
 class UnboxingInfoMetadata : public ZoneAllocated {
  public:
-  enum UnboxingInfoTag {
-    kBoxed = 0,
-    kUnboxedIntCandidate = 1 << 0,
-    kUnboxedDoubleCandidate = 1 << 1,
-    kUnboxedRecordCandidate = 1 << 2,
-    kUnboxingCandidate = kUnboxedIntCandidate | kUnboxedDoubleCandidate |
-                         kUnboxedRecordCandidate,
+  // Should match UnboxingKind in pkg/vm/lib/metadata/unboxing_info.dart.
+  enum UnboxingKind {
+    kBoxed,
+    kInt,
+    kDouble,
+    kRecord,
+    kUnknown,
   };
 
-  UnboxingInfoMetadata() : unboxed_args_info(0) { return_info = kBoxed; }
+  struct UnboxingType {
+    UnboxingKind kind = kBoxed;
+    RecordShape record_shape = RecordShape::ForUnnamed(0);
+  };
+
+  UnboxingInfoMetadata() : unboxed_args_info(0), return_info() {}
 
   void SetArgsCount(intptr_t num_args) {
     ASSERT(unboxed_args_info.is_empty());
     unboxed_args_info.SetLength(num_args);
-    unboxed_args_info.FillWith(kBoxed, 0, num_args);
+    unboxed_args_info.FillWith(UnboxingType(), 0, num_args);
   }
 
-  GrowableArray<UnboxingInfoTag> unboxed_args_info;
-  UnboxingInfoTag return_info;
+  GrowableArray<UnboxingType> unboxed_args_info;
+  UnboxingType return_info;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadata);
 };
@@ -1221,6 +1226,9 @@ class UnboxingInfoMetadataHelper : public MetadataHelper {
   explicit UnboxingInfoMetadataHelper(KernelReaderHelper* helper);
 
   UnboxingInfoMetadata* GetUnboxingInfoMetadata(intptr_t node_offset);
+
+ private:
+  UnboxingInfoMetadata::UnboxingType ReadUnboxingType() const;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadataHelper);
 };

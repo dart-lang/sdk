@@ -295,7 +295,7 @@ void unreachableCase1(A<int> a) {
     case D<dynamic, int> d:
       print('D');
       break;
-    /*space=A<dynamic>*/
+    /*space=A<int>*/
     case A a:
       print('A');
       break;

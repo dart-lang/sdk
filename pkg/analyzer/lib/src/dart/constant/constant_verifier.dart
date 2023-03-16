@@ -66,7 +66,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   Map<Expression, DartObjectImpl>? _mapPatternKeyValues;
 
-  final ExhaustivenessDataForTesting? exhaustivenessDataForTesting;
+  late final ExhaustivenessDataForTesting? exhaustivenessDataForTesting;
 
   /// Initialize a newly created constant verifier.
   ConstantVerifier(ErrorReporter errorReporter,
@@ -94,9 +94,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
           configuration: ConstantEvaluationConfiguration(),
         ),
-        _exhaustivenessCache = AnalyzerExhaustivenessCache(_typeSystem),
-        exhaustivenessDataForTesting =
-            retainDataForTesting ? ExhaustivenessDataForTesting() : null;
+        _exhaustivenessCache = AnalyzerExhaustivenessCache(_typeSystem) {
+    exhaustivenessDataForTesting = retainDataForTesting
+        ? ExhaustivenessDataForTesting(_exhaustivenessCache)
+        : null;
+  }
 
   @override
   void visitAnnotation(Annotation node) {
@@ -789,7 +791,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       }
 
       if (guardedPattern != null) {
-        Space space = patternConverter.createRootSpace(guardedPattern.pattern,
+        Space space = patternConverter.createRootSpace(
+            scrutineeTypeEx, guardedPattern.pattern,
             hasGuard: guardedPattern.whenClause != null);
         caseNodesWithSpace.add(caseNode);
         caseSpaces.add(space);
@@ -800,7 +803,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     final exhaustivenessDataForTesting = this.exhaustivenessDataForTesting;
 
     // Compute and report errors.
-    final errors = reportErrors(scrutineeTypeEx, caseSpaces);
+    final errors =
+        reportErrors(_exhaustivenessCache, scrutineeTypeEx, caseSpaces);
     if (!useFallbackExhaustivenessAlgorithm) {
       for (final error in errors) {
         if (error is UnreachableCaseError) {

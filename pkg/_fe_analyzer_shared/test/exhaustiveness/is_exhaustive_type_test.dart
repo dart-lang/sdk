@@ -27,7 +27,7 @@ void main() {
     var e = env.createClass('E', inherits: [b]);
     var f = env.createClass('F', inherits: [c]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');
     checkExhaustive([b], 'BDE');
     checkExhaustive([c], 'CF');
@@ -67,7 +67,7 @@ void main() {
     var e = env.createClass('E', inherits: [a]);
     var f = env.createClass('F', inherits: [a]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');
     checkExhaustive([b], 'B');
     checkExhaustive([c, e], 'CE');
@@ -89,7 +89,7 @@ void main() {
     var d = env.createClass('D', inherits: [b]);
     var e = env.createClass('E', inherits: [b, c]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c, d, e]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c, d, e]);
     checkExhaustive([a], 'ABCDE');
     checkExhaustive([b], 'BDE');
     checkExhaustive([c], 'CE');
@@ -115,7 +115,7 @@ void main() {
     var c = env.createClass('C', inherits: [b]);
     var d = env.createClass('D', inherits: [b]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c, d]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c, d]);
     checkExhaustive([a], 'ABCD');
     checkExhaustive([b], 'BCD');
     checkExhaustive([c], 'C');
@@ -134,7 +134,7 @@ void main() {
     var b = env.createClass('B', isSealed: true, inherits: [a]);
     var c = env.createClass('C', inherits: [b]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c]);
     checkExhaustive([a], 'ABC');
     checkExhaustive([b], 'ABC'); // Every A must be a B, so A is covered.
     checkExhaustive([c], 'ABC'); // Every C must be a B, which must be an A.
@@ -158,7 +158,7 @@ void main() {
     var e = env.createClass('E', inherits: [b, c]);
     var f = env.createClass('F', inherits: [c]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');
     checkExhaustive([b], 'BDE');
     checkExhaustive([d], 'D');
@@ -184,7 +184,7 @@ void main() {
 /// Means that the union of D|E should be exhaustive over B, D, and E and not
 /// exhaustive over the other types in [allTypes].
 Function(List<StaticType>, String) _makeTestFunction(
-    List<StaticType> allTypes) {
+    ObjectFieldLookup fieldLookup, List<StaticType> allTypes) {
   assert(allTypes.length <= 6, 'Only supports up to six types.');
   var letters = 'ABCDEF';
 
@@ -194,9 +194,9 @@ Function(List<StaticType>, String) _makeTestFunction(
     for (var i = 0; i < allTypes.length; i++) {
       var value = Space(const Path.root(), allTypes[i]);
       if (covered.contains(letters[i])) {
-        expectExhaustive(value, spaces);
+        expectExhaustive(fieldLookup, value, spaces);
       } else {
-        expectNotExhaustive(value, spaces);
+        expectNotExhaustive(fieldLookup, value, spaces);
       }
     }
   };
