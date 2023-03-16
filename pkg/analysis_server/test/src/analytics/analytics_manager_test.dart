@@ -486,7 +486,7 @@ class _IsPercentiles extends Matcher {
       description.add('percentiles');
 
   @override
-  bool matches(Object? item, Map matchState) {
+  bool matches(Object? item, Map<Object?, Object?> matchState) {
     if (item is! String) {
       return false;
     }
@@ -514,7 +514,7 @@ class _IsStringEncodedPositiveInt extends Matcher {
       description.add('a string encoded positive integer');
 
   @override
-  bool matches(Object? item, Map matchState) {
+  bool matches(Object? item, Map<Object?, Object?> matchState) {
     if (item is! String) {
       return false;
     }

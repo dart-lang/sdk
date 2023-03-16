@@ -534,7 +534,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     var humanReadableNameString = literalString(impliedType.humanReadableName);
     if (className == 'RefactoringFeedback') {
       writeln('factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, '
-          'String jsonPath, Object? json, Map responseJson) {');
+          'String jsonPath, '
+          'Object? json, '
+          'Map<Object?, Object?> responseJson) {');
       indent(() {
         writeln('return refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
             'json, responseJson);');

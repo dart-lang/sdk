@@ -19,7 +19,8 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_p
 /// handler based on the command.
 class ExecuteCommandHandler
     extends MessageHandler<ExecuteCommandParams, Object?> {
-  final Map<String, CommandHandler> commandHandlers;
+  final Map<String, CommandHandler<ExecuteCommandParams, Object>>
+      commandHandlers;
 
   ExecuteCommandHandler(super.server)
       : commandHandlers = {

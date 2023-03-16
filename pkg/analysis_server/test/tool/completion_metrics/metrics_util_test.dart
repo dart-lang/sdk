@@ -249,7 +249,7 @@ class _DoubleEquals extends Matcher {
       description.add(_value.toString());
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<Object?, Object?> matchState) {
     return item is num &&
         num.parse(item.toStringAsFixed(fractionDigits)) ==
             num.parse(_value.toStringAsFixed(fractionDigits));

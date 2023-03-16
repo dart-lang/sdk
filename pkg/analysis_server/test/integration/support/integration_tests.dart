@@ -52,8 +52,8 @@ void outOfTestExpect(Object? actual, Matcher matcher,
   fail(_defaultFailFormatter(actual, matcher, reason, matchState, verbose));
 }
 
-String _defaultFailFormatter(
-    actual, Matcher matcher, String? reason, Map matchState, bool verbose) {
+String _defaultFailFormatter(actual, Matcher matcher, String? reason,
+    Map<Object?, Object?> matchState, bool verbose) {
   var description = StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
   description.add('  Actual: ').addDescriptionOf(actual).add('\n');
@@ -76,7 +76,8 @@ typedef MismatchDescriber = Description Function(
     Description mismatchDescription);
 
 /// Type of callbacks used to process notifications.
-typedef NotificationProcessor = void Function(String event, Map params);
+typedef NotificationProcessor = void Function(
+    String event, Map<Object?, Object?> params);
 
 /// Base class for analysis server integration tests.
 abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest {
@@ -321,14 +322,14 @@ class LazyMatcher implements Matcher {
   }
 
   @override
-  Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(Object? item, Description mismatchDescription,
+      Map<Object?, Object?> matchState, bool verbose) {
     return _matcher.describeMismatch(
         item, mismatchDescription, matchState, verbose);
   }
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(dynamic item, Map<Object?, Object?> matchState) {
     return _matcher.matches(item, matchState);
   }
 }
@@ -348,7 +349,7 @@ class MatchesEnum extends Matcher {
       description.add(this.description);
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<Object?, Object?> matchState) {
     return allowedValues.contains(item);
   }
 }
@@ -531,7 +532,7 @@ class Server {
       }
 
       _recordStdio('<== $trimmedLine');
-      Map message;
+      Map<Object?, Object?> message;
       try {
         message = json.decoder.convert(trimmedLine) as Map<Object?, Object?>;
       } catch (exception) {
@@ -720,7 +721,7 @@ class Server {
 
 /// An error result from a server request.
 class ServerErrorMessage {
-  final Map message;
+  final Map<Object?, Object?> message;
 
   ServerErrorMessage(this.message);
 
@@ -746,8 +747,8 @@ class _ListOf extends Matcher {
       description.add('List of ').addDescriptionOf(elementMatcher);
 
   @override
-  Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(item, Description mismatchDescription,
+      Map<Object?, Object?> matchState, bool verbose) {
     if (item is! List) {
       return super
           .describeMismatch(item, mismatchDescription, matchState, verbose);
@@ -758,7 +759,7 @@ class _ListOf extends Matcher {
   }
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<Object?, Object?> matchState) {
     if (item is! List) {
       return false;
     }
@@ -834,7 +835,7 @@ class _OneOf extends Matcher {
   }
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<Object?, Object?> matchState) {
     for (var choiceMatcher in choiceMatchers) {
       var subState = {};
       if (choiceMatcher.matches(item, subState)) {
@@ -879,8 +880,8 @@ abstract class _RecursiveMatcher extends Matcher {
   }
 
   @override
-  Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(item, Description mismatchDescription,
+      Map<Object?, Object?> matchState, bool verbose) {
     var mismatches = matchState['mismatches'] as List<MismatchDescriber>?;
     if (mismatches != null) {
       for (var i = 0; i < mismatches.length; i++) {
@@ -904,7 +905,7 @@ abstract class _RecursiveMatcher extends Matcher {
   }
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<Object?, Object?> matchState) {
     var mismatches = <MismatchDescriber>[];
     populateMismatches(item, mismatches);
     if (mismatches.isEmpty) {

@@ -13,7 +13,7 @@ import 'domain_completion_util.dart';
 class CompletionTestCase extends AbstractCompletionDomainTest {
   static const String CURSOR_MARKER = '!';
 
-  List get suggestedCompletions => suggestions
+  List<String> get suggestedCompletions => suggestions
       .map((CompletionSuggestion suggestion) => suggestion.completion)
       .toList();
 

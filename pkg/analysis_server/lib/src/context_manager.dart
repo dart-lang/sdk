@@ -388,7 +388,7 @@ class ContextManagerImpl implements ContextManager {
             lineInfo: lineInfo, options: driver.analysisOptions);
 
         if (driver.analysisOptions.lint) {
-          var visitors = <LintRule, PubspecVisitor>{};
+          var visitors = <LintRule, PubspecVisitor<Object?>>{};
           for (var linter in driver.analysisOptions.lintRules) {
             if (linter is LintRule) {
               var visitor = linter.getPubspecVisitor();
