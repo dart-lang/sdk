@@ -6500,3 +6500,16 @@ ObsoleteColonForDefaultValue:
   correctionMessage: "Try replacing the colon with an equal sign."
   script: |
     method({int x: 3}) {}
+
+EqualKeysInMapPattern:
+  problemMessage: Two keys in a map pattern can't be equal.
+  correctionMessage: Change or remove the duplicate key.
+  analyzerCode: EQUAL_KEYS_IN_MAP_PATTERN
+  script: |
+    method(o) {
+      if (o case {1: 'foo', 1: 'bar'}) {}
+    }
+
+EqualKeysInMapPatternContext:
+  problemMessage: This is the previous use of the same key.
+  severity: CONTEXT

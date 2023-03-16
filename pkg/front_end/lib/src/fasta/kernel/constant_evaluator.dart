@@ -1340,6 +1340,30 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitMapPattern(MapPattern node, TreeNode? removalSentinel) {
+    super.visitMapPattern(node, removalSentinel);
+    Map<Constant, MapPatternEntry> keyValueMap = {};
+    for (MapPatternEntry entry in node.entries) {
+      if (entry is MapPatternRestEntry) continue;
+      Constant keyValue = entry.keyValue!;
+      MapPatternEntry? existing = keyValueMap[keyValue];
+      if (existing != null) {
+        constantEvaluator.errorReporter.report(
+            constantEvaluator.createLocatedMessage(
+                entry.key, messageEqualKeysInMapPattern),
+            [
+              constantEvaluator.createLocatedMessage(
+                  existing.key, messageEqualKeysInMapPatternContext)
+            ]);
+      } else {
+        keyValueMap[keyValue] = entry;
+      }
+    }
+
+    return node;
+  }
+
+  @override
   TreeNode visitRelationalPattern(
       RelationalPattern node, TreeNode? removalSentinel) {
     TreeNode result = super.visitRelationalPattern(node, removalSentinel);

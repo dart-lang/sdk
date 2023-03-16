@@ -3344,6 +3344,26 @@ const MessageCode messageEnumWithNameValues = const MessageCode(
         r"""The name 'values' is not a valid name for an enum. Try using a different name.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEqualKeysInMapPattern = messageEqualKeysInMapPattern;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEqualKeysInMapPattern = const MessageCode(
+    "EqualKeysInMapPattern",
+    analyzerCodes: <String>["EQUAL_KEYS_IN_MAP_PATTERN"],
+    problemMessage: r"""Two keys in a map pattern can't be equal.""",
+    correctionMessage: r"""Change or remove the duplicate key.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEqualKeysInMapPatternContext =
+    messageEqualKeysInMapPatternContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEqualKeysInMapPatternContext = const MessageCode(
+    "EqualKeysInMapPatternContext",
+    severity: Severity.context,
+    problemMessage: r"""This is the previous use of the same key.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEqualityCannotBeEqualityOperand =
     messageEqualityCannotBeEqualityOperand;
 
