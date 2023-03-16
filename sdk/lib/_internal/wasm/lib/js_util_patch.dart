@@ -4,7 +4,6 @@
 
 library dart.js_util;
 
-import "dart:_js_annotations" as js;
 import "dart:_internal";
 import "dart:_js_helper";
 import "dart:_js_types";
@@ -45,8 +44,8 @@ dynamic jsify(Object? object) {
       convertedObjects[o] = convertedMap;
       for (final key in o.keys) {
         final convertedKey = convert(key) as JSValue?;
-        setPropertyRaw(convertedMap.toExternRef(), convertedKey?.toExternRef(),
-            (convert(o[key]) as JSValue?)?.toExternRef());
+        setPropertyRaw(convertedMap.toExternRef, convertedKey?.toExternRef,
+            (convert(o[key]) as JSValue?)?.toExternRef);
       }
       return convertedMap;
     } else if (o is Iterable<Object?>) {
@@ -66,38 +65,37 @@ dynamic jsify(Object? object) {
 }
 
 @patch
-Object get globalThis => JSValue(globalThisRaw()!);
+Object get globalThis => JSValue(globalThisRaw());
 
 @patch
-T newObject<T>() => JSValue(newObjectRaw()!) as T;
+T newObject<T>() => JSValue(newObjectRaw()) as T;
 
-JSValue _newArray() => JSValue(newArrayRaw()!);
+JSValue _newArray() => JSValue(newArrayRaw());
 
 @patch
 bool hasProperty(Object o, Object name) =>
-    hasPropertyRaw(jsifyRaw(o)!, jsifyRaw(name)!);
+    hasPropertyRaw(jsifyRaw(o), jsifyRaw(name));
 
 @patch
 T getProperty<T>(Object o, Object name) =>
-    dartifyRaw(getPropertyRaw(jsifyRaw(o)!, jsifyRaw(name)!)) as T;
+    dartifyRaw(getPropertyRaw(jsifyRaw(o), jsifyRaw(name))) as T;
 
 @patch
 T setProperty<T>(Object o, Object name, T? value) =>
-    dartifyRaw(setPropertyRaw(jsifyRaw(o)!, jsifyRaw(name)!, jsifyRaw(value)))
+    dartifyRaw(setPropertyRaw(jsifyRaw(o), jsifyRaw(name), jsifyRaw(value)))
         as T;
 
 @patch
-T callMethod<T>(Object o, String method, List<Object?> args) =>
-    dartifyRaw(callMethodVarArgsRaw(
-        jsifyRaw(o)!, jsifyRaw(method)!, args.toJS().toExternRef())) as T;
+T callMethod<T>(Object o, String method, List<Object?> args) => dartifyRaw(
+    callMethodVarArgsRaw(jsifyRaw(o), jsifyRaw(method), jsifyRaw(args))) as T;
 
 @patch
 bool instanceof(Object? o, Object type) =>
     JS<bool>("(o, t) => o instanceof t", jsifyRaw(o), jsifyRaw(type));
 
 @patch
-T callConstructor<T>(Object o, List<Object?> args) => dartifyRaw(
-    callConstructorVarArgsRaw(jsifyRaw(o)!, args.toJS().toExternRef()))! as T;
+T callConstructor<T>(Object o, List<Object?> args) =>
+    dartifyRaw(callConstructorVarArgsRaw(jsifyRaw(o), jsifyRaw(args))) as T;
 
 @patch
 T add<T>(Object? first, Object? second) => throw 'unimplemented';
@@ -169,7 +167,7 @@ Future<T> promiseToFuture<T>(Object jsPromise) {
     return completer.completeError(e);
   });
 
-  promiseThen(jsifyRaw(jsPromise)!, jsifyRaw(success)!, jsifyRaw(error)!);
+  promiseThen(jsifyRaw(jsPromise), jsifyRaw(success), jsifyRaw(error));
   return completer.future;
 }
 
@@ -207,7 +205,7 @@ Object? dartify(Object? object) {
       return o;
     }
 
-    WasmExternRef? ref = o.toExternRef();
+    WasmExternRef? ref = o.toExternRef;
     if (ref.isNull ||
         isJSBoolean(ref) ||
         isJSNumber(ref) ||
@@ -240,8 +238,8 @@ Object? dartify(Object? object) {
       for (int i = 0; i < keys.length; i++) {
         final key = keys[i];
         if (key != null) {
-          dartMap[key] = convert(
-              JSValue.box(getPropertyRaw(ref, (key as String).toExternRef())));
+          dartMap[key] =
+              convert(JSValue.box(getPropertyRaw(ref, jsifyRaw(key))));
         }
       }
       return dartMap;
