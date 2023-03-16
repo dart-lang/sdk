@@ -61,8 +61,6 @@ setters inherit the docs from the getters.
 
 ''';
 
-// TODO(devoncarew): This lint is very slow - we should profile and optimize it.
-
 // TODO(devoncarew): Longer term, this lint could benefit from being more aware
 // of the actual API surface area of a package - including that defined by
 // exports - and linting against that.
