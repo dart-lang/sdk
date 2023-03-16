@@ -53,7 +53,6 @@ dependencies:
   # path: ^1.8.0
 
 dev_dependencies:
-  build_daemon: ">=2.0.0 <4.0.0"
   build_runner: ^2.4.0
   build_web_compilers: ^4.0.0
   lints: ^2.0.0
