@@ -139,6 +139,14 @@ class AstBinaryReader {
         return _readPropertyAccess();
       case Tag.RecordLiteral:
         return _readRecordLiteral();
+      case Tag.RecordTypeAnnotation:
+        return _readRecordTypeAnnotation();
+      case Tag.RecordTypeAnnotationNamedField:
+        return _readRecordTypeAnnotationNamedField();
+      case Tag.RecordTypeAnnotationNamedFields:
+        return _readRecordTypeAnnotationNamedFields();
+      case Tag.RecordTypeAnnotationPositionalField:
+        return _readRecordTypeAnnotationPositionalField();
       case Tag.RedirectingConstructorInvocation:
         return _readRedirectingConstructorInvocation();
       case Tag.SetOrMapLiteral:
@@ -1027,6 +1035,64 @@ class AstBinaryReader {
     );
     _readExpressionResolution(node);
     return node;
+  }
+
+  RecordTypeAnnotationImpl _readRecordTypeAnnotation() {
+    final flags = _readByte();
+    final positionalFields =
+        _readNodeList<RecordTypeAnnotationPositionalFieldImpl>();
+    final namedFields =
+        _readOptionalNode() as RecordTypeAnnotationNamedFieldsImpl?;
+
+    final node = RecordTypeAnnotationImpl(
+      leftParenthesis: Tokens.openParenthesis(),
+      positionalFields: positionalFields,
+      namedFields: namedFields,
+      rightParenthesis: Tokens.closeParenthesis(),
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+    );
+    node.type = _reader.readType();
+    return node;
+  }
+
+  RecordTypeAnnotationNamedFieldImpl _readRecordTypeAnnotationNamedField() {
+    final metadata = _readNodeList<AnnotationImpl>();
+    final type = readNode() as TypeAnnotationImpl;
+
+    final lexeme = _reader.readStringReference();
+    final name = TokenFactory.tokenFromString(lexeme);
+
+    return RecordTypeAnnotationNamedFieldImpl(
+      metadata: metadata,
+      type: type,
+      name: name,
+    );
+  }
+
+  RecordTypeAnnotationNamedFieldsImpl _readRecordTypeAnnotationNamedFields() {
+    final fields = _readNodeList<RecordTypeAnnotationNamedFieldImpl>();
+    return RecordTypeAnnotationNamedFieldsImpl(
+      leftBracket: Tokens.openCurlyBracket(),
+      fields: fields,
+      rightBracket: Tokens.closeCurlyBracket(),
+    );
+  }
+
+  RecordTypeAnnotationPositionalFieldImpl
+      _readRecordTypeAnnotationPositionalField() {
+    final metadata = _readNodeList<AnnotationImpl>();
+    final type = readNode() as TypeAnnotationImpl;
+
+    final name = _reader.readOptionalObject((reader) {
+      final lexeme = reader.readStringReference();
+      return TokenFactory.tokenFromString(lexeme);
+    });
+
+    return RecordTypeAnnotationPositionalFieldImpl(
+      metadata: metadata,
+      type: type,
+      name: name,
+    );
   }
 
   RedirectingConstructorInvocation _readRedirectingConstructorInvocation() {

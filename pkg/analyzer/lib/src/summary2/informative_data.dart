@@ -2032,6 +2032,39 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    _tokenOrNull(node.leftParenthesis);
+    _tokenOrNull(node.rightParenthesis);
+    _tokenOrNull(node.question);
+    super.visitRecordTypeAnnotation(node);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    _tokenOrNull(node.name);
+    super.visitRecordTypeAnnotationNamedField(node);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+    RecordTypeAnnotationNamedFields node,
+  ) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitRecordTypeAnnotationNamedFields(node);
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    _tokenOrNull(node.name);
+    super.visitRecordTypeAnnotationPositionalField(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     _tokenOrNull(node.thisKeyword);
