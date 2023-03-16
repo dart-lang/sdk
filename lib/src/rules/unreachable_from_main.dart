@@ -63,8 +63,55 @@ class UnreachableFromMain extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
+  }
+}
+
+/// This gathers all of the top-level and static declarations which we may wish
+/// to report on.
+class _DeclarationGatherer {
+  // A complete set of the declaration of each public static class member, and
+  // each public top-level declaration.
+  final declarations = <Declaration>{};
+
+  void addDeclarations(CompilationUnit node) {
+    for (var declaration in node.declarations) {
+      if (declaration is TopLevelVariableDeclaration) {
+        declarations.addAll(declaration.variables.variables);
+      } else {
+        declarations.add(declaration);
+        var declaredElement = declaration.declaredElement;
+        if (declaredElement == null || declaredElement.isPrivate) {
+          continue;
+        }
+        if (declaration is MixinDeclaration) {
+          declaration.members.forEach(_addStaticMember);
+        } else if (declaration is ClassDeclaration) {
+          declaration.members.forEach(_addStaticMember);
+        } else if (declaration is EnumDeclaration) {
+          declaration.members.forEach(_addStaticMember);
+        } else if (declaration is ExtensionDeclaration) {
+          declaration.members.forEach(_addStaticMember);
+        }
+      }
+    }
+  }
+
+  void _addStaticMember(ClassMember member) {
+    if (member is FieldDeclaration && member.isStatic) {
+      for (var field in member.fields.variables) {
+        var e = field.declaredElement;
+        if (e != null && e.isPublic) {
+          declarations.add(field);
+        }
+      }
+    } else if (member is MethodDeclaration && member.isStatic) {
+      var e = member.declaredElement;
+      if (e != null && e.isPublic) {
+        declarations.add(member);
+      }
+    }
   }
 }
 
@@ -160,60 +207,21 @@ class _IdentifierVisitor extends RecursiveAstVisitor {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    // TODO(a14n): add support of libs with parts
-    if (node.directives.whereType<PartOfDirective>().isNotEmpty) return;
-    if (node.directives.whereType<PartDirective>().isNotEmpty) return;
-
-    var declarations = <Declaration>{};
-
-    void addStaticMember(ClassMember member) {
-      if (member is FieldDeclaration && member.isStatic) {
-        for (var field in member.fields.variables) {
-          var e = field.declaredElement;
-          if (e != null && e.isPublic) {
-            declarations.add(field);
-          }
-        }
-      } else if (member is MethodDeclaration && member.isStatic) {
-        var e = member.declaredElement;
-        if (e != null && e.isPublic) {
-          declarations.add(member);
-        }
-      }
+    var declarationGatherer = _DeclarationGatherer();
+    for (var unit in context.allUnits) {
+      declarationGatherer.addDeclarations(unit.unit);
     }
-
-    // Gather all of the top-level and static declarations which we may wish to
-    // report on.
-    for (var declaration in node.declarations) {
-      if (declaration is TopLevelVariableDeclaration) {
-        declarations.addAll(declaration.variables.variables);
-      } else {
-        declarations.add(declaration);
-        var declaredElement = declaration.declaredElement;
-        if (declaredElement == null || declaredElement.isPrivate) {
-          continue;
-        }
-        if (declaration is MixinDeclaration) {
-          declaration.members.forEach(addStaticMember);
-        } else if (declaration is ClassDeclaration) {
-          declaration.members.forEach(addStaticMember);
-        } else if (declaration is EnumDeclaration) {
-          declaration.members.forEach(addStaticMember);
-        } else if (declaration is ExtensionDeclaration) {
-          declaration.members.forEach(addStaticMember);
-        }
-      }
-    }
-
-    var entryPoints = declarations.where(_isEntryPoint).toList();
+    var declarations = declarationGatherer.declarations;
+    var entryPoints = declarations.where(_isEntryPoint);
     if (entryPoints.isEmpty) return;
 
-    // Map all of the top-level and static declarations to the element(s) which
-    // each declares.
+    // Map each top-level and static element to its declaration.
     var declarationByElement = <Element, Declaration>{};
     for (var declaration in declarations) {
       var element = declaration.declaredElement;

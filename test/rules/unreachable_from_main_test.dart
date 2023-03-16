@@ -22,6 +22,19 @@ class UnreachableFromMainTest extends LintRuleTest {
   @override
   String get lintRule => 'unreachable_from_main';
 
+  test_class_reachable_mainInPart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+
+void main() => A()
+''');
+    await assertNoDiagnostics(r'''
+part 'part.dart';
+
+class A {}
+''');
+  }
+
   test_class_reachableViaAnnotation() async {
     await assertNoDiagnostics(r'''
 void main() {
@@ -104,6 +117,77 @@ class C {
 }
 ''', [
       lint(22, 1),
+    ]);
+  }
+
+  test_class_unreachable_mainInPart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+
+void main() {}
+''');
+    await assertDiagnostics(r'''
+part 'part.dart';
+
+class A {}
+''', [
+      lint(25, 1),
+    ]);
+  }
+
+  test_classInPart_reachable() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+
+class A {}
+''');
+    await assertNoDiagnostics(r'''
+part 'part.dart';
+
+void main() => A();
+''');
+  }
+
+  test_classInPart_reachable_mainInPart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+
+class A {}
+
+void main() => A()
+''');
+    await assertNoDiagnostics(r'''
+part 'part.dart';
+''');
+  }
+
+  test_classInPart_unreachable() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+
+class A {}
+''');
+    await assertDiagnostics(r'''
+part 'part.dart';
+
+void main() {}
+''', [
+      lint(28, 1),
+    ]);
+  }
+
+  test_classInPart_unreachable_mainInPart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+
+class A {}
+
+void main() {}
+''');
+    await assertDiagnostics(r'''
+part 'part.dart';
+''', [
+      lint(28, 1),
     ]);
   }
 
