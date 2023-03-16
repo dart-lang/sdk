@@ -263,34 +263,6 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const HintCode UNNECESSARY_NULL_COMPARISON_FALSE = HintCode(
-    'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always 'false'.",
-    correctionMessage:
-        "Try removing the condition, an enclosing condition, or the whole "
-        "conditional statement.",
-    hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_NULL_COMPARISON_FALSE',
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_NULL_COMPARISON_TRUE = HintCode(
-    'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always 'true'.",
-    correctionMessage: "Remove the condition.",
-    hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_NULL_COMPARISON_TRUE',
-  );
-
-  ///  Parameters:
-  ///  0: the name of the type
-  static const HintCode UNNECESSARY_QUESTION_MARK = HintCode(
-    'UNNECESSARY_QUESTION_MARK',
-    "The '?' is unnecessary because '{0}' is nullable without it.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
   static const HintCode UNNECESSARY_SET_LITERAL = HintCode(
     'UNNECESSARY_SET_LITERAL',
     "Braces unnecessarily wrap this expression in a set literal.",

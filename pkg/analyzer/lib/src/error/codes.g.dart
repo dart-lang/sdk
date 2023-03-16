@@ -6897,6 +6897,34 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_NULL_COMPARISON_FALSE = WarningCode(
+    'UNNECESSARY_NULL_COMPARISON',
+    "The operand can't be null, so the condition is always 'false'.",
+    correctionMessage:
+        "Try removing the condition, an enclosing condition, or the whole "
+        "conditional statement.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_FALSE',
+  );
+
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_NULL_COMPARISON_TRUE = WarningCode(
+    'UNNECESSARY_NULL_COMPARISON',
+    "The operand can't be null, so the condition is always 'true'.",
+    correctionMessage: "Remove the condition.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_TRUE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the type
+  static const WarningCode UNNECESSARY_QUESTION_MARK = WarningCode(
+    'UNNECESSARY_QUESTION_MARK',
+    "The '?' is unnecessary because '{0}' is nullable without it.",
+    hasPublishedDocs: true,
+  );
+
   ///  This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
   static const HintCode UNNECESSARY_TYPE_CHECK_FALSE =
       HintCode.UNNECESSARY_TYPE_CHECK_FALSE;

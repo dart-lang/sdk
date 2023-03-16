@@ -3002,7 +3002,7 @@ main() {
    ''';
     await assertErrorsInCode(code, [
       if (isNullSafetyEnabled)
-        error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 139, 7),
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 139, 7),
     ]);
   }
 
@@ -3027,7 +3027,7 @@ main() {
    ''';
     await assertErrorsInCode(code, [
       if (isNullSafetyEnabled)
-        error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 163, 7),
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 163, 7),
     ]);
   }
 

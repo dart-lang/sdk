@@ -17,8 +17,6 @@ class StronglyReachableInstancesRepository
       {bool includeSubclasses = false, includeImplementors = false}) async {
     S.Isolate isolate = i as S.Isolate;
     S.Class cls = c as S.Class;
-    assert(isolate != null);
-    assert(cls != null);
     final response = await isolate.invokeRpc('getInstancesAsList', {
       'objectId': cls.id,
       'includeSubclasses': includeSubclasses,

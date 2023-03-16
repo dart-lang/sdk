@@ -42,7 +42,7 @@ class RemoveComparison extends CorrectionProducer {
   bool get _conditionIsFalse {
     var errorCode = (diagnostic as AnalysisError).errorCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
-        errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_FALSE ||
+        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE ||
         errorCode == HintCode.UNNECESSARY_TYPE_CHECK_FALSE;
   }
 
@@ -50,7 +50,7 @@ class RemoveComparison extends CorrectionProducer {
   bool get _conditionIsTrue {
     var errorCode = (diagnostic as AnalysisError).errorCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
-        errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
+        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
         errorCode == HintCode.UNNECESSARY_TYPE_CHECK_TRUE ||
         errorCode.name == LintNames.avoid_null_checks_in_equality_operators;
   }

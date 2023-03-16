@@ -273,7 +273,7 @@ class ExtensionMethod extends Method {
           ? fuzzer.pickScalarVar(type!.toNonNullable())
           : '$className()';
 
-      if (extensionName != null && fuzzer.coinFlip()) {
+      if (fuzzer.coinFlip()) {
         outputName = '$extensionName($invokingObject).$name';
       } else {
         outputName = '$invokingObject.$name';
@@ -1200,9 +1200,6 @@ class DartFuzz {
     final iterType = oneOfSet(dartType.iterableTypes1);
     // Get the element type contained within the iterable type.
     final elementType = dartType.elementType(iterType);
-    if (elementType == null) {
-      throw 'No element type for iteration type ${iterType.name}';
-    }
     emitLn('for ', newline: false);
     emitParenWrapped(() {
       emit('${elementType.dartName} $localName$i in ');
@@ -1799,9 +1796,6 @@ class DartFuzz {
         // Iterate over constructor parameters.
         var constructorParameters =
             dartType.constructorParameters(tp, constructor);
-        if (constructorParameters == null) {
-          throw 'No constructor parameters for ${tp.name}.$constructor';
-        }
         emitCommaSeparated((int i) {
           // If we are emitting a constructor parameter, we want to use small
           // values to avoid programs that run out of memory.
