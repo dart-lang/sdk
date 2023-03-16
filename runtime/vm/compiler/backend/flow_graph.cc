@@ -507,15 +507,21 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     // we allow nullable types, which may result in just generating
     // a null check rather than the more elaborate class check
     CompileType* type = receiver->Type();
-    const AbstractType* atype = type->ToAbstractType();
-    if (atype->IsInstantiated() && atype->HasTypeClass() &&
-        !atype->IsDynamicType()) {
-      if (type->is_nullable()) {
-        receiver_maybe_null = true;
-      }
-      receiver_class = atype->type_class();
-      if (receiver_class.is_implemented()) {
-        receiver_class = Class::null();
+    const intptr_t receiver_cid = type->ToNullableCid();
+    if (receiver_cid != kDynamicCid) {
+      receiver_class = isolate_group()->class_table()->At(receiver_cid);
+      receiver_maybe_null = type->is_nullable();
+    } else {
+      const AbstractType* atype = type->ToAbstractType();
+      if (atype->IsInstantiated() && atype->HasTypeClass() &&
+          !atype->IsDynamicType()) {
+        if (type->is_nullable()) {
+          receiver_maybe_null = true;
+        }
+        receiver_class = atype->type_class();
+        if (receiver_class.is_implemented()) {
+          receiver_class = Class::null();
+        }
       }
     }
   }

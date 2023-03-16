@@ -6,11 +6,11 @@ import "dart:_internal" as _in;
 static method test1() → dynamic
   return block {
     final core::Map<dynamic, dynamic> #t1 = <dynamic, dynamic>{};
-    for (final dynamic #t2 in <dynamic>[]) {
-      dynamic i;
+    for (final core::List<core::Object?> #t2 in <core::List<core::Object?>>[]) {
+      core::Object? i;
       {
         final synthesized dynamic #0#0 = #t2;
-        if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t3 = i = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
+        if(!(#0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t3 = i = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?} in true)))
           throw new _in::ReachabilityError::•();
       }
       #t1.{core::Map::[]=}{Invariant}(i, i){(dynamic, dynamic) → void};

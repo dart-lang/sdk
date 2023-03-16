@@ -4050,7 +4050,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           case ProcedureKind.Getter:
             read = new StaticInvocation(
                 readTarget.member as Procedure,
-                new Arguments(<Expression>[
+                new ArgumentsImpl(<Expression>[
                   receiver,
                 ], types: readTarget.receiverTypeArguments)
                   ..fileOffset = fileOffset)

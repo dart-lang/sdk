@@ -1519,8 +1519,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, iterable);
   }
 
-  ForInVariable computeForInVariable(Expression? syntheticAssignment,
-      Statement? expressionEffects, bool hasProblem) {
+  ForInVariable computeForInVariable(
+      Expression? syntheticAssignment, bool hasProblem) {
     if (syntheticAssignment is VariableSet) {
       return new LocalForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is PropertySet) {
@@ -1533,9 +1533,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new StaticForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is InvalidExpression || hasProblem) {
       return new InvalidForInVariable(syntheticAssignment);
-    } else if (syntheticAssignment == null &&
-        expressionEffects is PatternVariableDeclaration) {
-      return new PatternVariableDeclarationForInVariable(expressionEffects);
     } else {
       UriOffset uriOffset = _computeUriOffset(syntheticAssignment!);
       return problems.unhandled(
@@ -1546,7 +1543,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
   }
 
-  ForInResult handleForInWithoutVariable(
+  ForInResult _handleForInWithoutVariable(
       TreeNode node,
       VariableDeclaration variable,
       Expression iterable,
@@ -1556,8 +1553,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       required bool hasProblem}) {
     // ignore: unnecessary_null_comparison
     assert(hasProblem != null);
-    ForInVariable forInVariable = computeForInVariable(
-        syntheticAssignment, expressionEffects, hasProblem);
+
+    ForInVariable forInVariable =
+        computeForInVariable(syntheticAssignment, hasProblem);
     DartType elementType = forInVariable.computeElementType(this);
     ExpressionInferenceResult iterableResult =
         inferForInIterable(iterable, elementType, isAsync: isAsync);
@@ -1575,8 +1573,85 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       expressionEffects =
           result.hasChanged ? result.statement : expressionEffects;
     }
+
     return new ForInResult(variable, iterableResult.expression,
         syntheticAssignment, expressionEffects);
+  }
+
+  ForInResult _handlePatternForIn(
+      TreeNode node,
+      VariableDeclaration variable,
+      Expression iterable,
+      Expression? syntheticAssignment,
+      PatternVariableDeclaration patternVariableDeclaration,
+      {bool isAsync = false,
+      required bool hasProblem}) {
+    int? stackBase;
+    assert(checkStackBase(node, stackBase = stackHeight));
+
+    PatternForInResult<InvalidExpression> result = analyzePatternForIn(
+        node: node,
+        hasAwait: isAsync,
+        pattern: patternVariableDeclaration.pattern,
+        expression: iterable,
+        dispatchBody: () {});
+    if (result.patternForInExpressionIsNotIterableError != null) {
+      // The error is reported elsewhere.
+    }
+
+    assert(checkStack(node, stackBase, [
+      /* pattern = */ ValueKinds.Pattern,
+      /* initializer = */ ValueKinds.Expression,
+    ]));
+
+    Object? rewrite = popRewrite();
+    if (!identical(rewrite, patternVariableDeclaration.pattern)) {
+      patternVariableDeclaration.pattern = (rewrite as Pattern)
+        ..parent = patternVariableDeclaration;
+    }
+
+    rewrite = popRewrite();
+    if (!identical(rewrite, patternVariableDeclaration.initializer)) {
+      iterable = (rewrite as Expression)..parent = node;
+    }
+
+    ForInVariable forInVariable =
+        new PatternVariableDeclarationForInVariable(patternVariableDeclaration);
+
+    DartType elementType = forInVariable.computeElementType(this);
+    ExpressionInferenceResult iterableResult =
+        inferForInIterable(iterable, elementType, isAsync: isAsync);
+    DartType inferredType = iterableResult.inferredType;
+    variable.type = inferredType;
+    // This is matched by the call to [forEach_end] in
+    // [inferElement], [inferMapEntry] or [inferForInStatement].
+    flowAnalysis.forEach_bodyBegin(node);
+    syntheticAssignment = forInVariable.inferAssignment(this, inferredType);
+    if (syntheticAssignment is VariableSet) {
+      flowAnalysis.write(node, variable, inferredType, null);
+    }
+
+    return new ForInResult(variable, iterableResult.expression,
+        syntheticAssignment, patternVariableDeclaration);
+  }
+
+  ForInResult handleForInWithoutVariable(
+      TreeNode node,
+      VariableDeclaration variable,
+      Expression iterable,
+      Expression? syntheticAssignment,
+      Statement? expressionEffects,
+      {bool isAsync = false,
+      required bool hasProblem}) {
+    if (expressionEffects is PatternVariableDeclaration) {
+      return _handlePatternForIn(
+          node, variable, iterable, syntheticAssignment, expressionEffects,
+          isAsync: isAsync, hasProblem: hasProblem);
+    } else {
+      return _handleForInWithoutVariable(
+          node, variable, iterable, syntheticAssignment, expressionEffects,
+          isAsync: isAsync, hasProblem: hasProblem);
+    }
   }
 
   @override
