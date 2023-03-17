@@ -110,7 +110,7 @@ abstract class ClassBase {}
 
 class DerivedClass1 extends ClassBase {}
 
-abstract class Mixin {}
+mixin class Mixin {}
 
 class DerivedClass2 extends ClassBase with Mixin {}
 
@@ -164,7 +164,7 @@ bool takesB2(B2 b) => b.remove('a'); // OK
 
 abstract class SomeList<E> implements List<E> {}
 
-abstract class MyClass implements SomeList<int> {
+abstract mixin class MyClass implements SomeList<int> {
   bool badMethod(String thing) => this.remove(thing); // LINT
   bool badMethod1(String thing) => remove(thing); // LINT
 }

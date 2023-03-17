@@ -122,9 +122,6 @@ mixin LanguageVersion219Mixin on PubPackageResolutionTest {
 
 mixin LanguageVersion300Mixin on PubPackageResolutionTest {
   @override
-  List<String> get experiments => ['records', 'patterns'];
-
-  @override
   String? get testPackageLanguageVersion => '3.0';
 }
 

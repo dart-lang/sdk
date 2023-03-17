@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class NoLeadingUnderscoresForLocalIdentifiersTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['patterns', 'records'];
-
-  @override
   String get lintRule => 'no_leading_underscores_for_local_identifiers';
 
   test_listPattern_switch() async {

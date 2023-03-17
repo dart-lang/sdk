@@ -34,7 +34,9 @@ class C {}
     await assertDiagnostics(
       r'''
 @pragma('dart2js:late:trust')
-abstract class C = Object with Future;
+abstract class C = Object with M;
+
+mixin M {}
 ''',
       [lint(0, 29)],
     );

@@ -78,7 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool isTypeAcceptableWhenExpectingVoid(DartType type) {
-    if (type.isVoid) return true;
+    if (type is VoidType) return true;
     if (type.isDartCoreNull) return true;
     if (type is NeverType) return true;
     if (type.isDartAsyncFuture &&
@@ -144,13 +144,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expectedType == null || type == null) {
       return;
     }
-    if (expectedType.isVoid && !type.isDynamic && node is ReturnStatement) {
+    if (expectedType is VoidType &&
+        !type.isDynamic &&
+        node is ReturnStatement) {
       return;
     }
-    if (expectedType.isVoid && !isTypeAcceptableWhenExpectingVoid(type)) {
+    if (expectedType is VoidType && !isTypeAcceptableWhenExpectingVoid(type)) {
       rule.reportLint(node);
     } else if (expectedType.isDartAsyncFutureOr &&
-        (expectedType as InterfaceType).typeArguments.first.isVoid &&
+        (expectedType as InterfaceType).typeArguments.first is VoidType &&
         !isTypeAcceptableWhenExpectingFutureOrVoid(type)) {
       rule.reportLint(node);
     } else if (checkedNode is FunctionExpression &&

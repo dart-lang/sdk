@@ -371,14 +371,14 @@ class A {
 
   test_withMixin() async {
     await assertDiagnostics(r'''
-class M { }    
+mixin class M { }    
 class A with M {
   static const A a = A._();
   static const A b = A._();
   const A._();
 }
 ''', [
-      lint(22, 1),
+      lint(28, 1),
     ]);
   }
 }

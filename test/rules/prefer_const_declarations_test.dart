@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class PreferConstDeclarationsTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['records'];
-
-  @override
   String get lintRule => 'prefer_const_declarations';
 
   test_recordLiteral() async {

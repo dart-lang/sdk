@@ -16,9 +16,6 @@ main() {
 @reflectiveTest
 class UnnecessaryParenthesisPatternsTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['patterns', 'records'];
-
-  @override
   String get lintRule => 'unnecessary_parenthesis';
 
   /// https://github.com/dart-lang/linter/issues/4060

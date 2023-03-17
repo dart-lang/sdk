@@ -59,18 +59,18 @@ void f(C c) {}
   test_deprecatedClass_usedInClassTypeAlias() async {
     await assertDiagnostics(r'''
 @deprecated
-class C {}
+mixin class C {}
 
 class D = Object with C;
 ''', [
-      lint(46, 1),
+      lint(52, 1),
     ]);
   }
 
   test_deprecatedClass_usedInDeprecatedClassTypeAlias() async {
     await assertNoDiagnostics(r'''
 @deprecated
-class C {}
+mixin class C {}
 
 @deprecated
 class D = Object with C;

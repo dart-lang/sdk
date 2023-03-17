@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class UnnecessaryBreaksTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['patterns', 'records'];
-
-  @override
   String get lintRule => 'unnecessary_breaks';
 
   test_switch_pre30_ok() async {

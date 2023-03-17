@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -64,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.isGetter ||
         node.isOverride ||
         node.parameters?.parameters.length != 1 ||
-        node.returnType?.type?.isVoid != true) {
+        node.returnType?.type is! VoidType) {
       return;
     }
 

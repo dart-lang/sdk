@@ -17,9 +17,6 @@ main() {
 @reflectiveTest
 class NonConstantIdentifierNamesPatternsTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['patterns', 'records'];
-
-  @override
   String get lintRule => 'non_constant_identifier_names';
 
   test_patternForStatement() async {
@@ -76,9 +73,6 @@ void f() {
 
 @reflectiveTest
 class NonConstantIdentifierNamesRecordsTest extends LintRuleTest {
-  @override
-  List<String> get experiments => ['records'];
-
   @override
   String get lintRule => 'non_constant_identifier_names';
 

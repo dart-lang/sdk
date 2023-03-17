@@ -114,9 +114,6 @@ void switchString() {
 @reflectiveTest
 class NoDuplicateCaseValuesTestLanguage300 extends BaseNoDuplicateCaseValuesTest
     with LanguageVersion300Mixin {
-  @override
-  List<String> get experiments => ['records', 'patterns'];
-
   test_duplicateConstClassValue_ok() async {
     await assertNoDiagnostics(r'''
 class ConstClass {

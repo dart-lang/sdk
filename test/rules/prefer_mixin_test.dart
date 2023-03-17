@@ -78,9 +78,6 @@ abstract class CC with AA { }
 @reflectiveTest
 class PreferMixinTestLanguage300 extends BasePreferMixinTest
     with LanguageVersion300Mixin {
-  @override
-  List<String> get experiments => ['class-modifiers'];
-
   /// https://github.com/dart-lang/linter/issues/4065
   test_mixinClass() async {
     await assertNoDiagnostics(r'''

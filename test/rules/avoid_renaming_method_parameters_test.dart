@@ -26,7 +26,7 @@ class AvoidRenamingMethodParametersTest extends LintRuleTest {
 
   test_enumMixingIn() async {
     await assertDiagnostics(r'''
-class C {
+mixin class C {
   int f(int f) => f;
 }
 enum A with C {
@@ -35,7 +35,7 @@ enum A with C {
   int f(int x) => x;
 }
 ''', [
-      lint(82, 1),
+      lint(88, 1),
     ]);
   }
 

@@ -16,9 +16,6 @@ main() {
 @reflectiveTest
 class ConstantIdentifierNamesPatternsTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['patterns', 'records'];
-
-  @override
   String get lintRule => 'constant_identifier_names';
 
   test_destructuredConstField() async {
@@ -53,9 +50,6 @@ void f() {
 
 @reflectiveTest
 class ConstantIdentifierNamesRecordsTest extends LintRuleTest {
-  @override
-  List<String> get experiments => ['records'];
-
   @override
   String get lintRule => 'constant_identifier_names';
 

@@ -16,9 +16,6 @@ main() {
 class OneMemberAbstractsTestLanguage300 extends LintRuleTest
     with LanguageVersion300Mixin {
   @override
-  List<String> get experiments => ['sealed-class'];
-
-  @override
   String get lintRule => 'one_member_abstracts';
 
   test_sealed_concreteMethod_noDiagnostic() async {

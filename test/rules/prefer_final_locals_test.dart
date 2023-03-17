@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class PreferFinalLocalsPatternsTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['patterns', 'records'];
-
-  @override
   String get lintRule => 'prefer_final_locals';
 
   test_destructured_listPattern_mutated_ok() async {

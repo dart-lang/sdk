@@ -16,9 +16,6 @@ main() {
 @reflectiveTest
 class UnnecessaryConstPatternsTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['patterns', 'records'];
-
-  @override
   String get lintRule => 'unnecessary_const';
 
   test_case_constConstructor_ok() async {
@@ -102,9 +99,6 @@ const s = const {1};
 
 @reflectiveTest
 class UnnecessaryConstRecordsTest extends LintRuleTest {
-  @override
-  List<String> get experiments => ['records'];
-
   @override
   String get lintRule => 'unnecessary_const';
 

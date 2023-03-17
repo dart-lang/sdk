@@ -98,7 +98,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool isFutureOrVoid(DartType type) {
     if (!type.isDartAsyncFutureOr) return false;
     if (type is! InterfaceType) return false;
-    return type.typeArguments.first.isVoid;
+    return type.typeArguments.first is VoidType;
   }
 
   bool isVoidIncompatibleOverride(MethodDeclaration parent, AstNode node) {
@@ -109,7 +109,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (member == null) return false;
 
     var returnType = member.returnType;
-    if (returnType.isVoid) return false;
+    if (returnType is VoidType) return false;
     if (isFutureOrVoid(returnType)) return false;
 
     return true;
