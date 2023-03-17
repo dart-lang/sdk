@@ -540,6 +540,8 @@ class TypeVariableTests {
         _addImplicitCheck(typeWithoutNullability.typeArgument);
       } else if (typeWithoutNullability is TypeVariableType) {
         _addImplicitChecksViaInstantiation(typeWithoutNullability);
+      } else if (typeWithoutNullability is RecordType) {
+        _addImplicitChecks(typeWithoutNullability.fields);
       }
     }
   }
@@ -584,6 +586,8 @@ class TypeVariableTests {
         _addImplicitCheck(typeWithoutNullability.typeArgument);
       } else if (typeWithoutNullability is TypeVariableType) {
         _addImplicitChecksViaInstantiation(typeWithoutNullability);
+      } else if (typeWithoutNullability is RecordType) {
+        _addImplicitChecks(typeWithoutNullability.fields);
       }
     });
 
