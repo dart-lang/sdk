@@ -12,6 +12,7 @@ import '../elements/types.dart' show DartType;
 import '../ir/class_relation.dart';
 import '../serialization/serialization.dart';
 import '../universe/member_hierarchy.dart';
+import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 
 /// Enum-like values used for reporting known and unknown truth values.
@@ -542,6 +543,21 @@ abstract class AbstractValueDomain {
   /// Returns the value type for [key] in [value] if it represents a dictionary
   /// value at runtime. Returns [dynamicType] otherwise.
   AbstractValue getDictionaryValueForKey(AbstractValue value, String key);
+
+  /// Creates a record value with the specified [shape] and the specified type
+  /// for each field in [types].
+  AbstractValue createRecordValue(RecordShape shape, List<AbstractValue> types);
+
+  /// Returns `true` if [value] represents a record value at runtime.
+  bool isRecord(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is a record type containing a field with name
+  /// [field].
+  bool recordHasGetter(AbstractValue value, String field);
+
+  /// Returns the value of the field record with name [field] in [value] if it
+  /// is a record type otherwise returns [dynamicType].
+  AbstractValue getGetterTypeInRecord(AbstractValue value, String field);
 
   /// Returns `true` if [specialization] is a specialization of
   /// [generalization].

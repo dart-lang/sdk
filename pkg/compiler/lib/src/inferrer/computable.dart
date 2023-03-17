@@ -10,6 +10,7 @@ import '../ir/class_relation.dart';
 import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
 import '../universe/member_hierarchy.dart';
+import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';
@@ -508,6 +509,31 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
           covariant ComputableAbstractValue value, String key) =>
       ComputableAbstractValue(
           _wrappedDomain.getDictionaryValueForKey(_unwrap(value), key));
+
+  @override
+  AbstractValue createRecordValue(
+      RecordShape shape, List<AbstractValue> types) {
+    AbstractValue abstractValue = _wrappedDomain.createRecordValue(
+        shape,
+        types
+            .map((e) => _unwrap(e as ComputableAbstractValue))
+            .toList(growable: false));
+    return ComputableAbstractValue(abstractValue);
+  }
+
+  @override
+  bool isRecord(covariant ComputableAbstractValue value) =>
+      _wrappedDomain.isRecord(_unwrap(value));
+
+  @override
+  bool recordHasGetter(
+          covariant ComputableAbstractValue value, String getterName) =>
+      _wrappedDomain.recordHasGetter(_unwrap(value), getterName);
+
+  @override
+  AbstractValue getGetterTypeInRecord(
+          covariant ComputableAbstractValue value, String getterName) =>
+      _wrappedDomain.getGetterTypeInRecord(_unwrap(value), getterName);
 
   @override
   bool isSpecializationOf(covariant ComputableAbstractValue specialization,

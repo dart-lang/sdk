@@ -3530,7 +3530,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   @override
   void visitRecordNameGet(ir.RecordNameGet node) {
     final shape = recordShapeOfRecordType(node.receiverType);
-    int index = shape.indexOfName(node.name);
+    int index = shape.indexOfFieldName(node.name);
     return _handleRecordFieldGet(node, node.receiver, shape, index);
   }
 
