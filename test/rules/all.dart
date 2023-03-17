@@ -48,6 +48,7 @@ import 'file_names_test.dart' as file_names;
 import 'flutter_style_todos_test.dart' as flutter_style_todos;
 import 'hash_and_equals_test.dart' as hash_and_equals;
 import 'invalid_case_patterns_test.dart' as invalid_case_patterns;
+import 'join_return_with_assignment_test.dart' as join_return_with_assignment;
 import 'library_annotations_test.dart' as library_annotations;
 import 'library_names_test.dart' as library_names;
 import 'library_private_types_in_public_api_test.dart'
@@ -157,6 +158,7 @@ void main() {
   flutter_style_todos.main();
   hash_and_equals.main();
   invalid_case_patterns.main();
+  join_return_with_assignment.main();
   library_annotations.main();
   library_names.main();
   library_private_types_in_public_api.main();
