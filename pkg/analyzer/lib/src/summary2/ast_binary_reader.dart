@@ -18,7 +18,6 @@ import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/summary2/unlinked_token_type.dart';
 import 'package:collection/collection.dart';
 
@@ -83,8 +82,6 @@ class AstBinaryReader {
         return _readFieldFormalParameter();
       case Tag.FormalParameterList:
         return _readFormalParameterList();
-      case Tag.FunctionExpressionStub:
-        return _readFunctionExpression();
       case Tag.FunctionExpressionInvocation:
         return _readFunctionExpressionInvocation();
       case Tag.FunctionReference:
@@ -578,10 +575,6 @@ class AstBinaryReader {
       rightSeparator: Tokens.semicolon(),
       updaters: updaters,
     );
-  }
-
-  FunctionExpression _readFunctionExpression() {
-    return emptyFunctionExpression();
   }
 
   FunctionExpressionInvocation _readFunctionExpressionInvocation() {

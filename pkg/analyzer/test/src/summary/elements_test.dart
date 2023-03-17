@@ -12696,19 +12696,48 @@ library
         type: int Function()
         shouldUseTypeForInitializerInference: false
         constantInitializer
-          FunctionExpression
-            parameters: FormalParameterList
-              leftParenthesis: ( @10
-              rightParenthesis: ) @0
-            body: BlockFunctionBody
-              block: Block
-                leftBracket: { @0
-                rightBracket: } @25
-            declaredElement: <null>
+          SimpleIdentifier
+            token: _notSerializableExpression @-1
+            staticElement: <null>
             staticType: null
     accessors
       synthetic static get v @-1
         returnType: int Function()
+''');
+  }
+
+  test_const_invalid_functionExpression_inConstructorInitializer() async {
+    var library = await buildLibrary('''
+class A {
+  final Object? foo;
+  const A() : foo = (() => 0);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final foo @26
+            type: Object?
+            shouldUseTypeForInitializerInference: true
+        constructors
+          const @39
+            constantInitializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: foo @45
+                  staticElement: self::@class::A::@field::foo
+                  staticType: null
+                equals: = @49
+                expression: SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  staticElement: <null>
+                  staticType: null
+        accessors
+          synthetic get foo @-1
+            returnType: Object?
 ''');
   }
 
@@ -12724,24 +12753,10 @@ library
         type: dynamic
         shouldUseTypeForInitializerInference: false
         constantInitializer
-          BinaryExpression
-            leftOperand: FunctionExpression
-              parameters: FormalParameterList
-                leftParenthesis: ( @10
-                rightParenthesis: ) @0
-              body: BlockFunctionBody
-                block: Block
-                  leftBracket: { @0
-                  rightBracket: } @25
-              declaredElement: <null>
-              staticType: null
-            operator: + @27
-            rightOperand: IntegerLiteral
-              literal: 2 @29
-              staticType: int
+          SimpleIdentifier
+            token: _notSerializableExpression @-1
             staticElement: <null>
-            staticInvokeType: null
-            staticType: dynamic
+            staticType: null
     accessors
       synthetic static get v @-1
         returnType: dynamic
@@ -12794,6 +12809,28 @@ library
         returnType: int
     functions
       foo @25
+        returnType: int
+''');
+  }
+
+  test_const_invalid_topLevel_switchExpression() async {
+    var library = await buildLibrary(r'''
+const a = 0 + switch (true) {_ => 1};
+''', allowErrors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        shouldUseTypeForInitializerInference: false
+        constantInitializer
+          SimpleIdentifier
+            token: _notSerializableExpression @-1
+            staticElement: <null>
+            staticType: null
+    accessors
+      synthetic static get a @-1
         returnType: int
 ''');
   }

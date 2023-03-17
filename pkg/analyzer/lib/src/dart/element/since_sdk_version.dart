@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -57,7 +57,7 @@ class SinceSdkVersionComputer {
       if (annotation.isDartInternalSince) {
         final arguments = annotation.annotationAst.arguments?.arguments;
         final versionNode = arguments?.singleOrNull;
-        if (versionNode is SimpleStringLiteral) {
+        if (versionNode is SimpleStringLiteralImpl) {
           final versionStr = versionNode.value;
           final version = _parseVersion(versionStr);
           if (version != null) {

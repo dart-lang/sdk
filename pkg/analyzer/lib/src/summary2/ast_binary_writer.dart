@@ -6,8 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
@@ -265,11 +263,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitForElement(ForElement node) {
-    _writeNotSerializableExpression();
-  }
-
-  @override
   void visitFormalParameterList(FormalParameterList node) {
     _writeByte(Tag.FormalParameterList);
 
@@ -296,11 +289,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(Tag.ForPartsWithExpression);
     _writeOptionalNode(node.initialization);
     _storeForParts(node);
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    _writeByte(Tag.FunctionExpressionStub);
   }
 
   @override
@@ -950,13 +938,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     for (var i = 0; i < nodeList.length; ++i) {
       nodeList[i].accept(this);
     }
-  }
-
-  void _writeNotSerializableExpression() {
-    var node = astFactory.simpleIdentifier(
-      StringToken(TokenType.STRING, '_notSerializableExpression', -1),
-    );
-    node.accept(this);
   }
 
   void _writeOptionalNode(AstNode? node) {
