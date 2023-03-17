@@ -1397,18 +1397,18 @@ type
 typeNotVoid
     :    functionType '?'?
     |    recordType '?'?
-    |    typeNotVoidNotFunction
+    |    typeNotVoidNotFunction '?'?
     ;
 
 typeNotFunction
-    :    typeNotVoidNotFunction
+    :    typeNotVoidNotFunction '?'?
     |    recordType '?'?
     |    VOID
     ;
 
 typeNotVoidNotFunction
-    :    typeName typeArguments? '?'?
-    |    FUNCTION '?'?
+    :    typeName typeArguments?
+    |    FUNCTION
     ;
 
 typeName
