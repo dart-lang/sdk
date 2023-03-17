@@ -2,21 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 class S0 {}
 
 class S1 extends Object {}
 
 class S2 extends S0 {}
 
-class M0 {}
+mixin class M0 {}
 
-class M1 extends Object {}
+mixin class M1 extends Object {}
 
-class M2 extends M0 {}
+mixin class M2 extends M0 {}
+//                     ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
+// [cfe] The class 'M2' can't be used as a mixin because it extends a class other than 'Object'.
 
 class C00 = S0 with M0;
 class C01 = S0 with M1;

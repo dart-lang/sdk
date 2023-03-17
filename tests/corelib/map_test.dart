@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 library map_test;
 
 import "package:expect/expect.dart";
@@ -858,7 +854,7 @@ class Mutable {
 }
 
 // Slow implementation of Map based on MapBase.
-abstract class MapBaseOperations<K, V> {
+mixin class MapBaseOperations<K, V> {
   final List _keys = <K>[];
   final List _values = <V>[];
   int _modCount = 0;

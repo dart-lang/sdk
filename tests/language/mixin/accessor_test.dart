@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 // Regression test case for DDC bug where if a getter/setter is mixed in
 // without a corresponding getter/setter, DDC fails to install a the
 // corresponding getter/setter that calls super.
@@ -19,7 +15,7 @@ abstract class C<E> {
   operator []=(int index, E value);
 }
 
-abstract class CMixin<E> implements C<E> {
+mixin CMixin<E> implements C<E> {
   E get first => this[0];
   set first(E x) {
     this[0] = x;
@@ -28,7 +24,7 @@ abstract class CMixin<E> implements C<E> {
 
 abstract class CBase<E> extends Object with CMixin<E> {}
 
-abstract class DMixin<E> implements C<E> {
+mixin DMixin<E> implements C<E> {
   set first(E _) => throw new UnsupportedError('');
   operator []=(int index, E value) => throw new UnsupportedError('');
 }
@@ -41,7 +37,7 @@ class DView<E> extends DBase<E> {
   E operator [](int index) => _source.elementAt(index);
 }
 
-abstract class FMixin<E> implements C<E> {
+mixin FMixin<E> implements C<E> {
   E get first => throw new UnsupportedError('');
   E operator [](int index) => throw new UnsupportedError('');
 }
