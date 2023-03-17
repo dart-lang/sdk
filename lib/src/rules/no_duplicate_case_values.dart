@@ -35,6 +35,9 @@ switch (v) {
 }
 ```
 
+NOTE: this lint only reports duplicate cases in libraries opted in to Dart 2.19
+and below. In Dart 3.0 and after, duplicate cases are reported as dead code
+by the analyzer.
 ''';
 
 class NoDuplicateCaseValues extends LintRule {
