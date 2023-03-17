@@ -5,7 +5,7 @@ import "dart:ffi" as ffi;
 import "dart:ffi";
 import "package:ffi/ffi.dart";
 
-class StructInlineArrayMultiDimensional extends ffi::Struct {
+final class StructInlineArrayMultiDimensional extends ffi::Struct {
   synthetic constructor •() → self::StructInlineArrayMultiDimensional
     : super ffi::Struct::•()
     ;

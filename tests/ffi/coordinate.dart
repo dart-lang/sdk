@@ -7,7 +7,7 @@ library FfiTest;
 import 'dart:ffi';
 
 /// Sample struct for dart:ffi library.
-class Coordinate extends Struct {
+final class Coordinate extends Struct {
   @Double()
   external double x;
 

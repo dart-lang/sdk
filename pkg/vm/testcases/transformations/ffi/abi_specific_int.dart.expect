@@ -9,7 +9,7 @@ import "dart:ffi";
 
 @#C56
 @#C64
-class WChar extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
+final class WChar extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
   const constructor •() → self::WChar
     : super ffi::AbiSpecificInteger::•()
     ;
@@ -18,7 +18,7 @@ class WChar extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
     return #C69.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
 @#C74
-class WCharStruct extends ffi::Struct {
+final class WCharStruct extends ffi::Struct {
   synthetic constructor •() → self::WCharStruct
     : super ffi::Struct::•()
     ;
@@ -42,7 +42,7 @@ class WCharStruct extends ffi::Struct {
     return #C78.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
 @#C83
-class WCharArrayStruct extends ffi::Struct {
+final class WCharArrayStruct extends ffi::Struct {
   synthetic constructor •() → self::WCharArrayStruct
     : super ffi::Struct::•()
     ;
