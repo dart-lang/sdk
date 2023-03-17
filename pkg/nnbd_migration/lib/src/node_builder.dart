@@ -881,8 +881,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
     }
-    if (declaredElement.enclosingElement is ConstructorElement &&
-        (_isInsideAngularComponent || _isInjectable) &&
+    final enclosingElement = declaredElement.enclosingElement;
+    if ((enclosingElement is ConstructorElement &&
+                (_isInsideAngularComponent || _isInjectable) ||
+            (enclosingElement is FunctionElement) &&
+                _hasInjectable(enclosingElement)) &&
         !isAnnotated) {
       _graph.makeNonNullable(
           decoratedType!.node, AngularConstructorArgumentOrigin(source, node));
@@ -975,6 +978,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _variables.recordDecoratedDirectSupertypes(
         declaredElement, decoratedSupertypes);
   }
+
+  bool _hasInjectable(Element element) => element.metadata
+      .any((ann) => _isAngularConstructor(ann.element, 'Injectable'));
 
   /// Determines whether [element] is a constructor named [name] from Angular
   /// package.
