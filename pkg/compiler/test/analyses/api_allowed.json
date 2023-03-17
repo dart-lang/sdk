@@ -1,23 +1,23 @@
 {
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_helper.dart": {
-    "Dynamic access of 'length'.": 1
-  },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/async_patch.dart": {
     "Dynamic access of 'iterator'.": 1
   },
-  "org-dartlang-sdk:///lib/convert/json.dart": {
-    "Dynamic invocation of 'toJson'.": 1
-  },
-  "org-dartlang-sdk:///lib/html/dart2js/html_dart2js.dart": {
-    "Dynamic invocation of 'call'.": 2,
-    "Dynamic access of 'attributes'.": 1,
-    "Dynamic invocation of '[]'.": 1,
-    "Dynamic invocation of 'toLowerCase'.": 1
+  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_helper.dart": {
+    "Dynamic access of 'length'.": 2
   },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_patch.dart": {
     "Dynamic invocation of '[]'.": 1
   },
+  "org-dartlang-sdk:///lib/convert/json.dart": {
+    "Dynamic invocation of 'toJson'.": 1
+  },
   "org-dartlang-sdk:///lib/core/errors.dart": {
     "Dynamic access of 'length'.": 2
+  },
+  "org-dartlang-sdk:///lib/html/dart2js/html_dart2js.dart": {
+    "Dynamic access of 'attributes'.": 1,
+    "Dynamic invocation of '[]'.": 1,
+    "Dynamic invocation of 'call'.": 2,
+    "Dynamic invocation of 'toLowerCase'.": 1
   }
 }

@@ -996,19 +996,22 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitVariableGet(ir.VariableGet node) {
-    typeMapsForTesting?[node] = typeMap;
-    ir.DartType promotedType = typeMap.typeOf(node, typeEnvironment);
-    assert(
-        node.promotedType == null ||
-            promotedType is ir.NullType ||
-            promotedType is ir.FutureOrType ||
-            typeEnvironment.isSubtypeOf(promotedType, node.promotedType!,
-                ir.SubtypeCheckMode.ignoringNullabilities),
-        "Unexpected promotion of ${node.variable} in ${node.parent}. "
-        "Expected ${node.promotedType}, found $promotedType");
-    _staticTypeCache._expressionTypes[node] = promotedType;
-    handleVariableGet(node, promotedType);
-    return promotedType;
+    ir.DartType frontendType = node.getStaticType(staticTypeContext);
+    ir.DartType staticType;
+    if (currentLibrary.isNonNullableByDefault) {
+      staticType = frontendType;
+    } else {
+      typeMapsForTesting?[node] = typeMap;
+      staticType = typeMap.typeOf(node, typeEnvironment);
+      assert(
+          typeEnvironment.isSubtypeOf(staticType, frontendType,
+              ir.SubtypeCheckMode.ignoringNullabilities),
+          "Unexpected promotion of ${node.variable} in ${node.parent}. "
+          "Expected $frontendType, found $staticType");
+    }
+    _staticTypeCache._expressionTypes[node] = staticType;
+    handleVariableGet(node, staticType);
+    return staticType;
   }
 
   void handleVariableSet(ir.VariableSet node, ir.DartType resultType) {}
