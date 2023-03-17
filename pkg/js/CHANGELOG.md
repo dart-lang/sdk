@@ -1,6 +1,7 @@
 ## 0.6.8
 
 - Remove dependency on `dart:js`.
+- Update SDK upper constraint to 4.0.0.
 
 ## 0.6.7
 
