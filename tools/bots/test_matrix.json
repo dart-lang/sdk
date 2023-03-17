@@ -3176,6 +3176,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--suppress-analytics",
             "runtime/tools/dartfuzz"
           ]
         },
@@ -3184,6 +3185,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--suppress-analytics",
             "runtime/tests/concurrency/generate_stress_test.dart"
           ]
         },
@@ -3192,6 +3194,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--suppress-analytics",
             "runtime/tests/concurrency/run_stress_test_shards.dart"
           ]
         },
@@ -3200,16 +3203,19 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--suppress-analytics",
             "runtime/observatory"
           ]
         },
         {
+          "_comment": "This uses analyzer_cli which is deprecated.",
           "name": "dartanalyzer --batch tests",
           "arguments": [
             "-nanalyzer-${system}"
           ]
         },
         {
+          "_comment": "This uses analyzer_cli which is deprecated.",
           "name": "dartanalyzer --batch pkg tests",
           "arguments": [
             "-nanalyzer-${system}",
@@ -3277,6 +3283,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "fix",
+            "--suppress-analytics",
             "--compare-to-golden",
             "tests/lib/fix_data_tests"
           ]
@@ -3286,6 +3293,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--suppress-analytics",
             "--fatal-infos",
             "pkg"
           ]
@@ -3317,6 +3325,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--suppress-analytics",
             "--fatal-infos",
             "tools"
           ]

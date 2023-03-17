@@ -18567,99 +18567,6 @@ HintCode:
       If some of the names imported by this import are intended to be used but
       aren't yet, and if those names aren't imported by other imports, then add
       the missing references to those names.
-  UNNECESSARY_NULL_COMPARISON_FALSE:
-    sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand can't be null, so the condition is always 'false'."
-    correctionMessage: Try removing the condition, an enclosing condition, or the whole conditional statement.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when it finds an equality comparison
-      (either `==` or `!=`) with one operand of `null` and the other operand
-      can't be `null`. Such comparisons are always either `true` or `false`, so
-      they serve no purpose.
-
-      #### Examples
-
-      The following code produces this diagnostic because `x` can never be
-      `null`, so the comparison always evaluates to `true`:
-
-      ```dart
-      void f(int x) {
-        if (x [!!= null!]) {
-          print(x);
-        }
-      }
-      ```
-
-      The following code produces this diagnostic because `x` can never be
-      `null`, so the comparison always evaluates to `false`:
-
-      ```dart
-      void f(int x) {
-        if (x [!== null!]) {
-          throw ArgumentError("x can't be null");
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      If the other operand should be able to be `null`, then change the type of
-      the operand:
-
-      ```dart
-      void f(int? x) {
-        if (x != null) {
-          print(x);
-        }
-      }
-      ```
-
-      If the other operand really can't be `null`, then remove the condition:
-
-      ```dart
-      void f(int x) {
-        print(x);
-      }
-      ```
-  UNNECESSARY_NULL_COMPARISON_TRUE:
-    sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand can't be null, so the condition is always 'true'."
-    correctionMessage: Remove the condition.
-    hasPublishedDocs: true
-    comment: No parameters.
-  UNNECESSARY_QUESTION_MARK:
-    problemMessage: "The '?' is unnecessary because '{0}' is nullable without it."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the type
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when either the type `dynamic` or the
-      type `Null` is followed by a question mark. Both of these types are
-      inherently nullable so the question mark doesn't change the semantics.
-
-      #### Example
-
-      The following code produces this diagnostic because the question mark
-      following `dynamic` isn't necessary:
-
-      ```dart
-      dynamic[!?!] x;
-      ```
-
-      #### Common fixes
-
-      Remove the unneeded question mark:
-
-      ```dart
-      dynamic x;
-      ```
   UNNECESSARY_SET_LITERAL:
     problemMessage: Braces unnecessarily wrap this expression in a set literal.
     correctionMessage: Try removing the set literal around the expression.
@@ -23417,6 +23324,99 @@ WarningCode:
         dynamic noSuchMethod(x) => super.noSuchMethod(x);
       }
       class B extends A {}
+      ```
+  UNNECESSARY_NULL_COMPARISON_FALSE:
+    sharedName: UNNECESSARY_NULL_COMPARISON
+    problemMessage: "The operand can't be null, so the condition is always 'false'."
+    correctionMessage: Try removing the condition, an enclosing condition, or the whole conditional statement.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when it finds an equality comparison
+      (either `==` or `!=`) with one operand of `null` and the other operand
+      can't be `null`. Such comparisons are always either `true` or `false`, so
+      they serve no purpose.
+
+      #### Examples
+
+      The following code produces this diagnostic because `x` can never be
+      `null`, so the comparison always evaluates to `true`:
+
+      ```dart
+      void f(int x) {
+        if (x [!!= null!]) {
+          print(x);
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because `x` can never be
+      `null`, so the comparison always evaluates to `false`:
+
+      ```dart
+      void f(int x) {
+        if (x [!== null!]) {
+          throw ArgumentError("x can't be null");
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the other operand should be able to be `null`, then change the type of
+      the operand:
+
+      ```dart
+      void f(int? x) {
+        if (x != null) {
+          print(x);
+        }
+      }
+      ```
+
+      If the other operand really can't be `null`, then remove the condition:
+
+      ```dart
+      void f(int x) {
+        print(x);
+      }
+      ```
+  UNNECESSARY_NULL_COMPARISON_TRUE:
+    sharedName: UNNECESSARY_NULL_COMPARISON
+    problemMessage: "The operand can't be null, so the condition is always 'true'."
+    correctionMessage: Remove the condition.
+    hasPublishedDocs: true
+    comment: No parameters.
+  UNNECESSARY_QUESTION_MARK:
+    problemMessage: "The '?' is unnecessary because '{0}' is nullable without it."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the type
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when either the type `dynamic` or the
+      type `Null` is followed by a question mark. Both of these types are
+      inherently nullable so the question mark doesn't change the semantics.
+
+      #### Example
+
+      The following code produces this diagnostic because the question mark
+      following `dynamic` isn't necessary:
+
+      ```dart
+      dynamic[!?!] x;
+      ```
+
+      #### Common fixes
+
+      Remove the unneeded question mark:
+
+      ```dart
+      dynamic x;
       ```
   UNNECESSARY_TYPE_CHECK_FALSE:
     aliasFor: HintCode.UNNECESSARY_TYPE_CHECK_FALSE

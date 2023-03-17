@@ -64,8 +64,8 @@ f(int a) {
   null == a;
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 15, 7),
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 26, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 15, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 26, 7),
     ]);
   }
 
@@ -86,8 +86,8 @@ f() {
   null != i;
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 18, 4),
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 36, 4),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 18, 4),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 36, 4),
     ]);
   }
 
@@ -99,8 +99,8 @@ f() {
   null == i;
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 18, 4),
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 36, 4),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 18, 4),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 36, 4),
     ]);
   }
 }
@@ -154,8 +154,8 @@ f(int a) {
   null != a;
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 15, 7),
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 26, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 15, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 26, 7),
     ]);
   }
 

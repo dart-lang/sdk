@@ -6164,13 +6164,22 @@ FinalMixinMixedInOutsideOfLibrary:
     lib.dart:
       final mixin A {}
 
-SubtypeOfBaseOrFinalIsNotBaseFinalOrSealed:
-  problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is '#string'."
+SubtypeOfBaseIsNotBaseFinalOrSealed:
+  problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'base'."
   correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
-  analyzerCode: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+  analyzerCode: SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED
   experiments: class-modifiers,sealed-class
   script: |
       base class A {}
+      class B extends A {}
+
+SubtypeOfFinalIsNotBaseFinalOrSealed:
+  problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'final'."
+  correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
+  analyzerCode: SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+  experiments: class-modifiers,sealed-class
+  script: |
+      final class A {}
       class B extends A {}
 
 UnspecifiedGetterNameInObjectPattern:

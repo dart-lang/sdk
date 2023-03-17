@@ -164,7 +164,12 @@ class LspServerClient {
       serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     }
 
-    final arguments = [...?vmArgs, serverPath, '--lsp', '--suppress-analytics'];
+    final arguments = [
+      ...?vmArgs,
+      serverPath,
+      '--lsp',
+      '--suppress-analytics',
+    ];
     final process = await Process.start(
       dartBinary,
       arguments,

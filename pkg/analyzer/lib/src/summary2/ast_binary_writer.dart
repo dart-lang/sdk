@@ -640,6 +640,52 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    _writeByte(Tag.RecordTypeAnnotation);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasQuestion: node.question != null,
+      ),
+    );
+
+    _writeNodeList(node.positionalFields);
+    _writeOptionalNode(node.namedFields);
+
+    _sink.writeType(node.type);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    _writeByte(Tag.RecordTypeAnnotationNamedField);
+    _writeNodeList(node.metadata);
+    _writeNode(node.type);
+    _writeStringReference(node.name.lexeme);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+    RecordTypeAnnotationNamedFields node,
+  ) {
+    _writeByte(Tag.RecordTypeAnnotationNamedFields);
+    _writeNodeList(node.fields);
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    _writeByte(Tag.RecordTypeAnnotationPositionalField);
+    _writeNodeList(node.metadata);
+    _writeNode(node.type);
+    _sink.writeOptionalObject(node.name, (name) {
+      _writeStringReference(name.lexeme);
+    });
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     _writeByte(Tag.RedirectingConstructorInvocation);

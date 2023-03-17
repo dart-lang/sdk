@@ -780,7 +780,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     addedFiles.sort();
     implicitFiles.sort();
 
-    String lenCounter(List list) {
+    String lenCounter(List<String> list) {
       return '<span class="counter" style="float: right;">${list.length}</span>';
     }
 

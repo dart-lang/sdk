@@ -63,8 +63,8 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
     return action!;
   }
 
-  /// Expects to find a refactor [CodeAction] in [mainFileUri] at the offset of
-  /// the marker with the title [title].
+  /// Expects to not find a refactor [CodeAction] in [mainFileUri] at the offset
+  /// of the marker with the title [title].
   Future<void> expectNoCodeAction(String? title) async {
     expect(await getCodeAction(title), isNull);
   }

@@ -72,10 +72,10 @@ class Driver implements ServerStarter {
   /// The name of the option used to print usage information.
   static const String HELP_OPTION = 'help';
 
-  /// The name of the flag used to configure reporting analytics.
+  /// The name of the flag used to configure reporting legacy analytics.
   static const String ANALYTICS_FLAG = 'analytics';
 
-  /// Suppress analytics for this session.
+  /// Suppress legacy analytics for this session.
   static const String SUPPRESS_ANALYTICS_FLAG = 'suppress-analytics';
 
   /// The name of the option used to cause instrumentation to also be written to
@@ -183,8 +183,9 @@ class Driver implements ServerStarter {
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
 
-    // Legacy Analytics
+    // Analytics (legacy, and unified)
     var disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG] as bool;
+
     if (results.wasParsed(TRAIN_USING)) {
       disableAnalyticsForSession = true;
     }
@@ -257,13 +258,21 @@ class Driver implements ServerStarter {
     var defaultSdk = _createDefaultSdk(defaultSdkPath);
 
     // Create the analytics manager.
-    // TODO(brianwilkerson) Create the real Analytics instance when we have
-    //  (a) fixed the `dart analyze` and `dart fix` tests so that they don't
-    //  send events and (b) implemented a way for users to disable analytics.
-    var analyticsManager = AnalyticsManager(NoopAnalytics());
-    if (2 < 1) {
-      // var analyticsManager =
-      AnalyticsManager(_createAnalytics(defaultSdk, defaultSdkPath));
+    AnalyticsManager analyticsManager;
+    if (disableAnalyticsForSession) {
+      analyticsManager = AnalyticsManager(NoopAnalytics());
+    } else {
+      // TODO(brianwilkerson) Create the real Analytics instance when we have
+      // implemented a way for users to disable analytics.
+      // TODO(jcollins) Create the real Analytics instance only once
+      // `flutter analyze --suppress-analytics` suppresses analysis server
+      // analytics.
+      if (2 < 1) {
+        analyticsManager =
+            AnalyticsManager(_createAnalytics(defaultSdk, defaultSdkPath));
+      } else {
+        analyticsManager = AnalyticsManager(NoopAnalytics());
+      }
     }
 
     // Record the start of the session.
@@ -780,12 +789,13 @@ class Driver implements ServerStarter {
     // Hidden; these have not yet been made public.
     //
     parser.addFlag(ANALYTICS_FLAG,
-        help: 'enable or disable sending analytics information to Google',
+        help: 'Allow or disallow sending analytics information to '
+            'Google for this session.',
         hide: !telemetry.showAnalyticsUI);
     parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
         negatable: false,
-        help: 'suppress analytics for this session',
-        hide: !telemetry.showAnalyticsUI);
+        help: 'Suppress analytics for this session.',
+        hide: true);
 
     //
     // Hidden; these are for internal development.
@@ -793,7 +803,7 @@ class Driver implements ServerStarter {
     parser.addOption(TRAIN_USING,
         valueHelp: 'path',
         help: 'Pass in a directory to analyze for purposes of training an '
-            'analysis server snapshot.',
+            'analysis server snapshot.  Disables analytics.',
         hide: true);
     parser.addFlag(DISABLE_SERVER_EXCEPTION_HANDLING,
         // TODO(jcollins-g): Pipeline option through and apply to all

@@ -13379,7 +13379,7 @@ class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
   static RefactoringFeedback? fromJson(JsonDecoder jsonDecoder, String jsonPath,
-      Object? json, Map responseJson) {
+      Object? json, Map<Object?, Object?> responseJson) {
     return refactoringFeedbackFromJson(
         jsonDecoder, jsonPath, json, responseJson);
   }

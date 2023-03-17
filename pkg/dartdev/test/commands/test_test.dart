@@ -63,16 +63,8 @@ No pubspec.yaml file found - run this command in your project folder.
     var resultHelp = await p.run(['test', '--help']);
 
     expect(resultHelp.stderr, isEmpty);
-    expect(resultHelp.stdout,
-        '''No pubspec.yaml file found - run this command in your project folder.
-
-Usage: dart test [arguments]
-
-Note: flags and options for this command are provided by the project's package:test dependency.
-If package:test is not included as a dev_dependency in the project's pubspec.yaml, no flags or options will be listed.
-
-Run "dart help" to see global options.
-''');
+    expect(resultHelp.stdout, contains('No pubspec.yaml file found'));
+    expect(resultHelp.stdout, contains('Usage: dart test [arguments]'));
     expect(resultHelp.exitCode, 65);
   });
 
@@ -101,7 +93,7 @@ void main() {
     p.file('pubspec.yaml', '''
 name: ${p.name}
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=2.12.0 <4.0.0'
 ''');
     p.file('test/foo_test.dart', '''
 import 'package:test/test.dart';

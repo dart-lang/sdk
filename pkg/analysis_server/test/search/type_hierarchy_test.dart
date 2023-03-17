@@ -1377,7 +1377,7 @@ enum E with M {
     return SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
   }
 
-  List _toJson(List<TypeHierarchyItem> items) {
+  List<Map<String, Object>> _toJson(List<TypeHierarchyItem> items) {
     return items.map((item) => item.toJson()).toList();
   }
 

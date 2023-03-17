@@ -1,0 +1,13 @@
+import 'main_lib.dart';
+
+class ExtendsFinalClass extends A {}
+
+class ImplementsFinalClass implements A {}
+
+class ImplementsFinalMixin implements M {}
+
+class MixInFinalMixin with M {}
+
+mixin MixinOnA on A {}
+mixin MixinOnAM on A, M {}
+mixin MixinOnM on M {}

@@ -37160,6 +37160,110 @@ library
 ''');
   }
 
+  test_recordTypeAnnotation_named() async {
+    var library = await buildLibrary(r'''
+const x = List<({int f1, String f2})>;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @6
+        type: Type
+        shouldUseTypeForInitializerInference: false
+        constantInitializer
+          TypeLiteral
+            type: NamedType
+              name: SimpleIdentifier
+                token: List @10
+                staticElement: dart:core::@class::List
+                staticType: List<({int f1, String f2})>
+              typeArguments: TypeArgumentList
+                leftBracket: < @14
+                arguments
+                  RecordTypeAnnotation
+                    leftParenthesis: ( @15
+                    namedFields: RecordTypeAnnotationNamedFields
+                      leftBracket: { @16
+                      fields
+                        RecordTypeAnnotationNamedField
+                          type: NamedType
+                            name: SimpleIdentifier
+                              token: int @17
+                              staticElement: dart:core::@class::int
+                              staticType: null
+                            type: int
+                          name: f1 @21
+                        RecordTypeAnnotationNamedField
+                          type: NamedType
+                            name: SimpleIdentifier
+                              token: String @25
+                              staticElement: dart:core::@class::String
+                              staticType: null
+                            type: String
+                          name: f2 @32
+                      rightBracket: } @34
+                    rightParenthesis: ) @35
+                    type: ({int f1, String f2})
+                rightBracket: > @36
+              type: List<({int f1, String f2})>
+            staticType: Type
+    accessors
+      synthetic static get x @-1
+        returnType: Type
+''');
+  }
+
+  test_recordTypeAnnotation_positional() async {
+    var library = await buildLibrary(r'''
+const x = List<(int, String f2)>;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @6
+        type: Type
+        shouldUseTypeForInitializerInference: false
+        constantInitializer
+          TypeLiteral
+            type: NamedType
+              name: SimpleIdentifier
+                token: List @10
+                staticElement: dart:core::@class::List
+                staticType: List<(int, String)>
+              typeArguments: TypeArgumentList
+                leftBracket: < @14
+                arguments
+                  RecordTypeAnnotation
+                    leftParenthesis: ( @15
+                    positionalFields
+                      RecordTypeAnnotationPositionalField
+                        type: NamedType
+                          name: SimpleIdentifier
+                            token: int @16
+                            staticElement: dart:core::@class::int
+                            staticType: null
+                          type: int
+                      RecordTypeAnnotationPositionalField
+                        type: NamedType
+                          name: SimpleIdentifier
+                            token: String @21
+                            staticElement: dart:core::@class::String
+                            staticType: null
+                          type: String
+                        name: f2 @28
+                    rightParenthesis: ) @30
+                    type: (int, String)
+                rightBracket: > @31
+              type: List<(int, String)>
+            staticType: Type
+    accessors
+      synthetic static get x @-1
+        returnType: Type
+''');
+  }
+
   test_setter_documented() async {
     var library = await buildLibrary('''
 // Extra comment so doc comment offset != 0

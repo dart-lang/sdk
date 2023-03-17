@@ -1179,20 +1179,19 @@ class StatementCompletionProcessor {
   AstNode? _selectedNode({int? at}) =>
       NodeLocator(at ?? selectionOffset).searchWithin(unit);
 
-  void _setCompletion(StatementCompletionKind kind, [List? args]) {
+  void _setCompletion(StatementCompletionKind kind) {
     assert(exitPosition != null);
     change.selection = exitPosition;
-    change.message = formatList(kind.message, args);
+    change.message = formatList(kind.message, null);
     for (var group in linkedPositionGroups.values) {
       change.addLinkedEditGroup(group);
     }
     completion = StatementCompletion(kind, change);
   }
 
-  void _setCompletionAt(StatementCompletionKind kind, int offset,
-      [List? args]) {
+  void _setCompletionAt(StatementCompletionKind kind, int offset) {
     exitPosition = _newPosition(offset);
-    _setCompletion(kind, args);
+    _setCompletion(kind);
   }
 
   SourceBuilder _sourceBuilderAfterKeyword(AstNode node, Token keyword) {

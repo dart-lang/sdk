@@ -27,6 +27,6 @@ echo Analyzing lib/web_ui...
 pushd lib/web_ui
 
 $dart pub get
-$dart analyze --fatal-infos
+$dart analyze --suppress-analytics --fatal-infos
 
 popd

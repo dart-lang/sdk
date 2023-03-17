@@ -13,7 +13,7 @@ class ChannelChunkSink<S, T> extends ChunkedConversionSink<S> {
   final Converter<S, T> converter;
 
   /// The sink to which the converted chunks are added.
-  final Sink sink;
+  final Sink<T> sink;
 
   /// A flag indicating whether the sink has been closed.
   bool closed = false;
@@ -73,7 +73,8 @@ class JsonStreamDecoder extends Converter<String, Object?> {
 class NotificationConverter
     extends Converter<Map<String, Object?>, Notification> {
   @override
-  Notification convert(Map input) => Notification.fromJson(input);
+  Notification convert(Map<Object?, Object?> input) =>
+      Notification.fromJson(input);
 
   @override
   ChunkedConversionSink<Map<String, Object?>> startChunkedConversion(

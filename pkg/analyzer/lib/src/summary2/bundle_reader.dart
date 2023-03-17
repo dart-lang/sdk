@@ -1651,6 +1651,10 @@ class ResolutionReader {
     return type is FunctionType ? type : null;
   }
 
+  T? readOptionalObject<T>(T Function(SummaryDataReader reader) read) {
+    return _reader.readOptionalObject(read);
+  }
+
   List<DartType>? readOptionalTypeList() {
     if (_reader.readBool()) {
       return _readTypeList();

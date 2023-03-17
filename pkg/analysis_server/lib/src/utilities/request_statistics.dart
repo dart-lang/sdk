@@ -240,7 +240,7 @@ class _ServerLogStringSink implements StringSink {
   }
 
   @override
-  void writeAll(Iterable objects, [String separator = '']) {
+  void writeAll(Iterable<Object?> objects, [String separator = '']) {
     throw UnimplementedError();
   }
 

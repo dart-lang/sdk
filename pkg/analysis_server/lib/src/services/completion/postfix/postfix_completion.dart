@@ -529,14 +529,13 @@ class PostfixCompletionProcessor {
       .searchWithin(completionContext.resolveResult.unit);
 
   void _setCompletionFromBuilder(
-      ChangeBuilder builder, PostfixCompletionKind kind,
-      [List? args]) {
+      ChangeBuilder builder, PostfixCompletionKind kind) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       completion = null;
       return;
     }
-    change.message = formatList(kind.message, args);
+    change.message = formatList(kind.message, null);
     completion = PostfixCompletion(kind, change);
   }
 }

@@ -6,11 +6,6 @@ library /*isNonNullableByDefault*/;
 // abstract class A1 extends Record {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:11:16: Error: The type 'A1' must be 'base', 'final' or 'sealed' because the supertype 'Record' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
-// abstract class A1 extends Record {} // Error.
-//                ^
-//
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:11:27: Error: The class 'Record' can't be extended outside of its library because it's a final class.
 // abstract class A1 extends Record {} // Error.
 //                           ^
@@ -22,21 +17,11 @@ library /*isNonNullableByDefault*/;
 // typedef RR = R;
 //         ^
 //
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:13:16: Error: The type 'A2' must be 'base', 'final' or 'sealed' because the supertype 'Record' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
-// abstract class A2 extends RR {} // Error.
-//                ^
-//
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:13:27: Error: The class 'Record' can't be extended outside of its library because it's a final class.
 // abstract class A2 extends RR {} // Error.
 //                           ^
 //
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:19:16: Error: 'Record' is restricted and can't be extended or implemented.
-// abstract class B1 implements Record {} // Error.
-//                ^
-//
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:19:16: Error: The type 'B1' must be 'base', 'final' or 'sealed' because the supertype 'Record' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
 // abstract class B1 implements Record {} // Error.
 //                ^
 //
@@ -51,11 +36,6 @@ library /*isNonNullableByDefault*/;
 // typedef RR = R;
 //         ^
 //
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:21:16: Error: The type 'B2' must be 'base', 'final' or 'sealed' because the supertype 'Record' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
-// abstract class B2 implements RR {} // Error.
-//                ^
-//
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:21:30: Error: The class 'Record' can't be implemented outside of its library because it's a final class.
 // abstract class B2 implements RR {} // Error.
 //                              ^
@@ -67,11 +47,6 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:27:24: Error: The class 'Record' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // abstract class C1 with Record {} // Error.
 //                        ^
-//
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:27:16: Error: The type 'C1' must be 'base', 'final' or 'sealed' because the supertype 'Record' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
-// abstract class C1 with Record {} // Error.
-//                ^
 //
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:29:16: Error: 'Record' is restricted and can't be extended or implemented.
 // abstract class C2 with RR {} // Error.
@@ -90,11 +65,6 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:29:24: Error: The class 'Record' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // abstract class C2 with RR {} // Error.
 //                        ^
-//
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:29:16: Error: The type 'C2' must be 'base', 'final' or 'sealed' because the supertype 'Record' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
-// abstract class C2 with RR {} // Error.
-//                ^
 //
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:31:24: Error: The class 'G' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // abstract class C3 with G<Record> {} // Ok.

@@ -2,19 +2,9 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/class_modifiers/subtype_function.dart:5:7: Error: The type 'A' must be 'base', 'final' or 'sealed' because the supertype 'Function' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
-// class A extends Function {}
-//       ^
-//
 // pkg/front_end/testcases/class_modifiers/subtype_function.dart:5:17: Error: The class 'Function' can't be extended outside of its library because it's a final class.
 // class A extends Function {}
 //                 ^
-//
-// pkg/front_end/testcases/class_modifiers/subtype_function.dart:7:7: Error: The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'Function' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
-// class B implements Function {}
-//       ^
 //
 // pkg/front_end/testcases/class_modifiers/subtype_function.dart:7:20: Error: The class 'Function' can't be implemented outside of its library because it's a final class.
 // class B implements Function {}
@@ -23,11 +13,6 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/class_modifiers/subtype_function.dart:9:14: Error: The class 'Function' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // class C with Function {}
 //              ^
-//
-// pkg/front_end/testcases/class_modifiers/subtype_function.dart:9:7: Error: The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'Function' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
-// class C with Function {}
-//       ^
 //
 import self as self;
 import "dart:core" as core;

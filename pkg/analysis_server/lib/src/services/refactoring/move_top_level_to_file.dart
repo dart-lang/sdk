@@ -8,16 +8,17 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 /// A refactoring that will move one or more top-level declarations to a
 /// different file. The destination file can either be a new file or an existing
@@ -83,6 +84,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
         fileHeader = utils.getText(offset, end - offset);
       }
     }
+
+    // TODO(dantup): Don't show refactor in part files while not supported.
 
     var lineInfo = unitResult.lineInfo;
     var ranges = members.groups
@@ -208,12 +211,12 @@ class MoveTopLevelToFile extends RefactoringProducer {
       return multipleSelected || selectionIsInToken(token);
     }
 
-    var candidateMembers = <_Member>[];
+    var candidateMembers = <CompilationUnitMember, String?>{};
     var sealedDeclarations = <CompilationUnitMember>[];
     for (var node in selectedNodes) {
       String? name;
       if (node is ClassDeclaration && validSelection(node.name)) {
-        if ((node as ClassDeclarationImpl).sealedKeyword != null) {
+        if (node.sealedKeyword != null) {
           sealedDeclarations.add(node);
         }
         name = node.name.lexeme;
@@ -226,7 +229,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
           validSelection(node.name)) {
         name = node.name.lexeme;
       } else if (node is MixinDeclaration && validSelection(node.name)) {
-        if ((node as MixinDeclarationImpl).sealedKeyword != null) {
+        if (node.sealedKeyword != null) {
           sealedDeclarations.add(node);
         }
         name = node.name.lexeme;
@@ -240,14 +243,33 @@ class MoveTopLevelToFile extends RefactoringProducer {
       } else {
         return null;
       }
-      candidateMembers.add(_Member(node, name));
+      candidateMembers[node] = name;
     }
-    if (sealedDeclarations.isNotEmpty) {
-      // TODO(brianwilkerson) Handle sealed classes by adding all of their
-      //  subclasses to `members`.
+
+    var index = _SealedSubclassIndex(
+      unitResult.unit,
+      candidateElements: candidateMembers.keys
+          .map((member) => member.declaredElement)
+          .whereNotNull()
+          .toSet(),
+    );
+
+    if (index.hasInvalidCandidateSet) {
       return null;
     }
-    return _MembersToMove(unitPath, [_MemberGroup(candidateMembers)]);
+
+    // Finally, ensure direct subclasses of any candidate are included.
+    for (var sub in index
+        .findSubclassesOfSealedRecursively(candidateMembers.keys.toSet())) {
+      candidateMembers[sub] ??=
+          sub is NamedCompilationUnitMember ? sub.name.lexeme : null;
+    }
+
+    return _MembersToMove(unitPath, [
+      _MemberGroup(candidateMembers.entries
+          .map((entry) => _Member(entry.key, entry.value))
+          .toList())
+    ]);
   }
 
   /// Return a list containing the top-level declarations that are selected, or
@@ -366,7 +388,7 @@ class _MembersToMove {
     if (name == null) {
       return 'newFile.dart';
     }
-    return _fileNameForClassName(name);
+    return name.toFileName;
   }
 
   /// Return `true` if there are no members to be moved.
@@ -390,18 +412,100 @@ class _MembersToMove {
     }
     return 'Move $count declarations to file';
   }
+}
 
-  /// Computes a filename for a given class name (convert from PascalCase to
-  /// snake_case).
-  String _fileNameForClassName(String className) {
-    // TODO(brianwilkerson) Copied from handler_rename.dart. Move this code to a
-    //  common location, preferably as an extension on `String` and make the
-    //  name more general (because it can be used for any top-level declaration,
-    //  not just classes).
-    final fileName = className
-        .replaceAllMapped(RegExp('[A-Z]'),
-            (match) => match.start == 0 ? match[0]! : '_${match[0]}')
-        .toLowerCase();
-    return '$fileName.dart';
+/// A helper to for matching sealed classes/mixins to their subclasses.
+class _SealedSubclassIndex {
+  final CompilationUnit unit;
+
+  /// The set of initial candidate elements.
+  final Set<Element> candidateElements;
+
+  /// A map of sealed named classes/mixin elements to a set of their subclasses.
+  final Map<Element, Set<CompilationUnitMember>> sealedTypeSubclasses = {};
+
+  /// Whether or not the candidate set is invalid.
+  ///
+  /// It's valid to select a sealed class/mixin with or without it's subclasses
+  /// because they will be moved automatically.
+  ///
+  /// It's not valid to select subclasses of sealed class/mixins as we won't
+  /// expand the candidate set upwards.
+  ///
+  /// When the candidate set is invalid, other results produced by this class
+  /// may be incomplete.
+  bool hasInvalidCandidateSet = false;
+
+  _SealedSubclassIndex(
+    this.unit, {
+    required this.candidateElements,
+  }) {
+    final isCandidate = candidateElements.contains;
+
+    // Index the declaration against each of its direct superclasses.
+    for (var declaration in unit.declarations) {
+      var superclasses = _getSuperclasses(declaration);
+      for (var superclass in superclasses) {
+        var superElement = superclass?.name.staticElement;
+        if (superElement != null && _isSealed(superElement)) {
+          sealedTypeSubclasses
+              .putIfAbsent(superElement, () => {})
+              .add(declaration);
+
+          // If this declaration is a candidate but it's sealed super is not,
+          // we have an invalid selection.
+          if (isCandidate(declaration.declaredElement) &&
+              !isCandidate(superElement)) {
+            hasInvalidCandidateSet = true;
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  /// Returns a set of that includes [members] and for each member that is
+  /// sealed, it's direct subclasses.
+  ///
+  /// If any subclass is itself sealed, recursively includes it's direct
+  /// subclasses.
+  Set<CompilationUnitMember> findSubclassesOfSealedRecursively(
+      Set<CompilationUnitMember> members) {
+    return {
+      ...members,
+      ...members.whereType<NamedCompilationUnitMember>().expand((member) =>
+          findSubclassesOfSealedRecursively(
+              sealedTypeSubclasses[member.declaredElement] ?? const {})),
+    };
+  }
+
+  List<NamedType?> _getSuperclasses(CompilationUnitMember declaration) {
+    if (declaration is ClassDeclaration) {
+      final extendsType = declaration.extendsClause?.superclass;
+      final implementsTypes = declaration.implementsClause?.interfaces;
+      final mixesInTypes = declaration.withClause?.mixinTypes;
+
+      return [
+        if (extendsType != null) extendsType,
+        ...?implementsTypes,
+        ...?mixesInTypes,
+      ];
+    } else if (declaration is MixinDeclaration) {
+      final interfaceTypes = declaration.implementsClause?.interfaces;
+      final constraintTypes = declaration.onClause?.superclassConstraints;
+
+      return [
+        ...?interfaceTypes,
+        ...?constraintTypes,
+      ];
+    }
+
+    return const [];
+  }
+
+  bool _isSealed(Element element) {
+    var isSealedClass = element is ClassElement && element.isSealed;
+    var isSealedMixin = element is MixinElement && element.isSealed;
+    return isSealedClass || isSealedMixin;
   }
 }

@@ -800,7 +800,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               (type.isDynamic && name == 'dynamic')) &&
           type.alias == null) {
         _errorReporter.reportErrorForToken(
-            HintCode.UNNECESSARY_QUESTION_MARK, question, [name]);
+            WarningCode.UNNECESSARY_QUESTION_MARK, question, [name]);
       }
     }
     super.visitNamedType(node);
@@ -1290,7 +1290,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (!_isNonNullableByDefault) return;
 
     void reportStartEnd(
-      HintCode errorCode,
+      ErrorCode errorCode,
       SyntacticEntity startEntity,
       SyntacticEntity endEntity,
     ) {
@@ -1302,7 +1302,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       );
     }
 
-    void checkLeftRight(HintCode errorCode) {
+    void checkLeftRight(ErrorCode errorCode) {
       if (node.leftOperand is NullLiteral) {
         var rightType = node.rightOperand.typeOrThrow;
         if (_typeSystem.isStrictlyNonNullable(rightType)) {
@@ -1319,9 +1319,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (node.operator.type == TokenType.BANG_EQ) {
-      checkLeftRight(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE);
+      checkLeftRight(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE);
     } else if (node.operator.type == TokenType.EQ_EQ) {
-      checkLeftRight(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE);
+      checkLeftRight(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE);
     }
   }
 

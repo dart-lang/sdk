@@ -8,8 +8,20 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ToFileNameTest);
     defineReflectiveTests(ToLowerCamelCaseTest);
   });
+}
+
+@reflectiveTest
+class ToFileNameTest {
+  void test_multiple() {
+    expect('MyFooClass'.toFileName, 'my_foo_class.dart');
+  }
+
+  void test_single() {
+    expect('Class'.toFileName, 'class.dart');
+  }
 }
 
 @reflectiveTest

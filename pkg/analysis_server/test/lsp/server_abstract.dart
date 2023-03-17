@@ -223,6 +223,7 @@ analyzer:
   enable-experiment:
     - records
     - patterns
+    - sealed-class
 ''');
 
     analysisOptionsUri = Uri.file(analysisOptionsPath);

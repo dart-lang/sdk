@@ -17,12 +17,12 @@ void main() {
     final noArgsResult = await p.run(['foo.dart']);
     expect(noArgsResult.stderr, isNotEmpty);
     expect(noArgsResult.stdout, isEmpty);
-    expect(noArgsResult.exitCode, 64);
+    expect(noArgsResult.exitCode, 254);
 
     final argsResult = await p.run(['foo.dart', '--bar']);
     expect(argsResult.stderr, noArgsResult.stderr);
     expect(argsResult.stdout, isEmpty);
-    expect(argsResult.exitCode, 64);
+    expect(argsResult.exitCode, 254);
   });
 
   test('Providing --snapshot VM option with invalid script fails gracefully',
