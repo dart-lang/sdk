@@ -442,7 +442,8 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
     } else if (pattern is NullAssertPattern) {
       return createNullAssertSpace(path, contextType, pattern.pattern);
     } else if (pattern is CastPattern) {
-      return createCastSpace(path, contextType, pattern.pattern,
+      return createCastSpace(
+          path, contextType, pattern.type.typeOrThrow, pattern.pattern,
           nonNull: nonNull);
     } else if (pattern is LogicalAndPattern) {
       return createLogicalAndSpace(

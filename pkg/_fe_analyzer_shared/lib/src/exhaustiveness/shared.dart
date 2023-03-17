@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'exhaustive.dart';
 import 'key.dart';
 import 'path.dart';
 import 'space.dart';
@@ -458,11 +459,44 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// [subPattern].
   ///
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
-  Space createCastSpace(Path path, StaticType contextType, Pattern subPattern,
+  Space createCastSpace(
+      Path path, StaticType contextType, Type type, Pattern subPattern,
       {required bool nonNull}) {
-    // TODO(johnniwinther): Handle types (sibling sealed types?) implicitly
-    // handled by the throw of the invalid cast.
-    return dispatchPattern(path, contextType, subPattern, nonNull: nonNull);
+    Space space =
+        dispatchPattern(path, contextType, subPattern, nonNull: nonNull);
+    StaticType castType = createStaticType(type);
+    if (castType.isSubtypeOf(contextType) && contextType.isSealed) {
+      for (StaticType subtype in expandSealedSubtypes(contextType, const {})) {
+        // If [subtype] is a subtype of [castType] it will not throw and must
+        // be handled by [subPattern]. For instance
+        //
+        //    sealed class S {}
+        //    sealed class X extends S {}
+        //    class A extends X {}
+        //    method(S s) => switch (s) {
+        //      A() as X => 0,
+        //    }
+        //
+        // If [castType] is a subtype of [subtype] it might not throw but still
+        // not handle all values of the [subtype].
+        //
+        //    sealed class S {}
+        //    class A extends S {}
+        //    class X extends A {
+        //      int field;
+        //      X(this.field);
+        //    }
+        //    method(S s) => switch (s) {
+        //      X(field: 42) as X => 0,
+        //    }
+        //
+        if (!castType.isSubtypeOf(subtype) && !subtype.isSubtypeOf(castType)) {
+          // Otherwise the cast implicitly handles [subtype].
+          space = space.union(new Space(path, subtype));
+        }
+      }
+    }
+    return space;
   }
 
   /// Creates the [Space] at [path] for a null check pattern with the given
