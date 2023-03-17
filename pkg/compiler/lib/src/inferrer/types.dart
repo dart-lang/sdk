@@ -150,6 +150,9 @@ abstract class GlobalTypeInferenceResults {
 
   /// Returns the type of a list literal [node].
   AbstractValue? typeOfListLiteral(ir.TreeNode node);
+
+  /// Returns the type of a record literal [node].
+  AbstractValue? typeOfRecordLiteral(ir.TreeNode node);
 }
 
 /// Global analysis that infers concrete types.
@@ -222,6 +225,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   final Deferrable<Map<Local, AbstractValue>> _parameterResults;
   final Set<Selector> returnsListElementTypeSet;
   final Deferrable<Map<ir.TreeNode, AbstractValue>> _allocatedLists;
+  final Deferrable<Map<ir.TreeNode, AbstractValue>> _allocatedRecords;
 
   GlobalTypeInferenceResultsImpl(
       this.closedWorld,
@@ -230,10 +234,12 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
       Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults,
       Map<Local, AbstractValue> parameterResults,
       this.returnsListElementTypeSet,
-      Map<ir.TreeNode, AbstractValue> allocatedLists)
+      Map<ir.TreeNode, AbstractValue> allocatedLists,
+      Map<ir.TreeNode, AbstractValue> allocatedRecords)
       : _memberResults = Deferrable.eager(memberResults),
         _parameterResults = Deferrable.eager(parameterResults),
         _allocatedLists = Deferrable.eager(allocatedLists),
+        _allocatedRecords = Deferrable.eager(allocatedRecords),
         _deadFieldResult =
             DeadFieldGlobalTypeInferenceResult(closedWorld.abstractValueDomain),
         _deadMethodResult = DeadMethodGlobalTypeInferenceResult(
@@ -247,7 +253,8 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
       this._memberResults,
       this._parameterResults,
       this.returnsListElementTypeSet,
-      this._allocatedLists)
+      this._allocatedLists,
+      this._allocatedRecords)
       : _deadFieldResult =
             DeadFieldGlobalTypeInferenceResult(closedWorld.abstractValueDomain),
         _deadMethodResult = DeadMethodGlobalTypeInferenceResult(
@@ -280,6 +287,10 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         source.readDeferrable(() => source.readTreeNodeMap(() => closedWorld
             .abstractValueDomain
             .readAbstractValueFromDataSource(source)));
+    Deferrable<Map<ir.TreeNode, AbstractValue>> allocatedRecords =
+        source.readDeferrable(() => source.readTreeNodeMap(() => closedWorld
+            .abstractValueDomain
+            .readAbstractValueFromDataSource(source)));
     source.end(tag);
     return GlobalTypeInferenceResultsImpl._deserialized(
         closedWorld,
@@ -288,7 +299,8 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         memberResults,
         parameterResults,
         returnsListElementTypeSet,
-        allocatedLists);
+        allocatedLists,
+        allocatedRecords);
   }
 
   @override
@@ -310,6 +322,10 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         (Selector selector) => selector.writeToDataSink(sink));
     sink.writeDeferrable(() => sink.writeTreeNodeMap(
         _allocatedLists.loaded(),
+        (AbstractValue value) => closedWorld.abstractValueDomain
+            .writeAbstractValueToDataSink(sink, value)));
+    sink.writeDeferrable(() => sink.writeTreeNodeMap(
+        _allocatedRecords.loaded(),
         (AbstractValue value) => closedWorld.abstractValueDomain
             .writeAbstractValueToDataSink(sink, value)));
     sink.end(tag);
@@ -420,6 +436,10 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   @override
   AbstractValue? typeOfListLiteral(ir.Node node) =>
       _allocatedLists.loaded()[node];
+
+  @override
+  AbstractValue? typeOfRecordLiteral(ir.Node node) =>
+      _allocatedRecords.loaded()[node];
 }
 
 class GlobalTypeInferenceMemberResultImpl
@@ -529,6 +549,9 @@ class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
 
   @override
   AbstractValue? typeOfNewList(ir.TreeNode node) => null;
+
+  @override
+  AbstractValue? typeOfRecordLiteral(ir.TreeNode node) => null;
 }
 
 class TrivialGlobalTypeInferenceMemberResult

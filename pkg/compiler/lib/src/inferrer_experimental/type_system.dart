@@ -57,29 +57,27 @@ class TypeSystem {
   final List<TypeInformation> _orderedTypeInformations = <TypeInformation>[];
 
   /// [ParameterTypeInformation]s for parameters.
-  final Map<Local, ParameterTypeInformation> parameterTypeInformations =
-      Map<Local, ParameterTypeInformation>();
+  final Map<Local, ParameterTypeInformation> parameterTypeInformations = {};
 
   /// [MemberTypeInformation]s for members.
-  final Map<MemberEntity, MemberTypeInformation> memberTypeInformations =
-      Map<MemberEntity, MemberTypeInformation>();
+  final Map<MemberEntity, MemberTypeInformation> memberTypeInformations = {};
 
   final Map<Local, ParameterTypeInformation> virtualParameterTypeInformations =
-      Map<Local, ParameterTypeInformation>();
+      {};
   final Map<MemberEntity, MemberTypeInformation> virtualCallTypeInformations =
-      Map<MemberEntity, MemberTypeInformation>();
+      {};
 
   /// [ListTypeInformation] for allocated lists.
-  final Map<ir.TreeNode, ListTypeInformation> allocatedLists =
-      Map<ir.TreeNode, ListTypeInformation>();
+  final Map<ir.TreeNode, ListTypeInformation> allocatedLists = {};
 
   /// [SetTypeInformation] for allocated Sets.
-  final Map<ir.TreeNode, SetTypeInformation> allocatedSets =
-      Map<ir.TreeNode, SetTypeInformation>();
+  final Map<ir.TreeNode, SetTypeInformation> allocatedSets = {};
 
   /// [MapTypeInformation] for allocated Maps.
-  final Map<ir.TreeNode, MapTypeInformation> allocatedMaps =
-      Map<ir.TreeNode, MapTypeInformation>();
+  final Map<ir.TreeNode, MapTypeInformation> allocatedMaps = {};
+
+  /// [RecordTypeInformation] for allocated Records.
+  final Map<ir.TreeNode, RecordTypeInformation> allocatedRecords = {};
 
   /// Closures found during the analysis.
   final Set<TypeInformation> allocatedClosures = Set<TypeInformation>();
@@ -160,6 +158,7 @@ class TypeSystem {
 
   late final ConcreteTypeInformation recordType =
       getConcreteTypeFor(_abstractValueDomain.recordType);
+
   late final ConcreteTypeInformation listType =
       getConcreteTypeFor(_abstractValueDomain.listType);
 
@@ -543,36 +542,47 @@ class TypeSystem {
   TypeInformation allocateRecord(ir.TreeNode node, RecordType recordType,
       List<TypeInformation> fieldTypes, bool isConst) {
     assert(fieldTypes.length == recordType.shape.fieldCount);
-    final getters = _closedWorld.recordData.gettersForShape(recordType.shape);
+    final shape = recordType.shape;
+    final getters = _closedWorld.recordData.gettersForShape(shape);
 
-    FieldInRecordTypeInformation makeField(int i) {
-      final field = FieldInRecordTypeInformation(
-          _abstractValueDomain, currentMember, i, fieldTypes[i]);
-      allocatedTypes.add(field);
+    for (var i = 0; i < fieldTypes.length; i++) {
       final getter = getters[i] as FunctionEntity;
-      final getterType = memberTypeInformations[getter] ??=
-          GetterTypeInformation(
-              _closedWorld.abstractValueDomain,
-              getter,
-              _closedWorld.dartTypes.functionType(
-                  _closedWorld.dartTypes.dynamicType(),
-                  const [],
-                  const [],
-                  const [],
-                  const {},
-                  const [],
-                  const []));
-      getterType.addInput(field);
-      return field;
+      final getterType = _getGetterTypeForRecordField(getter);
+      getterType.addInput(fieldTypes[i]);
+      allocatedTypes.add(getterType);
     }
 
-    final fields = List.generate(fieldTypes.length, makeField, growable: false);
-    final originalType = _abstractValueDomain.recordType;
-    final record = RecordTypeInformation(
-        currentMember, originalType, recordType.shape, fields);
-    // TODO(50081): When tracing is added for records, use `allocatedRecords`.
-    allocatedTypes.add(record);
+    final record = RecordTypeInformation(currentMember,
+        _abstractValueDomain.recordType, recordType.shape, fieldTypes);
+    allocatedRecords[node] = record;
     return record;
+  }
+
+  MemberTypeInformation _getGetterTypeForRecordField(FunctionEntity getter) {
+    return memberTypeInformations[getter] ??= GetterTypeInformation(
+        _abstractValueDomain,
+        getter,
+        _closedWorld.dartTypes.functionType(
+            _closedWorld.commonElements.dynamicType,
+            const [],
+            const [],
+            const [],
+            const {},
+            const [],
+            const []));
+  }
+
+  TypeInformation allocateRecordFieldGet(
+      ir.TreeNode node, String fieldName, TypeInformation receiverType) {
+    final accessType = RecordFieldAccessTypeInformation(
+        _closedWorld.abstractValueDomain,
+        fieldName,
+        node,
+        receiverType,
+        currentMember);
+    allocatedTypes.add(accessType);
+    receiverType.addUser(accessType);
+    return accessType;
   }
 
   AbstractValue? newTypedSelector(TypeInformation info, AbstractValue? mask) {

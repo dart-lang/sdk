@@ -129,9 +129,14 @@ class TypeGraphInferrer implements TypesInferrer {
     });
 
     Map<ir.TreeNode, AbstractValue> allocatedLists = {};
+    Map<ir.TreeNode, AbstractValue> allocatedRecords = {};
     inferrer.types.allocatedLists
         .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
       allocatedLists[node] = typeInformation.type;
+    });
+    inferrer.types.allocatedRecords
+        .forEach((ir.TreeNode node, RecordTypeInformation typeInformation) {
+      allocatedRecords[node] = typeInformation.type;
     });
 
     GlobalTypeInferenceResults results = GlobalTypeInferenceResultsImpl(
@@ -141,7 +146,8 @@ class TypeGraphInferrer implements TypesInferrer {
         memberResults,
         parameterResults,
         inferrer.returnsListElementTypeSet,
-        allocatedLists);
+        allocatedLists,
+        allocatedRecords);
 
     inferrer.clear();
 

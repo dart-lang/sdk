@@ -356,8 +356,10 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   @override
-  void visitFieldInRecordTypeInformation(FieldInRecordTypeInformation info) {
-    addNode(info, 'FieldInRecord(${info.indexInShape})');
+  void visitRecordFieldAccessTypeInformation(
+      RecordFieldAccessTypeInformation info) {
+    addNode(info, 'RecordFieldAccess(${info.getterName})',
+        color: callColor, inputs: {'obj': info.receiver});
   }
 
   @override

@@ -371,6 +371,21 @@ class CommonMasks with AbstractValueDomain {
           false);
     }
 
+    if (type is RecordType) {
+      final types = <TypeMask>[];
+      final shape = type.shape;
+      final fields = type.fields;
+      for (final field in fields) {
+        final fieldType = createFromStaticType(field, nullable: nullable);
+        types.add(fieldType.abstractValue as TypeMask);
+        isPrecise &= fieldType.isPrecise;
+      }
+      return finish(
+          RecordTypeMask.createRecord(this, types, shape,
+              isNullable: nullable, hasLateSentinel: false),
+          isPrecise);
+    }
+
     if (type is NeverType) {
       return finish(emptyType, isPrecise);
     }
