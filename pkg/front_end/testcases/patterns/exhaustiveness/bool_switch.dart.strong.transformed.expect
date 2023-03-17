@@ -28,10 +28,6 @@ library /*isNonNullableByDefault*/;
 //   switch (b) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:119:5: Warning: This case is covered by the previous cases.
-//     case null: // Unreachable
-//     ^
-//
 import self as self;
 import "dart:core" as core;
 

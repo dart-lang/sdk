@@ -4,7 +4,7 @@ library from "org-dartlang-test:///a.dart" as a {
   import "dart:ffi";
 
   @#C7
-  class StructA extends dart.ffi::Struct {
+  final class StructA extends dart.ffi::Struct {
     synthetic constructor •() → a::StructA
       : super dart.ffi::Struct::•()
       ;
@@ -35,7 +35,7 @@ library from "org-dartlang-test:///a.dart" as a {
       return #C21.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
   }
   @#C24
-  class NestedStruct extends dart.ffi::Struct {
+  final class NestedStruct extends dart.ffi::Struct {
     synthetic constructor •() → a::NestedStruct
       : super dart.ffi::Struct::•()
       ;
@@ -67,7 +67,7 @@ library from "org-dartlang-test:///b.dart" as b {
   import "org-dartlang-test:///a.dart";
 
   @#C28
-  class StructB extends dart.ffi::Struct {
+  final class StructB extends dart.ffi::Struct {
     synthetic constructor •() → b::StructB
       : super dart.ffi::Struct::•()
       ;

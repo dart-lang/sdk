@@ -12,7 +12,7 @@ worlds:
       main.dart: |
         import "dart:ffi";
         import 'lib.dart';
-        class X extends Struct {
+        final class X extends Struct {
           external Y x1;
           external Y x2;
           @Uint8()
@@ -20,7 +20,7 @@ worlds:
         }
       lib.dart: |
         import 'lib2.dart';
-        class Y extends Struct {
+        final class Y extends Struct {
           @Uint8()
           external int y1;
           @Uint8()
@@ -42,7 +42,7 @@ worlds:
     sources:
       lib.dart: |
         import 'lib2.dart';
-        class Y extends Struct {
+        final class Y extends Struct {
           @Uint8()
           external int y1;
           @Uint64()

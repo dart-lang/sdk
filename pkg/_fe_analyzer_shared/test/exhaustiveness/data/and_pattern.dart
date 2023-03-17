@@ -79,8 +79,8 @@ intersectUnion(A o1, A o2, B o3, B o4) {
    fields={field1:B},
    type=A
   */switch (o2) {
-  A(field1: C() || D()) && A(field1: D() || E()) /*space=A(field1: D|??)*/=> 0,
-  A(field1: C() || E()) && A(field1: C() || E()) /*space=A(field1: C|E|??)*/=> 1,
+  A(field1: C() || D()) && A(field1: D() || E()) /*space=A(field1: D|?)*/=> 0,
+  A(field1: C() || E()) && A(field1: C() || E()) /*space=A(field1: C|E|?)*/=> 1,
   };
   var c = /*
    subtypes={C,D,E},
@@ -93,6 +93,6 @@ intersectUnion(A o1, A o2, B o3, B o4) {
    subtypes={C,D,E},
    type=B
   */switch (o3) {
-    (C() || D() || E()) && (C() || D() || E()) /*space=C|D|E|??*/=> 0,
+    (C() || D() || E()) && (C() || D() || E()) /*space=C|D|E|?*/=> 0,
   };
 }

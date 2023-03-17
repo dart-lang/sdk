@@ -12,7 +12,7 @@ import 'dylib_utils.dart';
 
 final nativeLib = dlopenPlatformSpecific("ffi_test_functions");
 
-class Struct46127 extends Struct {
+final class Struct46127 extends Struct {
   @Uint64()
   external int val;
 }

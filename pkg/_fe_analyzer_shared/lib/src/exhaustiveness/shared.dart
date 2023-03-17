@@ -225,8 +225,12 @@ class ExhaustivenessCache<
 
   /// Creates a new unique [StaticType].
   StaticType getUnknownStaticType() {
+    // The unknown static type should be based on the nullable `Object`, since
+    // even though it _might_ be `null`, using the nullable `Object` here would
+    // mean that it _does_ include `null`, and we need this type to only cover
+    // itself.
     return getUniqueStaticType<Object>(
-        typeOperations.nullableObjectType, new Object(), '?');
+        typeOperations.nonNullableObjectType, new Object(), '?');
   }
 
   /// Returns a [StaticType] of the given [type] with the given

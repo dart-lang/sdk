@@ -9281,6 +9281,71 @@ library
 ''');
   }
 
+  test_classAlias_invalid_extendsEnum() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E { v }
+mixin M {}
+''');
+
+    var library = await buildLibrary('''
+import 'a.dart';
+class A = E with M;
+''');
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class alias A @23
+        supertype: Object
+        mixins
+          M
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::new
+''');
+  }
+
+  test_classAlias_invalid_extendsMixin() async {
+    var library = await buildLibrary('''
+mixin M1 {}
+mixin M2 {}
+class A = M1 with M2;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class alias A @30
+        supertype: Object
+        mixins
+          M2
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::new
+    mixins
+      mixin M1 @6
+        superclassConstraints
+          Object
+      mixin M2 @18
+        superclassConstraints
+          Object
+''');
+  }
+
   test_classAlias_mixin_class() async {
     var library = await buildLibrary('''
 mixin class C = Object with M;

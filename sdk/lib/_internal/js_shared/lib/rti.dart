@@ -1183,8 +1183,7 @@ class _Error extends Error {
   final String _message;
   _Error(this._message);
 
-  static String compose(
-      Object? object, String checkedTypeDescription) {
+  static String compose(Object? object, String checkedTypeDescription) {
     String objectDescription = Error.safeToString(object);
     Rti objectRti = _structuralTypeOf(object);
     String objectTypeDescription = _rtiToString(objectRti, null);
@@ -1265,7 +1264,7 @@ bool _asBool(Object? object) {
 bool? _asBoolS(dynamic object) {
   if (true == object) return true;
   if (false == object) return false;
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'bool');
 }
 
@@ -1274,7 +1273,7 @@ bool? _asBoolS(dynamic object) {
 bool? _asBoolQ(dynamic object) {
   if (true == object) return true;
   if (false == object) return false;
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'bool?');
 }
 
@@ -1289,7 +1288,7 @@ double _asDouble(Object? object) {
 /// Called from generated code.
 double? _asDoubleS(dynamic object) {
   if (_isNum(object)) return _Utils.asDouble(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'double');
 }
 
@@ -1297,7 +1296,7 @@ double? _asDoubleS(dynamic object) {
 /// Called from generated code.
 double? _asDoubleQ(dynamic object) {
   if (_isNum(object)) return _Utils.asDouble(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'double?');
 }
 
@@ -1319,7 +1318,7 @@ int _asInt(Object? object) {
 /// Called from generated code.
 int? _asIntS(dynamic object) {
   if (_isInt(object)) return _Utils.asInt(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'int');
 }
 
@@ -1327,7 +1326,7 @@ int? _asIntS(dynamic object) {
 /// Called from generated code.
 int? _asIntQ(dynamic object) {
   if (_isInt(object)) return _Utils.asInt(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'int?');
 }
 
@@ -1348,7 +1347,7 @@ num _asNum(Object? object) {
 /// Called from generated code.
 num? _asNumS(dynamic object) {
   if (_isNum(object)) return _Utils.asNum(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'num');
 }
 
@@ -1356,7 +1355,7 @@ num? _asNumS(dynamic object) {
 /// Called from generated code.
 num? _asNumQ(dynamic object) {
   if (_isNum(object)) return _Utils.asNum(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'num?');
 }
 
@@ -1377,7 +1376,7 @@ String _asString(Object? object) {
 /// Called from generated code.
 String? _asStringS(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'String');
 }
 
@@ -1385,7 +1384,7 @@ String? _asStringS(dynamic object) {
 /// Called from generated code.
 String? _asStringQ(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'String?');
 }
 
@@ -3394,6 +3393,7 @@ bool isJsFunctionType(Rti t) =>
 bool isRecordInterfaceType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Record>());
 
 class _Utils {
+  static Null asNull(Object? o) => JS('Null', '#', o);
   static bool asBool(Object? o) => JS('bool', '#', o);
   static double asDouble(Object? o) => JS('double', '#', o);
   static int asInt(Object? o) => JS('int', '#', o);

@@ -89,7 +89,6 @@ void nonExhaustiveSwitch2(bool b) {
 
 void nonExhaustiveSwitchWithDefault(bool b) {
   /*
-   error=non-exhaustive:false,
    subtypes={true,false},
    type=bool
   */

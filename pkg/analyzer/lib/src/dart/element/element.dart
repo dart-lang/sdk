@@ -851,7 +851,8 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   /// one (this is used to detect cycles).
   List<ConstructorElementImpl> _computeMixinAppConstructors(
       [List<ClassElementImpl>? visitedClasses]) {
-    if (supertype == null) {
+    final superType = supertype;
+    if (superType == null) {
       // Shouldn't ever happen, since the only classes with no supertype are
       // Object and mixins, and they aren't a mixin application. But for
       // safety's sake just assume an empty list.
@@ -859,7 +860,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
       return <ConstructorElementImpl>[];
     }
 
-    var superElement = supertype!.element as ClassElementImpl;
+    final superElement = superType.element as ClassElementImpl;
 
     // First get the list of constructors of the superclass which need to be
     // forwarded to this class.
@@ -895,11 +896,11 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     var superClassParameters = superElement.typeParameters;
     List<DartType> argumentTypes = List<DartType>.filled(
         superClassParameters.length, DynamicTypeImpl.instance);
-    for (int i = 0; i < supertype!.typeArguments.length; i++) {
+    for (int i = 0; i < superType.typeArguments.length; i++) {
       if (i >= argumentTypes.length) {
         break;
       }
-      argumentTypes[i] = supertype!.typeArguments[i];
+      argumentTypes[i] = superType.typeArguments[i];
     }
     var substitution =
         Substitution.fromPairs(superClassParameters, argumentTypes);
@@ -969,7 +970,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
       implicitConstructor.enclosingElement = this;
       // TODO(scheglov) Why do we manually map parameters types above?
       implicitConstructor.superConstructor =
-          ConstructorMember.from(superclassConstructor, supertype!);
+          ConstructorMember.from(superclassConstructor, superType);
 
       var isNamed = superclassConstructor.name.isNotEmpty;
       implicitConstructor.constantInitializers = [

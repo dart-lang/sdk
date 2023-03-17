@@ -158,6 +158,7 @@ void f(Object? x) {
 void f(Object? x) {
   (switch (x) {
     0 && _ => 0,
+    _ => 1,
   });
 }
 ''', [

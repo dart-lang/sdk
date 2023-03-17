@@ -6,7 +6,7 @@ import "dart:core" as core;
 import "dart:ffi";
 import "package:ffi/ffi.dart";
 
-class Coordinate extends ffi::Struct {
+final class Coordinate extends ffi::Struct {
   @ffi::Double::•()
   external get x() → core::double;
   @ffi::Double::•()

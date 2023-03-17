@@ -966,6 +966,8 @@ Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
 UnsupportedDartExt/analyzerCode: Fail
 UnsupportedDartExt/part_wrapped_script: Fail # Example uses import declaration.
+UnreachableSwitchCase/part_wrapped_script: Fail # https://github.com/dart-lang/language/issues/2924
+UnreachableSwitchCase/script: Fail # https://github.com/dart-lang/language/issues/2924
 UnterminatedString/part_wrapped_script2: Fail
 UnterminatedString/part_wrapped_script4: Fail
 UnterminatedString/part_wrapped_script5: Fail

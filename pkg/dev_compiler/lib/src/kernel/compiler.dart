@@ -608,16 +608,25 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  String libraryToModule(Library library) {
+  String libraryToModule(Library library, {bool throwIfNotFound = true}) {
     if (library.importUri.isScheme('dart')) {
       // TODO(jmesserly): we need to split out HTML.
       return js_ast.dartSdkModule;
     }
-    var summary = _importToSummary[library]!;
+    var summary = _importToSummary[library];
+    if (summary == null) {
+      if (throwIfNotFound) {
+        throw StateError('Could not find summary for library "$library".');
+      }
+      return '';
+    }
     var moduleName = _summaryToModule[summary];
     if (moduleName == null) {
-      throw StateError('Could not find module name for library "$library" '
-          'from component "$summary".');
+      if (throwIfNotFound) {
+        throw StateError('Could not find module name for library "$library" '
+            'from component "$summary".');
+      }
+      return '';
     }
     return moduleName;
   }
@@ -7050,9 +7059,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitLoadLibrary(LoadLibrary node) =>
-      runtimeCall('loadLibrary(#, #)', [
+      runtimeCall('loadLibrary(#, #, #)', [
         js.string(node.import.enclosingLibrary.importUri.toString()),
-        js.string(node.import.name!)
+        js.string(node.import.name!),
+        js.string(
+            libraryToModule(node.import.targetLibrary, throwIfNotFound: false))
       ]);
 
   // TODO(jmesserly): DDC loads all libraries eagerly.

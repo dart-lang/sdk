@@ -74,7 +74,6 @@ void nonExhaustiveSwitch2(({Enum a, bool b}) r) {
 
 void nonExhaustiveSwitchWithDefault(({Enum a, bool b}) r) {
   /*
-   error=non-exhaustive:(a: Enum.a, b: true),
    fields={a:Enum,b:bool},
    type=({Enum a, bool b})
   */switch (r) {

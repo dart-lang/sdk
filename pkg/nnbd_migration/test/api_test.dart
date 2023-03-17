@@ -556,6 +556,27 @@ class MyClass {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_injectable_function() async {
+    addAngularPackage();
+    var content = '''
+import 'package:angular/angular.dart';
+
+class C {}
+
+@Injectable()
+C createC(int n, @Optional() int x) => C();
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+
+class C {}
+
+@Injectable()
+C createC(int n, @Optional() int? x) => C();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_angular_optional_constructor_param() async {
     addAngularPackage();
     var content = '''

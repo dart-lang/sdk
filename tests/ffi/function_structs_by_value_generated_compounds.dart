@@ -7,21 +7,21 @@
 
 import 'dart:ffi';
 
-class Struct1ByteBool extends Struct {
+final class Struct1ByteBool extends Struct {
   @Bool()
   external bool a0;
 
   String toString() => "(${a0})";
 }
 
-class Struct1ByteInt extends Struct {
+final class Struct1ByteInt extends Struct {
   @Int8()
   external int a0;
 
   String toString() => "(${a0})";
 }
 
-class Struct3BytesHomogeneousUint8 extends Struct {
+final class Struct3BytesHomogeneousUint8 extends Struct {
   @Uint8()
   external int a0;
 
@@ -34,7 +34,7 @@ class Struct3BytesHomogeneousUint8 extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
-class Struct3BytesInt2ByteAligned extends Struct {
+final class Struct3BytesInt2ByteAligned extends Struct {
   @Int16()
   external int a0;
 
@@ -44,7 +44,7 @@ class Struct3BytesInt2ByteAligned extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct4BytesHomogeneousInt16 extends Struct {
+final class Struct4BytesHomogeneousInt16 extends Struct {
   @Int16()
   external int a0;
 
@@ -54,14 +54,14 @@ class Struct4BytesHomogeneousInt16 extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct4BytesFloat extends Struct {
+final class Struct4BytesFloat extends Struct {
   @Float()
   external double a0;
 
   String toString() => "(${a0})";
 }
 
-class Struct7BytesHomogeneousUint8 extends Struct {
+final class Struct7BytesHomogeneousUint8 extends Struct {
   @Uint8()
   external int a0;
 
@@ -86,7 +86,7 @@ class Struct7BytesHomogeneousUint8 extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})";
 }
 
-class Struct7BytesInt4ByteAligned extends Struct {
+final class Struct7BytesInt4ByteAligned extends Struct {
   @Int32()
   external int a0;
 
@@ -99,7 +99,7 @@ class Struct7BytesInt4ByteAligned extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
-class Struct8BytesInt extends Struct {
+final class Struct8BytesInt extends Struct {
   @Int16()
   external int a0;
 
@@ -112,7 +112,7 @@ class Struct8BytesInt extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
-class Struct8BytesHomogeneousFloat extends Struct {
+final class Struct8BytesHomogeneousFloat extends Struct {
   @Float()
   external double a0;
 
@@ -122,14 +122,14 @@ class Struct8BytesHomogeneousFloat extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct8BytesFloat extends Struct {
+final class Struct8BytesFloat extends Struct {
   @Double()
   external double a0;
 
   String toString() => "(${a0})";
 }
 
-class Struct8BytesMixed extends Struct {
+final class Struct8BytesMixed extends Struct {
   @Float()
   external double a0;
 
@@ -142,7 +142,7 @@ class Struct8BytesMixed extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
-class Struct9BytesHomogeneousUint8 extends Struct {
+final class Struct9BytesHomogeneousUint8 extends Struct {
   @Uint8()
   external int a0;
 
@@ -174,7 +174,7 @@ class Struct9BytesHomogeneousUint8 extends Struct {
       "(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})";
 }
 
-class Struct9BytesInt4Or8ByteAligned extends Struct {
+final class Struct9BytesInt4Or8ByteAligned extends Struct {
   @Int64()
   external int a0;
 
@@ -184,7 +184,7 @@ class Struct9BytesInt4Or8ByteAligned extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct10BytesHomogeneousBool extends Struct {
+final class Struct10BytesHomogeneousBool extends Struct {
   @Bool()
   external bool a0;
 
@@ -219,7 +219,7 @@ class Struct10BytesHomogeneousBool extends Struct {
       "(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})";
 }
 
-class Struct12BytesHomogeneousFloat extends Struct {
+final class Struct12BytesHomogeneousFloat extends Struct {
   @Float()
   external double a0;
 
@@ -232,7 +232,7 @@ class Struct12BytesHomogeneousFloat extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
-class Struct16BytesHomogeneousFloat extends Struct {
+final class Struct16BytesHomogeneousFloat extends Struct {
   @Float()
   external double a0;
 
@@ -248,7 +248,7 @@ class Struct16BytesHomogeneousFloat extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2}, ${a3})";
 }
 
-class Struct16BytesMixed extends Struct {
+final class Struct16BytesMixed extends Struct {
   @Double()
   external double a0;
 
@@ -258,7 +258,7 @@ class Struct16BytesMixed extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct16BytesMixed2 extends Struct {
+final class Struct16BytesMixed2 extends Struct {
   @Float()
   external double a0;
 
@@ -274,7 +274,7 @@ class Struct16BytesMixed2 extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2}, ${a3})";
 }
 
-class Struct17BytesInt extends Struct {
+final class Struct17BytesInt extends Struct {
   @Int64()
   external int a0;
 
@@ -287,7 +287,7 @@ class Struct17BytesInt extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
-class Struct19BytesHomogeneousUint8 extends Struct {
+final class Struct19BytesHomogeneousUint8 extends Struct {
   @Uint8()
   external int a0;
 
@@ -349,7 +349,7 @@ class Struct19BytesHomogeneousUint8 extends Struct {
       "(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18})";
 }
 
-class Struct20BytesHomogeneousInt32 extends Struct {
+final class Struct20BytesHomogeneousInt32 extends Struct {
   @Int32()
   external int a0;
 
@@ -368,7 +368,7 @@ class Struct20BytesHomogeneousInt32 extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2}, ${a3}, ${a4})";
 }
 
-class Struct20BytesHomogeneousFloat extends Struct {
+final class Struct20BytesHomogeneousFloat extends Struct {
   @Float()
   external double a0;
 
@@ -387,7 +387,7 @@ class Struct20BytesHomogeneousFloat extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2}, ${a3}, ${a4})";
 }
 
-class Struct32BytesHomogeneousDouble extends Struct {
+final class Struct32BytesHomogeneousDouble extends Struct {
   @Double()
   external double a0;
 
@@ -403,7 +403,7 @@ class Struct32BytesHomogeneousDouble extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2}, ${a3})";
 }
 
-class Struct40BytesHomogeneousDouble extends Struct {
+final class Struct40BytesHomogeneousDouble extends Struct {
   @Double()
   external double a0;
 
@@ -422,7 +422,7 @@ class Struct40BytesHomogeneousDouble extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2}, ${a3}, ${a4})";
 }
 
-class Struct1024BytesHomogeneousUint64 extends Struct {
+final class Struct1024BytesHomogeneousUint64 extends Struct {
   @Uint64()
   external int a0;
 
@@ -811,7 +811,7 @@ class Struct1024BytesHomogeneousUint64 extends Struct {
       "(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19}, ${a20}, ${a21}, ${a22}, ${a23}, ${a24}, ${a25}, ${a26}, ${a27}, ${a28}, ${a29}, ${a30}, ${a31}, ${a32}, ${a33}, ${a34}, ${a35}, ${a36}, ${a37}, ${a38}, ${a39}, ${a40}, ${a41}, ${a42}, ${a43}, ${a44}, ${a45}, ${a46}, ${a47}, ${a48}, ${a49}, ${a50}, ${a51}, ${a52}, ${a53}, ${a54}, ${a55}, ${a56}, ${a57}, ${a58}, ${a59}, ${a60}, ${a61}, ${a62}, ${a63}, ${a64}, ${a65}, ${a66}, ${a67}, ${a68}, ${a69}, ${a70}, ${a71}, ${a72}, ${a73}, ${a74}, ${a75}, ${a76}, ${a77}, ${a78}, ${a79}, ${a80}, ${a81}, ${a82}, ${a83}, ${a84}, ${a85}, ${a86}, ${a87}, ${a88}, ${a89}, ${a90}, ${a91}, ${a92}, ${a93}, ${a94}, ${a95}, ${a96}, ${a97}, ${a98}, ${a99}, ${a100}, ${a101}, ${a102}, ${a103}, ${a104}, ${a105}, ${a106}, ${a107}, ${a108}, ${a109}, ${a110}, ${a111}, ${a112}, ${a113}, ${a114}, ${a115}, ${a116}, ${a117}, ${a118}, ${a119}, ${a120}, ${a121}, ${a122}, ${a123}, ${a124}, ${a125}, ${a126}, ${a127})";
 }
 
-class StructAlignmentInt16 extends Struct {
+final class StructAlignmentInt16 extends Struct {
   @Int8()
   external int a0;
 
@@ -824,7 +824,7 @@ class StructAlignmentInt16 extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
-class StructAlignmentInt32 extends Struct {
+final class StructAlignmentInt32 extends Struct {
   @Int8()
   external int a0;
 
@@ -837,7 +837,7 @@ class StructAlignmentInt32 extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
-class StructAlignmentInt64 extends Struct {
+final class StructAlignmentInt64 extends Struct {
   @Int8()
   external int a0;
 
@@ -850,7 +850,7 @@ class StructAlignmentInt64 extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
-class Struct8BytesNestedInt extends Struct {
+final class Struct8BytesNestedInt extends Struct {
   external Struct4BytesHomogeneousInt16 a0;
 
   external Struct4BytesHomogeneousInt16 a1;
@@ -858,7 +858,7 @@ class Struct8BytesNestedInt extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct8BytesNestedFloat extends Struct {
+final class Struct8BytesNestedFloat extends Struct {
   external Struct4BytesFloat a0;
 
   external Struct4BytesFloat a1;
@@ -866,7 +866,7 @@ class Struct8BytesNestedFloat extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct8BytesNestedFloat2 extends Struct {
+final class Struct8BytesNestedFloat2 extends Struct {
   external Struct4BytesFloat a0;
 
   @Float()
@@ -875,7 +875,7 @@ class Struct8BytesNestedFloat2 extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct8BytesNestedMixed extends Struct {
+final class Struct8BytesNestedMixed extends Struct {
   external Struct4BytesHomogeneousInt16 a0;
 
   external Struct4BytesFloat a1;
@@ -883,7 +883,7 @@ class Struct8BytesNestedMixed extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct16BytesNestedInt extends Struct {
+final class Struct16BytesNestedInt extends Struct {
   external Struct8BytesNestedInt a0;
 
   external Struct8BytesNestedInt a1;
@@ -891,7 +891,7 @@ class Struct16BytesNestedInt extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct32BytesNestedInt extends Struct {
+final class Struct32BytesNestedInt extends Struct {
   external Struct16BytesNestedInt a0;
 
   external Struct16BytesNestedInt a1;
@@ -899,7 +899,7 @@ class Struct32BytesNestedInt extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class StructNestedIntStructAlignmentInt16 extends Struct {
+final class StructNestedIntStructAlignmentInt16 extends Struct {
   external StructAlignmentInt16 a0;
 
   external StructAlignmentInt16 a1;
@@ -907,7 +907,7 @@ class StructNestedIntStructAlignmentInt16 extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class StructNestedIntStructAlignmentInt32 extends Struct {
+final class StructNestedIntStructAlignmentInt32 extends Struct {
   external StructAlignmentInt32 a0;
 
   external StructAlignmentInt32 a1;
@@ -915,7 +915,7 @@ class StructNestedIntStructAlignmentInt32 extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class StructNestedIntStructAlignmentInt64 extends Struct {
+final class StructNestedIntStructAlignmentInt64 extends Struct {
   external StructAlignmentInt64 a0;
 
   external StructAlignmentInt64 a1;
@@ -923,7 +923,7 @@ class StructNestedIntStructAlignmentInt64 extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class StructNestedIrregularBig extends Struct {
+final class StructNestedIrregularBig extends Struct {
   @Uint16()
   external int a0;
 
@@ -945,7 +945,7 @@ class StructNestedIrregularBig extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})";
 }
 
-class StructNestedIrregularBigger extends Struct {
+final class StructNestedIrregularBigger extends Struct {
   external StructNestedIrregularBig a0;
 
   external Struct8BytesNestedMixed a1;
@@ -959,7 +959,7 @@ class StructNestedIrregularBigger extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2}, ${a3})";
 }
 
-class StructNestedIrregularEvenBigger extends Struct {
+final class StructNestedIrregularEvenBigger extends Struct {
   @Uint64()
   external int a0;
 
@@ -973,21 +973,21 @@ class StructNestedIrregularEvenBigger extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2}, ${a3})";
 }
 
-class Struct8BytesInlineArrayInt extends Struct {
+final class Struct8BytesInlineArrayInt extends Struct {
   @Array(8)
   external Array<Uint8> a0;
 
   String toString() => "(${[for (var i0 = 0; i0 < 8; i0 += 1) a0[i0]]})";
 }
 
-class Struct10BytesInlineArrayBool extends Struct {
+final class Struct10BytesInlineArrayBool extends Struct {
   @Array(10)
   external Array<Bool> a0;
 
   String toString() => "(${[for (var i0 = 0; i0 < 10; i0 += 1) a0[i0]]})";
 }
 
-class StructInlineArrayIrregular extends Struct {
+final class StructInlineArrayIrregular extends Struct {
   @Array(2)
   external Array<Struct3BytesInt2ByteAligned> a0;
 
@@ -997,14 +997,14 @@ class StructInlineArrayIrregular extends Struct {
   String toString() => "(${[for (var i0 = 0; i0 < 2; i0 += 1) a0[i0]]}, ${a1})";
 }
 
-class StructInlineArray100Bytes extends Struct {
+final class StructInlineArray100Bytes extends Struct {
   @Array(100)
   external Array<Uint8> a0;
 
   String toString() => "(${[for (var i0 = 0; i0 < 100; i0 += 1) a0[i0]]})";
 }
 
-class StructInlineArrayBig extends Struct {
+final class StructInlineArrayBig extends Struct {
   @Uint32()
   external int a0;
 
@@ -1018,7 +1018,7 @@ class StructInlineArrayBig extends Struct {
       "(${a0}, ${a1}, ${[for (var i0 = 0; i0 < 4000; i0 += 1) a2[i0]]})";
 }
 
-class StructStruct16BytesHomogeneousFloat2 extends Struct {
+final class StructStruct16BytesHomogeneousFloat2 extends Struct {
   external Struct4BytesFloat a0;
 
   @Array(2)
@@ -1031,7 +1031,7 @@ class StructStruct16BytesHomogeneousFloat2 extends Struct {
       "(${a0}, ${[for (var i0 = 0; i0 < 2; i0 += 1) a1[i0]]}, ${a2})";
 }
 
-class StructStruct32BytesHomogeneousDouble2 extends Struct {
+final class StructStruct32BytesHomogeneousDouble2 extends Struct {
   external Struct8BytesFloat a0;
 
   @Array(2)
@@ -1044,7 +1044,7 @@ class StructStruct32BytesHomogeneousDouble2 extends Struct {
       "(${a0}, ${[for (var i0 = 0; i0 < 2; i0 += 1) a1[i0]]}, ${a2})";
 }
 
-class StructStruct16BytesMixed3 extends Struct {
+final class StructStruct16BytesMixed3 extends Struct {
   external Struct4BytesFloat a0;
 
   @Array(1)
@@ -1058,7 +1058,7 @@ class StructStruct16BytesMixed3 extends Struct {
       ]}, ${[for (var i0 = 0; i0 < 2; i0 += 1) a2[i0]]})";
 }
 
-class Struct8BytesInlineArrayMultiDimensionalInt extends Struct {
+final class Struct8BytesInlineArrayMultiDimensionalInt extends Struct {
   @Array(2, 2, 2)
   external Array<Array<Array<Uint8>>> a0;
 
@@ -1071,7 +1071,7 @@ class Struct8BytesInlineArrayMultiDimensionalInt extends Struct {
       ]})";
 }
 
-class Struct32BytesInlineArrayMultiDimensionalInt extends Struct {
+final class Struct32BytesInlineArrayMultiDimensionalInt extends Struct {
   @Array(2, 2, 2, 2, 2)
   external Array<Array<Array<Array<Array<Uint8>>>>> a0;
 
@@ -1090,7 +1090,7 @@ class Struct32BytesInlineArrayMultiDimensionalInt extends Struct {
       ]})";
 }
 
-class Struct64BytesInlineArrayMultiDimensionalInt extends Struct {
+final class Struct64BytesInlineArrayMultiDimensionalInt extends Struct {
   @Array.multi([2, 2, 2, 2, 2, 2])
   external Array<Array<Array<Array<Array<Array<Uint8>>>>>> a0;
 
@@ -1115,7 +1115,7 @@ class Struct64BytesInlineArrayMultiDimensionalInt extends Struct {
       ]})";
 }
 
-class Struct4BytesInlineArrayMultiDimensionalInt extends Struct {
+final class Struct4BytesInlineArrayMultiDimensionalInt extends Struct {
   @Array(2, 2)
   external Array<Array<Struct1ByteInt>> a0;
 
@@ -1126,7 +1126,7 @@ class Struct4BytesInlineArrayMultiDimensionalInt extends Struct {
 }
 
 @Packed(1)
-class Struct3BytesPackedInt extends Struct {
+final class Struct3BytesPackedInt extends Struct {
   @Int8()
   external int a0;
 
@@ -1137,7 +1137,7 @@ class Struct3BytesPackedInt extends Struct {
 }
 
 @Packed(1)
-class Struct3BytesPackedIntMembersAligned extends Struct {
+final class Struct3BytesPackedIntMembersAligned extends Struct {
   @Int8()
   external int a0;
 
@@ -1148,7 +1148,7 @@ class Struct3BytesPackedIntMembersAligned extends Struct {
 }
 
 @Packed(1)
-class Struct5BytesPackedMixed extends Struct {
+final class Struct5BytesPackedMixed extends Struct {
   @Float()
   external double a0;
 
@@ -1158,7 +1158,7 @@ class Struct5BytesPackedMixed extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class StructNestedAlignmentStruct5BytesPackedMixed extends Struct {
+final class StructNestedAlignmentStruct5BytesPackedMixed extends Struct {
   @Uint8()
   external int a0;
 
@@ -1167,7 +1167,7 @@ class StructNestedAlignmentStruct5BytesPackedMixed extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct6BytesInlineArrayInt extends Struct {
+final class Struct6BytesInlineArrayInt extends Struct {
   @Array(2)
   external Array<Struct3BytesPackedIntMembersAligned> a0;
 
@@ -1175,7 +1175,7 @@ class Struct6BytesInlineArrayInt extends Struct {
 }
 
 @Packed(1)
-class Struct8BytesPackedInt extends Struct {
+final class Struct8BytesPackedInt extends Struct {
   @Uint8()
   external int a0;
 
@@ -1195,7 +1195,7 @@ class Struct8BytesPackedInt extends Struct {
 }
 
 @Packed(1)
-class Struct9BytesPackedMixed extends Struct {
+final class Struct9BytesPackedMixed extends Struct {
   @Uint8()
   external int a0;
 
@@ -1205,14 +1205,14 @@ class Struct9BytesPackedMixed extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct15BytesInlineArrayMixed extends Struct {
+final class Struct15BytesInlineArrayMixed extends Struct {
   @Array(3)
   external Array<Struct5BytesPackedMixed> a0;
 
   String toString() => "(${[for (var i0 = 0; i0 < 3; i0 += 1) a0[i0]]})";
 }
 
-class Union4BytesMixed extends Union {
+final class Union4BytesMixed extends Union {
   @Uint32()
   external int a0;
 
@@ -1222,7 +1222,7 @@ class Union4BytesMixed extends Union {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Union8BytesNestedFloat extends Union {
+final class Union8BytesNestedFloat extends Union {
   @Double()
   external double a0;
 
@@ -1231,7 +1231,7 @@ class Union8BytesNestedFloat extends Union {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Union9BytesNestedInt extends Union {
+final class Union9BytesNestedInt extends Union {
   external Struct8BytesInt a0;
 
   external Struct9BytesHomogeneousUint8 a1;
@@ -1239,7 +1239,7 @@ class Union9BytesNestedInt extends Union {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Union16BytesNestedInlineArrayFloat extends Union {
+final class Union16BytesNestedInlineArrayFloat extends Union {
   @Array(4)
   external Array<Float> a0;
 
@@ -1248,7 +1248,7 @@ class Union16BytesNestedInlineArrayFloat extends Union {
   String toString() => "(${[for (var i0 = 0; i0 < 4; i0 += 1) a0[i0]]}, ${a1})";
 }
 
-class Union16BytesNestedFloat extends Union {
+final class Union16BytesNestedFloat extends Union {
   external Struct8BytesHomogeneousFloat a0;
 
   external Struct12BytesHomogeneousFloat a1;
@@ -1258,7 +1258,7 @@ class Union16BytesNestedFloat extends Union {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
-class StructInlineArrayInt extends Struct {
+final class StructInlineArrayInt extends Struct {
   @Array(10)
   external Array<WChar> a0;
 

@@ -239,7 +239,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   final _toplevelDeclarationRE = RegExp(r'^\s*(?:'
       r'library\b(?<libdecl>)|'
       r'''import (['"])(?<importuri>.*?)\2|'''
-      r'class\b|mixin\b|enum\b|extension\b|typedef\b|.*\bmain\('
+      r'final class\b|class\b|mixin\b|enum\b|extension\b|typedef\b|.*\bmain\('
       r')');
 
   validateCodeSample(CodeSample sample) async {

@@ -38,23 +38,11 @@ library /*isNonNullableByDefault*/;
 //   switch (e) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:126:5: Warning: This case is covered by the previous cases.
-//     case Enum.a: // Unreachable
-//     ^
-//
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:143:5: Warning: This case is covered by the previous cases.
-//     case Enum.a: // Unreachable
-//     ^
-//
 // pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:136:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
 // Try adding a default case or cases that match Enum.c.
 //   switch (e) /* Non-exhaustive */ {
 //           ^
-//
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:181:5: Warning: This case is covered by the previous cases.
-//     case null: // Unreachable
-//     ^
 //
 import self as self;
 import "dart:core" as core;

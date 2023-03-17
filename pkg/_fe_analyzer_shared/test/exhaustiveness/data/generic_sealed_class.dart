@@ -195,7 +195,6 @@ void nonExhaustiveSwitch3(A<num> a) {
 
 void nonExhaustiveSwitchWithDefault(A<dynamic> a) {
   /*
-   error=non-exhaustive:B<dynamic>,
    subtypes={B<dynamic>,C,D<dynamic, dynamic>},
    type=A<dynamic>
   */

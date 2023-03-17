@@ -16,7 +16,7 @@ import 'witness.dart';
 ///
 /// TODO(paulberry): remove this flag (and the implementation of the fallback
 /// exhaustiveness algorithm) when it is no longer needed.
-bool useFallbackExhaustivenessAlgorithm = true;
+bool useFallbackExhaustivenessAlgorithm = false;
 
 /// Returns `true` if [caseSpaces] exhaustively covers all possible values of
 /// [valueSpace].

@@ -1089,16 +1089,22 @@ class ConstantsTransformer extends RemovingTransformer {
     //  function.
     replacementStatement..parent = node.parent;
 
-    if (computeIsAlwaysExhaustiveType(
-        node.expressionType!, typeEnvironment.coreTypes)) {
-      List<PatternGuard> patternGuards = [];
-      for (PatternSwitchCase switchCase in node.cases) {
-        patternGuards.addAll(switchCase.patternGuards);
+    List<PatternGuard> patternGuards = [];
+    // TODO(johnniwinther): Use `PatternSwitchStatement.hasDefault` instead.
+    bool hasDefault = false;
+    for (PatternSwitchCase switchCase in node.cases) {
+      patternGuards.addAll(switchCase.patternGuards);
+      if (switchCase.isDefault) {
+        hasDefault = true;
       }
-      _checkExhaustiveness(
-          node, replacementStatement, scrutineeType, patternGuards,
-          hasDefault: node.hasDefault, fileOffset: node.expression.fileOffset);
     }
+    _checkExhaustiveness(
+        node, replacementStatement, scrutineeType, patternGuards,
+        hasDefault: hasDefault,
+        mustBeExhaustive: computeIsAlwaysExhaustiveType(
+            scrutineeType, typeEnvironment.coreTypes),
+        fileOffset: node.expression.fileOffset);
+
     // TODO(johnniwinther): Remove this work-around for the `libraryOf`
     //  function.
     replacementStatement..parent = node.parent;
@@ -1109,7 +1115,9 @@ class ConstantsTransformer extends RemovingTransformer {
 
   void _checkExhaustiveness(TreeNode node, TreeNode replacement,
       DartType expressionType, List<PatternGuard> patternGuards,
-      {required int fileOffset, required bool hasDefault}) {
+      {required int fileOffset,
+      required bool hasDefault,
+      required bool mustBeExhaustive}) {
     StaticType type = exhaustivenessCache.getStaticType(expressionType);
     List<Space> cases = [];
     PatternConverter patternConverter =
@@ -1120,16 +1128,31 @@ class ConstantsTransformer extends RemovingTransformer {
     }
     List<ExhaustivenessError> errors =
         reportErrors(exhaustivenessCache, type, cases);
+    List<ExhaustivenessError>? reportedErrors;
+    if (_exhaustivenessDataForTesting != null) {
+      reportedErrors = [];
+    }
     if (!useFallbackExhaustivenessAlgorithm) {
+      Library library = _staticTypeContext!.enclosingLibrary;
       for (ExhaustivenessError error in errors) {
         if (error is UnreachableCaseError) {
-          constantEvaluator.errorReporter.report(
+          if (library.importUri.isScheme('dart') &&
+              library.importUri.path == 'html') {
+            // TODO(51754): Remove this.
+            continue;
+          }
+          reportedErrors?.add(error);
+          // TODO(johnniwinther): Re-enable this, pending resolution on
+          // https://github.com/dart-lang/language/issues/2924
+          /*constantEvaluator.errorReporter.report(
               constantEvaluator.createLocatedMessageWithOffset(
                   node,
                   patternGuards[error.index].fileOffset,
-                  messageUnreachableSwitchCase));
-        } else if (error is NonExhaustiveError && !hasDefault) {
-          Library library = _staticTypeContext!.enclosingLibrary;
+                  messageUnreachableSwitchCase));*/
+        } else if (error is NonExhaustiveError &&
+            !hasDefault &&
+            mustBeExhaustive) {
+          reportedErrors?.add(error);
           constantEvaluator.errorReporter.report(
               constantEvaluator.createLocatedMessageWithOffset(
                   node,
@@ -1143,7 +1166,7 @@ class ConstantsTransformer extends RemovingTransformer {
       _exhaustivenessDataForTesting!.objectFieldLookup ??= exhaustivenessCache;
       _exhaustivenessDataForTesting!.switchResults[replacement] =
           new ExhaustivenessResult(type, cases,
-              patternGuards.map((c) => c.fileOffset).toList(), errors);
+              patternGuards.map((c) => c.fileOffset).toList(), reportedErrors!);
     }
   }
 
@@ -1467,7 +1490,9 @@ class ConstantsTransformer extends RemovingTransformer {
       patternGuards.add(switchCase.patternGuard);
     }
     _checkExhaustiveness(node, replacement, scrutineeType, patternGuards,
-        hasDefault: false, fileOffset: node.expression.fileOffset);
+        hasDefault: false,
+        mustBeExhaustive: true,
+        fileOffset: node.expression.fileOffset);
 
     // TODO(johnniwinther): Remove this work-around for the `libraryOf`
     //  function.

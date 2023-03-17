@@ -6,7 +6,7 @@
 
 import "dart:ffi";
 
-class C extends Struct {
+final class C extends Struct {
   dynamic x; //# 1: compile-time error
 
   external Pointer notEmpty;
