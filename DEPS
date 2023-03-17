@@ -149,7 +149,7 @@ vars = {
   "lints_rev": "dfded5e265015f21ce154577fe8488dc244e33c2",
   "logging_rev": "abef3717d958158eb8b0ddb2871f4b15a9804cd4",
   "markdown_rev": "ecbffa9bf9109d490b9388e9cb1f2bb801aee63c",
-  "matcher_rev": "c1a07043de3da4968e1736fcde1c521802821859",
+  "matcher_rev": "dc310d95663da10a90e7898cd4e322695f693d4f",
   "mime_rev": "1a51be02b3cbc742c79d83575bd096ae8c295c1f",
   "mockito_rev": "ed5bd84f7bd7b651c96fbd7f449e92984a902502",
   "package_config_rev": "74ac1cb90ad7f4f05bd92c952eaf9756c516fca3",
