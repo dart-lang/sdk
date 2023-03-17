@@ -1824,7 +1824,8 @@ class PatternSwitchStatement extends Statement implements SwitchStatement {
   /// Whether the switch has a `default` case.
   @override
   bool get hasDefault {
-    assert(cases.every((c) => c == cases.last || !c.isDefault));
+    // TODO(johnniwinther): Establish this, even for erroneous cases.
+    //assert(cases.every((c) => c == cases.last || !c.isDefault));
     return cases.isNotEmpty && cases.last.isDefault;
   }
 

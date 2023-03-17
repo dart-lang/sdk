@@ -402,6 +402,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         caseNodes: node.cases,
         mapPatternKeyValues: mapPatternKeyValues,
         constantPatternValues: constantPatternValues,
+        mustBeExhaustive: true,
       );
     });
   }
@@ -418,6 +419,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           caseNodes: node.members,
           mapPatternKeyValues: mapPatternKeyValues,
           constantPatternValues: constantPatternValues,
+          mustBeExhaustive:
+              _typeSystem.isAlwaysExhaustive(node.expression.typeOrThrow),
         );
       } else if (_currentLibrary.isNonNullableByDefault) {
         _validateSwitchStatement_nullSafety(node);
@@ -764,6 +767,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     required List<AstNode> caseNodes,
     required Map<Expression, DartObjectImpl> mapPatternKeyValues,
     required Map<ConstantPattern, DartObjectImpl> constantPatternValues,
+    required bool mustBeExhaustive,
   }) {
     final scrutineeType = scrutinee.typeOrThrow;
     final scrutineeTypeEx = _exhaustivenessCache.getStaticType(scrutineeType);
@@ -805,6 +809,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     // Compute and report errors.
     final errors =
         reportErrors(_exhaustivenessCache, scrutineeTypeEx, caseSpaces);
+    final reportNonExhaustive = mustBeExhaustive && !hasDefault;
     if (!useFallbackExhaustivenessAlgorithm) {
       for (final error in errors) {
         if (error is UnreachableCaseError) {
@@ -821,9 +826,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             HintCode.UNREACHABLE_SWITCH_CASE,
             errorToken,
           );
-        } else if (error is NonExhaustiveError &&
-            _typeSystem.isAlwaysExhaustive(scrutineeType) &&
-            !hasDefault) {
+        } else if (error is NonExhaustiveError && reportNonExhaustive) {
           _errorReporter.reportErrorForToken(
             CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
             switchKeyword,
@@ -845,7 +848,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         if (error is UnreachableCaseError) {
           exhaustivenessDataForTesting.errors[caseNodesWithSpace[error.index]] =
               error;
-        } else {
+        } else if (reportNonExhaustive) {
           exhaustivenessDataForTesting.errors[node] = error;
         }
       }

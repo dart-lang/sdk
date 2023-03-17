@@ -145,7 +145,6 @@ void nonExhaustiveSwitch4(Enum e) {
 
 void nonExhaustiveSwitchWithDefault(Enum e) {
   /*
-   error=non-exhaustive:Enum.a,
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */

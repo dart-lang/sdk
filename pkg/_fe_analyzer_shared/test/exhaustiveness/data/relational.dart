@@ -7,7 +7,7 @@ equals(o1, o2) {
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
-    == 0 /*space=??*/=> 0,
+    == 0 /*space=?*/=> 0,
     _ /*space=()*/=> 1
   };
 
@@ -16,7 +16,7 @@ equals(o1, o2) {
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
-    == 0 /*space=??*/=> 0,
+    == 0 /*space=?*/=> 0,
   };
 }
 
@@ -25,7 +25,7 @@ greaterThan(o1, o2) {
    subtypes={Object,Null},
    type=Object?
   */switch (o1) {
-    >= 0 /*space=??*/=> 0,
+    >= 0 /*space=?*/=> 0,
     _ /*space=()*/=> 1
   };
 
@@ -34,6 +34,6 @@ greaterThan(o1, o2) {
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
-    >= 0 /*space=??*/=> 0,
+    >= 0 /*space=?*/=> 0,
   };
 }

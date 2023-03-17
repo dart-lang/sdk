@@ -39,7 +39,7 @@ method(A a) {
    subtypes={B,C},
    type=A
   */switch (a) {
-    /*space=??*/case B(:var field) when field > 0:
+    /*space=?*/case B(:var field) when field > 0:
     /*space=C(field: int)*/case C(:var field):
   }
   /*
@@ -49,6 +49,6 @@ method(A a) {
    type=A
   */switch (a) {
     /*space=B(field: int)*/case B(:var field):
-    /*space=??*/case C(:var field) when field > 0:
+    /*space=?*/case C(:var field) when field > 0:
   }
 }

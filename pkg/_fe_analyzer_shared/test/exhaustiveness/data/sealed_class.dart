@@ -103,7 +103,6 @@ void nonExhaustiveSwitch3(A a) {
 
 void nonExhaustiveSwitchWithDefault(A a) {
   /*
-   error=non-exhaustive:C,
    subtypes={B,C,D},
    type=A
   */

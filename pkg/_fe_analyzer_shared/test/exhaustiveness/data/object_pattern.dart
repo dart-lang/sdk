@@ -115,7 +115,6 @@ void nonExhaustiveSwitch2(A r) {
 
 void nonExhaustiveSwitchWithDefault(A r) {
   /*
-   error=non-exhaustive:B(a: Enum.a, b: true),
    fields={a:Enum,b:bool},
    subtypes={B},
    type=A
