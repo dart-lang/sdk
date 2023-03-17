@@ -50,13 +50,15 @@ typedef enum {
   Dart_CObject_kArray,
   Dart_CObject_kTypedData,
   Dart_CObject_kExternalTypedData,
-  Dart_CObject_kUnmodifiableExternalTypedData,
   Dart_CObject_kSendPort,
   Dart_CObject_kCapability,
   Dart_CObject_kNativePointer,
   Dart_CObject_kUnsupported,
+  Dart_CObject_kUnmodifiableExternalTypedData,
   Dart_CObject_kNumberOfTypes
 } Dart_CObject_Type;
+// This enum is versioned by DART_API_DL_MAJOR_VERSION, only add at the end
+// and bump the DART_API_DL_MINOR_VERSION.
 
 typedef struct _Dart_CObject {
   Dart_CObject_Type type;
