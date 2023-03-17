@@ -54,7 +54,6 @@ class Tag {
   static const int FormalParameterList = 17;
   static const int FunctionDeclaration_getter = 57;
   static const int FunctionDeclaration_setter = 58;
-  static const int FunctionExpressionStub = 19;
   static const int FunctionExpressionInvocation = 93;
   static const int FunctionReference = 103;
   static const int FunctionTypedFormalParameter = 20;

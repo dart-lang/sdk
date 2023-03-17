@@ -32,21 +32,29 @@ import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ConstantEvaluationConfiguration {
-  /// During evaluation of enum constants we might need to report an error
-  /// that is associated with the [InstanceCreationExpression], but this
-  /// expression is synthetic. Instead, we remember the corresponding
-  /// [EnumConstantDeclaration] and report the error on it.
-  final Map<Expression, EnumConstantDeclaration> _enumConstants = {};
+  final Map<AstNode, AstNode> _errorNodes = {};
 
-  void addEnumConstant({
-    required EnumConstantDeclaration declaration,
-    required Expression initializer,
+  /// We evaluate constant values using expressions stored in elements.
+  /// But these expressions don't have offsets set.
+  /// This includes elements and expressions of the file being resolved.
+  /// So, to make sure that we report errors at right offsets, we "replace"
+  /// these constant expressions.
+  ///
+  /// A similar issue happens for enum values, which are desugared into
+  /// synthetic [InstanceCreationExpression], which never had any offsets.
+  /// So, we remember that any errors should be reported at the corresponding
+  /// [EnumConstantDeclaration]s.
+  void addErrorNode({
+    required AstNode? fromElement,
+    required AstNode? fromAst,
   }) {
-    _enumConstants[initializer] = declaration;
+    if (fromElement != null && fromAst != null) {
+      _errorNodes[fromElement] = fromAst;
+    }
   }
 
   AstNode errorNode(AstNode node) {
-    return _enumConstants[node] ?? node;
+    return _errorNodes[node] ?? node;
   }
 }
 
@@ -1418,7 +1426,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
     // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
     // error code.
-    _error(node, null);
+    final errorNode = evaluationEngine.configuration.errorNode(node);
+    _error(errorNode, null);
     return null;
   }
 

@@ -2070,7 +2070,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   /// The AST of the annotation itself, cloned from the resolved AST for the
   /// source code.
-  late Annotation annotationAst;
+  late AnnotationImpl annotationAst;
 
   /// The result of evaluating this annotation as a compile-time constant
   /// expression, or `null` if the compilation unit containing the variable has

@@ -15,6 +15,7 @@ import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:collection/collection.dart';
@@ -1801,6 +1802,15 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     if (element is ParameterElementImpl && identifier != null) {
       element.nameOffset = identifier.offset;
     }
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (isNotSerializableMarker(node)) {
+      return;
+    }
+
+    super.visitSimpleIdentifier(node);
   }
 
   void _applyToEnumConstantInitializer(ConstFieldElementImpl element) {
