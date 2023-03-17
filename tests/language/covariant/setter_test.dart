@@ -74,6 +74,12 @@ class H extends Object with E implements D<A> {}
 
 class I extends Object with F {}
 
+mixin class J {
+  void set m1(A x) {}
+}
+
+class K extends Object with J implements D<A> {}
+
 void testMixin() {
   D<Object> f = new F();
   f.m1 = new A();
@@ -85,6 +91,9 @@ void testMixin() {
   f.m1 = new A();
   Expect.throwsTypeError(() => f.m1 = new Object());
   f = new I();
+  f.m1 = new A();
+  Expect.throwsTypeError(() => f.m1 = new Object());
+  f = new K();
   f.m1 = new A();
   Expect.throwsTypeError(() => f.m1 = new Object());
 }
