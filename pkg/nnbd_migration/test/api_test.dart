@@ -1821,6 +1821,18 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_conditional_expression_futureOr() async {
+    var content = '''
+import 'dart:async';
+FutureOr<int> f(bool b, FutureOr<int>/*!*/ n) => b ? n : 0;
+''';
+    var expected = '''
+import 'dart:async';
+FutureOr<int> f(bool b, FutureOr<int> n) => b ? n : 0;
+''';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
+  }
+
   Future<void> test_conditional_expression_guard_subexpression() async {
     var content = '''
 void f(String s, int x, int/*?*/ n) {
