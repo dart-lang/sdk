@@ -10,6 +10,7 @@ void main() {
   testDefaults();
   testOptions();
   testValidation();
+  testSelectors();
 }
 
 void testDefaults() {
@@ -91,6 +92,48 @@ void testValidation() {
   // Don't allow invalid named configurations.
   expectValidationError(['-ninvalid-vm-android-simarm'],
       'The named configuration "invalid-vm-android-simarm" is invalid.');
+}
+
+void testSelectors() {
+  // Legacy suites.
+  for (var arguments in [
+    <String>[],
+    ['-nvm-legacy']
+  ]) {
+    var configuration = parseConfiguration(arguments);
+    Expect.setEquals({
+      'standalone_2',
+      'corelib_2',
+      'language_2',
+      'vm',
+      'utils',
+      'lib_2',
+      'service_2',
+      'kernel',
+      'observatory_ui_2',
+      'ffi_2',
+    }, configuration.selectors.keys, "suites for $arguments");
+  }
+
+  // Default null safe suites.
+  for (var arguments in [
+    ['--nnbd=strong'],
+    ['-nvm-strong']
+  ]) {
+    var configuration = parseConfiguration(arguments);
+    Expect.setEquals({
+      'samples',
+      'standalone',
+      'corelib',
+      'language',
+      'vm',
+      'utils',
+      'lib',
+      'service',
+      'kernel',
+      'ffi',
+    }, configuration.selectors.keys, "suites for $arguments");
+  }
 }
 
 TestConfiguration parseConfiguration(List<String> arguments) {

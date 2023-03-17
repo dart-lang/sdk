@@ -15,20 +15,30 @@ import 'repository.dart';
 import 'test_configurations.dart';
 import 'utils.dart';
 
-const _defaultTestSelectors = [
-  'samples',
-  'standalone_2',
+const _legacyTestSelectors = [
   'corelib_2',
+  'ffi_2',
   'language_2',
-  'vm',
-  'benchmark_smoke',
-  'utils',
   'lib_2',
-  'analyze_library',
-  'service_2',
   'kernel',
   'observatory_ui_2',
-  'ffi_2'
+  'service_2',
+  'standalone_2',
+  'utils',
+  'vm',
+];
+
+const _defaultTestSelectors = [
+  'corelib',
+  'ffi',
+  'kernel',
+  'language',
+  'lib',
+  'samples',
+  'service',
+  'standalone',
+  'utils',
+  'vm',
 ];
 
 extension _IntOption on ArgParser {
@@ -534,7 +544,7 @@ has been specified on the command line.''')
       options['test-list-contents'] = LineSplitter.split(tests).toList();
     }
 
-    return _createConfigurations(options);
+    return _expandConfigurations(options);
   }
 
   /// Given a set of parsed option values, returns the list of command line
@@ -577,48 +587,9 @@ has been specified on the command line.''')
     return arguments;
   }
 
-  List<TestConfiguration> _createConfigurations(
-      Map<String, dynamic> configuration) {
-    var selectors = _expandSelectors(configuration);
-
-    // Put observatory_ui in a configuration with its own packages override.
-    // Only one value in the configuration map is mutable:
-    if (selectors.containsKey('observatory_ui')) {
-      if (selectors.length == 1) {
-        configuration['packages'] = Repository.uri
-            .resolve('.dart_tool/package_config.json')
-            .toFilePath();
-      } else {
-        // Make a new configuration whose selectors map only contains
-        // observatory_ui, and remove observatory_ui from the original
-        // selectors. The only mutable value in the map is the selectors, so a
-        // shallow copy is safe.
-        var observatoryConfiguration = Map<String, dynamic>.from(configuration);
-        var observatorySelectors = {
-          'observatory_ui': selectors['observatory_ui']
-        };
-        selectors.remove('observatory_ui');
-
-        // Set the packages flag.
-        observatoryConfiguration['packages'] = Repository.uri
-            .resolve('.dart_tool/package_config.json')
-            .toFilePath();
-
-        return [
-          ..._expandConfigurations(configuration, selectors),
-          ..._expandConfigurations(
-              observatoryConfiguration, observatorySelectors)
-        ];
-      }
-    }
-
-    return _expandConfigurations(configuration, selectors);
-  }
-
   /// Recursively expands a configuration with multiple values per key into a
   /// list of configurations with exactly one value per key.
-  List<TestConfiguration> _expandConfigurations(
-      Map<String, dynamic> data, Map<String, RegExp?> selectors) {
+  List<TestConfiguration> _expandConfigurations(Map<String, dynamic> data) {
     var result = <TestConfiguration>[];
 
     // Handles a string option containing a space-separated list of words.
@@ -681,7 +652,7 @@ has been specified on the command line.''')
       var configuration = TestConfiguration(
           configuration: innerConfiguration,
           progress: progress,
-          selectors: selectors,
+          selectors: _expandSelectors(data, innerConfiguration.nnbdMode),
           build: data["build"] as bool,
           testList: data["test-list-contents"] as List<String>?,
           repeat: int.parse(data["repeat"] as String),
@@ -843,7 +814,8 @@ has been specified on the command line.''')
   /// expression to be used on the full path of a test file in that test suite.
   ///
   /// If no selectors are explicitly given, uses the default suite patterns.
-  Map<String, RegExp> _expandSelectors(Map<String, dynamic> configuration) {
+  Map<String, RegExp> _expandSelectors(
+      Map<String, dynamic> configuration, NnbdMode nnbdMode) {
     var selectors = configuration['selectors'] as List<String>?;
 
     if (selectors == null || selectors.isEmpty) {
@@ -856,7 +828,11 @@ has been specified on the command line.''')
             .toSet()
             .toList();
       } else {
-        selectors = _defaultTestSelectors.toList();
+        if (nnbdMode == NnbdMode.legacy) {
+          selectors = _legacyTestSelectors.toList();
+        } else {
+          selectors = _defaultTestSelectors.toList();
+        }
       }
 
       var excludeSuites = configuration['exclude-suite'] != null
