@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 // ignore: implementation_imports
@@ -118,8 +119,8 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   _DeprecatedMemberUseVerifier(this._rule, this._workspacePackage);
 
   @override
-  void reportError(
-      AstNode errorNode, Element element, String displayName, String? message) {
+  void reportError(SyntacticEntity errorEntity, Element element,
+      String displayName, String? message) {
     var library = element is LibraryElement ? element : element.library;
     if (library == null || !_workspacePackage.contains(library.source)) {
       // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.
@@ -130,8 +131,9 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
     if (normalizedMessage == null ||
         normalizedMessage.isEmpty ||
         normalizedMessage == '.') {
-      _rule.reportLint(
-        errorNode,
+      _rule.reportLintForOffset(
+        errorEntity.offset,
+        errorEntity.length,
         arguments: [displayName],
         errorCode: DeprecatedMemberUseFromSamePackage.code,
       );
@@ -141,8 +143,9 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
           !normalizedMessage.endsWith('!')) {
         normalizedMessage = '$message.';
       }
-      _rule.reportLint(
-        errorNode,
+      _rule.reportLintForOffset(
+        errorEntity.offset,
+        errorEntity.length,
         arguments: [displayName, normalizedMessage],
         errorCode: DeprecatedMemberUseFromSamePackage.codeWithMessage,
       );
