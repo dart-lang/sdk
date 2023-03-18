@@ -2222,9 +2222,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     // Add field getters, which are called only from dynamic getter invocations.
 
     for (int i = 0; i < shape.fieldCount; i++) {
-      String name = i < shape.positionalFieldCount
-          ? '\$${i + 1}'
-          : shape.fieldNames[i - shape.positionalFieldCount];
+      String name = shape.getterNameOfIndex(i);
       Name memberName = Name(name, null);
       final getter = JRecordGetter(classEntity, memberName);
       getters.add(getter);

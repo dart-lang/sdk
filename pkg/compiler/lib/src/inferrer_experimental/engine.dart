@@ -99,8 +99,8 @@ class InferrerEngine {
 
   /// Data computed internally within elements, like the type-mask of a send a
   /// list allocation, or a for-in loop.
-  final Map<MemberEntity, GlobalTypeInferenceElementData> _memberData =
-      Map<MemberEntity, GlobalTypeInferenceElementData>();
+  final Map<MemberEntity, KernelGlobalTypeInferenceElementData> _memberData =
+      Map<MemberEntity, KernelGlobalTypeInferenceElementData>();
 
   ElementEnvironment get _elementEnvironment => closedWorld.elementEnvironment;
 
@@ -147,7 +147,7 @@ class InferrerEngine {
   }
 
   // TODO(johnniwinther): Make this private again.
-  GlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
+  KernelGlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
       _memberData[element] ??= KernelGlobalTypeInferenceElementData();
 
   /// Update [sideEffects] with the side effects of [callee] being
@@ -224,7 +224,7 @@ class InferrerEngine {
 
   void updateSelectorInMember(MemberEntity owner, CallType callType,
       ir.TreeNode node, Selector? selector, AbstractValue? mask) {
-    final data = dataOfMember(owner) as KernelGlobalTypeInferenceElementData;
+    final data = dataOfMember(owner);
     assert(validCallType(callType, node));
     switch (callType) {
       case CallType.access:
@@ -768,6 +768,7 @@ class InferrerEngine {
     _workQueue.addAll(types.allocatedTypes);
     _workQueue.addAll(types.allocatedClosures);
     _workQueue.addAll(types.allocatedCalls);
+    _workQueue.addAll(types.allocatedRecords.values);
   }
 
   /// Update the inputs to parameters in the graph. [remove] tells whether

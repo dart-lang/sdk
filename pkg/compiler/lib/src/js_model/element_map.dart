@@ -189,6 +189,10 @@ abstract class KernelToTypeInferenceMap {
   AbstractValue typeOfListLiteral(
       ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain);
 
+  /// Returns the inferred type of [recordLiteral].
+  AbstractValue? typeOfRecordLiteral(
+      ir.RecordLiteral recordLiteral, AbstractValueDomain abstractValueDomain);
+
   /// Returns the inferred type of iterator in [forInStatement].
   AbstractValue? typeOfIterator(ir.ForInStatement forInStatement);
 

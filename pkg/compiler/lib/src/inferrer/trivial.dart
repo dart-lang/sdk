@@ -10,6 +10,7 @@ import '../ir/class_relation.dart';
 import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
 import '../universe/member_hierarchy.dart';
+import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';
@@ -126,6 +127,21 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
 
   @override
   bool isDictionary(AbstractValue value) => false;
+
+  @override
+  AbstractValue createRecordValue(
+          RecordShape shape, List<AbstractValue> types) =>
+      const TrivialAbstractValue();
+
+  @override
+  bool isRecord(AbstractValue value) => false;
+
+  @override
+  bool recordHasGetter(AbstractValue value, String getterName) => false;
+
+  @override
+  AbstractValue getGetterTypeInRecord(AbstractValue value, String getterName) =>
+      TrivialAbstractValue();
 
   @override
   AbstractValue getMapValueType(AbstractValue value) {

@@ -10,6 +10,7 @@ import '../ir/class_relation.dart';
 import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
 import '../universe/member_hierarchy.dart';
+import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';
@@ -180,6 +181,32 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
   @override
   bool isDictionary(covariant WrappedAbstractValue value) =>
       _abstractValueDomain.isDictionary(value._abstractValue);
+
+  @override
+  AbstractValue createRecordValue(
+      RecordShape shape, List<AbstractValue> types) {
+    AbstractValue abstractValue = _abstractValueDomain.createRecordValue(
+        shape,
+        types
+            .map((e) => (e as WrappedAbstractValue)._abstractValue)
+            .toList(growable: false));
+    return WrappedAbstractValue(abstractValue);
+  }
+
+  @override
+  bool isRecord(covariant WrappedAbstractValue value) =>
+      _abstractValueDomain.isRecord(value._abstractValue);
+
+  @override
+  bool recordHasGetter(
+          covariant WrappedAbstractValue value, String getterName) =>
+      _abstractValueDomain.recordHasGetter(value._abstractValue, getterName);
+
+  @override
+  AbstractValue getGetterTypeInRecord(
+          covariant WrappedAbstractValue value, String getterName) =>
+      WrappedAbstractValue(_abstractValueDomain.getGetterTypeInRecord(
+          value._abstractValue, getterName));
 
   @override
   AbstractValue getMapValueType(covariant WrappedAbstractValue value) =>

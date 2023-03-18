@@ -606,6 +606,18 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
+  void visitRecordIndexGet(RecordIndexGet node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitRecordIndexGet(node);
+  }
+
+  @override
+  void visitRecordNameGet(RecordNameGet node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitRecordNameGet(node);
+  }
+
+  @override
   void visitInvalidExpression(InvalidExpression node) {
     // Invalid expressions produced in the constant evaluator don't have a
     // file offset.

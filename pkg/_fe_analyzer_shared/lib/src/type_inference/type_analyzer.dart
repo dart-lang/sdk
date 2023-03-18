@@ -359,7 +359,8 @@ mixin TypeAnalyzer<
     Type matchedType = flow.getMatchedValueType();
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
-        !operations.isAssignableTo(matchedType, variableDeclaredType)) {
+        !operations.isDynamic(matchedType) &&
+        !operations.isSubtypeOf(matchedType, variableDeclaredType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
               pattern: node,
@@ -512,7 +513,8 @@ mixin TypeAnalyzer<
     Node? irrefutableContext = context.irrefutableContext;
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
-        !operations.isAssignableTo(matchedType, staticType)) {
+        !operations.isDynamic(matchedType) &&
+        !operations.isSubtypeOf(matchedType, staticType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
               pattern: node,

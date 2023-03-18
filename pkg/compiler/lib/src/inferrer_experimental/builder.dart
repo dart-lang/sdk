@@ -27,6 +27,7 @@ import '../js_model/js_world.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../universe/member_hierarchy.dart';
+import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../util/util.dart';
@@ -748,9 +749,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   TypeInformation createRecordTypeInformation(
       ir.TreeNode node, RecordType recordType, List<TypeInformation> fieldTypes,
       {required bool isConst}) {
-    return _inferrer.concreteTypes.putIfAbsent(node, () {
-      return _types.allocateRecord(node, recordType, fieldTypes, isConst);
-    });
+    return _types.allocateRecord(node, recordType, fieldTypes, isConst);
   }
 
   @override
@@ -1714,28 +1713,26 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   }
 
   TypeInformation _handleRecordFieldGet(
-      ir.Expression node, ir.Expression receiver, int indexInShape) {
-    visit(receiver)!;
-    _typeOfReceiver(node, receiver);
-    // TODO(49718): Add a new TypeInformation node for a direct Record field
-    // access.
-    // For now, use the static type.
-    // TODO(50081): Use `_types.getConcreteTypeFor(<something>)`.
-    TypeInformation type = _types.dynamicType;
-    type = _types.narrowType(type, _getStaticType(node));
-    return type;
+      ir.Expression node, ir.Expression receiver, String fieldName) {
+    final receiverType = visit(receiver)!;
+    final staticType = _getStaticType(node);
+    final staticTypeMask = _closedWorld.abstractValueDomain
+        .createFromStaticType(staticType, nullable: true)
+        .abstractValue;
+    (_memberData as KernelGlobalTypeInferenceElementData)
+        .setReceiverTypeMask(node, staticTypeMask);
+    return _types.allocateRecordFieldGet(node, fieldName, receiverType);
   }
 
   @override
   TypeInformation visitRecordIndexGet(ir.RecordIndexGet node) {
-    return _handleRecordFieldGet(node, node.receiver, node.index);
+    return _handleRecordFieldGet(node, node.receiver,
+        RecordShape.positionalFieldIndexToGetterName(node.index));
   }
 
   @override
   TypeInformation visitRecordNameGet(ir.RecordNameGet node) {
-    int index =
-        indexOfNameInRecordShapeOfRecordType(node.receiverType, node.name);
-    return _handleRecordFieldGet(node, node.receiver, index);
+    return _handleRecordFieldGet(node, node.receiver, node.name);
   }
 
   @override

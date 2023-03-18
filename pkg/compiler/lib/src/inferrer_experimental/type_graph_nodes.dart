@@ -1343,6 +1343,11 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
                 "${abstractValueDomain.getMapValueType(typeMask)}.");
           }
           return abstractValueDomain.getMapValueType(typeMask);
+        } else if (typeMask != null &&
+            localSelector.isGetter &&
+            abstractValueDomain.recordHasGetter(typeMask, localSelector.name)) {
+          return abstractValueDomain.getGetterTypeInRecord(
+              typeMask, localSelector.name);
         } else {
           final info =
               handleIntrinsifiedSelector(localSelector, typeMask, inferrer);
@@ -2008,10 +2013,12 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
 
 /// A [RecordTypeInformation] is the constructor for a record, used for Record
 /// constants and literals.
-class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
+class RecordTypeInformation extends TypeInformation {
   final RecordShape recordShape;
   final AbstractValue originalType;
-  final List<FieldInRecordTypeInformation> fieldTypes;
+
+  final List<TypeInformation> fieldTypes;
+
   RecordTypeInformation(MemberTypeInformation? context, this.originalType,
       this.recordShape, this.fieldTypes)
       : super(originalType, context) {
@@ -2021,18 +2028,18 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
   }
 
   @override
-  addInput(TypeInformation other) {
+  void addInput(TypeInformation other) {
     throw UnsupportedError('addInput');
   }
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  void accept(TypeInformationVisitor visitor) {
     return visitor.visitRecordTypeInformation(this);
   }
 
   AbstractValue toTypeMask(InferrerEngine inferrer) {
-    AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
-    return abstractValueDomain.recordType;
+    return inferrer.abstractValueDomain.createRecordValue(
+        recordShape, fieldTypes.map((e) => e.type).toList(growable: false));
   }
 
   @override
@@ -2043,6 +2050,7 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
   @override
   // TODO(50701): This could be a top type of the record shape.
   AbstractValue safeType(InferrerEngine inferrer) => originalType;
+
   @override
   bool hasStableType(InferrerEngine inferrer) {
     return fieldTypes.every((type) => type.hasStableType(inferrer)) &&
@@ -2055,37 +2063,49 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
     for (final fieldType in fieldTypes) {
       fieldType.cleanup();
     }
-    _flowsInto = null;
   }
 
   @override
   String toString() {
-    return 'Record $type $fieldTypes';
+    return 'Record $type';
   }
 }
 
-/// A [FieldInRecordTypeInformation] holds the input of one position of a
-/// [RecordTypeInformation].
-class FieldInRecordTypeInformation extends TypeInformation {
-  final int indexInShape;
-  final TypeInformation parentType;
-  FieldInRecordTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, this.indexInShape, this.parentType)
-      : super(abstractValueDomain.uncomputedType, context) {
-    parentType.addUser(this);
+/// A [RecordFieldAccessTypeInformation] is a lookup of a specific field in a
+/// record when we know the receiver is itself a record. If the receiver cannot
+/// statically be typed as a record then lookups will be dynamic calls handled
+/// via [DynamicCallSiteTypeInformation].
+class RecordFieldAccessTypeInformation extends TypeInformation {
+  final String getterName;
+  final TypeInformation receiver;
+  final ir.TreeNode node;
+
+  RecordFieldAccessTypeInformation(AbstractValueDomain domain, this.getterName,
+      this.node, this.receiver, MemberTypeInformation? context)
+      : super(domain.uncomputedType, context) {
+    receiver.addUser(this);
   }
 
   @override
   accept(TypeInformationVisitor visitor) {
-    return visitor.visitFieldInRecordTypeInformation(this);
+    return visitor.visitRecordFieldAccessTypeInformation(this);
   }
 
   @override
-  String toString() => 'Field in Record $type';
+  String toString() {
+    return 'RecordFieldAccess($type, $getterName)';
+  }
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
-    return parentType.type;
+    final recordType = receiver.type;
+    if (!inferrer.abstractValueDomain.isRecord(recordType)) {
+      return safeType(inferrer);
+    }
+    final getterType = inferrer.abstractValueDomain
+        .getGetterTypeInRecord(recordType, getterName);
+    inferrer.dataOfMember(contextMember!).setReceiverTypeMask(node, recordType);
+    return getterType;
   }
 }
 
@@ -2246,7 +2266,8 @@ abstract class TypeInformationVisitor<T> {
   T visitElementInSetTypeInformation(ElementInSetTypeInformation info);
   T visitKeyInMapTypeInformation(KeyInMapTypeInformation info);
   T visitValueInMapTypeInformation(ValueInMapTypeInformation info);
-  T visitFieldInRecordTypeInformation(FieldInRecordTypeInformation info);
+  T visitRecordFieldAccessTypeInformation(
+      RecordFieldAccessTypeInformation info);
   T visitListTypeInformation(ListTypeInformation info);
   T visitSetTypeInformation(SetTypeInformation info);
   T visitMapTypeInformation(MapTypeInformation info);

@@ -591,6 +591,12 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
+  AbstractValue? typeOfRecordLiteral(
+      ir.RecordLiteral recordLiteral, AbstractValueDomain abstractValueDomain) {
+    return _globalInferenceResults.typeOfRecordLiteral(recordLiteral);
+  }
+
+  @override
   AbstractValue? typeOfIterator(ir.ForInStatement node) {
     return _targetResults.typeOfIterator(node);
   }

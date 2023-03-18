@@ -3508,16 +3508,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       inputs = [pop()];
     }
 
-    AbstractValue type = _abstractValueDomain.createNonNullExact(recordClass);
+    AbstractValue type =
+        _typeInferenceMap.typeOfRecordLiteral(node, _abstractValueDomain) ??
+            _abstractValueDomain
+                .createFromStaticType(dartType, nullable: true)
+                .abstractValue;
 
     final allocation = HCreate(recordClass, inputs, type, sourceInformation);
 
     // TODO(50701): With traced record types there might be a better type.
-    //     AbstractValue type =
-    //        _typeInferenceMap.typeOfRecordLiteral(node, _abstractValueDomain);
-    //     if (_abstractValueDomain.containsAll(type).isDefinitelyFalse) {
-    //       allocation.instructionType = type;
-    //     }
+
     push(allocation);
   }
 
@@ -3530,7 +3530,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   @override
   void visitRecordNameGet(ir.RecordNameGet node) {
     final shape = recordShapeOfRecordType(node.receiverType);
-    int index = shape.indexOfName(node.name);
+    int index = shape.indexOfFieldName(node.name);
     return _handleRecordFieldGet(node, node.receiver, shape, index);
   }
 
@@ -3542,20 +3542,18 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     SourceInformation? sourceInformation =
         _sourceInformationBuilder.buildGet(node);
 
-    // TODO(50701): Type inference should improve on the static type.
-    //     AbstractValue type =
-    //         _typeInferenceMap.typeOfRecordGet(node, _abstractValueDomain);
-    StaticType staticType = _getStaticType(node);
-    AbstractValue type = _abstractValueDomain
-        .createFromStaticType(staticType.type,
-            classRelation: staticType.relation, nullable: true)
-        .abstractValue;
-
     if (_recordData.representationForShape(shape) != null) {
+      final recordType = _typeInferenceMap.receiverTypeOfGet(node) ??
+          _abstractValueDomain
+              .createFromStaticType(_getStaticType(node).type, nullable: true)
+              .abstractValue;
+      final fieldType = _abstractValueDomain.getGetterTypeInRecord(
+          recordType, shape.getterNameOfIndex(indexInShape));
+
       final path = _recordData.pathForAccess(shape, indexInShape);
       if (path.index == null) {
         HFieldGet fieldGet = HFieldGet(
-            path.field, receiver, type, sourceInformation,
+            path.field, receiver, fieldType, sourceInformation,
             isAssignable: false);
         push(fieldGet);
       } else {
@@ -3565,7 +3563,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         push(fieldGet);
         final list = pop();
         push(HIndex(
-            list, graph.addConstantInt(indexInShape, closedWorld), type));
+            list, graph.addConstantInt(indexInShape, closedWorld), fieldType));
       }
     } else {
       // There are no records with this shape, so the path here must be
@@ -6215,6 +6213,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           return false;
         }
       }
+
+      // Record getters are synthetic and have no bodies so we cannot inline
+      // them at this point.
+      if (function is JRecordGetter) return false;
 
       return true;
     }

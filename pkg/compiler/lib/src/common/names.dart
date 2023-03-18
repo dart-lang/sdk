@@ -176,6 +176,14 @@ class Selectors {
     index,
     runtimeType_
   ];
+
+  static final List<Selector> objectSelectors = <Selector>[
+    toStringGetter,
+    toString_,
+    hashCode_,
+    equals,
+    runtimeType_
+  ];
 }
 
 /// [Uri]s commonly used.
