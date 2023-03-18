@@ -23,16 +23,6 @@ main() {
   // [cfe] The matched value of type 'int' isn't assignable to the required type 'double'.
 
   // Non-exhaustive since double case doesn't cover uncoerced int type.
-  switch (123) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type 'int' is not exhaustively matched by the switch cases.
-    case double d:
-      Expect.fail('Should not have matched.');
-  }
-
-  // Non-exhaustive since double case doesn't cover uncoerced int type.
   var result = switch (123) {
     //         ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
