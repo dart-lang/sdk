@@ -208,7 +208,7 @@ void f(Null x) {
   x!;
 }
 ''', [
-      error(HintCode.NULL_CHECK_ALWAYS_FAILS, 19, 2),
+      error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 19, 2),
     ]);
 
     assertType(findNode.postfix('x!'), 'Never');

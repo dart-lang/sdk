@@ -811,7 +811,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _deprecatedVerifier.postfixExpression(node);
     if (node.operator.type == TokenType.BANG &&
         node.operand.typeOrThrow.isDartCoreNull) {
-      _errorReporter.reportErrorForNode(HintCode.NULL_CHECK_ALWAYS_FAILS, node);
+      _errorReporter.reportErrorForNode(
+          WarningCode.NULL_CHECK_ALWAYS_FAILS, node);
     }
     super.visitPostfixExpression(node);
   }
@@ -1344,9 +1345,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (constructorName.name != null) {
         fullConstructorName = '$fullConstructorName.${constructorName.name}';
       }
-      HintCode hint = node.keyword?.keyword == Keyword.NEW
-          ? HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW
-          : HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
+      var hint = node.keyword?.keyword == Keyword.NEW
+          ? WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW
+          : WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
       _errorReporter.reportErrorForNode(hint, node, [fullConstructorName]);
     }
   }

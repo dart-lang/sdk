@@ -6453,9 +6453,33 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
-  static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR =
-      HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
+  ///  Generate a hint for non-const instance creation using a constructor
+  ///  annotated with `@literal`.
+  ///
+  ///  Parameters:
+  ///  0: the name of the class defining the annotated constructor
+  static const WarningCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR = WarningCode(
+    'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+    "This instance creation must be 'const', because the {0} constructor is "
+        "marked as '@literal'.",
+    correctionMessage: "Try adding a 'const' keyword.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Generate a hint for non-const instance creation (with the `new` keyword)
+  ///  using a constructor annotated with `@literal`.
+  ///
+  ///  Parameters:
+  ///  0: the name of the class defining the annotated constructor
+  static const WarningCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW =
+      WarningCode(
+    'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+    "This instance creation must be 'const', because the {0} constructor is "
+        "marked as '@literal'.",
+    correctionMessage: "Try replacing the 'new' keyword with 'const'.",
+    hasPublishedDocs: true,
+    uniqueName: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
+  );
 
   ///  No parameters.
   static const WarningCode NULLABLE_TYPE_IN_CATCH_CLAUSE = WarningCode(
@@ -6501,6 +6525,14 @@ class WarningCode extends AnalyzerErrorCode {
     'NULL_AWARE_IN_LOGICAL_OPERATOR',
     "The value of the '?.' operator can be 'null', which isn't appropriate as "
         "an operand of a logical operator.",
+  );
+
+  ///  No parameters.
+  static const WarningCode NULL_CHECK_ALWAYS_FAILS = WarningCode(
+    'NULL_CHECK_ALWAYS_FAILS',
+    "This null-check will always throw an exception because the expression "
+        "will always evaluate to 'null'.",
+    hasPublishedDocs: true,
   );
 
   ///  A field with the override annotation does not override a getter or setter.
@@ -6775,6 +6807,19 @@ class WarningCode extends AnalyzerErrorCode {
         "earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
+  );
+
+  ///  When "strict-raw-types" is enabled, "raw types" must have type arguments.
+  ///
+  ///  A "raw type" is a type name that does not use inference to fill in missing
+  ///  type arguments; instead, each type argument is instantiated to its bound.
+  ///
+  ///  Parameters:
+  ///  0: the name of the generic type
+  static const WarningCode STRICT_RAW_TYPE = WarningCode(
+    'STRICT_RAW_TYPE',
+    "The generic type '{0}' should have explicit type arguments but doesn't.",
+    correctionMessage: "Use explicit type arguments for '{0}'.",
   );
 
   ///  Parameters:

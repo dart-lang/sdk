@@ -1425,25 +1425,6 @@ HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
   status: noFix
   notes: Deprecated
-HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    The fix is to add `const` before the constructor invocation.
-HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
-  status: needsFix
-  notes: |-
-    The fix is to replace `new` with `const`.
-HintCode.NULL_CHECK_ALWAYS_FAILS:
-  status: needsFix
-  notes: |-
-    Remove the null check.
-HintCode.STRICT_RAW_TYPE:
-  status: needsFix
-  notes: |-
-    One fix would be to add an explicit `<dynamic>`, but we can also provide
-    more helpful fixes that pretend inference works the way the user may
-    have thought it did. For example in: `List a = <int>[];`, we can add
-    `<int>` after `List`.
 HintCode.UNIGNORABLE_IGNORE:
   status: needsFix
   notes: |-
@@ -2742,6 +2723,14 @@ WarningCode.MUST_BE_IMMUTABLE:
   status: noFix
 WarningCode.MUST_CALL_SUPER:
   status: hasFix
+WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
+  status: needsFix
+  notes: |-
+    The fix is to add `const` before the constructor invocation.
+WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
+  status: needsFix
+  notes: |-
+    The fix is to replace `new` with `const`.
 WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
   status: hasFix
 WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:
@@ -2753,6 +2742,10 @@ WarningCode.NULL_AWARE_IN_CONDITION:
   status: noFix
 WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR:
   status: noFix
+WarningCode.NULL_CHECK_ALWAYS_FAILS:
+  status: needsFix
+  notes: |-
+    Remove the null check.
 WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
   status: hasFix
 WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
@@ -2808,6 +2801,13 @@ WarningCode.SDK_VERSION_UI_AS_CODE:
 WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
   status: noFix
   notes: Deprecated
+WarningCode.STRICT_RAW_TYPE:
+  status: needsFix
+  notes: |-
+    One fix would be to add an explicit `<dynamic>`, but we can also provide
+    more helpful fixes that pretend inference works the way the user may
+    have thought it did. For example in: `List a = <int>[];`, we can add
+    `<int>` after `List`.
 WarningCode.SUBTYPE_OF_SEALED_CLASS:
   status: needsFix
   notes: |-

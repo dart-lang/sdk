@@ -18307,116 +18307,6 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
-  NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
-    sharedName: NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
-    problemMessage: "This instance creation must be 'const', because the {0} constructor is marked as '@literal'."
-    correctionMessage: "Try replacing the 'new' keyword with 'const'."
-    hasPublishedDocs: true
-    comment: |-
-      Generate a hint for non-const instance creation (with the `new` keyword)
-      using a constructor annotated with `@literal`.
-
-      Parameters:
-      0: the name of the class defining the annotated constructor
-  NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
-    problemMessage: "This instance creation must be 'const', because the {0} constructor is marked as '@literal'."
-    correctionMessage: "Try adding a 'const' keyword."
-    hasPublishedDocs: true
-    comment: |-
-      Generate a hint for non-const instance creation using a constructor
-      annotated with `@literal`.
-
-      Parameters:
-      0: the name of the class defining the annotated constructor
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a constructor that has the
-      `[literal][meta-literal]` annotation is invoked without using the `const`
-      keyword, but all of the arguments to the constructor are constants. The
-      annotation indicates that the constructor should be used to create a
-      constant value whenever possible.
-
-      #### Example
-
-      The following code produces this diagnostic:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        @literal
-        const C();
-      }
-
-      C f() => [!C()!];
-      ```
-
-      #### Common fixes
-
-      Add the keyword `const` before the constructor invocation:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class C {
-        @literal
-        const C();
-      }
-
-      void f() => const C();
-      ```
-  NULL_CHECK_ALWAYS_FAILS:
-    problemMessage: "This null-check will always throw an exception because the expression will always evaluate to 'null'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the null check operator (`!`)
-      is used on an expression whose value can only be `null`. In such a case
-      the operator always throws an exception, which likely isn't the intended
-      behavior.
-
-      #### Example
-
-      The following code produces this diagnostic because the function `g` will
-      always return `null`, which means that the null check in `f` will always
-      throw:
-
-      ```dart
-      void f() {
-        [!g()!!];
-      }
-
-      Null g() => null;
-      ```
-
-      #### Common fixes
-
-      If you intend to always throw an exception, then replace the null check
-      with an explicit `throw` expression to make the intent more clear:
-
-      ```dart
-      void f() {
-        g();
-        throw TypeError();
-      }
-
-      Null g() => null;
-      ```
-  STRICT_RAW_TYPE:
-    problemMessage: "The generic type '{0}' should have explicit type arguments but doesn't."
-    correctionMessage: "Use explicit type arguments for '{0}'."
-    comment: |-
-      When "strict-raw-types" is enabled, "raw types" must have type arguments.
-
-      A "raw type" is a type name that does not use inference to fill in missing
-      type arguments; instead, each type argument is instantiated to its bound.
-
-      Parameters:
-      0: the name of the generic type
   UNIGNORABLE_IGNORE:
     problemMessage: "The diagnostic '{0}' can't be ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
@@ -22014,9 +21904,65 @@ WarningCode:
         }
       }
       ```
+  NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
+    sharedName: NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
+    problemMessage: "This instance creation must be 'const', because the {0} constructor is marked as '@literal'."
+    correctionMessage: "Try replacing the 'new' keyword with 'const'."
+    hasPublishedDocs: true
+    comment: |-
+      Generate a hint for non-const instance creation (with the `new` keyword)
+      using a constructor annotated with `@literal`.
+
+      Parameters:
+      0: the name of the class defining the annotated constructor
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
-    aliasFor: HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
-    comment: This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
+    problemMessage: "This instance creation must be 'const', because the {0} constructor is marked as '@literal'."
+    correctionMessage: "Try adding a 'const' keyword."
+    hasPublishedDocs: true
+    comment: |-
+      Generate a hint for non-const instance creation using a constructor
+      annotated with `@literal`.
+
+      Parameters:
+      0: the name of the class defining the annotated constructor
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a constructor that has the
+      `[literal][meta-literal]` annotation is invoked without using the `const`
+      keyword, but all of the arguments to the constructor are constants. The
+      annotation indicates that the constructor should be used to create a
+      constant value whenever possible.
+
+      #### Example
+
+      The following code produces this diagnostic:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        @literal
+        const C();
+      }
+
+      C f() => [!C()!];
+      ```
+
+      #### Common fixes
+
+      Add the keyword `const` before the constructor invocation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        @literal
+        const C();
+      }
+
+      void f() => const C();
+      ```
   NULLABLE_TYPE_IN_CATCH_CLAUSE:
     problemMessage: "A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression."
     correctionMessage: Try using a non-nullable type.
@@ -22110,6 +22056,46 @@ WarningCode:
     comment: |-
       A condition in operands of a logical operator could evaluate to `null`
       because it uses the null-aware '?.' operator.
+  NULL_CHECK_ALWAYS_FAILS:
+    problemMessage: "This null-check will always throw an exception because the expression will always evaluate to 'null'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the null check operator (`!`)
+      is used on an expression whose value can only be `null`. In such a case
+      the operator always throws an exception, which likely isn't the intended
+      behavior.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `g` will
+      always return `null`, which means that the null check in `f` will always
+      throw:
+
+      ```dart
+      void f() {
+        [!g()!!];
+      }
+
+      Null g() => null;
+      ```
+
+      #### Common fixes
+
+      If you intend to always throw an exception, then replace the null check
+      with an explicit `throw` expression to make the intent more clear:
+
+      ```dart
+      void f() {
+        g();
+        throw TypeError();
+      }
+
+      Null g() => null;
+      ```
   OVERRIDE_ON_NON_OVERRIDING_FIELD:
     sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
     problemMessage: "The field doesn't override an inherited getter or setter."
@@ -22924,6 +22910,17 @@ WarningCode:
       const a = [1, 2];
       var b = [...a];
       ```
+  STRICT_RAW_TYPE:
+    problemMessage: "The generic type '{0}' should have explicit type arguments but doesn't."
+    correctionMessage: "Use explicit type arguments for '{0}'."
+    comment: |-
+      When "strict-raw-types" is enabled, "raw types" must have type arguments.
+
+      A "raw type" is a type name that does not use inference to fill in missing
+      type arguments; instead, each type argument is instantiated to its bound.
+
+      Parameters:
+      0: the name of the generic type
   SUBTYPE_OF_SEALED_CLASS:
     problemMessage: "The class '{0}' shouldn't be extended, mixed in, or implemented because it's sealed."
     correctionMessage: "Try composing instead of inheriting, or refer to the documentation of '{0}' for more information."
