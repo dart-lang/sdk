@@ -702,7 +702,12 @@ class MacroApplications {
             interfaces: _typeBuildersToAnnotations(
                 builder.libraryBuilder, builder.interfaceBuilders),
             isAbstract: builder.isAbstract,
+            isBase: builder.isBase,
             isExternal: builder.isExternal,
+            isFinal: builder.isFinal,
+            isInterface: builder.isInterface,
+            isMixin: builder.isMixinClass,
+            isSealed: builder.isSealed,
             mixins: _typeBuildersToAnnotations(builder.libraryBuilder, mixins),
             superclass: supertypeBuilder != null
                 ? _computeTypeAnnotation(

@@ -119,7 +119,7 @@ abstract class ParameterizedTypeDeclaration implements TypeDeclaration {
 /// implements this type.
 mixin IntrospectableType implements TypeDeclaration {}
 
-/// Class (and enum) introspection information.
+/// Class introspection information.
 ///
 /// Information about fields, methods, and constructors must be retrieved from
 /// the `builder` objects.
@@ -127,8 +127,23 @@ abstract class ClassDeclaration implements ParameterizedTypeDeclaration {
   /// Whether this class has an `abstract` modifier.
   bool get isAbstract;
 
+  /// Whether this class has a `base` modifier.
+  bool get isBase;
+
   /// Whether this class has an `external` modifier.
   bool get isExternal;
+
+  /// Whether this class has a `final` modifier.
+  bool get isFinal;
+
+  /// Whether this class has an `interface` modifier.
+  bool get isInterface;
+
+  /// Whether this class has a `mixin` modifier.
+  bool get isMixin;
+
+  /// Whether this class has a `sealed` modifier.
+  bool get isSealed;
 
   /// The `extends` type annotation, if present.
   NamedTypeAnnotation? get superclass;

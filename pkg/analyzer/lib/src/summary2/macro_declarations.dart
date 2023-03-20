@@ -21,7 +21,12 @@ class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
     required super.typeParameters,
     required super.interfaces,
     required super.isAbstract,
+    required super.isBase,
     required super.isExternal,
+    required super.isFinal,
+    required super.isInterface,
+    required super.isMixin,
+    required super.isSealed,
     required super.mixins,
     required super.superclass,
   });
@@ -141,7 +146,12 @@ class DeclarationBuilderFromElement {
           .cast<macro.NamedTypeAnnotationImpl>()
           .toList(),
       isAbstract: element.isAbstract,
+      isBase: element.isBase,
       isExternal: false,
+      isFinal: element.isFinal,
+      isInterface: element.isInterface,
+      isMixin: element.isMixinClass,
+      isSealed: element.isSealed,
       mixins: element.mixins
           .map(_dartType)
           .cast<macro.NamedTypeAnnotationImpl>()
@@ -218,7 +228,12 @@ class DeclarationBuilderFromNode {
       typeParameters: _typeParameters(node.typeParameters),
       interfaces: _typeAnnotations(node.implementsClause?.interfaces),
       isAbstract: node.abstractKeyword != null,
+      isBase: node.baseKeyword != null,
       isExternal: false,
+      isFinal: node.finalKeyword != null,
+      isInterface: node.interfaceKeyword != null,
+      isMixin: node.mixinKeyword != null,
+      isSealed: node.sealedKeyword != null,
       mixins: _typeAnnotations(node.withClause?.mixinTypes),
       superclass: node.extendsClause?.superclass.mapOrNull(
         _typeAnnotation,
@@ -349,7 +364,12 @@ class IntrospectableClassDeclarationImpl
     required super.typeParameters,
     required super.interfaces,
     required super.isAbstract,
+    required super.isBase,
+    required super.isFinal,
     required super.isExternal,
+    required super.isInterface,
+    required super.isMixin,
+    required super.isSealed,
     required super.mixins,
     required super.superclass,
   });
