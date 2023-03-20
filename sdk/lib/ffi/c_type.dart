@@ -44,7 +44,7 @@ part of dart.ffi;
   Abi.windowsIA32: Int8(),
   Abi.windowsX64: Int8(),
 })
-final class Char extends AbiSpecificInteger {
+class Char extends AbiSpecificInteger {
   const Char();
 }
 
@@ -81,7 +81,7 @@ final class Char extends AbiSpecificInteger {
   Abi.windowsIA32: Int8(),
   Abi.windowsX64: Int8(),
 })
-final class SignedChar extends AbiSpecificInteger {
+class SignedChar extends AbiSpecificInteger {
   const SignedChar();
 }
 
@@ -118,7 +118,7 @@ final class SignedChar extends AbiSpecificInteger {
   Abi.windowsIA32: Uint8(),
   Abi.windowsX64: Uint8(),
 })
-final class UnsignedChar extends AbiSpecificInteger {
+class UnsignedChar extends AbiSpecificInteger {
   const UnsignedChar();
 }
 
@@ -155,7 +155,7 @@ final class UnsignedChar extends AbiSpecificInteger {
   Abi.windowsIA32: Int16(),
   Abi.windowsX64: Int16(),
 })
-final class Short extends AbiSpecificInteger {
+class Short extends AbiSpecificInteger {
   const Short();
 }
 
@@ -192,7 +192,7 @@ final class Short extends AbiSpecificInteger {
   Abi.windowsIA32: Uint16(),
   Abi.windowsX64: Uint16(),
 })
-final class UnsignedShort extends AbiSpecificInteger {
+class UnsignedShort extends AbiSpecificInteger {
   const UnsignedShort();
 }
 
@@ -229,7 +229,7 @@ final class UnsignedShort extends AbiSpecificInteger {
   Abi.windowsIA32: Int32(),
   Abi.windowsX64: Int32(),
 })
-final class Int extends AbiSpecificInteger {
+class Int extends AbiSpecificInteger {
   const Int();
 }
 
@@ -266,7 +266,7 @@ final class Int extends AbiSpecificInteger {
   Abi.windowsIA32: Uint32(),
   Abi.windowsX64: Uint32(),
 })
-final class UnsignedInt extends AbiSpecificInteger {
+class UnsignedInt extends AbiSpecificInteger {
   const UnsignedInt();
 }
 
@@ -304,7 +304,7 @@ final class UnsignedInt extends AbiSpecificInteger {
   Abi.windowsIA32: Int32(),
   Abi.windowsX64: Int32(),
 })
-final class Long extends AbiSpecificInteger {
+class Long extends AbiSpecificInteger {
   const Long();
 }
 
@@ -342,7 +342,7 @@ final class Long extends AbiSpecificInteger {
   Abi.windowsIA32: Uint32(),
   Abi.windowsX64: Uint32(),
 })
-final class UnsignedLong extends AbiSpecificInteger {
+class UnsignedLong extends AbiSpecificInteger {
   const UnsignedLong();
 }
 
@@ -379,7 +379,7 @@ final class UnsignedLong extends AbiSpecificInteger {
   Abi.windowsIA32: Int64(),
   Abi.windowsX64: Int64(),
 })
-final class LongLong extends AbiSpecificInteger {
+class LongLong extends AbiSpecificInteger {
   const LongLong();
 }
 
@@ -416,7 +416,7 @@ final class LongLong extends AbiSpecificInteger {
   Abi.windowsIA32: Uint64(),
   Abi.windowsX64: Uint64(),
 })
-final class UnsignedLongLong extends AbiSpecificInteger {
+class UnsignedLongLong extends AbiSpecificInteger {
   const UnsignedLongLong();
 }
 
@@ -448,7 +448,7 @@ final class UnsignedLongLong extends AbiSpecificInteger {
   Abi.windowsIA32: Int32(),
   Abi.windowsX64: Int64(),
 })
-final class IntPtr extends AbiSpecificInteger {
+class IntPtr extends AbiSpecificInteger {
   const IntPtr();
 }
 
@@ -481,7 +481,7 @@ final class IntPtr extends AbiSpecificInteger {
   Abi.windowsIA32: Uint32(),
   Abi.windowsX64: Uint64(),
 })
-final class UintPtr extends AbiSpecificInteger {
+class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
 
@@ -514,7 +514,7 @@ final class UintPtr extends AbiSpecificInteger {
   Abi.windowsIA32: Uint32(),
   Abi.windowsX64: Uint64(),
 })
-final class Size extends AbiSpecificInteger {
+class Size extends AbiSpecificInteger {
   const Size();
 }
 
@@ -550,6 +550,6 @@ final class Size extends AbiSpecificInteger {
   Abi.windowsIA32: Uint16(),
   Abi.windowsX64: Uint16(),
 })
-final class WChar extends AbiSpecificInteger {
+class WChar extends AbiSpecificInteger {
   const WChar();
 }

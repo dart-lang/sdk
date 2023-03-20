@@ -4,7 +4,7 @@
 
 part of dart.ffi;
 
-final class DartRepresentationOf {
+class DartRepresentationOf {
   /// Represents the Dart type corresponding to a [NativeType].
   ///
   /// [Int8]                               -> [int]
@@ -25,7 +25,7 @@ final class DartRepresentationOf {
   const DartRepresentationOf(String nativeType);
 }
 
-final class Unsized {
+class Unsized {
   const Unsized();
 }
 

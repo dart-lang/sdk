@@ -16,7 +16,7 @@ import 'package:expect/expect.dart';
 ///     unsigned int strike    : 1;
 ///     unsigned int font      : 4;
 /// } ScreenCellAttrs;
-final class ScreenCellAttrs extends Struct {
+class ScreenCellAttrs extends Struct {
   @Int16()
   external int bits;
 

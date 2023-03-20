@@ -49,7 +49,7 @@ class A {
     await assertNoErrorsInCode('''
 import 'dart:ffi';
 
-final class A extends Struct {
+class A extends Struct {
   @Double()
   external double foo;
 }

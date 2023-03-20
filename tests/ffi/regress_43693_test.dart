@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 
 import 'dylib_utils.dart';
 
-final class Struct43693 extends Struct {
+class Struct43693 extends Struct {
   external Pointer<Void> somePtr;
 
   @Uint64()

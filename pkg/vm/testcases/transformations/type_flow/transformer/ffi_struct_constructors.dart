@@ -5,65 +5,65 @@
 import 'dart:ffi';
 
 /// Retained because of being by-value return type in FFI call.
-final class Struct1 extends Struct {
+class Struct1 extends Struct {
   external Pointer notEmpty;
 }
 
 /// Retained because of being by-value return type in FFI call.
-final class Struct2 extends Struct {
+class Struct2 extends Struct {
   external Pointer notEmpty;
 }
 
 /// Retained because of being by-value argument type in FFI callback.
-final class Struct3 extends Struct {
+class Struct3 extends Struct {
   external Pointer notEmpty;
 }
 
 /// Class not retained, not referenced at all.
-final class Struct4 extends Struct {
+class Struct4 extends Struct {
   external Pointer notEmpty;
 }
 
 /// Constructor not retained, only referenced as argument type in FFI
 /// call but never instantiated in Dart code.
-final class Struct5 extends Struct {
+class Struct5 extends Struct {
   external Pointer notEmpty;
 }
 
 /// Constructor not retained, only referenced as argument type in FFI
 /// call but never instantiated in Dart code.
-final class Struct6 extends Struct {
+class Struct6 extends Struct {
   external Pointer notEmpty;
 }
 
 /// Constructor not retained, only referenced as return value type in FFI
 /// callback but never instantiated in Dart code.
-final class Struct7 extends Struct {
+class Struct7 extends Struct {
   external Pointer notEmpty;
 }
 
 /// Not retained because of FFI call not being reachable.
-final class Struct8 extends Struct {
+class Struct8 extends Struct {
   external Pointer notEmpty;
 }
 
 /// Not retained because of FFI call not being reachable.
-final class Struct9 extends Struct {
+class Struct9 extends Struct {
   external Pointer notEmpty;
 }
 
 /// Not retained because of FFI callback not being reachable.
-final class Struct10 extends Struct {
+class Struct10 extends Struct {
   external Pointer notEmpty;
 }
 
 /// Retained by CFE rewrite of load from pointer.
-final class Struct11 extends Struct {
+class Struct11 extends Struct {
   external Struct12 nested;
 }
 
 /// Retained by rewrite of load from surrounding struct.
-final class Struct12 extends Struct {
+class Struct12 extends Struct {
   external Pointer notEmpty;
 }
 

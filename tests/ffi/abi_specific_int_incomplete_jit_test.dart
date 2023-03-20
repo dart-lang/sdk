@@ -15,7 +15,7 @@ const notTestingOn = Abi.fuchsiaArm64;
 @AbiSpecificIntegerMapping({
   notTestingOn: Int8(),
 })
-final class Incomplete extends AbiSpecificInteger {
+class Incomplete extends AbiSpecificInteger {
   const Incomplete();
 }
 
@@ -60,7 +60,7 @@ void testStoreLoadIndexed() {
   calloc.free(p);
 }
 
-final class IncompleteStruct extends Struct {
+class IncompleteStruct extends Struct {
   @Incomplete()
   external int a0;
 
@@ -79,7 +79,7 @@ void testStruct() {
   calloc.free(p);
 }
 
-final class IncompleteArrayStruct extends Struct {
+class IncompleteArrayStruct extends Struct {
   @Array(100)
   external Array<Incomplete> a0;
 }
@@ -99,7 +99,7 @@ void testInlineArray() {
 const _dim1 = 8;
 const _dim2 = 4;
 
-final class IncompleteArrayArrayStruct extends Struct {
+class IncompleteArrayArrayStruct extends Struct {
   @Array(_dim1, _dim2)
   external Array<Array<Incomplete>> a0;
 }

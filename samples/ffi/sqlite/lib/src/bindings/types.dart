@@ -13,7 +13,7 @@ import "dart:ffi";
 /// is its destructor.  There are many other interfaces (such as
 /// [sqlite3_prepare_v2()], [sqlite3_create_function()], and
 /// [sqlite3_busy_timeout()] to name but three) that are methods on an
-final class Database extends Opaque {}
+class Database extends Opaque {}
 
 /// SQL Statement Object
 ///
@@ -36,7 +36,7 @@ final class Database extends Opaque {}
 ///
 /// Refer to documentation on individual methods above for additional
 /// information.
-final class Statement extends Opaque {}
+class Statement extends Opaque {}
 
 /// Dynamically Typed Value Object
 ///
@@ -72,4 +72,4 @@ final class Statement extends Opaque {}
 /// [sqlite3_result_value()] and [sqlite3_bind_value()].
 /// The [sqlite3_value_blob | sqlite3_value_type()] family of
 /// interfaces require protected sqlite3_value objects.
-final class Value extends Opaque {}
+class Value extends Opaque {}

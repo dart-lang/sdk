@@ -4,7 +4,7 @@
 
 import "dart:ffi";
 
-final class S2 extends Struct {
+class S2 extends Struct {
   external Pointer<Int8> notEmpty;
 
   external Struct? s; //# 01: compile-time error

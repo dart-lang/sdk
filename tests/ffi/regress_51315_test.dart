@@ -30,7 +30,7 @@ testCompoundLoadAndStore() {
   calloc.free(foos);
 }
 
-final class Foo extends Struct {
+class Foo extends Struct {
   @Int8()
   external int a;
 }

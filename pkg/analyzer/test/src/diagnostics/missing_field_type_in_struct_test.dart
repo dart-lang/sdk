@@ -18,20 +18,20 @@ class MissingFieldTypeInStructTest extends PubPackageResolutionTest {
   test_missing() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-final class C extends Struct {
+class C extends Struct {
   external var str;
 
   external Pointer notEmpty;
 }
 ''', [
-      error(FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, 65, 3),
+      error(FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, 59, 3),
     ]);
   }
 
   test_valid() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-final class C extends Struct {
+class C extends Struct {
   external Pointer p;
 }
 ''');

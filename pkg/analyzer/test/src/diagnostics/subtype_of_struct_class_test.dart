@@ -21,24 +21,24 @@ class SubtypeOfStructClassInExtendsTest extends PubPackageResolutionTest {
   test_extends_struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-final class S extends Struct {
+class S extends Struct {
   external Pointer notEmpty;
 }
-final class C extends S {}
+class C extends S {}
 ''', [
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 103, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 91, 1),
     ]);
   }
 
   test_extends_union() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-final class S extends Union {
+class S extends Union {
   external Pointer notEmpty;
 }
-final class C extends S {}
+class C extends S {}
 ''', [
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 102, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 90, 1),
     ]);
   }
 }
@@ -51,25 +51,25 @@ import 'dart:ffi';
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint32(),
 })
-final class AbiSpecificInteger1 extends AbiSpecificInteger {
+class AbiSpecificInteger1 extends AbiSpecificInteger {
   const AbiSpecificInteger1();
 }
-final class AbiSpecificInteger4 implements AbiSpecificInteger1 {
+class AbiSpecificInteger4 implements AbiSpecificInteger1 {
   const AbiSpecificInteger4();
 }
 ''', [
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 216, 19),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 204, 19),
     ]);
   }
 
   test_implements_struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-final class S extends Struct {}
-final class C implements S {}
+class S extends Struct {}
+class C implements S {}
 ''', [
-      error(FfiCode.EMPTY_STRUCT, 31, 1),
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 76, 1,
+      error(FfiCode.EMPTY_STRUCT, 25, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 64, 1,
           messageContains: ["class 'C'", "implement 'S'"]),
     ]);
   }
@@ -77,26 +77,25 @@ final class C implements S {}
   test_implements_struct_prefixed() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 import 'dart:ffi';
-final class S extends Struct {}
+class S extends Struct {}
 ''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' as lib1;
 class C implements lib1.S {}
 ''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 47,
-          6),
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 47, 6),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 47, 6,
+          messageContains: ["class 'C'", "implement 'lib1.S'"]),
     ]);
   }
 
   test_implements_union() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-final class S extends Union {}
-final class C implements S {}
+class S extends Union {}
+class C implements S {}
 ''', [
-      error(FfiCode.EMPTY_STRUCT, 31, 1),
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 75, 1),
+      error(FfiCode.EMPTY_STRUCT, 25, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 63, 1),
     ]);
   }
 }
@@ -106,12 +105,12 @@ class SubtypeOfStructClassInWithTest extends PubPackageResolutionTest {
   test_with_struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-final class S extends Struct {}
-final class C with S {}
+class S extends Struct {}
+class C with S {}
 ''', [
-      error(FfiCode.EMPTY_STRUCT, 31, 1),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 70, 1),
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 70, 1,
+      error(FfiCode.EMPTY_STRUCT, 25, 1),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 58, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 58, 1,
           messageContains: ["class 'C'", "mix in 'S'"]),
     ]);
   }
@@ -119,7 +118,7 @@ final class C with S {}
   test_with_struct_prefixed() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 import 'dart:ffi';
-final class S extends Struct {}
+class S extends Struct {}
 ''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' as lib1;
@@ -135,12 +134,12 @@ class C with lib1.S {}
   test_with_union() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-final class S extends Union {}
-final class C with S {}
+class S extends Union {}
+class C with S {}
 ''', [
-      error(FfiCode.EMPTY_STRUCT, 31, 1),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 69, 1),
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 69, 1),
+      error(FfiCode.EMPTY_STRUCT, 25, 1),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 57, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 57, 1),
     ]);
   }
 }

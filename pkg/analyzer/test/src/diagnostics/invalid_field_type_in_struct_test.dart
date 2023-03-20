@@ -19,13 +19,13 @@ class InvalidFieldTypeInStructTest extends PubPackageResolutionTest {
   test_instance_invalid() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-final class C extends Struct {
+class C extends Struct {
   external String str;
 
   external Pointer notEmpty;
 }
 ''', [
-      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 61, 6),
+      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 55, 6),
     ]);
   }
 
@@ -33,31 +33,31 @@ final class C extends Struct {
   test_instance_invalid2() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-final class C extends Union {
+class C extends Union {
   external String str;
 
   external Pointer notEmpty;
 }
 ''', [
-      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 60, 6),
+      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 54, 6),
     ]);
   }
 
   test_instance_invalid3() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-final class C extends Struct {
+class C extends Struct {
   external Pointer? p;
 }
 ''', [
-      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 61, 8),
+      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 55, 8),
     ]);
   }
 
   test_instance_valid() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-final class C extends Struct {
+class C extends Struct {
   external Pointer p;
 }
 ''');
@@ -66,7 +66,7 @@ final class C extends Struct {
   test_static() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-final class C extends Struct {
+class C extends Struct {
   static String? str;
 
   external Pointer notEmpty;

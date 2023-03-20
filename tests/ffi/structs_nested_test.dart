@@ -24,7 +24,7 @@ void main() {
   }
 }
 
-final class Struct4BytesHomogeneousInt16 extends Struct {
+class Struct4BytesHomogeneousInt16 extends Struct {
   @Int16()
   external int a0;
 
@@ -34,7 +34,7 @@ final class Struct4BytesHomogeneousInt16 extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-final class Struct8BytesNestedInt extends Struct {
+class Struct8BytesNestedInt extends Struct {
   external Struct4BytesHomogeneousInt16 a0;
 
   external Struct4BytesHomogeneousInt16 a1;

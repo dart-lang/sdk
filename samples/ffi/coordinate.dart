@@ -5,7 +5,7 @@
 import 'dart:ffi';
 
 /// Sample struct for dart:ffi library.
-final class Coordinate extends Struct {
+class Coordinate extends Struct {
   @Double()
   external double x;
 

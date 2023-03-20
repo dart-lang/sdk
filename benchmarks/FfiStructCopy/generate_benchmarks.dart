@@ -35,16 +35,16 @@ import 'FfiStructCopy.dart';
 ''';
 
 String generateSize(int size) => '''
-final class Struct${size}Bytes extends Struct {
+class Struct${size}Bytes extends Struct {
   @Array($size)
   external Array<Uint8> a0;
 }
 
-final class Struct${size}BytesWrapper extends Struct {
+class Struct${size}BytesWrapper extends Struct {
   external Struct${size}Bytes nested;
 }
 
-final class Copy${size}Bytes extends StructCopyBenchmark {
+class Copy${size}Bytes extends StructCopyBenchmark {
   @override
   Pointer<Struct${size}BytesWrapper> from = nullptr;
   @override

@@ -19,12 +19,12 @@ class SizeAnnotationDimensions extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-final class C extends Struct {
+class C extends Struct {
   @Array(8, 8)
   external Array<Array<Array<Uint8>>> a0;
 }
 ''', [
-      error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 53, 12),
+      error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 47, 12),
     ]);
   }
 
@@ -32,12 +32,12 @@ final class C extends Struct {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-final class C extends Struct {
+class C extends Struct {
   @Array(8, 8, 8)
   external Array<Array<Uint8>> a0;
 }
 ''', [
-      error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 53, 15),
+      error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 47, 15),
     ]);
   }
 
@@ -45,12 +45,12 @@ final class C extends Struct {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-final class C extends Struct {
+class C extends Struct {
   @Array.multi([8, 8])
   external Array<Array<Array<Uint8>>> a0;
 }
 ''', [
-      error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 53, 20),
+      error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 47, 20),
     ]);
   }
 
@@ -58,7 +58,7 @@ final class C extends Struct {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 
-final class C extends Struct {
+class C extends Struct {
   @Array(8, 8)
   external Array<Array<Uint8>> a0;
 }

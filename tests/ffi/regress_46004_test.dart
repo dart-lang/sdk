@@ -7,7 +7,7 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-final class COMObject extends Struct {
+class COMObject extends Struct {
   external Pointer<IntPtr> lpVtbl;
 
   // This should not be interpreted as a native field.

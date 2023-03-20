@@ -8,16 +8,16 @@ import 'package:ffi/ffi.dart';
 
 import 'FfiStructCopy.dart';
 
-final class Struct1Bytes extends Struct {
+class Struct1Bytes extends Struct {
   @Array(1)
   external Array<Uint8> a0;
 }
 
-final class Struct1BytesWrapper extends Struct {
+class Struct1BytesWrapper extends Struct {
   external Struct1Bytes nested;
 }
 
-final class Copy1Bytes extends StructCopyBenchmark {
+class Copy1Bytes extends StructCopyBenchmark {
   @override
   Pointer<Struct1BytesWrapper> from = nullptr;
   @override
@@ -42,16 +42,16 @@ final class Copy1Bytes extends StructCopyBenchmark {
   }
 }
 
-final class Struct32Bytes extends Struct {
+class Struct32Bytes extends Struct {
   @Array(32)
   external Array<Uint8> a0;
 }
 
-final class Struct32BytesWrapper extends Struct {
+class Struct32BytesWrapper extends Struct {
   external Struct32Bytes nested;
 }
 
-final class Copy32Bytes extends StructCopyBenchmark {
+class Copy32Bytes extends StructCopyBenchmark {
   @override
   Pointer<Struct32BytesWrapper> from = nullptr;
   @override
@@ -76,16 +76,16 @@ final class Copy32Bytes extends StructCopyBenchmark {
   }
 }
 
-final class Struct1024Bytes extends Struct {
+class Struct1024Bytes extends Struct {
   @Array(1024)
   external Array<Uint8> a0;
 }
 
-final class Struct1024BytesWrapper extends Struct {
+class Struct1024BytesWrapper extends Struct {
   external Struct1024Bytes nested;
 }
 
-final class Copy1024Bytes extends StructCopyBenchmark {
+class Copy1024Bytes extends StructCopyBenchmark {
   @override
   Pointer<Struct1024BytesWrapper> from = nullptr;
   @override
@@ -110,16 +110,16 @@ final class Copy1024Bytes extends StructCopyBenchmark {
   }
 }
 
-final class Struct32768Bytes extends Struct {
+class Struct32768Bytes extends Struct {
   @Array(32768)
   external Array<Uint8> a0;
 }
 
-final class Struct32768BytesWrapper extends Struct {
+class Struct32768BytesWrapper extends Struct {
   external Struct32768Bytes nested;
 }
 
-final class Copy32768Bytes extends StructCopyBenchmark {
+class Copy32768Bytes extends StructCopyBenchmark {
   @override
   Pointer<Struct32768BytesWrapper> from = nullptr;
   @override

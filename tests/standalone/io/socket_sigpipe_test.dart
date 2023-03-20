@@ -16,7 +16,7 @@ import 'package:path/path.dart' as p;
 
 import '../../../tests/ffi/dylib_utils.dart';
 
-final class Isolate extends Opaque {}
+class Isolate extends Opaque {}
 
 abstract class FfiBindings {
   static final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");

@@ -105,7 +105,7 @@ final stopWorkSimulator =
 final executeCallback = dl.lookupFunction<Void Function(Pointer<Work>),
     void Function(Pointer<Work>)>('ExecuteCallback');
 
-final class Work extends Opaque {}
+class Work extends Opaque {}
 
 Future asyncSleep(int ms) {
   return new Future.delayed(Duration(milliseconds: ms));

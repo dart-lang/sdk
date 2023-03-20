@@ -37,7 +37,7 @@ class NonConstantTypeArgumentWarningTest extends PubPackageResolutionTest {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 
-final class MyStruct extends Struct {
+class MyStruct extends Struct {
   @Uint8()
   external int myField;
 }
@@ -53,7 +53,7 @@ void main() {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 
-final class MyStruct extends Struct {
+class MyStruct extends Struct {
   @Uint8()
   external int myField;
 }

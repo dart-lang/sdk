@@ -7,7 +7,7 @@ import "dart:ffi";
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-final class Struct8BytesInlineArrayInt extends Struct {
+class Struct8BytesInlineArrayInt extends Struct {
   @Array(2)
   external Array<Pointer<Int8>> a0;
 }

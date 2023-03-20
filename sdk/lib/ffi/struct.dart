@@ -9,7 +9,7 @@ part of dart.ffi;
 /// FFI struct types should extend [Struct]. For more information see the
 /// documentation on this class.
 @pragma("wasm:entry-point")
-abstract final class _Compound extends NativeType {
+abstract class _Compound extends NativeType {
   @pragma("vm:entry-point")
   final Object _typedDataBase;
 
@@ -40,7 +40,7 @@ abstract final class _Compound extends NativeType {
 /// ```
 ///
 /// ```dart
-/// final class MyStruct extends Struct {
+/// class MyStruct extends Struct {
 ///   @Int32()
 ///   external int a;
 ///
@@ -62,7 +62,7 @@ abstract final class _Compound extends NativeType {
 /// from a [Pointer] or created by ffi calls or callbacks. They cannot be
 /// created by a generative constructor.
 @Since('2.12')
-abstract base class Struct extends _Compound {
+abstract class Struct extends _Compound {
   /// Construct a reference to the [nullptr].
   ///
   /// Use [StructPointer]'s `.ref` to gain references to native memory backed
@@ -78,7 +78,7 @@ abstract base class Struct extends _Compound {
 ///
 /// Valid values for [memberAlignment] are 1, 2, 4, 8, and 16.
 @Since('2.13')
-final class Packed {
+class Packed {
   final int memberAlignment;
 
   const Packed(this.memberAlignment);

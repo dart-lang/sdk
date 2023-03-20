@@ -708,63 +708,63 @@ final MockSdkLibrary _LIB_FFI = MockSdkLibrary('ffi', [
 @Since('2.6')
 library dart.ffi;
 
-final class NativeType {
+class NativeType {
   const NativeType();
 }
 
 @Since('2.9')
-abstract final class Handle extends NativeType {}
+class Handle extends NativeType {}
 
 @Since('2.12')
-abstract base class Opaque extends NativeType {}
+abstract class Opaque extends NativeType {}
 
-final class Void extends NativeType {}
+class Void extends NativeType {}
 
-final class Int8 extends NativeType {
+class Int8 extends NativeType {
   const Int8();
 }
 
-final class Uint8 extends NativeType {
+class Uint8 extends NativeType {
   const Uint8();
 }
 
-final class Int16 extends NativeType {
+class Int16 extends NativeType {
   const Int16();
 }
 
-final class Uint16 extends NativeType {
+class Uint16 extends NativeType {
   const Uint16();
 }
 
-final class Int32 extends NativeType {
+class Int32 extends NativeType {
   const Int32();
 }
 
-final class Uint32 extends NativeType {
+class Uint32 extends NativeType {
   const Uint32();
 }
 
-final class Int64 extends NativeType {
+class Int64 extends NativeType {
   const Int64();
 }
 
-final class Uint64 extends NativeType {
+class Uint64 extends NativeType {
   const Uint64();
 }
 
-final class Float extends NativeType {
+class Float extends NativeType {
   const Float();
 }
 
-final class Double extends NativeType {
+class Double extends NativeType {
   const Double();
 }
 
-final class IntPtr extends NativeType {
+class IntPtr extends NativeType {
   const IntPtr();
 }
 
-final class Pointer<T extends NativeType> extends NativeType {
+class Pointer<T extends NativeType> extends NativeType {
   external factory Pointer.fromAddress(int ptr);
 
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
@@ -779,22 +779,22 @@ extension NativeFunctionPointer<NF extends Function>
   external DF asFunction<DF extends Function>({bool isLeaf = false});
 }
 
-final class _Compound extends NativeType {}
+class _Compound extends NativeType {}
 
 @Since('2.12')
-base class Struct extends _Compound {}
+class Struct extends _Compound {}
 
 @Since('2.14')
-base class Union extends _Compound {}
+class Union extends _Compound {}
 
 @Since('2.13')
-final class Packed {
+class Packed {
   final int memberAlignment;
 
   const Packed(this.memberAlignment);
 }
 
-abstract final class DynamicLibrary {
+abstract class DynamicLibrary {
   external factory DynamicLibrary.open(String name);
 }
 
@@ -803,14 +803,14 @@ extension DynamicLibraryExtension on DynamicLibrary {
       String symbolName, {bool isLeaf:false});
 }
 
-abstract final class NativeFunction<T extends Function> extends NativeType {}
+abstract class NativeFunction<T extends Function> extends NativeType {}
 
-final class DartRepresentationOf {
+class DartRepresentationOf {
   const DartRepresentationOf(String nativeType);
 }
 
 @Since('2.13')
-final class Array<T extends NativeType> extends NativeType {
+class Array<T extends NativeType> extends NativeType {
   const factory Array(int dimension1,
       [int dimension2,
       int dimension3,
@@ -820,7 +820,7 @@ final class Array<T extends NativeType> extends NativeType {
   const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
 }
 
-final class _ArraySize<T extends NativeType> implements Array<T> {
+class _ArraySize<T extends NativeType> implements Array<T> {
   final int? dimension1;
   final int? dimension2;
   final int? dimension3;
@@ -847,14 +847,14 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   external T operator [](int index);
 }
 
-final class FfiNative<T> {
+class FfiNative<T> {
   final String nativeName;
   final bool isLeaf;
   const FfiNative(this.nativeName, {this.isLeaf = false});
 }
 
 @Since('2.19')
-final class Native<T> {
+class Native<T> {
   final String? symbol;
   final String? asset;
   final bool isLeaf;
@@ -866,12 +866,12 @@ final class Native<T> {
   });
 }
 
-final class Asset {
+class Asset {
   final String asset;
   const Asset(this.asset);
 }
 
-final class Abi {
+class Abi {
   static const androidArm = _androidArm;
   static const androidArm64 = _androidArm64;
   static const androidIA32 = _androidIA32;
@@ -908,24 +908,24 @@ enum _OS {
 }
 
 @Since('2.16')
-base class AbiSpecificInteger extends NativeType {
+class AbiSpecificInteger extends NativeType {
   const AbiSpecificInteger();
 }
 
 @Since('2.16')
-final class AbiSpecificIntegerMapping {
+class AbiSpecificIntegerMapping {
   final Map<Abi, NativeType> mapping;
 
   const AbiSpecificIntegerMapping(this.mapping);
 }
 
 @Since('2.17')
-abstract interface class Finalizable {
+abstract class Finalizable {
   factory Finalizable._() => throw UnsupportedError("");
 }
 
 @Since('3.0')
-abstract final class VarArgs<T extends Record> extends NativeType {}
+abstract class VarArgs<T extends Record> extends NativeType {}
 ''',
   )
 ]);

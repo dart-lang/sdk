@@ -16,7 +16,7 @@ external DynamicLibrary _executableLibrary();
 
 @patch
 @pragma("vm:entry-point")
-final class DynamicLibrary {
+class DynamicLibrary {
   @patch
   factory DynamicLibrary.open(String path) {
     return _open(path);

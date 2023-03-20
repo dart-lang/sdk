@@ -8,7 +8,7 @@ import "dart:_internal" as _in;
 import "dart:ffi";
 
 @#C6
-final class Coordinate extends ffi::Struct {
+class Coordinate extends ffi::Struct {
   synthetic constructor •() → self::Coordinate
     : super ffi::Struct::•()
     ;
@@ -35,7 +35,7 @@ final class Coordinate extends ffi::Struct {
     return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
 @#C19
-final class SomeUnion extends ffi::Union {
+class SomeUnion extends ffi::Union {
   synthetic constructor •() → self::SomeUnion
     : super ffi::Union::•()
     ;

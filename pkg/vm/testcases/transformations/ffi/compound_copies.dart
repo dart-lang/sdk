@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-final class Coordinate extends Struct {
+class Coordinate extends Struct {
   @Int64()
   external int x;
 
@@ -12,7 +12,7 @@ final class Coordinate extends Struct {
   }
 }
 
-final class SomeUnion extends Union {
+class SomeUnion extends Union {
   external Coordinate coordinate;
   @Int64()
   external int id;

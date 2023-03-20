@@ -207,16 +207,12 @@ class SubtypeOfFfiClassInExtendsTest extends FixProcessorTest {
   Future<void> test_oneName() async {
     await resolveTestCode('''
 import 'dart:ffi';
-final class C extends Double {}
+class C extends Double {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'dart:ffi';
-final class C {}
-''',
-      errorFilter: (error) =>
-          error.errorCode == FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
-    );
+class C {}
+''');
   }
 }
 
@@ -228,16 +224,12 @@ class SubtypeOfFfiClassInImplementsTest extends FixProcessorTest {
   Future<void> test_oneName() async {
     await resolveTestCode('''
 import 'dart:ffi';
-final class C implements Double {}
+class C implements Double {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'dart:ffi';
-final class C {}
-''',
-      errorFilter: (error) =>
-          error.errorCode == FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
-    );
+class C {}
+''');
   }
 }
 
@@ -249,11 +241,11 @@ class SubtypeOfFfiClassInWithTest extends FixProcessorTest {
   Future<void> test_oneName() async {
     await resolveTestCode('''
 import 'dart:ffi';
-final class C with Double {}
+class C with Double {}
 ''');
     await assertHasFix('''
 import 'dart:ffi';
-final class C {}
+class C {}
 ''',
         errorFilter: (error) =>
             error.errorCode == FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH);
@@ -268,17 +260,17 @@ class SubtypeOfStructClassInExtendsTest extends FixProcessorTest {
   Future<void> test_oneName() async {
     await resolveTestCode('''
 import 'dart:ffi';
-final class S extends Struct {
+class S extends Struct {
   external Pointer notEmpty;
 }
-final class C extends S {}
+class C extends S {}
 ''');
     await assertHasFix('''
 import 'dart:ffi';
-final class S extends Struct {
+class S extends Struct {
   external Pointer notEmpty;
 }
-final class C {}
+class C {}
 ''');
   }
 }
@@ -291,16 +283,12 @@ class SubtypeOfStructClassInImplementsTest extends FixProcessorTest {
   Future<void> test_oneName() async {
     await resolveTestCode('''
 import 'dart:ffi';
-final class C implements Struct {}
+class C implements Struct {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'dart:ffi';
-final class C {}
-''',
-      errorFilter: (error) =>
-          error.errorCode == FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
-    );
+class C {}
+''');
   }
 }
 
@@ -312,17 +300,15 @@ class SubtypeOfStructClassInWithTest extends FixProcessorTest {
   Future<void> test_oneName() async {
     await resolveTestCode('''
 import 'dart:ffi';
-final class S extends Struct {}
-final class C with S {}
+class S extends Struct {}
+class C with S {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'dart:ffi';
-final class S extends Struct {}
-final class C {}
+class S extends Struct {}
+class C {}
 ''',
-      errorFilter: (error) =>
-          error.errorCode == FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
-    );
+        errorFilter: (error) =>
+            error.errorCode == FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH);
   }
 }

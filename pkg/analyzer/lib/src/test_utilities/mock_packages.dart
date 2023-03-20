@@ -20,7 +20,7 @@ abstract class Allocator {
   void free(Pointer pointer);
 }
 
-final class Utf8 extends Opaque {}
+class Utf8 extends Opaque {}
 
 class _CallocAllocator implements Allocator {
   @override

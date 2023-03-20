@@ -12,72 +12,72 @@ import 'dart:typed_data';
 // annotations directly, so it should never be instantiated at runtime.
 @patch
 @pragma("vm:entry-point")
-abstract final class NativeType {}
+abstract class NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-final class _NativeInteger extends NativeType {}
+class _NativeInteger extends NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-final class _NativeDouble extends NativeType {}
+class _NativeDouble extends NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int8 extends _NativeInteger {}
+class Int8 extends _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int16 extends _NativeInteger {}
+class Int16 extends _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int32 extends _NativeInteger {}
+class Int32 extends _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int64 extends _NativeInteger {}
+class Int64 extends _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint8 extends _NativeInteger {}
+class Uint8 extends _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint16 extends _NativeInteger {}
+class Uint16 extends _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint32 extends _NativeInteger {}
+class Uint32 extends _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint64 extends _NativeInteger {}
+class Uint64 extends _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Float extends _NativeDouble {}
+class Float extends _NativeDouble {}
 
 @patch
 @pragma("vm:entry-point")
-final class Double extends _NativeDouble {}
+class Double extends _NativeDouble {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class Bool extends NativeType {}
+abstract class Bool extends NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class Void extends NativeType {}
+abstract class Void extends NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class Handle extends NativeType {}
+abstract class Handle extends NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class NativeFunction<T extends Function> extends NativeType {}
+abstract class NativeFunction<T extends Function> extends NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class VarArgs<T extends Record> extends NativeType {}
+abstract class VarArgs<T extends Record> extends NativeType {}
