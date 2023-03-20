@@ -467,6 +467,121 @@ class TestDriver {
     setup.errors.clear();
   }
 
+  Future<void> checkScope({
+    required String breakpointId,
+    required Map<String, String> expectedScope,
+  }) async {
+    final actualScope = await getScope(breakpointId);
+    actualScope.removeWhere((key, value) =>
+        _ddcTemporaryVariableRegExp.hasMatch(key) ||
+        _ddcTemporaryTypeVariableRegExp.hasMatch(key));
+    expect(actualScope, expectedScope);
+  }
+
+  Future<wip.WipScript> _loadScript() async {
+    final consoleSub =
+        debugger.connection.runtime.onConsoleAPICalled.listen(print);
+
+    // Fail on exceptions in JS code.
+    await debugger.setPauseOnExceptions(wip.PauseState.uncaught);
+    final pauseSub = debugger.onPaused.listen((wip.DebuggerPausedEvent e) {
+      if (e.reason == 'exception' || e.reason == 'assert') {
+        throw Exception('Uncaught exception in JS code: ${e.data}');
+      }
+    });
+
+    final scriptController = StreamController<wip.ScriptParsedEvent>();
+    final scriptSub = debugger.onScriptParsed.listen((event) {
+      if (event.script.url == '$output') {
+        scriptController.add(event);
+      }
+    });
+
+    try {
+      // Navigate from the empty page and immediately pause on the preemptive
+      // breakpoint.
+      await connection.page.navigate('$htmlBootstrapper').timeout(
+          Duration(seconds: 5),
+          onTimeout: (() => throw Exception(
+              'Unable to navigate to page bootstrap script: $htmlBootstrapper')));
+
+      // Poll until the script is found, or timeout after a few seconds.
+      return (await scriptController.stream.first.timeout(Duration(seconds: 5),
+              onTimeout: (() => throw Exception(
+                  'Unable to find JS script corresponding to test file '
+                  '$output in ${debugger.scripts}.'))))
+          .script;
+    } finally {
+      await scriptSub.cancel();
+      await consoleSub.cancel();
+      await scriptController.close();
+      await pauseSub.cancel();
+    }
+  }
+
+  Future<T> _onBreakpoint<T>(String breakpointId,
+      {required Future<T> Function(wip.DebuggerPausedEvent) onPause}) async {
+    // The next two pause events will correspond to:
+    // 1. the initial preemptive breakpoint and
+    // 2. the breakpoint at the specified ID
+
+    final consoleSub = debugger.connection.runtime.onConsoleAPICalled
+        .listen((e) => printOnFailure('$e'));
+
+    final pauseController = StreamController<wip.DebuggerPausedEvent>();
+    final pauseSub = debugger.onPaused.listen((e) {
+      if (e.reason == 'exception' || e.reason == 'assert') {
+        throw Exception('Uncaught exception in JS code: ${e.data}');
+      }
+      pauseController.add(e);
+    });
+
+    final script = await _loadScript();
+
+    // Breakpoint at the first WIP location mapped from its Dart line.
+    var dartLine = _findBreakpointLine(breakpointId);
+    var location = await _jsLocationFromDartLine(script, dartLine);
+
+    var bp = await debugger.setBreakpoint(location);
+    try {
+      // Continue to the next breakpoint, ignoring the first pause event
+      // since it corresponds to the preemptive URI breakpoint made prior
+      // to page navigation.
+      await debugger.resume();
+      final event = await pauseController.stream
+          .skip(1)
+          .timeout(Duration(seconds: 5),
+              onTimeout: (event) => throw Exception(
+                  'Unable to find JS preemptive pause event in $output.'))
+          .first
+          .timeout(Duration(seconds: 5),
+              onTimeout: (() => throw Exception(
+                  'Unable to find JS pause event corresponding to line '
+                  '($dartLine -> $location) in $output.')));
+      return await onPause(event);
+    } finally {
+      await pauseSub.cancel();
+      await pauseController.close();
+      await consoleSub.cancel();
+
+      await debugger.removeBreakpoint(bp.breakpointId);
+      // Resume execution to the end of the current script
+      try {
+        await debugger.resume();
+      } catch (_) {
+        // Resume throws it the program is not paused, ignore.
+      }
+    }
+  }
+
+  Future<Map<String, String>> getScope(String breakpointId) async {
+    return await _onBreakpoint(breakpointId, onPause: (event) async {
+      // Retrieve the call frame and its scope variables.
+      var frame = event.getCallFrames().first;
+      return await _collectScopeVariables(frame);
+    });
+  }
+
   Future<void> check(
       {required String breakpointId,
       required String expression,
@@ -475,99 +590,47 @@ class TestDriver {
     assert(expectedError == null || expectedResult == null,
         'Cannot expect both an error and result.');
 
-    // The next two pause events will correspond to:
-    // 1) the initial preemptive breakpoint and
-    // 2) the breakpoint at the specified ID
-    final pauseController = StreamController<wip.DebuggerPausedEvent>();
-    var pauseSub = debugger.onPaused.listen(pauseController.add);
-
-    final scriptController = StreamController<wip.ScriptParsedEvent>();
-    var scriptSub = debugger.onScriptParsed.listen((event) {
-      if (event.script.url == '$output') {
-        scriptController.add(event);
-      }
-    });
-
-    // Navigate from the empty page and immediately pause on the preemptive
-    // breakpoint.
-    await connection.page.navigate('$htmlBootstrapper').timeout(
-        Duration(seconds: 5),
-        onTimeout: (() => throw Exception(
-            'Unable to navigate to page bootstrap script: $htmlBootstrapper')));
-
-    // Poll until the script is found, or timeout after a few seconds.
-    var script = (await scriptController.stream.first.timeout(
-            Duration(seconds: 5),
-            onTimeout: (() => throw Exception(
-                'Unable to find JS script corresponding to test file '
-                '$output in ${debugger.scripts}.'))))
-        .script;
-    await scriptSub.cancel();
-    await scriptController.close();
-
-    // Breakpoint at the first WIP location mapped from its Dart line.
     var dartLine = _findBreakpointLine(breakpointId);
-    var location = await _jsLocationFromDartLine(script, dartLine);
-    var bp = await debugger.setBreakpoint(location);
+    return await _onBreakpoint(breakpointId, onPause: (event) async {
+      // Retrieve the call frame and its scope variables.
+      var frame = event.getCallFrames().first;
+      var scope = await _collectScopeVariables(frame);
 
-    // Continue to the next breakpoint, ignoring the first pause event since it
-    // corresponds to the preemptive URI breakpoint made prior to page
-    // navigation.
-    await debugger.resume();
-    final event = await pauseController.stream
-        .skip(1)
-        .timeout(Duration(seconds: 5),
-            onTimeout: (event) => throw Exception(
-                'Unable to find JS preemptive pause event in $output.'))
-        .first
-        .timeout(Duration(seconds: 5),
-            onTimeout: (() => throw Exception(
-                'Unable to find JS pause event corresponding to line '
-                '($dartLine -> $location) in $output.')));
-    await pauseSub.cancel();
-    await pauseController.close();
+      // Perform an incremental compile.
+      var result = await compiler.compileExpression(
+          input: input,
+          line: dartLine,
+          column: 1,
+          scope: scope,
+          expression: expression);
 
-    // Retrieve the call frame and its scope variables.
-    var frame = event.getCallFrames().first;
-    var scope = await _collectScopeVariables(frame);
+      if (expectedError != null) {
+        expect(
+            result,
+            const TypeMatcher<TestCompilationResult>().having(
+                (_) => result.result, 'result', _matches(expectedError)));
+        setup.diagnosticMessages.clear();
+        setup.errors.clear();
+        return;
+      }
 
-    // Perform an incremental compile.
-    var result = await compiler.compileExpression(
-        input: input,
-        line: dartLine,
-        column: 1,
-        scope: scope,
-        expression: expression);
+      if (!result.isSuccess) {
+        throw Exception(
+            'Unexpected expression evaluation failure:\n${result.result}');
+      }
 
-    if (expectedError != null) {
+      // Evaluate the compiled expression.
+      var evalResult = await debugger.evaluateOnCallFrame(
+          frame.callFrameId, result.result!,
+          returnByValue: false);
+
+      var value = await stringifyRemoteObject(evalResult);
+
       expect(
           result,
           const TypeMatcher<TestCompilationResult>()
-              .having((_) => result.result, 'result', _matches(expectedError)));
-      setup.diagnosticMessages.clear();
-      setup.errors.clear();
-      return;
-    }
-
-    if (!result.isSuccess) {
-      throw Exception(
-          'Unexpected expression evaluation failure:\n${result.result}');
-    }
-
-    var evalResult = await debugger.evaluateOnCallFrame(
-        frame.callFrameId, result.result!,
-        returnByValue: false);
-
-    await debugger.removeBreakpoint(bp.breakpointId);
-    var value = await stringifyRemoteObject(evalResult);
-
-    // Resume execution to the end of the current script
-    await debugger.resume();
-
-    expect(
-        result,
-        const TypeMatcher<TestCompilationResult>()
-            .having((_) => value, 'result', _matches(expectedResult!)));
+              .having((_) => value, 'result', _matches(expectedResult!)));
+    });
   }
 
   /// Generate simple string representation of a RemoteObject that closely
@@ -696,3 +759,12 @@ Future setBreakpointsActive(wip.WipDebugger debugger, bool active) async {
   }).timeout(Duration(seconds: 5),
       onTimeout: (() => throw Exception('Unable to set breakpoint activity')));
 }
+
+/// The regexes used in dwds to filter out temp variables.
+/// Needs to be kept in sync in both repos.
+///
+/// TODO(annagrin) - use an alternative way to identify
+/// synthetic variables.
+/// Issue: https://github.com/dart-lang/sdk/issues/44262
+final _ddcTemporaryVariableRegExp = RegExp(r'^t(\$[0-9]*)+\w*$');
+final _ddcTemporaryTypeVariableRegExp = RegExp(r'^__t[\$\w*]+$');
