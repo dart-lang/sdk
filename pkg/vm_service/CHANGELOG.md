@@ -1,4 +1,8 @@
-## 11.2.1-dev
+## 11.2.2-dev
+
+## 11.2.1
+- Prevent `VmServerConnection` from converting `SentinelException`s into
+  `RPCError`s.
 
 ## 11.2.0
 - Update to version `4.3` of the spec.
