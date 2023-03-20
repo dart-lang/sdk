@@ -1,3 +1,13 @@
+## 2.19.5 - 2023-03-22
+
+This is a patch release that:
+
+- Fixes fixes broken usage of `Dart_CObject_Type`. (issue [#51459]).
+- Updates test matrix on the stable channel. (issue [#51764]).
+
+[#51459]: https://github.com/dart-lang/sdk/issues/51459
+[#51764]: https://github.com/dart-lang/sdk/issues/51764
+
 ## 2.19.4 - 2023-03-08
 
 This is a patch release that:
