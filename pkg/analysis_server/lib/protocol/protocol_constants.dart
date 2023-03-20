@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.33.4';
+const String PROTOCOL_VERSION = '1.34.0';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -364,7 +364,17 @@ const String SERVER_NOTIFICATION_STATUS_PUB = 'pub';
 const String SERVER_REQUEST_CANCEL_REQUEST = 'server.cancelRequest';
 const String SERVER_REQUEST_CANCEL_REQUEST_ID = 'id';
 const String SERVER_REQUEST_GET_VERSION = 'server.getVersion';
+const String SERVER_REQUEST_OPEN_URL_REQUEST = 'server.openUrlRequest';
+const String SERVER_REQUEST_OPEN_URL_REQUEST_URL = 'url';
+const String SERVER_REQUEST_SET_CLIENT_CAPABILITIES =
+    'server.setClientCapabilities';
+const String SERVER_REQUEST_SET_CLIENT_CAPABILITIES_REQUESTS = 'requests';
 const String SERVER_REQUEST_SET_SUBSCRIPTIONS = 'server.setSubscriptions';
 const String SERVER_REQUEST_SET_SUBSCRIPTIONS_SUBSCRIPTIONS = 'subscriptions';
+const String SERVER_REQUEST_SHOW_MESSAGE_REQUEST = 'server.showMessageRequest';
+const String SERVER_REQUEST_SHOW_MESSAGE_REQUEST_ACTIONS = 'actions';
+const String SERVER_REQUEST_SHOW_MESSAGE_REQUEST_MESSAGE = 'message';
+const String SERVER_REQUEST_SHOW_MESSAGE_REQUEST_TYPE = 'type';
 const String SERVER_REQUEST_SHUTDOWN = 'server.shutdown';
 const String SERVER_RESPONSE_GET_VERSION_VERSION = 'version';
+const String SERVER_RESPONSE_SHOW_MESSAGE_REQUEST_ACTION = 'action';

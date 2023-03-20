@@ -1118,6 +1118,25 @@ final Matcher isLocation = LazyMatcher(() => MatchesJsonObject('Location', {
       'endColumn': isInt
     }));
 
+/// MessageAction
+///
+/// {
+///   "label": String
+/// }
+final Matcher isMessageAction =
+    LazyMatcher(() => MatchesJsonObject('MessageAction', {'label': isString}));
+
+/// MessageType
+///
+/// enum {
+///   ERROR
+///   WARNING
+///   INFO
+///   LOG
+/// }
+final Matcher isMessageType =
+    MatchesEnum('MessageType', ['ERROR', 'WARNING', 'INFO', 'LOG']);
+
 /// NavigationRegion
 ///
 /// {
@@ -3062,6 +3081,29 @@ final Matcher isServerGetVersionResult = LazyMatcher(
 final Matcher isServerLogParams = LazyMatcher(
     () => MatchesJsonObject('server.log params', {'entry': isServerLogEntry}));
 
+/// server.openUrlRequest params
+///
+/// {
+///   "url": String
+/// }
+final Matcher isServerOpenUrlRequestParams = LazyMatcher(
+    () => MatchesJsonObject('server.openUrlRequest params', {'url': isString}));
+
+/// server.openUrlRequest result
+final Matcher isServerOpenUrlRequestResult = isNull;
+
+/// server.setClientCapabilities params
+///
+/// {
+///   "requests": List<String>
+/// }
+final Matcher isServerSetClientCapabilitiesParams = LazyMatcher(() =>
+    MatchesJsonObject('server.setClientCapabilities params',
+        {'requests': isListOf(isString)}));
+
+/// server.setClientCapabilities result
+final Matcher isServerSetClientCapabilitiesResult = isNull;
+
 /// server.setSubscriptions params
 ///
 /// {
@@ -3073,6 +3115,29 @@ final Matcher isServerSetSubscriptionsParams = LazyMatcher(() =>
 
 /// server.setSubscriptions result
 final Matcher isServerSetSubscriptionsResult = isNull;
+
+/// server.showMessageRequest params
+///
+/// {
+///   "type": MessageType
+///   "message": String
+///   "actions": List<MessageAction>
+/// }
+final Matcher isServerShowMessageRequestParams = LazyMatcher(() =>
+    MatchesJsonObject('server.showMessageRequest params', {
+      'type': isMessageType,
+      'message': isString,
+      'actions': isListOf(isMessageAction)
+    }));
+
+/// server.showMessageRequest result
+///
+/// {
+///   "action": String
+/// }
+final Matcher isServerShowMessageRequestResult = LazyMatcher(() =>
+    MatchesJsonObject(
+        'server.showMessageRequest result', {'action': isString}));
 
 /// server.shutdown params
 final Matcher isServerShutdownParams = isNull;
