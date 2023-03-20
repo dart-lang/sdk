@@ -17,11 +17,6 @@ class BaseOrFinalTypeVerifier {
   final LibraryElement _definingLibrary;
   final ErrorReporter _errorReporter;
 
-  /// Maps an element to a base or final superelement.
-  /// May be null if the type does not have one.
-  final Map<ClassOrMixinElementImpl, ClassOrMixinElementImpl?>
-      _elementToBaseOrFinalSuperElement = {};
-
   BaseOrFinalTypeVerifier({
     required LibraryElement definingLibrary,
     required ErrorReporter errorReporter,
@@ -34,13 +29,6 @@ class BaseOrFinalTypeVerifier {
   /// See [CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED],
   /// [CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED]
   void checkElement(ClassOrMixinElementImpl element) {
-    if (_elementToBaseOrFinalSuperElement.containsKey(element)) {
-      // We've already visited this element. Don't check it again.
-      return;
-    } else {
-      _elementToBaseOrFinalSuperElement[element] = null;
-    }
-
     final supertype = element.supertype;
     if (supertype != null && _checkSupertypes([supertype], element)) {
       return;
@@ -51,9 +39,6 @@ class BaseOrFinalTypeVerifier {
     if (_checkSupertypes(element.mixins, element)) {
       return;
     }
-    if (_checkSupertypes(element.interfaces, element)) {
-      return;
-    }
     if (element is MixinElementImpl &&
         _checkSupertypes(element.superclassConstraints, element,
             areSuperclassConstraints: true)) {
@@ -61,16 +46,14 @@ class BaseOrFinalTypeVerifier {
     }
   }
 
+  /// Returns true if a 'base' or 'final' subtype modifier error is reported for
+  /// a supertype in [supertypes].
   bool _checkSupertypes(
       List<InterfaceType> supertypes, ClassOrMixinElementImpl subElement,
       {bool areSuperclassConstraints = false}) {
     for (final supertype in supertypes) {
       final supertypeElement = supertype.element;
       if (supertypeElement is ClassOrMixinElementImpl) {
-        // Ensure that all superelements are properly cached in
-        // [_elementToBaseOrFinalSuperElement].
-        checkElement(supertypeElement);
-
         // Return early if an error has been reported to prevent reporting
         // multiple errors on one element.
         if (_reportRestrictionError(subElement, supertypeElement,
@@ -82,6 +65,51 @@ class BaseOrFinalTypeVerifier {
     return false;
   }
 
+  /// Returns the nearest explicitly declared 'base' or 'final' element in the
+  /// element hierarchy for [element].
+  ClassOrMixinElementImpl? _getExplicitlyBaseOrFinalElement(
+      ClassOrMixinElementImpl element) {
+    // The current element has an explicit 'base' or 'final' modifier.
+    if ((element.isBase || element.isFinal) && !element.isSealed) {
+      return element;
+    }
+
+    ClassOrMixinElementImpl? baseOrFinalSuperElement;
+    final supertype = element.supertype;
+    if (supertype != null) {
+      baseOrFinalSuperElement ??=
+          _getExplicitlyBaseOrFinalElementFromSuperTypes([supertype]);
+    }
+    baseOrFinalSuperElement ??=
+        _getExplicitlyBaseOrFinalElementFromSuperTypes(element.interfaces);
+    baseOrFinalSuperElement ??=
+        _getExplicitlyBaseOrFinalElementFromSuperTypes(element.mixins);
+    if (element is MixinElementImpl) {
+      baseOrFinalSuperElement ??=
+          _getExplicitlyBaseOrFinalElementFromSuperTypes(
+              element.superclassConstraints);
+    }
+    return baseOrFinalSuperElement;
+  }
+
+  /// Returns the first explicitly declared 'base' or 'final' element found in
+  /// the class hierarchies of a supertype in [supertypes], or `null` if there
+  /// is none.
+  ClassOrMixinElementImpl? _getExplicitlyBaseOrFinalElementFromSuperTypes(
+      List<InterfaceType> supertypes) {
+    ClassOrMixinElementImpl? baseOrFinalElement;
+    for (final supertype in supertypes) {
+      final supertypeElement = supertype.element;
+      if (supertypeElement is ClassOrMixinElementImpl) {
+        baseOrFinalElement = _getExplicitlyBaseOrFinalElement(supertypeElement);
+        if (baseOrFinalElement != null) {
+          return baseOrFinalElement;
+        }
+      }
+    }
+    return baseOrFinalElement;
+  }
+
   /// Checks whether a `final`, `base` or `interface` modifier can be ignored.
   ///
   /// Checks whether a subclass in the current library
@@ -90,7 +118,7 @@ class BaseOrFinalTypeVerifier {
   /// Only true if the supertype library is a platform library, and
   /// either the current library is also a platform library,
   /// or the current library has a language version which predates
-  /// class modifiers
+  /// class modifiers.
   bool _mayIgnoreClassModifiers(LibraryElement superLibrary) {
     // Only modifiers in platform libraries can be ignored.
     if (!superLibrary.isInSdk) return false;
@@ -104,47 +132,40 @@ class BaseOrFinalTypeVerifier {
 
   /// Returns true if a element modifier restriction error has been reported.
   ///
-  /// Reports an error based on the modifier of the superElement.
+  /// Reports an error based on the modifier of the [superElement].
   bool _reportRestrictionError(
       ClassOrMixinElementImpl element, ClassOrMixinElementImpl superElement,
       {bool isSuperclassConstraint = false}) {
-    final cachedBaseOrFinalSuperElement =
-        _elementToBaseOrFinalSuperElement[superElement];
-    final hasCachedBaseOrFinalSuperElement =
-        cachedBaseOrFinalSuperElement != null;
     ClassOrMixinElementImpl? baseOrFinalSuperElement;
-
     if (superElement.isBase || superElement.isFinal) {
-      // Prefer the direct base or final superelement.
-      baseOrFinalSuperElement = superElement;
-    } else if (hasCachedBaseOrFinalSuperElement) {
-      // There's a base or final element higher up in the class hierarchy.
-      // The superelement is a sealed element or an element of a
-      // legacy library.
-      baseOrFinalSuperElement = cachedBaseOrFinalSuperElement;
+      // The 'base' or 'final' modifier may be an induced modifier. Find the
+      // explicitly declared 'base' or 'final' in the hierarchy.
+      baseOrFinalSuperElement = _getExplicitlyBaseOrFinalElement(superElement);
     } else {
       // There are no restrictions on this element's modifiers.
       return false;
     }
 
-    _elementToBaseOrFinalSuperElement[element] = baseOrFinalSuperElement;
-
     if (element.library != _definingLibrary) {
       // Only report errors on elements within the current library.
       return false;
     }
-    if (!element.isBase &&
+    if (baseOrFinalSuperElement != null &&
+        !element.isBase &&
         !element.isFinal &&
         !element.isSealed &&
         !_mayIgnoreClassModifiers(baseOrFinalSuperElement.library)) {
+      // The context message links to the explicitly declared 'base' or 'final'
+      // super element and is only added onto the error if 'base' or 'final' is
+      // an induced modifier of the direct super element.
       final contextMessage = <DiagnosticMessage>[
         DiagnosticMessageImpl(
-          filePath: superElement.source.fullName,
-          length: superElement.nameLength,
+          filePath: baseOrFinalSuperElement.source.fullName,
+          length: baseOrFinalSuperElement.nameLength,
           message: "The type '${superElement.displayName}' is a subtype of "
               "'${baseOrFinalSuperElement.displayName}', and "
-              "'${superElement.name}' is defined here.",
-          offset: superElement.nameOffset,
+              "'${baseOrFinalSuperElement.displayName}' is defined here.",
+          offset: baseOrFinalSuperElement.nameOffset,
           url: null,
         )
       ];
@@ -161,14 +182,14 @@ class BaseOrFinalTypeVerifier {
             CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
             element,
             [element.displayName, baseOrFinalSuperElement.displayName],
-            hasCachedBaseOrFinalSuperElement ? contextMessage : null);
+            superElement.isSealed ? contextMessage : null);
         return true;
       } else if (baseOrFinalSuperElement.isBase) {
         _errorReporter.reportErrorForElement(
             CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
             element,
             [element.displayName, baseOrFinalSuperElement.displayName],
-            hasCachedBaseOrFinalSuperElement ? contextMessage : null);
+            superElement.isSealed ? contextMessage : null);
         return true;
       }
     }

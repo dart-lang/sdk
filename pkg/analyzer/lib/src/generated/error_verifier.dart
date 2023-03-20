@@ -1751,6 +1751,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         final interfaceElement = interfaceType.element;
         if (interfaceElement is ClassOrMixinElementImpl &&
             interfaceElement.isBase &&
+            !interfaceElement.isSealed &&
             interfaceElement.library != _currentLibrary &&
             !_mayIgnoreClassModifiers(interfaceElement.library)) {
           // Should this be combined with _checkForImplementsClauseErrorCodes
@@ -2867,6 +2868,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         final element = type.element;
         if (element is ClassElementImpl &&
             element.isFinal &&
+            !element.isSealed &&
             element.library != _currentLibrary &&
             !_mayIgnoreClassModifiers(element.library)) {
           errorReporter.reportErrorForNode(
@@ -2883,6 +2885,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           final element = type.element;
           if (element is MixinElementImpl &&
               element.isFinal &&
+              !element.isSealed &&
               element.library != _currentLibrary &&
               !_mayIgnoreClassModifiers(element.library)) {
             errorReporter.reportErrorForNode(
@@ -2900,6 +2903,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           final element = type.element;
           if (element is ClassOrMixinElementImpl &&
               element.isFinal &&
+              !element.isSealed &&
               element.library != _currentLibrary &&
               !_mayIgnoreClassModifiers(element.library)) {
             final ErrorCode errorCode;
@@ -3121,6 +3125,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         final superclassElement = superclassType.element;
         if (superclassElement is ClassElementImpl &&
             superclassElement.isInterface &&
+            !superclassElement.isSealed &&
             superclassElement.library != _currentLibrary &&
             !_mayIgnoreClassModifiers(superclassElement.library)) {
           errorReporter.reportErrorForNode(
@@ -3137,6 +3142,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           final withElement = withType.element;
           if (withElement is MixinElementImpl &&
               withElement.isInterface &&
+              !withElement.isSealed &&
               withElement.library != _currentLibrary &&
               !_mayIgnoreClassModifiers(withElement.library)) {
             errorReporter.reportErrorForNode(

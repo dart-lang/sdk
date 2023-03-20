@@ -7841,6 +7841,146 @@ library
 ''');
   }
 
+  test_class_sealed_induced_base_extends_base() async {
+    var library = await buildLibrary('''
+base class A {}
+sealed class B extends A {}''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      base class A @11
+        constructors
+          synthetic @-1
+      abstract sealed base class B @29
+        supertype: A
+        constructors
+          synthetic @-1
+            superConstructor: self::@class::A::@constructor::new
+''');
+  }
+
+  test_class_sealed_induced_base_implements_base() async {
+    var library = await buildLibrary('''
+base class A {}
+sealed class B implements A {}''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      base class A @11
+        constructors
+          synthetic @-1
+      abstract sealed base class B @29
+        interfaces
+          A
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_class_sealed_induced_base_implements_final() async {
+    var library = await buildLibrary('''
+final class A {}
+sealed class B implements A {}''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      final class A @12
+        constructors
+          synthetic @-1
+      abstract sealed base class B @30
+        interfaces
+          A
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_class_sealed_induced_final_extends_final() async {
+    var library = await buildLibrary('''
+final class A {}
+sealed class B extends A {}''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      final class A @12
+        constructors
+          synthetic @-1
+      abstract sealed final class B @30
+        supertype: A
+        constructors
+          synthetic @-1
+            superConstructor: self::@class::A::@constructor::new
+''');
+  }
+
+  test_class_sealed_induced_final_with_base_mixin() async {
+    var library = await buildLibrary('''
+base mixin A {}
+interface class B {}
+sealed class C extends B with A {}''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      interface class B @32
+        constructors
+          synthetic @-1
+      abstract sealed final class C @50
+        supertype: B
+        mixins
+          A
+        constructors
+          synthetic @-1
+            superConstructor: self::@class::B::@constructor::new
+    mixins
+      base mixin A @11
+        superclassConstraints
+          Object
+''');
+  }
+
+  test_class_sealed_induced_interface_extends_interface() async {
+    var library = await buildLibrary('''
+interface class A {}
+sealed class B extends A {}''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      interface class A @16
+        constructors
+          synthetic @-1
+      abstract sealed interface class B @34
+        supertype: A
+        constructors
+          synthetic @-1
+            superConstructor: self::@class::A::@constructor::new
+''');
+  }
+
+  test_class_sealed_induced_none_implements_interface() async {
+    var library = await buildLibrary('''
+interface class A {}
+sealed class B implements A {}''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      interface class A @16
+        constructors
+          synthetic @-1
+      abstract sealed class B @34
+        interfaces
+          A
+        constructors
+          synthetic @-1
+''');
+  }
+
   test_class_setter_abstract() async {
     var library =
         await buildLibrary('abstract class C { void set x(int value); }');

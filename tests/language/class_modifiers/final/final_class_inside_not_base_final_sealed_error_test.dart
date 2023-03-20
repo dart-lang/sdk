@@ -8,10 +8,15 @@
 // sealed.
 
 final class FinalClass {}
+
 final mixin FinalMixin {}
+
 base class BaseClass extends FinalClass {}
+
 sealed class SubtypeOfFinal extends FinalClass {}
+
 class RegularClass {}
+
 final mixin FinalMixin2 {}
 
 class Extends extends FinalClass {}
@@ -45,8 +50,7 @@ mixin On on FinalClass {}
 // [cfe] The type 'On' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 
 class ExtendsExtends extends Extends {}
-//    ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+//    ^
 // [cfe] The type 'ExtendsExtends' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 
 class Multiple extends BaseClass implements FinalMixin {}
