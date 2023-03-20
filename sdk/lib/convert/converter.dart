@@ -6,9 +6,9 @@ part of dart.convert;
 
 /// A [Converter] converts data from one representation into another.
 ///
-/// It is recommended that implementations of `Converter` extend this class,
-/// to inherit any further methods that may be added to the class.
-abstract class Converter<S, T> extends StreamTransformerBase<S, T> {
+/// The [Converter] class provides a default implementation for every method
+/// other than [convert].
+abstract mixin class Converter<S, T> implements StreamTransformerBase<S, T> {
   const Converter();
 
   /// Adapts [source] to be a `Converter<TS, TT>`.

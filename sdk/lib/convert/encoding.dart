@@ -4,7 +4,14 @@
 
 part of dart.convert;
 
-/// Open-ended Encoding enum.
+/// Open-ended set of encodings.
+///
+/// An encoding is a [Codec] encoding strings to lists of byte.
+///
+/// This class provides a default implementation of [decodeStream],
+/// which is not incremental. It collects the entire input before
+/// decoding. Subclasses can choose to use that implementation,
+/// or implement a more efficient stream decoding.
 abstract class Encoding extends Codec<String, List<int>> {
   const Encoding();
 

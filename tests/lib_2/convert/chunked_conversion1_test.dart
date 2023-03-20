@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 // This test implements a new special interface that can be used to
 // send data more efficiently between two converters.
 
-abstract class MyChunkedIntSink extends ChunkedConversionSink<int> {
+abstract class MyChunkedIntSink implements ChunkedConversionSink<int> {
   MyChunkedIntSink();
   factory MyChunkedIntSink.from(sink) = IntAdapterSink;
   factory MyChunkedIntSink.withCallback(callback) {
@@ -34,7 +34,7 @@ class IntAdapterSink extends MyChunkedIntSink {
   void specialI(int o) => add(o);
 }
 
-abstract class MyChunkedBoolSink extends ChunkedConversionSink<bool> {
+abstract class MyChunkedBoolSink implements ChunkedConversionSink<bool> {
   MyChunkedBoolSink();
   factory MyChunkedBoolSink.from(sink) = BoolAdapterSink;
   factory MyChunkedBoolSink.withCallback(callback) {
@@ -117,7 +117,7 @@ class IdentityConverter<T> extends Converter<T, T> {
   }
 }
 
-class IdentitySink<T> extends ChunkedConversionSink<T> {
+class IdentitySink<T> implements ChunkedConversionSink<T> {
   final _sink;
   IdentitySink(this._sink);
   void add(T o) => _sink.add(o);

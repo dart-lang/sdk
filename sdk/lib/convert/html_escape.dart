@@ -70,7 +70,7 @@ const HtmlEscape htmlEscape = HtmlEscape();
 /// escaped = htmlEscape.convert(unescaped);
 /// print(escaped); // Path: /system/
 /// ```
-class HtmlEscapeMode {
+final class HtmlEscapeMode {
   final String _name;
 
   /// Whether to escape '<' and '>'.
@@ -193,7 +193,7 @@ class HtmlEscapeMode {
 /// escaped = htmlEscape.convert(unescaped);
 /// print(escaped); // Path: &#47;system&#47;
 /// ```
-class HtmlEscape extends Converter<String, String> {
+final class HtmlEscape extends Converter<String, String> {
   /// The [HtmlEscapeMode] used by the converter.
   final HtmlEscapeMode mode;
 
@@ -257,7 +257,7 @@ class HtmlEscape extends Converter<String, String> {
   }
 }
 
-class _HtmlEscapeSink extends StringConversionSinkBase {
+class _HtmlEscapeSink extends StringConversionSink {
   final HtmlEscape _escape;
   final StringConversionSink _sink;
 
