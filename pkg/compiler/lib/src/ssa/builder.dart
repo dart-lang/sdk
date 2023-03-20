@@ -2943,6 +2943,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // This is because JS does not have this same "continue label" semantics so
     // we encode it in the form of a state machine.
 
+    // TODO(https://dartbug.com/51777): Consider alternative with single switch
+    // statement.
+
     JumpTarget switchTarget =
         _localsMap.getJumpTargetForSwitch(switchStatement)!;
     localsHandler.updateLocal(switchTarget, graph.addConstantNull(closedWorld));

@@ -333,7 +333,28 @@ class JumpVisitor extends ir.Visitor<void> with ir.VisitorVoidMixin {
     return node is ir.ForStatement ||
         node is ir.ForInStatement ||
         node is ir.WhileStatement ||
-        node is ir.DoStatement;
+        node is ir.DoStatement ||
+        node is ir.SwitchStatement && mightBeImplementedAsLoop(node);
+  }
+
+  static bool mightBeImplementedAsLoop(ir.SwitchStatement node) {
+    // ir.SwitchStatements that contain ir.ContinueSwitchStatements are compiled
+    // to a loop surrounding a switch statement. This additional surrounding
+    // loop means that a label is needed for a `break` or `continue` to skip the
+    // loop.
+
+    // Ideally we would do an analysis of the switch to see if it contains a
+    // ContinueSwitchStatement. This is exceedingly rare outside of
+    // tests. Simply returning `true` gives a false positive that a label is
+    // needed. This causes an unnecessary label to be defined and used when the
+    // original code contains (1) a switch in a loop and (2) a switch case uses
+    // `continue` to jump to the loop, but is otherwise harmless.  This
+    // combination of conditions is uncommon so we see only a few extra labels
+    // in the largest code-bases.
+    return true;
+
+    // TODO(http://dartbug.com/51777): Avoid this issue by implementing the
+    // continue-switch feature entirely in front-end.
   }
 
   @override
