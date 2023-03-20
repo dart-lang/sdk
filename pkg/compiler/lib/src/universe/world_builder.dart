@@ -8,13 +8,12 @@ import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../ir/class_relation.dart';
+import '../ir/static_type.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../world.dart' show World;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, StaticUse;
 import 'resolution_world_builder.dart' show ResolutionWorldBuilder;
-import 'strong_mode_constraint.dart' show StrongModeConstraintInterface;
 
 /// The combined constraints on receivers all the dynamic call sites of the same
 /// selector.
@@ -152,7 +151,7 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
   }
 }
 
-class StrongModeConstraint implements StrongModeConstraintInterface {
+class StrongModeConstraint {
   final ClassEntity cls;
   final ClassRelation relation;
 
@@ -176,13 +175,10 @@ class StrongModeConstraint implements StrongModeConstraintInterface {
     return world.isInheritedIn(element, cls, relation);
   }
 
-  @override
   bool get isExact => relation == ClassRelation.exact;
 
-  @override
   bool get isThis => relation == ClassRelation.thisExpression;
 
-  @override
   String get className => cls.name;
 
   @override

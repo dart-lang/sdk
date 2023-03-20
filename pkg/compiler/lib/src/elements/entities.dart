@@ -6,8 +6,7 @@ library entities;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' show AsyncModifier;
 
-// TODO(48820): Spannable was imported from `../common.dart`.
-import '../diagnostics/spannable.dart' show Spannable;
+import '../common.dart' show Spannable;
 import '../serialization/serialization.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../util/util.dart';

@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'data_sink.dart';
+import 'serialization.dart' show DataSink;
 
 /// [DataSink] that writes data as a sequence of bytes.
 ///

@@ -378,7 +378,6 @@ class TypeSystem {
 
   /// Returns the internal inferrer representation for [mask].
   ConcreteTypeInformation getConcreteTypeFor(AbstractValue mask) {
-    assert((mask as dynamic) != null); // TODO(48820): Remove when sound.
     return concreteTypes.putIfAbsent(mask, () {
       return ConcreteTypeInformation(mask);
     });

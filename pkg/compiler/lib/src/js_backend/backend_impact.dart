@@ -56,15 +56,12 @@ class BackendImpact {
   void registerImpact(WorldImpactBuilder worldImpactBuilder,
       ElementEnvironment elementEnvironment) {
     for (FunctionEntity staticUse in staticUses) {
-      assert((staticUse as dynamic) != null); // TODO(48820): Remove when sound.
       worldImpactBuilder.registerStaticUse(StaticUse.implicitInvoke(staticUse));
     }
     for (FunctionEntity staticUse in globalUses) {
-      assert((staticUse as dynamic) != null); // TODO(48820): Remove when sound.
       worldImpactBuilder.registerStaticUse(StaticUse.implicitInvoke(staticUse));
     }
     for (Selector selector in dynamicUses) {
-      assert((selector as dynamic) != null); // TODO(48820): Remove when sound.
       worldImpactBuilder
           .registerDynamicUse(DynamicUse(selector, null, const []));
     }

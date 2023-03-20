@@ -147,8 +147,6 @@ class RuntimeTypeGenerator {
       } else {
         jsAst.Expression? encoding =
             generatedCode[classFunctionType.signatureFunction];
-        // TODO(48820): remove
-        assert((classFunctionType.signatureFunction as dynamic) != null);
         if (functionTypeIndex != null) {
           if (isDeferred) {
             // The function type index must be offset by the number of types

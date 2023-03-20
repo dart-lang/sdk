@@ -150,8 +150,7 @@ class UnparsedNode extends DeferredString implements AstContainer {
   final Node tree;
   final bool _enableMinification;
   final bool _protectForEval;
-  // TODO(48820): Can be `late final` with initializer.
-  LiteralString? _cachedLiteral;
+  late final LiteralString _literal = _create(tree);
 
   @override
   Iterable<Node> get containedNodes => [tree];
@@ -162,8 +161,6 @@ class UnparsedNode extends DeferredString implements AstContainer {
   /// [ast] and, if [protectForEval] is true, wraps the resulting string in
   /// parenthesis. The result is also escaped.
   UnparsedNode(this.tree, this._enableMinification, this._protectForEval);
-
-  LiteralString get _literal => _cachedLiteral ??= _create(tree);
 
   LiteralString _create(Node node) {
     String text = prettyPrint(node, enableMinification: _enableMinification);

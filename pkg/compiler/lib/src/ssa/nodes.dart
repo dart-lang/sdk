@@ -1128,11 +1128,7 @@ abstract class HInstruction implements SpannableWithEntity {
   static const int LATE_WRITE_ONCE_CHECK_TYPECODE = 62;
   static const int LATE_INITIALIZE_ONCE_CHECK_TYPECODE = 63;
 
-  HInstruction(this.inputs, this.instructionType) {
-    // TODO(48820): remove this assertion:
-    assert(inputs.every((e) => (e as dynamic) != null), "inputs: $inputs");
-  }
-
+  HInstruction(this.inputs, this.instructionType);
   @override
   Entity? get sourceEntity => sourceElement;
 
@@ -2452,8 +2448,6 @@ class HForeignCode extends HForeign {
       : this.nativeBehavior = nativeBehavior,
         //this.throwBehavior = throwBehavior,
         super(type, inputs) {
-    assert((codeTemplate as dynamic) != null); // TODO(48820): remove.
-
     if (effects == null && nativeBehavior != null) {
       effects = nativeBehavior.sideEffects;
     }
@@ -4437,8 +4431,7 @@ class HAsCheck extends HCheck {
       this.checkedTypeExpression,
       this.isTypeError,
       AbstractValue instructionType)
-      : assert((isTypeError as dynamic) != null), // TODO(48820): remove.
-        super([rti, checked], instructionType);
+      : super([rti, checked], instructionType);
 
   // The type input is first to facilitate the `type.as(value)` codegen pattern.
   HInstruction get typeInput => inputs[0];
