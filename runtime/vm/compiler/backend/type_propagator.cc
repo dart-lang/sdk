@@ -1688,10 +1688,14 @@ CompileType LoadFieldInstr::ComputeType() const {
     }
     const AbstractType* instance_type = instance()->Type()->ToAbstractType();
     if (instance_type->IsRecordType()) {
-      const auto& field_type = AbstractType::ZoneHandle(
-          RecordType::Cast(*instance_type).FieldTypeAt(index));
-      return CompileType::FromAbstractType(field_type, CompileType::kCanBeNull,
-                                           CompileType::kCannotBeSentinel);
+      const auto& record_type = RecordType::Cast(*instance_type);
+      if (index < record_type.NumFields()) {
+        const auto& field_type =
+            AbstractType::ZoneHandle(record_type.FieldTypeAt(index));
+        return CompileType::FromAbstractType(field_type,
+                                             CompileType::kCanBeNull,
+                                             CompileType::kCannotBeSentinel);
+      }
     }
   }
   CompileType type = slot().ComputeCompileType();
