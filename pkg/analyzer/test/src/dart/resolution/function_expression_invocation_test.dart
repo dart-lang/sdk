@@ -273,6 +273,100 @@ FunctionExpressionInvocation
 ''');
   }
 
+  test_expression_interfaceType_nullable_hasCall() async {
+    await assertNoErrorsInCode(r'''
+void f(int? a) {
+  a();
+}
+
+extension on int? {
+  int call() => 0;
+}
+''');
+    final node = findNode.functionExpressionInvocation('();');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: int?
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: self::@extension::0::@method::call
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_expression_recordType_hasCall() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  (int, String)();
+}
+
+extension on (Type, Type) {
+  int call() => 0;
+}
+''');
+    final node = findNode.functionExpressionInvocation('();');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: RecordLiteral
+    leftParenthesis: (
+    fields
+      SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: Type
+      SimpleIdentifier
+        token: String
+        staticElement: dart:core::@class::String
+        staticType: Type
+    rightParenthesis: )
+    staticType: (Type, Type)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: self::@extension::0::@method::call
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_expression_recordType_noCall() async {
+    await assertErrorsInCode(r'''
+void f() {
+  (bool, String)();
+}
+''', [
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 13, 14),
+    ]);
+    final node = findNode.functionExpressionInvocation('();');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: RecordLiteral
+    leftParenthesis: (
+    fields
+      SimpleIdentifier
+        token: bool
+        staticElement: dart:core::@class::bool
+        staticType: Type
+      SimpleIdentifier
+        token: String
+        staticElement: dart:core::@class::String
+        staticType: Type
+    rightParenthesis: )
+    staticType: (Type, Type)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
   test_never() async {
     await assertErrorsInCode(r'''
 void f(Never x) {
