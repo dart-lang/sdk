@@ -8,12 +8,14 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LiteralOnlyBooleanExpressionsTest);
+    defineReflectiveTests(LiteralOnlyBooleanExpressionsTestLanguage219);
+    defineReflectiveTests(LiteralOnlyBooleanExpressionsTestLanguage300);
   });
 }
 
 @reflectiveTest
-class LiteralOnlyBooleanExpressionsTest extends LintRuleTest {
+class LiteralOnlyBooleanExpressionsTestLanguage219 extends LintRuleTest
+    with LanguageVersion219Mixin {
   @override
   String get lintRule => 'literal_only_boolean_expressions';
 
@@ -25,5 +27,24 @@ void f() {
   }
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class LiteralOnlyBooleanExpressionsTestLanguage300 extends LintRuleTest
+    with LanguageVersion300Mixin {
+  @override
+  String get lintRule => 'literal_only_boolean_expressions';
+
+  test_whenClause() async {
+    await assertDiagnostics(r'''
+void f() {
+  switch (1) {
+    case [int a] when true: print(a);
+  }
+}
+''', [
+      lint(43, 9),
+    ]);
   }
 }

@@ -131,6 +131,7 @@ class LiteralOnlyBooleanExpressions extends LintRule {
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addIfStatement(this, visitor);
+    registry.addWhenClause(this, visitor);
     registry.addWhileStatement(this, visitor);
   }
 }
@@ -160,6 +161,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitIfStatement(IfStatement node) {
     if (_onlyLiterals(node.condition)) {
+      rule.reportLint(node);
+    }
+  }
+
+  @override
+  void visitWhenClause(WhenClause node) {
+    if (_onlyLiterals(node.expression)) {
       rule.reportLint(node);
     }
   }
