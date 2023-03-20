@@ -88,6 +88,7 @@ class AlwaysSpecifyTypes extends LintRule {
     registry.addSetOrMapLiteral(this, visitor);
     registry.addSimpleFormalParameter(this, visitor);
     registry.addNamedType(this, visitor);
+    registry.addDeclaredVariablePattern(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
   }
 }
@@ -132,6 +133,23 @@ class _Visitor extends SimpleAstVisitor<void> {
           rule.reportLintForToken(keyword,
               arguments: [element!.type], errorCode: specifyTypeCode);
         }
+      }
+    }
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    if (node.type == null) {
+      var type = node.matchedValueType!;
+      var keyword = node.keyword;
+      var tokenToLint = keyword ?? node.name;
+      if (keyword != null && keyword.keyword == Keyword.VAR) {
+        rule.reportLintForToken(tokenToLint,
+            arguments: [keyword.lexeme, type],
+            errorCode: keywordCouldBeTypeCode);
+      } else {
+        rule.reportLintForToken(tokenToLint,
+            arguments: [type], errorCode: specifyTypeCode);
       }
     }
   }
