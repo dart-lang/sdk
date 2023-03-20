@@ -8,7 +8,7 @@ part of dart._internal;
 /// end.
 ///
 /// Used to efficiently collect bytes and lists of bytes.
-abstract class BytesBuilder {
+abstract interface class BytesBuilder {
   /// Construct a new empty [BytesBuilder].
   ///
   /// If [copy] is true (the default), the created builder is a *copying*
