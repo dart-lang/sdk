@@ -29,6 +29,7 @@ int get _intPtrSize => (const [
       8, // androidX64,
       8, // fuchsiaArm64,
       8, // fuchsiaX64,
+      8, // fuchsiaRiscv64,
       4, // iosArm,
       8, // iosArm64,
       8, // iosX64,
