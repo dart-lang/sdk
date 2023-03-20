@@ -3674,27 +3674,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// [ReferenceWithType] object referring to the scrutinee.  Otherwise `null`.
   ReferenceWithType<Type>? _scrutineeReference;
 
-  /// If a pattern is being analyzed, and the scrutinee is something that might
-  /// be type promoted as a consequence of the pattern match, [SsaNode]
-  /// reflecting the state of the pattern match at the time that
-  /// [_scrutineeReference] was captured.  Otherwise `null`.
-  ///
-  /// This is necessary to detect situations where the scrutinee is modified
-  /// after the beginning of a switch statement and before choosing the case to
-  /// execute (e.g. in a guard clause), and therefore further pattern matches
-  /// should not promote the scrutinee (since they are acting on a cached value
-  /// that no longer matches the scrutinee expression).  For example:
-  ///
-  ///     switch (v) {
-  ///       case int _: // promotes `v` to `int`
-  ///         break;
-  ///       case _ when f(v = ...): // reassigns `v`
-  ///         break;
-  ///       case String _: // does not promote `v` to `String`
-  ///         break;
-  ///     }
-  SsaNode<Type>? _scrutineeSsaNode;
-
   /// The most recently visited expression for which an [ExpressionInfo] object
   /// exists, or `null` if no expression has been visited that has a
   /// corresponding [ExpressionInfo] object.
@@ -3990,7 +3969,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     assert(_current.reachable.parent == null);
     assert(_unmatched == null);
     assert(_scrutineeReference == null);
-    assert(_scrutineeSsaNode == null);
   }
 
   @override
@@ -4880,9 +4858,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (_scrutineeReference != null) {
       print('  scrutineeReference: $_scrutineeReference');
     }
-    if (_scrutineeSsaNode != null) {
-      print('  scrutineeSsaNode: $_scrutineeSsaNode');
-    }
     if (_expressionWithInfo != null) {
       print('  expressionWithInfo: $_expressionWithInfo');
     }
@@ -5250,7 +5225,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _ScrutineeContext<Type> context =
         _stack.removeLast() as _ScrutineeContext<Type>;
     _scrutineeReference = context.previousScrutineeReference;
-    _scrutineeSsaNode = context.previousScrutineeSsaNode;
   }
 
   /// Updates the [_stack] to reflect the fact that flow analysis is entering
@@ -5278,18 +5252,17 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         ? null
         : _computeEqualityInfo(scrutinee, scrutineeType);
     _stack.add(new _ScrutineeContext<Type>(
-        previousScrutineeReference: _scrutineeReference,
-        previousScrutineeSsaNode: _scrutineeSsaNode));
+        previousScrutineeReference: _scrutineeReference));
     ReferenceWithType<Type>? scrutineeReference = scrutineeInfo?._reference;
     _scrutineeReference = scrutineeReference;
-    _scrutineeSsaNode = scrutineeReference == null
+    SsaNode<Type>? scrutineeSsaNode = scrutineeReference == null
         ? new SsaNode<Type>(null)
         : _current.infoFor(scrutineeReference.promotionKey).ssaNode;
     return new EqualityInfo._(
         scrutineeInfo?._expressionInfo,
         scrutineeType,
         new ReferenceWithType(
-            _makeTemporaryReference(_scrutineeSsaNode), scrutineeType,
+            _makeTemporaryReference(scrutineeSsaNode), scrutineeType,
             isPromotable: true, isThisOrSuper: false));
   }
 
@@ -6247,16 +6220,11 @@ class _PropertyReferenceWithType<Type extends Object>
 class _ScrutineeContext<Type extends Object> extends _FlowContext {
   final ReferenceWithType<Type>? previousScrutineeReference;
 
-  final SsaNode<Type>? previousScrutineeSsaNode;
-
-  _ScrutineeContext(
-      {required this.previousScrutineeReference,
-      required this.previousScrutineeSsaNode});
+  _ScrutineeContext({required this.previousScrutineeReference});
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
-    ..['previousScrutineeReference'] = previousScrutineeReference
-    ..['previousScrutineeSsaNode'] = previousScrutineeSsaNode;
+    ..['previousScrutineeReference'] = previousScrutineeReference;
 
   @override
   String get _debugType => '_ScrutineeContext';
