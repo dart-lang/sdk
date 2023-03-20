@@ -54,7 +54,6 @@ declare_args() {
 # ........kernel_worker.dart.snapshot
 # ......resources/
 # ........dartdoc/
-# ...........packages
 # ..........resources/
 # ..........templates/
 # ....include/
@@ -64,7 +63,6 @@ declare_args() {
 # ....lib/
 # ......libraries.json
 # ......_internal/
-# ........strong.sum
 # ........dart2js_platform.dill
 # ........dart2js_platform_unsound.dill
 # ........dart2js_server_platform.dill
@@ -441,18 +439,6 @@ group("copy_dartdoc_files") {
   ]
 }
 
-# This rule copies analyzer summaries to lib/_internal
-copy("copy_analysis_summaries") {
-  visibility = [ ":create_common_sdk" ]
-  deps = [
-    ":copy_libraries",
-    "../utils/dartanalyzer:generate_summary_strong",
-  ]
-  sources = [ "$root_gen_dir/strong.sum" ]
-  outputs =
-      [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
-}
-
 # This rule copies dill files to lib/_internal.
 copy("copy_vm_dill_files") {
   visibility = [ ":create_common_sdk" ]
@@ -628,10 +614,7 @@ group("copy_libraries") {
 
 # This rule writes the version file.
 action("write_version_file") {
-  visibility = [
-    ":create_common_sdk",
-    "../utils/dartanalyzer:generate_summary_strong",
-  ]
+  visibility = [ ":create_common_sdk" ]
   inputs = [
     "../tools/VERSION",
     "$default_git_folder/logs/HEAD",
@@ -699,7 +682,6 @@ group("create_common_sdk") {
     ":create_sdk",
   ]
   public_deps = [
-    ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",
     ":copy_dartdev_dill_files",
