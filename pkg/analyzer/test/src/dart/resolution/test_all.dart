@@ -28,6 +28,7 @@ import 'field_promotion_test.dart' as field_promotion;
 import 'field_test.dart' as field;
 import 'for_element_test.dart' as for_element;
 import 'for_statement_test.dart' as for_in;
+import 'function_body_test.dart' as function_body;
 import 'function_declaration_test.dart' as function_declaration;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
@@ -124,6 +125,7 @@ main() {
     field.main();
     for_element.main();
     for_in.main();
+    function_body.main();
     function_declaration.main();
     function_expression_invocation.main();
     function_reference.main();
