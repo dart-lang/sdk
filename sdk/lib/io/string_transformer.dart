@@ -62,7 +62,7 @@ class _WindowsCodePageEncoder extends Converter<String, List<int>> {
   external static List<int> _encodeString(String string);
 }
 
-class _WindowsCodePageEncoderSink extends StringConversionSinkBase {
+class _WindowsCodePageEncoderSink extends StringConversionSink {
   // TODO(floitsch): provide more efficient conversions when the input is
   // not a String.
 
@@ -106,7 +106,7 @@ class _WindowsCodePageDecoder extends Converter<List<int>, String> {
   external static String _decodeBytes(List<int> bytes);
 }
 
-class _WindowsCodePageDecoderSink extends ByteConversionSinkBase {
+class _WindowsCodePageDecoderSink extends ByteConversionSink {
   // TODO(floitsch): provide more efficient conversions when the input is
   // a slice.
 

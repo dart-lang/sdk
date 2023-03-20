@@ -10,10 +10,7 @@ part of dart.convert;
 /// The basic `ChunkedConversionSink` is just a [Sink], and converters should
 /// work with a plain `Sink`, but may work more efficiently with certain
 /// specialized types of `ChunkedConversionSink`.
-///
-/// It is recommended that implementations of `ChunkedConversionSink` extend
-/// this class, to inherit any further methods that may be added to the class.
-abstract class ChunkedConversionSink<T> implements Sink<T> {
+abstract interface class ChunkedConversionSink<T> implements Sink<T> {
   ChunkedConversionSink();
   factory ChunkedConversionSink.withCallback(
       void callback(List<T> accumulated)) = _SimpleCallbackSink<T>;
@@ -34,7 +31,7 @@ abstract class ChunkedConversionSink<T> implements Sink<T> {
 /// the chunks when the sink is closed.
 ///
 /// This class can be used to terminate a chunked conversion.
-class _SimpleCallbackSink<T> extends ChunkedConversionSink<T> {
+class _SimpleCallbackSink<T> implements ChunkedConversionSink<T> {
   final void Function(List<T>) _callback;
   final List<T> _accumulated = <T>[];
 

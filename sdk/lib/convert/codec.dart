@@ -12,7 +12,11 @@ part of dart.convert;
 ///
 /// Fused codecs generally attempt to optimize the operations and can be faster
 /// than executing each step of an encoding separately.
-abstract class Codec<S, T> {
+///
+/// The [Codec] class provides a default implementation of
+/// [encode], [decode], [fuse] and [inverted].
+/// Subclasses can choose to provide more efficient implementations of these.
+abstract mixin class Codec<S, T> {
   const Codec();
 
   /// Encodes [input].
