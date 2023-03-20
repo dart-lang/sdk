@@ -9,6 +9,7 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OmitLocalVariableTypesTest);
+    defineReflectiveTests(OmitLocalVariableTypesTestLanguage300);
   });
 }
 
@@ -56,5 +57,80 @@ String f() {
 ''', [
       lint(42, 26),
     ]);
+  }
+}
+
+@reflectiveTest
+class OmitLocalVariableTypesTestLanguage300 extends LintRuleTest
+    with LanguageVersion300Mixin {
+  @override
+  String get lintRule => 'omit_local_variable_types';
+
+  /// Types are considered an important part of the pattern so we
+  /// intentionally do not lint on declared variable patterns.
+  test_listPattern_destructured() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var [int a] = <int>[1];
+  print('$a');
+}
+''');
+  }
+
+  test_mapPattern_destructured() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var {'a': int a} = <String, int>{'a': 1};
+  print('$a');
+}
+''');
+  }
+
+  test_objectPattern_destructured() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int a;
+  A(this.a);
+}
+f() {
+  final A(a: int _b) = A(1);
+  print('$_b');
+}
+''');
+  }
+
+  test_objectPattern_switch() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int a;
+  A(this.a);
+}
+
+f() {
+  switch (A(1)) {
+    case A(a: >0 && int b): print('$b');
+  }
+}
+''');
+  }
+
+  test_record_destructured() async {
+    await assertNoDiagnostics(r'''
+f(Object o) {
+  switch (o) {
+    case (int x, String s): print('$x$s');
+  }
+}
+''');
+  }
+
+  test_recordPattern_switch() async {
+    await assertNoDiagnostics(r'''
+f() {
+  switch ((1, 2)) {
+    case (int a, final int b): print('$a$b');
+  }
+}
+''');
   }
 }
