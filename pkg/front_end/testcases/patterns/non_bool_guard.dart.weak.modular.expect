@@ -23,19 +23,23 @@ import "dart:core" as core;
 static method test1(core::List<core::int> v) → core::String {
   #L1:
   {
-    core::int a;
     final synthesized core::List<core::int> #0#0 = v;
-    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true) && (let final dynamic #t2 = #0#0.{core::List::[]}(1){(core::int) → core::int} in true) && invalid-expression "pkg/front_end/testcases/patterns/non_bool_guard.dart:7:28: Error: Conditions must have a static type of 'bool'.
+    {
+      core::int a;
+      if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true) && (let final dynamic #t2 = #0#0.{core::List::[]}(1){(core::int) → core::int} in true) && invalid-expression "pkg/front_end/testcases/patterns/non_bool_guard.dart:7:28: Error: Conditions must have a static type of 'bool'.
 Try changing the condition.
     case [var a, _] when a - 1:
                            ^") {
-      {
-        return "match";
+        {
+          return "match";
+        }
       }
     }
-    else {
+    {
       {
-        return "no match";
+        {
+          return "no match";
+        }
       }
     }
   }
@@ -56,16 +60,26 @@ Try changing the condition.
 static method test3(core::List<core::int> v) → core::String
   return block {
     core::String #t5;
-    core::int a;
     final synthesized core::List<core::int> #0#0 = v;
-    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t6 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true) && (let final dynamic #t7 = #0#0.{core::List::[]}(1){(core::int) → core::int} in true) && invalid-expression "pkg/front_end/testcases/patterns/non_bool_guard.dart:23:23: Error: Conditions must have a static type of 'bool'.
+    #L2:
+    {
+      {
+        core::int a;
+        if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t6 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true) && (let final dynamic #t7 = #0#0.{core::List::[]}(1){(core::int) → core::int} in true) && invalid-expression "pkg/front_end/testcases/patterns/non_bool_guard.dart:23:23: Error: Conditions must have a static type of 'bool'.
 Try changing the condition.
     [var a, _] when a - 1 => \"match\",
-                      ^")
-      #t5 = "match";
-    else
-      if(true)
-        #t5 = "no match";
+                      ^") {
+          #t5 = "match";
+          break #L2;
+        }
+      }
+      {
+        if(true) {
+          #t5 = "no match";
+          break #L2;
+        }
+      }
+    }
   } =>#t5;
 
 constants  {

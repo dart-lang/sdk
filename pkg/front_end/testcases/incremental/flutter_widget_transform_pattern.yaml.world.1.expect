@@ -48,13 +48,12 @@ library from "org-dartlang-test:///main.dart" as main {
   }
   static method method(dynamic o) → dynamic {
     #L1:
-    {
-      final synthesized dynamic #0#0 = o;
-      if(#C7 =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} #0#0) {
+    switch(o) {
+      #L2:
+      case #C7:
         {
           return new main::Foo::•($creationLocationd_0dea112b090073317d4: #C10);
         }
-      }
     }
     return null;
   }

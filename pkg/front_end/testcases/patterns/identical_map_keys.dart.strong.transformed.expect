@@ -176,12 +176,6 @@ static const field self::C c2 = #C1;
 static method test1(core::Map<dynamic, dynamic> map) → core::String {
   return block {
     core::String #t1;
-    dynamic a1;
-    final dynamic b1;
-    dynamic a2;
-    final dynamic b2;
-    dynamic a3;
-    final dynamic b3;
     final synthesized core::Map<dynamic, dynamic> #0#0 = map;
     function ##0#3#initializer() → core::bool
       return #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
@@ -210,85 +204,118 @@ static method test1(core::Map<dynamic, dynamic> map) → core::String {
     function ##0#19#initializer() → dynamic
       return #0#0.{core::Map::[]}(#C5){(core::Object?) → dynamic};
     late final synthesized dynamic #0#19 = ##0#19#initializer(){() → dynamic};
-    if(#0#3 && #0#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#6 && #0#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6)
-      #t1 = "";
-    else
-      if(#0#3 && #0#10 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#11 && #0#10 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#11)
-        #t1 = "";
-      else
-        if(#0#3 && #0#5 && (let final dynamic #t2 = a1 = #0#6 in true) && #0#5 && (let final dynamic #t3 = b1 = #0#6 in true))
-          #t1 = "";
-        else
-          if(#0#3 && #0#15 && (let final dynamic #t4 = a2 = #0#16 in true) && #0#15 && (let final dynamic #t5 = b2 = #0#16 in true))
-            #t1 = "";
-          else
-            if(#0#3 && #0#18 && (let final dynamic #t6 = a3 = #0#19 in true) && #0#18 && (let final dynamic #t7 = b3 = #0#19 in true))
-              #t1 = "";
-            else
-              if(true)
-                #t1 = "default";
-  } =>#t1;
-}
-static method test2(core::Map<dynamic, dynamic> map) → void {
-  #L1:
-  {
-    dynamic a1;
-    final dynamic b1;
-    dynamic a2;
-    final dynamic b2;
-    dynamic a3;
-    final dynamic b3;
-    final synthesized core::Map<dynamic, dynamic> #0#0 = map;
-    function ##0#3#initializer() → core::bool
-      return #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
-    late final synthesized core::bool #0#3 = ##0#3#initializer(){() → core::bool};
-    function ##0#5#initializer() → core::bool
-      return #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    late final synthesized core::bool #0#5 = ##0#5#initializer(){() → core::bool};
-    function ##0#6#initializer() → dynamic
-      return #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
-    late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
-    function ##0#10#initializer() → core::bool
-      return #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
-    late final synthesized core::bool #0#10 = ##0#10#initializer(){() → core::bool};
-    function ##0#11#initializer() → dynamic
-      return #0#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
-    late final synthesized dynamic #0#11 = ##0#11#initializer(){() → dynamic};
-    function ##0#15#initializer() → core::bool
-      return #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
-    late final synthesized core::bool #0#15 = ##0#15#initializer(){() → core::bool};
-    function ##0#16#initializer() → dynamic
-      return #0#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
-    late final synthesized dynamic #0#16 = ##0#16#initializer(){() → dynamic};
-    function ##0#18#initializer() → core::bool
-      return #0#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
-    late final synthesized core::bool #0#18 = ##0#18#initializer(){() → core::bool};
-    function ##0#19#initializer() → dynamic
-      return #0#0.{core::Map::[]}(#C5){(core::Object?) → dynamic};
-    late final synthesized dynamic #0#19 = ##0#19#initializer(){() → dynamic};
-    if(#0#3 && #0#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#6 && #0#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6) {
+    #L1:
+    {
       {
-        break #L1;
-      }
-    }
-    else
-      if(#0#3 && #0#10 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#11 && #0#10 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#11) {
-        {
+        if(#0#3 && #0#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#6 && #0#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6) {
+          #t1 = "";
           break #L1;
         }
       }
-      else
-        if(#0#3 && #0#5 && (let final dynamic #t8 = a1 = #0#6 in true) && #0#5 && (let final dynamic #t9 = b1 = #0#6 in true) || #0#3 && #0#15 && (let final dynamic #t10 = a2 = #0#16 in true) && #0#15 && (let final dynamic #t11 = b2 = #0#16 in true)) {
-          {
-            break #L1;
-          }
+      {
+        if(#0#3 && #0#10 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#11 && #0#10 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#11) {
+          #t1 = "";
+          break #L1;
         }
-        else
-          if(#0#3 && #0#18 && (let final dynamic #t12 = a3 = #0#19 in true) && #0#18 && (let final dynamic #t13 = b3 = #0#19 in true)) {
-            {
-              break #L1;
-            }
-          }
+      }
+      {
+        dynamic a1;
+        final dynamic b1;
+        if(#0#3 && #0#5 && (let final dynamic #t2 = a1 = #0#6 in true) && #0#5 && (let final dynamic #t3 = b1 = #0#6 in true)) {
+          #t1 = "";
+          break #L1;
+        }
+      }
+      {
+        dynamic a2;
+        final dynamic b2;
+        if(#0#3 && #0#15 && (let final dynamic #t4 = a2 = #0#16 in true) && #0#15 && (let final dynamic #t5 = b2 = #0#16 in true)) {
+          #t1 = "";
+          break #L1;
+        }
+      }
+      {
+        dynamic a3;
+        final dynamic b3;
+        if(#0#3 && #0#18 && (let final dynamic #t6 = a3 = #0#19 in true) && #0#18 && (let final dynamic #t7 = b3 = #0#19 in true)) {
+          #t1 = "";
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = "default";
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+}
+static method test2(core::Map<dynamic, dynamic> map) → void {
+  #L2:
+  {
+    final synthesized core::Map<dynamic, dynamic> #0#0 = map;
+    function ##0#3#initializer() → core::bool
+      return #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
+    late final synthesized core::bool #0#3 = ##0#3#initializer(){() → core::bool};
+    function ##0#5#initializer() → core::bool
+      return #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized core::bool #0#5 = ##0#5#initializer(){() → core::bool};
+    function ##0#6#initializer() → dynamic
+      return #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    function ##0#10#initializer() → core::bool
+      return #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized core::bool #0#10 = ##0#10#initializer(){() → core::bool};
+    function ##0#11#initializer() → dynamic
+      return #0#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
+    late final synthesized dynamic #0#11 = ##0#11#initializer(){() → dynamic};
+    function ##0#15#initializer() → core::bool
+      return #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+    late final synthesized core::bool #0#15 = ##0#15#initializer(){() → core::bool};
+    function ##0#16#initializer() → dynamic
+      return #0#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    late final synthesized dynamic #0#16 = ##0#16#initializer(){() → dynamic};
+    function ##0#18#initializer() → core::bool
+      return #0#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+    late final synthesized core::bool #0#18 = ##0#18#initializer(){() → core::bool};
+    function ##0#19#initializer() → dynamic
+      return #0#0.{core::Map::[]}(#C5){(core::Object?) → dynamic};
+    late final synthesized dynamic #0#19 = ##0#19#initializer(){() → dynamic};
+    {
+      if(#0#3 && #0#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#6 && #0#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6) {
+        {
+          break #L2;
+        }
+      }
+    }
+    {
+      if(#0#3 && #0#10 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#11 && #0#10 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#11) {
+        {
+          break #L2;
+        }
+      }
+    }
+    {
+      dynamic a1;
+      final dynamic b1;
+      dynamic a2;
+      final dynamic b2;
+      if(#0#3 && #0#5 && (let final dynamic #t8 = a1 = #0#6 in true) && #0#5 && (let final dynamic #t9 = b1 = #0#6 in true) || #0#3 && #0#15 && (let final dynamic #t10 = a2 = #0#16 in true) && #0#15 && (let final dynamic #t11 = b2 = #0#16 in true)) {
+        {
+          break #L2;
+        }
+      }
+    }
+    {
+      dynamic a3;
+      final dynamic b3;
+      if(#0#3 && #0#18 && (let final dynamic #t12 = a3 = #0#19 in true) && #0#18 && (let final dynamic #t13 = b3 = #0#19 in true)) {
+        {
+          break #L2;
+        }
+      }
+    }
   }
 }
 static method test3(core::Map<dynamic, dynamic> map) → void {

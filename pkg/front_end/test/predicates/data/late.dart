@@ -772,14 +772,16 @@ method() {
       /*
        lateLocal,
        lateLocalGetter,
-       lateLocalSetter
+       lateLocalSetter,
+       name=localNonNullableWithoutInitializer
       */
       localNonNullableWithoutInitializer;
   late final int
       /*
        lateLocal,
        lateLocalGetter,
-       lateLocalSetter
+       lateLocalSetter,
+       name=finalLocalNonNullableWithoutInitializer
       */
       finalLocalNonNullableWithoutInitializer;
   late int?
@@ -787,12 +789,14 @@ method() {
        lateIsSetLocal,
        lateLocal,
        lateLocalGetter,
-       lateLocalSetter
+       lateLocalSetter,
+       name=localNullableWithoutInitializer
       */
       /*sentinel.
        lateLocal,
        lateLocalGetter,
-       lateLocalSetter
+       lateLocalSetter,
+       name=localNullableWithoutInitializer
       */
       localNullableWithoutInitializer;
   late final int?
@@ -800,48 +804,56 @@ method() {
        lateIsSetLocal,
        lateLocal,
        lateLocalGetter,
-       lateLocalSetter
+       lateLocalSetter,
+       name=finalLocalNullableWithoutInitializer
       */
       /*sentinel.
        lateLocal,
        lateLocalGetter,
-       lateLocalSetter
+       lateLocalSetter,
+       name=finalLocalNullableWithoutInitializer
       */
       finalLocalNullableWithoutInitializer;
   late int
       /*
        lateLocal,
        lateLocalGetter,
-       lateLocalSetter
+       lateLocalSetter,
+       name=localNonNullableWithInitializer
       */
       localNonNullableWithInitializer = 21;
   late final int /*
-       lateLocal,
-       lateLocalGetter
-      */
+   lateLocal,
+   lateLocalGetter,
+   name=finalLocalNonNullableWithInitializer
+  */
       finalLocalNonNullableWithInitializer = 22;
   late int?
       /*is-null.
        lateIsSetLocal,
        lateLocal,
        lateLocalGetter,
-       lateLocalSetter
+       lateLocalSetter,
+       name=localNullableWithInitializer
       */
       /*sentinel.
        lateLocal,
        lateLocalGetter,
-       lateLocalSetter
+       lateLocalSetter,
+       name=localNullableWithInitializer
       */
       localNullableWithInitializer = 23;
   late final int?
       /*is-null.
        lateIsSetLocal,
        lateLocal,
-       lateLocalGetter
+       lateLocalGetter,
+       name=finalLocalNullableWithInitializer
       */
       /*sentinel.
        lateLocal,
-       lateLocalGetter
+       lateLocalGetter,
+       name=finalLocalNullableWithInitializer
       */
       finalLocalNullableWithInitializer = 24;
 }

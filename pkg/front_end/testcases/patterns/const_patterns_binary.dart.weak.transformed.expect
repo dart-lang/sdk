@@ -314,19 +314,21 @@ static method method<T extends core::Object? = dynamic>(dynamic o) → dynamic {
     final const synthesized invalid-type #0#39 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:85:12: Error: Not a constant expression.
     case --o: // Error
            ^";
-    if(#0#2 || #0#4 || #0#2 && #0#4 || (let final self::method::T% #t1 = #0#0 as{ForNonNullableByDefault} self::method::T% in #0#6) || #C11 =={core::Object::==}{(core::Object) → core::bool} #0#0 || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || (let final self::method::T% #t2 = #0#0 as{ForNonNullableByDefault} self::method::T% in #0#6) || (let final self::method::T% #t3 = #0#0 as{ForNonNullableByDefault} self::method::T% in #C1 =={core::num::==}{(core::Object) → core::bool} #0#0 as{ForNonNullableByDefault} self::method::T%) || (let final core::int #t4 = #0#0 as{ForNonNullableByDefault} core::int in #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 as{ForNonNullableByDefault} core::int) || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || invalid-expression "Binary operator '==' requires receiver constant 'Object {}' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type 'Object'.
+    {
+      if(#0#2 || #0#4 || #0#2 && #0#4 || (let final self::method::T% #t1 = #0#0 as{ForNonNullableByDefault} self::method::T% in #0#6) || #C11 =={core::Object::==}{(core::Object) → core::bool} #0#0 || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || (let final self::method::T% #t2 = #0#0 as{ForNonNullableByDefault} self::method::T% in #0#6) || (let final self::method::T% #t3 = #0#0 as{ForNonNullableByDefault} self::method::T% in #C1 =={core::num::==}{(core::Object) → core::bool} #0#0 as{ForNonNullableByDefault} self::method::T%) || (let final core::int #t4 = #0#0 as{ForNonNullableByDefault} core::int in #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 as{ForNonNullableByDefault} core::int) || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || invalid-expression "Binary operator '==' requires receiver constant 'Object {}' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type 'Object'.
  - 'Object' is from 'dart:core'." =={core::Object::==}{(core::Object) → core::bool} #0#0 || (let final core::List<self::method::T%> #t5 = #0#0 as{ForNonNullableByDefault} core::List<self::method::T%> in #C12 =={core::List::==}{(core::Object) → core::bool} #0#0 as{ForNonNullableByDefault} core::List<self::method::T%>) || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || #0#2) {
-      {
-        let final invalid-type #t6 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:81:12: Error: This couldn't be parsed.
+        {
+          let final invalid-type #t6 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:81:12: Error: This couldn't be parsed.
     case 1 ?? 2: // Error
            ^" in #t6 == null ?{invalid-type} 2 : #t6;
-        invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:81:16: Error: This couldn't be parsed.
+          invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:81:16: Error: This couldn't be parsed.
     case 1 ?? 2: // Error
                ^";
-        break #L1;
+          break #L1;
+        }
       }
     }
-    else
+    {
       if(invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:82:10: Error: Not a constant expression.
     case o++: // Error
          ^" =={core::Object::==}{(core::Object) → core::bool} #0#0 || invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:83:10: Error: Not a constant expression.
@@ -337,6 +339,7 @@ static method method<T extends core::Object? = dynamic>(dynamic o) → dynamic {
     case --o: // Error
            ^" =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       }
+    }
   }
 }
 
