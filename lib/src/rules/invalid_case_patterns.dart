@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -267,6 +268,12 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitSwitchCase(SwitchCase node) {
+    var featureSet = node.thisOrAncestorOfType<CompilationUnit>()?.featureSet;
+    if (featureSet != null && featureSet.isEnabled(Feature.patterns)) {
+      // This lint rule is only meant for code which does not have 'patterns'
+      // enabled.
+      return;
+    }
     var expression = node.expression.unParenthesized;
     if (expression is SetOrMapLiteral) {
       if (expression.constKeyword == null) {
