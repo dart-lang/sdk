@@ -301,30 +301,21 @@ FunctionExpressionInvocation
 
   test_expression_recordType_hasCall() async {
     await assertNoErrorsInCode(r'''
-void f() {
-  (int, String)();
+void f((String,) a) {
+  a();
 }
 
-extension on (Type, Type) {
+extension on (String,) {
   int call() => 0;
 }
 ''');
     final node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: RecordLiteral
-    leftParenthesis: (
-    fields
-      SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: Type
-      SimpleIdentifier
-        token: String
-        staticElement: dart:core::@class::String
-        staticType: Type
-    rightParenthesis: )
-    staticType: (Type, Type)
+  function: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: (String)
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -336,28 +327,19 @@ FunctionExpressionInvocation
 
   test_expression_recordType_noCall() async {
     await assertErrorsInCode(r'''
-void f() {
-  (bool, String)();
+void f((String,) a) {
+  a();
 }
 ''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 13, 14),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 24, 1),
     ]);
     final node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: RecordLiteral
-    leftParenthesis: (
-    fields
-      SimpleIdentifier
-        token: bool
-        staticElement: dart:core::@class::bool
-        staticType: Type
-      SimpleIdentifier
-        token: String
-        staticElement: dart:core::@class::String
-        staticType: Type
-    rightParenthesis: )
-    staticType: (Type, Type)
+  function: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: (String)
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )

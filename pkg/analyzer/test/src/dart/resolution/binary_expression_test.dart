@@ -105,6 +105,62 @@ BinaryExpression
 ''');
   }
 
+  test_expression_recordType_hasOperator() async {
+    await assertNoErrorsInCode(r'''
+void f((String,) a) {
+  a + 0;
+}
+
+extension on (String,) {
+  int operator +(int other) => 0;
+}
+''');
+
+    final node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: (String)
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: self::@extension::0::@method::+::@parameter::other
+    staticType: int
+  staticElement: self::@extension::0::@method::+
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_expression_recordType_noOperator() async {
+    await assertErrorsInCode(r'''
+void f((String,) a) {
+  a + 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 1),
+    ]);
+
+    final node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: (String)
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
+  }
+
   test_ifNull_left_nullableContext() async {
     await assertNoErrorsInCode(r'''
 T f<T>(T t) => t;
