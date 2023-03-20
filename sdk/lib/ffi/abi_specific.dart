@@ -39,12 +39,12 @@ part of dart.ffi;
 ///   Abi.windowsIA32: Uint32(),
 ///   Abi.windowsX64: Uint64(),
 /// })
-/// final class UintPtr extends AbiSpecificInteger {
+/// class UintPtr extends AbiSpecificInteger {
 ///   const UintPtr();
 /// }
 /// ```
 @Since('2.16')
-base class AbiSpecificInteger extends NativeType {
+class AbiSpecificInteger extends NativeType {
   const AbiSpecificInteger();
 }
 
@@ -52,7 +52,7 @@ base class AbiSpecificInteger extends NativeType {
 ///
 /// See documentation on [AbiSpecificInteger].
 @Since('2.16')
-final class AbiSpecificIntegerMapping {
+class AbiSpecificIntegerMapping {
   final Map<Abi, NativeType> mapping;
 
   const AbiSpecificIntegerMapping(this.mapping);

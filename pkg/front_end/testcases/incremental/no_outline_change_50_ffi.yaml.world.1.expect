@@ -4,7 +4,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
   import "org-dartlang-test:///lib2.dart";
 
   @#C7
-  final class Y extends dart.ffi::Struct {
+  class Y extends dart.ffi::Struct {
     synthetic constructor •() → lib::Y
       : super dart.ffi::Struct::•()
       ;
@@ -232,7 +232,7 @@ library from "org-dartlang-test:///main.dart" as main {
   import "org-dartlang-test:///lib.dart";
 
   @#C25
-  final class X extends dart.ffi::Struct {
+  class X extends dart.ffi::Struct {
     synthetic constructor •() → main::X
       : super dart.ffi::Struct::•()
       ;

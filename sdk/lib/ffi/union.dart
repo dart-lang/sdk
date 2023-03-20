@@ -26,7 +26,7 @@ part of dart.ffi;
 /// ```
 ///
 /// ```dart
-/// final class MyUnion extends Union {
+/// class MyUnion extends Union {
 ///   @Int32()
 ///   external int a;
 ///
@@ -47,7 +47,7 @@ part of dart.ffi;
 /// by native memory. The may allocated via allocation or loaded from a
 /// [Pointer], but cannot be created by a generative constructor.
 @Since('2.14')
-abstract base class Union extends _Compound {
+abstract class Union extends _Compound {
   /// Construct a reference to the [nullptr].
   ///
   /// Use [UnionPointer]'s `.ref` to gain references to native memory backed

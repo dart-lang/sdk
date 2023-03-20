@@ -8,34 +8,34 @@ import "dart:_internal" as _in;
 import "dart:ffi";
 
 @#C6
-final class Struct1 extends ffi::Struct {
+class Struct1 extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct1
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 }
 @#C6
-final class Struct2 extends ffi::Struct {
+class Struct2 extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct2
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 }
 @#C6
-final class Struct3 extends ffi::Struct {
+class Struct3 extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct3
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 }
 @#C6
-abstract final class Struct5 extends ffi::Struct {
+abstract class Struct5 extends ffi::Struct {
 }
 @#C6
-abstract final class Struct6 extends ffi::Struct {
+abstract class Struct6 extends ffi::Struct {
 }
 @#C6
-abstract final class Struct7 extends ffi::Struct {
+abstract class Struct7 extends ffi::Struct {
 }
 @#C10
-final class Struct11 extends ffi::Struct {
+class Struct11 extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::Struct11
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
@@ -46,7 +46,7 @@ final class Struct11 extends ffi::Struct {
     } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<self::Struct12>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::Pointer.address] [@vm.inferred-type.metadata=int] #typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in [@vm.direct-call.metadata=dart.typed_data::_ByteBuffer.asUint8List] [@vm.inferred-type.metadata=dart.typed_data::_Uint8ArrayView (skip check)] [@vm.inferred-type.metadata=dart.typed_data::_ByteBuffer] #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi] #typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List});
 }
 @#C6
-final class Struct12 extends ffi::Struct {
+class Struct12 extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-type.metadata=!] synthesized core::Object #typedDataBase) → self::Struct12
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;

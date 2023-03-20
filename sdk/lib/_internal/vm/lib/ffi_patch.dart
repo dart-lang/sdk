@@ -154,7 +154,7 @@ external Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(
 
 @patch
 @pragma("vm:entry-point")
-final class Pointer<T extends NativeType> {
+class Pointer<T extends NativeType> {
   @patch
   factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
 
@@ -186,7 +186,7 @@ final class Pointer<T extends NativeType> {
 
 @patch
 @pragma("vm:entry-point")
-final class Array<T extends NativeType> {
+class Array<T extends NativeType> {
   @pragma("vm:entry-point")
   final Object _typedDataBase;
 
@@ -228,14 +228,14 @@ external int _abi();
 
 @patch
 @pragma("vm:entry-point")
-final class Abi {
+class Abi {
   @patch
   @pragma("vm:prefer-inline")
   factory Abi.current() => values[_abi()];
 }
 
 @pragma("vm:entry-point")
-final class _FfiAbiSpecificMapping {
+class _FfiAbiSpecificMapping {
   /// A more concise representation of `AbiSpecificIntegerMapping`.
   ///
   /// `AbiSpecificIntegerMapping` contain a mapping from Abi to DartType.
@@ -1030,7 +1030,7 @@ external int _dartApiMajorVersion();
 external int _dartApiMinorVersion();
 
 @patch
-abstract final class NativeApi {
+abstract class NativeApi {
   @patch
   static Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
       get postCObject =>
@@ -1064,7 +1064,7 @@ abstract final class NativeApi {
 // patch class of [Array].
 
 @patch
-final class _ArraySize<T extends NativeType> implements Array<T> {
+class _ArraySize<T extends NativeType> implements Array<T> {
   _checkIndex(int index) => throw UnsupportedError('_ArraySize._checkIndex');
 
   List<int> get _nestedDimensions =>

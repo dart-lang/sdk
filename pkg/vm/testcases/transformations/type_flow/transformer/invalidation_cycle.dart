@@ -13,9 +13,9 @@
 
 class StreamSubscription {}
 
-class _BufferingStreamSubscription extends StreamSubscription {}
+class _BufferingStreamSubscription implements StreamSubscription {}
 
-class _BroadcastSubscription extends StreamSubscription {}
+class _BroadcastSubscription implements StreamSubscription {}
 
 abstract class Stream {
   StreamSubscription foobar(void onData(event)?, {Function? onError});

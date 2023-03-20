@@ -21,7 +21,7 @@ import 'dart:ffi';
 
 const EIGHT = 8;
 
-final class Struct8BytesInlineArrayInt extends Struct {
+class Struct8BytesInlineArrayInt extends Struct {
   @Array(EIGHT)
   external Array<Uint8> a0;
 }
@@ -32,7 +32,7 @@ final class Struct8BytesInlineArrayInt extends Struct {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 
-final class C extends Struct {
+class C extends Struct {
   @Array(8)
   external Array<Uint8> a0;
 }
@@ -43,13 +43,13 @@ final class C extends Struct {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-final class C extends Struct {
+class C extends Struct {
   @Array(8)
   @Array(8)
   external Array<Uint8> a0;
 }
 ''', [
-      error(FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY, 65, 9),
+      error(FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY, 59, 9),
     ]);
   }
 }

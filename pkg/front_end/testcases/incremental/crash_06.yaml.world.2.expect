@@ -22,7 +22,7 @@ library from "org-dartlang-test:///structs.dart" as str {
   import "dart:ffi";
 
   @#C6
-  final class A extends dart.ffi::Struct {
+  class A extends dart.ffi::Struct {
     synthetic constructor •() → str::A
       : super dart.ffi::Struct::•()
       ;
@@ -40,7 +40,7 @@ library from "org-dartlang-test:///structs.dart" as str {
     static get #sizeOf() → dart.core::int*
       return #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
   }
-  final class Y extends dart.ffi::Struct {
+  class Y extends dart.ffi::Struct {
     synthetic constructor •() → str::Y
       : super dart.ffi::Struct::•()
       ;

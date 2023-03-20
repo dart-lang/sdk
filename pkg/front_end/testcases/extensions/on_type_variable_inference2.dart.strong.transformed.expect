@@ -85,12 +85,12 @@ class Struct extends core::Object {
     : super core::Object::•()
     ;
 }
-final class StructA extends self::Struct {
+class StructA extends self::Struct {
   synthetic constructor •() → self::StructA
     : super self::Struct::•()
     ;
 }
-final class StructB extends self::Struct {
+class StructB extends self::Struct {
   synthetic constructor •() → self::StructB
     : super self::Struct::•()
     ;

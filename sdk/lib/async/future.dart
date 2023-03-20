@@ -224,7 +224,7 @@ abstract class FutureOr<T> {
 /// called. That situation should generally be avoided if possible, unless
 /// it's very clearly documented.
 @pragma("wasm:entry-point")
-abstract class Future<T> {
+abstract interface class Future<T> {
   /// A `Future<Null>` completed with `null`.
   ///
   /// Currently shared with `dart:internal`.
@@ -641,7 +641,8 @@ abstract class Future<T> {
   ///
   /// Any error from [action], synchronous or asynchronous,
   /// will stop the iteration and be reported in the returned [Future].
-  static Future forEach<T>(Iterable<T> elements, FutureOr action(T element)) {
+  static Future<void> forEach<T>(
+      Iterable<T> elements, FutureOr action(T element)) {
     var iterator = elements.iterator;
     return doWhile(() {
       if (!iterator.moveNext()) return false;
@@ -691,7 +692,7 @@ abstract class Future<T> {
   /// }
   /// // Outputs: 'Finished with 3'
   /// ```
-  static Future doWhile(FutureOr<bool> action()) {
+  static Future<void> doWhile(FutureOr<bool> action()) {
     _Future<void> doneSignal = new _Future<void>();
     late void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
@@ -1162,7 +1163,7 @@ class TimeoutException implements Exception {
 ///   }
 /// }
 /// ```
-abstract class Completer<T> {
+abstract interface class Completer<T> {
   /// Creates a new completer.
   ///
   /// The general workflow for creating a new future is to 1) create a

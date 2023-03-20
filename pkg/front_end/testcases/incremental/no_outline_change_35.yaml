@@ -21,7 +21,7 @@ worlds:
         }
       lib.dart: |
         import 'dart:ffi';
-        final class Coordinate extends Struct {
+        class Coordinate extends Struct {
           @Double()
           external double x;
 
@@ -61,7 +61,7 @@ worlds:
     sources:
       lib.dart: |
         import 'dart:ffi';
-        final class Coordinate extends Struct {
+        class Coordinate extends Struct {
           @Double()
           external double x;
 

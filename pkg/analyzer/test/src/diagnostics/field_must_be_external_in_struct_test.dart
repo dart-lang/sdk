@@ -20,14 +20,13 @@ class FieldMustBeExternalInStructTest extends PubPackageResolutionTest
 
 mixin FieldMustBeExternalInStructTestCases on PubPackageResolutionTest {
   test_struct() async {
-    final keyword = isNullSafetyEnabled ? 'final ' : '';
     var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 68, 1),
+      error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 62, 1),
     ], legacy: []);
-    await assertErrorsInCode('''
+    await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-${keyword}class A extends Struct {
+class A extends Struct {
   @Int16()
   int a;
 }
@@ -35,14 +34,13 @@ ${keyword}class A extends Struct {
   }
 
   test_union() async {
-    final keyword = isNullSafetyEnabled ? 'final ' : '';
     var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 67, 1),
+      error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 61, 1),
     ], legacy: []);
-    await assertErrorsInCode('''
+    await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-${keyword}class A extends Union {
+class A extends Union {
   @Int16()
   int a;
 }

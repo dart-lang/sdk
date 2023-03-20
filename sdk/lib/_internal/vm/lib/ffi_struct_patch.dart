@@ -8,16 +8,16 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 @pragma("vm:entry-point")
-abstract final class _Compound extends NativeType {}
+abstract class _Compound extends NativeType {}
 
 @pragma("vm:entry-point")
-abstract base class Struct extends _Compound {}
+abstract class Struct extends _Compound {}
 
 @pragma("vm:entry-point")
-abstract base class Union extends _Compound {}
+abstract class Union extends _Compound {}
 
 @pragma("vm:entry-point")
-final class _FfiStructLayout {
+class _FfiStructLayout {
   @pragma("vm:entry-point")
   final List<Object> fieldTypes;
 
@@ -28,7 +28,7 @@ final class _FfiStructLayout {
 }
 
 @pragma("vm:entry-point")
-final class _FfiInlineArray {
+class _FfiInlineArray {
   @pragma("vm:entry-point")
   final Type elementType;
   @pragma("vm:entry-point")

@@ -33,7 +33,7 @@ part of dart.async;
 ///
 /// See also:
 /// * [Stopwatch] for measuring elapsed time.
-abstract class Timer {
+abstract interface class Timer {
   /// Creates a new timer.
   ///
   /// The [callback] function is invoked after the given [duration].

@@ -10,7 +10,7 @@ import 'dart:ffi';
   Abi.linuxIA32: Uint32(),
   Abi.linuxX64: Uint32(),
 })
-final class Incomplete extends AbiSpecificInteger {
+class Incomplete extends AbiSpecificInteger {
   const Incomplete();
 }
 
@@ -43,7 +43,7 @@ void testStoreLoadIndexed() {
   noAlloc.free(p);
 }
 
-final class IncompleteStruct extends Struct {
+class IncompleteStruct extends Struct {
   @Incomplete()
   external int a0;
 
@@ -60,7 +60,7 @@ void testStruct() {
   noAlloc.free(p);
 }
 
-final class IncompleteArrayStruct extends Struct {
+class IncompleteArrayStruct extends Struct {
   @Array(100)
   external Array<Incomplete> a0;
 }

@@ -39,7 +39,7 @@ final Pointer<Never> nullptr = Pointer.fromAddress(0);
 /// Represents a pointer into the native C memory. Cannot be extended.
 @pragma('vm:entry-point')
 @pragma("wasm:entry-point")
-final class Pointer<T extends NativeType> extends NativeType {
+class Pointer<T extends NativeType> extends NativeType {
   /// Construction from raw integer.
   external factory Pointer.fromAddress(int ptr);
 
@@ -85,11 +85,11 @@ final class Pointer<T extends NativeType> extends NativeType {
 
 /// A fixed-sized array of [T]s.
 @Since('2.13')
-final class Array<T extends NativeType> extends NativeType {
+class Array<T extends NativeType> extends NativeType {
   /// Const constructor to specify [Array] dimensions in [Struct]s.
   ///
   /// ```dart
-  /// final class MyStruct extends Struct {
+  /// class MyStruct extends Struct {
   ///   @Array(8)
   ///   external Array<Uint8> inlineArray;
   ///
@@ -108,7 +108,7 @@ final class Array<T extends NativeType> extends NativeType {
   /// Const constructor to specify [Array] dimensions in [Struct]s.
   ///
   /// ```dart
-  /// final class MyStruct extends Struct {
+  /// class MyStruct extends Struct {
   ///   @Array.multi([2, 2, 2])
   ///   external Array<Array<Array<Uint8>>> threeDimensionalInlineArray;
   ///
@@ -121,7 +121,7 @@ final class Array<T extends NativeType> extends NativeType {
   const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
 }
 
-final class _ArraySize<T extends NativeType> implements Array<T> {
+class _ArraySize<T extends NativeType> implements Array<T> {
   final int? dimension1;
   final int? dimension2;
   final int? dimension3;
@@ -848,14 +848,14 @@ extension NativePort on SendPort {
 
 /// Opaque, not exposing it's members.
 @Since('2.8')
-final class Dart_CObject extends Opaque {}
+class Dart_CObject extends Opaque {}
 
 typedef Dart_NativeMessageHandler = Void Function(Int64, Pointer<Dart_CObject>);
 
 /// Utilities for accessing the Dart VM API from Dart code or
 /// from C code via `dart_api_dl.h`.
 @Since('2.8')
-abstract final class NativeApi {
+abstract class NativeApi {
   /// On breaking changes the major version is increased.
   ///
   /// The versioning covers the API surface in `dart_api_dl.h`.
@@ -918,7 +918,7 @@ abstract final class NativeApi {
 /// NOTE: This experimental feature is replaced by [Native].
 @Since('2.14')
 @Deprecated('Use Native instead.')
-final class FfiNative<T> {
+class FfiNative<T> {
   final String nativeName;
 
   /// Specifies whether the function is a leaf function.
@@ -968,7 +968,7 @@ final class FfiNative<T> {
 ///
 /// NOTE: This is an experimental feature and may change in the future.
 @Since('2.19')
-final class Native<T> {
+class Native<T> {
   /// The native symbol to be resolved, if not using the default.
   ///
   /// If not specified, the default symbol used for native function lookup
@@ -1091,7 +1091,7 @@ final class Native<T> {
 ///
 /// NOTE: This is an experimental feature and may change in the future.
 @Since('2.19')
-final class DefaultAsset {
+class DefaultAsset {
   /// The default asset name for [Native] external functions in this library.
   final String id;
 

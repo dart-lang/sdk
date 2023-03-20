@@ -42,7 +42,7 @@ void testStoreLoadIndexed() {
   calloc.free(p);
 }
 
-final class WCharStruct extends Struct {
+class WCharStruct extends Struct {
   @WChar()
   external int a0;
 
@@ -59,7 +59,7 @@ void testStruct() {
   calloc.free(p);
 }
 
-final class WCharArrayStruct extends Struct {
+class WCharArrayStruct extends Struct {
   @Array(100)
   external Array<WChar> a0;
 }
@@ -80,7 +80,7 @@ const _dim0 = 3;
 const _dim1 = 8;
 const _dim2 = 4;
 
-final class WCharArrayArrayStruct extends Struct {
+class WCharArrayArrayStruct extends Struct {
   @Array(_dim1, _dim2)
   external Array<Array<WChar>> a0;
 }

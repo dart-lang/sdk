@@ -60,7 +60,7 @@ ISOLATE_UNIT_TEST_CASE(Ffi_NativeType_Struct_FromAbstractType) {
       R"(
       import 'dart:ffi';
 
-      final class MyStruct extends Struct {
+      class MyStruct extends Struct {
         @Int8()
         external int a0;
 

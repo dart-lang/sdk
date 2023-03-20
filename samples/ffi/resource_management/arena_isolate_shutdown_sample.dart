@@ -86,4 +86,4 @@ final releaseResource = ffiTestDynamicLibrary.lookupFunction<
     void Function(Pointer<SomeResource>)>("ReleaseResource");
 
 /// Represents some opaque resource being managed by a library.
-final class SomeResource extends Opaque {}
+class SomeResource extends Opaque {}

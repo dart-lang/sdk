@@ -27,7 +27,7 @@ final pthreadGetSchedParam = DynamicLibrary.process()
     .lookupFunction<GetSchedParamNFT, GetSchedParamFT>('pthread_getschedparam');
 
 //  struct sched_param { int sched_priority; }
-final class SchedParam extends Struct {
+class SchedParam extends Struct {
   @Int32()
   external int schedPriority;
 }

@@ -4,8 +4,6 @@
 //
 // Tests that SIGPIPE won't terminate websocket client dart app.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';

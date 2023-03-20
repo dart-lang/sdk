@@ -8,13 +8,13 @@ import "dart:_internal" as _in;
 import "dart:ffi";
 
 @#C8
-abstract final class WChar extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
+abstract class WChar extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
 [@vm.unboxing-info.metadata=()->i]  @#C11
   static get #sizeOf() → core::int*
     return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
 @#C20
-final class WCharStruct extends ffi::Struct {
+class WCharStruct extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::WCharStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
@@ -27,7 +27,7 @@ final class WCharStruct extends ffi::Struct {
     return #C24.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
 @#C29
-final class WCharArrayStruct extends ffi::Struct {
+class WCharArrayStruct extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::WCharArrayStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;

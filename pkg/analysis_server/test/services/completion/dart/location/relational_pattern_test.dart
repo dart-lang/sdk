@@ -103,17 +103,17 @@ class B01 {}
       assertResponse('''
 suggestions
   A01
-    kind: class
+    kind: constructorInvocation
   A01
-    kind: constructorInvocation
-  A02
     kind: class
   A02
     kind: constructorInvocation
-  B01
-    kind: constructorInvocation
+  A02
+    kind: class
   B01
     kind: class
+  B01
+    kind: constructorInvocation
   const
     kind: keyword
   dynamic

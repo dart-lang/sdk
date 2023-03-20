@@ -20,7 +20,7 @@ class PackedAnnotationAlignment extends PubPackageResolutionTest {
 import 'dart:ffi';
 
 @Packed(3)
-final class C extends Struct {
+class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 ''', [
@@ -33,7 +33,7 @@ final class C extends Struct {
 import 'dart:ffi';
 
 @Packed(1)
-final class C extends Struct {
+class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 ''');

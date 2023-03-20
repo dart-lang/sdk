@@ -92,12 +92,12 @@ testCompoundLoadAndStore() {
   calloc.free(bars);
 }
 
-final class Foo extends Struct {
+class Foo extends Struct {
   @Int8()
   external int a;
 }
 
-final class Bar extends Union {
+class Bar extends Union {
   external Foo foo;
   @Int32()
   external int baz;

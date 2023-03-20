@@ -129,4 +129,4 @@ main() async {
 }
 
 /// Represents some opaque resource being managed by a library.
-final class SomeResource extends Opaque {}
+class SomeResource extends Opaque {}

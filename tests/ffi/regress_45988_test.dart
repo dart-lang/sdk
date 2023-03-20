@@ -7,7 +7,7 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-final class DartValueFields extends Union {
+class DartValueFields extends Union {
   external Pointer p1;
   external Pointer p2;
   external Pointer p3;

@@ -10,18 +10,18 @@ import 'dart:typed_data';
 
 @patch
 @pragma("vm:entry-point")
-abstract interface class Finalizable {}
+abstract class Finalizable {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class NativeFinalizer {
+abstract class NativeFinalizer {
   @patch
   factory NativeFinalizer(Pointer<NativeFinalizerFunction> callback) =
       _NativeFinalizer;
 }
 
 @pragma("vm:entry-point")
-final class _NativeFinalizer extends FinalizerBase implements NativeFinalizer {
+class _NativeFinalizer extends FinalizerBase implements NativeFinalizer {
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   external Pointer<NativeFinalizerFunction> get _callback;

@@ -91,9 +91,6 @@ class DocumentationValidator {
     'FfiCode.FIELD_INITIALIZER_IN_STRUCT',
     // This is not reported after 2.12, and the examples don't compile after 3.0.
     'FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER',
-    // The examples has more than one error message in 3.0.
-    // Also: CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY.
-    'FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS',
 
     // This no longer works in 3.0.
     'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',

@@ -30,7 +30,7 @@ runTestCaseJit(Uri source) async {
   final target = VmTarget(TargetFlags());
 
   Component component = await compileTestCaseToKernelProgram(source,
-      target: target, experimentalFlags: ['class-modifiers']);
+      target: target, experimentalFlags: ['generic-metadata']);
 
   final coreTypes = CoreTypes(component);
 
@@ -53,7 +53,7 @@ runTestCaseAot(Uri source) async {
   final target = VmTarget(TargetFlags(supportMirrors: false));
 
   Component component = await compileTestCaseToKernelProgram(source,
-      target: target, experimentalFlags: ['class-modifiers']);
+      target: target, experimentalFlags: ['generic-metadata']);
 
   const bool useGlobalTypeFlowAnalysis = true;
   const bool enableAsserts = false;
@@ -84,7 +84,7 @@ void main(List<String> args) {
   }
 
   group('ffi-transformations', () {
-    final testCasesDir = Directory(pkgVmDir + 'testcases/transformations/ffi');
+    final testCasesDir = Directory(pkgVmDir + '/testcases/transformations/ffi');
 
     for (var entry in testCasesDir
         .listSync(recursive: true, followLinks: false)
