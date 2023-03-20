@@ -775,6 +775,8 @@ CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER:
   status: needsEvaluation
 CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE:
   status: hasFix
+CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT:
+  status: needsEvaluation
 CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.MIXIN_DEFERRED_CLASS:

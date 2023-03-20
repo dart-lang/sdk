@@ -14,7 +14,7 @@ mixin class M1 extends Object {}
 
 mixin class M2 extends M0 {}
 //                     ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT
 // [cfe] The class 'M2' can't be used as a mixin because it extends a class other than 'Object'.
 
 class C00 = S0 with M0;

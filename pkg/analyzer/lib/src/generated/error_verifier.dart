@@ -3591,19 +3591,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
       // Check that the class has 'Object' as their superclass.
-      final supertype = element.supertype;
-      if (superclass != null &&
-          supertype != null &&
-          !supertype.isDartCoreObject) {
+      if (superclass != null && !superclass.typeOrThrow.isDartCoreObject) {
         errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
+          CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
           superclass,
           [element.name],
         );
       } else if (withClause != null &&
           !(element.isMixinApplication && withClause.mixinTypes.length < 2)) {
         errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
+          CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
           withClause,
           [element.name],
         );
@@ -3619,9 +3616,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
   bool _checkForMixinInheritsNotFromObject(
       NamedType mixinName, InterfaceElement mixinElement) {
-    if (mixinElement is EnumElement) {
-      return false;
-    }
     if (mixinElement is! ClassElement) {
       return false;
     }

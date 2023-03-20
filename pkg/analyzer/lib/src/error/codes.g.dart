@@ -3004,6 +3004,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the mixin class that is invalid
+  static const CompileTimeErrorCode MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT =
+      CompileTimeErrorCode(
+    'MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
+    "The class '{0}' can't be declared a mixin because it extends a class "
+        "other than 'Object'.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the mixin that is invalid
   static const CompileTimeErrorCode MIXIN_CLASS_DECLARES_CONSTRUCTOR =
       CompileTimeErrorCode(

@@ -8810,6 +8810,11 @@ CompileTimeErrorCode:
 
       abstract class B extends A with M {}
       ```
+  MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT:
+    problemMessage: "The class '{0}' can't be declared a mixin because it extends a class other than 'Object'."
+    comment: |-
+      Parameters:
+      0: the name of the mixin class that is invalid
   MIXIN_CLASS_DECLARES_CONSTRUCTOR:
     problemMessage: "The class '{0}' can't be used as a mixin because it declares a constructor."
     hasPublishedDocs: true
