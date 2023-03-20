@@ -236,6 +236,8 @@ switch (n) {
 ```
 ''';
 
+// todo(pq): add a dart.dev doc link when a doc is final (https://github.com/dart-lang/linter/issues/4055)
+
 class InvalidCasePatterns extends LintRule {
   static const LintCode code = LintCode('invalid_case_patterns',
       "This expression is not valid in a 'case' clause in Dart 3.0.",
@@ -250,6 +252,7 @@ class InvalidCasePatterns extends LintRule {
             group: Group.errors);
 
   /// todo(pq): update to add specific messages w/ specific corrections
+  /// https://github.com/dart-lang/linter/issues/4172
   @override
   LintCode get lintCode => code;
 
