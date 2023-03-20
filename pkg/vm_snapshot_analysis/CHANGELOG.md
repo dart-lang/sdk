@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.3-dev
+
+- Update the readme to document the current way to generate Dart AOT snapshots.
+- Spelling corrections in dartdoc comments.
+
 ## 0.7.2
 
 - Upgrade to `package:lints` 2.0.
