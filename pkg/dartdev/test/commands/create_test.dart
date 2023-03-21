@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartdev/src/commands/create.dart';
+import 'package:dartdev/src/sdk.dart';
 import 'package:dartdev/src/templates.dart' as templates;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -203,6 +204,17 @@ void defineCreateTests() {
         expect(lines[0], 'cd $dir');
         expect(lines[1], 'dart run example/${projectName}_example.dart');
       }
+    });
+  }
+
+  for (final generator in templates.generators) {
+    test('${generator.id} generated pubspec file', () {
+      final pubspec = generator.getFile('pubspec.yaml');
+
+      expect(pubspec, isNotNull);
+
+      final pubspecContent = pubspec!.content;
+      expect(pubspecContent, contains('sdk: ^${sdk.version}'));
     });
   }
 }

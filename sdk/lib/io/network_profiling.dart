@@ -40,7 +40,7 @@ abstract class _NetworkProfiling {
   // if more methods added to dart:io,
   static const _kGetVersionRPC = 'ext.dart.io.getVersion';
 
-  @pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
+  @pragma('vm:entry-point')
   static void _registerServiceExtension() {
     registerExtension(_kGetHttpEnableTimelineLogging, _serviceExtensionHandler);
     registerExtension(_kSetHttpEnableTimelineLogging, _serviceExtensionHandler);
