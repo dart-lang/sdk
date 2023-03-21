@@ -341,13 +341,21 @@ class Isolate {
   /// as the only argument.
   ///
   /// The [entryPoint] function must be able to be called with a single
-  /// argument,that is, a function which accepts at least one positional
+  /// argument, that is, a function which accepts at least one positional
   /// parameter and has at most one required positional parameter.
   /// The function may accept any number of optional parameters,
-  /// as long as it *can* be called with just a single argument.
+  /// as long as it *can* be called with just a single argument. If
+  /// [entryPoint] is a closure then it may implicitly send unexpected state
+  /// to the isolate due to limitations in the Dart implementation. This can
+  /// cause performance issues, increased memory usage
+  /// (see http://dartbug.com/36983) or, if the state includes objects that
+  /// can't be spent between isolates, a runtime failure. See [run] for an
+  /// example.
   ///
-  /// Usually the initial [message] contains a [SendPort] so
-  /// that the spawner and spawnee can communicate with each other.
+  /// [message] must be sendable between isolates. Objects that cannot be sent
+  /// include open files and sockets (see [SendPort.send] for details). Usually
+  /// the initial [message] contains a [SendPort] so that the spawner and
+  /// spawnee can communicate with each other.
   ///
   /// If the [paused] parameter is set to `true`,
   /// the isolate will start up in a paused state,
