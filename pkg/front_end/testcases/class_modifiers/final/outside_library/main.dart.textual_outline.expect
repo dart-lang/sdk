@@ -1,17 +1,13 @@
 import 'main_lib.dart';
-
 final class ExtendsFinalClass extends A {}
-
 final class ImplementsFinalClass implements A {}
-
 final class ImplementsFinalMixin implements M {}
-
 final class MixInFinalMixin with M {}
-
 enum EnumImplementsFinalMixin implements M { x }
-
 enum EnumMixInFinalMixin with M { x }
-
-final mixin MixinOnA on A {}
-final mixin MixinOnM on M {}
-final mixin MixinOnAM on A, M {}
+final
+mixin MixinOnA on A {}
+final
+mixin MixinOnM on M {}
+final
+mixin MixinOnAM on A, M {}
