@@ -262,7 +262,7 @@ class Stdout extends _StdSink implements IOSink {
 
   /// A non-blocking `IOSink` for the same output.
   IOSink get nonBlocking {
-    return _nonBlocking ??= new _RandomAccessFileIOSync.fromStdio(_fd, utf8);
+    return _nonBlocking ??= new IOSink(new _FileStreamConsumer.fromStdio(_fd));
   }
 }
 
@@ -452,8 +452,14 @@ StdioType stdioType(object) {
         return StdioType.file;
     }
   }
-  if (object is _RandomAccessFileIOSync) {
-    return StdioType.file;
+  if (object is _IOSinkImpl) {
+    try {
+      if (object._target is _FileStreamConsumer) {
+        return StdioType.file;
+      }
+    } catch (e) {
+      // Only the interface implemented, _sink not available.
+    }
   }
   return StdioType.other;
 }
