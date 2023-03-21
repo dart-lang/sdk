@@ -3088,7 +3088,7 @@ f(int a, Never b, int c) {
 }
 ''',
         expectedErrorsByNullability(nullable: [
-          error(HintCode.DEAD_CODE, 40, 3),
+          error(WarningCode.DEAD_CODE, 40, 3),
         ], legacy: []));
 
     var node = findNode.methodInvocation('clamp');
@@ -3164,7 +3164,7 @@ f(Never a, int b, int c) {
 ''',
         expectedErrorsByNullability(nullable: [
           error(WarningCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
-          error(HintCode.DEAD_CODE, 36, 7),
+          error(WarningCode.DEAD_CODE, 36, 7),
         ], legacy: [
           error(CompileTimeErrorCode.UNDEFINED_METHOD, 31, 5),
         ]));

@@ -72,7 +72,7 @@ void f(Never a, bool b) async {
   var v = {...a, if (b) throw 0: throw 0};
 }
 ''', [
-      error(HintCode.DEAD_CODE, 87, 21),
+      error(WarningCode.DEAD_CODE, 87, 21),
     ]);
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
@@ -85,7 +85,7 @@ void f(Never a, bool b) async {
 }
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
-      error(HintCode.DEAD_CODE, 88, 21),
+      error(WarningCode.DEAD_CODE, 88, 21),
     ]);
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
@@ -97,7 +97,7 @@ void f(Null a, bool b) async {
   var v = {...?a, if (b) throw 0: throw 0};
 }
 ''', [
-      error(HintCode.DEAD_CODE, 99, 7),
+      error(WarningCode.DEAD_CODE, 99, 7),
     ]);
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
@@ -110,7 +110,7 @@ void f<T extends Never>(T a, bool b) async {
 }
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
-      error(HintCode.DEAD_CODE, 101, 21),
+      error(WarningCode.DEAD_CODE, 101, 21),
     ]);
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
@@ -122,7 +122,7 @@ void f<T extends Null>(T a, bool b) async {
   var v = {...?a, if (b) throw 0: throw 0};
 }
 ''', [
-      error(HintCode.DEAD_CODE, 112, 7),
+      error(WarningCode.DEAD_CODE, 112, 7),
     ]);
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
@@ -134,7 +134,7 @@ void f<T extends Never>(T a, bool b) async {
   var v = {...a, if (b) throw 0: throw 0};
 }
 ''', [
-      error(HintCode.DEAD_CODE, 100, 21),
+      error(WarningCode.DEAD_CODE, 100, 21),
     ]);
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }

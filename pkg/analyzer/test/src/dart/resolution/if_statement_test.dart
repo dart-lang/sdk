@@ -135,7 +135,7 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(HintCode.DEAD_CODE, 45, 8),
+      error(WarningCode.DEAD_CODE, 45, 8),
     ]);
 
     final node = findNode.ifStatement('if');

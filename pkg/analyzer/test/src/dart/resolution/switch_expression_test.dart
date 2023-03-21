@@ -407,7 +407,7 @@ void f(Object? x) {
   });
 }
 ''', [
-      error(HintCode.DEAD_CODE, 52, 8),
+      error(WarningCode.DEAD_CODE, 52, 8),
     ]);
 
     final node = findNode.switchExpression('switch');

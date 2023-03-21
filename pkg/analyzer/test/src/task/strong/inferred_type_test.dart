@@ -3434,8 +3434,8 @@ var d = t ? 1 : (throw 2);
 ''',
         isNullSafetyEnabled
             ? [
-                error(HintCode.DEAD_CODE, 53, 1),
-                error(HintCode.DEAD_CODE, 57, 1),
+                error(WarningCode.DEAD_CODE, 53, 1),
+                error(WarningCode.DEAD_CODE, 57, 1),
               ]
             : []);
   }

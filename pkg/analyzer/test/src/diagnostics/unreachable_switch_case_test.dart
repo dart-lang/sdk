@@ -80,11 +80,11 @@ void f(int x) {
   }
 }
 ''', [
-          error(HintCode.DEAD_CODE, 64, 4),
+          error(WarningCode.DEAD_CODE, 64, 4),
           error(HintCode.UNREACHABLE_SWITCH_CASE, 64, 4),
-          error(HintCode.DEAD_CODE, 80, 4),
+          error(WarningCode.DEAD_CODE, 80, 4),
           error(HintCode.UNREACHABLE_SWITCH_CASE, 80, 4),
-          error(HintCode.DEAD_CODE, 98, 6),
+          error(WarningCode.DEAD_CODE, 98, 6),
         ]));
   }
 }

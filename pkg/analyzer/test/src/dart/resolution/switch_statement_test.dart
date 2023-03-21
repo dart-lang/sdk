@@ -1110,9 +1110,9 @@ void f(Object? x) {
   }
 }
 ''', [
-          error(HintCode.DEAD_CODE, 55, 4),
+          error(WarningCode.DEAD_CODE, 55, 4),
           error(HintCode.UNREACHABLE_SWITCH_CASE, 55, 4),
-          error(HintCode.DEAD_CODE, 71, 7),
+          error(WarningCode.DEAD_CODE, 71, 7),
           error(
               CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
               86,
@@ -1356,7 +1356,7 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(HintCode.DEAD_CODE, 56, 8),
+      error(WarningCode.DEAD_CODE, 56, 8),
     ]);
 
     final node = findNode.switchStatement('switch');

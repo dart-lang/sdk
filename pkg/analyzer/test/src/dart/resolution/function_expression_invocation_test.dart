@@ -356,7 +356,7 @@ void f(Never x) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(HintCode.DEAD_CODE, 26, 8),
+      error(WarningCode.DEAD_CODE, 26, 8),
     ]);
 
     final node = findNode.functionExpressionInvocation('x<int>(1 + 2)');

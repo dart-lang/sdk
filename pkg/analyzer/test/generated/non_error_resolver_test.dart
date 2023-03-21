@@ -2628,7 +2628,7 @@ class A {
   const A.b2(bool p) : v = true || p;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 167, 4),
+      error(WarningCode.DEAD_CODE, 167, 4),
     ]);
   }
 
