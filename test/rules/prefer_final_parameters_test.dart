@@ -57,7 +57,6 @@ class PreferFinalParametersTestLanguage300 extends LintRuleTest
     await assertNoDiagnostics('''
 void f(int p) {
   [_, p, _] = [1, 2, 3];
-  print(p);
 }
 ''');
   }
@@ -67,7 +66,6 @@ void f(int p) {
     await assertNoDiagnostics(r'''
 void f(int a, int b) {
   (a, b) = (1, 2);
-  print('$a$b');
 }
 ''');
   }
