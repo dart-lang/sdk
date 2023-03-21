@@ -40,10 +40,11 @@ main() {
     await test([Flags.cfeOnly, 'foo.dart', Flags.writeCodegen], exitCode: 1);
     await test(['foo.dart', Flags.writeCodegen, Flags.cfeOnly], exitCode: 1);
 
-    await test([Flags.writeData, 'foo.dart'],
-        out: 'out.dill', writeData: 'out.dill.data');
+    await test([Flags.writeData, 'foo.dart'], writeData: 'global.data');
     await test(['${Flags.writeData}=foo.data', 'foo.dart', '--out=foo.dill'],
         out: 'foo.dill', writeData: 'foo.data');
+    await test(['${Flags.writeData}=foo.data', 'foo.dart'],
+        writeData: 'foo.data');
     await test([Flags.readClosedWorld, Flags.writeClosedWorld, 'foo.dart'],
         exitCode: 1);
     await test([Flags.writeClosedWorld, Flags.readClosedWorld, 'foo.dart'],
@@ -78,9 +79,8 @@ main() {
         out: 'foo.js', readClosedWorld: 'out.world');
     await test(
       [Flags.readClosedWorld, Flags.writeData, 'foo.dill'],
-      out: 'out.dill',
       readClosedWorld: 'foo.dill.world',
-      writeData: 'out.dill.data',
+      writeData: 'global.data',
     );
     await test([
       '${Flags.readClosedWorld}=foo.world',
@@ -125,10 +125,9 @@ main() {
       '${Flags.codegenShard}=0',
       '${Flags.codegenShards}=2'
     ],
-        out: 'out',
         readClosedWorld: 'foo.dill.world',
         readData: 'foo.dill.data',
-        writeCodegen: 'out.code',
+        writeCodegen: 'codegen.code',
         codegenShard: 0,
         codegenShards: 2);
     await test([
@@ -139,10 +138,9 @@ main() {
       '${Flags.codegenShard}=1',
       '${Flags.codegenShards}=2'
     ],
-        out: 'out',
         readClosedWorld: 'foo.dill.world',
         readData: 'foo.dill.data',
-        writeCodegen: 'out.code',
+        writeCodegen: 'codegen.code',
         codegenShard: 1,
         codegenShards: 2);
     await test([
@@ -153,7 +151,6 @@ main() {
       '${Flags.codegenShard}=0',
       '${Flags.codegenShards}=3'
     ],
-        out: 'out',
         readClosedWorld: 'foo.world',
         readData: 'foo.data',
         writeCodegen: 'foo.code',

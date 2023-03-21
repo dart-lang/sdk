@@ -13,8 +13,15 @@ import "dart:core" as core;
 static method f(dynamic x) → dynamic
   return block {
     core::int #t1;
-    if(true && true)
-      #t1 = 0;
+    #L1:
+    {
+      {
+        if(true && true) {
+          #t1 = 0;
+          break #L1;
+        }
+      }
+    }
   } =>#t1;
 
 

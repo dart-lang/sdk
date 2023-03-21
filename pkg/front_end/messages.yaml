@@ -337,10 +337,36 @@ EmptyNamedParameterList:
     }
 
 RecordLiteralOnePositionalFieldNoTrailingComma:
-  problemMessage: "Record literal with one field requires a trailing comma."
+  problemMessage: "A record literal with exactly one positional field requires a trailing comma."
   correctionMessage: "Try adding a trailing comma."
   analyzerCode: ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
   index: 127
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record literal with a single
+    positional field doesn't have a trailing comma after the field.
+
+    In some locations a record literal with a single positional field could
+    also be a parenthesized expression. A trailing comma is required to
+    disambiguate these two valid interpretations.
+
+    #### Example
+
+    The following code produces this diagnostic because the record literal has
+    one positional field but doesn't have a trailing comma:
+
+    ```dart
+    var r = const (1[!)!];
+    ```
+
+    #### Common fixes
+
+    Add a trailing comma:
+
+    ```dart
+    var r = const (1,);
+    ```
   experiments: records
   script: >
     main() {
@@ -348,10 +374,39 @@ RecordLiteralOnePositionalFieldNoTrailingComma:
     }
 
 RecordLiteralZeroFieldsWithTrailingComma:
-  problemMessage: "Record literal without fields can't have a trailing comma."
+  problemMessage: "A record literal without fields can't have a trailing comma."
   correctionMessage: "Try removing the trailing comma."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA
   index: 128
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record literal that has no
+    fields has a trailing comma. Empty record literals can't contain a comma.
+
+    #### Example
+
+    The following code produces this diagnostic because the empty record
+    literal has a trailing comma:
+
+    ```dart
+    var r = ([!,!]);
+    ```
+
+    #### Common fixes
+
+    If the record is intended to be empty, then remove the comma:
+
+    ```dart
+    var r = ();
+    ```
+
+    If the record is intended to have one or more fields, then add the
+    expressions used to compute the values of those fields:
+
+    ```dart
+    var r = (3, 4);
+    ```
   experiments: records
   script: >
     main() {
@@ -359,10 +414,40 @@ RecordLiteralZeroFieldsWithTrailingComma:
     }
 
 EmptyRecordTypeNamedFieldsList:
-  problemMessage: "Record type named fields list can't be empty."
-  correctionMessage: "Try adding a record type named field to the list."
+  problemMessage: "The list of named fields in a record type can't be empty."
+  correctionMessage: "Try adding a named field to the list."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST
   index: 129
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record type has an empty list
+    of named fields.
+
+    #### Example
+
+    The following code produces this diagnostic because the record type has an
+    empty list of named fields:
+
+    ```dart
+    void f((int, int, {[!}!]) r) {}
+    ```
+
+    #### Common fixes
+
+    If the record is intended to have named fields, then add the types and
+    names of the fields:
+
+    ```dart
+    void f((int, int, {int z}) r) {}
+    ```
+
+    If the record isn't intended to have named fields, then remove the curly
+    braces:
+
+    ```dart
+    void f((int, int) r) {}
+    ```
   experiments: records
   script: >
     main() {
@@ -370,10 +455,39 @@ EmptyRecordTypeNamedFieldsList:
     }
 
 RecordTypeZeroFieldsButTrailingComma:
-  problemMessage: "Record type without fields can't have a trailing comma."
+  problemMessage: "A record type without fields can't have a trailing comma."
   correctionMessage: "Try removing the trailing comma."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA
   index: 130
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record type that has no
+    fields has a trailing comma. Empty record types can't contain a comma.
+
+    #### Example
+
+    The following code produces this diagnostic because the empty record type
+    has a trailing comma:
+
+    ```dart
+    void f(([!,!]) r) {}
+    ```
+
+    #### Common fixes
+
+    If the record type is intended to be empty, then remove the comma:
+
+    ```dart
+    void f(() r) {}
+    ```
+
+    If the record type is intended to have one or more fields, then add the
+    types of those fields:
+
+    ```dart
+    void f((int, int) r) {}
+    ```
   experiments: records
   script: >
     main() {
@@ -381,10 +495,36 @@ RecordTypeZeroFieldsButTrailingComma:
     }
 
 RecordTypeOnePositionalFieldNoTrailingComma:
-  problemMessage: "Record type with one entry requires a trailing comma."
+  problemMessage: "A record type with exactly one positional field requires a trailing comma."
   correctionMessage: "Try adding a trailing comma."
   analyzerCode: ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
   index: 131
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record type annotation with a
+    single positional field doesn't have a trailing comma after the field.
+
+    In some locations a record type with a single positional field could also
+    be a parenthesized expression. A trailing comma is required to
+    disambiguate these two valid interpretations.
+
+    #### Example
+
+    The following code produces this diagnostic because the record type has
+    one positional field, but doesn't have a trailing comma:
+
+    ```dart
+    void f((int[!)!] r) {}
+    ```
+
+    #### Common fixes
+
+    Add a trailing comma:
+
+    ```dart
+    void f((int,) r) {}
+    ```
   experiments: records
   script: >
     main() {
@@ -802,10 +942,41 @@ AbstractLateField:
     - "abstract class C {abstract late var f;}"
 
 AbstractSealedClass:
-  index: 132
   problemMessage: "A class can't be declared both 'sealed' and 'abstract'."
   correctionMessage: "Try removing the 'abstract' or 'sealed' keyword."
   analyzerCode: ParserErrorCode.ABSTRACT_SEALED_CLASS
+  index: 132
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class is declared using both
+    the modifier `abstract` and the modifier `sealed`. Sealed classes are
+    implicitly abstract, so explicitly using both modifiers is not allowed.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` is
+    declared using both `abstract` and `sealed`:
+
+    ```dart
+    abstract [!sealed!] class C {}
+    ```
+
+    #### Common fixes
+
+    If the class should be abstract but not sealed, then remove the `sealed`
+    modifier:
+
+    ```dart
+    abstract class C {}
+    ```
+
+    If the class should be both abstract and sealed, then remove the
+    `abstract` modifier:
+
+    ```dart
+    sealed class C {}
+    ```
   experiments: sealed-class
   script:
     - "sealed abstract class C {}"

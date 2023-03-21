@@ -1,6 +1,6 @@
 Problems reported:
 
-parser/record/record_literal_04:9:21: Record literal with one field requires a trailing comma.
+parser/record/record_literal_04:9:21: A record literal with exactly one positional field requires a trailing comma.
   var r5 = const (42);
                     ^
 

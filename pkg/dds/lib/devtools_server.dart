@@ -30,8 +30,8 @@ class DevToolsServer {
   static const argVmUri = 'vm-uri';
   static const argEnableNotifications = 'enable-notifications';
   static const argAllowEmbedding = 'allow-embedding';
-  static const argAppSizeBase = 'appSizeBase';
-  static const argAppSizeTest = 'appSizeTest';
+  static const argAppSizeBase = 'app-size-base';
+  static const argAppSizeTest = 'app-size-test';
   static const argHeadlessMode = 'headless';
   static const argDebugMode = 'debug';
   static const argLaunchBrowser = 'launch-browser';
@@ -113,25 +113,23 @@ class DevToolsServer {
             'indicated file.',
       );
 
-    if (verbose) {
-      argParser.addSeparator('App size options:');
-    }
+    argParser.addSeparator('App size options:');
 
-    // TODO(devoncarew): --appSizeBase and --appSizeTest should be renamed to
-    // something like --app-size-base and --app-size-test; #3146.
     argParser
       ..addOption(
         argAppSizeBase,
-        valueHelp: 'appSizeBase',
+        aliases: ['appSizeBase'],
+        valueHelp: 'file',
         help: 'Path to the base app size file used for app size debugging.',
-        hide: !verbose,
       )
       ..addOption(
         argAppSizeTest,
-        valueHelp: 'appSizeTest',
+        aliases: ['appSizeTest'],
+        valueHelp: 'file',
         help:
             'Path to the test app size file used for app size debugging.\nThis '
-            'file should only be specified if --$argAppSizeBase is also specified.',
+            'file should only be specified if --$argAppSizeBase is also '
+            'specified.',
         hide: !verbose,
       );
 
@@ -432,8 +430,6 @@ class DevToolsServer {
 
     final bool verboseMode = args[argVerbose];
     final String? hostname = args[argHost];
-    final String? appSizeBase = args[argAppSizeBase];
-    final String? appSizeTest = args[argAppSizeTest];
 
     if (help) {
       print(
@@ -472,6 +468,16 @@ class DevToolsServer {
     }
     if (profileFilename != null && !path.isAbsolute(profileFilename)) {
       profileFilename = path.absolute(profileFilename);
+    }
+
+    // App size info.
+    String? appSizeBase = args[argAppSizeBase];
+    if (appSizeBase != null && !path.isAbsolute(appSizeBase)) {
+      appSizeBase = path.absolute(appSizeBase);
+    }
+    String? appSizeTest = args[argAppSizeTest];
+    if (appSizeTest != null && !path.isAbsolute(appSizeTest)) {
+      appSizeTest = path.absolute(appSizeTest);
     }
 
     return serveDevTools(

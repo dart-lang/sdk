@@ -646,9 +646,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
 
   @override
   AbstractValue typeFromNativeBehavior(
-      // TODO(48820): remove covariant once interface and implementation match.
-      NativeBehavior nativeBehavior,
-      covariant JClosedWorld closedWorld) {
+      NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
     return AbstractValueFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 }

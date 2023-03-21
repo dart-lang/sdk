@@ -15,75 +15,73 @@ class Enum extends core::_Enum /*isEnum*/  {
 }
 static method method(dynamic e) → dynamic {
   #L1:
-  {
-    final synthesized dynamic #0#0 = e;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+  switch(e) {
+    #L2:
+    case #C1:
       {
         core::print(0);
         break #L1;
       }
-    }
-    else
-      if(#C4 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print(1);
-          break #L1;
-        }
-      }
-      else
-        if(#C7 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-          {
-            core::print(2);
-          }
-        }
-  }
-  #L2:
-  {
-    final synthesized dynamic #1#0 = e;
-    if(#1#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
+    #L3:
+    case #C4:
       {
-        core::print(0);
-        break #L2;
+        core::print(1);
+        break #L1;
+      }
+    #L4:
+    case #C7:
+      {
+        core::print(2);
+      }
+  }
+  #L5:
+  {
+    final synthesized dynamic #0#0 = e;
+    {
+      if(#0#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
+        {
+          core::print(0);
+          break #L5;
+        }
       }
     }
-    else
-      if(#1#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
+    {
+      if(#0#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
         {
           core::print(1);
-          break #L2;
+          break #L5;
         }
       }
-      else
-        if(#1#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
-          {
-            core::print(2);
-          }
+    }
+    {
+      if(#0#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
+        {
+          core::print(2);
         }
+      }
+    }
   }
 }
 static method method2(self::Enum e) → dynamic {
-  #L3:
-  {
-    final synthesized self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L6:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L7:
+    case #C3:
       {
         core::print(0);
-        break #L3;
+        break #L6;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print(1);
-          break #L3;
-        }
+    #L8:
+    case #C6:
+      {
+        core::print(1);
+        break #L6;
       }
-      else
-        if(#C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          {
-            core::print(2);
-          }
-        }
+    #L9:
+    case #C9:
+      {
+        core::print(2);
+      }
   }
 }
 

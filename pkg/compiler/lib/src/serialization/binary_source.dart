@@ -4,8 +4,7 @@
 
 import 'dart:convert';
 import 'dart:typed_data';
-import 'data_source.dart';
-import 'serialization.dart' show StringInterner;
+import 'serialization.dart' show StringInterner, DataSource;
 
 /// [DataSource] that reads data from a sequence of bytes.
 ///
@@ -18,7 +17,6 @@ class BinaryDataSource implements DataSource {
 
   BinaryDataSource(this._bytes, {StringInterner? stringInterner})
       : _stringInterner = stringInterner {
-    assert((_bytes as dynamic) != null); // TODO(48820): Remove when sound.
     final deferredDataStart = readAtOffset(_bytes.length - 4, _readUint32);
     _deferredOffsetToSize = readAtOffset(deferredDataStart, () {
       final deferredSizesCount = readInt();

@@ -1652,8 +1652,6 @@
     "../../../tests/language/mixin/generic_test.dart",
     "../../../tests/language/mixin/getter_regression_test.dart",
     "../../../tests/language/mixin/illegal_constructor_runtime_test.dart",
-    "../../../tests/language/mixin/illegal_cycles_runtime_test.dart",
-    "../../../tests/language/mixin/illegal_object_runtime_test.dart",
     "../../../tests/language/mixin/illegal_static_access_runtime_test.dart",
     "../../../tests/language/mixin/illegal_super_use_runtime_test.dart",
     "../../../tests/language/mixin/illegal_superclass_runtime_test.dart",

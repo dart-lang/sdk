@@ -439,7 +439,7 @@ class _RandomAccessFileIOSync implements IOSink {
 
   Future<File?> flush() {
     if (_isClosed) {
-      throw StateError("${_file?.path ?? "IOSink"} is closed");
+      return done;
     }
     if (_isBound) {
       throw StateError("${_file?.path ?? "IOSink"} is bound to a stream");

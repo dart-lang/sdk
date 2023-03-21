@@ -14,7 +14,7 @@ import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
-import '../../ir/class_relation.dart';
+import '../../ir/static_type.dart';
 import '../../js_model/js_world.dart' show JClosedWorld;
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';

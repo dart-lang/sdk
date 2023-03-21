@@ -524,58 +524,54 @@ static method callReturningNever(() → Never f) → dynamic {
 }
 static method switchOnEnum(uns::E e) → dynamic {
   #L1:
-  {
-    final synthesized uns::E #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L2:
+    case #C3:
       {
         return;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          return;
-        }
+    #L3:
+    case #C6:
+      {
+        return;
       }
   }
 }
 static method switchOnEnumWithBreak(uns::E e) → dynamic {
-  #L2:
-  {
-    final synthesized uns::E #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L4:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L5:
+    case #C3:
       {
-        break #L2;
+        break #L4;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          break #L2;
-        }
+    #L6:
+    case #C6:
+      {
+        break #L4;
       }
   }
 }
 static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
-  #L3:
-  {
-    final synthesized uns::E #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L7:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L8:
+    case #C3:
       {
-        break #L3;
+        break #L7;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-      }
+    #L9:
+    case #C6:
+      {}
   }
 }
 static method switchOnEnumWithFallThrough2(uns::E e) → dynamic {
-  #L4:
-  {
-    final synthesized uns::E #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0 || #C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-    }
+  #L10:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L11:
+    case #C3:
+    case #C6:
+      {}
   }
 }
 static method handleThrow() → dynamic {

@@ -196,7 +196,6 @@ abstract class CommonElements {
   /// Used to check for the constructor without computing it until it is likely
   /// to be seen.
   bool isSymbolConstructor(ConstructorEntity element) {
-    assert((element as dynamic) != null); // TODO(48820): Remove.
     _ensureSymbolConstructorDependencies();
     return element == _symbolConstructorImplementationTarget ||
         element == _symbolConstructorTarget;

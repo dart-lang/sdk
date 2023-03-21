@@ -273,6 +273,82 @@ FunctionExpressionInvocation
 ''');
   }
 
+  test_expression_interfaceType_nullable_hasCall() async {
+    await assertNoErrorsInCode(r'''
+void f(int? a) {
+  a();
+}
+
+extension on int? {
+  int call() => 0;
+}
+''');
+    final node = findNode.functionExpressionInvocation('();');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: int?
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: self::@extension::0::@method::call
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_expression_recordType_hasCall() async {
+    await assertNoErrorsInCode(r'''
+void f((String,) a) {
+  a();
+}
+
+extension on (String,) {
+  int call() => 0;
+}
+''');
+    final node = findNode.functionExpressionInvocation('();');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: (String)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: self::@extension::0::@method::call
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_expression_recordType_noCall() async {
+    await assertErrorsInCode(r'''
+void f((String,) a) {
+  a();
+}
+''', [
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 24, 1),
+    ]);
+    final node = findNode.functionExpressionInvocation('();');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: (String)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
   test_never() async {
     await assertErrorsInCode(r'''
 void f(Never x) {

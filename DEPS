@@ -110,19 +110,19 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "args_rev": "9305d5a2ca817a065a1ded3734655d99cd717f2c",
+  "args_rev": "7a5e3b07c882d300a570031df8a45f8a0b067053",
   "async_rev": "f454380c2691728530e0b2421af7676a9621481b",
   "bazel_worker_rev": "53871c5fe36438b734a0f75c91055e75111a7210",
-  "benchmark_harness_rev": "a6a0891e5430ce10518d19a52b6fa6c4ad18a6f2",
+  "benchmark_harness_rev": "725534a08c321536a805049e27a32e2b5e6ce1af",
   "boolean_selector_rev": "16e6ad3c8000e08a7f1c213aef2a692d872a16c7",
   "browser_launcher_rev": "bc2dc4ef53a6619032e9f01450848e9ed40a9437",
   "characters_rev": "3281cc7b76731de06dcbafa95516681710ba8d5e",
   "cli_util_rev": "91747f7dd9bdf2457f081d3cf035de5672dd4a02",
-  "clock_rev": "5abb4816bad6cf3bfab64d65d501752d19760bd0",
+  "clock_rev": "984642ee406e951e398ae5e47671383990da1c98",
   "collection_rev": "0d0e184a5f70ca4e23dab23df686127ec40bfb11",
   "convert_rev": "83886e3fd895211a98e49b7595a92796fa216641",
   "crypto_rev": "9efb888e9b06489bd7c861b1d01f4c4eebb05b60",
-  "csslib_rev": "b671738dc6de7d212b5f943b4258f9bb099d3e83",
+  "csslib_rev": "d32bdd49026e66c139b37244e0eb2f098ae4cc22",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -134,7 +134,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "a3f1b041f3c5045d1fee7f1129075d0ad6a4a96e", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "98fa859c8e7e9c0ee9a8873a09aed4d96aab4d3b",
+  "dartdoc_rev": "7fde7a4d61dd251a4e48bf85ccab34f28ec8da71",
   "ffi_rev": "32f5eefea59d4461e8ab40e83f157e49d5abe0da",
   "file_rev": "72a67c33f90bfb7e10057e286e06d2fe3baa4d98",
   "fixnum_rev": "f8379d94436f3a73f71ea078f3207897c6700498",
@@ -155,10 +155,10 @@ vars = {
   "package_config_rev": "74ac1cb90ad7f4f05bd92c952eaf9756c516fca3",
   "path_rev": "24b58a2499440cc3d12d2b3c2f52b95f91ff1c0a",
   "pool_rev": "694cfd867d8d84857fc42a8d07933013f0d25305",
-  "protobuf_rev": "75bc380a6e9601565606a13dee16c5ab2bf5019c",
+  "protobuf_rev": "b90a4c44d56075eb23ee38ae56ce0febfd7f280f",
   "pub_rev": "4bd757ce1dad04035fb0dbc6156879af23d8b3b8", # disable rev_sdk_deps.dart
   "pub_semver_rev": "c0e6ea74ccfbfdb2ef54c7cd9ad31455ca8e481f",
-  "shelf_rev": "e3cfe796ad478cb4b61ad8e68ea29644c0bb1037",
+  "shelf_rev": "9a792b49f07bd9d310d83cd103035cc60a9956af",
   "source_map_stack_trace_rev": "45ea3688b6bec1eb565c38c4e28f37b01f8a0fa9",
   "source_maps_rev": "a112e981a985a8af2047ee25a9cf56b0d5413b02",
   "source_span_rev": "3951ba50ec29b9870c3131c6ddcc88700d26f3ee",
@@ -172,18 +172,18 @@ vars = {
   "test_descriptor_rev": "1d4a967dd17874f3835af30720e9820c74977569",
   "test_process_rev": "f76d0b8fcf078d629cb57f859db79be93d6323d5",
   "test_reflective_loader_rev": "c4c2d5c3f94a96f3fc79e9e28944fba391bc544c",
-  "tools_rev": "e5353aa3ae4bcaa75cd0ac48a6e47035c57df942",
+  "tools_rev": "8d18d01192077e85839539de9afdf679622445c8",
   "typed_data_rev": "f858046fb420cf644e7d8cb86b7893f2830d8a6c",
   "usage_rev": "399770f45ed2d384d79395c0341a04fb25609a4d",
-  "vector_math_rev": "1e4d000f55512ca55d0fcef4e13fc03010d54251",
+  "vector_math_rev": "7dec98433b3e016fbe49107ad4320b31f519eb70",
   "watcher_rev": "5968409e1d73e21e75fc22a6481d5efaef7f3558",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "e2fe7f665997ab8e28aa76a8b26483f9903221a8",
-  "webdev_rev": "cfe97534b33d37c7e0bbac2a3576085f74f2eaa3",
+  "webdev_rev": "c2c8b17c9a1adc19ee3efd847ed2dd6cd7025aec",
   "webdriver_rev": "562aa06353d513586b806ce1c9655dac3971879f",
   "webkit_inspection_protocol_rev": "8401098ace995e4dcd9855a2741c2dacccaa780b",
   "yaml_rev": "0f80b12978f066b3547632dec4a273649138fae4",
-  "yaml_edit_rev": "6abc42a74b76700ad02fa1c1ebd94951b62626b9",
+  "yaml_edit_rev": "fbc5cb3ced4b9862b8acfd646389d4fbbd4074d1",
 
   # Windows deps
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",

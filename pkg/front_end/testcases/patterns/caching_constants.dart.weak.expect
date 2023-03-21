@@ -80,17 +80,20 @@ static method method(core::Map<core::int, core::String> m) → core::int {
     late final synthesized core::bool #0#3 = #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
     late final synthesized core::bool #0#4 = #0#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
     late final synthesized core::String? #0#5 = #0#0.{core::Map::[]}(#C2){(core::Object?) → core::String?};
-    if(#0#3 && #0#4 && #C3 =={core::String::==}{(core::Object) → core::bool} #0#5) {
-      {
-        return 0;
+    {
+      if(#0#3 && #0#4 && #C3 =={core::String::==}{(core::Object) → core::bool} #0#5) {
+        {
+          return 0;
+        }
       }
     }
-    else
+    {
       if(#0#3 && #0#4 && #C4 =={core::String::==}{(core::Object) → core::bool} #0#5) {
         {
           return 1;
         }
       }
+    }
   }
   return 2;
 }

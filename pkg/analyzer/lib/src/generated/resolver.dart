@@ -4164,6 +4164,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ImplicitLabelScope get implicitLabelScope => _implicitLabelScope;
 
   @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    final element = node.element;
+    if (element is PromotableElement) {
+      _localVariableInfo.potentiallyMutatedInScope.add(element);
+    }
+  }
+
+  @override
   void visitBlock(Block node) {
     _withDeclaredLocals(node, node.statements, () {
       super.visitBlock(node);

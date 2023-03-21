@@ -6,7 +6,9 @@ static method method(Never n) → dynamic {
   #L1:
   {
     final synthesized Never #0#0 = n;
-    if(#0#0 =={core::Object::==}{(dynamic) → Never} #C1) {
+    {
+      if(#0#0 =={core::Object::==}{(dynamic) → Never} #C1) {
+      }
     }
   }
 }

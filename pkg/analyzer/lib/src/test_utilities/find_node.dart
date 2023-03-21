@@ -30,6 +30,8 @@ class FindNode {
 
   ForStatement get singleForStatement => _single();
 
+  FunctionBody get singleFunctionBody => _single();
+
   GuardedPattern get singleGuardedPattern => _single();
 
   IfElement get singleIfElement => _single();

@@ -4,8 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-// TODO(48820): revert to '../common.dart':
-import '../diagnostics/source_span.dart';
+import '../common.dart';
 import '../elements/entities.dart' show AsyncMarker, MemberEntity, Variance;
 import '../universe/record_shape.dart';
 
@@ -192,7 +191,6 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   const _FreeVariableVisitor();
 
   bool visit(ir.DartType type) {
-    assert(type as dynamic != null); // TODO(48820): Remove.
     return type.accept(this);
   }
 
@@ -307,7 +305,6 @@ bool nodeIsInWebLibrary(ir.TreeNode? node) {
 
 bool memberEntityIsInWebLibrary(MemberEntity entity) {
   var importUri = entity.library.canonicalUri;
-  assert(importUri as dynamic != null); // TODO(48820): Remove.
   return _isWebLibrary(importUri);
 }
 

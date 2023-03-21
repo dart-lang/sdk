@@ -415,8 +415,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  0: the name of the class being used as a mixin
   static const CompileTimeErrorCode CLASS_USED_AS_MIXIN = CompileTimeErrorCode(
     'CLASS_USED_AS_MIXIN',
-    "The class '{0}' can't be used as a mixin because it isn't a mixin class "
-        "nor a mixin.",
+    "The class '{0}' can't be used as a mixin because it's neither a mixin "
+        "class nor a mixin.",
   );
 
   static const CompileTimeErrorCode CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE =
@@ -3004,6 +3004,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the mixin class that is invalid
+  static const CompileTimeErrorCode MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT =
+      CompileTimeErrorCode(
+    'MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
+    "The class '{0}' can't be declared a mixin because it extends a class "
+        "other than 'Object'.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the mixin that is invalid
   static const CompileTimeErrorCode MIXIN_CLASS_DECLARES_CONSTRUCTOR =
       CompileTimeErrorCode(
@@ -3864,11 +3873,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
   static const CompileTimeErrorCode PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE =
       CompileTimeErrorCode(
     'PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
-    "Only local variables or formal parameters can be used in pattern "
-        "assignments.",
+    "Only local variables can be assigned in pattern assignments.",
     correctionMessage: "Try assigning to a local variable.",
   );
 
@@ -3906,36 +3915,39 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode
       PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE =
       CompileTimeErrorCode(
-    'PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE',
+    'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
     "The variable '{0}' doesn't have the same type and/or finality in all "
         "cases that share this body.",
     correctionMessage:
         "Try declaring the variable pattern with the same type and finality in "
         "all cases.",
+    uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE',
   );
 
   ///  Parameters:
   ///  0: the name of the pattern variable
   static const CompileTimeErrorCode
       PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL = CompileTimeErrorCode(
-    'PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL',
+    'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
     "The variable '{0}' is not available because there is a label or 'default' "
         "case.",
     correctionMessage:
         "Try removing the label, or providing the 'default' case with its own "
         "body.",
+    uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL',
   );
 
   ///  Parameters:
   ///  0: the name of the pattern variable
   static const CompileTimeErrorCode
       PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES = CompileTimeErrorCode(
-    'PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES',
+    'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
     "The variable '{0}' is available in some, but not all cases that share "
         "this body.",
     correctionMessage:
         "Try declaring the variable pattern with the same type and finality in "
         "all cases.",
+    uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES',
   );
 
   ///  No parameters.
@@ -5239,6 +5251,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
   static const CompileTimeErrorCode
       VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT = CompileTimeErrorCode(
     'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',

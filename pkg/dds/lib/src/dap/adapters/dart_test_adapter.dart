@@ -178,6 +178,15 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   @override
   Future<void> terminateImpl() async {
     terminatePids(ProcessSignal.sigterm);
+
+    // Sending a kill signal to pkg:test doesn't cause it to exit immediately,
+    // instead it waits for the current test to complete. If the user is at
+    // a breakpoint this will never happen, which will encourage them to click
+    // Stop again. In VS Code, a second Stop is a non-graceful shutdown which
+    // may leave orphaned processes. To avoid this, attempt to resume and avoid
+    // any further pausing.
+    await preventBreakingAndResume();
+
     await _process?.exitCode;
   }
 

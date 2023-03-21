@@ -9,7 +9,7 @@ import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
-import '../ir/class_relation.dart';
+import '../ir/static_type.dart';
 import '../serialization/serialization.dart';
 import '../universe/member_hierarchy.dart';
 import '../universe/record_shape.dart';
@@ -655,14 +655,10 @@ abstract class AbstractValueDomain {
       Selector selector, MemberHierarchyBuilder memberHierarchyBuilder);
 
   /// Deserializes an [AbstractValue] for this domain from [source].
-  // TODO(48820): Remove covariant when DataSourceReader is migrated.
-  AbstractValue readAbstractValueFromDataSource(
-      covariant DataSourceReader source);
+  AbstractValue readAbstractValueFromDataSource(DataSourceReader source);
 
   /// Serializes this [value] for this domain to [sink].
-  // TODO(48820): Remove covariant when DataSinkWriter is migrated.
-  void writeAbstractValueToDataSink(
-      covariant DataSinkWriter sink, AbstractValue? value);
+  void writeAbstractValueToDataSink(DataSinkWriter sink, AbstractValue? value);
 
   void finalizeMetrics() {}
 

@@ -587,6 +587,7 @@ class ExpressionCompilerWorker {
           alwaysCreateNewNamedNodes: true);
       return component;
     }
+    _processedOptions.ticker.logMs('File for $uri does not exist.');
     return null;
   }
 

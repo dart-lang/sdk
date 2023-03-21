@@ -73,8 +73,6 @@ RESULT: %result
 %c = _Parameter #0 [_T (dart.core::bool)+?]
 %i = _Parameter #1 [_T (dart.core::int)+?]
 t2* = _Call direct [#lib::T.] (_T (#lib::T))
-t3* = _Call [dart.core::num.==] (_T (dart.core::int)+?, _T (dart.core::int)+?)
-t4* = _Call [dart.core::num.==] (_T (dart.core::int)+?, _T (dart.core::int)+?)
 %result = _Join [dynamic] (t2, _T {}?)
 RESULT: %result
 ------------ if1 ------------

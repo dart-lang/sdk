@@ -25,7 +25,6 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
-import '../ir/class_relation.dart';
 import '../ir/static_type.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
@@ -2943,6 +2942,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // This is because JS does not have this same "continue label" semantics so
     // we encode it in the form of a state machine.
 
+    // TODO(https://dartbug.com/51777): Consider alternative with single switch
+    // statement.
+
     JumpTarget switchTarget =
         _localsMap.getJumpTargetForSwitch(switchStatement)!;
     localsHandler.updateLocal(switchTarget, graph.addConstantNull(closedWorld));
@@ -3921,11 +3923,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         List.from(_visitPositionalArguments(arguments));
 
     if (target.namedParameters.isNotEmpty) {
-      // Only anonymous factory constructors involving JS interop are allowed to
-      // have named parameters. Otherwise, throw an error.
+      // Only anonymous factory or inline class literal constructors involving
+      // JS interop are allowed to have named parameters. Otherwise, throw an
+      // error.
       final function =
           _elementMap.getMember(target.parent as ir.Member) as FunctionEntity;
-      if (function is ConstructorEntity && function.isFactoryConstructor) {
+      if (function is ConstructorEntity &&
+              function.isFactoryConstructor &&
+              _nativeData.isAnonymousJsInteropClass(function.enclosingClass) ||
+          function.isTopLevel &&
+              _nativeData.isJsInteropObjectLiteral(function)) {
         // TODO(sra): Have a "CompiledArguments" structure to just update with
         // what values we have rather than creating a map and de-populating it.
         Map<String, HInstruction> namedValues = _visitNamedArguments(arguments);
@@ -5442,11 +5449,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     assert(closedWorld.nativeData.isJsInteropMember(element));
 
     if (element is ConstructorEntity &&
-        element.isFactoryConstructor &&
-        _nativeData.isAnonymousJsInteropClass(element.enclosingClass)) {
-      // Factory constructor that is syntactic sugar for creating a JavaScript
-      // object literal.
-      ConstructorEntity constructor = element;
+            element.isFactoryConstructor &&
+            _nativeData.isAnonymousJsInteropClass(element.enclosingClass) ||
+        element.isTopLevel && _nativeData.isJsInteropObjectLiteral(element)) {
+      // Constructor that is syntactic sugar for creating a JavaScript object
+      // literal.
       int i = 0;
       int positions = 0;
       List<HInstruction> filteredArguments = [];
@@ -5458,7 +5465,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // TODO(johnniwinther): can we elide those parameters? This should be
       // consistent with what we do with instance methods.
       final node =
-          _elementMap.getMemberDefinition(constructor).node as ir.Procedure;
+          _elementMap.getMemberDefinition(element).node as ir.Procedure;
       List<ir.VariableDeclaration> namedParameters =
           node.function.namedParameters.toList();
       namedParameters.sort(nativeOrdering);

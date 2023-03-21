@@ -7,7 +7,7 @@ import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
-import '../../ir/class_relation.dart';
+import '../../ir/static_type.dart';
 import '../../js_model/js_world.dart';
 import '../../universe/selector.dart';
 import '../abstract_value_domain.dart';
@@ -442,10 +442,6 @@ class PowersetBitsDomain {
   int createFromStaticType(DartType type,
       {ClassRelation classRelation = ClassRelation.subtype,
       required bool nullable}) {
-    // TODO(48820): Remove after sound null safety is enabled.
-    // ignore: unnecessary_null_comparison
-    assert(nullable != null);
-
     if ((classRelation == ClassRelation.subtype ||
             classRelation == ClassRelation.thisExpression) &&
         dartTypes.isTopType(type)) {

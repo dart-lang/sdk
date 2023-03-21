@@ -26,7 +26,7 @@ import '../js_model/closure.dart' show JContextField;
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
-import 'strong_mode_constraint.dart' show StrongModeConstraintInterface;
+import 'world_builder.dart';
 
 enum DynamicUseKind {
   INVOKE,
@@ -94,7 +94,7 @@ class DynamicUse {
     StringBuffer sb = StringBuffer();
     if (receiverConstraint != null) {
       var constraint = receiverConstraint;
-      if (constraint is StrongModeConstraintInterface) {
+      if (constraint is StrongModeConstraint) {
         if (constraint.isThis) {
           sb.write('this:');
         } else if (constraint.isExact) {
@@ -319,10 +319,6 @@ class StaticUse {
             "or static method."));
     assert(element.isFunction,
         failedAt(element, "Static get element $element must be a function."));
-    assert(
-        (callStructure as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(element,
-            "Not CallStructure for static invocation of element $element."));
     StaticUse staticUse = StaticUse.internal(
         element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure,
@@ -414,10 +410,6 @@ class StaticUse {
         element.isInstanceMember,
         failedAt(element,
             "Super invoke element $element must be an instance method."));
-    assert(
-        (callStructure as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(element,
-            "Not CallStructure for super invocation of element $element."));
     StaticUse staticUse = StaticUse.internal(
         element, StaticUseKind.SUPER_INVOKE,
         callStructure: callStructure, typeArguments: typeArguments);
@@ -477,12 +469,6 @@ class StaticUse {
             element,
             "Constructor invoke element $element must be a "
             "generative constructor."));
-    assert(
-        (callStructure as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(
-            element,
-            "Not CallStructure for super constructor invocation of element "
-            "$element."));
     return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
@@ -491,12 +477,6 @@ class StaticUse {
   /// constructor call with the given [callStructure].
   factory StaticUse.constructorBodyInvoke(
       ConstructorBodyEntity element, CallStructure callStructure) {
-    assert(
-        (callStructure as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(
-            element,
-            "Not CallStructure for constructor body invocation of element "
-            "$element."));
     return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
@@ -549,12 +529,6 @@ class StaticUse {
   /// Constructor invocation of [element] with the given [callStructure].
   factory StaticUse.constructorInvoke(
       ConstructorEntity element, CallStructure callStructure) {
-    assert(
-        (callStructure as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(
-            element,
-            "Not CallStructure for constructor invocation of element "
-            "$element."));
     return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
@@ -566,9 +540,6 @@ class StaticUse {
       CallStructure callStructure,
       InterfaceType type,
       ImportEntity? deferredImport) {
-    assert(
-        (type as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(element, "No type provided for constructor invocation."));
     return StaticUse.internal(element, StaticUseKind.CONSTRUCTOR_INVOKE,
         type: type,
         callStructure: callStructure,
@@ -582,9 +553,6 @@ class StaticUse {
       CallStructure callStructure,
       InterfaceType type,
       ImportEntity? deferredImport) {
-    assert(
-        (type as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(element, "No type provided for constructor invocation."));
     return StaticUse.internal(element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE,
         type: type,
         callStructure: callStructure,

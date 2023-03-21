@@ -31,7 +31,7 @@ class TestRandomAccessFileOutputProvider implements api.CompilerOutput {
   @override
   api.OutputSink createOutputSink(
       String name, String extension, api.OutputType type) {
-    outputs.add(fe.relativizeUri(provider.out,
+    outputs.add(fe.relativizeUri(provider.out!,
         provider.createUri(name, extension, type), Platform.isWindows));
     return NullSink.outputProvider(name, extension, type);
   }

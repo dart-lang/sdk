@@ -5027,13 +5027,36 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return id;
   }
 
+  /// Detects temporary variables so we can avoid displaying
+  /// them in the debugger if needed.
+  bool _isTemporaryVariable(VariableDeclaration v) =>
+      v.isLowered ||
+      v.isSynthesized ||
+      v.name == null ||
+      v.name!.startsWith('#');
+
+  /// Creates a temporary name recognized by the debugger.
+  /// Assumes `_isTemporaryVariable(v)`  is true.
+  String? _debuggerFriendlyTemporaryVariableName(VariableDeclaration v) {
+    assert(_isTemporaryVariable(v));
+
+    // Show extension 'this' in the debugger.
+    // Do not show the rest of temporary variables.
+    if (isExtensionThis(v)) {
+      return extractLocalNameFromVariable(v);
+    } else if (v.name != null) {
+      return 't\$${v.name}';
+    }
+    return null;
+  }
+
   js_ast.Identifier _emitVariableRef(VariableDeclaration v) {
-    var name = v.name;
-    if (name == null || name.startsWith('#')) {
-      name = name == null ? 't${_tempVariables.length}' : name.substring(1);
+    if (_isTemporaryVariable(v)) {
+      var name = _debuggerFriendlyTemporaryVariableName(v);
+      name ??= 't\$${_tempVariables.length}';
       return _tempVariables.putIfAbsent(v, () => _emitTemporaryId(name!));
     }
-    return _emitIdentifier(name);
+    return _emitIdentifier(v.name!);
   }
 
   /// Emits the declaration of a variable.
@@ -6096,6 +6119,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           ]);
         }
       }
+    }
+    if (target.isExternal &&
+        target.isInlineClassMember &&
+        hasObjectLiteralAnnotation(target)) {
+      // Only JS interop inline class object literal constructors have the
+      // `@ObjectLiteral(...)` annotation.
+      assert(node.arguments.positional.isEmpty);
+      return _emitObjectLiteral(
+          Arguments(node.arguments.positional,
+              types: node.arguments.types, named: node.arguments.named),
+          target);
     }
     if (target == _coreTypes.identicalProcedure) {
       return _emitCoreIdenticalCall(node.arguments.positional);

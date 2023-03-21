@@ -1,10 +1,10 @@
 Problems reported:
 
-parser/record/record_type_02:2:26: Record type named fields list can't be empty.
+parser/record/record_type_02:2:26: The list of named fields in a record type can't be empty.
   (int, int, {/*missing*/}) record1 = (1, 2);
                          ^
 
-parser/record/record_type_02:3:37: Record type with one entry requires a trailing comma.
+parser/record/record_type_02:3:37: A record type with exactly one positional field requires a trailing comma.
   (int /* missing trailing comma */ ) record2 = (1, );
                                     ^
 

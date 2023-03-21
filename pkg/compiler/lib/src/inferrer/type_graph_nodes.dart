@@ -1097,7 +1097,6 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
 
   @override
   void addToGraph(InferrerEngine inferrer) {
-    assert((receiver as dynamic) != null); // TODO(48820): Remove when sound.
     final typeMask = computeTypedSelector(inferrer);
     _hasClosureCallTargets =
         inferrer.closedWorld.includesClosureCall(selector!, typeMask);
@@ -2292,7 +2291,6 @@ AbstractValue _narrowType(
     if (isNullable) {
       otherType = abstractValueDomain.includeNull(otherType);
     }
-    assert((type as dynamic) != null); // TODO(48820): Remove when sound.
     AbstractValue newType = abstractValueDomain.intersection(type, otherType);
     return abstractValueDomain.isLateSentinel(type).isPotentiallyTrue
         ? abstractValueDomain.includeLateSentinel(newType)

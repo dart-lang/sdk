@@ -18,7 +18,9 @@ static method test(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     late final synthesized core::bool #0#4 = #0#0{core::Map<invalid-type, invalid-type>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
-    if(#0#0 is{ForNonNullableByDefault} core::Map<invalid-type, invalid-type> && #0#4 || #0#0 is{ForNonNullableByDefault} core::Map<invalid-type, invalid-type> && #0#4) {
+    {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<invalid-type, invalid-type> && #0#4 || #0#0 is{ForNonNullableByDefault} core::Map<invalid-type, invalid-type> && #0#4) {
+      }
     }
   }
 }

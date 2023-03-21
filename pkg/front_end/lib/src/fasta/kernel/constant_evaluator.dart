@@ -35,6 +35,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 
+import '../../api_prototype/lowering_predicates.dart';
 import '../../base/nnbd_mode.dart';
 import '../fasta_codes.dart';
 
@@ -856,261 +857,579 @@ class ConstantsTransformer extends RemovingTransformer {
     return node;
   }
 
+  Map<PatternSwitchStatement, _PatternSwitchStatementInfo>
+      _currentPatternSwitchStatementInfoMap = {};
+
+  @override
+  TreeNode visitContinueSwitchStatement(
+      ContinueSwitchStatement node, TreeNode? removalSentinel) {
+    SwitchCase targetSwitchCase = node.target;
+    if (targetSwitchCase is PatternSwitchCase) {
+      // This is continue to a pattern switch case.
+      PatternSwitchStatement patternSwitchStatement =
+          targetSwitchCase.parent as PatternSwitchStatement;
+      _PatternSwitchStatementInfo? info =
+          _currentPatternSwitchStatementInfoMap[patternSwitchStatement];
+      if (info != null) {
+        // The pattern switch statement has continue statements and its switch
+        // case pattern-guards do not consist solely of guard-less constant
+        // patterns whose value has a primitive equals method.
+        PatternSwitchCase sourceSwitchCase = info.currentSwitchCase!;
+        int? sourceCaseIndex = info.switchCaseIndexMap[sourceSwitchCase];
+        if (sourceCaseIndex == null) {
+          // The enclosing switch case is _not_ a continue target, so we need
+          // to replace the continue with setting the switch index variable and
+          // a jump to the generated switch statement.
+          int targetCaseIndex = info.switchCaseIndexMap[targetSwitchCase]!;
+          return new _InlinedBlock([
+            createExpressionStatement(createVariableSet(
+                info.switchIndexVariable,
+                createIntLiteral(targetCaseIndex, fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset)),
+            createBreakStatement(info.innerLabeledStatement,
+                fileOffset: node.fileOffset),
+          ])
+            ..fileOffset = node.fileOffset;
+        }
+      }
+    }
+    return node;
+  }
+
   @override
   TreeNode visitPatternSwitchStatement(
       PatternSwitchStatement node, TreeNode? removalSentinel) {
-    super.visitPatternSwitchStatement(node, removalSentinel);
+    // The pattern switch statement has three different lowerings:
+    //
+    // 1) If the switch case pattern-guards consists solely of guard-less
+    //    constant patterns whose value has a primitive equals method. For this
+    //    case we generate switch using an ordinary switch statement.
+    //
+    //    The pattern switch statement _can_ contain continue switch statements.
+    //
+    //    For instance:
+    //
+    //      enum E { a, b, c }
+    //      method(E e) {
+    //        switch (e) { // PatternSwitchStatement
+    //          case E.a:
+    //            print('a');
+    //            continue label;
+    //          case E.b:
+    //            print('b');
+    //          label:
+    //          case E.c:
+    //            print('c');
+    //        }
+    //      }
+    //
+    //    is encoded as
+    //
+    //      enum E { a, b }
+    //      method(E e) {
+    //        #outer:
+    //        switch (e) { // SwitchStatement
+    //          case E.a:
+    //            print('a');
+    //            continue label;
+    //          case E.a:
+    //            print('a');
+    //            break #outer;
+    //          label:
+    //          case E.b:
+    //            print('b');
+    //        }
+    //      }
+    //
+    // 2) Otherwise, if the pattern switch statement does _not_ contain continue
+    //    switch statements, we generate a sequence of blocks containing each
+    //    case, surrounded by labeled block.
+    //
+    //    For instance:
+    //
+    //      method(o) {
+    //        switch (o) { // PatternSwitchStatement
+    //          case [var a]:
+    //            print(a);
+    //          case {1: var a}:
+    //            print(a);
+    //        }
+    //      }
+    //
+    //    is encoded as
+    //
+    //      method(o) {
+    //        #outer: {
+    //          { // case [var a]:
+    //            var a;
+    //            if (o is List<dynamic> &&
+    //                o.length == 1 &&
+    //                let # = a = o[0] in true) {
+    //              print(a);
+    //              break #outer;
+    //            }
+    //          }
+    //          { // case {1: var a}:
+    //            var a;
+    //            if (o is Map<dynamic, dynamic> &&
+    //                o.length == 1 &&
+    //                o.containsKey(1) &&
+    //                let # = a = o[1] in true) {
+    //              print(a);
+    //              break #outer;
+    //            }
+    //          }
+    //        } // end of #outer
+    //      }
+    //
+    // 3) Otherwise, we generate a sequence of blocks containing each case,
+    //    surrounded by labeled block, followed by a switch statement containing
+    //    the bodies for switch cases that are targets of a continue.
+    //
+    //    For instance:
+    //
+    //      method(o) {
+    //        switch (o) { // PatternSwitchStatement
+    //          case [var a]:
+    //          case [_, var a]:
+    //            print(a);
+    //            continue label1;
+    //          case {1: var a}:
+    //            print(a);
+    //          label1:
+    //          case 'b':
+    //            print('b');
+    //            continue label2;
+    //          label2:
+    //          case 'c':
+    //            print('c');
+    //          case 'd':
+    //            print('d');
+    //        }
+    //      }
+    //
+    //    is encoded as
+    //
+    //      method(o) {
+    //        #outer: {
+    //          int #switchIndex = -1;
+    //          #inner: {
+    //            { // case [var a]:
+    //              var a#0;
+    //              var a#1;
+    //              var #t1;
+    //              if (o is List<dynamic> &&
+    //                  o.length == 1 &&
+    //                  let # = #t1 = a = o[0] in true ||
+    //                  o is List<dynamic &&
+    //                  o.length == 2 &&
+    //                  let # = #t1 = a = o[1] in true) {
+    //                var a = #t1;
+    //                print(a);
+    //                #switchIndex = 0;
+    //                break #inner;
+    //              }
+    //            }
+    //            { // case {1: var a}:
+    //              var a;
+    //              if (o is Map<dynamic, dynamic> &&
+    //                  o.length == 1 &&
+    //                  o.containsKey(1) &&
+    //                  let a = o[1] in true) {
+    //                print(a);
+    //                break #outer;
+    //              }
+    //            }
+    //            { // case 'b':
+    //              if ('b' == o) {
+    //                #switchIndex = 0;
+    //                break #inner;
+    //              }
+    //            }
+    //            { // case 'c':
+    //              if ('c'' == o) {
+    //                #switchIndex = 1;
+    //                break #inner;
+    //              }
+    //            }
+    //            { // case 'd':
+    //              if ('d' == o) {
+    //                print('d');
+    //                break #outer;
+    //              }
+    //            }
+    //          } // end of #inner
+    //          switch (#switchIndex) {
+    //            label1:
+    //            case 0: // body for case 'b':
+    //              print('b');
+    //              continue label2;
+    //            label2:
+    //            case 1: // body for case 'c':
+    //              print('c');
+    //              break #outer;
+    //          }
+    //        } // end of #outer
+    //      }
+
+    // Instead calling `super.visitPatternSwitchStatement` to transform the
+    // children of the [node], we transform its expression and the children of
+    // its [PatternSwitchCase]s directly to collect information about continue
+    // statements.
+    node.expression = transform(node.expression)..parent = node;
 
     DartType scrutineeType = node.expressionType!;
-    MatchingCache matchingCache = createMatchingCache();
-    MatchingExpressionVisitor matchingExpressionVisitor =
-        new MatchingExpressionVisitor(matchingCache);
-    CacheableExpression matchedExpression =
-        matchingCache.createRootExpression(node.expression, scrutineeType);
 
-    // matchResultVariable: int RVAR = -1;
-    VariableDeclaration matchResultVariable = createInitializedVariable(
-        createIntLiteral(-1, fileOffset: node.fileOffset),
-        typeEnvironment.coreTypes.intNonNullableRawType,
-        fileOffset: node.fileOffset);
-
-    List<Statement> replacementStatements = [];
-
-    List<SwitchCase> replacementCases = [];
-
-    List<VariableDeclaration> declaredVariableHelpers = [];
-
-    List<Statement> ifStatements = [];
-
+    // If `true`, the switch expressions consists solely of guard-less constant
+    // patterns whose value has a primitive equals method. For this case we
+    // generate switch using an ordinary switch statement.
+    bool primitiveEqualConstantsOnly = true;
     bool hasContinue = false;
-    for (PatternSwitchCase switchCase in node.cases) {
-      if (switchCase.labelUsers.isNotEmpty) {
-        hasContinue = true;
-        break;
-      }
-    }
-    List<List<DelayedExpression>> matchingExpressions =
-        new List.generate(node.cases.length, (int caseIndex) {
-      PatternSwitchCase switchCase = node.cases[caseIndex];
-      return new List.generate(switchCase.patternGuards.length,
-          (int headIndex) {
-        Pattern pattern = switchCase.patternGuards[headIndex].pattern;
-        DelayedExpression matchingExpression =
-            matchingExpressionVisitor.visitPattern(pattern, matchedExpression);
-        matchingExpression.registerUse();
-        return matchingExpression;
-      });
-    });
 
-    Map<String, List<VariableDeclaration>> declaredVariablesByName = {};
-
-    for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
-      PatternSwitchCase switchCase = node.cases[caseIndex];
-      Statement body = switchCase.body;
-
-      // TODO(cstefantsova): Make sure an error is reported if the variables
-      // declared in the heads aren't compatible to each other.
-      Map<String, VariableDeclaration> caseDeclaredVariableHelpersByName = {
-        for (VariableDeclaration variable in switchCase.jointVariables)
-          variable.name!: createUninitializedVariable(const DynamicType(),
-              fileOffset: node.fileOffset)
-      };
-
-      Expression? caseCondition;
-      for (int headIndex = 0;
-          headIndex < switchCase.patternGuards.length;
-          headIndex++) {
-        PatternGuard patternGuard = switchCase.patternGuards[headIndex];
-        Pattern pattern = patternGuard.pattern;
-        Expression? guard = patternGuard.guard;
-
-        replacementStatements.addAll(pattern.declaredVariables);
-
-        for (VariableDeclaration variable in pattern.declaredVariables) {
-          (declaredVariablesByName[variable.name!] ??= []).add(variable);
-        }
-
-        DelayedExpression matchingExpression =
-            matchingExpressions[caseIndex][headIndex];
-        Expression headCondition =
-            matchingExpression.createExpression(typeEnvironment);
-        if (guard != null) {
-          headCondition = createAndExpression(headCondition, guard,
-              fileOffset: guard.fileOffset);
-        }
-
-        for (VariableDeclaration declaredVariable
-            in pattern.declaredVariables) {
-          String variableName = declaredVariable.name!;
-
-          VariableDeclaration? variableHelper =
-              caseDeclaredVariableHelpersByName[variableName];
-          if (variableHelper != null) {
-            // headCondition: `headCondition` &&
-            //     let _ = `variableHelper` = `declaredVariable` in true
-            headCondition = createAndExpression(
-                headCondition,
-                createLetEffect(
-                    effect: createVariableSet(
-                        variableHelper, createVariableGet(declaredVariable),
-                        fileOffset: node.fileOffset),
-                    result: createBoolLiteral(true,
-                        fileOffset: declaredVariable.fileOffset)),
-                fileOffset: declaredVariable.fileOffset);
-          }
-        }
-
-        if (caseCondition != null) {
-          caseCondition = createOrExpression(caseCondition, headCondition,
-              fileOffset: node.fileOffset);
-        } else {
-          caseCondition = headCondition;
-        }
-      }
-
-      if (switchCase.isDefault) {
-        if (caseCondition != null) {
-          caseCondition = createOrExpression(caseCondition,
-              createBoolLiteral(true, fileOffset: switchCase.fileOffset),
-              fileOffset: switchCase.fileOffset);
-        }
-      }
-
-      declaredVariableHelpers.addAll(caseDeclaredVariableHelpersByName.values);
-
-      for (VariableDeclaration jointVariable in switchCase.jointVariables) {
-        // In case of [InvalidExpression], there's an error associated with
-        // the variable, and it shouldn't be initialized.
-        if (jointVariable.initializer is! InvalidExpression) {
-          // `jointVariable`:
-          //     `jointVariable` =
-          //         `declaredVariableHelper`{`declaredVariable.type`}
-          //   ==> `jointVariable` = HVAR{`declaredVariable.type`}
-          jointVariable.initializer = createVariableGet(
-              caseDeclaredVariableHelpersByName[jointVariable.name!]!,
-              promotedType: jointVariable.type)
-            ..parent = jointVariable;
-        }
-      }
-      Statement caseBlock;
-      if (hasContinue) {
-        // setMatchResult: `matchResultVariable` = `caseIndex`;
-        //   ==> RVAR = `caseIndex`;
-        Statement setMatchResult = createExpressionStatement(createVariableSet(
-            matchResultVariable,
-            createIntLiteral(caseIndex, fileOffset: node.fileOffset),
-            fileOffset: node.fileOffset));
-
-        caseBlock = setMatchResult;
-
-        SwitchCase replacementCase = createSwitchCase(
-            [createIntLiteral(caseIndex, fileOffset: node.fileOffset)],
-            [node.fileOffset],
-            createBlock([
-              ...switchCase.jointVariables,
-              if (body is! Block || body.statements.isNotEmpty) body
-            ], fileOffset: node.fileOffset),
-            isDefault: switchCase.isDefault,
-            fileOffset: node.fileOffset);
-
-        for (Statement labelUser in switchCase.labelUsers) {
-          if (labelUser is ContinueSwitchStatement) {
-            labelUser.target = replacementCase;
-          } else {
-            // TODO(cstefantsova): Handle other label user types.
-            return throw new UnsupportedError(
-                "Unexpected label user: ${labelUser.runtimeType}");
-          }
-        }
-
-        replacementCases.add(replacementCase);
-      } else {
-        caseBlock = createBlock([
-          ...switchCase.jointVariables,
-          if (body is! Block || body.statements.isNotEmpty) body
-        ], fileOffset: switchCase.fileOffset);
-      }
-
-      if (caseCondition != null) {
-        ifStatements.add(createIfStatement(caseCondition, caseBlock,
-            fileOffset: switchCase.fileOffset));
-      } else {
-        ifStatements.add(caseBlock);
-      }
-    }
-
-    // TODO(johnniwinther): Find a better way to avoid name clashes between
-    // cases.
-    for (List<VariableDeclaration> variables
-        in declaredVariablesByName.values) {
-      if (variables.length > 1) {
-        for (int i = 1; i < variables.length; i++) {
-          variables[i].name = '${variables[i].name}${"#$i"}';
-        }
-      }
-    }
-
-    Statement? ifStatement;
-    for (Statement statement in ifStatements.reversed) {
-      if (statement is IfStatement) {
-        statement.otherwise = ifStatement?..parent = statement;
-      }
-      ifStatement = statement;
-    }
-
-    if (hasContinue) {
-      replacementStatements = [
-        matchResultVariable,
-        ...replacementStatements,
-        ...matchingCache.declarations,
-        ...declaredVariableHelpers,
-        if (ifStatement != null) ifStatement,
-        createSwitchStatement(
-            createVariableGet(matchResultVariable), replacementCases,
-            isExplicitlyExhaustive: false, fileOffset: node.fileOffset)
-      ];
-    } else {
-      replacementStatements = [
-        ...replacementStatements,
-        ...matchingCache.declarations,
-        ...declaredVariableHelpers,
-        if (ifStatement != null) ifStatement,
-      ];
-    }
-
-    Statement replacementStatement;
-    if (replacementStatements.length == 1) {
-      replacementStatement = replacementStatements.first;
-    } else {
-      replacementStatement = new Block(replacementStatements)
-        ..fileOffset = node.fileOffset;
-    }
-    // TODO(johnniwinther): Remove this work-around for the `libraryOf`
-    //  function.
-    replacementStatement..parent = node.parent;
-
-    List<PatternGuard> patternGuards = [];
+    Map<PatternSwitchCase, int> switchCaseIndex = {};
     // TODO(johnniwinther): Use `PatternSwitchStatement.hasDefault` instead.
     bool hasDefault = false;
     for (PatternSwitchCase switchCase in node.cases) {
-      patternGuards.addAll(switchCase.patternGuards);
       if (switchCase.isDefault) {
         hasDefault = true;
       }
+      if (switchCase.labelUsers.isNotEmpty) {
+        hasContinue = true;
+        switchCaseIndex[switchCase] = switchCaseIndex.length;
+      }
+      // Constant evaluate the pattern guards.
+      transformList(switchCase.patternGuards, switchCase, dummyPatternGuard);
+      if (primitiveEqualConstantsOnly) {
+        for (PatternGuard patternGuard in switchCase.patternGuards) {
+          if (patternGuard.guard != null) {
+            primitiveEqualConstantsOnly = false;
+          } else {
+            Pattern pattern = patternGuard.pattern;
+            if (pattern is ConstantPattern) {
+              Constant constant = pattern.value!;
+              if (!constantEvaluator.hasPrimitiveEqual(constant,
+                  allowPseudoPrimitive: false)) {
+                primitiveEqualConstantsOnly = false;
+              }
+            } else {
+              primitiveEqualConstantsOnly = false;
+            }
+          }
+        }
+      }
     }
-    _checkExhaustiveness(
-        node, replacementStatement, scrutineeType, patternGuards,
-        hasDefault: hasDefault,
-        mustBeExhaustive: computeIsAlwaysExhaustiveType(
-            scrutineeType, typeEnvironment.coreTypes),
-        fileOffset: node.expression.fileOffset);
 
-    // TODO(johnniwinther): Remove this work-around for the `libraryOf`
-    //  function.
-    replacementStatement..parent = node.parent;
+    bool isAlwaysExhaustiveType =
+        computeIsAlwaysExhaustiveType(scrutineeType, typeEnvironment.coreTypes);
+
+    Statement replacement;
+    if (primitiveEqualConstantsOnly) {
+      List<SwitchCase> switchCases = [];
+      for (PatternSwitchCase patternSwitchCase in node.cases) {
+        patternSwitchCase.body = transform(patternSwitchCase.body)
+          ..parent = patternSwitchCase;
+
+        List<int> expressionOffsets = [];
+        List<Expression> expressions = [];
+        for (PatternGuard patternGuard in patternSwitchCase.patternGuards) {
+          ConstantPattern constantPattern =
+              patternGuard.pattern as ConstantPattern;
+          expressionOffsets.add(constantPattern.fileOffset);
+          expressions.add(new ConstantExpression(
+              constantPattern.value!, constantPattern.expressionType!)
+            ..fileOffset = constantPattern.expression.fileOffset);
+        }
+        SwitchCase switchCase = new SwitchCase(
+            expressions, expressionOffsets, patternSwitchCase.body,
+            isDefault: patternSwitchCase.isDefault)
+          ..fileOffset = patternSwitchCase.fileOffset
+          ..fileOffset;
+        switchCases.add(switchCase);
+        for (Statement labelUser in patternSwitchCase.labelUsers) {
+          (labelUser as ContinueSwitchStatement).target = switchCase;
+        }
+      }
+      replacement = createSwitchStatement(node.expression, switchCases,
+          isExplicitlyExhaustive: !hasDefault && isAlwaysExhaustiveType,
+          fileOffset: node.fileOffset);
+    } else {
+      // matchResultVariable: int RVAR = -1;
+      VariableDeclaration matchResultVariable = createInitializedVariable(
+          createIntLiteral(-1, fileOffset: node.fileOffset),
+          typeEnvironment.coreTypes.intNonNullableRawType,
+          fileOffset: node.fileOffset);
+      LabeledStatement innerLabeledStatement =
+          createLabeledStatement(dummyStatement, fileOffset: node.fileOffset);
+
+      _PatternSwitchStatementInfo info = new _PatternSwitchStatementInfo(
+          matchResultVariable, innerLabeledStatement, switchCaseIndex);
+      _currentPatternSwitchStatementInfoMap[node] = info;
+      for (PatternSwitchCase switchCase in node.cases) {
+        info.currentSwitchCase = switchCase;
+        switchCase.body = transform(switchCase.body)..parent = switchCase;
+      }
+      _currentPatternSwitchStatementInfoMap.remove(node);
+
+      MatchingCache matchingCache = createMatchingCache();
+      MatchingExpressionVisitor matchingExpressionVisitor =
+          new MatchingExpressionVisitor(matchingCache);
+      CacheableExpression matchedExpression =
+          matchingCache.createRootExpression(node.expression, scrutineeType);
+
+      List<Statement> replacementStatements = [];
+
+      List<SwitchCase> replacementCases = [];
+
+      List<VariableDeclaration> declaredVariableHelpers = [];
+
+      List<Statement> cases = [];
+
+      List<List<DelayedExpression>> matchingExpressions =
+          new List.generate(node.cases.length, (int caseIndex) {
+        PatternSwitchCase switchCase = node.cases[caseIndex];
+        return new List.generate(switchCase.patternGuards.length,
+            (int headIndex) {
+          Pattern pattern = switchCase.patternGuards[headIndex].pattern;
+          DelayedExpression matchingExpression = matchingExpressionVisitor
+              .visitPattern(pattern, matchedExpression);
+          matchingExpression.registerUse();
+          return matchingExpression;
+        });
+      });
+
+      // TODO(johnniwinther): Remove this when an error is reported in case of
+      // variables and labels on the same switch case.
+      Map<String, List<VariableDeclaration>> declaredVariablesByName = {};
+
+      for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
+        PatternSwitchCase switchCase = node.cases[caseIndex];
+        Statement body = switchCase.body;
+
+        // TODO(cstefantsova): Make sure an error is reported if the variables
+        // declared in the heads aren't compatible to each other.
+        Map<String, VariableDeclaration> caseDeclaredVariableHelpersByName = {
+          for (VariableDeclaration variable in switchCase.jointVariables)
+            variable.name!: createUninitializedVariable(const DynamicType(),
+                fileOffset: node.fileOffset)
+        };
+
+        bool isContinueTarget = switchCaseIndex.containsKey(switchCase);
+
+        List<VariableDeclaration> caseVariables = [];
+
+        // TODO(johnniwinther): Is there a way to avoid these name clashes?
+        Map<String, List<VariableDeclaration>> caseVariablesByName = {};
+
+        Expression? caseCondition;
+        for (int headIndex = 0;
+            headIndex < switchCase.patternGuards.length;
+            headIndex++) {
+          PatternGuard patternGuard = switchCase.patternGuards[headIndex];
+          Pattern pattern = patternGuard.pattern;
+          Expression? guard = patternGuard.guard;
+
+          if (isContinueTarget) {
+            // TODO(johnniwinther): In this case it should be an error to have
+            // any variables. This is not currently reported.
+            replacementStatements.addAll(pattern.declaredVariables);
+
+            for (VariableDeclaration variable in pattern.declaredVariables) {
+              (declaredVariablesByName[variable.name!] ??= []).add(variable);
+            }
+          } else {
+            for (VariableDeclaration variable in pattern.declaredVariables) {
+              (caseVariablesByName[variable.name!] ??= []).add(variable);
+            }
+            caseVariables.addAll(pattern.declaredVariables);
+          }
+
+          DelayedExpression matchingExpression =
+              matchingExpressions[caseIndex][headIndex];
+          Expression headCondition =
+              matchingExpression.createExpression(typeEnvironment);
+          if (guard != null) {
+            headCondition = createAndExpression(headCondition, guard,
+                fileOffset: guard.fileOffset);
+          }
+
+          for (VariableDeclaration declaredVariable
+              in pattern.declaredVariables) {
+            String variableName = declaredVariable.name!;
+
+            VariableDeclaration? variableHelper =
+                caseDeclaredVariableHelpersByName[variableName];
+            if (variableHelper != null) {
+              // headCondition: `headCondition` &&
+              //     let _ = `variableHelper` = `declaredVariable` in true
+              headCondition = createAndExpression(
+                  headCondition,
+                  createLetEffect(
+                      effect: createVariableSet(
+                          variableHelper, createVariableGet(declaredVariable),
+                          fileOffset: node.fileOffset),
+                      result: createBoolLiteral(true,
+                          fileOffset: declaredVariable.fileOffset)),
+                  fileOffset: declaredVariable.fileOffset);
+            }
+          }
+
+          if (caseCondition != null) {
+            caseCondition = createOrExpression(caseCondition, headCondition,
+                fileOffset: node.fileOffset);
+          } else {
+            caseCondition = headCondition;
+          }
+        }
+
+        if (switchCase.isDefault) {
+          if (caseCondition != null) {
+            caseCondition = createOrExpression(caseCondition,
+                createBoolLiteral(true, fileOffset: switchCase.fileOffset),
+                fileOffset: switchCase.fileOffset);
+          }
+        }
+
+        for (List<VariableDeclaration> variables
+            in caseVariablesByName.values) {
+          if (variables.length > 1) {
+            for (int i = 0; i < variables.length; i++) {
+              VariableDeclaration variable = variables[i];
+              variable.isLowered = true;
+              variable.name = createJoinedIntermediateName(variable.name!, i);
+            }
+          }
+        }
+
+        declaredVariableHelpers
+            .addAll(caseDeclaredVariableHelpersByName.values);
+
+        for (VariableDeclaration jointVariable in switchCase.jointVariables) {
+          // In case of [InvalidExpression], there's an error associated with
+          // the variable, and it shouldn't be initialized.
+          if (jointVariable.initializer is! InvalidExpression) {
+            // `jointVariable`:
+            //     `jointVariable` =
+            //         `declaredVariableHelper`{`declaredVariable.type`}
+            //   ==> `jointVariable` = HVAR{`declaredVariable.type`}
+            jointVariable.initializer = createVariableGet(
+                caseDeclaredVariableHelpersByName[jointVariable.name!]!,
+                promotedType: jointVariable.type)
+              ..parent = jointVariable;
+          }
+        }
+        Statement caseBlock;
+        if (isContinueTarget) {
+          int continueTargetIndex = switchCaseIndex[switchCase]!;
+
+          // setMatchResult: `matchResultVariable` = `caseIndex`;
+          //   ==> RVAR = `caseIndex`;
+          Statement setMatchResult = createExpressionStatement(
+              createVariableSet(
+                  matchResultVariable,
+                  createIntLiteral(continueTargetIndex,
+                      fileOffset: node.fileOffset),
+                  fileOffset: node.fileOffset));
+
+          caseBlock = createBlock([
+            setMatchResult,
+            createBreakStatement(innerLabeledStatement,
+                fileOffset: switchCase.fileOffset),
+          ], fileOffset: switchCase.fileOffset);
+
+          SwitchCase replacementCase = createSwitchCase(
+              [
+                createIntLiteral(continueTargetIndex,
+                    fileOffset: node.fileOffset)
+              ],
+              [
+                node.fileOffset
+              ],
+              createBlock([
+                ...switchCase.jointVariables,
+                if (body is! Block || body.statements.isNotEmpty) body
+              ], fileOffset: node.fileOffset),
+              isDefault: switchCase.isDefault,
+              fileOffset: node.fileOffset);
+
+          for (Statement labelUser in switchCase.labelUsers) {
+            if (labelUser is ContinueSwitchStatement) {
+              labelUser.target = replacementCase;
+            } else {
+              // TODO(cstefantsova): Handle other label user types.
+              return throw new UnsupportedError(
+                  "Unexpected label user: ${labelUser.runtimeType}");
+            }
+          }
+
+          replacementCases.add(replacementCase);
+        } else {
+          caseBlock = createBlock([
+            ...switchCase.jointVariables,
+            if (body is! Block || body.statements.isNotEmpty) body
+          ], fileOffset: switchCase.fileOffset);
+        }
+
+        if (caseCondition != null) {
+          caseBlock = createIfStatement(caseCondition, caseBlock,
+              fileOffset: switchCase.fileOffset);
+        }
+        cases.add(createBlock([...caseVariables, caseBlock],
+            fileOffset: switchCase.fileOffset));
+      }
+
+      // TODO(johnniwinther): Find a better way to avoid name clashes between
+      // cases.
+      for (List<VariableDeclaration> variables
+          in declaredVariablesByName.values) {
+        if (variables.length > 1) {
+          for (int i = 1; i < variables.length; i++) {
+            variables[i].name = '${variables[i].name}${"#$i"}';
+          }
+        }
+      }
+
+      if (hasContinue) {
+        Statement casesBlock = createBlock(cases, fileOffset: node.fileOffset);
+        innerLabeledStatement.body = casesBlock..parent = innerLabeledStatement;
+        replacementStatements = [
+          matchResultVariable,
+          ...replacementStatements,
+          ...matchingCache.declarations,
+          ...declaredVariableHelpers,
+          innerLabeledStatement,
+          createSwitchStatement(
+              createVariableGet(matchResultVariable), replacementCases,
+              isExplicitlyExhaustive: false, fileOffset: node.fileOffset)
+        ];
+      } else {
+        replacementStatements = [
+          ...replacementStatements,
+          ...matchingCache.declarations,
+          ...declaredVariableHelpers,
+          ...cases,
+        ];
+      }
+
+      if (replacementStatements.length == 1) {
+        replacement = replacementStatements.first;
+      } else {
+        replacement = new Block(replacementStatements)
+          ..fileOffset = node.fileOffset;
+      }
+    }
+    List<PatternGuard> patternGuards = [];
+    for (PatternSwitchCase switchCase in node.cases) {
+      patternGuards.addAll(switchCase.patternGuards);
+    }
+    _checkExhaustiveness(node, replacement, scrutineeType, patternGuards,
+        hasDefault: hasDefault,
+        mustBeExhaustive: isAlwaysExhaustiveType,
+        fileOffset: node.expression.fileOffset);
+    // TODO(johnniwinther): Avoid this work-around for [getFileUri].
+    replacement.parent = node.parent;
     // TODO(johnniwinther): Avoid transform of [replacement] by generating
     //  already constant evaluated lowering.
-    return transform(replacementStatement);
+    return transform(replacement);
   }
 
   void _checkExhaustiveness(TreeNode node, TreeNode replacement,
@@ -1173,7 +1492,6 @@ class ConstantsTransformer extends RemovingTransformer {
   @override
   TreeNode visitSwitchStatement(
       SwitchStatement node, TreeNode? removalSentinel) {
-    //return _handleExhaustiveness(node, node, () {
     TreeNode result = super.visitSwitchStatement(node, removalSentinel);
     Library library = _staticTypeContext!.enclosingLibrary;
     // ignore: unnecessary_null_comparison
@@ -1198,7 +1516,6 @@ class ConstantsTransformer extends RemovingTransformer {
       }
     }
     return result;
-    //});
   }
 
   @override
@@ -1238,9 +1555,8 @@ class ConstantsTransformer extends RemovingTransformer {
     } else {
       result = replacementStatements.single;
     }
-    // TODO(johnniwinther): Remove this work-around for the `libraryOf`
-    //  function.
-    result..parent = node.parent;
+    // TODO(johnniwinther): Avoid this work-around for [getFileUri].
+    result.parent = node.parent;
     return transform(result);
   }
 
@@ -1291,9 +1607,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
     _InlinedBlock inlinedBlock = new _InlinedBlock(replacementStatements)
       ..fileOffset = node.fileOffset;
-    // TODO(johnniwinther): Remove this work-around for the `libraryOf`
-    //  function.
-    inlinedBlock..parent = node.parent;
+    // TODO(johnniwinther): Avoid this work-around for [getFileUri].
+    inlinedBlock.parent = node.parent;
     transformStatementList(replacementStatements, inlinedBlock);
     return inlinedBlock;
   }
@@ -1340,9 +1655,8 @@ class ConstantsTransformer extends RemovingTransformer {
         createBlock(replacementStatements, fileOffset: node.fileOffset),
         readMatchedExpression,
         fileOffset: node.fileOffset);
-    // TODO(johnniwinther): Remove this work-around for the `libraryOf`
-    //  function.
-    result..parent = node.parent;
+    // TODO(johnniwinther): Avoid this work-around for [getFileUri].
+    result.parent = node.parent;
     return transform(result);
   }
 
@@ -1400,90 +1714,147 @@ class ConstantsTransformer extends RemovingTransformer {
     super.visitSwitchExpression(node, removalSentinel);
 
     DartType scrutineeType = node.expressionType!;
-    MatchingCache matchingCache = createMatchingCache();
-    MatchingExpressionVisitor matchingExpressionVisitor =
-        new MatchingExpressionVisitor(matchingCache);
-    CacheableExpression matchedExpression =
-        matchingCache.createRootExpression(node.expression, scrutineeType);
 
-    // valueVariable: `valueType` valueVariable;
-    VariableDeclaration valueVariable = createUninitializedVariable(
-        node.staticType!,
-        fileOffset: node.fileOffset);
-
-    List<Statement> replacementStatements = [];
-
-    List<VariableDeclaration> declaredVariableHelpers = [];
-
-    List<IfStatement> ifStatements = [];
-
-    Map<String, List<VariableDeclaration>> declaredVariablesByName = {};
-
-    List<DelayedExpression> matchingExpressions =
-        new List.generate(node.cases.length, (int caseIndex) {
-      SwitchExpressionCase switchCase = node.cases[caseIndex];
-      DelayedExpression matchingExpression = matchingExpressionVisitor
-          .visitPattern(switchCase.patternGuard.pattern, matchedExpression);
-      matchingExpression.registerUse();
-      return matchingExpression;
-    });
-
-    for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
-      SwitchExpressionCase switchCase = node.cases[caseIndex];
-      Expression body = switchCase.expression;
-
-      PatternGuard patternGuard = switchCase.patternGuard;
-      Pattern pattern = patternGuard.pattern;
-      Expression? guard = patternGuard.guard;
-
-      replacementStatements.addAll(pattern.declaredVariables);
-
-      for (VariableDeclaration variable in pattern.declaredVariables) {
-        (declaredVariablesByName[variable.name!] ??= []).add(variable);
-      }
-
-      DelayedExpression matchingExpression = matchingExpressions[caseIndex];
-      Expression caseCondition =
-          matchingExpression.createExpression(typeEnvironment);
-      if (guard != null) {
-        caseCondition = createAndExpression(caseCondition, guard,
-            fileOffset: guard.fileOffset);
-      }
-
-      ifStatements.add(createIfStatement(
-          caseCondition,
-          createExpressionStatement(createVariableSet(valueVariable, body,
-              fileOffset: node.fileOffset)),
-          fileOffset: switchCase.fileOffset));
-    }
-
-    // TODO(johnniwinther): Find a better way to avoid name clashes between
-    // cases.
-    for (List<VariableDeclaration> variables
-        in declaredVariablesByName.values) {
-      if (variables.length > 1) {
-        for (int i = 1; i < variables.length; i++) {
-          variables[i].name = '${variables[i].name}${"#$i"}';
+    // If `true`, the switch expressions consists solely of guard-less constant
+    // patterns whose value has a primitive equals method. For this case we
+    // generate switch using an ordinary switch statement.
+    bool primitiveEqualConstantsOnly = true;
+    for (SwitchExpressionCase switchCase in node.cases) {
+      if (primitiveEqualConstantsOnly) {
+        PatternGuard patternGuard = switchCase.patternGuard;
+        if (patternGuard.guard != null) {
+          primitiveEqualConstantsOnly = false;
+          break;
+        } else {
+          Pattern pattern = patternGuard.pattern;
+          if (pattern is ConstantPattern) {
+            Constant constant = pattern.value!;
+            if (!constantEvaluator.hasPrimitiveEqual(constant,
+                allowPseudoPrimitive: false)) {
+              primitiveEqualConstantsOnly = false;
+              break;
+            }
+          } else {
+            primitiveEqualConstantsOnly = false;
+            break;
+          }
         }
       }
     }
 
-    IfStatement? ifStatement;
-    for (IfStatement statement in ifStatements.reversed) {
-      statement.otherwise = ifStatement?..parent = statement;
-      ifStatement = statement;
-    }
+    Expression replacement;
+    if (primitiveEqualConstantsOnly) {
+      VariableDeclaration valueVariable = createUninitializedVariable(
+          node.staticType!,
+          fileOffset: node.fileOffset);
 
-    Expression replacement = createBlockExpression(
-        createBlock([
-          valueVariable,
-          ...replacementStatements,
-          ...matchingCache.declarations,
-          ...declaredVariableHelpers,
-          if (ifStatement != null) ifStatement,
-        ], fileOffset: node.fileOffset),
-        createVariableGet(valueVariable),
-        fileOffset: node.fileOffset);
+      LabeledStatement labeledStatement =
+          createLabeledStatement(dummyStatement, fileOffset: node.fileOffset);
+      List<SwitchCase> switchCases = [];
+      for (SwitchExpressionCase switchExpressionCase in node.cases) {
+        List<int> expressionOffsets = [];
+        List<Expression> expressions = [];
+        PatternGuard patternGuard = switchExpressionCase.patternGuard;
+        ConstantPattern constantPattern =
+            patternGuard.pattern as ConstantPattern;
+        expressionOffsets.add(constantPattern.fileOffset);
+        expressions.add(new ConstantExpression(
+            constantPattern.value!, constantPattern.expressionType!)
+          ..fileOffset = constantPattern.expression.fileOffset);
+
+        SwitchCase switchCase = new SwitchCase(
+            expressions,
+            expressionOffsets,
+            createBlock([
+              createExpressionStatement(createVariableSet(
+                  valueVariable, switchExpressionCase.expression,
+                  fileOffset: switchExpressionCase.expression.fileOffset)),
+              createBreakStatement(labeledStatement,
+                  fileOffset: switchExpressionCase.expression.fileOffset),
+            ], fileOffset: switchExpressionCase.fileOffset),
+            isDefault: false)
+          ..fileOffset = switchExpressionCase.fileOffset
+          ..fileOffset;
+        switchCases.add(switchCase);
+      }
+      labeledStatement.body = createSwitchStatement(
+          node.expression, switchCases,
+          isExplicitlyExhaustive: true, fileOffset: node.fileOffset)
+        ..parent = labeledStatement;
+      replacement = createBlockExpression(
+          createBlock([
+            valueVariable,
+            labeledStatement,
+          ], fileOffset: node.fileOffset),
+          createVariableGet(valueVariable),
+          fileOffset: node.fileOffset);
+    } else {
+      MatchingCache matchingCache = createMatchingCache();
+      MatchingExpressionVisitor matchingExpressionVisitor =
+          new MatchingExpressionVisitor(matchingCache);
+      CacheableExpression matchedExpression =
+          matchingCache.createRootExpression(node.expression, scrutineeType);
+
+      LabeledStatement labeledStatement =
+          createLabeledStatement(dummyStatement, fileOffset: node.fileOffset);
+
+      // valueVariable: `valueType` valueVariable;
+      VariableDeclaration valueVariable = createUninitializedVariable(
+          node.staticType!,
+          fileOffset: node.fileOffset);
+
+      List<Statement> cases = [];
+
+      List<DelayedExpression> matchingExpressions =
+          new List.generate(node.cases.length, (int caseIndex) {
+        SwitchExpressionCase switchCase = node.cases[caseIndex];
+        DelayedExpression matchingExpression = matchingExpressionVisitor
+            .visitPattern(switchCase.patternGuard.pattern, matchedExpression);
+        matchingExpression.registerUse();
+        return matchingExpression;
+      });
+
+      for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
+        SwitchExpressionCase switchCase = node.cases[caseIndex];
+        Expression body = switchCase.expression;
+
+        PatternGuard patternGuard = switchCase.patternGuard;
+        Pattern pattern = patternGuard.pattern;
+        Expression? guard = patternGuard.guard;
+
+        DelayedExpression matchingExpression = matchingExpressions[caseIndex];
+        Expression caseCondition =
+            matchingExpression.createExpression(typeEnvironment);
+        if (guard != null) {
+          caseCondition = createAndExpression(caseCondition, guard,
+              fileOffset: guard.fileOffset);
+        }
+
+        cases.add(createBlock([
+          ...pattern.declaredVariables,
+          createIfStatement(
+              caseCondition,
+              createBlock([
+                createExpressionStatement(createVariableSet(valueVariable, body,
+                    fileOffset: node.fileOffset)),
+                createBreakStatement(labeledStatement,
+                    fileOffset: switchCase.fileOffset),
+              ], fileOffset: switchCase.fileOffset),
+              fileOffset: switchCase.fileOffset)
+        ], fileOffset: switchCase.fileOffset));
+      }
+
+      labeledStatement.body = createBlock(cases, fileOffset: node.fileOffset)
+        ..parent = labeledStatement;
+      replacement = createBlockExpression(
+          createBlock([
+            valueVariable,
+            ...matchingCache.declarations,
+            labeledStatement,
+          ], fileOffset: node.fileOffset),
+          createVariableGet(valueVariable),
+          fileOffset: node.fileOffset);
+    }
 
     List<PatternGuard> patternGuards = [];
     for (SwitchExpressionCase switchCase in node.cases) {
@@ -1494,9 +1865,8 @@ class ConstantsTransformer extends RemovingTransformer {
         mustBeExhaustive: true,
         fileOffset: node.expression.fileOffset);
 
-    // TODO(johnniwinther): Remove this work-around for the `libraryOf`
-    //  function.
-    replacement..parent = node.parent;
+    // TODO(johnniwinther): Avoid this work-around for [getFileUri].
+    replacement.parent = node.parent;
     // TODO(johnniwinther): Avoid transform of [replacement] by generating
     //  already constant evaluated lowering.
     return transform(replacement);
@@ -1704,6 +2074,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   late Map<Class, bool> primitiveEqualCache;
 
+  /// Classes that are considered having a primitive equals but where the
+  /// `operator ==` is actually defined through as custom method. For instance
+  /// the `Symbol` class. When lowering a pattern switch to a regular switch,
+  /// these are not allowed.
+  late Set<Class> pseudoPrimitiveClasses;
+
   final NullConstant nullConstant = new NullConstant();
   final BoolConstant trueConstant = new BoolConstant(true);
   final BoolConstant falseConstant = new BoolConstant(false);
@@ -1743,6 +2119,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           "ConstantsBackend does not support unevaluated constants.");
     }
     intFolder = new ConstantIntFolder.forSemantics(this, numberSemantics);
+    pseudoPrimitiveClasses = <Class>{
+      coreTypes.internalSymbolClass,
+      coreTypes.symbolClass,
+      coreTypes.typeClass,
+    };
     primitiveEqualCache = <Class, bool>{
       coreTypes.boolClass: true,
       coreTypes.doubleClass: false,
@@ -4376,18 +4757,21 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return null;
   }
 
-  bool hasPrimitiveEqual(Constant constant) {
+  bool hasPrimitiveEqual(Constant constant,
+      {bool allowPseudoPrimitive = true}) {
     if (intFolder.isInt(constant)) return true;
     if (constant is RecordConstant) {
       bool nonPrimitiveEqualsFound = false;
       for (Constant field in constant.positional) {
-        if (!hasPrimitiveEqual(field)) {
+        if (!hasPrimitiveEqual(field,
+            allowPseudoPrimitive: allowPseudoPrimitive)) {
           nonPrimitiveEqualsFound = true;
           break;
         }
       }
       for (Constant field in constant.named.values) {
-        if (!hasPrimitiveEqual(field)) {
+        if (!hasPrimitiveEqual(field,
+            allowPseudoPrimitive: allowPseudoPrimitive)) {
           nonPrimitiveEqualsFound = true;
           break;
         }
@@ -4397,7 +4781,14 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       }
     }
     DartType type = constant.getType(_staticTypeContext!);
-    return !(type is InterfaceType && !classHasPrimitiveEqual(type.classNode));
+    if (type is InterfaceType) {
+      bool result = classHasPrimitiveEqual(type.classNode);
+      if (result && !allowPseudoPrimitive) {
+        result = !pseudoPrimitiveClasses.contains(type.classNode);
+      }
+      return result;
+    }
+    return true;
   }
 
   bool classHasPrimitiveEqual(Class klass) {
@@ -5572,4 +5963,27 @@ bool _isFormalParameter(VariableDeclaration variable) {
 
 class _InlinedBlock extends Block {
   _InlinedBlock(List<Statement> statements) : super(statements);
+}
+
+/// Information about a currently transformed [PatternSwitchStatement].
+class _PatternSwitchStatementInfo {
+  /// The variable used as the switch expression in the generated
+  /// [SwitchStatement].
+  final VariableDeclaration switchIndexVariable;
+
+  /// The labeled statement that wraps the case matching.
+  ///
+  /// This is used as a break target to jump to the generated switch statement
+  /// for a continue statement from outside the generated switch statement.
+  final LabeledStatement innerLabeledStatement;
+
+  /// Map from [PatternSwitchCase]s that are continue targets to the index
+  /// used for there body in the generated [SwitchStatement].
+  final Map<PatternSwitchCase, int> switchCaseIndexMap;
+
+  /// The [PatternSwitchCase] currently being transformed.
+  PatternSwitchCase? currentSwitchCase;
+
+  _PatternSwitchStatementInfo(this.switchIndexVariable,
+      this.innerLabeledStatement, this.switchCaseIndexMap);
 }

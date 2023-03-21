@@ -18,7 +18,6 @@ static field core::int counter = 0;
 static method test(dynamic o) → dynamic {
   #L1:
   {
-    core::int a;
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
       return #0#0{self::Class}.{self::Class::field}{core::int};
@@ -32,18 +31,22 @@ static method test(dynamic o) → dynamic {
     function ##0#13#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 || #0#0 is{ForNonNullableByDefault} self::Class && #C3 =={core::num::==}{(core::Object) → core::bool} #0#2) {
-      {
-        core::print("Class");
-        break #L1;
+    {
+      if(#0#0 is{ForNonNullableByDefault} self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 || #0#0 is{ForNonNullableByDefault} self::Class && #C3 =={core::num::==}{(core::Object) → core::bool} #0#2) {
+        {
+          core::print("Class");
+          break #L1;
+        }
       }
     }
-    else
+    {
+      core::int a;
       if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#10 && (#0#12 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = a = #0#12{core::int} in true)) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#13 || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#10 && (#0#12 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = a = #0#12{core::int} in true)) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#13) {
         {
           core::print("List");
         }
       }
+    }
   }
 }
 static method main() → dynamic {

@@ -5230,7 +5230,9 @@ static void PopulateUriMappings(Thread* thread) {
   Array& scripts = Array::Handle(zone);
   String& uri = String::Handle(zone);
   String& resolved_uri = String::Handle(zone);
-
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_MACOS)
+  String& tmp = thread->StringHandle();
+#endif
   for (intptr_t i = 0; i < num_libs; ++i) {
     lib ^= libs.At(i);
     scripts ^= lib.LoadedScripts();
@@ -5241,6 +5243,15 @@ static void PopulateUriMappings(Thread* thread) {
       resolved_uri ^= script.resolved_url();
       uri_to_resolved_uri.UpdateOrInsert(uri, resolved_uri);
       resolved_uri_to_uri.UpdateOrInsert(resolved_uri, uri);
+
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_MACOS)
+      // Allow for case insensitive matching on platforms that might allow for
+      // case insensitive paths.
+      tmp = String::ToLowerCase(uri);
+      uri_to_resolved_uri.UpdateOrInsert(tmp, resolved_uri);
+      tmp = String::ToLowerCase(resolved_uri);
+      resolved_uri_to_uri.UpdateOrInsert(tmp, uri);
+#endif
     }
   }
 
@@ -5291,6 +5302,15 @@ static void LookupScriptUrisImpl(Thread* thread,
     for (intptr_t i = 0; i < uris.Length(); ++i) {
       uri ^= uris.At(i);
       res ^= map.GetOrNull(uri);
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_MACOS)
+      // Windows and MacOS paths can be case insensitive, so we should allow for
+      // case insensitive URI mappings on Windows and MacOS.
+      if (res.IsNull()) {
+        String& lower_case_uri = thread->StringHandle();
+        lower_case_uri = String::ToLowerCase(uri);
+        res ^= map.GetOrNull(lower_case_uri);
+      }
+#endif  // defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_MACOS)
       if (res.IsNull()) {
         uris_array.AddValueNull();
       } else {

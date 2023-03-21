@@ -392,13 +392,8 @@ Future<void> testFlushDuringClose(Directory tmpDir) async {
   final sink = file.openWrite();
   final close = sink.close();
 
-  try {
-    await sink.flush();
-  } on StateError catch (e) {
-    Expect.contains('flush_during_close is closed', e.message);
-  }
-
-  await close;
+  Expect.equals(file, await sink.flush());
+  Expect.equals(file, await close);
 }
 
 Future<void> testFailedWrite(Directory tmpDir) async {

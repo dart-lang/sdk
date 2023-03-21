@@ -244,6 +244,9 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode UNREACHABLE_SWITCH_CASE = HintCode(
     'UNREACHABLE_SWITCH_CASE',
     "This case is covered by the previous cases.",
+    correctionMessage:
+        "Try removing the case clause, or restructuring the preceding "
+        "patterns.",
   );
 
   ///  Parameters:

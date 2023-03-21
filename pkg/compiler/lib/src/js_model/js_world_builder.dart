@@ -814,9 +814,7 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     Map<FieldEntity, ConstantValue> fields = {};
     constant.fields.forEach((f, v) {
-      // TODO(48820): remove the extra '!'. It was only added to get early
-      // signals of the null assertion before we enable sound null safety.
-      FieldEntity backendField = toBackendEntity(f)! as FieldEntity;
+      FieldEntity backendField = toBackendEntity(f) as FieldEntity;
       fields[backendField] = v.accept(this, null);
     });
     return ConstructedConstantValue(type as InterfaceType, fields);

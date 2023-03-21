@@ -104,23 +104,27 @@ class Class extends core::Object {
 }
 static method argumentTypeNotAssignable(self::Class cls) → dynamic {
   #L1:
-  if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:13:13: Error: The argument type 'int' can't be assigned to the parameter type 'Class'.
+  {
+    if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:13:13: Error: The argument type 'int' can't be assigned to the parameter type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/shared_errors.dart'.
     case >= 0: // Error
             ^") {
-    {
-      core::print(0);
+      {
+        core::print(0);
+      }
     }
   }
 }
 static method relationalPatternOperatorReturnTypeNotAssignableToBool(self::Class cls) → dynamic {
   #L2:
-  if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:20:10: Error: A value of type 'Class' can't be assigned to a variable of type 'bool'.
+  {
+    if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:20:10: Error: A value of type 'Class' can't be assigned to a variable of type 'bool'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/shared_errors.dart'.
     case > 0: // Error
          ^") {
-    {
-      core::print(0);
+      {
+        core::print(0);
+      }
     }
   }
 }
@@ -149,15 +153,17 @@ static method duplicateRecordPatternField(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     late final synthesized core::int #0#2 = #0#0{self::Class}.{self::Class::field}{core::int};
-    if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:36:28: Error: The field 'field' is already matched in this pattern.
+    {
+      if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:36:28: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
     case (field: 1, field: 2): // Error
                            ^" || #0#0 is{ForNonNullableByDefault} self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 && (let final dynamic #t3 = #0#2 in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
     case Class(field: 1, field: 2): // Error
                                 ^")) {
-      {
-        core::print(0);
+        {
+          core::print(0);
+        }
       }
     }
   }
@@ -168,10 +174,12 @@ static method duplicateRestPattern(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t4 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t5 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t6 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:44:16: Error: At most one rest element is allowed in a list or map pattern.
+    {
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t4 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t5 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t6 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:44:16: Error: At most one rest element is allowed in a list or map pattern.
 Try removing the duplicate rest element.
     case [..., ...]: // Error
                ^") || #0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t7 = #0#2#isSet = true in #0#2 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
+      }
     }
   }
 }

@@ -215,9 +215,11 @@ class SerializationTask extends CompilerTask {
 
   void serializeGlobalTypeInference(
       GlobalTypeInferenceResults results, DataSourceIndices indices) {
-    JClosedWorld closedWorld = results.closedWorld;
-    ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
-    serializeComponent(component);
+    if (_options.outputUri != null) {
+      JClosedWorld closedWorld = results.closedWorld;
+      ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
+      serializeComponent(component);
+    }
 
     measureSubtask('serialize data', () {
       _reporter.log('Writing data to ${_options.writeDataUri}');

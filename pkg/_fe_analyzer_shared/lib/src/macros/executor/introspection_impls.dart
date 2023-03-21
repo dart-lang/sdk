@@ -575,7 +575,22 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
   final bool isAbstract;
 
   @override
+  final bool isBase;
+
+  @override
   final bool isExternal;
+
+  @override
+  final bool isFinal;
+
+  @override
+  final bool isInterface;
+
+  @override
+  final bool isMixin;
+
+  @override
+  final bool isSealed;
 
   @override
   final List<NamedTypeAnnotationImpl> mixins;
@@ -597,7 +612,12 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // ClassDeclaration fields
     required this.interfaces,
     required this.isAbstract,
+    required this.isBase,
     required this.isExternal,
+    required this.isFinal,
+    required this.isInterface,
+    required this.isMixin,
+    required this.isSealed,
     required this.mixins,
     required this.superclass,
   });
@@ -615,7 +635,12 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     serializer
       ..endList()
       ..addBool(isAbstract)
+      ..addBool(isBase)
       ..addBool(isExternal)
+      ..addBool(isFinal)
+      ..addBool(isInterface)
+      ..addBool(isMixin)
+      ..addBool(isSealed)
       ..startList();
     for (NamedTypeAnnotationImpl mixin in mixins) {
       mixin.serialize(serializer);

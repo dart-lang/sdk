@@ -1791,6 +1791,12 @@ class VmServerConnection {
         'id': id,
         'result': response.toJson(),
       });
+    } on SentinelException catch (e) {
+      _responseSink.add({
+        'jsonrpc': '2.0',
+        'id': request['id'],
+        'result': e.sentinel.toJson(),
+      });
     } catch (e, st) {
       final error = e is RPCError
           ? e.toMap()

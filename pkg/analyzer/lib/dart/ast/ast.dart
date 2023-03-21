@@ -2694,6 +2694,7 @@ abstract class FunctionBody implements AstNode {
   /// level function or method containing this [FunctionBody], return `false`.
   ///
   /// Throws an exception if resolution has not yet been performed.
+  /// TODO(scheglov) This method is not used.
   bool isPotentiallyMutatedInClosure(VariableElement variable);
 
   /// If [variable] is a local variable or parameter declared anywhere within

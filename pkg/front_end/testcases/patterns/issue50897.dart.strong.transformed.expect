@@ -1,0 +1,53 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/issue50897.dart:16:28: Error: A pattern field in an object pattern must be named.
+// Try adding a pattern name or ':' before the pattern.
+//     {13: Square(size: Unit(1))} => "object",
+//                            ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Square extends core::Object {
+  synthetic constructor •() → self::Square
+    : super core::Object::•()
+    ;
+  abstract get size() → self::Unit;
+}
+class Unit extends core::Object /*hasConstConstructor*/  {
+  final field core::double value;
+  const constructor •(core::double value) → self::Unit
+    : self::Unit::value = value, super core::Object::•()
+    ;
+}
+static method test(core::Map<dynamic, dynamic> map) → core::String {
+  return block {
+    core::String #t1;
+    final synthesized core::Map<dynamic, dynamic> #0#0 = map;
+    function ##0#6#initializer() → dynamic
+      return #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    #L1:
+    {
+      {
+        if(#0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (#0#6 is{ForNonNullableByDefault} self::Square && (let final self::Unit #t2 = #0#6{self::Square}.{self::Square::size}{self::Unit} in true))) {
+          #t1 = "object";
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = "default";
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+}
+
+constants  {
+  #C1 = 13
+  #C2 = 1
+}

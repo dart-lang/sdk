@@ -188,10 +188,7 @@ class RuntimeTypeUse {
   /// The static type of the argument if [kind] is `RuntimeTypeUseKind.equals`.
   final DartType? argumentType;
 
-  RuntimeTypeUse(this.kind, this.receiverType, this.argumentType) {
-    // TODO(48820): Remove assertions when sound.
-    (receiverType as dynamic)!;
-  }
+  RuntimeTypeUse(this.kind, this.receiverType, this.argumentType);
 
   @override
   int get hashCode =>

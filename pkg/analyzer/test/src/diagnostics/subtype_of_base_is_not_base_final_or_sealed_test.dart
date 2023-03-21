@@ -41,37 +41,6 @@ class C extends A {}
     ]);
   }
 
-  test_class_extends_multiple_files() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-base class A {}
-class B extends A {}
-''');
-
-    await assertErrorsInFile2(a.path, [
-      error(CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
-          22, 1,
-          text:
-              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'."),
-    ]);
-    await assertErrorsInCode(r'''
-import 'a.dart';
-class C extends B {}
-''', [
-      error(
-        CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
-        23,
-        1,
-        text:
-            "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
-        contextMessages: [
-          ExpectedContextMessage(a.path, 22, 1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'B' is defined here.")
-        ],
-      ),
-    ]);
-  }
-
   test_class_extends_outside() async {
     newFile('$testPackageLibPath/a.dart', r'''
 base class A {}
@@ -100,7 +69,7 @@ class B implements A {}
     ]);
   }
 
-  test_class_mixin_mixedIn() async {
+  test_class_mixin_with() async {
     await assertErrorsInCode(r'''
 base mixin class A {}
 class B with A {}
@@ -112,7 +81,7 @@ class B with A {}
     ]);
   }
 
-  test_class_mixin_mixedIn_outside() async {
+  test_class_mixin_with_outside() async {
     newFile('$testPackageLibPath/a.dart', r'''
 base mixin class A {}
 ''');
@@ -141,9 +110,75 @@ class C extends B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 29, 1,
+          ExpectedContextMessage(testFile.path, 11, 1,
               text:
-                  "The type 'B' is a subtype of 'A', and 'B' is defined here.")
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
+        ],
+      ),
+    ]);
+  }
+
+  test_class_sealed_extends_base_with_interface() async {
+    await assertErrorsInCode(r'''
+base class A {}
+interface mixin B {}
+sealed class C extends A with B {}
+class D extends C {}
+''', [
+      error(
+        CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+        78,
+        1,
+        text:
+            "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 11, 1,
+              text:
+                  "The type 'C' is a subtype of 'A', and 'A' is defined here.")
+        ],
+      ),
+    ]);
+  }
+
+  test_class_sealed_extends_interface_implements_base() async {
+    await assertErrorsInCode(r'''
+base class A {}
+interface class B {}
+sealed class C extends B implements A {}
+class D extends C {}
+''', [
+      error(
+        CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+        84,
+        1,
+        text:
+            "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 11, 1,
+              text:
+                  "The type 'C' is a subtype of 'A', and 'A' is defined here.")
+        ],
+      ),
+    ]);
+  }
+
+  test_class_sealed_extends_interface_with_base() async {
+    await assertErrorsInCode(r'''
+base mixin A {}
+interface class B {}
+sealed class C extends B with A {}
+class D extends C {}
+''', [
+      error(
+        CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+        78,
+        1,
+        text:
+            "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 11, 1,
+              text:
+                  "The type 'C' is a subtype of 'A', and 'A' is defined here.")
         ],
       ),
     ]);
@@ -163,16 +198,17 @@ class D extends C {}
         text:
             "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 57, 1,
+          ExpectedContextMessage(testFile.path, 11, 1,
               text:
-                  "The type 'C' is a subtype of 'A', and 'C' is defined here.")
+                  "The type 'C' is a subtype of 'A', and 'A' is defined here.")
         ],
       ),
     ]);
   }
 
   test_class_sealed_extends_outside() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    final aPath = '$testPackageLibPath/a.dart';
+    newFile(aPath, r'''
 base class A {}
 ''');
 
@@ -188,9 +224,9 @@ class C extends B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 30, 1,
+          ExpectedContextMessage(convertPath(aPath), 11, 1,
               text:
-                  "The type 'B' is a subtype of 'A', and 'B' is defined here.")
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
       ),
     ]);
@@ -209,9 +245,9 @@ base class A {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 34, 1,
+          ExpectedContextMessage(testFile.path, 60, 1,
               text:
-                  "The type 'B' is a subtype of 'A', and 'B' is defined here.")
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
       ),
     ]);
@@ -230,15 +266,15 @@ class C implements B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 29, 1,
+          ExpectedContextMessage(testFile.path, 11, 1,
               text:
-                  "The type 'B' is a subtype of 'A', and 'B' is defined here.")
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
       ),
     ]);
   }
 
-  test_class_sealed_mixin_mixedIn() async {
+  test_class_sealed_mixin_with() async {
     await assertErrorsInCode(r'''
 base mixin class A {}
 sealed class B with A {}
@@ -251,16 +287,17 @@ class C extends B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 35, 1,
+          ExpectedContextMessage(testFile.path, 17, 1,
               text:
-                  "The type 'B' is a subtype of 'A', and 'B' is defined here.")
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
       ),
     ]);
   }
 
-  test_class_sealed_mixin_mixedIn_outside() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+  test_class_sealed_mixin_with_outside() async {
+    final aPath = '$testPackageLibPath/a.dart';
+    newFile(aPath, r'''
 base mixin class A {}
 ''');
 
@@ -276,9 +313,9 @@ class C extends B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 30, 1,
+          ExpectedContextMessage(convertPath(aPath), 17, 1,
               text:
-                  "The type 'B' is a subtype of 'A', and 'B' is defined here.")
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
       ),
     ]);
@@ -321,30 +358,9 @@ mixin C implements B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 29, 1,
+          ExpectedContextMessage(testFile.path, 11, 1,
               text:
-                  "The type 'B' is a subtype of 'A', and 'B' is defined here.")
-        ],
-      ),
-    ]);
-  }
-
-  test_mixin_sealed_on() async {
-    await assertErrorsInCode(r'''
-base class A {}
-sealed mixin B on A {}
-mixin C on B {}
-''', [
-      error(
-        CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
-        45,
-        1,
-        text:
-            "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 29, 1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'B' is defined here.")
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
       ),
     ]);
