@@ -194,14 +194,18 @@ class Scavenger {
   // this allocation will make it exceed kMaxAddrSpaceInWords.
   bool AllocatedExternal(intptr_t size) {
     ASSERT(size >= 0);
-    intptr_t next_external_size_in_words =
-        (external_size_ >> kWordSizeLog2) + (size >> kWordSizeLog2);
-    if (next_external_size_in_words < 0 ||
-        next_external_size_in_words > kMaxAddrSpaceInWords) {
-      return false;
-    }
-    external_size_ += size;
-    ASSERT(external_size_ >= 0);
+    intptr_t expected = external_size_.load();
+    intptr_t desired;
+    do {
+      intptr_t next_external_size_in_words =
+          (external_size_ >> kWordSizeLog2) + (size >> kWordSizeLog2);
+      if (next_external_size_in_words < 0 ||
+          next_external_size_in_words > kMaxAddrSpaceInWords) {
+        return false;
+      }
+      desired = expected + size;
+      ASSERT(desired >= 0);
+    } while (!external_size_.compare_exchange_weak(expected, desired));
     return true;
   }
   void FreedExternal(intptr_t size) {

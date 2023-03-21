@@ -253,18 +253,23 @@ class PageSpace {
   bool AllocatedExternal(intptr_t size) {
     ASSERT(size >= 0);
     intptr_t size_in_words = size >> kWordSizeLog2;
-    intptr_t next_external_in_words = usage_.external_in_words + size_in_words;
-    if (next_external_in_words < 0 ||
-        next_external_in_words > kMaxAddrSpaceInWords) {
-      return false;
-    }
-    usage_.external_in_words = next_external_in_words;
+    intptr_t expected = usage_.external_in_words.load();
+    intptr_t desired;
+    do {
+      desired = expected + size_in_words;
+      if (desired < 0 || desired > kMaxAddrSpaceInWords) {
+        return false;
+      }
+      ASSERT(desired >= 0);
+    } while (
+        !usage_.external_in_words.compare_exchange_weak(expected, desired));
     return true;
   }
   void FreedExternal(intptr_t size) {
     ASSERT(size >= 0);
     intptr_t size_in_words = size >> kWordSizeLog2;
     usage_.external_in_words -= size_in_words;
+    ASSERT(usage_.external_in_words >= 0);
   }
 
   // Bulk data allocation.

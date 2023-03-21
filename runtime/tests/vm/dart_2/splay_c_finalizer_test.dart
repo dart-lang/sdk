@@ -8,6 +8,10 @@
 // stressing lots of combinations of references between new-gen and old-gen
 // objects, and between marked and unmarked objects.
 
+// This file is copied into another directory and the default opt out scheme of
+// CFE using the pattern 'vm/dart_2' doesn't work, so opt it out explicitly.
+// @dart=2.9
+
 // VMOptions=
 // VMOptions=--no_concurrent_mark --no_concurrent_sweep
 // VMOptions=--no_concurrent_mark --concurrent_sweep
@@ -27,22 +31,45 @@
 // VMOptions=--verify_store_buffer
 // VMOptions=--verify_after_marking
 // VMOptions=--stress_write_barrier_elimination
-// VMOptions=--old_gen_heap_size=100
-// VMOptions=--mark_when_idle
-// VMOptions=--no_load_cse
-// VMOptions=--no_dead_store_elimination
-// VMOptions=--no_load_cse --no_dead_store_elimination
-// VMOptions=--test_il_serialization
+// VMOptions=--old_gen_heap_size=150
+
+import "dart:ffi";
+import "dart:io";
 
 import "splay_common.dart";
 
 void main() {
-  StrongSplay().main();
+  if (Platform.isWindows) {
+    print("No malloc via self process lookup on Windows");
+    return;
+  }
+
+  // Split across turns so finalizers can run.
+  FinalizerSplay().mainAsync();
 }
 
-class StrongSplay extends Splay {
-  Object newPayload(int depth, String tag) => Payload.generate(depth, tag);
-  Node newNode(num key, Object? value) => new StrongNode(key, value);
+class FinalizerSplay extends Splay {
+  newPayload(int depth, String tag) => Payload.generate(depth, tag);
+  Node newNode(num key, Object value) => new FinalizerNode(key, value);
+}
+
+final libc = DynamicLibrary.process();
+typedef MallocForeign = Pointer<Void> Function(IntPtr size);
+typedef MallocNative = Pointer<Void> Function(int size);
+final malloc = libc.lookupFunction<MallocForeign, MallocNative>('malloc');
+typedef FreeForeign = Void Function(Pointer<Void>);
+final free = libc.lookup<NativeFunction<FreeForeign>>('free');
+final freeFinalizer = NativeFinalizer(free);
+
+class Leaf implements Finalizable {
+  final Pointer<Void> memory;
+
+  Leaf(String tag) : memory = malloc(15) {
+    if (memory == nullptr) {
+      throw OutOfMemoryError();
+    }
+    freeFinalizer.attach(this, memory, detach: this, externalSize: 15);
+  }
 }
 
 class Payload {
@@ -51,13 +78,12 @@ class Payload {
 
   static generate(depth, tag) {
     if (depth == 0) return new Leaf(tag);
-    return new Payload(generate(depth - 1, tag),
-                       generate(depth - 1, tag));
+    return new Payload(generate(depth - 1, tag), generate(depth - 1, tag));
   }
 }
 
-class StrongNode extends Node {
-  StrongNode(num key, Object? value) : super(key, value);
+class FinalizerNode extends Node {
+  FinalizerNode(num key, Object value) : super(key, value);
 
-  Node? left, right;
+  Node left, right;
 }

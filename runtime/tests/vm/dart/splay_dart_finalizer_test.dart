@@ -7,12 +7,6 @@
 // continuously makes small changes to a large, long-lived data structure,
 // stressing lots of combinations of references between new-gen and old-gen
 // objects, and between marked and unmarked objects.
-// The ephemeron variant of this test replaces the direct child pointers in the
-// tree with Expandos to stress the handling of WeakProperties/ephemerons.
-
-// This file is copied into another directory and the default opt out scheme of
-// CFE using the pattern 'vm/dart_2' doesn't work, so opt it out explicitly.
-// @dart=2.9
 
 // VMOptions=
 // VMOptions=--no_concurrent_mark --no_concurrent_sweep
@@ -33,54 +27,66 @@
 // VMOptions=--verify_store_buffer
 // VMOptions=--verify_after_marking
 // VMOptions=--stress_write_barrier_elimination
-// VMOptions=--old_gen_heap_size=150
+// VMOptions=--old_gen_heap_size=300
 
 import "splay_common.dart";
 
 void main() {
-  EphemeronSplay().main();
+  // Split across turns so finalizers can run.
+  FinalizerSplay().mainAsync();
 }
 
-class EphemeronSplay extends Splay {
+class FinalizerSplay extends Splay {
   newPayload(int depth, String tag) => Payload.generate(depth, tag);
-  Node newNode(num key, Object value) => new EphemeronNode(key, value);
+  Node newNode(num key, Object? value) => new FinalizerNode(key, value);
 }
+
+final payloadLeft = <Object, dynamic>{};
+final payloadRight = <Object, dynamic>{};
+finalizePayload(Object token) {
+  payloadLeft.remove(token);
+  payloadRight.remove(token);
+}
+
+final payloadFinalizer = new Finalizer<Object>(finalizePayload);
 
 class Payload {
   Payload(left, right) {
     this.left = left;
     this.right = right;
+    payloadFinalizer.attach(this, token, detach: this);
   }
-
-  // This ordering of fields is delibrate: one key is visited before the expando
-  // and one after.
-  final leftKey = new Object();
-  final expando = new Expando();
-  final rightKey = new Object();
-
-  get left => expando[leftKey];
-  set left(value) => expando[leftKey] = value;
-  get right => expando[rightKey];
-  set right(value) => expando[rightKey] = value;
+  var token = new Object();
+  get left => payloadLeft[token];
+  set left(value) => payloadLeft[token] = value;
+  get right => payloadRight[token];
+  set right(value) => payloadRight[token] = value;
 
   static generate(depth, tag) {
     if (depth == 0) return new Leaf(tag);
-    return new Payload(generate(depth - 1, tag),
-                       generate(depth - 1, tag));
+    return new Payload(generate(depth - 1, tag), generate(depth - 1, tag));
   }
 }
 
-class EphemeronNode extends Node {
-  EphemeronNode(num key, Object value) : super(key, value);
+final nodeLeft = <Object, Node?>{};
+final nodeRight = <Object, Node?>{};
+finalizeNode(Object token) {
+  nodeLeft.remove(token);
+  nodeRight.remove(token);
+}
 
-  // This ordering of fields is delibrate: one key is visited before the expando
-  // and one after.
-  final leftKey = new Object();
-  final expando = new Expando<Node>();
-  final rightKey = new Object();
+final nodeFinalizer = new Finalizer<Object>(finalizeNode);
 
-  Node get left => expando[leftKey];
-  set left(Node value) => expando[leftKey] = value;
-  Node get right => expando[rightKey];
-  set right(Node value) => expando[rightKey] = value;
+class FinalizerNode extends Node {
+  FinalizerNode(num key, Object? value) : super(key, value) {
+    this.left = null;
+    this.right = null;
+    nodeFinalizer.attach(this, token, detach: this);
+  }
+
+  var token = new Object();
+  Node? get left => nodeLeft[token];
+  set left(Node? value) => nodeLeft[token] = value;
+  Node? get right => nodeRight[token];
+  set right(Node? value) => nodeRight[token] = value;
 }

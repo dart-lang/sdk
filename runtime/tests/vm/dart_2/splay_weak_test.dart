@@ -7,8 +7,6 @@
 // continuously makes small changes to a large, long-lived data structure,
 // stressing lots of combinations of references between new-gen and old-gen
 // objects, and between marked and unmarked objects.
-// The ephemeron variant of this test replaces the direct child pointers in the
-// tree with Expandos to stress the handling of WeakProperties/ephemerons.
 
 // This file is copied into another directory and the default opt out scheme of
 // CFE using the pattern 'vm/dart_2' doesn't work, so opt it out explicitly.
@@ -38,12 +36,12 @@
 import "splay_common.dart";
 
 void main() {
-  EphemeronSplay().main();
+  WeakSplay().main();
 }
 
-class EphemeronSplay extends Splay {
+class WeakSplay extends Splay {
   newPayload(int depth, String tag) => Payload.generate(depth, tag);
-  Node newNode(num key, Object value) => new EphemeronNode(key, value);
+  Node newNode(num key, Object value) => new WeakNode(key, value);
 }
 
 class Payload {
@@ -52,35 +50,58 @@ class Payload {
     this.right = right;
   }
 
-  // This ordering of fields is delibrate: one key is visited before the expando
-  // and one after.
-  final leftKey = new Object();
-  final expando = new Expando();
-  final rightKey = new Object();
+  // This ordering of fields is delibrate: one strong reference visited before
+  // the weak reference and one after.
+  var leftWeak;
+  @pragma("vm:entry-point") // TODO(50571): Remove illegal optimization.
+  var leftStrong;
+  @pragma("vm:entry-point") // TODO(50571): Remove illegal optimization.
+  var rightStrong;
+  var rightWeak;
 
-  get left => expando[leftKey];
-  set left(value) => expando[leftKey] = value;
-  get right => expando[rightKey];
-  set right(value) => expando[rightKey] = value;
+  get left => leftWeak?.target;
+  set left(value) {
+    leftWeak = new WeakReference(value);
+    // Indirection: chance for WeakRef to be scanned before target is marked.
+    leftStrong = [[value]];
+  }
+
+  get right => rightWeak?.target;
+  set right(value) {
+    rightWeak = new WeakReference(value);
+    // Indirection: chance for WeakRef to be scanned before target is marked.
+    rightStrong = [[value]];
+  }
 
   static generate(depth, tag) {
     if (depth == 0) return new Leaf(tag);
-    return new Payload(generate(depth - 1, tag),
-                       generate(depth - 1, tag));
+    return new Payload(generate(depth - 1, tag), generate(depth - 1, tag));
   }
 }
 
-class EphemeronNode extends Node {
-  EphemeronNode(num key, Object value) : super(key, value);
+class WeakNode extends Node {
+  WeakNode(num key, Object value) : super(key, value);
 
-  // This ordering of fields is delibrate: one key is visited before the expando
-  // and one after.
-  final leftKey = new Object();
-  final expando = new Expando<Node>();
-  final rightKey = new Object();
+  // This ordering of fields is delibrate: one strong reference visited before
+  // the weak reference and one after.
+  var leftWeak;
+  @pragma("vm:entry-point") // TODO(50571): Remove illegal optimization.
+  var leftStrong;
+  @pragma("vm:entry-point") // TODO(50571): Remove illegal optimization.
+  var rightStrong;
+  var rightWeak;
 
-  Node get left => expando[leftKey];
-  set left(Node value) => expando[leftKey] = value;
-  Node get right => expando[rightKey];
-  set right(Node value) => expando[rightKey] = value;
+  Node get left => leftWeak?.target;
+  set left(Node value) {
+    leftWeak = value == null ? null : new WeakReference(value);
+    // Indirection: chance for WeakRef to be scanned before target is marked.
+    leftStrong = [[value]];
+  }
+
+  Node get right => rightWeak?.target;
+  set right(Node value) {
+    rightWeak = value == null ? null : new WeakReference(value);
+    // Indirection: chance for WeakRef to be scanned before target is marked.
+    rightStrong = [[value]];
+  }
 }
