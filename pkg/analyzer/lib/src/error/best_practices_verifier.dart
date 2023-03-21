@@ -2246,21 +2246,6 @@ class _InvalidAccessVerifier {
     return false;
   }
 
-  /// Check if @visibleForTemplate is applied to the given [Element].
-  ///
-  /// [ClassElement] and [EnumElement] are excluded from the @visibleForTemplate
-  /// access checks. Instead, the access restriction is cascaded to the
-  /// corresponding class members and enum constants. For other types of
-  /// elements, check if they are annotated based on `hasVisibleForTemplate`
-  /// value.
-  bool _isVisibleForTemplateApplied(Element? element) {
-    if (element is ClassElement || element is EnumElement) {
-      return false;
-    } else {
-      return _hasVisibleForTemplate(element);
-    }
-  }
-
   bool _hasVisibleForTemplate(Element? element) {
     if (element == null) {
       return false;
@@ -2308,6 +2293,21 @@ class _InvalidAccessVerifier {
       return false;
     }
     return _workspacePackage!.contains(library.source);
+  }
+
+  /// Check if @visibleForTemplate is applied to the given [Element].
+  ///
+  /// [ClassElement] and [EnumElement] are excluded from the @visibleForTemplate
+  /// access checks. Instead, the access restriction is cascaded to the
+  /// corresponding class members and enum constants. For other types of
+  /// elements, check if they are annotated based on `hasVisibleForTemplate`
+  /// value.
+  bool _isVisibleForTemplateApplied(Element? element) {
+    if (element is ClassElement || element is EnumElement) {
+      return false;
+    } else {
+      return _hasVisibleForTemplate(element);
+    }
   }
 }
 
