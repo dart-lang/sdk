@@ -596,16 +596,30 @@ class MatchingExpressionVisitor
         Member? staticTarget;
         switch (node.accessKind) {
           case RelationalAccessKind.Instance:
+            FunctionType functionType = node.functionType!;
+            DartType argumentType = functionType.positionalParameters.single;
             expression = new DelayedInstanceInvocation(
-                matchedExpression, node.target!, node.functionType!, [constant],
+                matchedExpression,
+                node.target!,
+                functionType,
+                [
+                  new DelayedAsExpression(constant, argumentType,
+                      isImplicit: true, fileOffset: node.fileOffset)
+                ],
                 fileOffset: node.fileOffset);
             break;
           case RelationalAccessKind.Static:
+            FunctionType functionType = node.functionType!;
+            DartType argumentType = functionType.positionalParameters[1];
             expression = new DelayedExtensionInvocation(
                 node.target!,
-                [matchedExpression, constant],
+                [
+                  matchedExpression,
+                  new DelayedAsExpression(constant, argumentType,
+                      isImplicit: true, fileOffset: node.fileOffset)
+                ],
                 node.typeArguments!,
-                node.functionType!,
+                functionType,
                 fileOffset: node.fileOffset);
             staticTarget = node.target;
             break;

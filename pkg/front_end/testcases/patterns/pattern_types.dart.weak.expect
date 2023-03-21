@@ -389,7 +389,7 @@ static method relationalPattern(dynamic dyn, Never never, self::Class cls, self:
   }
   {
     final synthesized self::Class #17#0 = cls;
-    if(self::_extension#0|<=(#17#0, #C2)) {
+    if(self::_extension#0|<=(#17#0, #C2 as{ForNonNullableByDefault} core::int)) {
     }
   }
   {
