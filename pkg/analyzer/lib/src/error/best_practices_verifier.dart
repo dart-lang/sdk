@@ -2122,8 +2122,8 @@ class _InvalidAccessVerifier {
       }
     }
 
-    bool hasVisibleForTemplate = _hasVisibleForTemplate(element);
-    if (hasVisibleForTemplate) {
+    bool isVisibleForTemplateApplied = _isVisibleForTemplateApplied(element);
+    if (isVisibleForTemplateApplied) {
       if (_inTemplateSource || _inExportDirective(identifier)) {
         return;
       }
@@ -2162,7 +2162,7 @@ class _InvalidAccessVerifier {
           node,
           [name, definingClass!.source!.uri]);
     }
-    if (hasVisibleForTemplate) {
+    if (isVisibleForTemplateApplied) {
       _errorReporter.reportErrorForNode(
           WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
           node,
@@ -2246,6 +2246,21 @@ class _InvalidAccessVerifier {
     return false;
   }
 
+  /// Check if @visibleForTemplate is applied to the given [Element].
+  ///
+  /// [ClassElement] and [EnumElement] are excluded from the @visibleForTemplate
+  /// access checks. Instead, the access restriction is cascaded to the
+  /// corresponding class members and enum constants. For other types of
+  /// elements, check if they are annotated based on `hasVisibleForTemplate`
+  /// value.
+  bool _isVisibleForTemplateApplied(Element? element) {
+    if (element is ClassElement || element is EnumElement) {
+      return false;
+    } else {
+      return _hasVisibleForTemplate(element);
+    }
+  }
+
   bool _hasVisibleForTemplate(Element? element) {
     if (element == null) {
       return false;
@@ -2255,6 +2270,10 @@ class _InvalidAccessVerifier {
     }
     if (element is PropertyAccessorElement &&
         element.variable.hasVisibleForTemplate) {
+      return true;
+    }
+    final enclosingElement = element.enclosingElement;
+    if (_hasVisibleForTemplate(enclosingElement)) {
       return true;
     }
     return false;
