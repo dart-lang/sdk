@@ -151,11 +151,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
       }
       await builder.addDartFileEdit(library.source.fullName, (builder) {
         for (var prefix in prefixes) {
-          if (prefix.isEmpty) {
-            builder.importLibrary(destinationImportUri);
-          } else {
-            builder.importLibrary(destinationImportUri, prefix: prefix);
-          }
+          builder.importLibrary(destinationImportUri, prefix: prefix);
         }
       });
     }
