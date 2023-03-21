@@ -130,6 +130,17 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     return processor;
   }
 
+  /// Computes whether there are bulk fixes for the context containing
+  /// [testFile].
+  Future<bool> computeHasFixes() async {
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    var analysisContext = contextFor(testFile);
+    tracker.addContext(analysisContext);
+    processor = BulkFixProcessor(TestInstrumentationService(), await workspace,
+        useConfigFiles: useConfigFiles);
+    return processor.hasFixes([analysisContext]);
+  }
+
   @override
   void setUp() {
     super.setUp();

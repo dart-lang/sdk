@@ -31,6 +31,8 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
@@ -114,6 +116,9 @@ class LspAnalysisServer extends AnalysisServer {
   /// A progress reporter for analysis status.
   ProgressReporter? analyzingProgressReporter;
 
+  /// Manages prompts telling the user about "dart fix".
+  late final DartFixPromptManager _dartFixPrompt;
+
   /// The number of times contexts have been created/recreated.
   @visibleForTesting
   int contextBuilds = 0;
@@ -129,6 +134,14 @@ class LspAnalysisServer extends AnalysisServer {
   /// An optional manager to handle file systems which may not always be
   /// available.
   final DetachableFileSystemManager? detachableFileSystemManager;
+
+  /// Indicates whether the next time the server completes analysis is the first
+  /// one since analysis contexts were built.
+  ///
+  /// This is useful for triggering things like [_dartFixPrompt] only when
+  /// it may be useful to do so (after initial analysis and
+  /// "pub get"/"pub upgrades").
+  bool _isFirstAnalysisSinceContextsBuilt = true;
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
@@ -146,6 +159,7 @@ class LspAnalysisServer extends AnalysisServer {
     this.detachableFileSystemManager,
     // Disable to avoid using this in unit tests.
     bool enableBlazeWatcher = false,
+    DartFixPromptManager? dartFixPromptManager,
   }) : super(
           options,
           sdkManager,
@@ -162,12 +176,19 @@ class LspAnalysisServer extends AnalysisServer {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
     capabilitiesComputer = ServerCapabilitiesComputer(this);
+    if (dartFixPromptManager != null) {
+      _dartFixPrompt = dartFixPromptManager;
+    } else {
+      final promptPreferences =
+          UserPromptPreferences(resourceProvider, instrumentationService);
+      _dartFixPrompt = DartFixPromptManager(this, promptPreferences);
+    }
 
     final contextManagerCallbacks =
         LspServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverScheduler.status.listen(sendStatusNotification);
+    analysisDriverScheduler.status.listen(_handleAnalysisStatusChange);
     analysisDriverScheduler.start();
 
     _channelSubscription =
@@ -241,6 +262,9 @@ class LspAnalysisServer extends AnalysisServer {
 
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
       RefactoringWorkspace(driverMap.values, searchEngine);
+
+  /// Whether or not the client supports openUri notifications.
+  bool get supportsOpenUriNotification => initializationOptions.allowOpenUri;
 
   /// Whether or not the client has advertised support for
   /// 'window/showMessageRequest'.
@@ -694,6 +718,19 @@ class LspAnalysisServer extends AnalysisServer {
     channel.sendNotification(notification);
   }
 
+  void sendOpenUriNotification(Uri uri) {
+    assert(supportsOpenUriNotification);
+    // TODO(dantup): Add this method signature as an abstract method on the
+    //  base server when both servers support it.
+    final params = OpenUriParams(uri: uri);
+    final message = NotificationMessage(
+      method: CustomMethods.openUri,
+      params: params,
+      jsonrpc: jsonRpcVersion,
+    );
+    sendNotification(message);
+  }
+
   /// Send the given [request] to the client and wait for a response. Completes
   /// with the raw [ResponseMessage] which could be an error response.
   Future<ResponseMessage> sendRequest(Method method, Object params) {
@@ -938,6 +975,17 @@ class LspAnalysisServer extends AnalysisServer {
     ];
   }
 
+  Future<void> _handleAnalysisStatusChange(
+      analysis.AnalysisStatus status) async {
+    // TODO(dantup): Move this to base class when DartFixPrompt can handle
+    //  legacy server.
+    if (_isFirstAnalysisSinceContextsBuilt) {
+      _isFirstAnalysisSinceContextsBuilt = false;
+      _dartFixPrompt.triggerCheck();
+    }
+    await sendStatusNotification(status);
+  }
+
   Future<void> _handleNotificationMessage(
     NotificationMessage message,
     MessageInfo messageInfo,
@@ -1062,6 +1110,7 @@ class LspInitializationOptions {
   final bool outline;
   final bool flutterOutline;
   final int? completionBudgetMilliseconds;
+  final bool allowOpenUri;
 
   factory LspInitializationOptions(Object? options) =>
       LspInitializationOptions._(
@@ -1082,7 +1131,8 @@ class LspInitializationOptions {
         outline = options['outline'] == true,
         flutterOutline = options['flutterOutline'] == true,
         completionBudgetMilliseconds =
-            options['completionBudgetMilliseconds'] as int?;
+            options['completionBudgetMilliseconds'] as int?,
+        allowOpenUri = options['allowOpenUri'] == true;
 }
 
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
@@ -1102,6 +1152,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   void afterContextsCreated() {
     analysisServer.contextBuilds++;
     analysisServer.addContextsToDeclarationsTracker();
+    analysisServer._isFirstAnalysisSinceContextsBuilt = true;
   }
 
   @override

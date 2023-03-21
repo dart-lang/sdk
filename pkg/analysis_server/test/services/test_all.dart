@@ -10,6 +10,7 @@ import 'linter/test_all.dart' as linter_all;
 import 'refactoring/test_all.dart' as refactoring_all;
 import 'search/test_all.dart' as search_all;
 import 'snippets/test_all.dart' as snippets_all;
+import 'user_prompts/test_all.dart' as user_prompts_all;
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,5 +20,6 @@ void main() {
     refactoring_all.main();
     search_all.main();
     snippets_all.main();
+    user_prompts_all.main();
   }, name: 'services');
 }

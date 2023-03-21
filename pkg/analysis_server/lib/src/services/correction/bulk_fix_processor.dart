@@ -194,7 +194,61 @@ class BulkFixProcessor {
   /// Return a [BulkFixRequestResult] that includes a change builder that has
   /// been used to create fixes for the diagnostics in the libraries in the
   /// given [contexts].
-  Future<BulkFixRequestResult> fixErrors(List<AnalysisContext> contexts) async {
+  Future<BulkFixRequestResult> fixErrors(List<AnalysisContext> contexts) =>
+      _computeFixes(contexts);
+
+  /// Return a change builder that has been used to create fixes for the
+  /// diagnostics in [file] in the given [context].
+  Future<ChangeBuilder> fixErrorsForFile(
+      AnalysisContext context, String path) async {
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
+
+    if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
+      var library = await context.currentSession.getResolvedLibrary(path);
+      if (library is ResolvedLibraryResult) {
+        await _fixErrorsInLibrary(library);
+      }
+    }
+
+    return builder;
+  }
+
+  /// Checks whether any diagnostics are bulk fixable.
+  ///
+  /// This is faster than calling [fixErrors] if the only requirement is to
+  /// know that there are fixes, because it stops processing when the first
+  /// fixable diagnostic is found.
+  Future<bool> hasFixes(List<AnalysisContext> analysisContexts) async {
+    await _computeFixes(analysisContexts, stopAfterFirst: true);
+    return changeMap.hasFixes;
+  }
+
+  Future<void> _applyProducer(
+      CorrectionProducerContext context, CorrectionProducer producer) async {
+    producer.configure(context);
+    try {
+      var localBuilder = builder.copy();
+      await producer.compute(localBuilder);
+      builder = localBuilder;
+    } on ConflictingEditException {
+      // If a conflicting edit was added in [compute], then the [localBuilder]
+      // is discarded and we revert to the previous state of the builder.
+    }
+  }
+
+  /// Implementation for [fixErrors] and [hasFixes].
+  ///
+  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// been used to create fixes for the diagnostics in the libraries in the
+  /// given [contexts].
+  ///
+  /// As an optimization for [hasFixes], if [stopAfterFirst] is `true`,
+  /// processing will stop early once a fixable diagnostic is found and the
+  /// results will contain at least that fix, but otherwise be incomplete.
+  Future<BulkFixRequestResult> _computeFixes(
+    List<AnalysisContext> contexts, {
+    bool stopAfterFirst = false,
+  }) async {
     // Ensure specified codes are defined.
     final codes = this.codes;
     if (codes != null) {
@@ -223,7 +277,10 @@ class BulkFixProcessor {
 
         var library = await context.currentSession.getResolvedLibrary(path);
         if (library is ResolvedLibraryResult) {
-          await _fixErrorsInLibrary(library);
+          await _fixErrorsInLibrary(library, stopAfterFirst: stopAfterFirst);
+          if (stopAfterFirst && changeMap.hasFixes) {
+            break;
+          }
         }
       }
     }
@@ -231,38 +288,10 @@ class BulkFixProcessor {
     return BulkFixRequestResult(builder);
   }
 
-  /// Return a change builder that has been used to create fixes for the
-  /// diagnostics in [file] in the given [context].
-  Future<ChangeBuilder> fixErrorsForFile(
-      AnalysisContext context, String path) async {
-    var pathContext = context.contextRoot.resourceProvider.pathContext;
-
-    if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
-      var library = await context.currentSession.getResolvedLibrary(path);
-      if (library is ResolvedLibraryResult) {
-        await _fixErrorsInLibrary(library);
-      }
-    }
-
-    return builder;
-  }
-
-  Future<void> _applyProducer(
-      CorrectionProducerContext context, CorrectionProducer producer) async {
-    producer.configure(context);
-    try {
-      var localBuilder = builder.copy();
-      await producer.compute(localBuilder);
-      builder = localBuilder;
-    } on ConflictingEditException {
-      // If a conflicting edit was added in [compute], then the [localBuilder]
-      // is discarded and we revert to the previous state of the builder.
-    }
-  }
-
   /// Use the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [result].
-  Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
+  Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result,
+      {bool stopAfterFirst = false}) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
 
     Iterable<AnalysisError> filteredErrors(ResolvedUnitResult result) sync* {
@@ -316,6 +345,9 @@ class BulkFixProcessor {
       for (var error in filteredErrors(unitResult)) {
         await _fixSingleError(
             fixContext(unitResult, error), unitResult, error, overrideSet);
+        if (stopAfterFirst && changeMap.hasFixes) {
+          return;
+        }
       }
     }
     //
@@ -347,6 +379,9 @@ class BulkFixProcessor {
         if (context != null) {
           await _generateFix(context, OrganizeImports(),
               directivesOrderingError.errorCode.name);
+          if (stopAfterFirst && changeMap.hasFixes) {
+            return;
+          }
         }
       } else {
         for (var error in unusedImportErrors) {
@@ -354,6 +389,9 @@ class BulkFixProcessor {
           if (context != null) {
             await _generateFix(
                 context, RemoveUnusedImport(), error.errorCode.name);
+            if (stopAfterFirst && changeMap.hasFixes) {
+              return;
+            }
           }
         }
       }
@@ -471,6 +509,9 @@ class BulkFixRequestResult {
 class ChangeMap {
   /// Map of paths to maps of codes to counts.
   final Map<String, Map<String, int>> libraryMap = {};
+
+  /// Whether or not there are any available fixes.
+  bool get hasFixes => libraryMap.isNotEmpty;
 
   /// Add an entry for the given [code] in the given [libraryPath].
   void add(String libraryPath, String code) {

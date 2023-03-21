@@ -28,6 +28,7 @@ When there are no open workspace folders (or if the initialization option `onlyA
 - `closingLabels` (`bool?`): When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
 - `outline` (`bool?`): When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.
 - `flutterOutline` (`bool?`): When set to `true`, `dart/textDocument/publishFlutterOutline` notifications will be sent with Flutter outline information for open files.
+- `allowOpenUri`: When set to `true`, indicates that the client will handle `dart/openUri` notifications by opening a browser for the supplied URI.
 
 ## Client Workspace Configuration
 
@@ -227,3 +228,12 @@ Element: as defined for the `dart/textDocument/publishOutline` notification.
 Notifies the client when Flutter outline information is available (or updated) for a file.
 
 Nodes contains multiple ranges as described for the `dart/textDocument/publishOutline` notification.
+
+### dart/openUri Notification
+
+Direction: Server -> Client
+Params: `{ uri: Uri }`
+
+Notifies the client that the server would like to open a given URI. This event is only sent in response to direct user actions (such as if the user clicks a "Learn More" button in a `window/showMessageRequest`). URIs could be either external web pages (http/https) to be opened in the browser or documents (file:///) to be opened in the editor.
+
+This notification (and functionality that relies on it) will only be sent if the client passes `allowOpenUri: true` in `initializationOptions`.

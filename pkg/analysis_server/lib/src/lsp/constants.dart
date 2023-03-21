@@ -75,6 +75,7 @@ abstract class Commands {
 abstract class CustomMethods {
   static const diagnosticServer = Method('dart/diagnosticServer');
   static const reanalyze = Method('dart/reanalyze');
+  static const openUri = Method('dart/openUri');
   static const publishClosingLabels =
       Method('dart/textDocument/publishClosingLabels');
   static const publishOutline = Method('dart/textDocument/publishOutline');

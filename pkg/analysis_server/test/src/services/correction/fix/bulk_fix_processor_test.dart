@@ -10,6 +10,7 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(HasFixesTest);
     defineReflectiveTests(ChangeMapTest);
     defineReflectiveTests(NoFixTest);
   });
@@ -35,6 +36,60 @@ var aa = new A();
     var errors = changeMap.libraryMap[testFile]!;
     expect(errors, hasLength(1));
     expect(errors[LintNames.unnecessary_new], 2);
+  }
+}
+
+@reflectiveTest
+class HasFixesTest extends BulkFixProcessorTest {
+  Future<void> test_hasFixes() async {
+    createAnalysisOptionsFile(experiments: experiments, lints: [
+      LintNames.annotate_overrides,
+      LintNames.unnecessary_new,
+    ]);
+
+    await resolveTestCode('''
+class A { }
+
+var a = new A();
+''');
+
+    expect(await computeHasFixes(), isTrue);
+  }
+
+  Future<void> test_hasFixes_stoppedAfterFirst() async {
+    createAnalysisOptionsFile(experiments: experiments, lints: [
+      LintNames.annotate_overrides,
+      LintNames.unnecessary_new,
+    ]);
+
+    await resolveTestCode('''
+class A { String a => ''; }
+class B extends A { String a => ''; }
+
+var a = new A();
+''');
+
+    expect(await computeHasFixes(), isTrue);
+    // We should only have computed one, despite the above code having two
+    // fixable issues.
+    expect(processor.changeMap.libraryMap[testFile], hasLength(1));
+  }
+
+  Future<void> test_noFixes() async {
+    createAnalysisOptionsFile(experiments: experiments, lints: [
+      'avoid_catching_errors', // NOTE: not in lintProducerMap
+    ]);
+
+    await resolveTestCode('''
+void bad() {
+  try {
+  } on Error catch (e) {
+    print(e);
+  }
+}
+''');
+
+    expect(await computeHasFixes(), isFalse);
   }
 }
 

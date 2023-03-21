@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -55,6 +56,8 @@ abstract class AbstractLspAnalysisServerTest
   /// The number of context builds that had already occurred the last time
   /// resetContextBuildCounter() was called.
   int _previousContextBuilds = 0;
+
+  DartFixPromptManager? get dartFixPromptManager => null;
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
@@ -203,7 +206,8 @@ abstract class AbstractLspAnalysisServerTest
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE,
         httpClient: httpClient,
-        processRunner: processRunner);
+        processRunner: processRunner,
+        dartFixPromptManager: dartFixPromptManager);
     server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/my_project');
@@ -744,6 +748,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         .where((m) => m is NotificationMessage)
         .cast<NotificationMessage>();
   }
+
+  /// A stream of [OpenUriParams] for any `dart/openUri` notifications.
+  Stream<OpenUriParams> get openUriNotifications => notificationsFromServer
+      .where((notification) => notification.method == CustomMethods.openUri)
+      .map((message) =>
+          OpenUriParams.fromJson(message.params as Map<String, Object?>));
 
   /// A stream of [RequestMessage]s from the server.
   Stream<RequestMessage> get requestsFromServer {
@@ -2016,44 +2026,41 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<void> waitForAnalysisStart() => waitForAnalysisStatus(true);
 
   Future<void> waitForAnalysisStatus(bool analyzing) async {
-    await serverToClient.firstWhere((message) {
-      if (message is NotificationMessage) {
-        if (message.method == CustomMethods.analyzerStatus) {
-          if (_clientCapabilities!.window?.workDoneProgress == true) {
-            throw Exception(
-                'Received ${CustomMethods.analyzerStatus} notification '
-                'but client supports workDoneProgress');
-          }
+    await notificationsFromServer.firstWhere((message) {
+      if (message.method == CustomMethods.analyzerStatus) {
+        if (_clientCapabilities!.window?.workDoneProgress == true) {
+          throw Exception(
+              'Received ${CustomMethods.analyzerStatus} notification '
+              'but client supports workDoneProgress');
+        }
 
-          final params = AnalyzerStatusParams.fromJson(
-              message.params as Map<String, Object?>);
-          return params.isAnalyzing == analyzing;
-        } else if (message.method == Method.progress) {
-          if (_clientCapabilities!.window?.workDoneProgress != true) {
-            throw Exception(
-                'Received ${CustomMethods.analyzerStatus} notification '
-                'but client supports workDoneProgress');
-          }
+        final params = AnalyzerStatusParams.fromJson(
+            message.params as Map<String, Object?>);
+        return params.isAnalyzing == analyzing;
+      } else if (message.method == Method.progress) {
+        if (_clientCapabilities!.window?.workDoneProgress != true) {
+          throw Exception(
+              'Received ${CustomMethods.analyzerStatus} notification '
+              'but client supports workDoneProgress');
+        }
 
-          final params =
-              ProgressParams.fromJson(message.params as Map<String, Object?>);
+        final params =
+            ProgressParams.fromJson(message.params as Map<String, Object?>);
 
-          // Skip unrelated progress notifications.
-          if (params.token != analyzingProgressToken) {
-            return false;
-          }
+        // Skip unrelated progress notifications.
+        if (params.token != analyzingProgressToken) {
+          return false;
+        }
 
-          if (params.value is Map<String, dynamic>) {
-            final isDesiredStatusMessage = analyzing
-                ? WorkDoneProgressBegin.canParse(
-                    params.value, nullLspJsonReporter)
-                : WorkDoneProgressEnd.canParse(
-                    params.value, nullLspJsonReporter);
+        if (params.value is Map<String, dynamic>) {
+          final isDesiredStatusMessage = analyzing
+              ? WorkDoneProgressBegin.canParse(
+                  params.value, nullLspJsonReporter)
+              : WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter);
 
-            return isDesiredStatusMessage;
-          } else {
-            throw Exception('\$/progress params value was not valid');
-          }
+          return isDesiredStatusMessage;
+        } else {
+          throw Exception('\$/progress params value was not valid');
         }
       }
       // Message is not what we're waiting for.
@@ -2063,9 +2070,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<List<ClosingLabel>> waitForClosingLabels(Uri uri) async {
     late PublishClosingLabelsParams closingLabelsParams;
-    await serverToClient.firstWhere((message) {
-      if (message is NotificationMessage &&
-          message.method == CustomMethods.publishClosingLabels) {
+    await notificationsFromServer.firstWhere((message) {
+      if (message.method == CustomMethods.publishClosingLabels) {
         closingLabelsParams = PublishClosingLabelsParams.fromJson(
             message.params as Map<String, Object?>);
 
@@ -2078,12 +2084,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<List<Diagnostic>?> waitForDiagnostics(Uri uri) async {
     PublishDiagnosticsParams? diagnosticParams;
-    await serverToClient.map<Message?>((message) => message).firstWhere(
-        (message) {
-      if (message is NotificationMessage &&
-          message.method == Method.textDocument_publishDiagnostics) {
+    await notificationsFromServer
+        .map<NotificationMessage?>((message) => message)
+        .firstWhere((message) {
+      if (message?.method == Method.textDocument_publishDiagnostics) {
         diagnosticParams = PublishDiagnosticsParams.fromJson(
-            message.params as Map<String, Object?>);
+            message!.params as Map<String, Object?>);
         return diagnosticParams!.uri == uri;
       }
       return false;
@@ -2093,9 +2099,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<FlutterOutline> waitForFlutterOutline(Uri uri) async {
     late PublishFlutterOutlineParams outlineParams;
-    await serverToClient.firstWhere((message) {
-      if (message is NotificationMessage &&
-          message.method == CustomMethods.publishFlutterOutline) {
+    await notificationsFromServer.firstWhere((message) {
+      if (message.method == CustomMethods.publishFlutterOutline) {
         outlineParams = PublishFlutterOutlineParams.fromJson(
             message.params as Map<String, Object?>);
 
@@ -2108,9 +2113,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<Outline> waitForOutline(Uri uri) async {
     late PublishOutlineParams outlineParams;
-    await serverToClient.firstWhere((message) {
-      if (message is NotificationMessage &&
-          message.method == CustomMethods.publishOutline) {
+    await notificationsFromServer.firstWhere((message) {
+      if (message.method == CustomMethods.publishOutline) {
         outlineParams = PublishOutlineParams.fromJson(
             message.params as Map<String, Object?>);
 
