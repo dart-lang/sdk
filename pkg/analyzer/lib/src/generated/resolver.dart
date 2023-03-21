@@ -4874,6 +4874,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         _localVariableInfo.potentiallyMutatedInScope.add(element);
         if (_enclosingClosure != null &&
             element.enclosingElement != _enclosingClosure) {
+          // ignore:deprecated_member_use_from_same_package
           _localVariableInfo.potentiallyMutatedInClosure.add(element);
         }
       }

@@ -5847,6 +5847,7 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   @override
   Token? get star => null;
 
+  @Deprecated('Not used by clients')
   @override
   bool isPotentiallyMutatedInClosure(VariableElement variable) {
     if (localVariableInfo == null) {
@@ -8390,6 +8391,7 @@ class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within a local function other than the function in which they are
   /// declared.
+  @Deprecated('Not used by clients')
   final Set<VariableElement> potentiallyMutatedInClosure = <VariableElement>{};
 
   /// The set of local variables and parameters that are potentially mutated
