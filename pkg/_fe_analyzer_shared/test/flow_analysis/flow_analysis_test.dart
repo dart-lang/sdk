@@ -6450,14 +6450,15 @@ main() {
           });
         });
 
-        test('Promotes scrutinee', () {
+        test('Does not promote scrutinee', () {
           // The code below is equivalent to:
           //     int x;
           //     dynamic y = ...;
           //     (x && _) = y;
-          //     // y is now promoted to `int`.
-          // The promotion occurs because the assignment to `x` performs an
-          // implicit downcast.
+          //     // y is *not* promoted to `int`.
+          // Although the assignment to `x` performs an implicit downcast, we
+          // don't promote `y` because patterns in irrefutable contexts don't
+          // trigger scrutinee promotion.
           var x = Var('x');
           var y = Var('y');
           h.run([
@@ -6468,7 +6469,7 @@ main() {
                 .and(wildcard()..errorId = 'WILDCARD')
                 .assign(y.expr)
                 .stmt,
-            checkPromoted(y, 'int'),
+            checkNotPromoted(y),
           ], expectedErrors: {
             'unnecessaryWildcardPattern(pattern: WILDCARD, '
                 'kind: logicalAndPatternOperand)',
@@ -6544,9 +6545,16 @@ main() {
           h.run([
             declare(x, initializer: expr('(dynamic,)')),
             declare(y, type: 'int'),
-            recordPattern([y.pattern().recordField()]).assign(x.expr).stmt,
-            checkPromoted(x, '(int,)'),
-          ]);
+            recordPattern([y.pattern().recordField()])
+                .and(wildcard(expectInferredType: '(int,)')
+                  ..errorId = 'WILDCARD')
+                .assign(x.expr)
+                .stmt,
+            checkNotPromoted(x),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)'
+          });
         });
 
         test('Supertype of matched value type', () {
@@ -6555,9 +6563,16 @@ main() {
           h.run([
             declare(x, initializer: expr('(int,)')),
             declare(y, type: 'num'),
-            recordPattern([y.pattern().recordField()]).assign(x.expr).stmt,
+            recordPattern([y.pattern().recordField()])
+                .and(wildcard(expectInferredType: '(int,)')
+                  ..errorId = 'WILDCARD')
+                .assign(x.expr)
+                .stmt,
             checkNotPromoted(x),
-          ]);
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)'
+          });
         });
       });
     });
@@ -6824,6 +6839,36 @@ main() {
           ifCase(x.expr, recordPattern([intLiteral(1).pattern.recordField()]), [
             checkNotPromoted(x),
           ]),
+        ]);
+      });
+    });
+
+    group('For-in statement:', () {
+      test('does not promote iterable', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<dynamic>')),
+          patternForIn(
+            wildcard(type: 'int'),
+            x.expr,
+            [],
+          ),
+          checkNotPromoted(x),
+        ]);
+      });
+    });
+
+    group('For-in collection element:', () {
+      test('does not promote iterable', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<dynamic>')),
+          patternForInElement(
+            wildcard(type: 'int'),
+            x.expr,
+            expr('Object').asCollectionElement,
+          ).inContextElementType('Object'),
+          checkNotPromoted(x),
         ]);
       });
     });
@@ -7975,23 +8020,23 @@ main() {
     });
 
     group('Pattern assignment:', () {
-      test('Promotes RHS', () {
+      test('Does not promote RHS', () {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('num')),
           wildcard().as_('int').assign(x.expr).stmt,
-          checkPromoted(x, 'int'),
+          checkNotPromoted(x),
         ]);
       });
     });
 
     group('Pattern variable declaration:', () {
-      test('Promotes RHS', () {
+      test('Does not promote RHS', () {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('num')),
           match(wildcard().as_('int'), x.expr),
-          checkPromoted(x, 'int'),
+          checkNotPromoted(x),
         ]);
       });
     });

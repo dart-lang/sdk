@@ -67,11 +67,11 @@ static method test3(dynamic x, dynamic another) → dynamic
       core::int i2;
       dynamic n2;
       {
-        final synthesized dynamic #1#0 = x{core::List<dynamic>};
-        function ##1#6#initializer() → dynamic
+        final synthesized dynamic #1#0 = x;
+        function ##1#8#initializer() → dynamic
           return #1#0{core::List<dynamic>}.{core::List::[]}(2){(core::int) → dynamic};
-        late final synthesized dynamic #1#6 = ##1#6#initializer(){() → dynamic};
-        if(!(#1#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t16 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && (let final dynamic #t17 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && (#1#6 is{ForNonNullableByDefault} core::int && (let final core::int #t18 = i2 = #1#6{core::int} in true)) && (let final dynamic #t19 = n2 = #1#0{core::List<dynamic>}.{core::List::[]}(3){(core::int) → dynamic} in true)))
+        late final synthesized dynamic #1#8 = ##1#8#initializer(){() → dynamic};
+        if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t16 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && (let final dynamic #t17 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && (#1#8 is{ForNonNullableByDefault} core::int && (let final core::int #t18 = i2 = #1#8{core::int} in true)) && (let final dynamic #t19 = n2 = #1#0{core::List<dynamic>}.{core::List::[]}(3){(core::int) → dynamic} in true)))
           throw new _in::ReachabilityError::•();
       }
       final core::int #t20 = i2;
@@ -156,4 +156,4 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_c_style_pattern_
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_c_style_pattern_for_in_collections.dart:48:22 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_c_style_pattern_for_in_collections.dart:48:26 -> IntConstant(-2)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_c_style_pattern_for_in_collections.dart:48:30 -> IntConstant(-2)
-Extra constant evaluation: evaluated: 309, effectively constant: 24
+Extra constant evaluation: evaluated: 312, effectively constant: 24

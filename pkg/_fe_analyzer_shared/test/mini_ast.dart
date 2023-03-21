@@ -882,6 +882,8 @@ class MiniAstOperations
 
   static final Map<String, Type> _coreGlbs = {
     '?, int': Type('int'),
+    '(int,), ?': Type('(int,)'),
+    '(num,), ?': Type('(num,)'),
     'Object?, double': Type('double'),
     'Object?, int': Type('int'),
     'double, int': Type('Never'),
