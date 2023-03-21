@@ -16,11 +16,15 @@
 import 'dart:convert';
 import 'dart:io';
 
-void main() async {
+const countRuns = 2;
+
+void main(List<String> args) async {
   try {
     final results = <Map<String, dynamic>>[];
-    results.addAll(await runBenchmarks(warm: true));
-    results.addAll(await runBenchmarks(warm: false));
+    for (int i = 0; i < countRuns; ++i) {
+      results.addAll(await runBenchmarks(warm: true));
+      results.addAll(await runBenchmarks(warm: false));
+    }
 
     if (!Platform.isWindows) {
       print("Analyzer benchmark uploads only run on Windows");
