@@ -53,12 +53,21 @@ class PreferFinalParametersTestLanguage300 extends LintRuleTest
   String get lintRule => 'prefer_final_parameters';
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4156')
-  test_recordPattern_destructured() async {
+  test_listPattern_destructured() async {
     await assertNoDiagnostics('''
 void f(int p) {
-  var list = [1, 2, 3];
-  var [_, p, _] = list;
+  [_, p, _] = [1, 2, 3];
   print(p);
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4156')
+  test_recordPattern_destructured() async {
+    await assertNoDiagnostics(r'''
+void f(int a, int b) {
+  (a, b) = (1, 2);
+  print('$a$b');
 }
 ''');
   }
