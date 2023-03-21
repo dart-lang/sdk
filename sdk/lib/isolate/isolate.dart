@@ -198,7 +198,55 @@ class Isolate {
   /// isolate without copying.
   ///
   /// The [computation] function and its result (or error) must be
-  /// sendable between isolates.
+  /// sendable between isolates. Objects that cannot be sent include open
+  /// files and sockets (see [SendPort.send] for details).
+  ///
+  /// If [computation] is a closure then it may implicitly send unexpected
+  /// state to the isolate due to limitations in the Dart implementation. This
+  /// can cause performance issues, increased memory usage
+  /// (see http://dartbug.com/36983) or, if the state includes objects that
+  /// can't be spent between isolates, a runtime failure.
+  ///
+  /// ```dart import:convert import:io
+  ///
+  /// void serializeAndWrite(File f, Object o) async {
+  ///   final openFile = await f.open(mode: FileMode.append);
+  ///   Future writeNew() async {
+  ///     // Will fail with:
+  ///     // "Invalid argument(s): Illegal argument in isolate message"
+  ///     // because `openFile` is captured.
+  ///     final encoded = await Isolate.run(() => jsonEncode(o));
+  ///     await openFile.writeString(encoded);
+  ///     await openFile.flush();
+  ///     await openFile.close();
+  ///   }
+  ///
+  ///   if (await openFile.position() == 0) {
+  ///     await writeNew();
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// In such cases, you can create a new function to call [Isolate.run] that
+  /// takes all of the required state as arguments.
+  ///
+  /// ```dart import:convert import:io
+  ///
+  /// void serializeAndWrite(File f, Object o) async {
+  ///   final openFile = await f.open(mode: FileMode.append);
+  ///   Future writeNew() async {
+  ///     Future<String> encode(o) => Isolate.run(() => jsonEncode(o));
+  ///     final encoded = await encode(o);
+  ///     await openFile.writeString(encoded);
+  ///     await openFile.flush();
+  ///     await openFile.close();
+  ///   }
+  ///
+  ///   if (await openFile.position() == 0) {
+  ///     await writeNew();
+  ///   }
+  /// }
+  /// ```
   ///
   /// The [debugName] is only used to name the new isolate for debugging.
   @Since("2.19")
