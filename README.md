@@ -8,7 +8,7 @@ analysis server and the `dart analyze` command in the [Dart command-line tool][d
 [![Coverage Status](https://coveralls.io/repos/dart-lang/linter/badge.svg)](https://coveralls.io/r/dart-lang/linter)
 [![Pub](https://img.shields.io/pub/v/linter.svg)](https://pub.dev/packages/linter)
 [![package publisher](https://img.shields.io/pub/publisher/linter.svg)](https://pub.dev/packages/linter/publisher)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/dart-lang/linter/badge)](https://api.securityscorecards.dev/projects/github.com/dart-lang/linter)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/dart-lang/linter/badge)](https://deps.dev/project/github/dart-lang%2Flinter)
 
 ## Installing
 
