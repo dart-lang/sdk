@@ -500,6 +500,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    computer._addRegionForNode(node.name, node.element);
+    node.pattern.accept(this);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     super.visitPostfixExpression(node);
     computer._addRegionForToken(node.operator, node.staticElement);
