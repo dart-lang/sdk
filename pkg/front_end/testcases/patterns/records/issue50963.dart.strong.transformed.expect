@@ -6,6 +6,7 @@ static method test() → dynamic {
   final(core::int, core::int) x = (1, 2);
   core::print( block {
     core::int #t1;
+    final synthesized(core::int, core::int) #0#0 = x;
     #L1:
     {
       {
@@ -18,6 +19,7 @@ static method test() → dynamic {
   } =>#t1);
   core::print( block {
     core::int #t2;
+    final synthesized(core::int, core::int) #1#0 = (1, 2);
     #L2:
     {
       {
@@ -33,4 +35,5 @@ static method test() → dynamic {
 
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///issue50963.dart:6:13 -> RecordConstant(const (1, 2))
-Extra constant evaluation: evaluated: 9, effectively constant: 1
+Evaluated: RecordLiteral @ org-dartlang-testcase:///issue50963.dart:9:17 -> RecordConstant(const (1, 2))
+Extra constant evaluation: evaluated: 11, effectively constant: 2

@@ -10203,6 +10203,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   bool _needsCheck(
       {required DartType matchedType, required DartType requiredType}) {
     return !isAssignable(requiredType, matchedType) ||
+        matchedType is InvalidType ||
         matchedType is DynamicType;
   }
 
@@ -10552,7 +10553,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         lookupType, lengthName, node.fileOffset,
         includeExtensionMethods: true,
         callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-    assert(lengthTarget.isInstanceMember);
+    assert(lengthTarget.isInstanceMember,
+        "Unexpected Map.length target ${lengthTarget}.");
 
     DartType lengthType = node.lengthType = lengthTarget.getGetterType(this);
     node.lengthTarget = lengthTarget.member!;

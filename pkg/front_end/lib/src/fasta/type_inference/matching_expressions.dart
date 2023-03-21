@@ -110,20 +110,22 @@ class MatchingExpressionVisitor
             fileOffset: node.fileOffset),
         fileOffset: node.fileOffset);
 
-    CacheableExpression lengthCheck;
+    CacheableExpression? lengthCheck;
     if (node.hasRestPattern) {
-      CacheableExpression constExpression = matchingCache.createIntConstant(
-          node.patterns.length - 1,
-          fileOffset: node.fileOffset);
+      int minLength = node.patterns.length - 1;
+      if (minLength > 0) {
+        CacheableExpression constExpression = matchingCache
+            .createIntConstant(minLength, fileOffset: node.fileOffset);
 
-      lengthCheck = matchingCache.createComparisonExpression(
-          lengthGet,
-          greaterThanOrEqualsName.text,
-          constExpression,
-          new DelayedInstanceInvocation(lengthGet, node.lengthCheckTarget,
-              node.lengthCheckType!, [constExpression],
-              fileOffset: node.fileOffset),
-          fileOffset: node.fileOffset);
+        lengthCheck = matchingCache.createComparisonExpression(
+            lengthGet,
+            greaterThanOrEqualsName.text,
+            constExpression,
+            new DelayedInstanceInvocation(lengthGet, node.lengthCheckTarget,
+                node.lengthCheckType!, [constExpression],
+                fileOffset: node.fileOffset),
+            fileOffset: node.fileOffset);
+      }
     } else {
       CacheableExpression constExpression = matchingCache
           .createIntConstant(node.patterns.length, fileOffset: node.fileOffset);
@@ -137,12 +139,14 @@ class MatchingExpressionVisitor
           fileOffset: node.fileOffset);
     }
 
-    DelayedExpression matchingExpression;
-    if (isExpression != null) {
+    DelayedExpression? matchingExpression;
+    if (isExpression != null && lengthCheck != null) {
       matchingExpression = matchingCache.createAndExpression(
           isExpression, lengthCheck,
           fileOffset: node.fileOffset);
-    } else {
+    } else if (isExpression != null) {
+      matchingExpression = isExpression;
+    } else if (lengthCheck != null) {
       matchingExpression = lengthCheck;
     }
 
@@ -242,7 +246,8 @@ class MatchingExpressionVisitor
             fileOffset: node.fileOffset);
       }
     }
-    return matchingExpression;
+    return matchingExpression ??
+        new BooleanExpression(true, fileOffset: node.fileOffset);
   }
 
   @override
@@ -270,20 +275,23 @@ class MatchingExpressionVisitor
             fileOffset: node.fileOffset),
         fileOffset: node.fileOffset);
 
-    CacheableExpression lengthCheck;
+    CacheableExpression? lengthCheck;
     if (node.hasRestPattern) {
-      CacheableExpression constExpression = matchingCache.createIntConstant(
-          node.entries.length - 1,
-          fileOffset: node.fileOffset);
+      int minLength = node.entries.length - 1;
+      if (minLength > 0) {
+        CacheableExpression constExpression = matchingCache.createIntConstant(
+            node.entries.length - 1,
+            fileOffset: node.fileOffset);
 
-      lengthCheck = matchingCache.createComparisonExpression(
-          lengthGet,
-          greaterThanOrEqualsName.text,
-          constExpression,
-          new DelayedInstanceInvocation(lengthGet, node.lengthCheckTarget,
-              node.lengthCheckType!, [constExpression],
-              fileOffset: node.fileOffset),
-          fileOffset: node.fileOffset);
+        lengthCheck = matchingCache.createComparisonExpression(
+            lengthGet,
+            greaterThanOrEqualsName.text,
+            constExpression,
+            new DelayedInstanceInvocation(lengthGet, node.lengthCheckTarget,
+                node.lengthCheckType!, [constExpression],
+                fileOffset: node.fileOffset),
+            fileOffset: node.fileOffset);
+      }
     } else {
       CacheableExpression constExpression = matchingCache
           .createIntConstant(node.entries.length, fileOffset: node.fileOffset);
@@ -297,12 +305,14 @@ class MatchingExpressionVisitor
           fileOffset: node.fileOffset);
     }
 
-    DelayedExpression matchingExpression;
-    if (isExpression != null) {
+    DelayedExpression? matchingExpression;
+    if (isExpression != null && lengthCheck != null) {
       matchingExpression = matchingCache.createAndExpression(
           isExpression, lengthCheck,
           fileOffset: node.fileOffset);
-    } else {
+    } else if (isExpression != null) {
+      matchingExpression = isExpression;
+    } else if (lengthCheck != null) {
       matchingExpression = lengthCheck;
     }
 
@@ -353,7 +363,8 @@ class MatchingExpressionVisitor
             fileOffset: node.fileOffset);
       }
     }
-    return matchingExpression;
+    return matchingExpression ??
+        new BooleanExpression(true, fileOffset: node.fileOffset);
   }
 
   @override

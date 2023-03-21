@@ -1175,6 +1175,8 @@ class ConstantsTransformer extends RemovingTransformer {
           new MatchingExpressionVisitor(matchingCache);
       CacheableExpression matchedExpression =
           matchingCache.createRootExpression(node.expression, scrutineeType);
+      // This expression is used, even if no case reads it.
+      matchedExpression.registerUse();
 
       List<Statement> replacementStatements = [];
 
@@ -1196,6 +1198,10 @@ class ConstantsTransformer extends RemovingTransformer {
           return matchingExpression;
         });
       });
+
+      // Forcefully create the matched expression so it is included even when
+      // no cases read it.
+      matchedExpression.createExpression(typeEnvironment);
 
       // TODO(johnniwinther): Remove this when an error is reported in case of
       // variables and labels on the same switch case.
@@ -1529,10 +1535,16 @@ class ConstantsTransformer extends RemovingTransformer {
         new MatchingExpressionVisitor(matchingCache);
     CacheableExpression matchedExpression = matchingCache.createRootExpression(
         node.expression, node.matchedValueType!);
+    // This expression is used, even if the matching expression doesn't read it.
+    matchedExpression.registerUse();
+
     DelayedExpression matchingExpression = matchingExpressionVisitor
         .visitPattern(node.patternGuard.pattern, matchedExpression);
-
     matchingExpression.registerUse();
+
+    // Forcefully create the matched expression so it is included even when
+    // matching expression doesn't read it.
+    matchedExpression.createExpression(typeEnvironment);
 
     Expression condition = matchingExpression.createExpression(typeEnvironment);
     Expression? guard = node.patternGuard.guard;
@@ -1573,11 +1585,17 @@ class ConstantsTransformer extends RemovingTransformer {
     DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(node.initializer, matchedType);
+    // This expression is used, even if the matching expression doesn't read it.
+    matchedExpression.registerUse();
 
     DelayedExpression matchingExpression =
         matchingExpressionVisitor.visitPattern(node.pattern, matchedExpression);
 
     matchingExpression.registerUse();
+
+    // Forcefully create the matched expression so it is included even when
+    // the matching expression doesn't read it.
+    matchedExpression.createExpression(typeEnvironment);
 
     Expression readMatchingExpression =
         matchingExpression.createExpression(typeEnvironment);
@@ -1794,6 +1812,8 @@ class ConstantsTransformer extends RemovingTransformer {
           new MatchingExpressionVisitor(matchingCache);
       CacheableExpression matchedExpression =
           matchingCache.createRootExpression(node.expression, scrutineeType);
+      // This expression is used, even if no case reads it.
+      matchedExpression.registerUse();
 
       LabeledStatement labeledStatement =
           createLabeledStatement(dummyStatement, fileOffset: node.fileOffset);
@@ -1813,6 +1833,10 @@ class ConstantsTransformer extends RemovingTransformer {
         matchingExpression.registerUse();
         return matchingExpression;
       });
+
+      // Forcefully create the matched expression so it is included even when
+      // no cases read it.
+      matchedExpression.createExpression(typeEnvironment);
 
       for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
         SwitchExpressionCase switchCase = node.cases[caseIndex];
