@@ -20,7 +20,7 @@ worlds:
       lib.dart: |
         import 'dart:ffi';
 
-        class Coordinate extends Struct {
+        final class Coordinate extends Struct {
           @Double()
           external double x;
 

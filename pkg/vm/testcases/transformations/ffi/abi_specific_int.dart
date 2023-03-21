@@ -27,7 +27,7 @@ import 'dart:ffi';
   Abi.windowsIA32: Uint16(),
   Abi.windowsX64: Uint16(),
 })
-class WChar extends AbiSpecificInteger {
+final class WChar extends AbiSpecificInteger {
   const WChar();
 }
 
@@ -60,7 +60,7 @@ void testStoreLoadIndexed() {
   noAlloc.free(p);
 }
 
-class WCharStruct extends Struct {
+final class WCharStruct extends Struct {
   @WChar()
   external int a0;
 
@@ -77,7 +77,7 @@ void testStruct() {
   noAlloc.free(p);
 }
 
-class WCharArrayStruct extends Struct {
+final class WCharArrayStruct extends Struct {
   @Array(100)
   external Array<WChar> a0;
 }

@@ -176,6 +176,7 @@ abstract class TestSuite {
         const {
           Compiler.dart2js,
           Compiler.ddc,
+          Compiler.dart2wasm,
         }.contains(configuration.compiler)) {
       return true;
     }

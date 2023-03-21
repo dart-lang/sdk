@@ -16,7 +16,7 @@ import '../../../../../tests/ffi/dylib_utils.dart';
 // This should be larger than max-new-space-size/tlab-size.
 const int threadCount = 200;
 
-class Isolate extends Opaque {}
+final class Isolate extends Opaque {}
 
 typedef Dart_CurrentIsolateFT = Pointer<Isolate> Function();
 typedef Dart_CurrentIsolateNFT = Pointer<Isolate> Function();

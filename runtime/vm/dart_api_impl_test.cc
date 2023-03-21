@@ -3828,11 +3828,11 @@ TEST_CASE(DartAPI_WeakPersistentHandleErrors) {
   const char* kScriptChars = R"(
       import 'dart:ffi';
 
-      class MyStruct extends Struct {
+      final class MyStruct extends Struct {
         external Pointer notEmpty;
       }
 
-      class MyUnion extends Union {
+      final class MyUnion extends Union {
         external Pointer notEmpty;
       }
   )";
@@ -3888,11 +3888,11 @@ TEST_CASE(DartAPI_FinalizableHandleErrors) {
   const char* kScriptChars = R"(
       import 'dart:ffi';
 
-      class MyStruct extends Struct {
+      final class MyStruct extends Struct {
         external Pointer notEmpty;
       }
 
-      class MyUnion extends Union {
+      final class MyUnion extends Union {
         external Pointer notEmpty;
       }
   )";

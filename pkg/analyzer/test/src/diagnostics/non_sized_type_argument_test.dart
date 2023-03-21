@@ -19,12 +19,12 @@ class NonSizedTypeArgument extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Array(8)
   external Array<Void> a0;
 }
 ''', [
-      error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 74, 4),
+      error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 80, 4),
     ]);
   }
 
@@ -32,12 +32,12 @@ class C extends Struct {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-class C extends Union {
+final class C extends Union {
   @Array(8)
   external Array<Void> a0;
 }
 ''', [
-      error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 73, 4),
+      error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 79, 4),
     ]);
   }
 
@@ -45,7 +45,7 @@ class C extends Union {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Array(8)
   external Array<Uint8> a0;
 }
