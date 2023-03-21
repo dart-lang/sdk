@@ -308,14 +308,14 @@ CompileTimeErrorCode:
 
       #### Example
 
-      Given a file named `a.dart` containing
+      Given a file `a.dart` containing
 
       ```dart
       %uri="lib/a.dart"
       class C {}
       ```
 
-      And a file named `b.dart` containing
+      And a file `b.dart` containing
 
       ```dart
       %uri="lib/b.dart"
@@ -1133,6 +1133,52 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the base class being implemented
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `extends`, `implements`,
+      `with`, or `on` clause uses a class or mixin in a way that isn't allowed
+      given the modifiers on that class or mixin's declaration.
+
+      The message specifies how the declaration is being used and why it isn't
+      allowed.
+
+      #### Example
+
+      Given a file `a.dart` that defines a base class `A`:
+
+      ```dart
+      %uri="lib/a.dart"
+      base class A {}
+      ```
+
+      The following code produces this diagnostic because the class `B`
+      implements the class `A`, but the `base` modifier prevents `A` from being
+      implemented outside of the library where it's defined:
+
+      ```dart
+      import 'a.dart';
+
+      final class B implements [!A!] {}
+      ```
+
+      #### Common fixes
+
+      Use of this type is restricted outside of its declaring library. If a
+      different, unrestricted type is available that can provide similar
+      functionality, then replace the type:
+
+      ```dart
+      class B implements C {}
+      class C {}
+      ```
+
+      If there isn't a different type that would be appropriate, then remove the
+      type, and possibly the whole clause:
+
+      ```dart
+      class B {}
+      ```
   BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The mixin '{0}' can't be implemented outside of its library because it's a base mixin."
@@ -1598,10 +1644,41 @@ CompileTimeErrorCode:
       int y = x as int;
       ```
   CLASS_USED_AS_MIXIN:
-    problemMessage: "The class '{0}' can't be used as a mixin because it isn't a mixin class nor a mixin."
+    problemMessage: "The class '{0}' can't be used as a mixin because it's neither a mixin class nor a mixin."
     comment: |-
       Parameters:
       0: the name of the class being used as a mixin
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class that is neither a
+      `mixin class` nor a `mixin` is used in a `with` clause.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `M` is being
+      used as a mixin, but it isn't defined as a `mixin class`:
+
+      ```dart
+      class M {}
+      class C with [!M!] {}
+      ```
+
+      #### Common fixes
+
+      If the class can be a pure mixin, then change `class` to `mixin`:
+
+      ```dart
+      mixin M {}
+      class C with M {}
+      ```
+
+      If the class needs to be both a class and a mixin, then add `mixin`:
+
+      ```dart
+      mixin class M {}
+      class C with M {}
+      ```
   CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER:
     sharedName: CLASS_INSTANTIATION_ACCESS_TO_MEMBER
     problemMessage: "The instance member '{0}' can't be accessed on a class instantiation."
@@ -1680,12 +1757,12 @@ CompileTimeErrorCode:
       deferred import. Constants are evaluated at compile time, and values from
       deferred libraries aren't available at compile time.
 
-      For more information, see the language tour's coverage of
-      [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
       #### Example
 
-      Given a file (`a.dart`) that defines the constant `zero`:
+      Given a file `a.dart` that defines the constant `zero`:
 
       ```dart
       %uri="lib/a.dart"
@@ -1731,6 +1808,84 @@ CompileTimeErrorCode:
     problemMessage: Constant values from a deferred library can't be used in patterns.
     correctionMessage: Try removing the keyword 'deferred' from the import.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a pattern contains a value
+      declared in a different library, and that library is imported using a
+      deferred import. Constants are evaluated at compile time, but values from
+      deferred libraries aren't available at compile time.
+
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
+
+      #### Example
+
+      Given a file `a.dart` that defines the constant `zero`:
+
+      ```dart
+      %uri="lib/a.dart"
+      const zero = 0;
+      ```
+
+      The following code produces this diagnostic because the constant pattern
+      `a.zero` is imported using a deferred import:
+
+      ```dart
+      import 'a.dart' deferred as a;
+
+      void f(int x) {
+        switch (x) {
+          case a.[!zero!]:
+            // ...
+            break;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If you need to reference the constant from the imported library, then
+      remove the `deferred` keyword:
+
+      ```dart
+      import 'a.dart' as a;
+
+      void f(int x) {
+        switch (x) {
+          case a.zero:
+            // ...
+            break;
+        }
+      }
+      ```
+
+      If you need to reference the constant from the imported library and also
+      need the imported library to be deferred, then rewrite the switch
+      statement as a sequence of `if` statements:
+
+      ```dart
+      import 'a.dart' deferred as a;
+
+      void f(int x) {
+        if (x == a.zero) {
+          // ...
+        }
+      }
+      ```
+
+      If you don't need to reference the constant, then replace the case
+      expression:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case 0:
+            // ...
+            break;
+        }
+      }
+      ```
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' set literal."
@@ -2376,8 +2531,8 @@ CompileTimeErrorCode:
       Constants are evaluated at compile time, and classes from deferred
       libraries aren't available at compile time.
 
-      For more information, see the language tour's coverage of
-      [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
       #### Example
 
@@ -2504,8 +2659,8 @@ CompileTimeErrorCode:
       a deferred import. Constants are evaluated at compile time, and values from
       deferred libraries aren't available at compile time.
 
-      For more information, see the language tour's coverage of
-      [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
       #### Example
 
@@ -2587,12 +2742,13 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when the class of object used as a
-      key in a constant map literal implements the `==` operator. The
-      implementation of constant maps uses the `==` operator, so any
-      implementation other than the one inherited from `Object` requires
-      executing arbitrary code at compile time, which isn't supported.
+      key in a constant map literal implements either the `==` operator, the
+      getter `hashCode`, or both. The implementation of constant maps uses both
+      the `==` operator and the `hashCode` getter, so any implementation other
+      than the ones inherited from `Object` requires executing arbitrary code at
+      compile time, which isn't supported.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the constant map
       contains a key whose type is `C`, and the class `C` overrides the
@@ -2608,9 +2764,24 @@ CompileTimeErrorCode:
       const map = {[!C()!] : 0};
       ```
 
+      The following code produces this diagnostic because the constant map
+      contains a key whose type is `C`, and the class `C` overrides the
+      implementation of `hashCode`:
+
+      ```dart
+      class C {
+        const C();
+
+        int get hashCode => 3;
+      }
+
+      const map = {[!C()!] : 0};
+      ```
+
       #### Common fixes
 
-      If you can remove the implementation of `==` from the class, then do so:
+      If you can remove the implementation of `==` and `hashCode` from the
+      class, then do so:
 
       ```dart
       class C {
@@ -2620,8 +2791,8 @@ CompileTimeErrorCode:
       const map = {C() : 0};
       ```
 
-      If you can't remove the implementation of `==` from the class, then make
-      the map be non-constant:
+      If you can't remove the implementation of `==` and `hashCode` from the
+      class, then make the map non-constant:
 
       ```dart
       class C {
@@ -2671,10 +2842,11 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when the class of object used as an
-      element in a constant set literal implements the `==` operator. The
-      implementation of constant sets uses the `==` operator, so any
-      implementation other than the one inherited from `Object` requires
-      executing arbitrary code at compile time, which isn't supported.
+      element in a constant set literal implements either the `==` operator, the
+      getter `hashCode`, or both. The implementation of constant sets uses both
+      the `==` operator and the `hashCode` getter, so any implementation other
+      than the ones inherited from `Object` requires executing arbitrary code at
+      compile time, which isn't supported.
 
       #### Example
 
@@ -2692,9 +2864,24 @@ CompileTimeErrorCode:
       const set = {[!C()!]};
       ```
 
+      The following code produces this diagnostic because the constant set
+      contains an element whose type is `C`, and the class `C` overrides the
+      implementation of `hashCode`:
+
+      ```dart
+      class C {
+        const C();
+
+        int get hashCode => 3;
+      }
+
+      const map = {[!C()!]};
+      ```
+
       #### Common fixes
 
-      If you can remove the implementation of `==` from the class, then do so:
+      If you can remove the implementation of `==` and `hashCode` from the
+      class, then do so:
 
       ```dart
       class C {
@@ -2704,8 +2891,8 @@ CompileTimeErrorCode:
       const set = {C()};
       ```
 
-      If you can't remove the implementation of `==` from the class, then make
-      the set be non-constant:
+      If you can't remove the implementation of `==` and `hashCode` from the
+      class, then make the set non-constant:
 
       ```dart
       class C {
@@ -2944,6 +3131,48 @@ CompileTimeErrorCode:
     problemMessage: The expression of a constant pattern must be a valid constant.
     correctionMessage: Try making the expression a valid constant.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a constant pattern has an
+      expression that isn't a valid constant.
+
+      #### Example
+
+      The following code produces this diagnostic because the constant pattern
+      `i` isn't a constant:
+
+      ```dart
+      void f(int e, int i) {
+        switch (e) {
+          case [!i!]:
+            break;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the value that should be matched is known, then replace the expression
+      with a constant:
+
+      ```dart
+      void f(int e, int i) {
+        switch (e) {
+          case 0:
+            break;
+        }
+      }
+      ```
+
+      If the value that should be matched isn't known, then rewrite the code to
+      not use a pattern:
+
+      ```dart
+      void f(int e, int i) {
+        if (e == i) {}
+      }
+      ```
   CONTINUE_LABEL_INVALID:
     previousName: CONTINUE_LABEL_ON_SWITCH
     hasPublishedDocs: true
@@ -3183,12 +3412,12 @@ CompileTimeErrorCode:
       library. Extension methods are resolved at compile time, and extensions
       from deferred libraries aren't available at compile time.
 
-      For more information, see the language tour's coverage of
-      [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
       #### Example
 
-      Given a file (`a.dart`) that defines a named extension:
+      Given a file `a.dart` that defines a named extension:
 
       ```dart
       %uri="lib/a.dart"
@@ -3455,6 +3684,37 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the duplicated name
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when either a record literal or a
+      record type annotation contains a field whose name is the same as a
+      previously declared field in the same literal or type.
+
+      #### Examples
+
+      The following code produces this diagnostic because the record literal has
+      two fields named `a`:
+
+      ```dart
+      var r = (a: 1, [!a!]: 2);
+      ```
+
+      The following code produces this diagnostic because the record type
+      annotation has two fields named `a`, one a positional field and the other
+      a named field:
+
+      ```dart
+      void f((int a, {int [!a!]}) r) {}
+      ```
+
+      #### Common fixes
+
+      Rename one or both of the fields:
+
+      ```dart
+      var r = (a: 1, b: 2);
+      ```
   DUPLICATE_FIELD_FORMAL_PARAMETER:
     problemMessage: "The field '{0}' can't be initialized by multiple parameters in the same constructor."
     correctionMessage: Try removing one of the parameters, or using different fields.
@@ -3565,7 +3825,7 @@ CompileTimeErrorCode:
 
       #### Example
 
-      Given a file named `part.dart` containing
+      Given a file `part.dart` containing
 
       ```dart
       %uri="lib/part.dart"
@@ -3597,21 +3857,195 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a single pattern variable is
+      assigned a value more than once in the same pattern assignment.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable `a` is
+      assigned twice in the pattern `(a, a)`:
+
+      ```dart
+      int f((int, int) r) {
+        int a;
+        (a, [!a!]) = r;
+        return a;
+      }
+      ```
+
+      #### Common fixes
+
+      If you need to capture all of the values, then use a unique variable for
+      each of the subpatterns being matched:
+
+      ```dart
+      int f((int, int) r) {
+        int a, b;
+        (a, b) = r;
+        return a + b;
+      }
+      ```
+
+      If some of the values don't need to be captured, then use a wildcard
+      pattern `_` to avoid having to bind the value to a variable:
+
+      ```dart
+      int f((int, int) r) {
+        int a;
+        (_, a) = r;
+        return a;
+      }
+      ```
   DUPLICATE_PATTERN_FIELD:
     problemMessage: The field '{0}' is already matched in this pattern.
     correctionMessage: Try removing the duplicate field.
     comment: |-
       Parameters:
       0: the name of the field
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a record pattern matches the
+      same field more than once, or when an object pattern matches the same
+      getter more than once.
+
+      #### Examples
+
+      The following code produces this diagnostic because the record field `a`
+      is matched twice in the same record pattern:
+
+      ```dart
+      void f(({int a, int b}) r) {
+        switch (r) {
+          case (a: 1, [!a!]: 2):
+            return;
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the getter `f` is
+      matched twice in the same object pattern:
+
+      ```dart
+      void f(Object o) {
+        switch (0) {
+          case C(f: 1, [!f!]: 2):
+            return;
+        }
+      }
+      class C {
+        int? f;
+      }
+      ```
+
+      #### Common fixes
+
+      If the pattern should match for more than one value of the duplicated
+      field, then use a logical-or pattern:
+
+      ```dart
+      void f(({int a, int b}) r) {
+        switch (r) {
+          case (a: 1, b: _) || (a: 2, b: _):
+            break;
+        }
+      }
+      ```
+
+      If the pattern should match against multiple fields, then change the name
+      of one of the fields:
+
+      ```dart
+      void f(({int a, int b}) r) {
+        switch (r) {
+          case (a: 1, b: 2):
+            return;
+        }
+      }
+      ```
   DUPLICATE_REST_ELEMENT_IN_PATTERN:
     problemMessage: At most one rest element is allowed in a list or map pattern.
     correctionMessage: Try removing the duplicate rest element.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when there's more than one rest
+      pattern in either a list or map pattern. A rest pattern will capture any
+      values unmatched by other subpatterns, making subsequent rest patterns
+      unnecessary because there's nothing left to capture.
+
+      #### Example
+
+      The following code produces this diagnostic because there are two rest
+      patterns in the list pattern:
+
+      ```dart
+      void f(List<int> x) {
+        if (x case [0, ..., [!...!]]) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Remove all but one of the rest patterns:
+
+      ```dart
+      void f(List<int> x) {
+        if (x case [0, ...]) {}
+      }
+      ```
   DUPLICATE_VARIABLE_PATTERN:
     problemMessage: The variable '{0}' is already defined in this pattern.
     correctionMessage: Try renaming the variable.
     comment: |-
       Parameters:
       0: the name of the variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a branch of a logical-and
+      pattern declares a variable that is already declared in an earlier branch
+      of the same pattern.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable `a` is
+      declared in both branches of the logical-and pattern:
+
+      ```dart
+      void f((int, int) r) {
+        if (r case (var a, 0) && (0, var [!a!])) {
+          print(a);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If you need to capture the matched value in multiple branches, then change
+      the names of the variables so that they are unique:
+
+      ```dart
+      void f((int, int) r) {
+        if (r case (var a, 0) && (0, var b)) {
+          print(a + b);
+        }
+      }
+      ```
+
+      If you only need to capture the matched value on one branch, then remove
+      the variable pattern from all but one branch:
+
+      ```dart
+      void f((int, int) r) {
+        if (r case (var a, 0) && (0, _)) {
+          print(a);
+        }
+      }
+      ```
   ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
     problemMessage: "The name of the enum constant can't be the same as the enum's name."
     correctionMessage: Try renaming the constant.
@@ -3880,12 +4314,75 @@ CompileTimeErrorCode:
     problemMessage: Two keys in a map pattern can't be equal.
     correctionMessage: Change or remove the duplicate key.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a map pattern contains more
+      than one key with the same name. The same key can't be matched twice.
+
+      #### Example
+
+      The following code produces this diagnostic because the key `'a'` appears
+      twice:
+
+      ```dart
+      void f(Map<String, int> x) {
+        if (x case {'a': 1, [!'a'!]: 2}) {}
+      }
+      ```
+
+      #### Common fixes
+
+      If you are trying to match two different keys, then change one of the keys
+      in the pattern:
+
+      ```dart
+      void f(Map<String, int> x) {
+        if (x case {'a': 1, 'b': 2}) {}
+      }
+      ```
+
+      If you are trying to match the same key, but allow any one of multiple
+      patterns to match, the use a logical-or pattern:
+
+      ```dart
+      void f(Map<String, int> x) {
+        if (x case {'a': 1 || 2}) {}
+      }
+      ```
   EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
     problemMessage: List patterns require one type argument or none, but {0} found.
     correctionMessage: Try adjusting the number of type arguments.
     comment: |-
       Parameters:
       0: the number of provided type arguments
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a list pattern has more than
+      one type argument. List patterns can have either zero type arguments or
+      one type argument, but can't have more than one.
+
+      #### Example
+
+      The following code produces this diagnostic because the list pattern
+      (`[0]`) has two type arguments:
+
+      ```dart
+      void f(Object x) {
+        if (x case [!<int, int>!][0]) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Remove all but one of the type arguments:
+
+      ```dart
+      void f(Object x) {
+        if (x case <int>[0]) {}
+      }
+      ```
   EXPECTED_ONE_LIST_TYPE_ARGUMENTS:
     problemMessage: "List literals require one type argument or none, but {0} found."
     correctionMessage: Try adjusting the number of type arguments.
@@ -3979,6 +4476,34 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the number of provided type arguments
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a map pattern has either one
+      type argument or more than two type arguments. Map patterns can have
+      either two type arguments or zero type arguments, but can't have any other
+      number.
+
+      #### Example
+
+      The following code produces this diagnostic because the map pattern
+      (`<int>{}`) has one type argument:
+
+      ```dart
+      void f(Object x) {
+        if (x case [!<int>!]{}) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Add or remove type arguments until there are two, or none:
+
+      ```dart
+      void f(Object x) {
+        if (x case <int, int>{}) {}
+      }
+      ```
   EXPORT_INTERNAL_LIBRARY:
     problemMessage: "The library '{0}' is internal and can't be exported."
     hasPublishedDocs: true
@@ -4071,7 +4596,7 @@ CompileTimeErrorCode:
 
       #### Example
 
-      Given a file named `part.dart` containing
+      Given a file `part.dart` containing
 
       ```dart
       %uri="lib/part.dart"
@@ -6205,6 +6730,79 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the pattern variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a pattern variable that is
+      declared on all branches of a logical-or pattern doesn't have the same
+      type on every branch. It is also produced when the variable has a
+      different finality on different branches. A pattern variable declared on
+      multiple branches of a logical-or pattern is required to have the same
+      type and finality in each branch, so that the type and finality of the
+      variable can be known in code that's guarded by the logical-or pattern.
+
+      #### Examples
+
+      The following code produces this diagnostic because the variable `a` is
+      defined to be an `int` on one branch and a `double` on the other:
+
+      ```dart
+      void f(Object? x) {
+        if (x case (int a) || (double [!a!])) {
+          print(a);
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the variable `a` is
+      `final` in the first branch and isn't `final` in the second branch:
+
+      ```dart
+      void f(Object? x) {
+        if (x case (final int a) || (int [!a!])) {
+          print(a);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the finality of the variable is different, decide whether it should be
+      `final` or not `final` and make the cases consistent:
+
+      ```dart
+      void f(Object? x) {
+        if (x case (int a) || (int a)) {
+          print(a);
+        }
+      }
+      ```
+
+      If the type of the variable is different and the type isn't critical to
+      the condition being matched, then ensure that the variable has the same
+      type on both branches:
+
+      ```dart
+      void f(Object? x) {
+        if (x case (num a) || (num a)) {
+          print(a);
+        }
+      }
+      ```
+
+      If the type of the variable is different and the type is critical to the
+      condition being matched, then consider breaking the condition into
+      multiple `if` statements or `case` clauses:
+
+      ```dart
+      void f(Object? x) {
+        if (x case int a) {
+          print(a);
+        } else if (x case double a) {
+          print(a);
+        }
+      }
+      ```
   INITIALIZER_FOR_NON_EXISTENT_FIELD:
     problemMessage: "'{0}' isn't a field in the enclosing class."
     correctionMessage: "Try correcting the name to match an existing field, or defining a field named '{0}'."
@@ -6826,8 +7424,8 @@ CompileTimeErrorCode:
       of an annotation. Annotations are evaluated at compile time, and values
       from deferred libraries aren't available at compile time.
 
-      For more information, see the language tour's coverage of
-      [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
       #### Example
 
@@ -6878,8 +7476,8 @@ CompileTimeErrorCode:
       are evaluated at compile time, and constants from deferred libraries aren't
       available at compile time.
 
-      For more information, see the language tour's coverage of
-      [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
       #### Example
 
@@ -7162,6 +7760,71 @@ CompileTimeErrorCode:
     problemMessage: Record field names can't be the same as a member from 'Object'.
     correctionMessage: Try using a different name for the field.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when either a record literal or a
+      record type annotation has a field whose name is invalid. The name is
+      invalid if it is:
+      - private (starts with `_`)
+      - the same as one of the members defined on `Object`
+      - the same as the name of a positional field (an exception is made if the
+        field is a positional field with the specified name)
+
+      #### Examples
+
+      The following code produces this diagnostic because the record literal has
+      a field named `toString`, which is a method defined on `Object`:
+
+      ```dart
+      var r = (a: 1, [!toString!]: 4);
+      ```
+
+      The following code produces this diagnostic because the record type
+      annotation has a field named `hashCode`, which is a getter defined on
+      `Object`:
+
+      ```dart
+      void f(({int a, int [!hashCode!]}) r) {}
+      ```
+
+      The following code produces this diagnostic because the record literal has
+      a private field named `_a`:
+
+      ```dart
+      var r = ([!_a!]: 1, b: 2);
+      ```
+
+      The following code produces this diagnostic because the record type
+      annotation has a private field named `_a`:
+
+      ```dart
+      void f(({int [!_a!], int b}) r) {}
+      ```
+
+      The following code produces this diagnostic because the record literal has
+      a field named `$1`, which is also the name of a different positional
+      parameter:
+
+      ```dart
+      var r = (2, [!$1!]: 1);
+      ```
+
+      The following code produces this diagnostic because the record type
+      annotation has a field named `$1`, which is also the name of a different
+      positional parameter:
+
+      ```dart
+      void f((int, String, {int [!$1!]}) r) {}
+      ```
+
+      #### Common fixes
+
+      Rename the field:
+
+      ```dart
+      var r = (a: 1, d: 4);
+      ```
   INVALID_FIELD_NAME_PRIVATE:
     sharedName: INVALID_FIELD_NAME
     problemMessage: Record field names can't be private.
@@ -8534,6 +9197,69 @@ CompileTimeErrorCode:
   MISSING_OBJECT_PATTERN_GETTER_NAME:
     problemMessage: The getter name is not specified explicitly, and the pattern is not a variable.
     correctionMessage: Try specifying the getter name explicitly, or using a variable pattern.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when, within an object pattern, the
+      specification of a property and the pattern used to match the property's
+      value doesn't have either:
+      - a getter name before the colon
+      - a variable pattern from which the getter name can be inferred
+
+      #### Example
+
+      The following code produces this diagnostic because there is no getter
+      name before the colon and no variable pattern after the colon in the
+      object pattern (`C(:0)`):
+
+      ```dart
+      abstract class C {
+        int get f;
+      }
+
+      void f(C c) {
+        switch (c) {
+          case C([!:0!]):
+            break;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If you need to use the actual value of the property within the pattern's
+      scope, then add a variable pattern where the name of the variable is the
+      same as the name of the property being matched:
+
+      ```dart
+      abstract class C {
+        int get f;
+      }
+
+      void f(C c) {
+        switch (c) {
+          case C(:var f) when f == 0:
+            print(f);
+        }
+      }
+      ```
+
+      If you don't need to use the actual value of the property within the
+      pattern's scope, then add the name of the property being matched before
+      the colon:
+
+      ```dart
+      abstract class C {
+        int get f;
+      }
+
+      void f(C c) {
+        switch (c) {
+          case C(f: 0):
+            break;
+        }
+      }
+      ```
   MISSING_REQUIRED_ARGUMENT:
     problemMessage: "The named parameter '{0}' is required, but there's no corresponding argument."
     correctionMessage: Try adding the required argument.
@@ -8575,6 +9301,66 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the variable pattern
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when one branch of a logical-or
+      pattern doesn't declare a variable that is declared on the other branch of
+      the same pattern.
+
+      #### Example
+
+      The following code produces this diagnostic because the right-hand side of
+      the logical-or pattern doesn't declare the variable `a`:
+
+      ```dart
+      void f((int, int) r) {
+        if (r case (var a, 0) || [!(0, _)!]) {
+          print(a);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the variable needs to be referenced in the controlled statements, then
+      add a declaration of the variable to every branch of the logical-or
+      pattern:
+
+      ```dart
+      void f((int, int) r) {
+        if (r case (var a, 0) || (0, var a)) {
+          print(a);
+        }
+      }
+      ```
+
+      If the variable doesn't need to be referenced in the controlled
+      statements, then remove the declaration of the variable from every branch
+      of the logical-or pattern:
+
+      ```dart
+      void f((int, int) r) {
+        if (r case (_, 0) || (0, _)) {
+          print('found a zero');
+        }
+      }
+      ```
+
+      If the variable needs to be referenced if one branch of the pattern
+      matches but not when the other matches, then break the pattern into two
+      pieces:
+
+      ```dart
+      void f((int, int) r) {
+        switch (r) {
+          case (var a, 0):
+            print(a);
+          case (0, _):
+            print('found a zero');
+        }
+      }
+      ```
   MIXINS_SUPER_CLASS:
     sharedName: IMPLEMENTS_SUPER_CLASS
     problemMessage: "'{0}' can't be used in both the 'extends' and 'with' clauses."
@@ -9583,12 +10369,12 @@ CompileTimeErrorCode:
       constants referenced in case clauses need to be available at compile time,
       and constants from deferred libraries aren't available at compile time.
 
-      For more information, see the language tour's coverage of
-      [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
       #### Example
 
-      Given a file (`a.dart`) that defines the constant `zero`:
+      Given a file `a.dart` that defines the constant `zero`:
 
       ```dart
       %uri="lib/a.dart"
@@ -9712,12 +10498,12 @@ CompileTimeErrorCode:
       Default values need to be available at compile time, and constants from
       deferred libraries aren't available at compile time.
 
-      For more information, see the language tour's coverage of
-      [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
       #### Example
 
-      Given a file (`a.dart`) that defines the constant `zero`:
+      Given a file `a.dart` that defines the constant `zero`:
 
       ```dart
       %uri="lib/a.dart"
@@ -9880,6 +10666,40 @@ CompileTimeErrorCode:
     problemMessage: Key expressions in map patterns must be constants.
     correctionMessage: Try using constants instead.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a key in a map pattern isn't a
+      constant expression.
+
+      #### Example
+
+      The following code produces this diagnostic because the key `A()` isn't a
+      constant:
+
+      ```dart
+      void f(Object x) {
+        if (x case {[!A()!]: 0}) {}
+      }
+
+      class A {
+        const A();
+      }
+      ```
+
+      #### Common fixes
+
+      Use a constant for the key:
+
+      ```dart
+      void f(Object x) {
+        if (x case {const A(): 0}) {}
+      }
+
+      class A {
+        const A();
+      }
+      ```
   NON_CONSTANT_MAP_VALUE:
     problemMessage: The values in a const map literal must be constant.
     correctionMessage: "Try removing the keyword 'const' from the map literal."
@@ -9920,6 +10740,36 @@ CompileTimeErrorCode:
     problemMessage: The relational pattern expression must be a constant.
     correctionMessage: Try using a constant instead.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value in a relational
+      pattern expression isn't a constant expression.
+
+      #### Example
+
+      The following code produces this diagnostic because the operand of the `>`
+      operator, `a`, isn't a constant:
+
+      ```dart
+      final a = 0;
+
+      void f(int x) {
+        if (x case > [!a!]) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Replace the value with a constant expression:
+
+      ```dart
+      const a = 0;
+
+      void f(int x) {
+        if (x case > a) {}
+      }
+      ```
   NON_CONSTANT_SET_ELEMENT:
     problemMessage: The values in a const set literal must be constants.
     correctionMessage: "Try removing the keyword 'const' from the set literal."
@@ -9971,6 +10821,67 @@ CompileTimeErrorCode:
       Parameters:
       0: the type of the switch scrutinee
       1: the unmatched space
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `switch` statement switching
+      over an exhaustive type is missing a case for one or more of the possible
+      values that could flow through it.
+
+      #### Example
+
+      The following code produces this diagnostic because the switch statement
+      doesn't have a case for the value `E.three`, and `E` is an exhaustive
+      type:
+
+      ```dart
+      enum E { one, two, three }
+
+      void f(E e) {
+        [!switch!] (e) {
+          case E.one:
+          case E.two:
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Add a case for each of the constants that aren't currently being matched:
+
+      ```dart
+      enum E { one, two, three }
+
+      void f(E e) {
+        switch (e) {
+          case E.one:
+          case E.two:
+            break;
+          case E.three:
+        }
+      }
+      ```
+
+      If the missing values don't need to be matched, then add a `default`
+      clause (or a wildcard pattern in a `switch` expression):
+
+      ```dart
+      enum E { one, two, three }
+
+      void f(E e) {
+        switch (e) {
+          case E.one:
+          case E.two:
+            break;
+          default:
+        }
+      }
+      ```
+
+      But be aware that adding a `default` clause or wildcard pattern will cause
+      any future values of the exhaustive type to also be handled, so you will
+      have lost the ability for the compiler to warn you if the `switch` needs
+      to be updated.
   NON_FINAL_FIELD_IN_ENUM:
     problemMessage: Enums can only declare final fields.
     correctionMessage: Try making the field final.
@@ -11228,7 +12139,7 @@ CompileTimeErrorCode:
 
       #### Example
 
-      Given a file named `part.dart` containing
+      Given a file `part.dart` containing
 
       ```dart
       %uri="package:a/part.dart"
@@ -11266,7 +12177,7 @@ CompileTimeErrorCode:
 
       #### Example
 
-      Given a file (`a.dart`) containing:
+      Given a file `a.dart` containing:
 
       ```dart
       %uri="lib/a.dart"
@@ -11340,8 +12251,61 @@ CompileTimeErrorCode:
       part of 'test.dart';
       ```
   PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE:
-    problemMessage: Only local variables or formal parameters can be used in pattern assignments.
+    problemMessage: Only local variables can be assigned in pattern assignments.
     correctionMessage: Try assigning to a local variable.
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a pattern assignment assigns a
+      value to anything other than a local variable. Patterns can't assign to
+      fields or top-level variables.
+
+      #### Example
+
+      If the code is cleaner when destructuring with a pattern, then rewrite the
+      code to assign the value to a local variable in a pattern declaration,
+      assigning the non-local variable separately:
+
+      ```dart
+      class C {
+        var x = 0;
+
+        void f((int, int) r) {
+          ([!x!], _) = r;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the code is cleaner when using a pattern assignment, then rewrite the
+      code to assign the value to a local variable, assigning the non-local
+      variable separately:
+
+      ```dart
+      class C {
+        var x = 0;
+
+        void f((int, int) r) {
+          var (a, _) = r;
+          x = a;
+        }
+      }
+      ```
+
+      If the code is cleaner without using a pattern assignment, then rewrite
+      the code to not use a pattern assignment:
+
+      ```dart
+      class C {
+        var x = 0;
+
+        void f((int, int) r) {
+          x = r.$1;
+        }
+      }
+      ```
   PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
     problemMessage: "The matched value of type '{0}' isn't assignable to the required type '{1}'."
     correctionMessage: "Try changing the required type of the pattern, or the matched value type."
@@ -11349,22 +12313,243 @@ CompileTimeErrorCode:
       Parameters:
       0: the matched type
       1: the required type
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the type of the value on the
+      right-hand side of a pattern assignment or pattern declaration doesn't
+      match the type required by the pattern being used to match it.
+
+      #### Example
+
+      The following code produces this diagnostic because `x` might not be a
+      `String` and hence might not match the object pattern:
+
+      ```dart
+      void f(Object x) {
+        var [!String(length: a)!] = x;
+        print(a);
+      }
+      ```
+
+      #### Common fixes
+
+      Change the code so that the type of the expression on the right-hand side
+      matches the type required by the pattern:
+
+      ```dart
+      void f(String x) {
+        var String(length: a) = x;
+        print(a);
+      }
+      ```
   PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
     problemMessage: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
     correctionMessage: Try assigning to a different variable.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a pattern variable is assigned
+      a value inside a guard (`when`) clause.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable `a` is
+      assigned a value inside the guard clause:
+
+      ```dart
+      void f(int x) {
+        if (x case var a when ([!a!] = 1) > 0) {
+          print(a);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If there's a value you need to capture, then assign it to a different
+      variable:
+
+      ```dart
+      void f(int x) {
+        var b;
+        if (x case var a when (b = 1) > 0) {
+          print(a + b);
+        }
+      }
+      ```
+
+      If there isn't a value you need to capture, then remove the assignment:
+
+      ```dart
+      void f(int x) {
+        if (x case var a when 1 > 0) {
+          print(a);
+        }
+      }
+      ```
   PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE:
+    sharedName: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
     problemMessage: "The variable '{0}' doesn't have the same type and/or finality in all cases that share this body."
     correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
     comment: |-
       Parameters:
       0: the name of the pattern variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when multiple case clauses in a
+      switch statement share a body, and at least one of them declares a
+      variable that is referenced in the shared statements, but the variable is
+      either not declared in all of the case clauses or it is declared in
+      inconsistent ways.
+
+      If the variable isn't declared in all of the case clauses, then it won't
+      have a value if one of the clauses that doesn't declare the variable is
+      the one that matches and executes the body. This includes the situation
+      where one of the case clauses is the `default` clause.
+
+      If the variable is declared in inconsistent ways, either being `final` in
+      some cases and not `final` in others or having a different type in
+      different cases, then the semantics of what the type or finality of the
+      variable should be are not defined.
+
+      #### Examples
+
+      The following code produces this diagnostic because the variable `a` is
+      only declared in one of the case clauses, and won't have a value if the
+      second clause is the one that matched `x`:
+
+      ```dart
+      void f(Object? x) {
+        switch (x) {
+          case int a when a > 0:
+          case 0:
+            [!a!];
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the variable `a` isn't
+      declared in the `default` clause, and won't have a value if the body is
+      executed because none of the other clauses matched `x`:
+
+      ```dart
+      void f(Object? x) {
+        switch (x) {
+          case int a when a > 0:
+          default:
+            [!a!];
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the variable `a` won't
+      have a value if the body is executed because a different group of cases
+      caused control to continue at the label:
+
+      ```dart
+      void f(Object? x) {
+        switch (x) {
+          someLabel:
+          case int a when a > 0:
+            [!a!];
+          case int b when b < 0:
+            continue someLabel;
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the variable `a`,
+      while being assigned in all of the case clauses, doesn't have then same
+      type associated with it in every clause:
+
+      ```dart
+      void f(Object? x) {
+        switch (x) {
+          case int a when a < 0:
+          case num a when a > 0:
+            [!a!];
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the variable `a` is
+      `final` in the first case clause and isn't `final` in the second case
+      clause:
+
+      ```dart
+      void f(Object? x) {
+        switch (x) {
+          case final int a when a < 0:
+          case int a when a > 0:
+            [!a!];
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the variable isn't declared in all of the cases, and you need to
+      reference it in the statements, then declare it in the other cases:
+
+      ```dart
+      void f(Object? x) {
+        switch (x) {
+          case int a when a > 0:
+          case int a when a == 0:
+            a;
+        }
+      }
+      ```
+
+      If the variable isn't declared in all of the cases, and you don't need to
+      reference it in the statements, then remove the references to it and
+      remove the declarations from the other cases:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case > 0:
+          case 0:
+        }
+      }
+      ```
+
+      If the type of the variable is different, decide the type the variable
+      should have and make the cases consistent:
+
+      ```dart
+      void f(Object? x) {
+        switch (x) {
+          case num a when a < 0:
+          case num a when a > 0:
+            a;
+        }
+      }
+      ```
+
+      If the finality of the variable is different, decide whether it should be
+      `final` or not `final` and make the cases consistent:
+
+      ```dart
+      void f(Object? x) {
+        switch (x) {
+          case final int a when a < 0:
+          case final int a when a > 0:
+            a;
+        }
+      }
+      ```
   PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL:
+    sharedName: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
     problemMessage: "The variable '{0}' is not available because there is a label or 'default' case."
     correctionMessage: Try removing the label, or providing the 'default' case with its own body.
     comment: |-
       Parameters:
       0: the name of the pattern variable
   PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES:
+    sharedName: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
     problemMessage: "The variable '{0}' is available in some, but not all cases that share this body."
     correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
     comment: |-
@@ -11589,7 +12774,7 @@ CompileTimeErrorCode:
 
       #### Example
 
-      Given a file named `a.dart` containing the following code:
+      Given a file `a.dart` containing the following code:
 
       ```dart
       %uri="lib/a.dart"
@@ -11669,7 +12854,7 @@ CompileTimeErrorCode:
 
       #### Example
 
-      Given a file named `a.dart` that contains the following:
+      Given a file `a.dart` that contains the following:
 
       ```dart
       %uri="lib/a.dart"
@@ -12469,6 +13654,38 @@ CompileTimeErrorCode:
   REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
     problemMessage: Refutable patterns can't be used in an irrefutable context.
     correctionMessage: Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a [refutable pattern][] is used
+      in a context where only an [irrefutable pattern][] is allowed.
+
+      The refutable patterns that are disallowed are:
+      - logical-or
+      - relational
+      - null-check
+      - constant
+
+      The contexts that are checked are:
+      - pattern-based variable declarations
+      - pattern-based for loops
+      - assignments with a pattern on the left-hand side
+
+      #### Example
+
+      The following code produces this diagnostic because the null-check
+      pattern, which is a refutable pattern, is in a pattern-based variable
+      declaration, which doesn't allow refutable patterns:
+
+      ```dart
+      void f(int? x) {
+        var ([!_?!]) = x;
+      }
+      ```
+
+      #### Common fixes
+
+      Rewrite the code to not use a refutable pattern in an irrefutable context.
   RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The constant expression type '{0}' is not assignable to the parameter type '{1}' of the '{2}' operator."
     comment: |-
@@ -12479,12 +13696,141 @@ CompileTimeErrorCode:
   RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
     problemMessage: The return type of operators used in relational patterns must be assignable to 'bool'.
     correctionMessage: Try updating the operator declaration to return 'bool'.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a relational pattern references
+      an operator that doesn't produce a value of type `bool`.
+
+      #### Example
+
+      The following code produces this diagnostic because the operator `>`, used
+      in the relational pattern `> c2`, returns a value of type `int` rather
+      than a `bool`:
+
+      ```dart
+      class C {
+        const C();
+
+        int operator >(C c) => 3;
+
+        bool operator <(C c) => false;
+      }
+
+      const C c2 = C();
+
+      void f(C c1) {
+        if (c1 case [!>!] c2) {}
+      }
+      ```
+
+      #### Common fixes
+
+      If there's a different operator that should be used, then change the
+      operator:
+
+      ```dart
+      class C {
+        const C();
+
+        int operator >(C c) => 3;
+
+        bool operator <(C c) => false;
+      }
+
+      const C c2 = C();
+
+      void f(C c1) {
+        if (c1 case < c2) {}
+      }
+      ```
+
+      If the operator is expected to return `bool`, then update the declaration
+      of the operator:
+
+      ```dart
+      class C {
+        const C();
+
+        bool operator >(C c) => true;
+
+        bool operator <(C c) => false;
+      }
+
+      const C c2 = C();
+
+      void f(C c1) {
+        if (c1 case > c2) {}
+      }
+      ```
   REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
     problemMessage: A rest element in a map pattern can't have a subpattern.
     correctionMessage: Try removing the subpattern.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a rest pattern in a map pattern
+      has a subpattern. In Dart, there is no notion of a subset of a map, so
+      there isn't anything to match against the subpattern.
+
+      #### Example
+
+      The following code produces this diagnostic because the rest pattern has a
+      subpattern:
+
+      ```dart
+      void f(Map<String, int> m) {
+        switch (m) {
+          case {'a': var a, ... [!> 0!]}:
+            print(a);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the subpattern:
+
+      ```dart
+      void f(Map<String, int> m) {
+        switch (m) {
+          case {'a': var a, ...}:
+            print(a);
+        }
+      }
+      ```
   REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN:
     problemMessage: A rest element in a map pattern must be the last element.
     correctionMessage: Try moving the rest element to be the last element.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a map pattern contains entries
+      after a rest pattern. The rest pattern will match map entries whose keys
+      aren't matched by any of the entries in the pattern. To make those
+      semantics clear, the language requires that the rest pattern be the last
+      entry in the list.
+
+      #### Example
+
+      The following code produces this diagnostic because the rest pattern is
+      followed by another map pattern entry (`0: _`):
+
+      ```dart
+      void f(Map<int, String> x) {
+        if (x case {[!...!], 0: _}) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Move the rest pattern to the end of the map pattern:
+
+      ```dart
+      void f(Map<int, String> x) {
+        if (x case {0: _, ...}) {}
+      }
+      ```
   RETHROW_OUTSIDE_CATCH:
     problemMessage: A rethrow must be inside of a catch clause.
     correctionMessage: "Try moving the expression into a catch clause, or using a 'throw' expression."
@@ -12921,6 +14267,32 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the subtype that is not 'base', 'final', or 'sealed'
       1: the name of the 'base' supertype
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class or mixin has a direct
+      or indirect supertype that is either `base` or `final`, but the class or
+      mixin itself isn't marked either `base`, `final`, or `sealed`.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `B` is a
+      subtype of `A`, and `A` is a `base` class, but `B` is neither `base`,
+      `final` or `sealed`:
+
+      ```dart
+      base class A {}
+      class [!B!] extends A {}
+      ```
+
+      #### Common fixes
+
+      Add either `base`, `final` or `sealed` to the class or mixin declaration:
+
+      ```dart
+      base class A {}
+      final class B extends A {}
+      ```
   SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
     sharedName: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
     problemMessage: "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype '{1}' is 'final'."
@@ -13174,12 +14546,12 @@ CompileTimeErrorCode:
       classes from deferred libraries aren't compiled until the library is
       loaded.
 
-      For more information, see the language tour's coverage of
-      [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
       #### Example
 
-      Given a file (`a.dart`) that defines the class `A`:
+      Given a file `a.dart` that defines the class `A`:
 
       ```dart
       %uri="lib/a.dart"
@@ -13666,7 +15038,7 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      Add an explicit null check to the expression:
+      Add an explicit null-check to the expression:
 
       ```dart
       void f(String? s) {
@@ -13766,8 +15138,8 @@ CompileTimeErrorCode:
       is a type declared in a library that is imported using a deferred import.
       These types are required to be available at compile time, but aren't.
 
-      For more information, see the language tour's coverage of
-      [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
       #### Example
 
@@ -15546,6 +16918,35 @@ CompileTimeErrorCode:
   VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
     problemMessage: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
     correctionMessage: Try removing the keyword.
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a variable pattern is used
+      within a declaration context.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable patterns
+      in the record pattern are in a declaration context:
+
+      ```dart
+      void f((int, int) r) {
+        var ([!var!] x, y) = r;
+        print(x + y);
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the `var` or `final` keyword(s) within the variable pattern:
+
+      ```dart
+      void f((int, int) r) {
+        var (x, y) = r;
+        print(x + y);
+      }
+      ```
   VARIABLE_TYPE_MISMATCH:
     problemMessage: "A value of type '{0}' can't be assigned to a const variable of type '{1}'."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"
@@ -18210,12 +19611,12 @@ HintCode:
       function is used to load the contents of the deferred library, and the
       implicit function hides the explicit declaration in the deferred library.
 
-      For more information, see the language tour's coverage of
-      [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
       #### Example
 
-      Given a file (`a.dart`) that defines a function named `loadLibrary`:
+      Given a file `a.dart` that defines a function named `loadLibrary`:
 
       ```dart
       %uri="lib/a.dart"
@@ -18286,7 +19687,7 @@ HintCode:
 
       #### Example
 
-      Given a file named `a.dart` that contains the following:
+      Given a file `a.dart` that contains the following:
 
       ```dart
       %uri="lib/a.dart"
@@ -18428,14 +19829,14 @@ HintCode:
 
       #### Example
 
-      Given a file named `a.dart` that contains the following:
+      Given a file `a.dart` that contains the following:
 
       ```dart
       %uri="lib/a.dart"
       class A {}
       ```
 
-      And, given a file named `b.dart` that contains the following:
+      And, given a file `b.dart` that contains the following:
 
       ```dart
       %uri="lib/b.dart"
@@ -18467,6 +19868,43 @@ HintCode:
     correctionMessage: Try removing the set literal around the expression.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a function that has a return
+      type of `void`, `Future<void>`, or `FutureOr<void>` uses an expression
+      function body (`=>`) and the returned value is a literal set containing a
+      single element.
+
+      Although the language allows it, returning a value from a `void` function
+      isn't useful because it can't be used at the call site. In this particular
+      case the return is often due to a misunderstanding about the syntax. The
+      braces aren't necessary and can be removed.
+
+      #### Example
+
+      The following code produces this diagnostic because the closure being
+      passed to `g` has a return type of `void`, but is returning a set:
+
+      ```dart
+      void f() {
+        g(() => [!{1}!]);
+      }
+
+      void g(void Function() p) {}
+      ```
+
+      #### Common fixes
+
+      Remove the braces from around the value:
+
+      ```dart
+      void f() {
+        g(() => 1);
+      }
+
+      void g(void Function() p) {}
+      ```
   UNNECESSARY_TYPE_CHECK_FALSE:
     sharedName: UNNECESSARY_TYPE_CHECK
     problemMessage: "Unnecessary type check; the result is always 'false'."
@@ -18511,7 +19949,45 @@ HintCode:
     comment: No parameters.
   UNREACHABLE_SWITCH_CASE:
     problemMessage: "This case is covered by the previous cases."
+    correctionMessage: Try removing the case clause, or restructuring the preceding patterns.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `case` clause in a `switch`
+      statement doesn't match anything because all of the matchable values are
+      matched by an earlier `case` clause.
+
+      #### Example
+
+      The following code produces this diagnostic because the value `1` was
+      matched in the preceeding case:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case 1:
+            print('one');
+          [!case!] 1:
+            print('two');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Change one or both of the conflicting cases to match different values:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case 1:
+            print('one');
+          case 2:
+            print('two');
+        }
+      }
+      ```
   UNUSED_ELEMENT:
     problemMessage: "The declaration '{0}' isn't referenced."
     correctionMessage: "Try removing the declaration of '{0}'."
@@ -19579,7 +21055,7 @@ PubspecWarningCode:
 
       #### Example
 
-      Assuming that the directory `local_package` doesn't contain a file named
+      Assuming that the directory `local_package` doesn't contain a file
       `pubspec.yaml`, the following code produces this diagnostic because it's
       listed as the path of a package:
 
@@ -19910,10 +21386,63 @@ StaticWarningCode:
     problemMessage: The null-assert pattern will have no effect because the matched type isn't nullable.
     correctionMessage: Try replacing the null-assert pattern with its nested pattern.
     comment: No parameters.
+
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a null-assert pattern is used
+      to match a value that isn't nullable.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable `x` isn't
+      nullable:
+
+      ```dart
+      void f(int x) {
+        if (x case var a[!!!] when a > 0) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the null-assert pattern:
+
+      ```dart
+      void f(int x) {
+        if (x case var a when a > 0) {}
+      }
+      ```
   UNNECESSARY_NULL_CHECK_PATTERN:
     problemMessage: The null-check pattern will have no effect because the matched type isn't nullable.
     correctionMessage: Try replacing the null-check pattern with its nested pattern.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a null-check pattern is used to
+      match a value that isn't nullable.
+
+      #### Example
+
+      The following code produces this diagnostic because the value `x` isn't
+      nullable:
+
+      ```dart
+      void f(int x) {
+        if (x case var a[!?!] when a > 0) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the null-check pattern:
+
+      ```dart
+      void f(int x) {
+        if (x case var a when a > 0) {}
+      }
+      ```
 WarningCode:
   ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
     problemMessage: "The argument type '{0}' can't be assigned to the parameter type '{1} Function(Object)' or '{1} Function(Object, StackTrace)'."
@@ -20187,6 +21716,44 @@ WarningCode:
       Parameters:
       0: the matched value type
       1: the constant value type
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a constant pattern can never
+      match the value it's being tested against because the type of the constant
+      is known to never match the type of the value.
+
+      #### Example
+
+      The following code produces this diagnostic because the type of the
+      constant pattern `(true)` is `bool`, and the type of the value being
+      matched (`x`) is `int`, and a Boolean can never match an integer:
+
+      ```dart
+      void f(int x) {
+        if (x case [!true!]) {}
+      }
+      ```
+
+      #### Common fixes
+
+      If the type of the value is correct, then rewrite the pattern to be
+      compatible:
+
+      ```dart
+      void f(int x) {
+        if (x case 3) {}
+      }
+      ```
+
+      If the type of the constant is correct, then rewrite the value to be
+      compatible:
+
+      ```dart
+      void f(bool x) {
+        if (x case true) {}
+      }
+      ```
   DEAD_CODE:
     aliasFor: HintCode.DEAD_CODE
     comment: This is the new replacement for [HintCode.DEAD_CODE].
@@ -20688,7 +22255,7 @@ WarningCode:
 
       #### Example
 
-      Given a file named `a.dart` in the `src` directory that contains:
+      Given a file `a.dart` in the `src` directory that contains:
 
       ```dart
       %uri="lib/src/a.dart"
@@ -20732,7 +22299,7 @@ WarningCode:
 
       #### Example
 
-      Given a file named `a.dart` in the `src` directory that contains the
+      Given a file `a.dart` in the `src` directory that contains the
       following:
 
       ```dart
@@ -21299,7 +22866,7 @@ WarningCode:
 
       #### Example
 
-      Given a file named `a.dart` containing the following declaration:
+      Given a file `a.dart` containing the following declaration:
 
       ```dart
       %uri="lib/a.dart"
@@ -21356,7 +22923,7 @@ WarningCode:
 
       #### Example
 
-      Given a file named `c.dart` that contains the following:
+      Given a file `c.dart` that contains the following:
 
       ```dart
       %uri="lib/c.dart"

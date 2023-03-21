@@ -193,15 +193,23 @@ class DocumentationValidator {
     } else if (snippet.indexOf(errorRangeStart, rangeEnd) > 0) {
       _reportProblem('More than one error range in example');
     }
+    String content;
+    try {
+      content = snippet.substring(0, rangeStart) +
+          snippet.substring(rangeStart + errorRangeStart.length, rangeEnd) +
+          snippet.substring(rangeEnd + errorRangeEnd.length);
+    } on RangeError catch (exception) {
+      _reportProblem(exception.message.toString());
+      content = '';
+    }
     return _SnippetData(
-        snippet.substring(0, rangeStart) +
-            snippet.substring(rangeStart + errorRangeStart.length, rangeEnd) +
-            snippet.substring(rangeEnd + errorRangeEnd.length),
-        rangeStart,
-        rangeEnd - rangeStart - 2,
-        auxiliaryFiles,
-        experiments,
-        languageVersion);
+      content,
+      rangeStart,
+      rangeEnd - rangeStart - 2,
+      auxiliaryFiles,
+      experiments,
+      languageVersion,
+    );
   }
 
   /// Extract the snippets of Dart code from [documentationParts] that are
