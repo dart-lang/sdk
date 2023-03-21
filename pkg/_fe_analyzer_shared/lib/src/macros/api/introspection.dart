@@ -117,7 +117,7 @@ abstract class ParameterizedTypeDeclaration implements TypeDeclaration {
 ///
 /// All type declarations which can have members will have a variant which
 /// implements this type.
-mixin IntrospectableType implements TypeDeclaration {}
+abstract class IntrospectableType implements TypeDeclaration {}
 
 /// Class introspection information.
 ///
@@ -125,25 +125,25 @@ mixin IntrospectableType implements TypeDeclaration {}
 /// the `builder` objects.
 abstract class ClassDeclaration implements ParameterizedTypeDeclaration {
   /// Whether this class has an `abstract` modifier.
-  bool get isAbstract;
+  bool get hasAbstract;
 
   /// Whether this class has a `base` modifier.
-  bool get isBase;
+  bool get hasBase;
 
   /// Whether this class has an `external` modifier.
-  bool get isExternal;
+  bool get hasExternal;
 
   /// Whether this class has a `final` modifier.
-  bool get isFinal;
+  bool get hasFinal;
 
   /// Whether this class has an `interface` modifier.
-  bool get isInterface;
+  bool get hasInterface;
 
   /// Whether this class has a `mixin` modifier.
-  bool get isMixin;
+  bool get hasMixin;
 
   /// Whether this class has a `sealed` modifier.
-  bool get isSealed;
+  bool get hasSealed;
 
   /// The `extends` type annotation, if present.
   NamedTypeAnnotation? get superclass;
@@ -153,10 +153,6 @@ abstract class ClassDeclaration implements ParameterizedTypeDeclaration {
 
   /// All the `with` type annotations.
   Iterable<NamedTypeAnnotation> get mixins;
-
-  /// All the type arguments, if applicable.
-  @override
-  Iterable<TypeParameterDeclaration> get typeParameters;
 }
 
 /// An introspectable class declaration.
