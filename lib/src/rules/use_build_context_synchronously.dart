@@ -167,6 +167,13 @@ class _Visitor extends SimpleAstVisitor {
           return;
         }
       } else if (parent is SwitchCase) {
+        // Necessary for Dart 2.19 code.
+        var keepChecking = checkStatements(child, parent.statements);
+        if (!keepChecking) {
+          return;
+        }
+      } else if (parent is SwitchPatternCase) {
+        // Necessary for Dart 3.0 code.
         var keepChecking = checkStatements(child, parent.statements);
         if (!keepChecking) {
           return;

@@ -249,9 +249,7 @@ class _MyState extends State<MyWidget> {
     switch (1) {
       case 1:
         if (!mounted) return;
-	// TODO(https://github.com/dart-lang/linter/issues/4165): This should
-	// be OK.
-        await Navigator.of(context).pushNamed('routeName'); // LINT
+        await Navigator.of(context).pushNamed('routeName'); // OK
         break;
     }
   }
@@ -350,9 +348,7 @@ void topLevel5(BuildContext context) async {
       if (!mounted) {
         break;
       }
-      // TODO(https://github.com/dart-lang/linter/issues/4165): This should
-      // be OK.
-      Navigator.of(context).pushNamed('routeName2'); // LINT
+      Navigator.of(context).pushNamed('routeName222'); // OK
       break;
     default: //nothing.
   }
