@@ -264,13 +264,13 @@ static method testUnresolved(dynamic o) → dynamic {
                     ^";
   {
     final synthesized dynamic #1#0 = o{invalid-type};
-    if(!(let final invalid-type #t2 = o = #1#0{invalid-type}{<invalid>}.o in true))
+    if(!(#1#0{invalid-type} is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t2 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new _in::ReachabilityError::•();
   }
   {
     invalid-type field;
     final synthesized invalid-type #2#0 = o{invalid-type};
-    if(let final invalid-type #t3 = field = #2#0{<invalid>}.field in true) {
+    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t3 = field = #2#0{<invalid>}.field in true)) {
     }
   }
   #L1:
@@ -278,7 +278,7 @@ static method testUnresolved(dynamic o) → dynamic {
     final synthesized invalid-type #3#0 = o{invalid-type};
     {
       invalid-type field;
-      if(let final invalid-type #t4 = field = #3#0{<invalid>}.field in true) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t4 = field = #3#0{<invalid>}.field in true)) {
         {
           break #L1;
         }
@@ -292,7 +292,7 @@ static method testUnresolved(dynamic o) → dynamic {
     {
       {
         invalid-type field;
-        if(let final invalid-type #t6 = field = #4#0{<invalid>}.field in true) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t6 = field = #4#0{<invalid>}.field in true)) {
           #t5 = "matched";
           break #L2;
         }
@@ -321,13 +321,13 @@ static method testNonType(dynamic o) → dynamic {
                  ^";
   {
     final synthesized dynamic #1#0 = o{invalid-type};
-    if(!(let final invalid-type #t8 = o = #1#0{invalid-type}{<invalid>}.o in true))
+    if(!(#1#0{invalid-type} is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t8 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new _in::ReachabilityError::•();
   }
   {
     invalid-type field;
     final synthesized invalid-type #2#0 = o{invalid-type};
-    if(let final invalid-type #t9 = field = #2#0{<invalid>}.field in true) {
+    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t9 = field = #2#0{<invalid>}.field in true)) {
     }
   }
   #L3:
@@ -335,7 +335,7 @@ static method testNonType(dynamic o) → dynamic {
     final synthesized invalid-type #3#0 = o{invalid-type};
     {
       invalid-type field;
-      if(let final invalid-type #t10 = field = #3#0{<invalid>}.field in true) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t10 = field = #3#0{<invalid>}.field in true)) {
         {
           break #L3;
         }
@@ -349,7 +349,7 @@ static method testNonType(dynamic o) → dynamic {
     {
       {
         invalid-type field;
-        if(let final invalid-type #t12 = field = #4#0{<invalid>}.field in true) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t12 = field = #4#0{<invalid>}.field in true)) {
           #t11 = "matched";
           break #L4;
         }
@@ -378,13 +378,13 @@ static method testExtension(dynamic o) → dynamic {
                    ^";
   {
     final synthesized dynamic #1#0 = o{invalid-type};
-    if(!(let final invalid-type #t14 = o = #1#0{invalid-type}{<invalid>}.o in true))
+    if(!(#1#0{invalid-type} is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t14 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new _in::ReachabilityError::•();
   }
   {
     invalid-type field;
     final synthesized invalid-type #2#0 = o{invalid-type};
-    if(let final invalid-type #t15 = field = #2#0{<invalid>}.field in true) {
+    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t15 = field = #2#0{<invalid>}.field in true)) {
     }
   }
   #L5:
@@ -392,7 +392,7 @@ static method testExtension(dynamic o) → dynamic {
     final synthesized invalid-type #3#0 = o{invalid-type};
     {
       invalid-type field;
-      if(let final invalid-type #t16 = field = #3#0{<invalid>}.field in true) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t16 = field = #3#0{<invalid>}.field in true)) {
         {
           break #L5;
         }
@@ -406,7 +406,7 @@ static method testExtension(dynamic o) → dynamic {
     {
       {
         invalid-type field;
-        if(let final invalid-type #t18 = field = #4#0{<invalid>}.field in true) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t18 = field = #4#0{<invalid>}.field in true)) {
           #t17 = "matched";
           break #L6;
         }
@@ -435,13 +435,13 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
                            ^";
   {
     final synthesized dynamic #1#0 = o{invalid-type};
-    if(!(let final invalid-type #t20 = o = #1#0{invalid-type}{<invalid>}.o in true))
+    if(!(#1#0{invalid-type} is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t20 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new _in::ReachabilityError::•();
   }
   {
     invalid-type field;
     final synthesized invalid-type #2#0 = o{invalid-type};
-    if(let final invalid-type #t21 = field = #2#0{<invalid>}.field in true) {
+    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t21 = field = #2#0{<invalid>}.field in true)) {
     }
   }
   #L7:
@@ -449,7 +449,7 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
     final synthesized invalid-type #3#0 = o{invalid-type};
     {
       invalid-type field;
-      if(let final invalid-type #t22 = field = #3#0{<invalid>}.field in true) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t22 = field = #3#0{<invalid>}.field in true)) {
         {
           break #L7;
         }
@@ -463,7 +463,7 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
     {
       {
         invalid-type field;
-        if(let final invalid-type #t24 = field = #4#0{<invalid>}.field in true) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t24 = field = #4#0{<invalid>}.field in true)) {
           #t23 = "matched";
           break #L8;
         }
@@ -492,13 +492,13 @@ static method testPrefixedNonType(dynamic o) → dynamic {
                         ^";
   {
     final synthesized dynamic #1#0 = o{invalid-type};
-    if(!(let final invalid-type #t26 = o = #1#0{invalid-type}{<invalid>}.o in true))
+    if(!(#1#0{invalid-type} is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t26 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new _in::ReachabilityError::•();
   }
   {
     invalid-type field;
     final synthesized invalid-type #2#0 = o{invalid-type};
-    if(let final invalid-type #t27 = field = #2#0{<invalid>}.field in true) {
+    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t27 = field = #2#0{<invalid>}.field in true)) {
     }
   }
   #L9:
@@ -506,7 +506,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
     final synthesized invalid-type #3#0 = o{invalid-type};
     {
       invalid-type field;
-      if(let final invalid-type #t28 = field = #3#0{<invalid>}.field in true) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t28 = field = #3#0{<invalid>}.field in true)) {
         {
           break #L9;
         }
@@ -520,7 +520,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
     {
       {
         invalid-type field;
-        if(let final invalid-type #t30 = field = #4#0{<invalid>}.field in true) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t30 = field = #4#0{<invalid>}.field in true)) {
           #t29 = "matched";
           break #L10;
         }
@@ -549,13 +549,13 @@ static method testPrefixedExtension(dynamic o) → dynamic {
                           ^";
   {
     final synthesized dynamic #1#0 = o{invalid-type};
-    if(!(let final invalid-type #t32 = o = #1#0{invalid-type}{<invalid>}.o in true))
+    if(!(#1#0{invalid-type} is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t32 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new _in::ReachabilityError::•();
   }
   {
     invalid-type field;
     final synthesized invalid-type #2#0 = o{invalid-type};
-    if(let final invalid-type #t33 = field = #2#0{<invalid>}.field in true) {
+    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t33 = field = #2#0{<invalid>}.field in true)) {
     }
   }
   #L11:
@@ -563,7 +563,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
     final synthesized invalid-type #3#0 = o{invalid-type};
     {
       invalid-type field;
-      if(let final invalid-type #t34 = field = #3#0{<invalid>}.field in true) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t34 = field = #3#0{<invalid>}.field in true)) {
         {
           break #L11;
         }
@@ -577,7 +577,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
     {
       {
         invalid-type field;
-        if(let final invalid-type #t36 = field = #4#0{<invalid>}.field in true) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t36 = field = #4#0{<invalid>}.field in true)) {
           #t35 = "matched";
           break #L12;
         }
@@ -606,13 +606,13 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
                          ^";
   {
     final synthesized dynamic #1#0 = o{invalid-type};
-    if(!(let final invalid-type #t38 = o = #1#0{invalid-type}{<invalid>}.o in true))
+    if(!(#1#0{invalid-type} is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t38 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new _in::ReachabilityError::•();
   }
   {
     invalid-type field;
     final synthesized invalid-type #2#0 = o{invalid-type};
-    if(let final invalid-type #t39 = field = #2#0{<invalid>}.field in true) {
+    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t39 = field = #2#0{<invalid>}.field in true)) {
     }
   }
   #L13:
@@ -620,7 +620,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
     final synthesized invalid-type #3#0 = o{invalid-type};
     {
       invalid-type field;
-      if(let final invalid-type #t40 = field = #3#0{<invalid>}.field in true) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t40 = field = #3#0{<invalid>}.field in true)) {
         {
           break #L13;
         }
@@ -634,7 +634,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
     {
       {
         invalid-type field;
-        if(let final invalid-type #t42 = field = #4#0{<invalid>}.field in true) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t42 = field = #4#0{<invalid>}.field in true)) {
           #t41 = "matched";
           break #L14;
         }
@@ -663,13 +663,13 @@ static method testMemberAccess(dynamic o) → dynamic {
                           ^";
   {
     final synthesized dynamic #1#0 = o{invalid-type};
-    if(!(let final invalid-type #t44 = o = #1#0{invalid-type}{<invalid>}.o in true))
+    if(!(#1#0{invalid-type} is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t44 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new _in::ReachabilityError::•();
   }
   {
     invalid-type field;
     final synthesized invalid-type #2#0 = o{invalid-type};
-    if(let final invalid-type #t45 = field = #2#0{<invalid>}.field in true) {
+    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t45 = field = #2#0{<invalid>}.field in true)) {
     }
   }
   #L15:
@@ -677,7 +677,7 @@ static method testMemberAccess(dynamic o) → dynamic {
     final synthesized invalid-type #3#0 = o{invalid-type};
     {
       invalid-type field;
-      if(let final invalid-type #t46 = field = #3#0{<invalid>}.field in true) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t46 = field = #3#0{<invalid>}.field in true)) {
         {
           break #L15;
         }
@@ -691,7 +691,7 @@ static method testMemberAccess(dynamic o) → dynamic {
     {
       {
         invalid-type field;
-        if(let final invalid-type #t48 = field = #4#0{<invalid>}.field in true) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t48 = field = #4#0{<invalid>}.field in true)) {
           #t47 = "matched";
           break #L16;
         }

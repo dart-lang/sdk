@@ -346,14 +346,25 @@ class DelayedAsExpression implements DelayedExpression {
   final DelayedExpression _operand;
   final DartType _type;
   final bool isUnchecked;
+  final bool isImplicit;
   final int fileOffset;
 
   DelayedAsExpression(this._operand, this._type,
-      {this.isUnchecked = false, required this.fileOffset});
+      {this.isUnchecked = false,
+      this.isImplicit = false,
+      required this.fileOffset});
 
   @override
   Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createAsExpression(_operand.createExpression(typeEnvironment), _type,
+    Expression operand = _operand.createExpression(typeEnvironment);
+    if (isImplicit) {
+      DartType operandType = _operand.getType(typeEnvironment);
+      if (typeEnvironment.isSubtypeOf(
+          operandType, _type, SubtypeCheckMode.withNullabilities)) {
+        return operand;
+      }
+    }
+    return createAsExpression(operand, _type,
         forNonNullableByDefault: true,
         isUnchecked: isUnchecked,
         fileOffset: fileOffset);

@@ -379,18 +379,24 @@ static method relationalPattern(dynamic dyn, Never never, self::Class cls, self:
     if(self::_extension#0|<=(#15#0, #C1)) {
     }
   }
-  if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:113:18: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+  {
+    final synthesized self::Class #16#0 = cls;
+    if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:113:18: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
   if (cls case < '0') {} // Error: invalid instance < argument
                  ^") {
+    }
   }
   {
     final synthesized self::Class #17#0 = cls;
-    if(self::_extension#0|<=(#17#0, #C2)) {
+    if(self::_extension#0|<=(#17#0, #C2 as{ForNonNullableByDefault} core::int)) {
     }
   }
-  if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:115:16: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+  {
+    final synthesized self::Class #18#0 = cls;
+    if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:115:16: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   if (cls case > 0) {} // Error: invalid instance >
                ^") {
+    }
   }
   {
     final synthesized self::Class #19#0 = cls;
@@ -407,27 +413,39 @@ static method relationalPattern(dynamic dyn, Never never, self::Class cls, self:
     if(!(#21#0 =={self::Class::==}{(core::Object) → core::bool} #C1)) {
     }
   }
-  if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:119:17: Error: The method '<' isn't defined for the class 'Class?'.
+  {
+    final synthesized self::Class? #22#0 = cls_;
+    if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:119:17: Error: The method '<' isn't defined for the class 'Class?'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '<'.
   if (cls_ case < 0) {} // Error: nullable instance <
                 ^") {
+    }
   }
-  if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:120:17: Error: The method '<=' isn't defined for the class 'Class?'.
+  {
+    final synthesized self::Class? #23#0 = cls_;
+    if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:120:17: Error: The method '<=' isn't defined for the class 'Class?'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '<='.
   if (cls_ case <= 0) {} // Error: nullable extension <=
                 ^^") {
+    }
   }
-  if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:121:19: Error: The method '<' isn't defined for the class 'String'.
+  {
+    final synthesized core::String #24#0 = string;
+    if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:121:19: Error: The method '<' isn't defined for the class 'String'.
 Try correcting the name to the name of an existing method, or defining a method named '<'.
   if (string case < 0) {} // Error: missing <
                   ^") {
+    }
   }
-  if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:122:19: Error: The method '<=' isn't defined for the class 'String'.
+  {
+    final synthesized core::String #25#0 = string;
+    if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:122:19: Error: The method '<=' isn't defined for the class 'String'.
 Try correcting the name to the name of an existing method, or defining a method named '<='.
   if (string case <= 0) {} // Error: ambiguous <=
                   ^^") {
+    }
   }
   {
     final synthesized invalid-type #26#0 = invalid;
@@ -451,10 +469,13 @@ Try using a constructor or factory that is 'const'.
                          ^^^^^^") {
     }
   }
-  if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:126:20: Error: The argument type 'int' can't be assigned to the parameter type 'Class2'.
+  {
+    final synthesized self::Class2 #29#0 = cls2;
+    if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:126:20: Error: The argument type 'int' can't be assigned to the parameter type 'Class2'.
  - 'Class2' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
   if (cls2 case == 0) {} // Error: invalid instance == argument
                    ^") {
+    }
   }
   {
     final synthesized self::Class2 #30#0 = cls2;
@@ -468,10 +489,13 @@ Try using a constructor or factory that is 'const'.
                          ^^^^^^")) {
     }
   }
-  if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:128:20: Error: The argument type 'int' can't be assigned to the parameter type 'Class2'.
+  {
+    final synthesized self::Class2 #31#0 = cls2;
+    if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:128:20: Error: The argument type 'int' can't be assigned to the parameter type 'Class2'.
  - 'Class2' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
   if (cls2 case != 0) {} // Error: invalid instance == argument negated
                    ^") {
+    }
   }
   {
     final synthesized self::Class2 #32#0 = cls2;
@@ -485,10 +509,13 @@ Try using a constructor or factory that is 'const'.
                         ^^^^^^"){(self::Class2) → core::bool}) {
     }
   }
-  if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:130:19: Error: The argument type 'int' can't be assigned to the parameter type 'Class2'.
+  {
+    final synthesized self::Class2 #33#0 = cls2;
+    if(invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:130:19: Error: The argument type 'int' can't be assigned to the parameter type 'Class2'.
  - 'Class2' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
   if (cls2 case < 0) {} // Error: invalid instance < argument
                   ^") {
+    }
   }
   {
     final synthesized self::Class2? #34#0 = cls2_;

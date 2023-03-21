@@ -40,17 +40,35 @@ static method test(dynamic x) → dynamic {
     if(#0#0 is{ForNonNullableByDefault} invalid-type) {
     }
   }
-  if(true) {
+  {
+    final synthesized invalid-type #1#0 = x{invalid-type};
+    if(#1#0 is{ForNonNullableByDefault} self::A) {
+    }
   }
-  if(true) {
+  {
+    final synthesized self::A #2#0 = x{self::A};
+    if(true) {
+    }
   }
-  if(true) {
+  {
+    final synthesized self::A #3#0 = x{self::A};
+    if(true) {
+    }
   }
-  if(true) {
+  {
+    final synthesized invalid-type #4#0 = x{invalid-type};
+    if(#4#0 is{ForNonNullableByDefault} self::A) {
+    }
   }
-  if(true) {
+  {
+    final synthesized self::A #5#0 = x{self::A};
+    if(true) {
+    }
   }
-  if(true) {
+  {
+    final synthesized self::A #6#0 = x{self::A};
+    if(true) {
+    }
   }
 }
 static method _#B#new#tearOff<unrelated X extends core::Object? = dynamic>() → self::A
