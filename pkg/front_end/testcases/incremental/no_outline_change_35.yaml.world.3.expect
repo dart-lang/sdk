@@ -4,7 +4,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
   import "dart:ffi";
 
   @#C7
-  class Coordinate extends dart.ffi::Struct {
+  final class Coordinate extends dart.ffi::Struct {
     constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase) → lib::Coordinate
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
       ;

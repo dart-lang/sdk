@@ -12,7 +12,7 @@ const notTestingOn = Abi.fuchsiaArm64;
 @AbiSpecificIntegerMapping({
   notTestingOn: Int8(),
 })
-class Incomplete extends AbiSpecificInteger {
+final class Incomplete extends AbiSpecificInteger {
   const Incomplete();
 }
 

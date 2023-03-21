@@ -9,7 +9,7 @@ import "dart:ffi";
 
 @#C21
 @#C27
-class Incomplete extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
+final class Incomplete extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
   const constructor •() → self::Incomplete
     : super ffi::AbiSpecificInteger::•()
     ;
@@ -18,7 +18,7 @@ class Incomplete extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
     return ffi::_checkAbiSpecificIntegerMapping<core::int>(#C31.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
 }
 @#C36
-class IncompleteStruct extends ffi::Struct {
+final class IncompleteStruct extends ffi::Struct {
   synthetic constructor •() → self::IncompleteStruct
     : super ffi::Struct::•()
     ;
@@ -42,7 +42,7 @@ class IncompleteStruct extends ffi::Struct {
     return ffi::_checkAbiSpecificIntegerMapping<core::int>(#C40.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
 }
 @#C45
-class IncompleteArrayStruct extends ffi::Struct {
+final class IncompleteArrayStruct extends ffi::Struct {
   synthetic constructor •() → self::IncompleteArrayStruct
     : super ffi::Struct::•()
     ;

@@ -6,7 +6,7 @@
 
 import 'dart:ffi';
 
-class A extends Struct {
+final class A extends Struct {
   @Array.multi([16])
   external Array<Int8> a;
 

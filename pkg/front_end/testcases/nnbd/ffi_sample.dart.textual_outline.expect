@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import "package:ffi/ffi.dart";
 
-class Coordinate extends Struct {
+final class Coordinate extends Struct {
   @Double()
   external double x;
   @Double()

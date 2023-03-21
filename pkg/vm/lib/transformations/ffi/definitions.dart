@@ -38,7 +38,7 @@ import 'native_type_cfe.dart';
 /// Checks and elaborates the dart:ffi compounds and their fields.
 ///
 /// Input:
-/// class Coord extends Struct {
+/// final class Coord extends Struct {
 ///   @Double()
 ///   double x;
 ///
@@ -49,7 +49,7 @@ import 'native_type_cfe.dart';
 /// }
 ///
 /// Output:
-/// class Coord extends Struct {
+/// final class Coord extends Struct {
 ///   Coord.#fromTypedDataBase(Pointer<Coord> coord) : super._(coord);
 ///
 ///   set x(double v) => ...;

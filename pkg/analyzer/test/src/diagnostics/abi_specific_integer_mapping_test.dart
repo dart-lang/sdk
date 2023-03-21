@@ -20,7 +20,7 @@ class AbiSpecificIntegerMappingTest extends PubPackageResolutionTest {
 import 'dart:ffi';
 @AbiSpecificIntegerMapping({})
 @AbiSpecificIntegerMapping({})
-class UintPtr extends AbiSpecificInteger {
+final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
 ''', [
@@ -36,7 +36,7 @@ import 'dart:ffi';
   Abi.androidArm64: IntPtr(),
   Abi.androidIA32: UintPtr(),
 })
-class UintPtr extends AbiSpecificInteger {
+final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
 ''', [
@@ -56,7 +56,7 @@ const c = {
   Abi.androidIA32: UintPtr(),
 };
 @AbiSpecificIntegerMapping(c)
-class UintPtr extends AbiSpecificInteger {
+final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
 ''', [
@@ -70,11 +70,11 @@ class UintPtr extends AbiSpecificInteger {
   test_noMapping() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class UintPtr extends AbiSpecificInteger {
+final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
 ''', [
-      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING, 25, 7),
+      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING, 31, 7),
     ]);
   }
 
@@ -82,7 +82,7 @@ class UintPtr extends AbiSpecificInteger {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 @AbiSpecificIntegerMapping({})
-class UintPtr extends AbiSpecificInteger {
+final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
 ''');
@@ -96,7 +96,7 @@ import 'dart:ffi';
   Abi.androidArm64: Uint64(),
   Abi.androidIA32: Uint32(),
 })
-class UintPtr extends AbiSpecificInteger {
+final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
 ''');

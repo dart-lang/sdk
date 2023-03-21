@@ -7,7 +7,7 @@ import "dart:ffi";
 import "package:ffi/ffi.dart";
 
 @#C7
-class Coordinate extends ffi::Struct {
+final class Coordinate extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::Coordinate
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;

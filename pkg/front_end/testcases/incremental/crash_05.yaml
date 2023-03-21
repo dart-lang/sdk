@@ -11,12 +11,12 @@ worlds:
       main.dart: |
         import 'dart:ffi';
         import 'lib.dart';
-        class X extends Struct {
+        final class X extends Struct {
           external Y xx;
         }
       lib.dart: |
         import 'dart:ffi';
-        class Y extends Struct {
+        final class Y extends Struct {
           @Uint32()
           external int yy;
         }

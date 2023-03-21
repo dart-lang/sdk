@@ -17530,7 +17530,7 @@ FfiCode:
       import 'dart:ffi';
 
       @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-      class [!C!] extends AbiSpecificInteger {
+      final class [!C!] extends AbiSpecificInteger {
       }
       ```
 
@@ -17541,7 +17541,7 @@ FfiCode:
       import 'dart:ffi';
 
       @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-      class [!C!] extends AbiSpecificInteger {
+      final class [!C!] extends AbiSpecificInteger {
         C();
       }
       ```
@@ -17553,7 +17553,7 @@ FfiCode:
       import 'dart:ffi';
 
       @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-      class [!C!] extends AbiSpecificInteger {
+      final class [!C!] extends AbiSpecificInteger {
         const C.zero();
         const C.one();
       }
@@ -17566,7 +17566,7 @@ FfiCode:
       import 'dart:ffi';
 
       @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-      class [!C!] extends AbiSpecificInteger {
+      final class [!C!] extends AbiSpecificInteger {
         final int i;
 
         const C(this.i);
@@ -17580,7 +17580,7 @@ FfiCode:
       import 'dart:ffi';
 
       @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-      class [!C!]<T> extends AbiSpecificInteger { // type parameters
+      final class [!C!]<T> extends AbiSpecificInteger { // type parameters
         const C();
       }
       ```
@@ -17594,7 +17594,7 @@ FfiCode:
       import 'dart:ffi';
 
       @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-      class C extends AbiSpecificInteger {
+      final class C extends AbiSpecificInteger {
         const C();
       }
       ```
@@ -17620,7 +17620,7 @@ FfiCode:
 
       @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
       @[!AbiSpecificIntegerMapping!]({Abi.linuxX64 : Uint16()})
-      class C extends AbiSpecificInteger {
+      final class C extends AbiSpecificInteger {
         const C();
       }
       ```
@@ -17634,7 +17634,7 @@ FfiCode:
       import 'dart:ffi';
 
       @AbiSpecificIntegerMapping({Abi.macosX64 : Int8(), Abi.linuxX64 : Uint16()})
-      class C extends AbiSpecificInteger {
+      final class C extends AbiSpecificInteger {
         const C();
       }
       ```
@@ -17658,7 +17658,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class [!C!] extends AbiSpecificInteger {
+      final class [!C!] extends AbiSpecificInteger {
         const C();
       }
       ```
@@ -17671,7 +17671,7 @@ FfiCode:
       import 'dart:ffi';
 
       @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-      class C extends AbiSpecificInteger {
+      final class C extends AbiSpecificInteger {
         const C();
       }
       ```
@@ -17706,7 +17706,7 @@ FfiCode:
       import 'dart:ffi';
 
       @AbiSpecificIntegerMapping({Abi.macosX64 : [!Array<Uint8>(4)!]})
-      class C extends AbiSpecificInteger {
+      final class C extends AbiSpecificInteger {
         const C();
       }
       ```
@@ -17719,7 +17719,7 @@ FfiCode:
       import 'dart:ffi';
 
       @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-      class C extends AbiSpecificInteger {
+      final class C extends AbiSpecificInteger {
         const C();
       }
       ```
@@ -17746,7 +17746,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         [!@Double()!]
         external Pointer<Int8> p;
       }
@@ -17759,7 +17759,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         external Pointer<Int8> p;
       }
       ```
@@ -17844,7 +17844,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class [!S!] extends Struct implements Finalizable {
+      final class [!S!] extends Struct implements Finalizable {
         external Pointer notEmpty;
       }
       ```
@@ -17856,7 +17856,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class S extends Struct {
+      final class S extends Struct {
         external Pointer notEmpty;
       }
       ```
@@ -17881,7 +17881,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int32()
         external int a;
       }
@@ -17900,7 +17900,7 @@ FfiCode:
       import 'dart:ffi';
       import 'package:ffi/ffi.dart';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int32()
         external int a;
       }
@@ -17937,7 +17937,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class [!C!] extends Struct {}
+      final class [!C!] extends Struct {}
       ```
 
       #### Common fixes
@@ -17947,7 +17947,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int32()
         external int x;
       }
@@ -17959,7 +17959,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Opaque {}
+      final class C extends Opaque {}
       ```
 
       If the class isn't intended to be a struct, then remove or change the
@@ -17990,7 +17990,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int32()
         [!@Int16()!]
         external int x;
@@ -18003,7 +18003,7 @@ FfiCode:
 
       ```dart
       import 'dart:ffi';
-      class C extends Struct {
+      final class C extends Struct {
         @Int32()
         external int x;
       }
@@ -18030,7 +18030,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Array(4)
         [!@Array(8)!]
         external Array<Uint8> a0;
@@ -18044,7 +18044,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Array(8)
         external Array<Uint8> a0;
       }
@@ -18093,7 +18093,7 @@ FfiCode:
       // @dart = 2.9
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int32()
         int f;
 
@@ -18109,7 +18109,7 @@ FfiCode:
       // @dart = 2.9
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int32()
         int f;
 
@@ -18138,7 +18138,7 @@ FfiCode:
       // @dart = 2.9
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         Pointer [!p!] = nullptr;
       }
       ```
@@ -18151,7 +18151,7 @@ FfiCode:
       // @dart = 2.9
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         Pointer p;
       }
       ```
@@ -18176,7 +18176,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int16()
         int [!a!];
       }
@@ -18189,7 +18189,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int16()
         external int a;
       }
@@ -18217,7 +18217,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class [!S!]<T> extends Struct {
+      final class [!S!]<T> extends Struct {
         external Pointer notEmpty;
       }
       ```
@@ -18229,7 +18229,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class S extends Struct {
+      final class S extends Struct {
         external Pointer notEmpty;
       }
       ```
@@ -18305,7 +18305,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         external [!String!] s;
 
         @Int32()
@@ -18321,7 +18321,7 @@ FfiCode:
       import 'dart:ffi';
       import 'package:ffi/ffi.dart';
 
-      class C extends Struct {
+      final class C extends Struct {
         external Pointer<Utf8> s;
 
         @Int32()
@@ -18457,7 +18457,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         [!@Double()!]
         external int x;
       }
@@ -18470,7 +18470,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int32()
         external int x;
       }
@@ -18481,7 +18481,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Double()
         external double x;
       }
@@ -18513,7 +18513,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         external [!int!] x;
       }
       ```
@@ -18525,7 +18525,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int64()
         external int x;
       }
@@ -18597,7 +18597,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         external var [!str!];
 
         @Int32()
@@ -18613,7 +18613,7 @@ FfiCode:
       import 'dart:ffi';
       import 'package:ffi/ffi.dart';
 
-      class C extends Struct {
+      final class C extends Struct {
         external Pointer<Utf8> str;
 
         @Int32()
@@ -18642,7 +18642,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         external [!Array<Uint8>!] a0;
       }
       ```
@@ -18654,7 +18654,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Array(8)
         external Array<Uint8> a0;
       }
@@ -18897,7 +18897,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class MyStruct extends Struct {
+      final class MyStruct extends Struct {
         @Array([!-8!])
         external Array<Uint8> a0;
       }
@@ -18910,7 +18910,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class MyStruct extends Struct {
+      final class MyStruct extends Struct {
         @Array(8)
         external Array<Uint8> a0;
       }
@@ -18941,7 +18941,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Array(8)
         external Array<[!Void!]> a0;
       }
@@ -18954,7 +18954,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Array(8)
         external Array<Uint8> a0;
       }
@@ -18982,7 +18982,7 @@ FfiCode:
 
       @Packed(1)
       [!@Packed(1)!]
-      class C extends Struct {
+      final class C extends Struct {
         external Pointer<Uint8> notEmpty;
       }
       ```
@@ -18995,7 +18995,7 @@ FfiCode:
       import 'dart:ffi';
 
       @Packed(1)
-      class C extends Struct {
+      final class C extends Struct {
         external Pointer<Uint8> notEmpty;
       }
       ```
@@ -19021,7 +19021,7 @@ FfiCode:
       import 'dart:ffi';
 
       @Packed([!3!])
-      class C extends Struct {
+      final class C extends Struct {
         external Pointer<Uint8> notEmpty;
       }
       ```
@@ -19034,7 +19034,7 @@ FfiCode:
       import 'dart:ffi';
 
       @Packed(4)
-      class C extends Struct {
+      final class C extends Struct {
         external Pointer<Uint8> notEmpty;
       }
       ```
@@ -19061,7 +19061,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         [!@Array(8, 8)!]
         external Array<Array<Array<Uint8>>> a0;
       }
@@ -19075,7 +19075,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Array(8, 8, 4)
         external Array<Array<Array<Uint8>>> a0;
       }
@@ -19086,7 +19086,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Array(8, 8)
         external Array<Array<Uint8>> a0;
       }
@@ -19118,7 +19118,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends [!Double!] {}
+      final class C extends [!Double!] {}
       ```
 
       #### Common fixes
@@ -19129,7 +19129,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int32()
         external int i;
       }
@@ -19139,7 +19139,7 @@ FfiCode:
       references to FFI classes:
 
       ```dart
-      class C {}
+      final class C {}
       ```
   SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
     sharedName: SUBTYPE_OF_FFI_CLASS
@@ -19185,11 +19185,11 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class S extends Struct {
+      final class S extends Struct {
         external Pointer f;
       }
 
-      class C extends [!S!] {
+      final class C extends [!S!] {
         external Pointer g;
       }
       ```
@@ -19203,11 +19203,11 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class S extends Struct {
+      final class S extends Struct {
         external Pointer f;
       }
 
-      class C extends Struct {
+      final class C extends Struct {
         external Pointer f;
 
         external Pointer g;
