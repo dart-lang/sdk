@@ -38,7 +38,7 @@ intptr_t StubCodeCompiler::WordOffsetFromFpToCpuRegister(
   return slots_from_fp;
 }
 
-void StubCodeCompiler::GenerateInitStaticFieldStub() {
+void StubCodeCompiler::GenerateInitStaticFieldStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for result.
   __ PushRegister(InitStaticFieldABI::kFieldReg);
@@ -49,7 +49,8 @@ void StubCodeCompiler::GenerateInitStaticFieldStub() {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final) {
+void StubCodeCompiler::GenerateInitLateStaticFieldStub(Assembler* assembler,
+                                                       bool is_final) {
   const Register kResultReg = InitStaticFieldABI::kResultReg;
   const Register kFieldReg = InitStaticFieldABI::kFieldReg;
   const Register kAddressReg = InitLateStaticFieldInternalRegs::kAddressReg;
@@ -99,15 +100,16 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final) {
   }
 }
 
-void StubCodeCompiler::GenerateInitLateStaticFieldStub() {
-  GenerateInitLateStaticFieldStub(/*is_final=*/false);
+void StubCodeCompiler::GenerateInitLateStaticFieldStub(Assembler* assembler) {
+  GenerateInitLateStaticFieldStub(assembler, /*is_final=*/false);
 }
 
-void StubCodeCompiler::GenerateInitLateFinalStaticFieldStub() {
-  GenerateInitLateStaticFieldStub(/*is_final=*/true);
+void StubCodeCompiler::GenerateInitLateFinalStaticFieldStub(
+    Assembler* assembler) {
+  GenerateInitLateStaticFieldStub(assembler, /*is_final=*/true);
 }
 
-void StubCodeCompiler::GenerateInitInstanceFieldStub() {
+void StubCodeCompiler::GenerateInitInstanceFieldStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for result.
   __ PushRegistersInOrder(
@@ -119,7 +121,8 @@ void StubCodeCompiler::GenerateInitInstanceFieldStub() {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateInitLateInstanceFieldStub(bool is_final) {
+void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
+                                                         bool is_final) {
   const Register kInstanceReg = InitInstanceFieldABI::kInstanceReg;
   const Register kFieldReg = InitInstanceFieldABI::kFieldReg;
   const Register kAddressReg = InitLateInstanceFieldInternalRegs::kAddressReg;
@@ -193,15 +196,16 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(bool is_final) {
   }
 }
 
-void StubCodeCompiler::GenerateInitLateInstanceFieldStub() {
-  GenerateInitLateInstanceFieldStub(/*is_final=*/false);
+void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler) {
+  GenerateInitLateInstanceFieldStub(assembler, /*is_final=*/false);
 }
 
-void StubCodeCompiler::GenerateInitLateFinalInstanceFieldStub() {
-  GenerateInitLateInstanceFieldStub(/*is_final=*/true);
+void StubCodeCompiler::GenerateInitLateFinalInstanceFieldStub(
+    Assembler* assembler) {
+  GenerateInitLateInstanceFieldStub(assembler, /*is_final=*/true);
 }
 
-void StubCodeCompiler::GenerateThrowStub() {
+void StubCodeCompiler::GenerateThrowStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for (unused) result.
   __ PushRegister(ThrowABI::kExceptionReg);
@@ -209,7 +213,7 @@ void StubCodeCompiler::GenerateThrowStub() {
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateReThrowStub() {
+void StubCodeCompiler::GenerateReThrowStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for (unused) result.
   __ PushRegistersInOrder(
@@ -218,7 +222,7 @@ void StubCodeCompiler::GenerateReThrowStub() {
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateAssertBooleanStub() {
+void StubCodeCompiler::GenerateAssertBooleanStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for (unused) result.
   __ PushRegister(AssertBooleanABI::kObjectReg);
@@ -226,7 +230,7 @@ void StubCodeCompiler::GenerateAssertBooleanStub() {
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateAssertSubtypeStub() {
+void StubCodeCompiler::GenerateAssertSubtypeStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushRegistersInOrder({AssertSubtypeABI::kInstantiatorTypeArgumentsReg,
                            AssertSubtypeABI::kFunctionTypeArgumentsReg,
@@ -239,7 +243,7 @@ void StubCodeCompiler::GenerateAssertSubtypeStub() {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateAssertAssignableStub() {
+void StubCodeCompiler::GenerateAssertAssignableStub(Assembler* assembler) {
 #if !defined(TARGET_ARCH_IA32)
   __ Breakpoint();
 #else
@@ -273,7 +277,8 @@ void StubCodeCompiler::GenerateAssertAssignableStub() {
 // - InstantiationABI::kResultTypeArgumentsReg: instantiated tav
 // Clobbers:
 // - InstantiationABI::kScratchReg
-void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub() {
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
+    Assembler* assembler) {
   // We only need the offset of the current entry up until we either call
   // the runtime or until we retrieve the instantiated type arguments out of it
   // to put in the result register, so we use the result register to store it.
@@ -490,7 +495,8 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub() {
 }
 
 void StubCodeCompiler::
-    GenerateInstantiateTypeArgumentsMayShareInstantiatorTAStub() {
+    GenerateInstantiateTypeArgumentsMayShareInstantiatorTAStub(
+        Assembler* assembler) {
   const Register kScratch1Reg = InstantiationABI::kResultTypeArgumentsReg;
   const Register kScratch2Reg = InstantiationABI::kScratchReg;
   // Return the instantiator type arguments if its nullability is compatible for
@@ -512,11 +518,11 @@ void StubCodeCompiler::
   __ Ret();
 
   __ Bind(&cache_lookup);
-  GenerateInstantiateTypeArgumentsStub();
+  GenerateInstantiateTypeArgumentsStub(assembler);
 }
 
-void StubCodeCompiler::
-    GenerateInstantiateTypeArgumentsMayShareFunctionTAStub() {
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
+    Assembler* assembler) {
   const Register kScratch1Reg = InstantiationABI::kResultTypeArgumentsReg;
   const Register kScratch2Reg = InstantiationABI::kScratchReg;
   // Return the function type arguments if its nullability is compatible for
@@ -538,7 +544,7 @@ void StubCodeCompiler::
   __ Ret();
 
   __ Bind(&cache_lookup);
-  GenerateInstantiateTypeArgumentsStub();
+  GenerateInstantiateTypeArgumentsStub(assembler);
 }
 
 static void BuildInstantiateTypeRuntimeCall(Assembler* assembler) {
@@ -620,45 +626,48 @@ static void BuildInstantiateTypeParameterStub(Assembler* assembler,
   BuildInstantiateTypeRuntimeCall(assembler);
 }
 
-void StubCodeCompiler::
-    GenerateInstantiateTypeNonNullableClassTypeParameterStub() {
+void StubCodeCompiler::GenerateInstantiateTypeNonNullableClassTypeParameterStub(
+    Assembler* assembler) {
   BuildInstantiateTypeParameterStub(assembler, Nullability::kNonNullable,
                                     /*is_function_parameter=*/false);
 }
 
-void StubCodeCompiler::GenerateInstantiateTypeNullableClassTypeParameterStub() {
+void StubCodeCompiler::GenerateInstantiateTypeNullableClassTypeParameterStub(
+    Assembler* assembler) {
   BuildInstantiateTypeParameterStub(assembler, Nullability::kNullable,
                                     /*is_function_parameter=*/false);
 }
 
-void StubCodeCompiler::GenerateInstantiateTypeLegacyClassTypeParameterStub() {
+void StubCodeCompiler::GenerateInstantiateTypeLegacyClassTypeParameterStub(
+    Assembler* assembler) {
   BuildInstantiateTypeParameterStub(assembler, Nullability::kLegacy,
                                     /*is_function_parameter=*/false);
 }
 
 void StubCodeCompiler::
-    GenerateInstantiateTypeNonNullableFunctionTypeParameterStub() {
+    GenerateInstantiateTypeNonNullableFunctionTypeParameterStub(
+        Assembler* assembler) {
   BuildInstantiateTypeParameterStub(assembler, Nullability::kNonNullable,
                                     /*is_function_parameter=*/true);
 }
 
-void StubCodeCompiler::
-    GenerateInstantiateTypeNullableFunctionTypeParameterStub() {
+void StubCodeCompiler::GenerateInstantiateTypeNullableFunctionTypeParameterStub(
+    Assembler* assembler) {
   BuildInstantiateTypeParameterStub(assembler, Nullability::kNullable,
                                     /*is_function_parameter=*/true);
 }
 
-void StubCodeCompiler::
-    GenerateInstantiateTypeLegacyFunctionTypeParameterStub() {
+void StubCodeCompiler::GenerateInstantiateTypeLegacyFunctionTypeParameterStub(
+    Assembler* assembler) {
   BuildInstantiateTypeParameterStub(assembler, Nullability::kLegacy,
                                     /*is_function_parameter=*/true);
 }
 
-void StubCodeCompiler::GenerateInstantiateTypeStub() {
+void StubCodeCompiler::GenerateInstantiateTypeStub(Assembler* assembler) {
   BuildInstantiateTypeRuntimeCall(assembler);
 }
 
-void StubCodeCompiler::GenerateInstanceOfStub() {
+void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for the result.
   __ PushRegistersInOrder({TypeTestABI::kInstanceReg, TypeTestABI::kDstTypeReg,
@@ -797,12 +806,16 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   __ Jump(&check_top_type, compiler::Assembler::kNearJump);
 }
 
-void StubCodeCompiler::GenerateTypeIsTopTypeForSubtypingStub() {
-  GenerateTypeIsTopTypeForSubtyping(assembler, /*null_safety=*/false);
+void StubCodeCompiler::GenerateTypeIsTopTypeForSubtypingStub(
+    Assembler* assembler) {
+  GenerateTypeIsTopTypeForSubtyping(assembler,
+                                    /*null_safety=*/false);
 }
 
-void StubCodeCompiler::GenerateTypeIsTopTypeForSubtypingNullSafeStub() {
-  GenerateTypeIsTopTypeForSubtyping(assembler, /*null_safety=*/true);
+void StubCodeCompiler::GenerateTypeIsTopTypeForSubtypingNullSafeStub(
+    Assembler* assembler) {
+  GenerateTypeIsTopTypeForSubtyping(assembler,
+                                    /*null_safety=*/true);
 }
 
 // Version of Instance::NullIsAssignableTo(other, inst_tav, fun_tav) used when
@@ -942,12 +955,16 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateNullIsAssignableToTypeStub() {
-  GenerateNullIsAssignableToType(assembler, /*null_safety=*/false);
+void StubCodeCompiler::GenerateNullIsAssignableToTypeStub(
+    Assembler* assembler) {
+  GenerateNullIsAssignableToType(assembler,
+                                 /*null_safety=*/false);
 }
 
-void StubCodeCompiler::GenerateNullIsAssignableToTypeNullSafeStub() {
-  GenerateNullIsAssignableToType(assembler, /*null_safety=*/true);
+void StubCodeCompiler::GenerateNullIsAssignableToTypeNullSafeStub(
+    Assembler* assembler) {
+  GenerateNullIsAssignableToType(assembler,
+                                 /*null_safety=*/true);
 }
 #if !defined(TARGET_ARCH_IA32)
 // The <X>TypeTestStubs are used to test whether a given value is of a given
@@ -969,14 +986,15 @@ void StubCodeCompiler::GenerateNullIsAssignableToTypeNullSafeStub() {
 //
 // Note of warning: The caller will not populate CODE_REG and we have therefore
 // no access to the pool.
-void StubCodeCompiler::GenerateDefaultTypeTestStub() {
+void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
   __ LoadFromOffset(CODE_REG, THR,
                     target::Thread::slow_type_test_stub_offset());
   __ Jump(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
 }
 
 // Used instead of DefaultTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateDefaultNullableTypeTestStub() {
+void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
+    Assembler* assembler) {
   Label done;
 
   // Fast case for 'null'.
@@ -991,11 +1009,11 @@ void StubCodeCompiler::GenerateDefaultNullableTypeTestStub() {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateTopTypeTypeTestStub() {
+void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateUnreachableTypeTestStub() {
+void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
   __ Breakpoint();
 }
 
@@ -1039,11 +1057,12 @@ static void BuildTypeParameterTypeTestStub(Assembler* assembler,
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub() {
+void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
+    Assembler* assembler) {
   BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/true);
 }
 
-void StubCodeCompiler::GenerateTypeParameterTypeTestStub() {
+void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
   BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/false);
 }
 
@@ -1067,7 +1086,8 @@ static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
   __ Drop(1);  // Discard return value.
 }
 
-void StubCodeCompiler::GenerateLazySpecializeTypeTestStub() {
+void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
+    Assembler* assembler) {
   __ LoadFromOffset(CODE_REG, THR,
                     target::Thread::lazy_specialize_type_test_stub_offset());
   __ EnterStubFrame();
@@ -1077,7 +1097,8 @@ void StubCodeCompiler::GenerateLazySpecializeTypeTestStub() {
 }
 
 // Used instead of LazySpecializeTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub() {
+void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
+    Assembler* assembler) {
   Label done;
 
   __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
@@ -1093,7 +1114,7 @@ void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub() {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateSlowTypeTestStub() {
+void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label done, call_runtime;
 
   if (!FLAG_precompiled_mode) {
@@ -1167,7 +1188,7 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
 #else
 // Type testing stubs are not implemented on IA32.
 #define GENERATE_BREAKPOINT_STUB(Name)                                         \
-  void StubCodeCompiler::Generate##Name##Stub() {                              \
+  void StubCodeCompiler::Generate##Name##Stub(Assembler* assembler) {          \
     __ Breakpoint();                                                           \
   }
 
@@ -1183,7 +1204,7 @@ VM_TYPE_TESTING_STUB_CODE_LIST(GENERATE_BREAKPOINT_STUB)
 //   AllocateClosureABI::kResultReg: new allocated Closure object.
 // Clobbered:
 //   AllocateClosureABI::kScratchReg
-void StubCodeCompiler::GenerateAllocateClosureStub() {
+void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
   const intptr_t instance_size =
       target::RoundedAllocationSize(target::Closure::InstanceSize());
   __ EnsureHasClassIdInDEBUG(kFunctionCid, AllocateClosureABI::kFunctionReg,
@@ -1259,7 +1280,7 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
   __ PopRegister(AllocateClosureABI::kFunctionReg);
   __ PopRegister(AllocateClosureABI::kResultReg);
   ASSERT(target::WillAllocateNewOrRememberedObject(instance_size));
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
   __ LeaveStubFrame();
 
   // AllocateClosureABI::kResultReg: new object
@@ -1269,7 +1290,7 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
 // Generates allocation stub for _GrowableList class.
 // This stub exists solely for performance reasons: default allocation
 // stub is slower as it doesn't use specialized inline allocation.
-void StubCodeCompiler::GenerateAllocateGrowableArrayStub() {
+void StubCodeCompiler::GenerateAllocateGrowableArrayStub(Assembler* assembler) {
 #if defined(TARGET_ARCH_IA32)
   // This stub is not used on IA32 because IA32 version of
   // StubCodeCompiler::GenerateAllocationStubForClass uses inline
@@ -1303,7 +1324,7 @@ void StubCodeCompiler::GenerateAllocateGrowableArrayStub() {
 #endif  // defined(TARGET_ARCH_IA32)
 }
 
-void StubCodeCompiler::GenerateAllocateRecordStub() {
+void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
   const Register result_reg = AllocateRecordABI::kResultReg;
   const Register shape_reg = AllocateRecordABI::kShapeReg;
   const Register temp_reg = AllocateRecordABI::kTemp1Reg;
@@ -1407,12 +1428,13 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
   __ Drop(1);
   __ PopRegister(AllocateRecordABI::kResultReg);
 
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
   __ LeaveStubFrame();
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateAllocateSmallRecordStub(intptr_t num_fields,
+void StubCodeCompiler::GenerateAllocateSmallRecordStub(Assembler* assembler,
+                                                       intptr_t num_fields,
                                                        bool has_named_fields) {
   ASSERT(num_fields == 2 || num_fields == 3);
   const Register result_reg = AllocateSmallRecordABI::kResultReg;
@@ -1483,30 +1505,31 @@ void StubCodeCompiler::GenerateAllocateSmallRecordStub(intptr_t num_fields,
   __ Drop(4);
   __ PopRegister(result_reg);
 
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
   __ LeaveStubFrame();
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateAllocateRecord2Stub() {
-  GenerateAllocateSmallRecordStub(2, /*has_named_fields=*/false);
+void StubCodeCompiler::GenerateAllocateRecord2Stub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 2, /*has_named_fields=*/false);
 }
 
-void StubCodeCompiler::GenerateAllocateRecord2NamedStub() {
-  GenerateAllocateSmallRecordStub(2, /*has_named_fields=*/true);
+void StubCodeCompiler::GenerateAllocateRecord2NamedStub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 2, /*has_named_fields=*/true);
 }
 
-void StubCodeCompiler::GenerateAllocateRecord3Stub() {
-  GenerateAllocateSmallRecordStub(3, /*has_named_fields=*/false);
+void StubCodeCompiler::GenerateAllocateRecord3Stub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 3, /*has_named_fields=*/false);
 }
 
-void StubCodeCompiler::GenerateAllocateRecord3NamedStub() {
-  GenerateAllocateSmallRecordStub(3, /*has_named_fields=*/true);
+void StubCodeCompiler::GenerateAllocateRecord3NamedStub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 3, /*has_named_fields=*/true);
 }
 
 // The UnhandledException class lives in the VM isolate, so it cannot cache
 // an allocation stub for itself. Instead, we cache it in the stub code list.
-void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub() {
+void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub(
+    Assembler* assembler) {
   Thread* thread = Thread::Current();
   auto class_table = thread->isolate_group()->class_table();
   ASSERT(class_table->HasValidClassAt(kUnhandledExceptionCid));
@@ -1514,25 +1537,27 @@ void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub() {
                                       class_table->At(kUnhandledExceptionCid));
   ASSERT(!cls.IsNull());
 
-  GenerateAllocationStubForClass(nullptr, cls, Code::Handle(Code::null()),
+  GenerateAllocationStubForClass(assembler, nullptr, cls,
+                                 Code::Handle(Code::null()),
                                  Code::Handle(Code::null()));
 }
 
 #define TYPED_DATA_ALLOCATION_STUB(clazz)                                      \
-  void StubCodeCompiler::GenerateAllocate##clazz##Stub() {                     \
-    GenerateAllocateTypedDataArrayStub(kTypedData##clazz##Cid);                \
+  void StubCodeCompiler::GenerateAllocate##clazz##Stub(Assembler* assembler) { \
+    GenerateAllocateTypedDataArrayStub(assembler, kTypedData##clazz##Cid);     \
   }
 CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATION_STUB)
 #undef TYPED_DATA_ALLOCATION_STUB
 
-void StubCodeCompiler::GenerateLateInitializationError(bool with_fpu_regs) {
+void StubCodeCompiler::GenerateLateInitializationError(Assembler* assembler,
+                                                       bool with_fpu_regs) {
   auto perform_runtime_call = [&]() {
     __ PushRegister(LateInitializationErrorABI::kFieldReg);
     __ CallRuntime(kLateFieldNotInitializedErrorRuntimeEntry,
                    /*argument_count=*/1);
   };
   GenerateSharedStubGeneric(
-      /*save_fpu_registers=*/with_fpu_regs,
+      assembler, /*save_fpu_registers=*/with_fpu_regs,
       with_fpu_regs
           ? target::Thread::
                 late_initialization_error_shared_with_fpu_regs_stub_offset()
@@ -1541,109 +1566,125 @@ void StubCodeCompiler::GenerateLateInitializationError(bool with_fpu_regs) {
       /*allow_return=*/false, perform_runtime_call);
 }
 
-void StubCodeCompiler::
-    GenerateLateInitializationErrorSharedWithoutFPURegsStub() {
-  GenerateLateInitializationError(/*with_fpu_regs=*/false);
+void StubCodeCompiler::GenerateLateInitializationErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateLateInitializationError(assembler, /*with_fpu_regs=*/false);
 }
 
-void StubCodeCompiler::GenerateLateInitializationErrorSharedWithFPURegsStub() {
-  GenerateLateInitializationError(/*with_fpu_regs=*/true);
+void StubCodeCompiler::GenerateLateInitializationErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateLateInitializationError(assembler, /*with_fpu_regs=*/true);
 }
 
-void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub() {
+void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
   GenerateSharedStub(
-      /*save_fpu_registers=*/false, &kNullErrorRuntimeEntry,
+      assembler, /*save_fpu_registers=*/false, &kNullErrorRuntimeEntry,
       target::Thread::null_error_shared_without_fpu_regs_stub_offset(),
       /*allow_return=*/false);
 }
 
-void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub() {
+void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
   GenerateSharedStub(
-      /*save_fpu_registers=*/true, &kNullErrorRuntimeEntry,
+      assembler, /*save_fpu_registers=*/true, &kNullErrorRuntimeEntry,
       target::Thread::null_error_shared_with_fpu_regs_stub_offset(),
       /*allow_return=*/false);
 }
 
-void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub() {
+void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
   GenerateSharedStub(
-      /*save_fpu_registers=*/false, &kArgumentNullErrorRuntimeEntry,
+      assembler, /*save_fpu_registers=*/false, &kArgumentNullErrorRuntimeEntry,
       target::Thread::null_arg_error_shared_without_fpu_regs_stub_offset(),
       /*allow_return=*/false);
 }
 
-void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub() {
+void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
   GenerateSharedStub(
-      /*save_fpu_registers=*/true, &kArgumentNullErrorRuntimeEntry,
+      assembler, /*save_fpu_registers=*/true, &kArgumentNullErrorRuntimeEntry,
       target::Thread::null_arg_error_shared_with_fpu_regs_stub_offset(),
       /*allow_return=*/false);
 }
 
-void StubCodeCompiler::GenerateNullCastErrorSharedWithoutFPURegsStub() {
+void StubCodeCompiler::GenerateNullCastErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
   GenerateSharedStub(
-      /*save_fpu_registers=*/false, &kNullCastErrorRuntimeEntry,
+      assembler, /*save_fpu_registers=*/false, &kNullCastErrorRuntimeEntry,
       target::Thread::null_cast_error_shared_without_fpu_regs_stub_offset(),
       /*allow_return=*/false);
 }
 
-void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub() {
+void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
   GenerateSharedStub(
-      /*save_fpu_registers=*/true, &kNullCastErrorRuntimeEntry,
+      assembler, /*save_fpu_registers=*/true, &kNullCastErrorRuntimeEntry,
       target::Thread::null_cast_error_shared_with_fpu_regs_stub_offset(),
       /*allow_return=*/false);
 }
 
-void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub() {
+void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
+    Assembler* assembler) {
   GenerateSharedStub(
-      /*save_fpu_registers=*/false, &kInterruptOrStackOverflowRuntimeEntry,
+      assembler, /*save_fpu_registers=*/false,
+      &kInterruptOrStackOverflowRuntimeEntry,
       target::Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
       /*allow_return=*/true);
 }
 
-void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub() {
+void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
+    Assembler* assembler) {
   GenerateSharedStub(
-      /*save_fpu_registers=*/true, &kInterruptOrStackOverflowRuntimeEntry,
+      assembler, /*save_fpu_registers=*/true,
+      &kInterruptOrStackOverflowRuntimeEntry,
       target::Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
       /*allow_return=*/true);
 }
 
-void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub() {
-  GenerateRangeError(/*with_fpu_regs=*/false);
+void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateRangeError(assembler, /*with_fpu_regs=*/false);
 }
 
-void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub() {
-  GenerateRangeError(/*with_fpu_regs=*/true);
+void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateRangeError(assembler, /*with_fpu_regs=*/true);
 }
 
-void StubCodeCompiler::GenerateWriteErrorSharedWithoutFPURegsStub() {
-  GenerateWriteError(/*with_fpu_regs=*/false);
+void StubCodeCompiler::GenerateWriteErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateWriteError(assembler, /*with_fpu_regs=*/false);
 }
 
-void StubCodeCompiler::GenerateWriteErrorSharedWithFPURegsStub() {
-  GenerateWriteError(/*with_fpu_regs=*/true);
+void StubCodeCompiler::GenerateWriteErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateWriteError(assembler, /*with_fpu_regs=*/true);
 }
 
-void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub() {
+void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
+    Assembler* assembler) {
   __ Breakpoint();  // Marker stub.
 }
 
-void StubCodeCompiler::GenerateAsynchronousGapMarkerStub() {
+void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ Breakpoint();  // Marker stub.
 }
 
-void StubCodeCompiler::GenerateUnknownDartCodeStub() {
+void StubCodeCompiler::GenerateUnknownDartCodeStub(Assembler* assembler) {
   // Enter frame to include caller into the backtrace.
   __ EnterStubFrame();
   __ Breakpoint();  // Marker stub.
 }
 
-void StubCodeCompiler::GenerateNotLoadedStub() {
+void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ CallRuntime(kNotLoadedRuntimeEntry, 0);
   __ Breakpoint();
 }
 
 #define EMIT_BOX_ALLOCATION(Name)                                              \
-  void StubCodeCompiler::GenerateAllocate##Name##Stub() {                      \
+  void StubCodeCompiler::GenerateAllocate##Name##Stub(Assembler* assembler) {  \
     Label call_runtime;                                                        \
     if (!FLAG_use_slow_path && FLAG_inline_alloc) {                            \
       __ TryAllocate(compiler::Name##Class(), &call_runtime,                   \
@@ -1694,13 +1735,13 @@ static void GenerateBoxFpuValueStub(Assembler* assembler,
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateBoxDoubleStub() {
+void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
   GenerateBoxFpuValueStub(assembler, compiler::DoubleClass(),
                           kBoxDoubleRuntimeEntry,
                           &Assembler::StoreUnboxedDouble);
 }
 
-void StubCodeCompiler::GenerateBoxFloat32x4Stub() {
+void StubCodeCompiler::GenerateBoxFloat32x4Stub(Assembler* assembler) {
 #if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
   GenerateBoxFpuValueStub(assembler, compiler::Float32x4Class(),
                           kBoxFloat32x4RuntimeEntry,
@@ -1710,7 +1751,7 @@ void StubCodeCompiler::GenerateBoxFloat32x4Stub() {
 #endif
 }
 
-void StubCodeCompiler::GenerateBoxFloat64x2Stub() {
+void StubCodeCompiler::GenerateBoxFloat64x2Stub(Assembler* assembler) {
 #if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
   GenerateBoxFpuValueStub(assembler, compiler::Float64x2Class(),
                           kBoxFloat64x2RuntimeEntry,
@@ -1720,7 +1761,7 @@ void StubCodeCompiler::GenerateBoxFloat64x2Stub() {
 #endif
 }
 
-void StubCodeCompiler::GenerateDoubleToIntegerStub() {
+void StubCodeCompiler::GenerateDoubleToIntegerStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ StoreUnboxedDouble(DoubleToIntegerStubABI::kInputReg, THR,
                         target::Thread::unboxed_runtime_arg_offset());
@@ -1843,6 +1884,7 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
 }
 
 void StubCodeCompiler::GenerateSuspendStub(
+    Assembler* assembler,
     bool call_suspend_function,
     bool pass_type_arguments,
     intptr_t suspend_entry_point_offset_in_thread,
@@ -2098,35 +2140,36 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ Jump(&call_dart);
 }
 
-void StubCodeCompiler::GenerateAwaitStub() {
-  GenerateSuspendStub(
-      /*call_suspend_function=*/true,
-      /*pass_type_arguments=*/false,
-      target::Thread::suspend_state_await_entry_point_offset(),
-      target::ObjectStore::suspend_state_await_offset());
+void StubCodeCompiler::GenerateAwaitStub(Assembler* assembler) {
+  GenerateSuspendStub(assembler,
+                      /*call_suspend_function=*/true,
+                      /*pass_type_arguments=*/false,
+                      target::Thread::suspend_state_await_entry_point_offset(),
+                      target::ObjectStore::suspend_state_await_offset());
 }
 
-void StubCodeCompiler::GenerateAwaitWithTypeCheckStub() {
+void StubCodeCompiler::GenerateAwaitWithTypeCheckStub(Assembler* assembler) {
   GenerateSuspendStub(
-
+      assembler,
       /*call_suspend_function=*/true,
       /*pass_type_arguments=*/true,
       target::Thread::suspend_state_await_with_type_check_entry_point_offset(),
       target::ObjectStore::suspend_state_await_with_type_check_offset());
 }
 
-void StubCodeCompiler::GenerateYieldAsyncStarStub() {
+void StubCodeCompiler::GenerateYieldAsyncStarStub(Assembler* assembler) {
   GenerateSuspendStub(
-
+      assembler,
       /*call_suspend_function=*/true,
       /*pass_type_arguments=*/false,
       target::Thread::suspend_state_yield_async_star_entry_point_offset(),
       target::ObjectStore::suspend_state_yield_async_star_offset());
 }
 
-void StubCodeCompiler::GenerateSuspendSyncStarAtStartStub() {
+void StubCodeCompiler::GenerateSuspendSyncStarAtStartStub(
+    Assembler* assembler) {
   GenerateSuspendStub(
-
+      assembler,
       /*call_suspend_function=*/true,
       /*pass_type_arguments=*/false,
       target::Thread::
@@ -2134,13 +2177,15 @@ void StubCodeCompiler::GenerateSuspendSyncStarAtStartStub() {
       target::ObjectStore::suspend_state_suspend_sync_star_at_start_offset());
 }
 
-void StubCodeCompiler::GenerateSuspendSyncStarAtYieldStub() {
-  GenerateSuspendStub(
-      /*call_suspend_function=*/false,
-      /*pass_type_arguments=*/false, -1, -1);
+void StubCodeCompiler::GenerateSuspendSyncStarAtYieldStub(
+    Assembler* assembler) {
+  GenerateSuspendStub(assembler,
+                      /*call_suspend_function=*/false,
+                      /*pass_type_arguments=*/false, -1, -1);
 }
 
 void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
+    Assembler* assembler,
     intptr_t init_entry_point_offset_in_thread,
     intptr_t init_function_offset_in_object_store) {
   const Register kTypeArgs = InitSuspendableFunctionStubABI::kTypeArgsReg;
@@ -2160,25 +2205,27 @@ void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateInitAsyncStub() {
+void StubCodeCompiler::GenerateInitAsyncStub(Assembler* assembler) {
   GenerateInitSuspendableFunctionStub(
-      target::Thread::suspend_state_init_async_entry_point_offset(),
+      assembler, target::Thread::suspend_state_init_async_entry_point_offset(),
       target::ObjectStore::suspend_state_init_async_offset());
 }
 
-void StubCodeCompiler::GenerateInitAsyncStarStub() {
+void StubCodeCompiler::GenerateInitAsyncStarStub(Assembler* assembler) {
   GenerateInitSuspendableFunctionStub(
+      assembler,
       target::Thread::suspend_state_init_async_star_entry_point_offset(),
       target::ObjectStore::suspend_state_init_async_star_offset());
 }
 
-void StubCodeCompiler::GenerateInitSyncStarStub() {
+void StubCodeCompiler::GenerateInitSyncStarStub(Assembler* assembler) {
   GenerateInitSuspendableFunctionStub(
+      assembler,
       target::Thread::suspend_state_init_sync_star_entry_point_offset(),
       target::ObjectStore::suspend_state_init_sync_star_offset());
 }
 
-void StubCodeCompiler::GenerateResumeStub() {
+void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
   const Register kSuspendState = ResumeStubABI::kSuspendStateReg;
   const Register kTemp = ResumeStubABI::kTempReg;
   const Register kFrameSize = ResumeStubABI::kFrameSizeReg;
@@ -2359,6 +2406,7 @@ void StubCodeCompiler::GenerateResumeStub() {
 }
 
 void StubCodeCompiler::GenerateReturnStub(
+    Assembler* assembler,
     intptr_t return_entry_point_offset_in_thread,
     intptr_t return_function_offset_in_object_store,
     intptr_t return_stub_offset_in_thread) {
@@ -2390,29 +2438,32 @@ void StubCodeCompiler::GenerateReturnStub(
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateReturnAsyncStub() {
+void StubCodeCompiler::GenerateReturnAsyncStub(Assembler* assembler) {
   GenerateReturnStub(
+      assembler,
       target::Thread::suspend_state_return_async_entry_point_offset(),
       target::ObjectStore::suspend_state_return_async_offset(),
       target::Thread::return_async_stub_offset());
 }
 
-void StubCodeCompiler::GenerateReturnAsyncNotFutureStub() {
+void StubCodeCompiler::GenerateReturnAsyncNotFutureStub(Assembler* assembler) {
   GenerateReturnStub(
+      assembler,
       target::Thread::
           suspend_state_return_async_not_future_entry_point_offset(),
       target::ObjectStore::suspend_state_return_async_not_future_offset(),
       target::Thread::return_async_not_future_stub_offset());
 }
 
-void StubCodeCompiler::GenerateReturnAsyncStarStub() {
+void StubCodeCompiler::GenerateReturnAsyncStarStub(Assembler* assembler) {
   GenerateReturnStub(
+      assembler,
       target::Thread::suspend_state_return_async_star_entry_point_offset(),
       target::ObjectStore::suspend_state_return_async_star_offset(),
       target::Thread::return_async_star_stub_offset());
 }
 
-void StubCodeCompiler::GenerateAsyncExceptionHandlerStub() {
+void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {
   const Register kSuspendState = AsyncExceptionHandlerStubABI::kSuspendStateReg;
   ASSERT(kSuspendState != kExceptionObjectReg);
   ASSERT(kSuspendState != kStackTraceObjectReg);
@@ -2463,7 +2514,7 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub() {
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateCloneSuspendStateStub() {
+void StubCodeCompiler::GenerateCloneSuspendStateStub(Assembler* assembler) {
   const Register kSource = CloneSuspendStateStubABI::kSourceReg;
   const Register kDestination = CloneSuspendStateStubABI::kDestinationReg;
   const Register kTemp = CloneSuspendStateStubABI::kTempReg;

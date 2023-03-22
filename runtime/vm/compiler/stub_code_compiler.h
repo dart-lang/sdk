@@ -48,28 +48,29 @@ class UnresolvedPcRelativeCall : public ZoneAllocated {
 
 using UnresolvedPcRelativeCalls = GrowableArray<UnresolvedPcRelativeCall*>;
 
-class StubCodeCompiler {
+class StubCodeCompiler : public AllStatic {
  public:
-  StubCodeCompiler(Assembler* assembler_) : assembler(assembler_) {}
-
-  Assembler* assembler;
-
 #if !defined(TARGET_ARCH_IA32)
-  void GenerateBuildMethodExtractorStub(const Code& closure_allocation_stub,
-                                        const Code& context_allocation_stub,
-                                        bool generic);
+  static void GenerateBuildMethodExtractorStub(
+      Assembler* assembler,
+      const Code& closure_allocation_stub,
+      const Code& context_allocation_stub,
+      bool generic);
 #endif
 
-  void EnsureIsNewOrRemembered(bool preserve_registers = true);
+  static void EnsureIsNewOrRemembered(Assembler* assembler,
+                                      bool preserve_registers = true);
   static ArrayPtr BuildStaticCallsTable(
       Zone* zone,
       compiler::UnresolvedPcRelativeCalls* unresolved_calls);
 
-#define STUB_CODE_GENERATE(name) void Generate##name##Stub();
+#define STUB_CODE_GENERATE(name)                                               \
+  static void Generate##name##Stub(Assembler* assembler);
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
 #undef STUB_CODE_GENERATE
 
-  void GenerateAllocationStubForClass(
+  static void GenerateAllocationStubForClass(
+      Assembler* assembler,
       UnresolvedPcRelativeCalls* unresolved_calls,
       const Class& cls,
       const dart::Code& allocate_object,
@@ -87,13 +88,16 @@ class StubCodeCompiler {
     kCheckExactness,
     kIgnoreExactness,
   };
-  void GenerateNArgsCheckInlineCacheStub(intptr_t num_args,
-                                         const RuntimeEntry& handle_ic_miss,
-                                         Token::Kind kind,
-                                         Optimized optimized,
-                                         CallType type,
-                                         Exactness exactness);
-  void GenerateNArgsCheckInlineCacheStubForEntryKind(
+  static void GenerateNArgsCheckInlineCacheStub(
+      Assembler* assembler,
+      intptr_t num_args,
+      const RuntimeEntry& handle_ic_miss,
+      Token::Kind kind,
+      Optimized optimized,
+      CallType type,
+      Exactness exactness);
+  static void GenerateNArgsCheckInlineCacheStubForEntryKind(
+      Assembler* assembler,
       intptr_t num_args,
       const RuntimeEntry& handle_ic_miss,
       Token::Kind kind,
@@ -101,8 +105,9 @@ class StubCodeCompiler {
       CallType type,
       Exactness exactness,
       CodeEntryKind entry_kind);
-  void GenerateUsageCounterIncrement(Register temp_reg);
-  void GenerateOptimizedUsageCounterIncrement();
+  static void GenerateUsageCounterIncrement(Assembler* assembler,
+                                            Register temp_reg);
+  static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
 
 #if defined(TARGET_ARCH_X64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
@@ -140,7 +145,8 @@ class StubCodeCompiler {
 #error What architecture?
 #endif
 
-  void GenerateJITCallbackTrampolines(intptr_t next_callback_id);
+  static void GenerateJITCallbackTrampolines(Assembler* assembler,
+                                             intptr_t next_callback_id);
 
   // Calculates the offset (in words) from FP to the provided [cpu_register].
   //
@@ -155,52 +161,64 @@ class StubCodeCompiler {
   static intptr_t WordOffsetFromFpToCpuRegister(Register cpu_register);
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(StubCodeCompiler);
-
   // Common function for generating InitLateStaticField and
   // InitLateFinalStaticField stubs.
-  void GenerateInitLateStaticFieldStub(bool is_final);
+  static void GenerateInitLateStaticFieldStub(Assembler* assembler,
+                                              bool is_final);
 
   // Common function for generating InitLateInstanceField and
   // InitLateFinalInstanceField stubs.
-  void GenerateInitLateInstanceFieldStub(bool is_final);
+  static void GenerateInitLateInstanceFieldStub(Assembler* assembler,
+                                                bool is_final);
 
   // Common function for generating Allocate<TypedData>Array stubs.
-  void GenerateAllocateTypedDataArrayStub(intptr_t cid);
+  static void GenerateAllocateTypedDataArrayStub(Assembler* assembler,
+                                                 intptr_t cid);
 
-  void GenerateAllocateSmallRecordStub(intptr_t num_fields,
-                                       bool has_named_fields);
+  static void GenerateAllocateSmallRecordStub(Assembler* assembler,
+                                              intptr_t num_fields,
+                                              bool has_named_fields);
 
-  void GenerateSharedStubGeneric(bool save_fpu_registers,
-                                 intptr_t self_code_stub_offset_from_thread,
-                                 bool allow_return,
-                                 std::function<void()> perform_runtime_call);
+  static void GenerateSharedStubGeneric(
+      Assembler* assembler,
+      bool save_fpu_registers,
+      intptr_t self_code_stub_offset_from_thread,
+      bool allow_return,
+      std::function<void()> perform_runtime_call);
 
   // Generates shared slow path stub which saves registers and calls
   // [target] runtime entry.
   // If [store_runtime_result_in_result_register], then stub puts result into
   // SharedSlowPathStubABI::kResultReg.
-  void GenerateSharedStub(bool save_fpu_registers,
-                          const RuntimeEntry* target,
-                          intptr_t self_code_stub_offset_from_thread,
-                          bool allow_return,
-                          bool store_runtime_result_in_result_register = false);
+  static void GenerateSharedStub(
+      Assembler* assembler,
+      bool save_fpu_registers,
+      const RuntimeEntry* target,
+      intptr_t self_code_stub_offset_from_thread,
+      bool allow_return,
+      bool store_runtime_result_in_result_register = false);
 
-  void GenerateLateInitializationError(bool with_fpu_regs);
+  static void GenerateLateInitializationError(Assembler* assembler,
+                                              bool with_fpu_regs);
 
-  void GenerateRangeError(bool with_fpu_regs);
-  void GenerateWriteError(bool with_fpu_regs);
+  static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs);
+  static void GenerateWriteError(Assembler* assembler, bool with_fpu_regs);
 
-  void GenerateSuspendStub(bool call_suspend_function,
-                           bool pass_type_arguments,
-                           intptr_t suspend_entry_point_offset_in_thread,
-                           intptr_t suspend_function_offset_in_object_store);
-  void GenerateInitSuspendableFunctionStub(
+  static void GenerateSuspendStub(
+      Assembler* assembler,
+      bool call_suspend_function,
+      bool pass_type_arguments,
+      intptr_t suspend_entry_point_offset_in_thread,
+      intptr_t suspend_function_offset_in_object_store);
+  static void GenerateInitSuspendableFunctionStub(
+      Assembler* assembler,
       intptr_t init_entry_point_offset_in_thread,
       intptr_t init_function_offset_in_object_store);
-  void GenerateReturnStub(intptr_t return_entry_point_offset_in_thread,
-                          intptr_t return_function_offset_in_object_store,
-                          intptr_t return_stub_offset_in_thread);
+  static void GenerateReturnStub(
+      Assembler* assembler,
+      intptr_t return_entry_point_offset_in_thread,
+      intptr_t return_function_offset_in_object_store,
+      intptr_t return_stub_offset_in_thread);
 };
 
 }  // namespace compiler

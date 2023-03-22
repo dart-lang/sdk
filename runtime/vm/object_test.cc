@@ -8193,16 +8193,10 @@ static CodePtr CreateInvokeInstantiateTypeArgumentsStub(Thread* thread) {
       zone, Function::New(signature, symbol, UntaggedFunction::kRegularFunction,
                           false, false, false, false, false, klass,
                           TokenPosition::kNoSource));
-
   compiler::ObjectPoolBuilder pool_builder;
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-  compiler::Assembler assembler(&pool_builder);
-  GenerateInvokeInstantiateTAVStub(&assembler);
-  const Code& invoke_instantiate_tav = Code::Handle(
-      Code::FinalizeCodeAndNotify("InstantiateTAV", nullptr, &assembler,
-                                  Code::PoolAttachment::kNotAttachPool,
-                                  /*optimized=*/false));
-
+  const auto& invoke_instantiate_tav =
+      Code::Handle(zone, StubCode::Generate("InstantiateTAV", &pool_builder,
+                                            &GenerateInvokeInstantiateTAVStub));
   const auto& pool =
       ObjectPool::Handle(zone, ObjectPool::NewFromBuilder(pool_builder));
   invoke_instantiate_tav.set_object_pool(pool.ptr());

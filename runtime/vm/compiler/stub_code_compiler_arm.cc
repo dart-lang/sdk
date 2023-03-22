@@ -35,7 +35,8 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [R0], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
-void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
+void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
+                                               bool preserve_registers) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
@@ -61,7 +62,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
 //   SP + 4*R4 : address of return value.
 //   R9 : address of the runtime function to call.
 //   R4 : number of arguments to the call.
-void StubCodeCompiler::GenerateCallToRuntimeStub() {
+void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t thread_offset = target::NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = target::NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = target::NativeArguments::argv_offset();
@@ -152,6 +153,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub() {
 }
 
 void StubCodeCompiler::GenerateSharedStubGeneric(
+    Assembler* assembler,
     bool save_fpu_registers,
     intptr_t self_code_stub_offset_from_thread,
     bool allow_return,
@@ -179,6 +181,7 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
 }
 
 void StubCodeCompiler::GenerateSharedStub(
+    Assembler* assembler,
     bool save_fpu_registers,
     const RuntimeEntry* target,
     intptr_t self_code_stub_offset_from_thread,
@@ -200,7 +203,7 @@ void StubCodeCompiler::GenerateSharedStub(
                                  SharedSlowPathStubABI::kResultReg)));
     }
   };
-  GenerateSharedStubGeneric(save_fpu_registers,
+  GenerateSharedStubGeneric(assembler, save_fpu_registers,
                             self_code_stub_offset_from_thread, allow_return,
                             perform_runtime_call);
 }
@@ -209,6 +212,7 @@ void StubCodeCompiler::GenerateSharedStub(
 // R4: The type_arguments_field_offset (or 0)
 // SP+0: The object from which we are tearing a method off.
 void StubCodeCompiler::GenerateBuildMethodExtractorStub(
+    Assembler* assembler,
     const Code& closure_allocation_stub,
     const Code& context_allocation_stub,
     bool generic) {
@@ -296,7 +300,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateEnterSafepointStub() {
+void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
@@ -334,12 +338,13 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateExitSafepointStub() {
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   GenerateExitSafepointStubCommon(
       assembler, kExitSafepointRuntimeEntry.OffsetFromThread());
 }
 
-void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub() {
+void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub(
+    Assembler* assembler) {
   GenerateExitSafepointStubCommon(
       assembler,
       kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
@@ -354,7 +359,8 @@ void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub() {
 // On exit:
 //   Stack: preserved
 //   NOTFP, R4: clobbered, although normally callee-saved
-void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
+void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
+    Assembler* assembler) {
   COMPILE_ASSERT(IsAbiPreservedRegister(R4));
 
   // TransitionGeneratedToNative might clobber LR if it takes the slow path.
@@ -374,6 +380,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
 
 #if !defined(DART_PRECOMPILER)
 void StubCodeCompiler::GenerateJITCallbackTrampolines(
+    Assembler* assembler,
     intptr_t next_callback_id) {
 #if defined(USING_SIMULATOR)
   // TODO(37299): FFI is not support in SIMARM.
@@ -486,7 +493,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 }
 #endif  // !defined(DART_PRECOMPILER)
 
-void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {
+void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
+    Assembler* assembler) {
   __ EnterStubFrame();
   __ SmiTag(DispatchTableNullErrorABI::kClassIdReg);
   __ PushRegister(DispatchTableNullErrorABI::kClassIdReg);
@@ -495,7 +503,8 @@ void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateRangeError(bool with_fpu_regs) {
+void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
+                                          bool with_fpu_regs) {
   auto perform_runtime_call = [&]() {
     ASSERT(!GenericCheckBoundInstr::UseUnboxedRepresentation());
     __ PushRegistersInOrder(
@@ -505,21 +514,22 @@ void StubCodeCompiler::GenerateRangeError(bool with_fpu_regs) {
   };
 
   GenerateSharedStubGeneric(
-      /*save_fpu_registers=*/with_fpu_regs,
+      assembler, /*save_fpu_registers=*/with_fpu_regs,
       with_fpu_regs
           ? target::Thread::range_error_shared_with_fpu_regs_stub_offset()
           : target::Thread::range_error_shared_without_fpu_regs_stub_offset(),
       /*allow_return=*/false, perform_runtime_call);
 }
 
-void StubCodeCompiler::GenerateWriteError(bool with_fpu_regs) {
+void StubCodeCompiler::GenerateWriteError(Assembler* assembler,
+                                          bool with_fpu_regs) {
   auto perform_runtime_call = [&]() {
     __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/0);
     __ Breakpoint();
   };
 
   GenerateSharedStubGeneric(
-      /*save_fpu_registers=*/with_fpu_regs,
+      assembler, /*save_fpu_registers=*/with_fpu_regs,
       with_fpu_regs
           ? target::Thread::write_error_shared_with_fpu_regs_stub_offset()
           : target::Thread::write_error_shared_without_fpu_regs_stub_offset(),
@@ -622,14 +632,14 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateCallNoScopeNativeStub() {
+void StubCodeCompiler::GenerateCallNoScopeNativeStub(Assembler* assembler) {
   GenerateCallNativeWithWrapperStub(
       assembler,
       Address(THR,
               target::Thread::no_scope_native_wrapper_entry_point_offset()));
 }
 
-void StubCodeCompiler::GenerateCallAutoScopeNativeStub() {
+void StubCodeCompiler::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
   GenerateCallNativeWithWrapperStub(
       assembler,
       Address(THR,
@@ -642,7 +652,7 @@ void StubCodeCompiler::GenerateCallAutoScopeNativeStub() {
 //   R9 : address of the native function to call.
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
-void StubCodeCompiler::GenerateCallBootstrapNativeStub() {
+void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   GenerateCallNativeWithWrapperStub(
       assembler,
       Address(THR,
@@ -651,7 +661,7 @@ void StubCodeCompiler::GenerateCallBootstrapNativeStub() {
 
 // Input parameters:
 //   ARGS_DESC_REG: arguments descriptor array.
-void StubCodeCompiler::GenerateCallStaticFunctionStub() {
+void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
@@ -671,7 +681,7 @@ void StubCodeCompiler::GenerateCallStaticFunctionStub() {
 // Called from a static call only when an invalid code has been entered
 // (invalid because its function was optimized or deoptimized).
 // ARGS_DESC_REG: arguments descriptor array.
-void StubCodeCompiler::GenerateFixCallersTargetStub() {
+void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   Label monomorphic;
   __ BranchOnMonomorphicCheckedEntryJIT(&monomorphic);
 
@@ -721,7 +731,8 @@ void StubCodeCompiler::GenerateFixCallersTargetStub() {
 
 // Called from object allocate instruction when the allocation stub has been
 // disabled.
-void StubCodeCompiler::GenerateFixAllocationStubTargetStub() {
+void StubCodeCompiler::GenerateFixAllocationStubTargetStub(
+    Assembler* assembler) {
   // Load code pointer to this stub from the thread:
   // The one that is passed in, is not correct - it points to the code object
   // that needs to be replaced.
@@ -743,7 +754,8 @@ void StubCodeCompiler::GenerateFixAllocationStubTargetStub() {
 
 // Called from object allocate instruction when the allocation stub for a
 // generic class has been disabled.
-void StubCodeCompiler::GenerateFixParameterizedAllocationStubTargetStub() {
+void StubCodeCompiler::GenerateFixParameterizedAllocationStubTargetStub(
+    Assembler* assembler) {
   // Load code pointer to this stub from the thread:
   // The one that is passed in, is not correct - it points to the code object
   // that needs to be replaced.
@@ -953,7 +965,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 }
 
 // R0: result, must be preserved
-void StubCodeCompiler::GenerateDeoptimizeLazyFromReturnStub() {
+void StubCodeCompiler::GenerateDeoptimizeLazyFromReturnStub(
+    Assembler* assembler) {
   // Push zap value instead of CODE_REG for lazy deopt.
   __ LoadImmediate(IP, kZapCodeReg);
   __ Push(IP);
@@ -967,7 +980,8 @@ void StubCodeCompiler::GenerateDeoptimizeLazyFromReturnStub() {
 
 // R0: exception, must be preserved
 // R1: stacktrace, must be preserved
-void StubCodeCompiler::GenerateDeoptimizeLazyFromThrowStub() {
+void StubCodeCompiler::GenerateDeoptimizeLazyFromThrowStub(
+    Assembler* assembler) {
   // Push zap value instead of CODE_REG for lazy deopt.
   __ LoadImmediate(IP, kZapCodeReg);
   __ Push(IP);
@@ -979,7 +993,7 @@ void StubCodeCompiler::GenerateDeoptimizeLazyFromThrowStub() {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateDeoptimizeStub() {
+void StubCodeCompiler::GenerateDeoptimizeStub(Assembler* assembler) {
   __ Push(CODE_REG);
   __ ldr(CODE_REG, Address(THR, target::Thread::deoptimize_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
@@ -1037,7 +1051,8 @@ static void GenerateDispatcherCode(Assembler* assembler,
 // Input:
 //   ARGS_DESC_REG - arguments descriptor
 //   IC_DATA_REG - icdata/megamorphic_cache
-void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
+void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
+    Assembler* assembler) {
   GenerateNoSuchMethodDispatcherBody(assembler);
 }
 
@@ -1050,7 +1065,7 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
 //   AllocateArrayABI::kResultReg: newly allocated array.
 // Clobbered:
 //   R3, R4, R8, R9
-void StubCodeCompiler::GenerateAllocateArrayStub() {
+void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     // Compute the size to be allocated, it is based on the array length
@@ -1181,7 +1196,8 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
 }
 
 // Called for allocation of Mint.
-void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
+void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
+    Assembler* assembler) {
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
@@ -1193,14 +1209,16 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
   }
   COMPILE_ASSERT(AllocateMintABI::kResultReg ==
                  SharedSlowPathStubABI::kResultReg);
-  GenerateSharedStub(/*save_fpu_registers=*/true, &kAllocateMintRuntimeEntry,
+  GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
+                     &kAllocateMintRuntimeEntry,
                      target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
                      /*allow_return=*/true,
                      /*store_runtime_result_in_result_register=*/true);
 }
 
 // Called for allocation of Mint.
-void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
+void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
+    Assembler* assembler) {
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
@@ -1213,7 +1231,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
   COMPILE_ASSERT(AllocateMintABI::kResultReg ==
                  SharedSlowPathStubABI::kResultReg);
   GenerateSharedStub(
-      /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
+      assembler, /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
       target::Thread::allocate_mint_without_fpu_regs_stub_offset(),
       /*allow_return=*/true,
       /*store_runtime_result_in_result_register=*/true);
@@ -1226,7 +1244,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
 //   R1 : arguments descriptor array.
 //   R2 : arguments array.
 //   R3 : current thread.
-void StubCodeCompiler::GenerateInvokeDartCodeStub() {
+void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
 
   // Push code object to PC marker slot.
@@ -1431,7 +1449,7 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
 //   R0: new allocated Context object.
 // Clobbered:
 //   Potentially any since is can go to runtime.
-void StubCodeCompiler::GenerateAllocateContextStub() {
+void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
 
@@ -1476,7 +1494,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
 
   // R0: new object
   // Restore the frame pointer.
@@ -1492,7 +1510,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 //   R0: new allocated Context object.
 // Clobbered:
 //   Potentially any since it can go to runtime.
-void StubCodeCompiler::GenerateCloneContextStub() {
+void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
 
@@ -1551,7 +1569,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
 
   // R0: new object
   // Restore the frame pointer.
@@ -1559,7 +1577,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateWriteBarrierWrappersStub() {
+void StubCodeCompiler::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
 
@@ -1732,11 +1750,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   }
 }
 
-void StubCodeCompiler::GenerateWriteBarrierStub() {
+void StubCodeCompiler::GenerateWriteBarrierStub(Assembler* assembler) {
   GenerateWriteBarrierStubHelper(assembler, false);
 }
 
-void StubCodeCompiler::GenerateArrayWriteBarrierStub() {
+void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
   GenerateWriteBarrierStubHelper(assembler, true);
 }
 
@@ -1848,15 +1866,16 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 }
 
 // Called for inline allocation of objects (any class).
-void StubCodeCompiler::GenerateAllocateObjectStub() {
+void StubCodeCompiler::GenerateAllocateObjectStub(Assembler* assembler) {
   GenerateAllocateObjectHelper(assembler, /*is_cls_parameterized=*/false);
 }
 
-void StubCodeCompiler::GenerateAllocateObjectParameterizedStub() {
+void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
+    Assembler* assembler) {
   GenerateAllocateObjectHelper(assembler, /*is_cls_parameterized=*/true);
 }
 
-void StubCodeCompiler::GenerateAllocateObjectSlowStub() {
+void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   const Register kClsReg = R1;
 
   if (!FLAG_precompiled_mode) {
@@ -1886,13 +1905,14 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub() {
 
   // Write-barrier elimination is enabled for [cls] and we therefore need to
   // ensure that the object is in new-space or has remembered bit set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
 
   __ LeaveDartFrameAndReturn();
 }
 
 // Called for inline allocation of objects.
 void StubCodeCompiler::GenerateAllocationStubForClass(
+    Assembler* assembler,
     UnresolvedPcRelativeCalls* unresolved_calls,
     const Class& cls,
     const Code& allocate_object,
@@ -1961,7 +1981,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
 //  LR : return address.
 //  SP : address of last argument.
 //  R4: arguments descriptor array.
-void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
+void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
+    Assembler* assembler) {
   __ EnterStubFrame();
 
   // Load the receiver.
@@ -1999,7 +2020,8 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
 //  R9: inline cache data object.
 // Cannot use function object from ICData as it may be the inlined
 // function and not the top-scope function.
-void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
+void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
+    Assembler* assembler) {
   Register ic_reg = R9;
   Register func_reg = R8;
   if (FLAG_precompiled_mode) {
@@ -2022,7 +2044,8 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
 }
 
 // Loads function into 'temp_reg'.
-void StubCodeCompiler::GenerateUsageCounterIncrement(Register temp_reg) {
+void StubCodeCompiler::GenerateUsageCounterIncrement(Assembler* assembler,
+                                                     Register temp_reg) {
   if (FLAG_precompiled_mode) {
     __ Breakpoint();
     return;
@@ -2133,6 +2156,7 @@ static void GenerateRecordEntryPoint(Assembler* assembler) {
 // - Match found -> jump to target.
 // - Match not found -> jump to IC miss.
 void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
+    Assembler* assembler,
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
@@ -2150,9 +2174,9 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   }
 
   if (optimized == kOptimized) {
-    GenerateOptimizedUsageCounterIncrement();
+    GenerateOptimizedUsageCounterIncrement(assembler);
   } else {
-    GenerateUsageCounterIncrement(/* scratch */ R8);
+    GenerateUsageCounterIncrement(assembler, /* scratch */ R8);
   }
 
   ASSERT(exactness == kIgnoreExactness);  // Unimplemented.
@@ -2377,63 +2401,67 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
 //  R0: receiver
 //  R9: ICData
 //  LR: return address
-void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub() {
+void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub(
+    Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(
-      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
+      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
 }
 
 //  R0: receiver
 //  R9: ICData
 //  LR: return address
-void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub() {
+void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub(
+    Assembler* assembler) {
   __ Stop("Unimplemented");
 }
 
 //  R0: receiver
 //  R9: ICData
 //  LR: return address
-void StubCodeCompiler::GenerateTwoArgsCheckInlineCacheStub() {
+void StubCodeCompiler::GenerateTwoArgsCheckInlineCacheStub(
+    Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(
-      2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
 }
 
 //  R0: receiver
 //  R9: ICData
 //  LR: return address
-void StubCodeCompiler::GenerateSmiAddInlineCacheStub() {
+void StubCodeCompiler::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(
-      2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD, kUnoptimized,
-      kInstanceCall, kIgnoreExactness);
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD,
+      kUnoptimized, kInstanceCall, kIgnoreExactness);
 }
 
 //  R0: receiver
 //  R9: ICData
 //  LR: return address
-void StubCodeCompiler::GenerateSmiLessInlineCacheStub() {
+void StubCodeCompiler::GenerateSmiLessInlineCacheStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(
-      2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kLT, kUnoptimized,
-      kInstanceCall, kIgnoreExactness);
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kLT,
+      kUnoptimized, kInstanceCall, kIgnoreExactness);
 }
 
 //  R0: receiver
 //  R9: ICData
 //  LR: return address
-void StubCodeCompiler::GenerateSmiEqualInlineCacheStub() {
+void StubCodeCompiler::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(
-      2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ, kUnoptimized,
-      kInstanceCall, kIgnoreExactness);
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ,
+      kUnoptimized, kInstanceCall, kIgnoreExactness);
 }
 
 //  R0: receiver
 //  R9: ICData
 //  R8: Function
 //  LR: return address
-void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub() {
+void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub(
+    Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(
-      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL, kOptimized,
-      kInstanceCall, kIgnoreExactness);
+      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
+      kOptimized, kInstanceCall, kIgnoreExactness);
 }
 
 //  R0: receiver
@@ -2441,7 +2469,8 @@ void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub() {
 //  R8: Function
 //  LR: return address
 void StubCodeCompiler::
-    GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub() {
+    GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub(
+        Assembler* assembler) {
   __ Stop("Unimplemented");
 }
 
@@ -2449,17 +2478,19 @@ void StubCodeCompiler::
 //  R9: ICData
 //  R8: Function
 //  LR: return address
-void StubCodeCompiler::GenerateTwoArgsOptimizedCheckInlineCacheStub() {
+void StubCodeCompiler::GenerateTwoArgsOptimizedCheckInlineCacheStub(
+    Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(
-      2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kOptimized, kInstanceCall, kIgnoreExactness);
 }
 
 //  R9: ICData
 //  LR: return address
-void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub() {
+void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
+    Assembler* assembler) {
   GenerateRecordEntryPoint(assembler);
-  GenerateUsageCounterIncrement(/* scratch */ R8);
+  GenerateUsageCounterIncrement(assembler, /* scratch */ R8);
 #if defined(DEBUG)
   {
     Label ok;
@@ -2528,26 +2559,28 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub() {
 
 //  R9: ICData
 //  LR: return address
-void StubCodeCompiler::GenerateOneArgUnoptimizedStaticCallStub() {
-  GenerateUsageCounterIncrement(/* scratch */ R8);
-  GenerateNArgsCheckInlineCacheStub(1, kStaticCallMissHandlerOneArgRuntimeEntry,
-                                    Token::kILLEGAL, kUnoptimized, kStaticCall,
-                                    kIgnoreExactness);
+void StubCodeCompiler::GenerateOneArgUnoptimizedStaticCallStub(
+    Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, /* scratch */ R8);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
+      kUnoptimized, kStaticCall, kIgnoreExactness);
 }
 
 //  R9: ICData
 //  LR: return address
-void StubCodeCompiler::GenerateTwoArgsUnoptimizedStaticCallStub() {
-  GenerateUsageCounterIncrement(/* scratch */ R8);
+void StubCodeCompiler::GenerateTwoArgsUnoptimizedStaticCallStub(
+    Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, /* scratch */ R8);
   GenerateNArgsCheckInlineCacheStub(
-      2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
+      assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kStaticCall, kIgnoreExactness);
 }
 
 // Stub for compiling a function and jumping to the compiled code.
 // ARGS_DESC_REG: Arguments descriptor.
 // FUNCTION_REG: Function.
-void StubCodeCompiler::GenerateLazyCompileStub() {
+void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Preserve arg desc, pass function.
   COMPILE_ASSERT(FUNCTION_REG < ARGS_DESC_REG);
@@ -2561,7 +2594,7 @@ void StubCodeCompiler::GenerateLazyCompileStub() {
 }
 
 // R9: Contains an ICData.
-void StubCodeCompiler::GenerateICCallBreakpointStub() {
+void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
 #if defined(PRODUCT)
   __ Stop("No debugging in PRODUCT mode");
 #else
@@ -2578,7 +2611,8 @@ void StubCodeCompiler::GenerateICCallBreakpointStub() {
 #endif  // defined(PRODUCT)
 }
 
-void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub() {
+void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub(
+    Assembler* assembler) {
 #if defined(PRODUCT)
   __ Stop("No debugging in PRODUCT mode");
 #else
@@ -2593,7 +2627,7 @@ void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub() {
 #endif  // defined(PRODUCT)
 }
 
-void StubCodeCompiler::GenerateRuntimeCallBreakpointStub() {
+void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 #if defined(PRODUCT)
   __ Stop("No debugging in PRODUCT mode");
 #else
@@ -2609,7 +2643,7 @@ void StubCodeCompiler::GenerateRuntimeCallBreakpointStub() {
 }
 
 // Called only from unoptimized code. All relevant registers have been saved.
-void StubCodeCompiler::GenerateDebugStepCheckStub() {
+void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 #if defined(PRODUCT)
   __ Stop("No debugging in PRODUCT mode");
 #else
@@ -2860,27 +2894,27 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
+void StubCodeCompiler::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 1);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype3TestCacheStub() {
+void StubCodeCompiler::GenerateSubtype3TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype5TestCacheStub() {
+void StubCodeCompiler::GenerateSubtype5TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 5);
 }
 
 // See comment on[GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
+void StubCodeCompiler::GenerateSubtype7TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 // Return the current stack pointer address, used to do stack alignment checks.
-void StubCodeCompiler::GenerateGetCStackPointerStub() {
+void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
   __ mov(R0, Operand(SP));
   __ Ret();
 }
@@ -2894,7 +2928,7 @@ void StubCodeCompiler::GenerateGetCStackPointerStub() {
 // Does not return.
 //
 // Notice: We need to keep this in sync with `Simulator::JumpToFrame()`.
-void StubCodeCompiler::GenerateJumpToFrameStub() {
+void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   COMPILE_ASSERT(kExceptionObjectReg == R0);
   COMPILE_ASSERT(kStackTraceObjectReg == R1);
   COMPILE_ASSERT(IsAbiPreservedRegister(R4));
@@ -2948,7 +2982,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
 //
 // The arguments are stored in the Thread object.
 // Does not return.
-void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
+void StubCodeCompiler::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   WRITES_RETURN_ADDRESS_TO_LR(
       __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset()));
 
@@ -2972,7 +3006,7 @@ void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
 // Deoptimize a frame on the call stack before rewinding.
 // The arguments are stored in the Thread object.
 // No result.
-void StubCodeCompiler::GenerateDeoptForRewindStub() {
+void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
   // Push zap value instead of CODE_REG.
   __ LoadImmediate(IP, kZapCodeReg);
   __ Push(IP);
@@ -2992,7 +3026,7 @@ void StubCodeCompiler::GenerateDeoptForRewindStub() {
 // Calls to the runtime to optimize the given function.
 // R8: function to be reoptimized.
 // ARGS_DESC_REG: argument descriptor (preserved).
-void StubCodeCompiler::GenerateOptimizeFunctionStub() {
+void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ ldr(CODE_REG, Address(THR, target::Thread::optimize_stub_offset()));
   __ EnterStubFrame();
   __ Push(ARGS_DESC_REG);
@@ -3073,7 +3107,8 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // SP + 4: left operand.
 // SP + 0: right operand.
 // Return Zero condition flag set if equal.
-void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub() {
+void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub(
+    Assembler* assembler) {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
@@ -3107,7 +3142,8 @@ void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub() {
 // SP + 4: left operand.
 // SP + 0: right operand.
 // Return Zero condition flag set if equal.
-void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub() {
+void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub(
+    Assembler* assembler) {
   const Register temp = R2;
   const Register left = R1;
   const Register right = R0;
@@ -3124,7 +3160,7 @@ void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub() {
 //  FUNCTION_REG: target function
 //  ARGS_DESC_REG: arguments descriptor
 //  CODE_REG: target Code
-void StubCodeCompiler::GenerateMegamorphicCallStub() {
+void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ LoadTaggedClassIdMayBeSmi(R8, R0);
   // R8: receiver cid as Smi.
   __ ldr(R2,
@@ -3179,10 +3215,10 @@ void StubCodeCompiler::GenerateMegamorphicCallStub() {
   __ b(&loop);
 
   __ Bind(&miss);
-  GenerateSwitchableCallMissStub();
+  GenerateSwitchableCallMissStub(assembler);
 }
 
-void StubCodeCompiler::GenerateICCallThroughCodeStub() {
+void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R8, FieldAddress(IC_DATA_REG, target::ICData::entries_offset()));
   __ ldr(R4, FieldAddress(IC_DATA_REG,
@@ -3231,7 +3267,8 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
 //   R9: MonomorphicSmiableCall object
 //
 //   R2, R3: clobbered
-void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub() {
+void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
+    Assembler* assembler) {
   __ LoadClassIdMayBeSmi(IP, R0);
 
   // entrypoint_ should come right after expected_cid_
@@ -3264,7 +3301,7 @@ static void CallSwitchableCallMissRuntimeEntry(Assembler* assembler,
 
 // Called from switchable IC calls.
 //  R0: receiver
-void StubCodeCompiler::GenerateSwitchableCallMissStub() {
+void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
   __ ldr(CODE_REG,
          Address(THR, target::Thread::switchable_call_miss_stub_offset()));
   __ EnterStubFrame();
@@ -3280,7 +3317,7 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub() {
 //  R9: SingleTargetCache
 // Passed to target:
 //  CODE_REG: target Code object
-void StubCodeCompiler::GenerateSingleTargetCallStub() {
+void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
   __ ldrh(R2,
@@ -3323,7 +3360,8 @@ static int GetScaleFactor(intptr_t size) {
   return -1;
 }
 
-void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
+void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
+                                                          intptr_t cid) {
   const intptr_t element_size = TypedDataElementSizeInBytes(cid);
   const intptr_t max_len = TypedDataMaxNewSpaceElements(cid);
   const intptr_t scale_shift = GetScaleFactor(element_size);
