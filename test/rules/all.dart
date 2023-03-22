@@ -48,6 +48,7 @@ import 'exhaustive_cases_test.dart' as exhaustive_cases;
 import 'file_names_test.dart' as file_names;
 import 'flutter_style_todos_test.dart' as flutter_style_todos;
 import 'hash_and_equals_test.dart' as hash_and_equals;
+import 'implicit_reopen_test.dart' as implicit_reopen;
 import 'invalid_case_patterns_test.dart' as invalid_case_patterns;
 import 'join_return_with_assignment_test.dart' as join_return_with_assignment;
 import 'library_annotations_test.dart' as library_annotations;
@@ -161,6 +162,7 @@ void main() {
   file_names.main();
   flutter_style_todos.main();
   hash_and_equals.main();
+  implicit_reopen.main();
   invalid_case_patterns.main();
   join_return_with_assignment.main();
   library_annotations.main();

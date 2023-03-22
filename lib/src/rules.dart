@@ -84,6 +84,7 @@ import 'rules/flutter_style_todos.dart';
 import 'rules/hash_and_equals.dart';
 import 'rules/implementation_imports.dart';
 import 'rules/implicit_call_tearoffs.dart';
+import 'rules/implicit_reopen.dart';
 import 'rules/invalid_case_patterns.dart';
 import 'rules/invariant_booleans.dart';
 import 'rules/iterable_contains_unrelated_type.dart';
@@ -310,6 +311,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(HashAndEquals())
     ..register(ImplementationImports())
     ..register(ImplicitCallTearoffs())
+    ..register(ImplicitReopen())
     ..register(InvariantBooleans())
     ..register(InvalidCasePatterns())
     ..register(IterableContainsUnrelatedType())
