@@ -1130,7 +1130,7 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
   @override
   IsSubtypeOf isRecordRelated(RecordType s, FutureOrType t, Types types) {
     // Rule 11.
-    return types.performNullabilityAwareMutualSubtypesCheck(
+    return types.performNullabilityAwareSubtypeCheck(
         s, t.typeArgument.withDeclaredNullability(t.nullability));
   }
 
