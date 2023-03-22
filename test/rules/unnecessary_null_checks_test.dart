@@ -9,6 +9,7 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryNullChecksTest);
+    defineReflectiveTests(UnnecessaryNullChecksTestLanguage300);
   });
 }
 
@@ -38,6 +39,33 @@ f6(int? p) {
 ''', [
       // No lint
       error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 22, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class UnnecessaryNullChecksTestLanguage300 extends LintRuleTest
+    with LanguageVersion300Mixin {
+  @override
+  String get lintRule => 'unnecessary_null_checks';
+
+  test_listPattern() async {
+    await assertDiagnostics(r'''
+void f(int? a, int? b) {
+  [b!, ] = [a, ];
+}
+''', [
+      lint(29, 1),
+    ]);
+  }
+
+  test_recordPattern() async {
+    await assertDiagnostics(r'''
+void f(int? a, int? b) {
+  (b!, ) = (a, );
+}
+''', [
+      lint(29, 1),
     ]);
   }
 }
