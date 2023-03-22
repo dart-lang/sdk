@@ -80,7 +80,9 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   @override
   void visitExtensionElement(ExtensionElement element) {
     if (opType.includeReturnValueSuggestions) {
-      builder.suggestExtension(element, kind: kind, prefix: prefix);
+      if (element.name != null) {
+        builder.suggestExtension(element, kind: kind, prefix: prefix);
+      }
     }
   }
 
