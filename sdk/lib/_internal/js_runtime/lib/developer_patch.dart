@@ -116,7 +116,7 @@ class UserTag {
   static UserTag get defaultTag => _FakeUserTag._defaultTag;
 }
 
-class _FakeUserTag implements UserTag {
+final class _FakeUserTag implements UserTag {
   static final _instances = <String, _FakeUserTag>{};
 
   _FakeUserTag.real(this.label);
