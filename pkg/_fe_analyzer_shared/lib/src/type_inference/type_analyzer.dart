@@ -623,9 +623,10 @@ mixin TypeAnalyzer<
         variables, componentVariables, patternVariablePromotionKeys,
         location: JoinedPatternVariableLocation.singlePattern);
     Error? nonBooleanGuardError;
+    Type? guardType;
     if (guard != null) {
-      nonBooleanGuardError =
-          _checkGuardType(guard, analyzeExpression(guard, boolType));
+      guardType = analyzeExpression(guard, boolType);
+      nonBooleanGuardError = _checkGuardType(guard, guardType);
     } else {
       handleNoGuard(node, 0);
     }
@@ -634,7 +635,8 @@ mixin TypeAnalyzer<
     _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
     return new IfCaseStatementResult(
         matchedExpressionType: initializerType,
-        nonBooleanGuardError: nonBooleanGuardError);
+        nonBooleanGuardError: nonBooleanGuardError,
+        guardType: guardType);
   }
 
   /// Analyzes a statement of the form `if (expression case pattern) ifTrue` or
@@ -688,9 +690,10 @@ mixin TypeAnalyzer<
     handle_ifCaseStatement_afterPattern(node: node);
     // Stack: (Expression, Pattern)
     Error? nonBooleanGuardError;
+    Type? guardType;
     if (guard != null) {
-      nonBooleanGuardError =
-          _checkGuardType(guard, analyzeExpression(guard, boolType));
+      guardType = analyzeExpression(guard, boolType);
+      nonBooleanGuardError = _checkGuardType(guard, guardType);
     } else {
       handleNoGuard(node, 0);
     }
@@ -699,7 +702,8 @@ mixin TypeAnalyzer<
     _analyzeIfCommon(node, ifTrue, ifFalse);
     return new IfCaseStatementResult(
         matchedExpressionType: initializerType,
-        nonBooleanGuardError: nonBooleanGuardError);
+        nonBooleanGuardError: nonBooleanGuardError,
+        guardType: guardType);
   }
 
   /// Analyzes a collection element of the form `if (condition) ifTrue` or
@@ -1706,6 +1710,7 @@ mixin TypeAnalyzer<
     flow.switchStatement_expressionEnd(null, scrutinee, expressionType);
     Type? lubType;
     Map<int, Error>? nonBooleanGuardErrors;
+    Map<int, Type>? guardTypes;
     for (int i = 0; i < numCases; i++) {
       // Stack: (Expression, i * ExpressionCase)
       SwitchExpressionMemberInfo<Node, Expression, Variable> memberInfo =
@@ -1737,8 +1742,9 @@ mixin TypeAnalyzer<
         guard = memberInfo.head.guard;
         bool hasGuard = guard != null;
         if (hasGuard) {
-          Error? nonBooleanGuardError =
-              _checkGuardType(guard, analyzeExpression(guard, boolType));
+          Type guardType = analyzeExpression(guard, boolType);
+          Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
+          (guardTypes ??= {})[i] = guardType;
           if (nonBooleanGuardError != null) {
             (nonBooleanGuardErrors ??= {})[i] = nonBooleanGuardError;
           }
@@ -1778,6 +1784,7 @@ mixin TypeAnalyzer<
     return new SwitchExpressionResult(
         type: lubType,
         nonBooleanGuardErrors: nonBooleanGuardErrors,
+        guardTypes: guardTypes,
         nonExhaustiveSwitchError: nonExhaustiveSwitchError);
   }
 
@@ -1796,6 +1803,7 @@ mixin TypeAnalyzer<
     bool lastCaseTerminates = true;
     Map<int, Error>? switchCaseCompletesNormallyErrors;
     Map<int, Map<int, Error>>? nonBooleanGuardErrors;
+    Map<int, Map<int, Type>>? guardTypes;
     for (int caseIndex = 0; caseIndex < numCases; caseIndex++) {
       // Stack: (Expression, numExecutionPaths * StatementCase)
       flow.switchStatement_beginAlternatives();
@@ -1835,8 +1843,9 @@ mixin TypeAnalyzer<
           //         numHeads * CaseHead, Pattern),
           guard = head.guard;
           if (guard != null) {
-            Error? nonBooleanGuardError =
-                _checkGuardType(guard, analyzeExpression(guard, boolType));
+            Type guardType = analyzeExpression(guard, boolType);
+            Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
+            ((guardTypes ??= {})[caseIndex] ??= {})[headIndex] = guardType;
             if (nonBooleanGuardError != null) {
               ((nonBooleanGuardErrors ??= {})[caseIndex] ??= {})[headIndex] =
                   nonBooleanGuardError;
@@ -1921,6 +1930,7 @@ mixin TypeAnalyzer<
       scrutineeType: scrutineeType,
       switchCaseCompletesNormallyErrors: switchCaseCompletesNormallyErrors,
       nonBooleanGuardErrors: nonBooleanGuardErrors,
+      guardTypes: guardTypes,
       nonExhaustiveSwitchError: nonExhaustiveSwitchError,
     );
   }

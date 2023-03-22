@@ -82,6 +82,7 @@ blah
 blorp
 bold
 boo
+bools
 bots
 boundaries
 boundarykey

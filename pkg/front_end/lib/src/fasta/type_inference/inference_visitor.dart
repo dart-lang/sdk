@@ -1951,9 +1951,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
       node.patternGuard.guard = guardError..parent = node.patternGuard;
-    } else if (!identical(node.patternGuard.guard, rewrite)) {
-      node.patternGuard.guard = (rewrite as Expression)
-        ..parent = node.patternGuard;
+    } else {
+      if (!identical(node.patternGuard.guard, rewrite)) {
+        node.patternGuard.guard = (rewrite as Expression)
+          ..parent = node.patternGuard;
+      }
+      if (analysisResult.guardType is DynamicType) {
+        node.patternGuard.guard = _createImplicitAs(
+            node.patternGuard.guard!.fileOffset,
+            node.patternGuard.guard!,
+            coreTypes.boolNonNullableRawType)
+          ..parent = node.patternGuard;
+      }
     }
     rewrite = popRewrite();
     if (!identical(node.patternGuard.pattern, rewrite)) {
@@ -8208,6 +8217,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           analysisResult.nonBooleanGuardErrors?[caseIndex];
       if (guardError != null) {
         patternGuard.guard = guardError..parent = patternGuard;
+      } else if (patternGuard.guard != null) {
+        if (analysisResult.guardTypes![caseIndex] is DynamicType) {
+          patternGuard.guard = _createImplicitAs(patternGuard.guard!.fileOffset,
+              patternGuard.guard!, coreTypes.boolNonNullableRawType)
+            ..parent = patternGuard;
+        }
       }
     }
 
@@ -8360,6 +8375,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             analysisResult.nonBooleanGuardErrors?[caseIndex]?[headIndex];
         if (guardError != null) {
           patternGuard.guard = guardError..parent = patternGuard;
+        } else if (patternGuard.guard != null) {
+          if (analysisResult.guardTypes![caseIndex]![headIndex]
+              is DynamicType) {
+            patternGuard.guard = _createImplicitAs(
+                patternGuard.guard!.fileOffset,
+                patternGuard.guard!,
+                coreTypes.boolNonNullableRawType)
+              ..parent = patternGuard;
+          }
         }
 
         Map<String, DartType> inferredVariableTypes = {
