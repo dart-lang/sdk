@@ -1708,6 +1708,10 @@ class PatternGuard extends TreeNode {
 class PatternSwitchCase extends TreeNode implements SwitchCase {
   final List<int> caseOffsets;
   final List<PatternGuard> patternGuards;
+  // TODO(johnniwinther): Handle this through serialization. Currently this
+  // cannot be serialized because we have to way of referring to arbitrary
+  // statements.
+  // TODO(johnniwinther): Make this a list of [ContinueSwitchStatement]s.
   final List<Statement> labelUsers = [];
 
   @override
@@ -1812,6 +1816,12 @@ class PatternSwitchStatement extends Statement implements SwitchStatement {
   ///
   /// This is set during inference.
   DartType? expressionType;
+
+  /// `true` if the last case terminates.
+  ///
+  /// This is set during inference.
+  // TODO(johnniwinther): Serialize this.
+  bool lastCaseTerminates = false;
 
   PatternSwitchStatement(this.expression, this.cases) {
     expression.parent = this;

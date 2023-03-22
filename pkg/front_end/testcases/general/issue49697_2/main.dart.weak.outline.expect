@@ -42,7 +42,7 @@ static method d1(mai::D d) → core::int
   ;
 static method d2(mai::D? d) → core::int?
   ;
-static method main() → void
+static method test() → void
   ;
 
 library /*isNonNullableByDefault*/;

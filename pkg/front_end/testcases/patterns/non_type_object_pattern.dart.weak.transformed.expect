@@ -303,6 +303,7 @@ static method testUnresolved(dynamic o) → dynamic {
           break #L2;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t5;
 }
@@ -360,6 +361,7 @@ static method testNonType(dynamic o) → dynamic {
           break #L4;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t11;
 }
@@ -417,6 +419,7 @@ static method testExtension(dynamic o) → dynamic {
           break #L6;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t17;
 }
@@ -474,6 +477,7 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
           break #L8;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t23;
 }
@@ -531,6 +535,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
           break #L10;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t29;
 }
@@ -588,6 +593,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
           break #L12;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t35;
 }
@@ -645,6 +651,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
           break #L14;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t41;
 }
@@ -702,6 +709,7 @@ static method testMemberAccess(dynamic o) → dynamic {
           break #L16;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t47;
 }

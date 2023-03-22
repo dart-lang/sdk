@@ -30,6 +30,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method exhaustiveSwitch(core::bool b) → void {
   #L1:
@@ -46,52 +47,44 @@ static method exhaustiveSwitch(core::bool b) → void {
         core::print("false");
         break #L1;
       }
+    #L4:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch1(core::bool b) → void {
-  #L4:
+  #L5:
   switch(b) /*isExplicitlyExhaustive*/ {
-    #L5:
+    #L6:
     case #C1:
       {
         core::print("true");
-        break #L4;
+        break #L5;
       }
+    #L7:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch2(core::bool b) → void {
-  #L6:
+  #L8:
   switch(b) /*isExplicitlyExhaustive*/ {
-    #L7:
+    #L9:
     case #C2:
       {
         core::print("false");
-        break #L6;
-      }
-  }
-}
-static method nonExhaustiveSwitchWithDefault(core::bool b) → void {
-  #L8:
-  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:33:11: Error: Undefined name 'e'.
-  switch (e) /* Ok */ {
-          ^") {
-    #L9:
-    case #C1:
-      {
-        core::print("true");
         break #L8;
       }
     #L10:
     default:
-      {
-        core::print("default");
-        break #L8;
-      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
-static method exhaustiveNullableSwitch(core::bool? b) → void {
+static method nonExhaustiveSwitchWithDefault(core::bool b) → void {
   #L11:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:33:11: Error: Undefined name 'e'.
+  switch (e) /* Ok */ {
+          ^") {
     #L12:
     case #C1:
       {
@@ -99,89 +92,86 @@ static method exhaustiveNullableSwitch(core::bool? b) → void {
         break #L11;
       }
     #L13:
-    case #C2:
+    default:
       {
-        core::print("false");
-        break #L11;
-      }
-    #L14:
-    case #C3:
-      {
-        core::print("null");
+        core::print("default");
         break #L11;
       }
   }
 }
-static method nonExhaustiveNullableSwitch1(core::bool? e) → void {
-  #L15:
-  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:58:11: Error: Undefined name 'b'.
-  switch (b) /* Error */ {
-          ^") {
-    #L16:
+static method exhaustiveNullableSwitch(core::bool? b) → void {
+  #L14:
+  switch(b) /*isExplicitlyExhaustive*/ {
+    #L15:
     case #C1:
       {
         core::print("true");
-        break #L15;
+        break #L14;
       }
-    #L17:
+    #L16:
     case #C2:
       {
         core::print("false");
-        break #L15;
+        break #L14;
+      }
+    #L17:
+    case #C3:
+      {
+        core::print("null");
+        break #L14;
+      }
+    #L18:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+  }
+}
+static method nonExhaustiveNullableSwitch1(core::bool? e) → void {
+  #L19:
+  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:58:11: Error: Undefined name 'b'.
+  switch (b) /* Error */ {
+          ^") {
+    #L20:
+    case #C1:
+      {
+        core::print("true");
+        break #L19;
+      }
+    #L21:
+    case #C2:
+      {
+        core::print("false");
+        break #L19;
       }
   }
 }
 static method nonExhaustiveNullableSwitch2(core::bool? e) → void {
-  #L18:
+  #L22:
   switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:69:11: Error: Undefined name 'b'.
   switch (b) /* Error */ {
           ^") {
-    #L19:
+    #L23:
     case #C1:
       {
         core::print("true");
-        break #L18;
+        break #L22;
       }
-    #L20:
+    #L24:
     case #C3:
       {
         core::print("null");
-        break #L18;
+        break #L22;
       }
   }
 }
 static method unreachableCase1(core::bool b) → void {
-  #L21:
+  #L25:
   switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:80:11: Error: Undefined name 'e'.
   switch (e) /* Ok */ {
           ^") {
-    #L22:
-    case #C1:
-      {
-        core::print("true1");
-        break #L21;
-      }
-    #L23:
-    case #C2:
-      {
-        core::print("false");
-        break #L21;
-      }
-    #L24:
-    case #C1:
-      {
-        core::print("true2");
-        break #L21;
-      }
-  }
-}
-static method unreachableCase2(core::bool b) → void {
-  #L25:
-  switch(b) /*isExplicitlyExhaustive*/ {
     #L26:
     case #C1:
       {
-        core::print("true");
+        core::print("true1");
         break #L25;
       }
     #L27:
@@ -191,14 +181,14 @@ static method unreachableCase2(core::bool b) → void {
         break #L25;
       }
     #L28:
-    case #C3:
+    case #C1:
       {
-        core::print("null");
+        core::print("true2");
         break #L25;
       }
   }
 }
-static method unreachableCase3(core::bool? b) → void {
+static method unreachableCase2(core::bool b) → void {
   #L29:
   switch(b) /*isExplicitlyExhaustive*/ {
     #L30:
@@ -216,15 +206,44 @@ static method unreachableCase3(core::bool? b) → void {
     #L32:
     case #C3:
       {
-        core::print("null1");
+        core::print("null");
         break #L29;
       }
     #L33:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+  }
+}
+static method unreachableCase3(core::bool? b) → void {
+  #L34:
+  switch(b) /*isExplicitlyExhaustive*/ {
+    #L35:
+    case #C1:
+      {
+        core::print("true");
+        break #L34;
+      }
+    #L36:
+    case #C2:
+      {
+        core::print("false");
+        break #L34;
+      }
+    #L37:
+    case #C3:
+      {
+        core::print("null1");
+        break #L34;
+      }
+    #L38:
     case #C3:
       {
         core::print("null2");
-        break #L29;
+        break #L34;
       }
+    #L39:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 

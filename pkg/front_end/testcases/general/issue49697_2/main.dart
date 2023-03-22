@@ -81,7 +81,7 @@ int? d2(D? d) {
   }
 }
 
-void main() {
+void test() {
   a1(A.b);
   a2(A.b);
   b1(B.b);

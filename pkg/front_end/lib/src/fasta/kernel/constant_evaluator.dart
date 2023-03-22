@@ -1142,16 +1142,61 @@ class ConstantsTransformer extends RemovingTransformer {
         SwitchCase switchCase = new SwitchCase(
             expressions, expressionOffsets, patternSwitchCase.body,
             isDefault: patternSwitchCase.isDefault)
-          ..fileOffset = patternSwitchCase.fileOffset
-          ..fileOffset;
+          ..fileOffset = patternSwitchCase.fileOffset;
         switchCases.add(switchCase);
         for (Statement labelUser in patternSwitchCase.labelUsers) {
           (labelUser as ContinueSwitchStatement).target = switchCase;
         }
       }
+
+      LabeledStatement? outerLabeledStatement;
+      if (isAlwaysExhaustiveType &&
+          !hasDefault &&
+          constantEvaluator.evaluationMode != EvaluationMode.strong) {
+        if (!node.lastCaseTerminates) {
+          PatternSwitchCase lastCase = node.cases.last;
+          Statement body = lastCase.body;
+
+          LabeledStatement target;
+          if (node.parent is LabeledStatement) {
+            target = node.parent as LabeledStatement;
+          } else {
+            target =
+                outerLabeledStatement = new LabeledStatement(dummyStatement);
+          }
+          BreakStatement breakStatement =
+              createBreakStatement(target, fileOffset: lastCase.fileOffset);
+          if (body is Block) {
+            body.statements.add(breakStatement);
+          } else {
+            body = createBlock([body, breakStatement],
+                fileOffset: lastCase.fileOffset)
+              ..parent = lastCase;
+          }
+        }
+        switchCases.add(new SwitchCase(
+            [],
+            [],
+            isDefault: true,
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messageNeverReachableSwitchStatementError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))))
+          ..fileOffset = node.fileOffset);
+      }
+
       replacement = createSwitchStatement(node.expression, switchCases,
           isExplicitlyExhaustive: !hasDefault && isAlwaysExhaustiveType,
           fileOffset: node.fileOffset);
+      if (outerLabeledStatement != null) {
+        outerLabeledStatement.body = replacement
+          ..parent = outerLabeledStatement;
+        replacement = outerLabeledStatement;
+      }
     } else {
       // matchResultVariable: int RVAR = -1;
       VariableDeclaration matchResultVariable = createInitializedVariable(
@@ -1381,6 +1426,20 @@ class ConstantsTransformer extends RemovingTransformer {
         }
         cases.add(createBlock([...caseVariables, caseBlock],
             fileOffset: switchCase.fileOffset));
+      }
+
+      if (isAlwaysExhaustiveType &&
+          !hasDefault &&
+          constantEvaluator.evaluationMode != EvaluationMode.strong) {
+        cases.add(
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messageNeverReachableSwitchStatementError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))));
       }
 
       // TODO(johnniwinther): Find a better way to avoid name clashes between
@@ -1795,6 +1854,22 @@ class ConstantsTransformer extends RemovingTransformer {
           ..fileOffset;
         switchCases.add(switchCase);
       }
+      if (constantEvaluator.evaluationMode != EvaluationMode.strong) {
+        switchCases.add(new SwitchCase(
+            [],
+            [],
+            isDefault: true,
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messageNeverReachableSwitchExpressionError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))))
+          ..fileOffset = node.fileOffset);
+      }
+
       labeledStatement.body = createSwitchStatement(
           node.expression, switchCases,
           isExplicitlyExhaustive: true, fileOffset: node.fileOffset)
@@ -1866,6 +1941,17 @@ class ConstantsTransformer extends RemovingTransformer {
               ], fileOffset: switchCase.fileOffset),
               fileOffset: switchCase.fileOffset)
         ], fileOffset: switchCase.fileOffset));
+      }
+      if (constantEvaluator.evaluationMode != EvaluationMode.strong) {
+        cases.add(
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messageNeverReachableSwitchExpressionError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))));
       }
 
       labeledStatement.body = createBlock(cases, fileOffset: node.fileOffset)

@@ -8316,6 +8316,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult =
         analyzeSwitchStatement(node, node.expression, node.cases.length);
 
+    node.lastCaseTerminates = analysisResult.lastCaseTerminates;
+
     assert(checkStack(node, stackBase, [
       /* cases = */ ...repeatedKind(ValueKinds.SwitchCase, node.cases.length),
       /* scrutinee type = */ ValueKinds.DartType,

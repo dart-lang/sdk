@@ -1,6 +1,7 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method test1(core::List<dynamic> list) → core::String {
   return block {
@@ -21,6 +22,7 @@ static method test1(core::List<dynamic> list) → core::String {
           break #L1;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
 }

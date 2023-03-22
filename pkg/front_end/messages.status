@@ -694,6 +694,10 @@ NeverReachableSwitchDefaultError/analyzerCode: Fail
 NeverReachableSwitchDefaultError/example: Fail
 NeverReachableSwitchDefaultWarning/analyzerCode: Fail
 NeverReachableSwitchDefaultWarning/example: Fail
+NeverReachableSwitchExpressionError/analyzerCode: Fail
+NeverReachableSwitchExpressionError/example: Fail
+NeverReachableSwitchStatementError/analyzerCode: Fail
+NeverReachableSwitchStatementError/example: Fail
 NeverValueError/analyzerCode: Fail
 NeverValueError/example: Fail
 NeverValueWarning/analyzerCode: Fail
