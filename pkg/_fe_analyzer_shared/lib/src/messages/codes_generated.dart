@@ -9276,6 +9276,26 @@ const MessageCode messageNeverReachableSwitchDefaultWarning = const MessageCode(
         r"""The default case is not reachable with sound null safety because the switch expression is non-nullable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNeverReachableSwitchExpressionError =
+    messageNeverReachableSwitchExpressionError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNeverReachableSwitchExpressionError = const MessageCode(
+    "NeverReachableSwitchExpressionError",
+    problemMessage:
+        r"""`null` encountered as case in a switch expression with a non-nullable type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNeverReachableSwitchStatementError =
+    messageNeverReachableSwitchStatementError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNeverReachableSwitchStatementError = const MessageCode(
+    "NeverReachableSwitchStatementError",
+    problemMessage:
+        r"""`null` encountered as case in a switch statement with a non-nullable type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNeverValueError = messageNeverValueError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

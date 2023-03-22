@@ -40,6 +40,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 import "main_lib.dart" as mai;
 
 import "org-dartlang-testcase:///main_lib.dart";
@@ -73,109 +74,133 @@ static method a1(self::A? a) → core::int? {
       {
         return 0;
       }
+    #L3:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method a2(self::A? a) → core::int? {
-  #L3:
+  #L4:
   switch(a) /*isExplicitlyExhaustive*/ {
-    #L4:
+    #L5:
     case #C11:
       {
         return null;
       }
-    #L5:
+    #L6:
     case #C3:
       {
         return 0;
       }
+    #L7:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method b1(self::B b) → core::int {
-  #L6:
+  #L8:
   switch(b) /*isExplicitlyExhaustive*/ {
-    #L7:
+    #L9:
     case #C8:
       {
         return 0;
       }
-    #L8:
+    #L10:
     case #C9:
       {
         return 1;
       }
+    #L11:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method b2(self::B? b) → core::int? {
-  #L9:
+  #L12:
   switch(b) /*isExplicitlyExhaustive*/ {
-    #L10:
+    #L13:
     case #C11:
       {
         return null;
       }
-    #L11:
+    #L14:
     case #C8:
       {
         return 0;
       }
+    #L15:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method c1(mai::C? c) → core::int? {
-  #L12:
+  #L16:
   switch(c) /*isExplicitlyExhaustive*/ {
-    #L13:
+    #L17:
     case #C12:
       {
         return 0;
       }
+    #L18:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method c2(mai::C? c) → core::int? {
-  #L14:
+  #L19:
   switch(c) /*isExplicitlyExhaustive*/ {
-    #L15:
+    #L20:
     case #C11:
       {
         return null;
       }
-    #L16:
+    #L21:
     case #C12:
       {
         return 0;
       }
+    #L22:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method d1(mai::D d) → core::int {
-  #L17:
+  #L23:
   switch(d) /*isExplicitlyExhaustive*/ {
-    #L18:
+    #L24:
     case #C13:
       {
         return 0;
       }
-    #L19:
+    #L25:
     case #C14:
       {
         return 1;
       }
+    #L26:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method d2(mai::D? d) → core::int? {
-  #L20:
+  #L27:
   switch(d) /*isExplicitlyExhaustive*/ {
-    #L21:
+    #L28:
     case #C11:
       {
         return null;
       }
-    #L22:
+    #L29:
     case #C13:
       {
         return 0;
       }
+    #L30:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
-static method main() → void {
+static method test() → void {
   self::a1(#C6);
   self::a2(#C6);
   self::b1(#C9);

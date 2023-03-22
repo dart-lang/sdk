@@ -1,6 +1,7 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class Enum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum> values = #C10;
@@ -81,7 +82,11 @@ static method method2(self::Enum e) → dynamic {
     case #C9:
       {
         core::print(2);
+        break #L6;
       }
+    #L10:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 

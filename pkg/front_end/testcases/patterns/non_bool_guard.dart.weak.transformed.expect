@@ -19,6 +19,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method test1(core::List<core::int> v) → core::String {
   #L1:
@@ -79,6 +80,7 @@ Try changing the condition.
           break #L2;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t5;
 

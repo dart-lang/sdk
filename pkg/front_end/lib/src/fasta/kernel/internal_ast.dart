@@ -3682,3 +3682,19 @@ class PatternForMapEntry extends TreeNode
     return "PatternForMapEntry(${toStringInternal()})";
   }
 }
+
+/// Data structure used by the body builder in place of [ObjectPattern], to
+/// allow additional information to be captured that is needed during type
+/// inference.
+class ObjectPatternInternal extends ObjectPattern {
+  /// If the type name in the object pattern refers to a typedef, the typedef in
+  /// question; otherwise `null`.
+  final Typedef? typedef;
+
+  /// Indicates whether the object pattern included explicit type arguments; if
+  /// `true` this means that no further type inference needs to be performed.
+  final bool hasExplicitTypeArguments;
+
+  ObjectPatternInternal(super.requiredType, super.fields, this.typedef,
+      {required this.hasExplicitTypeArguments});
+}

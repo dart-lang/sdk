@@ -175,7 +175,7 @@ static method d2(mai::D? d) → core::int? {
       }
   }
 }
-static method main() → void {
+static method test() → void {
   self::a1(#C6);
   self::a2(#C6);
   self::b1(#C9);

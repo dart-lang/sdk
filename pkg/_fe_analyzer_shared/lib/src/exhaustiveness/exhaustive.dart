@@ -9,15 +9,6 @@ import 'profile.dart' as profile;
 import 'space.dart';
 import 'witness.dart';
 
-/// Indicates whether the "fallback" exhaustiveness algorithm (based on flow
-/// analysis) should be used instead of full exhaustiveness.  This is a
-/// temporary measure to allow for the possibility of turning on pattern support
-/// before the full exhaustiveness algorithm is complete.
-///
-/// TODO(paulberry): remove this flag (and the implementation of the fallback
-/// exhaustiveness algorithm) when it is no longer needed.
-bool useFallbackExhaustivenessAlgorithm = false;
-
 /// Returns `true` if [caseSpaces] exhaustively covers all possible values of
 /// [valueSpace].
 bool isExhaustive(

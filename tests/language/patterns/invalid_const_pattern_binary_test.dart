@@ -180,8 +180,6 @@ method<T>(o) {
     //                ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
-    //                  ^
-    // [cfe] Constant evaluation error:
     case const <int>[] as List<T>: // Ok
     case const (1 + 2): // Ok
     case const (1 - 2): // Ok

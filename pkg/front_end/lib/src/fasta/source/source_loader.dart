@@ -3087,7 +3087,7 @@ class MapEntry<K, V> {
 
 abstract class Map<K, V> extends Iterable {
   factory Map.unmodifiable(other) => null;
-  factory Map.of(o) = Map<E>._of;
+  factory Map.of(o) = Map<K, V>._of;
   external factory Map._of(o);
   Iterable<MapEntry<K, V>> get entries;
   void operator []=(K key, V value) {}

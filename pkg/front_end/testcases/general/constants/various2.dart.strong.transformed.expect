@@ -189,17 +189,6 @@ library /*isNonNullableByDefault*/;
 // const x4 = x++;
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various2.dart:129:29: Error: Constant evaluation error:
-// const bool foosEqual = foo1 == foo2;
-//                             ^
-// pkg/front_end/testcases/general/constants/various2.dart:129:29: Context: Binary operator '==' requires receiver constant 'Foo {x: 42, y: 5}' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type 'Foo'.
-//  - 'Foo' is from 'pkg/front_end/testcases/general/constants/various2.dart'.
-// const bool foosEqual = foo1 == foo2;
-//                             ^
-// pkg/front_end/testcases/general/constants/various2.dart:129:12: Context: While analyzing:
-// const bool foosEqual = foo1 == foo2;
-//            ^
-//
 // pkg/front_end/testcases/general/constants/various2.dart:135:26: Error: Constant evaluation error:
 // const int circularity1 = circularity2;
 //                          ^
@@ -421,8 +410,7 @@ static const field self::ExtendsFoo2 extendsFoo2 = invalid-expression "pkg/front
 static const field self::Foo foo1 = #C13;
 static const field self::Foo foo2 = #C13;
 static const field core::bool foosIdentical = #C2;
-static const field core::bool foosEqual = invalid-expression "Binary operator '==' requires receiver constant 'Foo {x: 42, y: 5}' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type 'Foo'.
- - 'Foo' is from 'pkg/front_end/testcases/general/constants/various2.dart'.";
+static const field core::bool foosEqual = #C2;
 static const field core::Symbol barFoo = #C14;
 static const field core::Symbol barFooEqual = #C15;
 static const field core::Symbol tripleShiftSymbol = #C16;

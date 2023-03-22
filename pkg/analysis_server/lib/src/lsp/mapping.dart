@@ -897,6 +897,7 @@ lsp.CompletionItem toCompletionItem(
   // info appended (for example '(...)' on callables) that should not be included
   // in filterText.
   var label = suggestion.displayText ?? suggestion.completion;
+  assert(label.isNotEmpty);
   final filterText = label;
 
   // Trim any trailing comma from the (displayed) label.

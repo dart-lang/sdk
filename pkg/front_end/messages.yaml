@@ -139,9 +139,15 @@ ConstEvalElementImplementsEqual:
   problemMessage: "The element '#constant' does not have a primitive operator '=='."
   analyzerCode: CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS
 
+ConstEvalElementNotPrimitiveEquality:
+  problemMessage: "The element '#constant' does not have a primitive equality."
+
 ConstEvalKeyImplementsEqual:
   problemMessage: "The key '#constant' does not have a primitive operator '=='."
   analyzerCode: CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+
+ConstEvalKeyNotPrimitiveEquality:
+  problemMessage: "The key '#constant' does not have a primitive equality."
 
 ConstEvalCaseImplementsEqual:
   problemMessage: "Case expression '#constant' does not have a primitive operator '=='."
@@ -154,6 +160,9 @@ ConstEvalInvalidBinaryOperandType:
 
 ConstEvalInvalidEqualsOperandType:
   problemMessage: "Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'."
+
+ConstEvalEqualsOperandNotPrimitiveEquality:
+  problemMessage: "Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'."
 
 ConstEvalZeroDivisor:
   problemMessage: "Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'."
@@ -5545,6 +5554,10 @@ JsInteropStaticInteropTrustTypesUsageNotAllowed:
   problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
   correctionMessage: "Try removing the `@trustTypes` annotation."
 
+JsInteropStrictModeViolation:
+  problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."
+  correctionMessage: "Use a JS type instead."
+
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
   severity: WARNING
@@ -5705,6 +5718,12 @@ NeverReachableSwitchDefaultError:
 NeverReachableSwitchDefaultWarning:
   problemMessage: "The default case is not reachable with sound null safety because the switch expression is non-nullable."
   severity: WARNING
+
+NeverReachableSwitchExpressionError:
+  problemMessage: "`null` encountered as case in a switch expression with a non-nullable type."
+
+NeverReachableSwitchStatementError:
+  problemMessage: "`null` encountered as case in a switch statement with a non-nullable type."
 
 NeverValueError:
   problemMessage: "`null` encountered as the result from expression with type `Never`."

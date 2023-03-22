@@ -11,7 +11,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../fallback_exhaustiveness.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -798,7 +797,7 @@ void f(int x) {
   }
 
   Future<void> test_switchExpression_members() async {
-    var nodes = await withFullExhaustivenessAlgorithm(() => nodesInRange('''
+    var nodes = await nodesInRange('''
 String f(int x) {
   return switch (x) {
     1 => '1',
@@ -808,7 +807,7 @@ String f(int x) {
     _ => '5',
   };
 }
-'''));
+''');
     expect(nodes, hasLength(2));
     expect((nodes[0] as SwitchExpressionCase).expression.toSource(), "'2'");
     expect((nodes[1] as SwitchExpressionCase).expression.toSource(), "'3'");

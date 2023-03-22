@@ -785,16 +785,6 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   const Function& function = parsed_function_->function();
 
 #ifdef DEBUG
-  // If we attached the native name to the function after it's creation (namely
-  // after reading the constant table from the kernel blob), we must have done
-  // so before building flow graph for the functions (since FGB depends needs
-  // the native name to be there).
-  const Script& script = Script::Handle(Z, function.script());
-  const KernelProgramInfo& info =
-      KernelProgramInfo::Handle(script.kernel_program_info());
-  ASSERT(info.IsNull() ||
-         info.potential_natives() == GrowableObjectArray::null());
-
   // Check that all functions that are explicitly marked as recognized with the
   // vm:recognized annotation are in fact recognized. The check can't be done on
   // function creation, since the recognized status isn't set until later.

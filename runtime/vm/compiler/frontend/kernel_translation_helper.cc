@@ -87,33 +87,6 @@ void TranslationHelper::InitFromKernelProgramInfo(
   SetKernelProgramInfo(info);
 }
 
-GrowableObjectArrayPtr TranslationHelper::EnsurePotentialPragmaFunctions() {
-  auto& funcs =
-      GrowableObjectArray::Handle(Z, info_.potential_pragma_functions());
-  if (funcs.IsNull()) {
-    funcs = GrowableObjectArray::New(16, Heap::kNew);
-    info_.set_potential_pragma_functions(funcs);
-  }
-  return funcs.ptr();
-}
-
-void TranslationHelper::AddPotentialExtensionLibrary(const Library& library) {
-  if (potential_extension_libraries_ == nullptr) {
-    potential_extension_libraries_ =
-        &GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  }
-  potential_extension_libraries_->Add(library);
-}
-
-GrowableObjectArrayPtr TranslationHelper::GetPotentialExtensionLibraries() {
-  if (potential_extension_libraries_ != nullptr) {
-    GrowableObjectArray* result = potential_extension_libraries_;
-    potential_extension_libraries_ = nullptr;
-    return result->ptr();
-  }
-  return GrowableObjectArray::null();
-}
-
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   ASSERT(string_offsets_.IsNull());
   string_offsets_ = string_offsets.ptr();

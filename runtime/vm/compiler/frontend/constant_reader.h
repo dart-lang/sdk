@@ -23,6 +23,12 @@ class ConstantReader {
 
   virtual ~ConstantReader() {}
 
+  bool IsPragmaInstanceConstant(intptr_t constant_index,
+                                intptr_t* pragma_name_constant_index,
+                                intptr_t* pragma_options_constant_index);
+  bool IsStringConstant(intptr_t constant_index, const char* name);
+  bool GetStringConstant(intptr_t constant_index, String* out_value);
+
   InstancePtr ReadConstantInitializer();
   InstancePtr ReadConstantExpression();
   ObjectPtr ReadAnnotations();

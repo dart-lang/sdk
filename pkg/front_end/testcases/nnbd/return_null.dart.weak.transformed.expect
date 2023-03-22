@@ -55,6 +55,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
+import "dart:_internal" as _in;
 
 import "dart:async";
 
@@ -119,17 +120,20 @@ static method caseReturn1(self::Enum e) → self::Enum {
       {
         return e;
       }
+    #L4:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method caseReturn2(self::Enum e) → self::Enum {
-  #L4:
+  #L5:
   switch(e) {
-    #L5:
+    #L6:
     case #C3:
       {
         return e;
       }
-    #L6:
+    #L7:
     default:
       {}
   }
@@ -178,29 +182,32 @@ static method localFunctions() → dynamic {
   function yieldSync() → core::Iterable<dynamic> sync* {}
   function yieldAsync() → asy::Stream<dynamic> async* {}
   function caseReturn1(self::Enum e) → self::Enum {
-    #L7:
+    #L8:
     switch(e) /*isExplicitlyExhaustive*/ {
-      #L8:
+      #L9:
       case #C3:
         {
           return e;
         }
-      #L9:
+      #L10:
       case #C6:
         {
           return e;
         }
+      #L11:
+      default:
+        throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
     }
   }
   function caseReturn2(self::Enum e) → self::Enum {
-    #L10:
+    #L12:
     switch(e) {
-      #L11:
+      #L13:
       case #C3:
         {
           return e;
         }
-      #L12:
+      #L14:
       default:
         {}
     }

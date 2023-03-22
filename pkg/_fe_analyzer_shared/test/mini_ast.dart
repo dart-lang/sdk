@@ -380,10 +380,8 @@ Statement switch_(Expression expression, List<_SwitchStatementMember> cases,
             expectRequiresExhaustivenessValidation,
         expectScrutineeType: expectScrutineeType);
 
-Expression switchExpr(Expression expression, List<ExpressionCase> cases,
-        {bool? isLegacyExhaustive}) =>
-    new _SwitchExpression(expression, cases, isLegacyExhaustive,
-        location: computeLocation());
+Expression switchExpr(Expression expression, List<ExpressionCase> cases) =>
+    new _SwitchExpression(expression, cases, location: computeLocation());
 
 _SwitchStatementMember switchStatementMember(
   List<SwitchHead> cases,
@@ -631,8 +629,6 @@ class Harness {
 
   bool? _patternsEnabled;
 
-  bool errorOnSwitchExhaustiveness = false;
-
   Type? _thisType;
 
   late final Map<String, _PropertyElement?> _members = {
@@ -644,8 +640,7 @@ class Harness {
       this,
       TypeAnalyzerOptions(
           nullSafetyEnabled: !_operations.legacy,
-          patternsEnabled: patternsEnabled,
-          errorOnSwitchExhaustiveness: errorOnSwitchExhaustiveness));
+          patternsEnabled: patternsEnabled));
 
   /// Indicates whether initializers of implicitly typed variables should be
   /// accounted for by SSA analysis.  (In an ideal world, they always would be,
@@ -3126,12 +3121,6 @@ class _MiniAstErrors
   }
 
   @override
-  void nonExhaustiveSwitch({required Node node, required Type scrutineeType}) {
-    _recordError(
-        'nonExhaustiveSwitch', {'node': node, 'scrutineeType': scrutineeType});
-  }
-
-  @override
   void patternDoesNotAllowLate({required Node pattern}) {
     _recordError('patternDoesNotAllowLate', {'pattern': pattern});
   }
@@ -3872,7 +3861,8 @@ class _MiniAstTypeAnalyzer
       operations.isAlwaysExhaustiveType(type);
 
   @override
-  bool isLegacySwitchExhaustive(covariant _Switch node, Type expressionType) {
+  bool isLegacySwitchExhaustive(
+      covariant _SwitchStatement node, Type expressionType) {
     return node.isLegacyExhaustive!;
   }
 
@@ -4512,20 +4502,12 @@ class _Return extends Statement {
   }
 }
 
-abstract class _Switch implements Node {
-  bool? get isLegacyExhaustive;
-}
-
-class _SwitchExpression extends Expression implements _Switch {
+class _SwitchExpression extends Expression {
   final Expression scrutinee;
 
   final List<ExpressionCase> cases;
 
-  @override
-  final bool? isLegacyExhaustive;
-
-  _SwitchExpression(this.scrutinee, this.cases, this.isLegacyExhaustive,
-      {required super.location});
+  _SwitchExpression(this.scrutinee, this.cases, {required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -4537,12 +4519,6 @@ class _SwitchExpression extends Expression implements _Switch {
 
   @override
   String toString() {
-    var isLegacyExhaustive = this.isLegacyExhaustive;
-    var exhaustiveness = isLegacyExhaustive == null
-        ? ''
-        : isLegacyExhaustive
-            ? '<exhaustive>'
-            : '<non-exhaustive>';
     String body;
     if (cases.isEmpty) {
       body = '{}';
@@ -4550,17 +4526,11 @@ class _SwitchExpression extends Expression implements _Switch {
       var contents = cases.join(' ');
       body = '{ $contents }';
     }
-    return 'switch$exhaustiveness ($scrutinee) $body';
+    return 'switch ($scrutinee) $body';
   }
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
-    bool needsLegacyExhaustive = h.errorOnSwitchExhaustiveness;
-    if (!needsLegacyExhaustive && isLegacyExhaustive != null) {
-      fail('isLegacyExhaustive should not be specified at $location');
-    } else if (needsLegacyExhaustive && isLegacyExhaustive == null) {
-      fail('isLegacyExhaustive should be specified at $location');
-    }
     var result = h.typeAnalyzer
         .analyzeSwitchExpression(this, scrutinee, cases.length, context);
     h.irBuilder.apply(
@@ -4582,12 +4552,11 @@ class _SwitchHeadDefault extends SwitchHead {
   _SwitchHeadDefault({required super.location}) : super._();
 }
 
-class _SwitchStatement extends Statement implements _Switch {
+class _SwitchStatement extends Statement {
   final Expression scrutinee;
 
   final List<_SwitchStatementMember> cases;
 
-  @override
   final bool? isLegacyExhaustive;
 
   final bool? expectHasDefault;
@@ -4638,8 +4607,7 @@ class _SwitchStatement extends Statement implements _Switch {
 
   @override
   void visit(Harness h) {
-    bool needsLegacyExhaustive =
-        !h.patternsEnabled || h.errorOnSwitchExhaustiveness;
+    bool needsLegacyExhaustive = !h.patternsEnabled;
     if (!needsLegacyExhaustive && isLegacyExhaustive != null) {
       fail('isLegacyExhaustive should not be specified at $location');
     } else if (needsLegacyExhaustive && isLegacyExhaustive == null) {

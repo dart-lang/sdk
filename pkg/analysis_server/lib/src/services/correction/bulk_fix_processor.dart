@@ -25,6 +25,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -172,11 +173,20 @@ class BulkFixProcessor {
   /// A map associating libraries to fixes with change counts.
   final ChangeMap changeMap = ChangeMap();
 
+  /// A token used to signal that the caller is no longer interested in the
+  /// results and processing can end early (in which case any results may be
+  /// invalid).
+  final CancellationToken? cancellationToken;
+
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [workspace].
-  BulkFixProcessor(this.instrumentationService, this.workspace,
-      {this.useConfigFiles = false, List<String>? codes})
-      : builder = ChangeBuilder(workspace: workspace),
+  BulkFixProcessor(
+    this.instrumentationService,
+    this.workspace, {
+    this.useConfigFiles = false,
+    List<String>? codes,
+    this.cancellationToken,
+  })  : builder = ChangeBuilder(workspace: workspace),
         codes = codes?.map((e) => e.toLowerCase()).toList();
 
   List<BulkFix> get fixDetails {
@@ -190,6 +200,8 @@ class BulkFixProcessor {
     }
     return details;
   }
+
+  bool get isCancelled => cancellationToken?.isCancellationRequested ?? false;
 
   /// Return a [BulkFixRequestResult] that includes a change builder that has
   /// been used to create fixes for the diagnostics in the libraries in the
@@ -205,7 +217,7 @@ class BulkFixProcessor {
 
     if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
       var library = await context.currentSession.getResolvedLibrary(path);
-      if (library is ResolvedLibraryResult) {
+      if (!isCancelled && library is ResolvedLibraryResult) {
         await _fixErrorsInLibrary(library);
       }
     }
@@ -276,9 +288,12 @@ class BulkFixProcessor {
         }
 
         var library = await context.currentSession.getResolvedLibrary(path);
+        if (isCancelled) {
+          break;
+        }
         if (library is ResolvedLibraryResult) {
           await _fixErrorsInLibrary(library, stopAfterFirst: stopAfterFirst);
-          if (stopAfterFirst && changeMap.hasFixes) {
+          if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
             break;
           }
         }
@@ -345,7 +360,7 @@ class BulkFixProcessor {
       for (var error in filteredErrors(unitResult)) {
         await _fixSingleError(
             fixContext(unitResult, error), unitResult, error, overrideSet);
-        if (stopAfterFirst && changeMap.hasFixes) {
+        if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
           return;
         }
       }
@@ -379,7 +394,7 @@ class BulkFixProcessor {
         if (context != null) {
           await _generateFix(context, OrganizeImports(),
               directivesOrderingError.errorCode.name);
-          if (stopAfterFirst && changeMap.hasFixes) {
+          if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
             return;
           }
         }
@@ -389,7 +404,7 @@ class BulkFixProcessor {
           if (context != null) {
             await _generateFix(
                 context, RemoveUnusedImport(), error.errorCode.name);
-            if (stopAfterFirst && changeMap.hasFixes) {
+            if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
               return;
             }
           }
@@ -426,6 +441,9 @@ class BulkFixProcessor {
         var producer = generator();
         if (producer.canBeAppliedInBulk) {
           await _generateFix(context, producer, codeName);
+          if (isCancelled) {
+            return;
+          }
         }
       }
     }
@@ -436,9 +454,15 @@ class BulkFixProcessor {
       if (errorCode is LintCode) {
         var generators = FixProcessor.lintProducerMap[codeName] ?? [];
         await bulkApply(generators, codeName);
+        if (isCancelled) {
+          return;
+        }
       } else {
         var generators = FixProcessor.nonLintProducerMap[errorCode] ?? [];
         await bulkApply(generators, codeName);
+        if (isCancelled) {
+          return;
+        }
         var multiGenerators = nonLintMultiProducerMap[errorCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
@@ -446,6 +470,9 @@ class BulkFixProcessor {
             multiProducer.configure(context);
             for (var producer in await multiProducer.producers) {
               await _generateFix(context, producer, codeName);
+              if (isCancelled) {
+                return;
+              }
             }
           }
         }

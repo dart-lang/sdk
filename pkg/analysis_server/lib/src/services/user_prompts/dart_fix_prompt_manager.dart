@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
@@ -58,16 +59,9 @@ class DartFixPromptManager {
   /// context paths) additional checks are allowed.
   Map<String, String?> _lastContextSdkVersionConstraints = {};
 
+  CancelableToken? _inProgressCheckCancellationToken;
+
   DartFixPromptManager(this.server, this.preferences);
-
-  @visibleForTesting
-  Future<bool> get bulkFixesAvailable async {
-    final workspace = DartChangeWorkspace(await server.currentSessions);
-    final processor =
-        BulkFixProcessor(server.instrumentationService, workspace);
-
-    return processor.hasFixes(server.contextManager.analysisContexts);
-  }
 
   /// Gets a map of context root paths to their version constraint strings.
   @visibleForTesting
@@ -83,6 +77,41 @@ class DartFixPromptManager {
     final lastCheck = this.lastCheck;
     return lastCheck != null &&
         DateTime.now().difference(lastCheck) <= _sleepTime;
+  }
+
+  /// Whether or not "dart fix" may be able to fix diagnostics in the project.
+  ///
+  /// This method is exposed to allow tests to override the results. It should
+  /// only be called by [performCheck]. Other callers interested in the results
+  /// should call [performCheck] which handles cancelling other in-progress
+  /// checks.
+  @visibleForTesting
+  Future<bool> bulkFixesAvailable(CancellationToken token) async {
+    final sessions = await server.currentSessions;
+    if (token.isCancellationRequested) {
+      return false;
+    }
+
+    final workspace = DartChangeWorkspace(sessions);
+    final processor = BulkFixProcessor(server.instrumentationService, workspace,
+        cancellationToken: token);
+
+    return processor.hasFixes(server.contextManager.analysisContexts);
+  }
+
+  /// Performs a check for bulk fixes, cancelling any other in-progress checks.
+  Future<bool> performCheck() async {
+    // Signal that any in-progress check should abort.
+    _inProgressCheckCancellationToken?.cancel();
+
+    // Assign a new token for this check.
+    final token = _inProgressCheckCancellationToken = CancelableToken();
+    final fixesAvailable = await bulkFixesAvailable(token);
+
+    // If we were cancelled since the last cancellation check inside
+    // bulkFixesAvailable, still return false because another check is now in
+    // progress and our results are stale.
+    return fixesAvailable && !token.isCancellationRequested;
   }
 
   @visibleForTesting
@@ -121,7 +150,7 @@ class DartFixPromptManager {
   /// context rebuild).
   void triggerCheck() {
     unawaited(
-      _performCheck().catchError((e) {
+      _performCheckAndPrompt().catchError((e) {
         server.instrumentationService
             .logError('Failed to perform bulk "dart fix" check: $e');
       }),
@@ -132,7 +161,12 @@ class DartFixPromptManager {
     server.sendOpenUriNotification(learnMoreUri);
   }
 
-  Future<void> _performCheck() async {
+  /// Performs a check to see if "dart fix" may be able to fix diagnostics in
+  /// the project and if so, prompts the user.
+  ///
+  /// The check/prompt may be skipped if not supported or the check has been run
+  /// recently. If an existing check is in-progress, it will be aborted.
+  Future<void> _performCheckAndPrompt() async {
     if (_hasPromptedThisSession ||
         !server.supportsShowMessageRequest ||
         !server.supportsOpenUriNotification ||
@@ -152,7 +186,7 @@ class DartFixPromptManager {
 
     // Perform the (potentially expensive) check.
     lastCheck = DateTime.now();
-    if (!(await bulkFixesAvailable)) {
+    if (!(await performCheck())) {
       return;
     }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart'
-    as shared_exhaustive;
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -1951,9 +1949,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
       node.patternGuard.guard = guardError..parent = node.patternGuard;
-    } else if (!identical(node.patternGuard.guard, rewrite)) {
-      node.patternGuard.guard = (rewrite as Expression)
-        ..parent = node.patternGuard;
+    } else {
+      if (!identical(node.patternGuard.guard, rewrite)) {
+        node.patternGuard.guard = (rewrite as Expression)
+          ..parent = node.patternGuard;
+      }
+      if (analysisResult.guardType is DynamicType) {
+        node.patternGuard.guard = _createImplicitAs(
+            node.patternGuard.guard!.fileOffset,
+            node.patternGuard.guard!,
+            coreTypes.boolNonNullableRawType)
+          ..parent = node.patternGuard;
+      }
     }
     rewrite = popRewrite();
     if (!identical(node.patternGuard.pattern, rewrite)) {
@@ -8208,6 +8215,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           analysisResult.nonBooleanGuardErrors?[caseIndex];
       if (guardError != null) {
         patternGuard.guard = guardError..parent = patternGuard;
+      } else if (patternGuard.guard != null) {
+        if (analysisResult.guardTypes![caseIndex] is DynamicType) {
+          patternGuard.guard = _createImplicitAs(patternGuard.guard!.fileOffset,
+              patternGuard.guard!, coreTypes.boolNonNullableRawType)
+            ..parent = patternGuard;
+        }
       }
     }
 
@@ -8316,6 +8329,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult =
         analyzeSwitchStatement(node, node.expression, node.cases.length);
 
+    node.lastCaseTerminates = analysisResult.lastCaseTerminates;
+
     assert(checkStack(node, stackBase, [
       /* cases = */ ...repeatedKind(ValueKinds.SwitchCase, node.cases.length),
       /* scrutinee type = */ ValueKinds.DartType,
@@ -8358,6 +8373,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             analysisResult.nonBooleanGuardErrors?[caseIndex]?[headIndex];
         if (guardError != null) {
           patternGuard.guard = guardError..parent = patternGuard;
+        } else if (patternGuard.guard != null) {
+          if (analysisResult.guardTypes![caseIndex]![headIndex]
+              is DynamicType) {
+            patternGuard.guard = _createImplicitAs(
+                patternGuard.guard!.fileOffset,
+                patternGuard.guard!,
+                coreTypes.boolNonNullableRawType)
+              ..parent = patternGuard;
+          }
         }
 
         Map<String, DartType> inferredVariableTypes = {
@@ -9122,7 +9146,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             inferExpression(expression, contextType);
         if (contextType is! UnknownType) {
           expressionResult =
-              ensureAssignableResult(contextType, expressionResult);
+              coerceExpressionForAssignment(contextType, expressionResult) ??
+                  expressionResult;
         }
 
         positionalTypes.add(
@@ -9170,7 +9195,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               inferExpression(element.value, contextType);
           if (contextType is! UnknownType) {
             expressionResult =
-                ensureAssignableResult(contextType, expressionResult);
+                coerceExpressionForAssignment(contextType, expressionResult) ??
+                    expressionResult;
           }
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.postCoercionType ??
@@ -9201,7 +9227,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               inferExpression(element as Expression, contextType);
           if (contextType is! UnknownType) {
             expressionResult =
-                ensureAssignableResult(contextType, expressionResult);
+                coerceExpressionForAssignment(contextType, expressionResult) ??
+                    expressionResult;
           }
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.postCoercionType ??
@@ -9727,8 +9754,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void handleSwitchScrutinee(DartType type) {
-    if ((!options.patternsEnabled ||
-            shared_exhaustive.useFallbackExhaustivenessAlgorithm) &&
+    if ((!options.patternsEnabled) &&
         type is InterfaceType &&
         type.classNode.isEnum) {
       _enumFields = <Field?>{
@@ -10227,6 +10253,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       /* subpatterns = */ ...repeatedKind(
           ValueKinds.Pattern, node.fields.length)
     ]));
+
+    node.requiredType = analysisResult.requiredType;
 
     Pattern? replacement;
 
@@ -10850,15 +10878,65 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new RecordType(positional, namedFields, Nullability.nonNullable);
   }
 
+  /// Infers type arguments corresponding to [typeParameters] so that, when
+  /// substituted into [declaredType], the resulting type matches [contextType].
+  List<DartType> _inferTypeArguments(
+      {required List<TypeParameter> typeParameters,
+      required DartType declaredType,
+      required DartType contextType}) {
+    TypeConstraintGatherer gatherer = typeSchemaEnvironment
+        .setupGenericTypeInference(declaredType, typeParameters, contextType,
+            isNonNullableByDefault: isNonNullableByDefault);
+    List<DartType> inferredTypes = typeSchemaEnvironment.partialInfer(
+        gatherer, typeParameters, null,
+        isNonNullableByDefault: isNonNullableByDefault);
+    // Type inference may not be able to infer a type for every type parameter;
+    // if it can't fall back on the type parameter's bound.
+    // TODO(paulberry): this doesn't work if the type is F-bounded because in
+    // that case, the bound may refer to other type variables.
+    for (int i = 0; i < inferredTypes.length; i++) {
+      if (inferredTypes[i] is UnknownType) {
+        DartType bound = typeParameters[i].bound;
+        inferredTypes[i] = bound;
+      }
+    }
+    return inferredTypes;
+  }
+
   @override
   DartType downwardInferObjectPatternRequiredType({
     required DartType matchedType,
-    required Pattern pattern,
+    required covariant ObjectPatternInternal pattern,
   }) {
-    if (pattern is! ObjectPattern) return const InvalidType();
-    // TODO(johnniwinther): Update this when language issue #2770 has been
-    // resolved.
-    return pattern.requiredType;
+    DartType requiredType = pattern.requiredType;
+    if (!pattern.hasExplicitTypeArguments) {
+      if (pattern.typedef != null) {
+        // TODO(paulberry): handle typedefs properly.
+      }
+      if (requiredType is InterfaceType &&
+          requiredType.classNode.typeParameters.isNotEmpty) {
+        List<TypeParameter> typeParameters =
+            requiredType.classNode.typeParameters;
+
+        // It's possible that one of the callee type parameters might match a
+        // type that already exists as part of inference.  This might happen,
+        // for instance, in the case where a method in a generic class contains
+        // an object pattern naming the enclosing class.  To avoid creating
+        // invalid inference results, we need to create fresh type parameters.
+        FreshTypeParameters fresh = getFreshTypeParameters(typeParameters);
+        InterfaceType declaredType = new InterfaceType(requiredType.classNode,
+            requiredType.declaredNullability, fresh.freshTypeArguments);
+        typeParameters = fresh.freshTypeParameters;
+
+        List<DartType> inferredTypeArguments = _inferTypeArguments(
+            typeParameters: typeParameters,
+            declaredType: declaredType,
+            contextType: matchedType);
+        requiredType = new InterfaceType(requiredType.classNode,
+            requiredType.declaredNullability, inferredTypeArguments);
+      }
+    }
+    return requiredType;
   }
 
   @override

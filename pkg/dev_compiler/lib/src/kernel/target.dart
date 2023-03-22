@@ -99,6 +99,7 @@ class DevCompilerTarget extends Target {
         'dart:indexed_db',
         'dart:js',
         'dart:js_util',
+        'dart:js_interop',
         'dart:math',
         'dart:svg',
         'dart:web_audio',
@@ -168,6 +169,7 @@ class DevCompilerTarget extends Target {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     var jsInteropChecks = JsInteropChecks(
         coreTypes,
+        hierarchy,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!);
     // Process and validate first before doing anything with exports.

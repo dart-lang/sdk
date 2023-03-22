@@ -9170,10 +9170,13 @@ class BodyBuilder extends StackListenerImpl
     push(typeArguments ?? NullValues.TypeArguments);
     handleType(firstIdentifier, null);
     TypeBuilder typeBuilder = pop() as TypeBuilder;
+    TypeDeclarationBuilder? typeDeclaration = typeBuilder.declaration;
     DartType type = buildDartType(typeBuilder, TypeUse.objectPatternType,
         allowPotentiallyConstantType: true);
-    push(forest.createObjectPattern(
-        firstIdentifier.charOffset, type, fields ?? <NamedPattern>[]));
+    push(new ObjectPatternInternal(type, fields ?? <NamedPattern>[],
+        typeDeclaration is TypeAliasBuilder ? typeDeclaration.typedef : null,
+        hasExplicitTypeArguments: typeArguments != null)
+      ..fileOffset = firstIdentifier.charOffset);
   }
 
   @override

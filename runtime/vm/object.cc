@@ -14933,16 +14933,6 @@ void KernelProgramInfo::set_constants_table(
   untag()->set_constants_table(value.ptr());
 }
 
-void KernelProgramInfo::set_potential_natives(
-    const GrowableObjectArray& candidates) const {
-  untag()->set_potential_natives(candidates.ptr());
-}
-
-void KernelProgramInfo::set_potential_pragma_functions(
-    const GrowableObjectArray& candidates) const {
-  untag()->set_potential_pragma_functions(candidates.ptr());
-}
-
 void KernelProgramInfo::set_libraries_cache(const Array& cache) const {
   untag()->set_libraries_cache(cache.ptr());
 }

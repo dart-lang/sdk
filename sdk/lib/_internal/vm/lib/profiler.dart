@@ -15,7 +15,7 @@ class UserTag {
 }
 
 @pragma("vm:entry-point")
-class _UserTag implements UserTag {
+final class _UserTag implements UserTag {
   @pragma("vm:external-name", "UserTag_new")
   external factory _UserTag(String label);
   @pragma("vm:external-name", "UserTag_label")

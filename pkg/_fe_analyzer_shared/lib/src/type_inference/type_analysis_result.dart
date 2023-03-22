@@ -171,13 +171,17 @@ class SwitchExpressionResult<Type extends Object, Error>
   /// This is `null` if no such errors where found.
   final Map<int, Error>? nonBooleanGuardErrors;
 
-  /// Error for when the switch statement was non exhaustive.
-  final Error? nonExhaustiveSwitchError;
+  /// The types of the guard expressions.
+  ///
+  /// The key is the case index of the guard.
+  ///
+  /// This is `null` if no such guards where present.
+  final Map<int, Type>? guardTypes;
 
   SwitchExpressionResult(
       {required super.type,
       required this.nonBooleanGuardErrors,
-      required this.nonExhaustiveSwitchError});
+      required this.guardTypes});
 }
 
 /// Container for the result of running type analysis on an integer literal.
@@ -214,8 +218,12 @@ class SwitchStatementTypeAnalysisResult<Type extends Object, Error> {
   /// This is `null` if no such errors where found.
   final Map<int, Map<int, Error>>? nonBooleanGuardErrors;
 
-  /// Error for when the switch statement was non exhaustive.
-  final Error? nonExhaustiveSwitchError;
+  /// The types of the guard expressions.
+  ///
+  /// The keys of the maps are case and head indices of the guard.
+  ///
+  /// This is `null` if no such guards where present.
+  final Map<int, Map<int, Type>>? guardTypes;
 
   SwitchStatementTypeAnalysisResult({
     required this.hasDefault,
@@ -225,7 +233,7 @@ class SwitchStatementTypeAnalysisResult<Type extends Object, Error> {
     required this.scrutineeType,
     required this.switchCaseCompletesNormallyErrors,
     required this.nonBooleanGuardErrors,
-    required this.nonExhaustiveSwitchError,
+    required this.guardTypes,
   });
 }
 
@@ -450,9 +458,13 @@ class IfCaseStatementResult<Type extends Object, Error> {
   /// Error for when the guard has a non-bool type.
   final Error? nonBooleanGuardError;
 
+  /// The type of the guard expression, if present.
+  final Type? guardType;
+
   IfCaseStatementResult(
       {required this.matchedExpressionType,
-      required this.nonBooleanGuardError});
+      required this.nonBooleanGuardError,
+      required this.guardType});
 }
 
 /// Result for analyzing a pattern-for-in statement or element in

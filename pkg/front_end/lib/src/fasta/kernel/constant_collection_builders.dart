@@ -159,10 +159,17 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
   @override
   AbortConstant? addConstant(Constant constant, TreeNode context) {
     if (!evaluator.hasPrimitiveEqual(constant)) {
-      return evaluator.createEvaluationErrorConstant(
-          context,
-          templateConstEvalElementImplementsEqual.withArguments(
-              constant, evaluator.isNonNullableByDefault));
+      if (evaluator.enablePrimitiveEquality) {
+        return evaluator.createEvaluationErrorConstant(
+            context,
+            templateConstEvalElementNotPrimitiveEquality.withArguments(
+                constant, evaluator.isNonNullableByDefault));
+      } else {
+        return evaluator.createEvaluationErrorConstant(
+            context,
+            templateConstEvalElementImplementsEqual.withArguments(
+                constant, evaluator.isNonNullableByDefault));
+      }
     }
     bool unseen = seen.add(constant);
     if (!unseen) {
@@ -304,10 +311,17 @@ class MapConstantBuilder {
       parts.add(lastPart = <ConstantMapEntry>[]);
     }
     if (!evaluator.hasPrimitiveEqual(key)) {
-      return evaluator.createEvaluationErrorConstant(
-          keyContext,
-          templateConstEvalKeyImplementsEqual.withArguments(
-              key, evaluator.isNonNullableByDefault));
+      if (evaluator.enablePrimitiveEquality) {
+        return evaluator.createEvaluationErrorConstant(
+            keyContext,
+            templateConstEvalKeyNotPrimitiveEquality.withArguments(
+                key, evaluator.isNonNullableByDefault));
+      } else {
+        return evaluator.createEvaluationErrorConstant(
+            keyContext,
+            templateConstEvalKeyImplementsEqual.withArguments(
+                key, evaluator.isNonNullableByDefault));
+      }
     }
     bool unseenKey = seenKeys.add(key);
     if (!unseenKey) {

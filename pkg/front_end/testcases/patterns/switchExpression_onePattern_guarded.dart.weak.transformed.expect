@@ -9,6 +9,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method f(dynamic x) → dynamic
   return block {
@@ -22,10 +23,11 @@ static method f(dynamic x) → dynamic
           break #L1;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
 
 
 Extra constant evaluation status:
 Evaluated: LogicalExpression @ org-dartlang-testcase:///switchExpression_onePattern_guarded.dart:6:10 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 5, effectively constant: 1
+Extra constant evaluation: evaluated: 7, effectively constant: 1

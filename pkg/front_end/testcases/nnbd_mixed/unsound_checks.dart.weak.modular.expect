@@ -535,43 +535,59 @@ static method switchOnEnum(uns::E e) → dynamic {
       {
         return;
       }
+    #L4:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchOnEnumWithBreak(uns::E e) → dynamic {
-  #L4:
+  #L5:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L5:
+    #L6:
     case #C3:
       {
-        break #L4;
+        break #L5;
       }
-    #L6:
+    #L7:
     case #C6:
       {
-        break #L4;
+        break #L5;
       }
+    #L8:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
-  #L7:
+  #L9:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L8:
+    #L10:
     case #C3:
       {
-        break #L7;
+        break #L9;
       }
-    #L9:
+    #L11:
     case #C6:
-      {}
+      {
+        break #L9;
+      }
+    #L12:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchOnEnumWithFallThrough2(uns::E e) → dynamic {
-  #L10:
+  #L13:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L11:
+    #L14:
     case #C3:
     case #C6:
-      {}
+      {
+        break #L13;
+      }
+    #L15:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method handleThrow() → dynamic {

@@ -1694,8 +1694,6 @@ class UntaggedKernelProgramInfo : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, metadata_mappings)
   COMPRESSED_POINTER_FIELD(ArrayPtr, scripts)
   COMPRESSED_POINTER_FIELD(ArrayPtr, constants)
-  COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, potential_natives)
-  COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, potential_pragma_functions)
   COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, constants_table)
   COMPRESSED_POINTER_FIELD(ArrayPtr, libraries_cache)
   COMPRESSED_POINTER_FIELD(ArrayPtr, classes_cache)

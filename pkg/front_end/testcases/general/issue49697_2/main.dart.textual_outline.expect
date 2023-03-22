@@ -17,4 +17,4 @@ int? c1(C? c) {}
 int? c2(C? c) {}
 int d1(D d) {}
 int? d2(D? d) {}
-void main() {}
+void test() {}

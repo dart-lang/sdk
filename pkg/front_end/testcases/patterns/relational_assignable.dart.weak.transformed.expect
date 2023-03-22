@@ -1,6 +1,7 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method method(core::int i) → dynamic {
   return block {
@@ -26,6 +27,7 @@ static method method(core::int i) → dynamic {
           break #L1;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
 }
@@ -37,4 +39,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: AsExpression @ org-dartlang-testcase:///relational_assignable.dart:9:5 -> IntConstant(0)
-Extra constant evaluation: evaluated: 12, effectively constant: 1
+Extra constant evaluation: evaluated: 14, effectively constant: 1

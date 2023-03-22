@@ -4311,6 +4311,9 @@ class EquivalenceStrategy {
     if (!checkPatternSwitchStatement_expressionType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkPatternSwitchStatement_lastCaseTerminates(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkPatternSwitchStatement_isExplicitlyExhaustive(
         visitor, node, other)) {
       result = visitor.resultOnInequivalence;
@@ -8449,6 +8452,14 @@ class EquivalenceStrategy {
       PatternSwitchStatement node, PatternSwitchStatement other) {
     return visitor.checkNodes(
         node.expressionType, other.expressionType, 'expressionType');
+  }
+
+  bool checkPatternSwitchStatement_lastCaseTerminates(
+      EquivalenceVisitor visitor,
+      PatternSwitchStatement node,
+      PatternSwitchStatement other) {
+    return visitor.checkValues(node.lastCaseTerminates,
+        other.lastCaseTerminates, 'lastCaseTerminates');
   }
 
   bool checkPatternSwitchStatement_isExplicitlyExhaustive(

@@ -207,8 +207,6 @@ KernelLoader::KernelLoader(Program* program,
                        &active_class_,
                        /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
-      annotation_list_(GrowableObjectArray::Handle(Z)),
-      potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
       static_field_value_(Object::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       pragma_name_field_(Field::Handle(Z)),
@@ -474,8 +472,6 @@ KernelLoader::KernelLoader(const Script& script,
                        &active_class_,
                        /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
-      annotation_list_(GrowableObjectArray::Handle(Z)),
-      potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
       static_field_value_(Object::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       pragma_name_field_(Field::Handle(Z)),
@@ -486,102 +482,6 @@ KernelLoader::KernelLoader(const Script& script,
   T.finalize_ = false;
   library_kernel_data_ = kernel_data.ptr();
   H.InitFromKernelProgramInfo(kernel_program_info_);
-}
-
-void KernelLoader::EvaluateDelayedPragmas() {
-  potential_pragma_functions_ =
-      kernel_program_info_.potential_pragma_functions();
-  if (potential_pragma_functions_.IsNull()) return;
-
-  Function& function = Function::Handle();
-  Library& library = Library::Handle();
-  Class& klass = Class::Handle();
-  for (int i = 0; i < potential_pragma_functions_.Length(); ++i) {
-    function ^= potential_pragma_functions_.At(i);
-    klass = function.Owner();
-    library = klass.library();
-    library.GetMetadata(function);
-  }
-
-  potential_pragma_functions_ = GrowableObjectArray::null();
-  kernel_program_info_.set_potential_pragma_functions(
-      GrowableObjectArray::Handle(Z));
-}
-
-void KernelLoader::AnnotateProcedures() {
-  annotation_list_ = kernel_program_info_.potential_natives();
-  const intptr_t length =
-      !annotation_list_.IsNull() ? annotation_list_.Length() : 0;
-  if (length == 0) return;
-
-  // Prepare lazy constant reading.
-  ConstantReader constant_reader(&helper_, &active_class_);
-
-  // Ensure `pragma` class is available before evaluating the annotations.
-  EnsurePragmaClassIsLookedUp();
-
-  Instance& constant = Instance::Handle(Z);
-  String& pragma_name = String::Handle(Z);
-  Object& pragma_options = Object::Handle(Z);
-
-  // Start scanning all candidates in [potential_natives] for the annotation
-  // constant.  If the annotation is found, flag the [Function] as native and
-  // attach the native name to it.
-  Function& function = Function::Handle(Z);
-  for (intptr_t i = 0; i < length; ++i) {
-    function ^= annotation_list_.At(i);
-
-    helper_.SetOffset(function.KernelDataProgramOffset() +
-                      function.kernel_offset());
-    if (function.IsGenerativeConstructor()) {
-      ConstructorHelper constructor_helper(&helper_);
-      constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
-    } else {
-      ProcedureHelper procedure_helper(&helper_);
-      procedure_helper.ReadUntilExcluding(ProcedureHelper::kAnnotations);
-    }
-
-    const intptr_t annotation_count = helper_.ReadListLength();
-    for (intptr_t j = 0; j < annotation_count; ++j) {
-      const intptr_t tag = helper_.PeekTag();
-      if (tag == kConstantExpression) {
-        helper_.ReadByte();      // Skip the tag.
-        helper_.ReadPosition();  // Skip fileOffset.
-        helper_.SkipDartType();  // Skip type.
-
-        const intptr_t constant_table_index = helper_.ReadUInt();
-        if (constant_reader.IsInstanceConstant(constant_table_index,
-                                               pragma_class_)) {
-          constant = constant_reader.ReadConstant(constant_table_index);
-          ASSERT(constant.clazz() == pragma_class_.ptr());
-
-          pragma_name ^= constant.GetField(pragma_name_field_);
-
-          if (pragma_name.ptr() == Symbols::vm_invisible().ptr()) {
-            function.set_is_visible(false);
-          }
-
-          // We found the annotation, let's flag the function as native and
-          // set the native name!
-          if (pragma_name.ptr() == Symbols::vm_external_name().ptr()) {
-            pragma_options = constant.GetField(pragma_options_field_);
-            if (pragma_options.IsString()) {
-              function.set_is_native(true);
-              function.set_native_name(String::Cast(pragma_options));
-              function.set_is_external(false);
-            }
-          }
-        }
-      } else {
-        helper_.SkipExpression();
-      }
-    }
-  }
-
-  // Clear out the list of [Function] objects which might need their native
-  // name to be set after reading the constant table from the kernel blob.
-  annotation_list_ = GrowableObjectArray::null();
-  kernel_program_info_.set_potential_natives(annotation_list_);
 }
 
 bool KernelLoader::IsClassName(NameIndex name,
@@ -643,8 +543,6 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
     }
     kernel_program_info_.set_constants(array);
     H.SetConstants(array);  // for caching
-    AnnotateProcedures();
-    EvaluateDelayedPragmas();
 
     NameIndex main = program_->main_method();
     if (main != -1) {
@@ -980,12 +878,8 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
   intptr_t annotations_kernel_offset =
       helper_.ReaderOffset() - correction_offset_;
-  intptr_t annotation_count = helper_.ReadListLength();  // read list length.
-  if (annotation_count > 0) {
-    // This must wait until we can evaluate constants.
-    // So put on the "pending" list.
-    H.AddPotentialExtensionLibrary(library);
-  }
+  const intptr_t annotation_count =
+      helper_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < annotation_count; ++i) {
     helper_.SkipExpression();  // read ith annotation.
   }
@@ -1150,7 +1044,6 @@ void KernelLoader::FinishTopLevelClassLoading(
     intptr_t annotation_count = helper_.ReadListLength();
     bool has_pragma_annotation;
     ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                      /*scan_annotations_lazy=*/nullptr,
                       /*is_invisible_function=*/nullptr,
                       &has_pragma_annotation);
     field_helper.SetJustRead(FieldHelper::kAnnotations);
@@ -1464,7 +1357,6 @@ void KernelLoader::LoadClass(const Library& library,
   intptr_t annotation_count = helper_.ReadListLength();
   bool has_pragma_annotation = false;
   ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                    /*scan_annotations_lazy=*/nullptr,
                     /*is_invisible_function=*/nullptr, &has_pragma_annotation);
   if (has_pragma_annotation) {
     out_class->set_has_pragma(true);
@@ -1544,7 +1436,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       intptr_t annotation_count = helper_.ReadListLength();
       bool has_pragma_annotation;
       ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                        /*scan_annotations_lazy=*/nullptr,
                         /*is_invisible_function=*/nullptr,
                         &has_pragma_annotation);
       field_helper.SetJustRead(FieldHelper::kAnnotations);
@@ -1669,12 +1560,10 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     ConstructorHelper constructor_helper(&helper_);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
     intptr_t annotation_count = helper_.ReadListLength();
-    bool scan_annotations_lazy;
     bool has_pragma_annotation;
     bool is_invisible_function;
     ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                      &scan_annotations_lazy, &is_invisible_function,
-                      &has_pragma_annotation);
+                      &is_invisible_function, &has_pragma_annotation);
     constructor_helper.SetJustRead(ConstructorHelper::kAnnotations);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
 
@@ -1704,12 +1593,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     signature.set_result_type(T.ReceiverType(klass));
     function.set_has_pragma(has_pragma_annotation);
     function.set_is_visible(!is_invisible_function);
-
-    if (scan_annotations_lazy) {
-      // Cannot be processed right now, so put on "pending" list.
-      EnsureAnnotationList();
-      annotation_list_.Add(function);
-    }
 
     FunctionNodeHelper function_node_helper(&helper_);
     function_node_helper.ReadUntilExcluding(
@@ -1826,9 +1709,6 @@ void KernelLoader::FinishLoading(const Class& klass) {
 //
 // Output parameters:
 //
-//   `has_annotations_of_interest`: true if there may be annotations of
-//    interest and we need to re-try after reading the constants table.
-//
 //   `is_invisible_function`: if `@pragma('vm:invisible)` was found.
 //
 //   `native_name`: set if @pragma('vm:external-name)` was identified.
@@ -1839,12 +1719,8 @@ void KernelLoader::FinishLoading(const Class& klass) {
 void KernelLoader::ReadVMAnnotations(const Library& library,
                                      intptr_t annotation_count,
                                      String* native_name,
-                                     bool* has_annotations_of_interest,
                                      bool* is_invisible_function,
                                      bool* has_pragma_annotation) {
-  if (has_annotations_of_interest != nullptr) {
-    *has_annotations_of_interest = false;
-  }
   if (is_invisible_function != nullptr) {
     *is_invisible_function = false;
   }
@@ -1853,102 +1729,32 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
     return;
   }
 
-  const Array& constant_table_array =
-      Array::Handle(Z, kernel_program_info_.constants());
-  const bool have_read_constant_table = !constant_table_array.IsNull();
-
-  Instance& constant = Instance::Handle(Z);
-  String& pragma_name = String::Handle(Z);
-  Object& pragma_options = Object::Handle(Z);
   for (intptr_t i = 0; i < annotation_count; ++i) {
     const intptr_t tag = helper_.PeekTag();
     if (tag == kConstantExpression) {
-      if (!have_read_constant_table) {
-        // We can only read in the constant table once all classes have been
-        // finalized (otherwise we can't create instances of the classes!).
-        //
-        // We therefore delay the scanning for `@pragma('vm:external-name')`
-        // constants in the annotation list to later.
-        if (has_annotations_of_interest != nullptr) {
-          *has_annotations_of_interest = true;
+      helper_.ReadByte();      // Skip the tag.
+      helper_.ReadPosition();  // Skip fileOffset.
+      helper_.SkipDartType();  // Skip type.
+      const intptr_t index_in_constant_table = helper_.ReadUInt();
+
+      // Prepare lazy constant reading.
+      ConstantReader constant_reader(&helper_, &active_class_);
+
+      intptr_t name_index = -1;
+      intptr_t options_index = -1;
+      if (constant_reader.IsPragmaInstanceConstant(
+              index_in_constant_table, &name_index, &options_index)) {
+        *has_pragma_annotation = true;
+
+        if (is_invisible_function != nullptr) {
+          if (constant_reader.IsStringConstant(name_index, "vm:invisible")) {
+            *is_invisible_function = true;
+          }
         }
-
-        ASSERT(kernel_program_info_.constants_table() !=
-               ExternalTypedData::null());
-
-        // For pragma annotations, we seek into the constants table and peek
-        // into the Kernel representation of the constant.
-        helper_.ReadByte();      // Skip the tag.
-        helper_.ReadPosition();  // Skip fileOffset.
-        helper_.SkipDartType();  // Skip type.
-        const intptr_t index_in_constant_table = helper_.ReadUInt();
-
-        AlternativeReadingScopeWithNewData scope(
-            &helper_.reader_,
-            &ExternalTypedData::Handle(Z,
-                                       kernel_program_info_.constants_table()),
-            0);
-
-        // Seek into the position within the constant table where we can inspect
-        // this constant's Kernel representation.
-
-        // Get the length of the constants (at the end of the mapping).
-        helper_.SetOffset(helper_.ReaderSize() - 4);
-        const intptr_t num_constants = helper_.ReadUInt32();
-
-        // Get the binary offset of the constant at the wanted index.
-        helper_.SetOffset(helper_.ReaderSize() - 4 - (num_constants * 4) +
-                          (index_in_constant_table * 4));
-        const intptr_t constant_offset = helper_.ReadUInt32();
-
-        helper_.SetOffset(constant_offset);
-
-        uint8_t tag = helper_.ReadTag();
-        if (tag == kInstanceConstant) {
-          *has_pragma_annotation =
-              *has_pragma_annotation ||
-              IsClassName(helper_.ReadCanonicalNameReference(),
-                          Symbols::DartCore(), Symbols::Pragma());
-        }
-      } else {
-        // Prepare lazy constant reading.
-        const dart::Class& toplevel_class =
-            Class::Handle(Z, library.toplevel_class());
-        ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
-        ConstantReader constant_reader(&helper_, &active_class_);
-
-        helper_.ReadByte();  // Skip the tag.
-
-        // Obtain `dart:_internal::pragma`.
-        EnsurePragmaClassIsLookedUp();
-
-        if (tag == kConstantExpression) {
-          helper_.ReadPosition();  // Skip fileOffset.
-          helper_.SkipDartType();  // Skip type.
-        }
-        const intptr_t constant_table_index = helper_.ReadUInt();
-        // We have a candidate. Let's look if it's an instance of the
-        // `pragma` class.
-        if (constant_reader.IsInstanceConstant(constant_table_index,
-                                                      pragma_class_)) {
-          *has_pragma_annotation = true;
-          if (native_name != nullptr || is_invisible_function != nullptr) {
-            constant = constant_reader.ReadConstant(constant_table_index);
-            ASSERT(constant.clazz() == pragma_class_.ptr());
-            pragma_name ^= constant.GetField(pragma_name_field_);
-
-            if (is_invisible_function != nullptr &&
-                pragma_name.ptr() == Symbols::vm_invisible().ptr()) {
-              *is_invisible_function = true;
-            }
-
-            if (native_name != nullptr &&
-                pragma_name.ptr() == Symbols::vm_external_name().ptr()) {
-              pragma_options = constant.GetField(pragma_options_field_);
-              if (pragma_options.IsString()) {
-                *native_name ^= pragma_options.ptr();
-              }
-            }
+        if (native_name != nullptr) {
+          if (constant_reader.IsStringConstant(name_index,
+                                               "vm:external-name")) {
+            constant_reader.GetStringConstant(options_index, native_name);
           }
         }
       }
@@ -1986,15 +1792,11 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_extension_member = procedure_helper.IsExtensionMember();
   bool is_synthetic = procedure_helper.IsSynthetic();
   String& native_name = String::Handle(Z);
-  bool scan_annotations_lazy;
   bool has_pragma_annotation;
   bool is_invisible_function;
   const intptr_t annotation_count = helper_.ReadListLength();
   ReadVMAnnotations(library, annotation_count, &native_name,
-                    &scan_annotations_lazy, &is_invisible_function,
-                    &has_pragma_annotation);
-  // If this is a potential native, we'll unset is_external in
-  // AnnotateProcedures instead.
+                    &is_invisible_function, &has_pragma_annotation);
   is_external = is_external && native_name.IsNull();
   procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   const Object& script_class =
@@ -2067,11 +1869,6 @@ void KernelLoader::LoadProcedure(const Library& library,
   if (!native_name.IsNull()) {
     function.set_native_name(native_name);
   }
-  if (scan_annotations_lazy) {
-    // Cannot be processed right now, so put on "pending" list.
-    EnsureAnnotationList();
-    annotation_list_.Add(function);
-  }
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
   T.SetupFunctionParameters(owner, function, is_method,
@@ -2085,17 +1882,6 @@ void KernelLoader::LoadProcedure(const Library& library,
 
   if (annotation_count > 0) {
     library.AddMetadata(function, procedure_offset);
-  }
-
-  if (has_pragma_annotation) {
-    if (kernel_program_info_.constants() == Array::null()) {
-      // Any potential pragma function before point at which
-      // constant table could be loaded goes to "pending".
-      EnsurePotentialPragmaFunctions();
-      potential_pragma_functions_.Add(function);
-    } else {
-      library.GetMetadata(function);
-    }
   }
 }
 

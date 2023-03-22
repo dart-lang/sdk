@@ -122,7 +122,7 @@ final String _libDart = '''
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library __projectName__;
+library;
 
 export 'src/__projectName___base.dart';
 

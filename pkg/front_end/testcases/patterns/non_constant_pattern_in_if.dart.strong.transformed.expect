@@ -64,7 +64,7 @@ static method test(dynamic value, core::bool expected) → void {
   }
   {
     final synthesized dynamic #4#0 = value;
-    if(#4#0 is{ForNonNullableByDefault} self::Const<dynamic>) {
+    if(#4#0 is{ForNonNullableByDefault} self::Const<core::Object?>) {
       matched = true;
     }
   }

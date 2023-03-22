@@ -442,6 +442,8 @@ class ConstantsTransformer extends RemovingTransformer {
   /// rewritten.
   bool get keepLocals => backend.keepLocals;
 
+  Library get currentLibrary => _staticTypeContext!.enclosingLibrary;
+
   // Transform the library/class members:
 
   void convertLibrary(Library library) {
@@ -1142,16 +1144,61 @@ class ConstantsTransformer extends RemovingTransformer {
         SwitchCase switchCase = new SwitchCase(
             expressions, expressionOffsets, patternSwitchCase.body,
             isDefault: patternSwitchCase.isDefault)
-          ..fileOffset = patternSwitchCase.fileOffset
-          ..fileOffset;
+          ..fileOffset = patternSwitchCase.fileOffset;
         switchCases.add(switchCase);
         for (Statement labelUser in patternSwitchCase.labelUsers) {
           (labelUser as ContinueSwitchStatement).target = switchCase;
         }
       }
+
+      LabeledStatement? outerLabeledStatement;
+      if (isAlwaysExhaustiveType &&
+          !hasDefault &&
+          constantEvaluator.evaluationMode != EvaluationMode.strong) {
+        if (!node.lastCaseTerminates) {
+          PatternSwitchCase lastCase = node.cases.last;
+          Statement body = lastCase.body;
+
+          LabeledStatement target;
+          if (node.parent is LabeledStatement) {
+            target = node.parent as LabeledStatement;
+          } else {
+            target =
+                outerLabeledStatement = new LabeledStatement(dummyStatement);
+          }
+          BreakStatement breakStatement =
+              createBreakStatement(target, fileOffset: lastCase.fileOffset);
+          if (body is Block) {
+            body.statements.add(breakStatement);
+          } else {
+            body = createBlock([body, breakStatement],
+                fileOffset: lastCase.fileOffset)
+              ..parent = lastCase;
+          }
+        }
+        switchCases.add(new SwitchCase(
+            [],
+            [],
+            isDefault: true,
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messageNeverReachableSwitchStatementError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))))
+          ..fileOffset = node.fileOffset);
+      }
+
       replacement = createSwitchStatement(node.expression, switchCases,
           isExplicitlyExhaustive: !hasDefault && isAlwaysExhaustiveType,
           fileOffset: node.fileOffset);
+      if (outerLabeledStatement != null) {
+        outerLabeledStatement.body = replacement
+          ..parent = outerLabeledStatement;
+        replacement = outerLabeledStatement;
+      }
     } else {
       // matchResultVariable: int RVAR = -1;
       VariableDeclaration matchResultVariable = createInitializedVariable(
@@ -1383,6 +1430,20 @@ class ConstantsTransformer extends RemovingTransformer {
             fileOffset: switchCase.fileOffset));
       }
 
+      if (isAlwaysExhaustiveType &&
+          !hasDefault &&
+          constantEvaluator.evaluationMode != EvaluationMode.strong) {
+        cases.add(
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messageNeverReachableSwitchStatementError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))));
+      }
+
       // TODO(johnniwinther): Find a better way to avoid name clashes between
       // cases.
       for (List<VariableDeclaration> variables
@@ -1457,34 +1518,32 @@ class ConstantsTransformer extends RemovingTransformer {
     if (_exhaustivenessDataForTesting != null) {
       reportedErrors = [];
     }
-    if (!useFallbackExhaustivenessAlgorithm) {
-      Library library = _staticTypeContext!.enclosingLibrary;
-      for (ExhaustivenessError error in errors) {
-        if (error is UnreachableCaseError) {
-          if (library.importUri.isScheme('dart') &&
-              library.importUri.path == 'html') {
-            // TODO(51754): Remove this.
-            continue;
-          }
-          reportedErrors?.add(error);
-          // TODO(johnniwinther): Re-enable this, pending resolution on
-          // https://github.com/dart-lang/language/issues/2924
-          /*constantEvaluator.errorReporter.report(
+    Library library = currentLibrary;
+    for (ExhaustivenessError error in errors) {
+      if (error is UnreachableCaseError) {
+        if (library.importUri.isScheme('dart') &&
+            library.importUri.path == 'html') {
+          // TODO(51754): Remove this.
+          continue;
+        }
+        reportedErrors?.add(error);
+        // TODO(johnniwinther): Re-enable this, pending resolution on
+        // https://github.com/dart-lang/language/issues/2924
+        /*constantEvaluator.errorReporter.report(
               constantEvaluator.createLocatedMessageWithOffset(
                   node,
                   patternGuards[error.index].fileOffset,
                   messageUnreachableSwitchCase));*/
-        } else if (error is NonExhaustiveError &&
-            !hasDefault &&
-            mustBeExhaustive) {
-          reportedErrors?.add(error);
-          constantEvaluator.errorReporter.report(
-              constantEvaluator.createLocatedMessageWithOffset(
-                  node,
-                  fileOffset,
-                  templateNonExhaustiveSwitch.withArguments(expressionType,
-                      '${error.witness}', library.isNonNullableByDefault)));
-        }
+      } else if (error is NonExhaustiveError &&
+          !hasDefault &&
+          mustBeExhaustive) {
+        reportedErrors?.add(error);
+        constantEvaluator.errorReporter.report(
+            constantEvaluator.createLocatedMessageWithOffset(
+                node,
+                fileOffset,
+                templateNonExhaustiveSwitch.withArguments(expressionType,
+                    '${error.witness}', library.isNonNullableByDefault)));
       }
     }
     if (_exhaustivenessDataForTesting != null) {
@@ -1499,7 +1558,7 @@ class ConstantsTransformer extends RemovingTransformer {
   TreeNode visitSwitchStatement(
       SwitchStatement node, TreeNode? removalSentinel) {
     TreeNode result = super.visitSwitchStatement(node, removalSentinel);
-    Library library = _staticTypeContext!.enclosingLibrary;
+    Library library = currentLibrary;
     // ignore: unnecessary_null_comparison
     if (library != null) {
       for (SwitchCase switchCase in node.cases) {
@@ -1795,6 +1854,22 @@ class ConstantsTransformer extends RemovingTransformer {
           ..fileOffset;
         switchCases.add(switchCase);
       }
+      if (constantEvaluator.evaluationMode != EvaluationMode.strong) {
+        switchCases.add(new SwitchCase(
+            [],
+            [],
+            isDefault: true,
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messageNeverReachableSwitchExpressionError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))))
+          ..fileOffset = node.fileOffset);
+      }
+
       labeledStatement.body = createSwitchStatement(
           node.expression, switchCases,
           isExplicitlyExhaustive: true, fileOffset: node.fileOffset)
@@ -1866,6 +1941,17 @@ class ConstantsTransformer extends RemovingTransformer {
               ], fileOffset: switchCase.fileOffset),
               fileOffset: switchCase.fileOffset)
         ], fileOffset: switchCase.fileOffset));
+      }
+      if (constantEvaluator.evaluationMode != EvaluationMode.strong) {
+        cases.add(
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messageNeverReachableSwitchExpressionError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))));
       }
 
       labeledStatement.body = createBlock(cases, fileOffset: node.fileOffset)
@@ -2097,6 +2183,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   final Map<Node, Constant?> nodeCache;
 
   late Map<Class, bool> primitiveEqualCache;
+  late Map<Class, bool> primitiveHashCodeCache;
 
   /// Classes that are considered having a primitive equals but where the
   /// `operator ==` is actually defined through as custom method. For instance
@@ -2123,6 +2210,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   bool get isNonNullableByDefault =>
       _staticTypeContext!.nonNullable == Nullability.nonNullable;
+
+  Library get currentLibrary => _staticTypeContext!.enclosingLibrary;
 
   late ConstantWeakener _weakener;
 
@@ -2161,6 +2250,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       coreTypes.symbolClass: true,
       coreTypes.typeClass: true,
     };
+    primitiveHashCodeCache = <Class, bool>{...primitiveEqualCache};
     _weakener = new ConstantWeakener(this);
   }
 
@@ -3562,20 +3652,37 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   Constant _handleEquals(Expression node, Constant left, Constant right) {
-    if (left is NullConstant ||
-        left is BoolConstant ||
-        left is IntConstant ||
-        left is DoubleConstant ||
-        left is StringConstant ||
-        right is NullConstant) {
-      // [DoubleConstant] uses [identical] to determine equality, so we need
-      // to take the special cases into account.
-      return doubleSpecialCases(left, right) ?? makeBoolConstant(left == right);
+    if (enablePrimitiveEquality) {
+      if (hasPrimitiveEqual(left) ||
+          left is DoubleConstant ||
+          right is NullConstant) {
+        return doubleSpecialCases(left, right) ??
+            makeBoolConstant(left == right);
+      } else {
+        return createEvaluationErrorConstant(
+            node,
+            templateConstEvalEqualsOperandNotPrimitiveEquality.withArguments(
+                left,
+                left.getType(_staticTypeContext!),
+                isNonNullableByDefault));
+      }
     } else {
-      return createEvaluationErrorConstant(
-          node,
-          templateConstEvalInvalidEqualsOperandType.withArguments(
-              left, left.getType(_staticTypeContext!), isNonNullableByDefault));
+      if (left is NullConstant ||
+          left is BoolConstant ||
+          left is IntConstant ||
+          left is DoubleConstant ||
+          left is StringConstant ||
+          right is NullConstant) {
+        // [DoubleConstant] uses [identical] to determine equality, so we need
+        // to take the special cases into account.
+        return doubleSpecialCases(left, right) ??
+            makeBoolConstant(left == right);
+      } else {
+        return createEvaluationErrorConstant(
+            node,
+            templateConstEvalInvalidEqualsOperandType.withArguments(left,
+                left.getType(_staticTypeContext!), isNonNullableByDefault));
+      }
     }
   }
 
@@ -4651,9 +4758,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitSymbolLiteral(SymbolLiteral node) {
-    final Reference? libraryReference = node.value.startsWith('_')
-        ? _staticTypeContext!.enclosingLibrary.reference
-        : null;
+    final Reference? libraryReference =
+        node.value.startsWith('_') ? currentLibrary.reference : null;
     return canonicalize(new SymbolConstant(node.value, libraryReference));
   }
 
@@ -4781,6 +4887,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return null;
   }
 
+  bool get enablePrimitiveEquality => currentLibrary.languageVersion.major >= 3;
+
   bool hasPrimitiveEqual(Constant constant,
       {bool allowPseudoPrimitive = true}) {
     if (intFolder.isInt(constant)) return true;
@@ -4806,9 +4914,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
     DartType type = constant.getType(_staticTypeContext!);
     if (type is InterfaceType) {
-      bool result = classHasPrimitiveEqual(type.classNode);
+      Class cls = type.classNode;
+      bool result = classHasPrimitiveEqual(cls);
       if (result && !allowPseudoPrimitive) {
-        result = !pseudoPrimitiveClasses.contains(type.classNode);
+        result = !pseudoPrimitiveClasses.contains(cls);
+      }
+      if (result && enablePrimitiveEquality) {
+        result = classHasPrimitiveHashCode(cls);
       }
       return result;
     }
@@ -4829,6 +4941,27 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (klass.supertype == null) return true; // To be on the safe side
     return primitiveEqualCache[klass] =
         classHasPrimitiveEqual(klass.supertype!.classNode);
+  }
+
+  bool classHasPrimitiveHashCode(Class klass) {
+    bool? cached = primitiveHashCodeCache[klass];
+    if (cached != null) return cached;
+    for (Procedure procedure in klass.procedures) {
+      if (procedure.kind == ProcedureKind.Getter &&
+          procedure.name.text == 'hashCode' &&
+          !procedure.isAbstract &&
+          !procedure.isForwardingStub) {
+        return primitiveHashCodeCache[klass] = false;
+      }
+    }
+    for (Field field in klass.fields) {
+      if (field.name.text == 'hashCode') {
+        return primitiveHashCodeCache[klass] = false;
+      }
+    }
+    if (klass.supertype == null) return true; // To be on the safe side
+    return primitiveHashCodeCache[klass] =
+        classHasPrimitiveHashCode(klass.supertype!.classNode);
   }
 
   BoolConstant makeBoolConstant(bool value) =>
@@ -6010,4 +6143,11 @@ class _PatternSwitchStatementInfo {
 
   _PatternSwitchStatementInfo(this.switchIndexVariable,
       this.innerLabeledStatement, this.switchCaseIndexMap);
+}
+
+enum PrimitiveEquality {
+  None,
+  EqualsOnly,
+  HashCodeOnly,
+  EqualsAndHashCode,
 }

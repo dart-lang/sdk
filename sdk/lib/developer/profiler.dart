@@ -6,7 +6,7 @@ part of dart.developer;
 
 /// A UserTag can be used to group samples in the
 /// [DevTools CPU profiler](https://flutter.dev/docs/development/tools/devtools/cpu-profiler).
-abstract class UserTag {
+abstract final class UserTag {
   /// The maximum number of UserTag instances that can be created by a program.
   static const maxUserTags = 64;
 

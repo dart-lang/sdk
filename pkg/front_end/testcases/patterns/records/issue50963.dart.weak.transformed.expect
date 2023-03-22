@@ -1,6 +1,7 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method test() → dynamic {
   final(core::int, core::int) x = (1, 2);
@@ -15,6 +16,7 @@ static method test() → dynamic {
           break #L1;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1);
   core::print( block {
@@ -28,6 +30,7 @@ static method test() → dynamic {
           break #L2;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t2);
 }
@@ -36,4 +39,4 @@ static method test() → dynamic {
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///issue50963.dart:6:13 -> RecordConstant(const (1, 2))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///issue50963.dart:9:17 -> RecordConstant(const (1, 2))
-Extra constant evaluation: evaluated: 11, effectively constant: 2
+Extra constant evaluation: evaluated: 15, effectively constant: 2

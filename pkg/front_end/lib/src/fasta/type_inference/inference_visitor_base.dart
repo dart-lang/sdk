@@ -445,16 +445,102 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         .expression;
   }
 
-  /// Same as [ensureAssignable], but accepts an [ExpressionInferenceResult]
-  /// rather than an expression and a type separately.  If no change is made,
-  /// [inferenceResult] is returned unchanged.
-  ExpressionInferenceResult ensureAssignableResult(
+  /// Coerces expression ensuring its assignability to [contextType]
+  ///
+  /// If the expression is assignable without coercion, [inferenceResult]
+  /// is returned unchanged. If no coercion is possible for the given types,
+  /// `null` is returned.
+  ExpressionInferenceResult? coerceExpressionForAssignment(
       DartType contextType, ExpressionInferenceResult inferenceResult,
       {int? fileOffset,
       DartType? declaredContextType,
       DartType? runtimeCheckedType,
       bool isVoidAllowed = false,
-      bool coerceExpression = true,
+      bool coerceExpression = true}) {
+    // ignore: unnecessary_null_comparison
+    assert(contextType != null);
+
+    fileOffset ??= inferenceResult.expression.fileOffset;
+    contextType = computeGreatestClosure(contextType);
+
+    DartType initialContextType = runtimeCheckedType ?? contextType;
+
+    Template<Message Function(DartType, DartType, bool)>?
+        preciseTypeErrorTemplate =
+        _getPreciseTypeErrorTemplate(inferenceResult.expression);
+    AssignabilityResult assignabilityResult = _computeAssignabilityKind(
+        contextType, inferenceResult.inferredType,
+        isNonNullableByDefault: isNonNullableByDefault,
+        isVoidAllowed: isVoidAllowed,
+        isExpressionTypePrecise: preciseTypeErrorTemplate != null,
+        coerceExpression: coerceExpression);
+
+    if (assignabilityResult.needsTearOff) {
+      TypedTearoff typedTearoff = _tearOffCall(inferenceResult.expression,
+          inferenceResult.inferredType as InterfaceType, fileOffset);
+      inferenceResult = new ExpressionInferenceResult(
+          typedTearoff.tearoffType, typedTearoff.tearoff);
+    }
+    if (assignabilityResult.implicitInstantiation != null) {
+      inferenceResult = _applyImplicitInstantiation(
+          assignabilityResult.implicitInstantiation,
+          inferenceResult.inferredType,
+          inferenceResult.expression);
+    }
+
+    DartType expressionType = inferenceResult.inferredType;
+    Expression expression = inferenceResult.expression;
+    switch (assignabilityResult.kind) {
+      case AssignabilityKind.assignable:
+        return inferenceResult;
+      case AssignabilityKind.assignableCast:
+        // Insert an implicit downcast.
+        Expression asExpression =
+            new AsExpression(expression, initialContextType)
+              ..isTypeError = true
+              ..isForNonNullableByDefault = isNonNullableByDefault
+              ..isForDynamic = expressionType is DynamicType
+              ..fileOffset = fileOffset;
+        flowAnalysis.forwardExpression(asExpression, expression);
+        return new ExpressionInferenceResult(expressionType, asExpression,
+            postCoercionType: initialContextType);
+      case AssignabilityKind.unassignable:
+        // Error: not assignable.  Perform error recovery.
+        return null;
+      case AssignabilityKind.unassignableVoid:
+        // Error: not assignable.  Perform error recovery.
+        return null;
+      case AssignabilityKind.unassignablePrecise:
+        // The type of the expression is known precisely, so an implicit
+        // downcast is guaranteed to fail.  Insert a compile-time error.
+        return null;
+      case AssignabilityKind.unassignableCantTearoff:
+        return null;
+      case AssignabilityKind.unassignableNullability:
+        return null;
+      default:
+        return unhandled("${assignabilityResult}", "ensureAssignable",
+            fileOffset, helper.uri);
+    }
+  }
+
+  /// Performs assignability checks on an expression
+  ///
+  /// [inferenceResult.expression] of type [inferenceResult.inferredType] is
+  /// checked for assignability to [contextType]. The errors are reported on the
+  /// current library and the expression wrapped in an [InvalidExpression], if
+  /// needed. If no change is made, [inferenceResult] is returned unchanged.
+  ///
+  /// If [isCoercionAllowed] is `true`, the assignability check is made
+  /// accounting for a possible coercion that may adjust the type of the
+  /// expression.
+  ExpressionInferenceResult reportAssignabilityErrors(
+      DartType contextType, ExpressionInferenceResult inferenceResult,
+      {int? fileOffset,
+      DartType? declaredContextType,
+      DartType? runtimeCheckedType,
+      bool isVoidAllowed = false,
+      bool isCoercionAllowed = true,
       Template<Message Function(DartType, DartType, bool)>? errorTemplate,
       Template<Message Function(DartType, DartType, bool)>?
           nullabilityErrorTemplate,
@@ -492,8 +578,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
 
-    DartType initialContextType = runtimeCheckedType ?? contextType;
-
     Template<Message Function(DartType, DartType, bool)>?
         preciseTypeErrorTemplate =
         _getPreciseTypeErrorTemplate(inferenceResult.expression);
@@ -502,7 +586,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         isNonNullableByDefault: isNonNullableByDefault,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null,
-        coerceExpression: coerceExpression);
+        coerceExpression: isCoercionAllowed);
 
     if (assignabilityResult.needsTearOff) {
       TypedTearoff typedTearoff = _tearOffCall(inferenceResult.expression,
@@ -519,20 +603,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     DartType expressionType = inferenceResult.inferredType;
     Expression expression = inferenceResult.expression;
-    Expression result;
-    DartType? postCoercionType;
+    DartType? postCoercionType = inferenceResult.postCoercionType;
+    Expression? result;
     switch (assignabilityResult.kind) {
       case AssignabilityKind.assignable:
-        result = expression;
         break;
       case AssignabilityKind.assignableCast:
-        // Insert an implicit downcast.
-        result = new AsExpression(expression, initialContextType)
-          ..isTypeError = true
-          ..isForNonNullableByDefault = isNonNullableByDefault
-          ..isForDynamic = expressionType is DynamicType
-          ..fileOffset = fileOffset;
-        postCoercionType = initialContextType;
         break;
       case AssignabilityKind.unassignable:
         // Error: not assignable.  Perform error recovery.
@@ -615,13 +691,64 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             fileOffset, helper.uri);
     }
 
-    if (!identical(result, expression)) {
+    if (result != null) {
       flowAnalysis.forwardExpression(result, expression);
       return new ExpressionInferenceResult(expressionType, result,
           postCoercionType: postCoercionType);
     } else {
       return inferenceResult;
     }
+  }
+
+  /// Same as [ensureAssignable], but accepts an [ExpressionInferenceResult]
+  /// rather than an expression and a type separately.  If no change is made,
+  /// [inferenceResult] is returned unchanged.
+  ExpressionInferenceResult ensureAssignableResult(
+      DartType contextType, ExpressionInferenceResult inferenceResult,
+      {int? fileOffset,
+      DartType? declaredContextType,
+      DartType? runtimeCheckedType,
+      bool isVoidAllowed = false,
+      bool coerceExpression = true,
+      Template<Message Function(DartType, DartType, bool)>? errorTemplate,
+      Template<Message Function(DartType, DartType, bool)>?
+          nullabilityErrorTemplate,
+      Template<Message Function(DartType, bool)>? nullabilityNullErrorTemplate,
+      Template<Message Function(DartType, DartType, bool)>?
+          nullabilityNullTypeErrorTemplate,
+      Template<Message Function(DartType, DartType, DartType, DartType, bool)>?
+          nullabilityPartErrorTemplate,
+      Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+    // ignore: unnecessary_null_comparison
+    assert(contextType != null);
+
+    if (coerceExpression) {
+      ExpressionInferenceResult? coercionResult = coerceExpressionForAssignment(
+          contextType, inferenceResult,
+          fileOffset: fileOffset,
+          declaredContextType: declaredContextType,
+          runtimeCheckedType: runtimeCheckedType,
+          isVoidAllowed: isVoidAllowed,
+          coerceExpression: coerceExpression);
+      if (coercionResult != null) {
+        return coercionResult;
+      }
+    }
+
+    inferenceResult = reportAssignabilityErrors(contextType, inferenceResult,
+        fileOffset: fileOffset,
+        declaredContextType: declaredContextType,
+        runtimeCheckedType: runtimeCheckedType,
+        isVoidAllowed: isVoidAllowed,
+        isCoercionAllowed: coerceExpression,
+        errorTemplate: errorTemplate,
+        nullabilityErrorTemplate: nullabilityErrorTemplate,
+        nullabilityNullErrorTemplate: nullabilityNullErrorTemplate,
+        nullabilityNullTypeErrorTemplate: nullabilityNullTypeErrorTemplate,
+        nullabilityPartErrorTemplate: nullabilityPartErrorTemplate,
+        whyNotPromoted: whyNotPromoted);
+
+    return inferenceResult;
   }
 
   Expression _wrapTearoffErrorExpression(Expression expression,
