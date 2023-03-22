@@ -277,7 +277,7 @@ bool hasLabeledContinue(SwitchStatement node) {
   return visitor.found;
 }
 
-class LabelContinueFinder extends StatementVisitor<void> {
+class LabelContinueFinder extends RecursiveVisitor<void> {
   var found = false;
 
   void visit(Statement? s) {
@@ -285,46 +285,8 @@ class LabelContinueFinder extends StatementVisitor<void> {
   }
 
   @override
-  void visitBlock(Block node) => node.statements.forEach(visit);
-  @override
-  void visitAssertBlock(AssertBlock node) => node.statements.forEach(visit);
-  @override
-  void visitWhileStatement(WhileStatement node) => visit(node.body);
-  @override
-  void visitDoStatement(DoStatement node) => visit(node.body);
-  @override
-  void visitForStatement(ForStatement node) => visit(node.body);
-  @override
-  void visitForInStatement(ForInStatement node) => visit(node.body);
-  @override
   void visitContinueSwitchStatement(ContinueSwitchStatement node) =>
       found = true;
-
-  @override
-  void visitSwitchStatement(SwitchStatement node) {
-    node.cases.forEach((c) => visit(c.body));
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    visit(node.then);
-    visit(node.otherwise);
-  }
-
-  @override
-  void visitTryCatch(TryCatch node) {
-    visit(node.body);
-    node.catches.forEach((c) => visit(c.body));
-  }
-
-  @override
-  void visitTryFinally(TryFinally node) {
-    visit(node.body);
-    visit(node.finalizer);
-  }
-
-  @override
-  void defaultStatement(Statement node) {}
 }
 
 /// Ensures that all of the known DartType implementors are handled.
