@@ -254,9 +254,9 @@ class JsonCodec {
   String encode(Object? value, {Object? toEncodable(dynamic object)?}) => '';
 }
 
-abstract class StringConversionSink { }
+abstract mixin class StringConversionSink { }
 
-abstract mixin class StringConversionSinkMixin implements StringConversionSink { }
+typedef StringConversionSinkMixin = StringConversionSink;
 ''',
     )
   ],
