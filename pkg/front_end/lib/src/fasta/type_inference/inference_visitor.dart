@@ -9146,7 +9146,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             inferExpression(expression, contextType);
         if (contextType is! UnknownType) {
           expressionResult =
-              ensureAssignableResult(contextType, expressionResult);
+              coerceExpressionForAssignment(contextType, expressionResult) ??
+                  expressionResult;
         }
 
         positionalTypes.add(
@@ -9194,7 +9195,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               inferExpression(element.value, contextType);
           if (contextType is! UnknownType) {
             expressionResult =
-                ensureAssignableResult(contextType, expressionResult);
+                coerceExpressionForAssignment(contextType, expressionResult) ??
+                    expressionResult;
           }
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.postCoercionType ??
@@ -9225,7 +9227,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               inferExpression(element as Expression, contextType);
           if (contextType is! UnknownType) {
             expressionResult =
-                ensureAssignableResult(contextType, expressionResult);
+                coerceExpressionForAssignment(contextType, expressionResult) ??
+                    expressionResult;
           }
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.postCoercionType ??
