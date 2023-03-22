@@ -166,6 +166,61 @@ f() {
 ''');
   }
 
+  test_ifPatternList() async {
+    await assertDiagnostics(r'''
+f(Object o) {
+  if (o case [int x, final int y]) print('$x$y'); 
+}
+''', [
+      lint(28, 5),
+    ]);
+  }
+
+  test_ifPatternList_ok() async {
+    await assertNoDiagnostics(r'''
+f(Object o) {
+  if (o case [final int x, final int y]) print('$x$y'); 
+}
+''');
+  }
+
+  test_ifPatternMap() async {
+    await assertDiagnostics(r'''
+f(Object o) {
+  if (o case {'x': var x}) print('$x');
+}
+''', [
+      lint(37, 1),
+    ]);
+  }
+
+  test_ifPatternMap_ok() async {
+    await assertNoDiagnostics(r'''
+f(Object o) {
+  if (o case {'x': final x}) print('$x');
+}
+''');
+  }
+
+  test_ifPatternRecord() async {
+    await assertDiagnostics(r'''
+f(Object o) {
+  if (o case (int x, int y)) print('$x$y');
+}
+''', [
+      lint(32, 1),
+      lint(39, 1),
+    ]);
+  }
+
+  test_ifPatternRecord_ok() async {
+    await assertNoDiagnostics(r'''
+f(Object o) {
+  if (o case (final int x, final int y)) print('$x$y');
+}
+''');
+  }
+
   test_switch_objectPattern() async {
     await assertDiagnostics(r'''
 class A {

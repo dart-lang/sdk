@@ -81,6 +81,33 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
+  void checkPatternElements(AstNode node, List<AstNode> elements) {
+    if (node.isInFinalPatternVariableDeclaration) return;
+
+    var function = node.thisOrAncestorOfType<FunctionBody>();
+    if (function == null) return;
+
+    var inCaseClause = node.thisOrAncestorOfType<CaseClause>() != null;
+
+    for (var element in elements) {
+      if (element is MapPatternEntry) {
+        element = element.value;
+      }
+      if (element.isDeclaredFinal) continue;
+      if (inCaseClause) {
+        if (!isPotentiallyMutated(element, function)) {
+          rule.reportLint(element);
+        }
+      } else {
+        if (isPotentiallyMutated(element, function)) return;
+      }
+    }
+
+    if (!inCaseClause) {
+      rule.reportLint(node);
+    }
+  }
+
   void checkPatternFields(DartPattern node) {
     var function = node.thisOrAncestorOfType<FunctionBody>();
     if (function == null) return;
@@ -120,12 +147,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool isDeclaredFinal(AstNode node) {
-    var declaration = node.thisOrAncestorOfType<PatternVariableDeclaration>();
-    if (declaration == null) return false; // To be safe.
-    return declaration.keyword.isFinal;
-  }
-
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {
       var element = pattern.declaredElement;
@@ -138,32 +159,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitListPattern(ListPattern node) {
-    if (isDeclaredFinal(node)) return;
-
-    var function = node.thisOrAncestorOfType<FunctionBody>();
-    if (function == null) return;
-
-    for (var element in node.elements) {
-      if (isPotentiallyMutated(element, function)) return;
-    }
-
-    rule.reportLint(node);
+    checkPatternElements(node, node.elements);
   }
 
   @override
   void visitMapPattern(MapPattern node) {
-    if (isDeclaredFinal(node)) return;
-
-    var function = node.thisOrAncestorOfType<FunctionBody>();
-    if (function == null) return;
-
-    for (var element in node.elements) {
-      if (element is MapPatternEntry) {
-        if (isPotentiallyMutated(element.value, function)) return;
-      }
-    }
-
-    rule.reportLint(node);
+    checkPatternElements(node, node.elements);
   }
 
   @override
@@ -198,6 +199,20 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (node.type != null) {
       rule.reportLint(node.type);
     }
+  }
+}
+
+extension on AstNode {
+  bool get isDeclaredFinal {
+    var self = this;
+    if (self is DeclaredVariablePattern) return self.keyword.isFinal;
+    return false;
+  }
+
+  bool get isInFinalPatternVariableDeclaration {
+    var declaration = thisOrAncestorOfType<PatternVariableDeclaration>();
+    if (declaration == null) return false;
+    return declaration.keyword.isFinal;
   }
 }
 
