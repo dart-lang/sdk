@@ -29,7 +29,7 @@ StubCode::StubCodeEntry StubCode::entries_[kNumStubEntries] = {
 #define STUB_CODE_DECLARE(name) {nullptr, #name},
 #else
 #define STUB_CODE_DECLARE(name)                                                \
-  {nullptr, #name, compiler::StubCodeCompiler::Generate##name##Stub},
+  {nullptr, #name, &compiler::StubCodeCompiler::Generate##name##Stub},
 #endif
     VM_STUB_CODE_LIST(STUB_CODE_DECLARE)
 #undef STUB_CODE_DECLARE
@@ -91,15 +91,15 @@ void StubCode::Init() {
 #undef STUB_CODE_GENERATE
 #undef STUB_CODE_SET_OBJECT_POOL
 
-CodePtr StubCode::Generate(
-    const char* name,
-    compiler::ObjectPoolBuilder* object_pool_builder,
-    void (*GenerateStub)(compiler::Assembler* assembler)) {
+CodePtr StubCode::Generate(const char* name,
+                           compiler::ObjectPoolBuilder* object_pool_builder,
+                           void (compiler::StubCodeCompiler::*GenerateStub)()) {
   auto thread = Thread::Current();
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 
   compiler::Assembler assembler(object_pool_builder);
-  GenerateStub(&assembler);
+  compiler::StubCodeCompiler stubCodeCompiler(&assembler);
+  (stubCodeCompiler.*GenerateStub)();
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       name, nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
       /*optimized=*/false));
@@ -221,8 +221,9 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     compiler::Assembler assembler(wrapper);
     compiler::UnresolvedPcRelativeCalls unresolved_calls;
     const char* name = cls.ToCString();
-    compiler::StubCodeCompiler::GenerateAllocationStubForClass(
-        &assembler, &unresolved_calls, cls, allocate_object_stub,
+    compiler::StubCodeCompiler stubCodeCompiler(&assembler);
+    stubCodeCompiler.GenerateAllocationStubForClass(
+        &unresolved_calls, cls, allocate_object_stub,
         allocate_object_parametrized_stub);
 
     const auto& static_calls_table =
@@ -316,8 +317,9 @@ CodePtr StubCode::GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool,
 
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler assembler(pool != nullptr ? pool : &object_pool_builder);
-  compiler::StubCodeCompiler::GenerateBuildMethodExtractorStub(
-      &assembler, closure_allocation_stub, context_allocation_stub, generic);
+  compiler::StubCodeCompiler stubCodeCompiler(&assembler);
+  stubCodeCompiler.GenerateBuildMethodExtractorStub(
+      closure_allocation_stub, context_allocation_stub, generic);
 
   const char* name = generic ? "BuildGenericMethodExtractor"
                              : "BuildNonGenericMethodExtractor";
