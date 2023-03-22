@@ -110,9 +110,11 @@ class WasmTarget extends Target {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     final jsInteropChecks = JsInteropChecks(
         coreTypes,
+        hierarchy,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!,
-        enableDisallowedExternalCheck: false);
+        enableDisallowedExternalCheck: false,
+        enableStrictMode: false);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);

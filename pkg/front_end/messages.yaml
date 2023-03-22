@@ -5554,6 +5554,10 @@ JsInteropStaticInteropTrustTypesUsageNotAllowed:
   problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
   correctionMessage: "Try removing the `@trustTypes` annotation."
 
+JsInteropStrictModeViolation:
+  problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."
+  correctionMessage: "Use a JS type instead."
+
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
   severity: WARNING

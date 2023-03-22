@@ -3849,6 +3849,36 @@ Message _withArgumentsJsInteropStaticInteropMockNotStaticInteropType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropStrictModeViolation = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`.""",
+        correctionMessageTemplate: r"""Use a JS type instead.""",
+        withArguments: _withArgumentsJsInteropStrictModeViolation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropStrictModeViolation =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropStrictModeViolation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStrictModeViolation(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropStrictModeViolation,
+      problemMessage:
+          """JS interop requires JS types when strict mode is enabled, but Type '${type}' is not a type or subtype of a type from `dart:js_interop`.""" +
+              labeler.originMessages,
+      correctionMessage: """Use a JS type instead.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
