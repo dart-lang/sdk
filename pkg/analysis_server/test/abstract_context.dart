@@ -25,7 +25,7 @@ import 'src/utilities/mock_packages.dart';
 class AbstractContextTest with ResourceProviderMixin {
   static bool _lintRulesAreRegistered = false;
 
-  final ByteStore _byteStore = MemoryByteStore();
+  static final ByteStore _byteStore = MemoryByteStore();
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
