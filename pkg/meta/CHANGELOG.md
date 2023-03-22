@@ -1,6 +1,7 @@
-## 1.9.1-dev
+## 1.9.1
 
-* Update `@reopen` documentation.
+* Update SDK constraints to `>=2.12.0 <4.0.0`.
+* Mark `@reopen` stable.
 
 ## 1.9.0
 
