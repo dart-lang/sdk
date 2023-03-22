@@ -93,7 +93,7 @@ class TypeGraphInferrer implements TypesInferrer {
           // Always throws if the return type was inferred to be non-null empty.
           abstractValueDomain.isEmpty(returnType).isDefinitelyTrue;
 
-      bool isCalledOnce = typeInformation.isCalledOnce();
+      bool isCalledOnce = typeInformation.isCalledOnce;
 
       memberResults[member] = GlobalTypeInferenceMemberResultImpl(
           data, returnType, type,

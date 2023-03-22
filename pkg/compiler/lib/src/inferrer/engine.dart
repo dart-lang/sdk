@@ -80,7 +80,11 @@ class InferrerEngine {
   /// The maximum number of times we allow a node in the graph to
   /// change types. If a node reaches that limit, we give up
   /// inferencing on it and give it the dynamic type.
-  final int _MAX_CHANGE_COUNT = 6;
+  ///
+  /// Note: Due to the encoding to track refine count for a given node this
+  /// value must be less than 2^(64-N) where N is the number of values in the
+  /// TypeInformation flags enum.
+  static const int _MAX_CHANGE_COUNT = 6;
 
   int _overallRefineCount = 0;
   int _addedInGraph = 0;
@@ -118,7 +122,10 @@ class InferrerEngine {
       this.globalLocalsMap,
       this.inferredDataBuilder)
       : this.types = TypeSystem(closedWorld,
-            KernelTypeSystemStrategy(closedWorld, globalLocalsMap));
+            KernelTypeSystemStrategy(closedWorld, globalLocalsMap)),
+        // Ensure `_MAX_CHANGE_COUNT` conforms to TypeInformation flag encoding.
+        assert(_MAX_CHANGE_COUNT.bitLength <
+            64 - TypeInformation.NUM_TYPE_INFO_FLAGS);
 
   /// Applies [f] to all elements in the universe that match [selector] and
   /// [mask]. If [f] returns false, aborts the iteration.
@@ -717,7 +724,7 @@ class InferrerEngine {
       if (info.abandonInferencing) info.doNotEnqueue = true;
       if ((info.type = newType) != oldType) {
         _overallRefineCount++;
-        info.refineCount++;
+        info.incrementRefineCount();
         if (info.refineCount > _MAX_CHANGE_COUNT) {
           metrics.exceededMaxChangeCount.add();
           if (debug.ANOMALY_WARN) {

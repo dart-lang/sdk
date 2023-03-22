@@ -23,6 +23,60 @@ import 'engine.dart';
 import 'locals_handler.dart' show ArgumentsTypes;
 import 'type_system.dart';
 
+/// Flags tracked through various subclasses of [TypeInformation]. All are
+/// encoded on a single bitmask on each instance of [TypeInformation].
+///
+/// Note: The encoding also includes the `refineCount` for a node in the same
+/// bitmask. If adding another flag here one must make sure `_MAX_CHANGE_COUNT`
+/// on the [InferrerEngine] is less than 2^(64-N) where N is the number of
+/// flags defined here.
+enum _Flag {
+  // ---Flags for [TypeInformation]---
+  inQueue, // 0
+
+  abandonInferencing, // 1
+
+  doNotEnqueue, // 2
+
+  isStable, // 3
+
+  // ---Flags for [ElementTypeInformation]---
+  enableInferenceForClosures, // 4
+
+  // ---Flags for [ParameterTypeInformation]---
+  isInstanceMemberParameter, // 5
+  isClosureParameter, // 6
+  isInitializingFormal, // 7
+
+  // ---Flags for [CallSiteTypeInformation]---
+  inLoop, // 8
+
+  // ---Flags for [DynamicCallSiteTypeInformation]---
+  isConditional, // 9
+  hasClosureCallTargets, // 10
+  targetsIncludeComplexNoSuchMethod, // 11
+  hasTargetsIncludeComplexNoSuchMethod, // 12
+
+  // ---Flags for [PhiElementTypeInformation]---
+  isTry, // 13
+
+  // ---Flags for [ValueInMapTypeInformation]---
+  valueInMapNonNull, // 14
+
+  // ---Flags for [MemberTypeInformation]---
+  isCalledOnce, // 15
+
+  // ---Flags for [ApplyableTypeInformation]---
+  mightBePassedToFunctionApply, // 16
+
+  // ---Flags for [InferredTypeInformation]---
+  inferred, // 17
+
+  // ---Flags for [TracedTypeInformation]---
+  notBailedOut, // 18
+  analyzed; // 19
+}
+
 /// Common class for all nodes in the graph. The current nodes are:
 ///
 /// - Concrete types
@@ -38,6 +92,9 @@ import 'type_system.dart';
 /// added to the inferrer's work queue when the type of the node
 /// changes.
 abstract class TypeInformation {
+  // This will be treated as effectively constant by the VM.
+  static final int NUM_TYPE_INFO_FLAGS = _Flag.values.length;
+
   Set<TypeInformation> users;
   ParameterInputs _inputs;
 
@@ -57,26 +114,25 @@ abstract class TypeInformation {
   /// behaviours, etc.). In some case, we might resume inference in the
   /// closure tracer, which is handled by checking whether [inputs] has
   /// been set to [STOP_TRACKING_INPUTS_MARKER].
-  bool abandonInferencing = false;
+  bool get abandonInferencing => _hasFlag(_Flag.abandonInferencing);
   bool get mightResume => !identical(inputs, STOP_TRACKING_INPUTS_MARKER);
-
-  /// Number of times this [TypeInformation] has changed type.
-  int refineCount = 0;
 
   /// Whether this [TypeInformation] is currently in the inferrer's
   /// work queue.
-  bool inQueue = false;
+  bool get inQueue => _hasFlag(_Flag.inQueue);
+  set inQueue(bool value) => _setFlagTo(_Flag.inQueue, value);
 
   /// Used to disable enqueueing of type informations where we know that their
   /// type will not change for other reasons than being stable. For example,
   /// if inference is disabled for a type and it is hardwired to dynamic, this
   /// is set to true to spare recomputing dynamic again and again. Changing this
   /// to false should never change inference outcome, just make is slower.
-  bool doNotEnqueue = false;
+  bool get doNotEnqueue => _hasFlag(_Flag.doNotEnqueue);
+  set doNotEnqueue(bool value) => _setFlagTo(_Flag.doNotEnqueue, value);
 
   /// Whether this [TypeInformation] has a stable [type] that will not
   /// change.
-  bool isStable = false;
+  bool get isStable => _hasFlag(_Flag.isStable);
 
   bool get isConcrete => false;
 
@@ -95,6 +151,31 @@ abstract class TypeInformation {
 
   TypeInformation.withInputs(this.type, this.context, this._inputs)
       : users = Setlet<TypeInformation>();
+
+  int _flags = 0;
+
+  /// Number of times this [TypeInformation] has changed type.
+  int get refineCount => _flags >> NUM_TYPE_INFO_FLAGS;
+
+  void incrementRefineCount() => _flags += (1 << NUM_TYPE_INFO_FLAGS);
+  void clearRefineCount() => _flags &= ((1 << NUM_TYPE_INFO_FLAGS) - 1);
+
+  bool _hasFlag(_Flag flag) => ((_flags >> flag.index) & 1) == 1;
+  void _setFlagTo(_Flag flag, bool value) {
+    if (value) {
+      _setFlag(flag);
+    } else {
+      _clearFlag(flag);
+    }
+  }
+
+  void _setFlag(_Flag flag) {
+    _flags |= 1 << flag.index;
+  }
+
+  void _clearFlag(_Flag flag) {
+    _flags &= ~(1 << flag.index);
+  }
 
   void addUser(TypeInformation user) {
     assert(!user.isConcrete);
@@ -156,7 +237,7 @@ abstract class TypeInformation {
   }
 
   void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
-    abandonInferencing = true;
+    _setFlag(_Flag.abandonInferencing);
     // Do not remove [this] as a user of nodes in [inputs],
     // because our tracing analysis could be interested in tracing
     // this node.
@@ -175,7 +256,7 @@ abstract class TypeInformation {
   bool reset(InferrerEngine inferrer) {
     if (abandonInferencing) return false;
     type = inferrer.abstractValueDomain.uncomputedType;
-    refineCount = 0;
+    clearRefineCount();
     return true;
   }
 
@@ -203,14 +284,14 @@ abstract class TypeInformation {
     // Do not remove users because the tracing analysis could be interested
     // in tracing the users of this node.
     _inputs = STOP_TRACKING_INPUTS_MARKER;
-    abandonInferencing = true;
-    isStable = true;
+    _setFlag(_Flag.abandonInferencing);
+    _setFlag(_Flag.isStable);
   }
 
   void maybeResume() {
     if (!mightResume) return;
-    abandonInferencing = false;
-    doNotEnqueue = false;
+    _clearFlag(_Flag.abandonInferencing);
+    _clearFlag(_Flag.doNotEnqueue);
   }
 
   /// Destroys information not needed after type inference.
@@ -232,7 +313,10 @@ abstract class TypeInformation {
 }
 
 abstract class ApplyableTypeInformation implements TypeInformation {
-  bool mightBePassedToFunctionApply = false;
+  bool get mightBePassedToFunctionApply =>
+      _hasFlag(_Flag.mightBePassedToFunctionApply);
+  set mightBePassedToFunctionApply(bool value) =>
+      _setFlagTo(_Flag.mightBePassedToFunctionApply, value);
 }
 
 /// Marker node used only during tree construction but not during actual type
@@ -373,7 +457,11 @@ class _InstanceMemberParameterInputs extends IterableBase<TypeInformation>
 ///
 abstract class ElementTypeInformation extends TypeInformation {
   /// Marker to disable inference for closures in [handleSpecialCases].
-  bool disableInferenceForClosures = true;
+  /// Since the default is enabled, encode this flag as the inverse.
+  bool get disableInferenceForClosures =>
+      !_hasFlag(_Flag.enableInferenceForClosures);
+  set disableInferenceForClosures(bool value) =>
+      _setFlagTo(_Flag.enableInferenceForClosures, !value);
 
   ElementTypeInformation._internal(
       AbstractValueDomain abstractValueDomain, MemberTypeInformation? context)
@@ -405,9 +493,8 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   /// times it is closurized. The value gets updated while inferring.
   int closurizedCount = 0;
 
-  // Strict `bool` value is computed in cleanup(). Also used as a flag to see if
-  // cleanup has been called.
-  bool? _isCalledOnce = null;
+  // Updated during cleanup.
+  bool get isCalledOnce => _hasFlag(_Flag.isCalledOnce);
 
   /// This map contains the callers of [element]. It stores all unique call
   /// sites to enable counting the global number of call sites of [element].
@@ -448,16 +535,6 @@ abstract class MemberTypeInformation extends ElementTypeInformation
     return _callers?.keys;
   }
 
-  bool isCalledOnce() {
-    // If this assert fires it means that this MemberTypeInformation for the
-    // element was not part of type inference. This happens for
-    // ConstructorBodyElements, so guard the call with a test for
-    // ConstructorBodyElement. For other elements, investigate why the element
-    // was not present for type inference.
-    assert(_isCalledOnce != null);
-    return _isCalledOnce ?? false;
-  }
-
   bool _computeIsCalledOnce() {
     final callers = _callers;
     if (callers == null) return false;
@@ -470,8 +547,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   }
 
   void computeIsCalledOnce() {
-    assert(_isCalledOnce == null, "isCalledOnce has already been computed.");
-    _isCalledOnce = _computeIsCalledOnce();
+    _setFlagTo(_Flag.isCalledOnce, _computeIsCalledOnce());
   }
 
   bool get isClosurized => closurizedCount > 0;
@@ -745,9 +821,10 @@ class ParameterTypeInformation extends ElementTypeInformation {
   final Local _parameter;
   final DartType _type;
   final FunctionEntity _method;
-  final bool _isInstanceMemberParameter;
-  final bool _isClosureParameter;
-  final bool _isInitializingFormal;
+  bool get _isInstanceMemberParameter =>
+      _hasFlag(_Flag.isInstanceMemberParameter);
+  bool get _isClosureParameter => _hasFlag(_Flag.isClosureParameter);
+  bool get _isInitializingFormal => _hasFlag(_Flag.isInitializingFormal);
   bool _isTearOffClosureParameter = false;
 
   ParameterTypeInformation.localFunction(
@@ -756,10 +833,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
       this._parameter,
       this._type,
       this._method)
-      : _isInstanceMemberParameter = false,
-        _isClosureParameter = true,
-        _isInitializingFormal = false,
-        super._internal();
+      : super._internal() {
+    _setFlag(_Flag.isClosureParameter);
+  }
 
   ParameterTypeInformation.static(
       super.abstractValueDomain,
@@ -768,10 +844,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
       this._type,
       this._method,
       {bool isInitializingFormal = false})
-      : _isInstanceMemberParameter = false,
-        _isClosureParameter = false,
-        _isInitializingFormal = isInitializingFormal,
-        super._internal();
+      : super._internal() {
+    _setFlagTo(_Flag.isInitializingFormal, isInitializingFormal);
+  }
 
   ParameterTypeInformation.instanceMember(
       AbstractValueDomain abstractValueDomain,
@@ -780,10 +855,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
       this._type,
       this._method,
       ParameterInputs inputs)
-      : _isInstanceMemberParameter = true,
-        _isClosureParameter = false,
-        _isInitializingFormal = false,
-        super._withInputs(abstractValueDomain, context, inputs);
+      : super._withInputs(abstractValueDomain, context, inputs) {
+    _setFlag(_Flag.isInstanceMemberParameter);
+  }
 
   FunctionEntity get method => _method;
 
@@ -955,7 +1029,7 @@ abstract class CallSiteTypeInformation extends TypeInformation
   final MemberEntity caller;
   final Selector? selector;
   final ArgumentsTypes? arguments;
-  final bool inLoop;
+  bool get inLoop => _hasFlag(_Flag.inLoop);
 
   CallSiteTypeInformation(
       AbstractValueDomain abstractValueDomain,
@@ -964,8 +1038,10 @@ abstract class CallSiteTypeInformation extends TypeInformation
       this.caller,
       this.selector,
       this.arguments,
-      this.inLoop)
-      : super.noInputs(abstractValueDomain.uncomputedType, context);
+      bool inLoop)
+      : super.noInputs(abstractValueDomain.uncomputedType, context) {
+    _setFlagTo(_Flag.inLoop, inLoop);
+  }
 
   @override
   String toString() => 'Call site $debugName $type';
@@ -1065,14 +1141,18 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   final CallType _callType;
   final TypeInformation receiver;
   final AbstractValue? mask;
-  final bool isConditional;
-  bool? _hasClosureCallTargets;
+  bool get isConditional => _hasFlag(_Flag.isConditional);
 
   /// Cached concrete targets of this call.
   Iterable<DynamicCallTarget>? _concreteTargets;
 
   /// Recomputed when _concreteTargets changes.
-  bool? _targetsIncludeComplexNoSuchMethod;
+  /// [_hasTargetsIncludeComplexNoSuchMethod] indicates whether this value
+  /// is stale and needs to be recomputed.
+  bool get _targetsIncludeComplexNoSuchMethod =>
+      _hasFlag(_Flag.targetsIncludeComplexNoSuchMethod);
+  bool get _hasTargetsIncludeComplexNoSuchMethod =>
+      _hasFlag(_Flag.hasTargetsIncludeComplexNoSuchMethod);
 
   DynamicCallSiteTypeInformation(
       super.abstractValueDomain,
@@ -1085,7 +1165,8 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
       this.receiver,
       super.arguments,
       super.inLoop,
-      this.isConditional) {
+      bool isConditional) {
+    _setFlagTo(_Flag.isConditional, isConditional);
     assert(validCallType(_callType, callNode));
   }
 
@@ -1119,7 +1200,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
         inferrer.closedWorld.includesClosureCall(selector!, typeMask);
     final concreteTargets = _concreteTargets =
         inferrer.memberHierarchyBuilder.rootsForCall(typeMask, selector!);
-    _targetsIncludeComplexNoSuchMethod = null;
+    invalidateTargetsIncludeComplexNoSuchMethod();
     receiver.addUser(this);
     if (arguments != null) {
       arguments!.forEach((info) => info.addUser(this));
@@ -1130,7 +1211,10 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   }
 
   /// `true` if this invocation can hit a 'call' method on a closure.
-  bool get hasClosureCallTargets => _hasClosureCallTargets!;
+  bool get hasClosureCallTargets => _hasFlag(_Flag.hasClosureCallTargets);
+
+  set _hasClosureCallTargets(bool value) =>
+      _setFlagTo(_Flag.hasClosureCallTargets, value);
 
   /// All concrete targets of this invocation. If [hasClosureCallTargets] is
   /// `true` the invocation can additional target an unknown set of 'call'
@@ -1151,13 +1235,23 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     }
   }
 
+  void invalidateTargetsIncludeComplexNoSuchMethod() {
+    _clearFlag(_Flag.hasTargetsIncludeComplexNoSuchMethod);
+  }
+
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
-    return _targetsIncludeComplexNoSuchMethod ??= callees.any((MemberEntity e) {
-      return e.isFunction &&
-          e.isInstanceMember &&
-          e.name == Identifiers.noSuchMethod_ &&
-          inferrer.noSuchMethodData.isComplex(e as FunctionEntity);
-    });
+    if (!_hasTargetsIncludeComplexNoSuchMethod) {
+      _setFlag(_Flag.hasTargetsIncludeComplexNoSuchMethod);
+      final value = callees.any((MemberEntity e) {
+        return e.isFunction &&
+            e.isInstanceMember &&
+            e.name == Identifiers.noSuchMethod_ &&
+            inferrer.noSuchMethodData.isComplex(e as FunctionEntity);
+      });
+      _setFlagTo(_Flag.targetsIncludeComplexNoSuchMethod, value);
+      return value;
+    }
+    return _targetsIncludeComplexNoSuchMethod;
   }
 
   /// We optimize certain operations on the [int] class because we know more
@@ -1277,14 +1371,14 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     inferrer.updateSelectorInMember(
         caller, _callType, callNode as ir.TreeNode, localSelector, typeMask);
 
-    _hasClosureCallTargets =
+    final includesClosureCall = _hasClosureCallTargets =
         closedWorld.includesClosureCall(localSelector, typeMask);
     final concreteTargets = _concreteTargets =
         inferrer.memberHierarchyBuilder.rootsForCall(typeMask, localSelector);
 
     // Update the call graph if the targets could have changed.
     if (!identical(concreteTargets, oldTargets)) {
-      _targetsIncludeComplexNoSuchMethod = null;
+      invalidateTargetsIncludeComplexNoSuchMethod();
       // Add calls to new targets to the graph.
       concreteTargets
           .where((target) => !oldTargets.contains(target))
@@ -1303,7 +1397,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     // Walk over the found targets, and compute the joined union type mask
     // for all these targets.
     AbstractValue result;
-    if (_hasClosureCallTargets!) {
+    if (includesClosureCall) {
       result = abstractValueDomain.dynamicType;
     } else {
       result = inferrer.types
@@ -1378,7 +1472,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
           inferrer.closedWorld.includesClosureCall(localSelector, mask);
       final newConcreteTargets = _concreteTargets =
           inferrer.memberHierarchyBuilder.rootsForCall(mask, localSelector);
-      _targetsIncludeComplexNoSuchMethod = null;
+      invalidateTargetsIncludeComplexNoSuchMethod();
       for (final target in newConcreteTargets) {
         if (!oldTargets.contains(target)) {
           _handleCalledTarget(target, inferrer,
@@ -1490,7 +1584,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
 /// type.
 class ConcreteTypeInformation extends TypeInformation {
   ConcreteTypeInformation(super.type) : super.untracked() {
-    this.isStable = true;
+    _setFlag(_Flag.isStable);
   }
 
   @override
@@ -1634,7 +1728,8 @@ class NarrowTypeInformation extends TypeInformation {
 /// its inputs.
 abstract class InferredTypeInformation extends TypeInformation {
   /// Whether the element type in that container has been inferred.
-  bool inferred = false;
+  bool get inferred => _hasFlag(_Flag.inferred);
+  set inferred(bool value) => _setFlagTo(_Flag.inferred, value);
 
   InferredTypeInformation(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context, TypeInformation? parentType)
@@ -1988,11 +2083,13 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
   // [nonNull] is set to true if this value is known to be part of the map.
   // Note that only values assigned to a specific key value in dictionary
   // mode can ever be marked as [nonNull].
-  final bool nonNull;
+  bool get nonNull => _hasFlag(_Flag.valueInMapNonNull);
 
   ValueInMapTypeInformation(
       super.abstractValueDomain, super.context, super.valueType,
-      [this.nonNull = false]);
+      [bool nonNull = false]) {
+    _setFlagTo(_Flag.valueInMapNonNull, nonNull);
+  }
 
   @override
   accept(TypeInformationVisitor visitor) {
@@ -2113,12 +2210,14 @@ class RecordFieldAccessTypeInformation extends TypeInformation {
 class PhiElementTypeInformation extends TypeInformation {
   final ir.Node? branchNode;
   final Local? variable;
-  final bool isTry;
+  bool get isTry => _hasFlag(_Flag.isTry);
 
   PhiElementTypeInformation(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context, this.branchNode, this.variable,
-      {required this.isTry})
-      : super(abstractValueDomain.uncomputedType, context);
+      {required bool isTry})
+      : super(abstractValueDomain.uncomputedType, context) {
+    _setFlagTo(_Flag.isTry, isTry);
+  }
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
@@ -2190,10 +2289,12 @@ class ClosureTypeInformation extends TypeInformation
 /// Mixin for [TypeInformation] nodes that can bail out during tracing.
 abstract class TracedTypeInformation implements TypeInformation {
   /// Set to false once analysis has succeeded.
-  bool bailedOut = true;
+  bool get bailedOut => !_hasFlag(_Flag.notBailedOut);
+  set bailedOut(bool value) => _setFlagTo(_Flag.notBailedOut, !value);
 
   /// Set to true once analysis is completed.
-  bool analyzed = false;
+  bool get analyzed => _hasFlag(_Flag.analyzed);
+  set analyzed(bool value) => _setFlagTo(_Flag.analyzed, value);
 
   Set<TypeInformation>? _flowsInto;
 
