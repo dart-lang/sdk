@@ -89,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var keyword = node.keyword;
     keyword ??=
         node.thisOrAncestorOfType<PatternVariableDeclaration>()?.keyword;
-    if (keyword == null) return;
+    if (keyword?.type != Keyword.FINAL) return;
 
     var errorCode = getErrorCode(node.matchedValueType);
     rule.reportLintForToken(keyword, errorCode: errorCode);
