@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -160,23 +159,6 @@ class SharedTypeAnalyzerErrors
       CompileTimeErrorCode.NON_BOOL_CONDITION,
       node,
     );
-  }
-
-  @override
-  void nonExhaustiveSwitch(
-      {required AstNode node, required DartType scrutineeType}) {
-    // Report the error on the `switch` token, to match what the full
-    // exhaustiveness algorithm does
-    Token errorToken;
-    if (node is SwitchStatement) {
-      errorToken = node.switchKeyword;
-    } else {
-      errorToken = (node as SwitchExpression).switchKeyword;
-    }
-    _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
-        errorToken,
-        [scrutineeType, scrutineeType.toString()]);
   }
 
   @override

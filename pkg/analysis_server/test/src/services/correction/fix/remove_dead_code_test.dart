@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../fallback_exhaustiveness.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -473,7 +472,7 @@ int f() {
   }
 
   Future<void> test_switchCase_sharedStatements() async {
-    await withFullExhaustivenessAlgorithm(() => resolveTestCode('''
+    await resolveTestCode('''
 void f() {
   var m = 5;
   switch(m) {
@@ -482,7 +481,7 @@ void f() {
     case 3: break;
   }
 }
-'''));
+''');
     await assertHasFix('''
 void f() {
   var m = 5;
@@ -495,7 +494,7 @@ void f() {
   }
 
   Future<void> test_switchCase_uniqueStatements() async {
-    await withFullExhaustivenessAlgorithm(() => resolveTestCode('''
+    await resolveTestCode('''
 void f() {
   var m = 5;
   switch(m) {
@@ -504,7 +503,7 @@ void f() {
     case 3: break;
   }
 }
-'''));
+''');
     await assertHasFix('''
 void f() {
   var m = 5;

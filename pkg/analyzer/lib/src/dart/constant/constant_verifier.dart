@@ -810,29 +810,27 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     final errors =
         reportErrors(_exhaustivenessCache, scrutineeTypeEx, caseSpaces);
     final reportNonExhaustive = mustBeExhaustive && !hasDefault;
-    if (!useFallbackExhaustivenessAlgorithm) {
-      for (final error in errors) {
-        if (error is UnreachableCaseError) {
-          final caseNode = caseNodesWithSpace[error.index];
-          final Token errorToken;
-          if (caseNode is SwitchExpressionCase) {
-            errorToken = caseNode.arrow;
-          } else if (caseNode is SwitchPatternCase) {
-            errorToken = caseNode.keyword;
-          } else {
-            throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
-          }
-          _errorReporter.reportErrorForToken(
-            HintCode.UNREACHABLE_SWITCH_CASE,
-            errorToken,
-          );
-        } else if (error is NonExhaustiveError && reportNonExhaustive) {
-          _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
-            switchKeyword,
-            [scrutineeType, error.witness.toString()],
-          );
+    for (final error in errors) {
+      if (error is UnreachableCaseError) {
+        final caseNode = caseNodesWithSpace[error.index];
+        final Token errorToken;
+        if (caseNode is SwitchExpressionCase) {
+          errorToken = caseNode.arrow;
+        } else if (caseNode is SwitchPatternCase) {
+          errorToken = caseNode.keyword;
+        } else {
+          throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
         }
+        _errorReporter.reportErrorForToken(
+          HintCode.UNREACHABLE_SWITCH_CASE,
+          errorToken,
+        );
+      } else if (error is NonExhaustiveError && reportNonExhaustive) {
+        _errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
+          switchKeyword,
+          [scrutineeType, error.witness.toString()],
+        );
       }
     }
 

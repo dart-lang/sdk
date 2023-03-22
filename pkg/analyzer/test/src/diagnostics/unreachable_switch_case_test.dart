@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../fallback_exhaustiveness.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -19,7 +18,7 @@ main() {
 class UnreachableSwitchCaseTest_SwitchExpression
     extends PubPackageResolutionTest {
   test_bool_false_true_false() async {
-    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 Object f(bool x) {
   return switch (x) {
     false => 0,
@@ -28,14 +27,14 @@ Object f(bool x) {
   };
 }
 ''', [
-          error(HintCode.UNREACHABLE_SWITCH_CASE, 82, 2),
-        ]));
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 82, 2),
+    ]);
   }
 
   /// TODO(scheglov) Fix it.
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
   test_bool_wildcard_true_false() async {
-    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 Object f(bool x) {
   return switch (x) {
     _ => 0,
@@ -44,9 +43,9 @@ Object f(bool x) {
   };
 }
 ''', [
-          error(HintCode.UNREACHABLE_SWITCH_CASE, 62, 2),
-          error(HintCode.UNREACHABLE_SWITCH_CASE, 78, 2),
-        ]));
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 62, 2),
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 78, 2),
+    ]);
   }
 }
 
@@ -54,7 +53,7 @@ Object f(bool x) {
 class UnreachableSwitchCaseTest_SwitchStatement
     extends PubPackageResolutionTest {
   test_bool() async {
-    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(bool x) {
   switch (x) {
     case false:
@@ -64,12 +63,12 @@ void f(bool x) {
   }
 }
 ''', [
-          error(HintCode.UNREACHABLE_SWITCH_CASE, 67, 4),
-        ]));
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 67, 4),
+    ]);
   }
 
   test_typeCheck_exact() async {
-    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case int():
@@ -80,11 +79,11 @@ void f(int x) {
   }
 }
 ''', [
-          error(WarningCode.DEAD_CODE, 64, 4),
-          error(HintCode.UNREACHABLE_SWITCH_CASE, 64, 4),
-          error(WarningCode.DEAD_CODE, 80, 4),
-          error(HintCode.UNREACHABLE_SWITCH_CASE, 80, 4),
-          error(WarningCode.DEAD_CODE, 98, 6),
-        ]));
+      error(WarningCode.DEAD_CODE, 64, 4),
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 64, 4),
+      error(WarningCode.DEAD_CODE, 80, 4),
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 80, 4),
+      error(WarningCode.DEAD_CODE, 98, 6),
+    ]);
   }
 }

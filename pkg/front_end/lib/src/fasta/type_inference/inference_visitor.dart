@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart'
-    as shared_exhaustive;
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -9753,8 +9751,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void handleSwitchScrutinee(DartType type) {
-    if ((!options.patternsEnabled ||
-            shared_exhaustive.useFallbackExhaustivenessAlgorithm) &&
+    if ((!options.patternsEnabled) &&
         type is InterfaceType &&
         type.classNode.isEnum) {
       _enumFields = <Field?>{

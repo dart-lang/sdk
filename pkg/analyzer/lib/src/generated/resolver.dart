@@ -4,8 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart'
-    as shared_exhaustive;
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
@@ -1178,8 +1176,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void handleSwitchScrutinee(DartType type) {
-    if (!options.patternsEnabled ||
-        shared_exhaustive.useFallbackExhaustivenessAlgorithm) {
+    if (!options.patternsEnabled) {
       legacySwitchExhaustiveness = SwitchExhaustiveness(type);
     }
   }

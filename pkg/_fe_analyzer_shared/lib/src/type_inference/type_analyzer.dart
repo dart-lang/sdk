@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../exhaustiveness/exhaustive.dart';
 import '../flow_analysis/flow_analysis.dart';
 import 'type_analysis_result.dart';
 import 'type_operations.dart';
@@ -1773,19 +1772,11 @@ mixin TypeAnalyzer<
     }
     lubType ??= dynamicType;
     // Stack: (Expression, numCases * ExpressionCase)
-    Error? nonExhaustiveSwitchError;
-    bool isProvenExhaustive = flow.switchStatement_end(true);
-    if (options.errorOnSwitchExhaustiveness &&
-        !isProvenExhaustive &&
-        !isLegacySwitchExhaustive(node, expressionType)) {
-      nonExhaustiveSwitchError =
-          errors.nonExhaustiveSwitch(node: node, scrutineeType: expressionType);
-    }
+    flow.switchStatement_end(true);
     return new SwitchExpressionResult(
         type: lubType,
         nonBooleanGuardErrors: nonBooleanGuardErrors,
-        guardTypes: guardTypes,
-        nonExhaustiveSwitchError: nonExhaustiveSwitchError);
+        guardTypes: guardTypes);
   }
 
   /// Analyzes a statement of the form `switch (expression) { cases }`.
@@ -1913,15 +1904,7 @@ mixin TypeAnalyzer<
       isExhaustive = isLegacySwitchExhaustive(node, scrutineeType);
       requiresExhaustivenessValidation = false;
     }
-    bool isProvenExhaustive = flow.switchStatement_end(isExhaustive);
-    Error? nonExhaustiveSwitchError;
-    if (options.errorOnSwitchExhaustiveness &&
-        requiresExhaustivenessValidation &&
-        !isProvenExhaustive &&
-        !isLegacySwitchExhaustive(node, scrutineeType)) {
-      nonExhaustiveSwitchError =
-          errors.nonExhaustiveSwitch(node: node, scrutineeType: scrutineeType);
-    }
+    flow.switchStatement_end(isExhaustive);
     return new SwitchStatementTypeAnalysisResult(
       hasDefault: hasDefault,
       isExhaustive: isExhaustive,
@@ -1931,7 +1914,6 @@ mixin TypeAnalyzer<
       switchCaseCompletesNormallyErrors: switchCaseCompletesNormallyErrors,
       nonBooleanGuardErrors: nonBooleanGuardErrors,
       guardTypes: guardTypes,
-      nonExhaustiveSwitchError: nonExhaustiveSwitchError,
     );
   }
 
@@ -2584,15 +2566,6 @@ abstract class TypeAnalyzerErrors<
   /// Called if the static type of a condition is not assignable to `bool`.
   Error nonBooleanCondition({required Expression node});
 
-  /// Called if [TypeAnalyzerOptions.errorOnSwitchExhaustiveness] is `true`, and
-  /// a switch that is required to be exhaustive cannot be proven by flow
-  /// analysis to be exhaustive.
-  ///
-  /// [node] is the offending switch expression or switch statement, and
-  /// [scrutineeType] is the static type of the switch statement's scrutinee
-  /// expression.
-  Error nonExhaustiveSwitch({required Node node, required Type scrutineeType});
-
   /// Called if a pattern is illegally used in a variable declaration statement
   /// that is marked `late`, and that pattern is not allowed in such a
   /// declaration.  The only kind of pattern that may be used in a late variable
@@ -2698,21 +2671,6 @@ class TypeAnalyzerOptions {
 
   final bool patternsEnabled;
 
-  /// If `true`, the type analyzer should generate errors if it encounters a
-  /// switch that is required to be exhaustive, but cannot be proven to be
-  /// exhaustive by flow analysis.
-  ///
-  /// This option is intended as a temporary workaround if we want to ship an
-  /// early beta of the "patterns" feature before exhaustiveness checking is
-  /// sufficiently ready.
-  ///
-  /// TODO(paulberry): remove this option when it is no longer needed.
-  final bool errorOnSwitchExhaustiveness;
-
   TypeAnalyzerOptions(
-      {required this.nullSafetyEnabled,
-      required this.patternsEnabled,
-      bool? errorOnSwitchExhaustiveness})
-      : errorOnSwitchExhaustiveness =
-            errorOnSwitchExhaustiveness ?? useFallbackExhaustivenessAlgorithm;
+      {required this.nullSafetyEnabled, required this.patternsEnabled});
 }

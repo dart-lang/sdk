@@ -1518,34 +1518,32 @@ class ConstantsTransformer extends RemovingTransformer {
     if (_exhaustivenessDataForTesting != null) {
       reportedErrors = [];
     }
-    if (!useFallbackExhaustivenessAlgorithm) {
-      Library library = currentLibrary;
-      for (ExhaustivenessError error in errors) {
-        if (error is UnreachableCaseError) {
-          if (library.importUri.isScheme('dart') &&
-              library.importUri.path == 'html') {
-            // TODO(51754): Remove this.
-            continue;
-          }
-          reportedErrors?.add(error);
-          // TODO(johnniwinther): Re-enable this, pending resolution on
-          // https://github.com/dart-lang/language/issues/2924
-          /*constantEvaluator.errorReporter.report(
+    Library library = currentLibrary;
+    for (ExhaustivenessError error in errors) {
+      if (error is UnreachableCaseError) {
+        if (library.importUri.isScheme('dart') &&
+            library.importUri.path == 'html') {
+          // TODO(51754): Remove this.
+          continue;
+        }
+        reportedErrors?.add(error);
+        // TODO(johnniwinther): Re-enable this, pending resolution on
+        // https://github.com/dart-lang/language/issues/2924
+        /*constantEvaluator.errorReporter.report(
               constantEvaluator.createLocatedMessageWithOffset(
                   node,
                   patternGuards[error.index].fileOffset,
                   messageUnreachableSwitchCase));*/
-        } else if (error is NonExhaustiveError &&
-            !hasDefault &&
-            mustBeExhaustive) {
-          reportedErrors?.add(error);
-          constantEvaluator.errorReporter.report(
-              constantEvaluator.createLocatedMessageWithOffset(
-                  node,
-                  fileOffset,
-                  templateNonExhaustiveSwitch.withArguments(expressionType,
-                      '${error.witness}', library.isNonNullableByDefault)));
-        }
+      } else if (error is NonExhaustiveError &&
+          !hasDefault &&
+          mustBeExhaustive) {
+        reportedErrors?.add(error);
+        constantEvaluator.errorReporter.report(
+            constantEvaluator.createLocatedMessageWithOffset(
+                node,
+                fileOffset,
+                templateNonExhaustiveSwitch.withArguments(expressionType,
+                    '${error.witness}', library.isNonNullableByDefault)));
       }
     }
     if (_exhaustivenessDataForTesting != null) {

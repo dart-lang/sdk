@@ -178,14 +178,10 @@ class SwitchExpressionResult<Type extends Object, Error>
   /// This is `null` if no such guards where present.
   final Map<int, Type>? guardTypes;
 
-  /// Error for when the switch statement was non exhaustive.
-  final Error? nonExhaustiveSwitchError;
-
   SwitchExpressionResult(
       {required super.type,
       required this.nonBooleanGuardErrors,
-      required this.guardTypes,
-      required this.nonExhaustiveSwitchError});
+      required this.guardTypes});
 }
 
 /// Container for the result of running type analysis on an integer literal.
@@ -229,9 +225,6 @@ class SwitchStatementTypeAnalysisResult<Type extends Object, Error> {
   /// This is `null` if no such guards where present.
   final Map<int, Map<int, Type>>? guardTypes;
 
-  /// Error for when the switch statement was non exhaustive.
-  final Error? nonExhaustiveSwitchError;
-
   SwitchStatementTypeAnalysisResult({
     required this.hasDefault,
     required this.isExhaustive,
@@ -241,7 +234,6 @@ class SwitchStatementTypeAnalysisResult<Type extends Object, Error> {
     required this.switchCaseCompletesNormallyErrors,
     required this.nonBooleanGuardErrors,
     required this.guardTypes,
-    required this.nonExhaustiveSwitchError,
   });
 }
 

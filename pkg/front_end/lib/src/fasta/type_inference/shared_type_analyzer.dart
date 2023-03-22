@@ -4,8 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
-import 'package:front_end/src/fasta/kernel/exhaustiveness.dart'
-    show textStrategy;
 import 'package:front_end/src/fasta/type_inference/inference_visitor.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
@@ -148,24 +146,6 @@ class SharedTypeAnalyzerErrors
   InvalidExpression nonBooleanCondition({required Expression node}) {
     return helper.buildProblem(
         messageNonBoolCondition, node.fileOffset, noLength);
-  }
-
-  @override
-  InvalidExpression nonExhaustiveSwitch(
-      {required TreeNode node, required DartType scrutineeType}) {
-    // Report the error on the scrutinee expression, to match what the full
-    // exhaustiveness algorithm does
-    int fileOffset;
-    if (node is SwitchStatement) {
-      fileOffset = node.expression.fileOffset;
-    } else {
-      fileOffset = (node as SwitchExpression).expression.fileOffset;
-    }
-    return helper.buildProblem(
-        templateNonExhaustiveSwitch.withArguments(scrutineeType,
-            scrutineeType.toText(textStrategy), isNonNullableByDefault),
-        fileOffset,
-        noLength);
   }
 
   @override
