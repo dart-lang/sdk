@@ -220,14 +220,12 @@ class double {
 class Error {
   @patch
   static String _objectToString(Object object) {
-    // Closures all have useful and safe toString methods.
-    if (object is Closure) return object.toString();
-    return Primitives.objectToHumanReadableString(object);
+    return Primitives.safeToString(object);
   }
 
   @patch
   static String _stringToSafeString(String string) {
-    return jsonEncodeNative(string);
+    return Primitives.stringSafeToString(string);
   }
 
   @patch

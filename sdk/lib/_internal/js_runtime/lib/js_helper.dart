@@ -483,6 +483,28 @@ class Primitives {
     return "Instance of '$name'";
   }
 
+  static String stringSafeToString(String string) {
+    return jsonEncodeNative(string);
+  }
+
+  static String safeToString(Object? object) {
+    if (object == null || object is num || object is bool) {
+      return object.toString();
+    }
+    if (object is String) {
+      return stringSafeToString(object);
+    }
+    // Closures all have useful and safe toString methods.
+    if (object is Closure) {
+      return object.toString();
+    }
+    if (object is _Record) {
+      return object._toString(true);
+    }
+
+    return Primitives.objectToHumanReadableString(object);
+  }
+
   static int dateNow() => JS('int', r'Date.now()');
 
   static void initTicker() {
@@ -1878,11 +1900,16 @@ int getLength(var array) {
 invokeClosure(Function closure, int numberOfArguments, var arg1, var arg2,
     var arg3, var arg4) {
   switch (numberOfArguments) {
-    case 0: return closure();
-    case 1: return closure(arg1);
-    case 2: return closure(arg1, arg2);
-    case 3: return closure(arg1, arg2, arg3);
-    case 4: return closure(arg1, arg2, arg3, arg4);
+    case 0:
+      return closure();
+    case 1:
+      return closure(arg1);
+    case 2:
+      return closure(arg1, arg2);
+    case 3:
+      return closure(arg1, arg2, arg3);
+    case 4:
+      return closure(arg1, arg2, arg3, arg4);
   }
   throw new Exception('Unsupported number of arguments for wrapped closure');
 }

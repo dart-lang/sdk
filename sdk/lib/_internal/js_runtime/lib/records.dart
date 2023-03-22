@@ -29,12 +29,15 @@ abstract final class _Record implements Record {
   }
 
   @override
-  String toString() {
+  String toString() => _toString(false);
+
+  String _toString(bool safe) {
     final keys = _fieldKeys();
     final values = _getFieldValues();
     assert(keys.length == values.length);
     final sb = StringBuffer();
     String separator = '';
+    if (safe) sb.write('Record ');
     sb.write('(');
     for (int i = 0; i < keys.length; i++) {
       sb.write(separator);
@@ -43,7 +46,12 @@ abstract final class _Record implements Record {
         sb.write(key);
         sb.write(': ');
       }
-      sb.write(values[i]);
+      final value = values[i];
+      if (safe) {
+        sb.write(Primitives.safeToString(value));
+      } else {
+        sb.write(value);
+      }
       separator = ', ';
     }
     sb.write(')');
