@@ -73,6 +73,49 @@ abstract class CC with AA { }
       lint(52, 2),
     ]);
   }
+
+  test_mixedInIterableMixin() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+abstract class C with IterableMixin {}
+''');
+  }
+
+  test_mixedInListMixin() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+abstract class C with ListMixin {}
+''');
+  }
+
+  test_mixedInMaoMixin() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+abstract class C with MapMixin {}
+''');
+  }
+
+  test_mixedInMixin() async {
+    await assertNoDiagnostics(r'''
+mixin M {}
+
+class C with M {}
+''');
+  }
+
+  test_mixedInSetMixin() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+abstract class C with SetMixin {}
+''');
+  }
+
+  test_mixedInStringConversionSinkMixin() async {
+    await assertNoDiagnostics(r'''
+import 'dart:convert';
+abstract class C with StringConversionSinkMixin {}
+''');
+  }
 }
 
 @reflectiveTest

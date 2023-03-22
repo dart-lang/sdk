@@ -25,7 +25,6 @@ import 'integration/lines_longer_than_80_chars.dart'
     as lines_longer_than_80_chars;
 import 'integration/prefer_const_constructors_in_immutables.dart'
     as prefer_const_constructors_in_immutables;
-import 'integration/prefer_mixin.dart' as prefer_mixin;
 import 'integration/public_member_api_docs.dart' as public_member_api_docs;
 import 'integration/secure_pubspec_urls.dart' as secure_pubspec_urls;
 import 'integration/sort_pub_dependencies.dart' as sort_pub_dependencies;
@@ -164,7 +163,6 @@ void ruleTests() {
     public_member_api_docs.main();
     secure_pubspec_urls.main();
     sort_pub_dependencies.main();
-    prefer_mixin.main();
     use_build_context_synchronously.main();
   });
 }
