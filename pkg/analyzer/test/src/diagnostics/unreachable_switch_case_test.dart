@@ -31,8 +31,6 @@ Object f(bool x) {
     ]);
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
   test_bool_wildcard_true_false() async {
     await assertErrorsInCode(r'''
 Object f(bool x) {
@@ -43,7 +41,9 @@ Object f(bool x) {
   };
 }
 ''', [
+      error(WarningCode.DEAD_CODE, 57, 9),
       error(HintCode.UNREACHABLE_SWITCH_CASE, 62, 2),
+      error(WarningCode.DEAD_CODE, 72, 10),
       error(HintCode.UNREACHABLE_SWITCH_CASE, 78, 2),
     ]);
   }

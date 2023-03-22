@@ -384,7 +384,7 @@ void f<T>(T x) {
   }
 
   /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51819')
   test_alwaysExhaustive_typeVariable_promoted_bool_true_false() async {
     await assertNoErrorsInCode(r'''
 void f<T>(T x) {
