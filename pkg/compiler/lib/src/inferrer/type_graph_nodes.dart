@@ -63,17 +63,18 @@ enum _Flag {
   valueInMapNonNull, // 14
 
   // ---Flags for [MemberTypeInformation]---
-  isCalledOnce, // 15
+  isCalled, // 15
+  isCalledMoreThanOnce, // 16
 
   // ---Flags for [ApplyableTypeInformation]---
-  mightBePassedToFunctionApply, // 16
+  mightBePassedToFunctionApply, // 17
 
   // ---Flags for [InferredTypeInformation]---
-  inferred, // 17
+  inferred, // 18
 
   // ---Flags for [TracedTypeInformation]---
-  notBailedOut, // 18
-  analyzed; // 19
+  notBailedOut, // 19
+  analyzed, // 20
 }
 
 /// Common class for all nodes in the graph. The current nodes are:
@@ -493,16 +494,8 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   int closurizedCount = 0;
 
   // Updated during cleanup.
-  bool get isCalledOnce => _hasFlag(_Flag.isCalledOnce);
-
-  /// This map contains the callers of [element]. It stores all unique call
-  /// sites to enable counting the global number of call sites of [element].
-  ///
-  /// A call site is an [ir.Node].
-  ///
-  /// The global information is summarized in [cleanup], after which [_callers]
-  /// is set to `null`.
-  Map<MemberEntity, Setlet<ir.Node>>? _callers;
+  bool get isCalledExactlyOnce =>
+      _hasFlag(_Flag.isCalled) && !_hasFlag(_Flag.isCalledMoreThanOnce);
 
   MemberTypeInformation._internal(
       AbstractValueDomain abstractValueDomain, this._member)
@@ -513,40 +506,14 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   @override
   String get debugName => '$member';
 
-  void addCall(MemberEntity caller, ir.Node node) {
-    (_callers ??= <MemberEntity, Setlet<ir.Node>>{})
-        .putIfAbsent(caller, () => Setlet<ir.Node>())
-        .add(node);
-  }
-
-  void removeCall(MemberEntity caller, ir.Node node) {
-    final callers = _callers;
-    if (callers == null) return;
-    final calls = callers[caller];
-    if (calls == null) return;
-    calls.remove(node);
-    if (calls.isEmpty) {
-      callers.remove(caller);
+  void markCalled() {
+    if (_hasFlag(_Flag.isCalled)) {
+      if (!_hasFlag(_Flag.isCalledMoreThanOnce)) {
+        _setFlag(_Flag.isCalledMoreThanOnce);
+      }
+    } else {
+      _setFlag(_Flag.isCalled);
     }
-  }
-
-  Iterable<MemberEntity>? get callersForTesting {
-    return _callers?.keys;
-  }
-
-  bool _computeIsCalledOnce() {
-    final callers = _callers;
-    if (callers == null) return false;
-    int count = 0;
-    for (var set in callers.values) {
-      count += set.length;
-      if (count > 1) return false;
-    }
-    return count == 1;
-  }
-
-  void computeIsCalledOnce() {
-    _setFlagTo(_Flag.isCalledOnce, _computeIsCalledOnce());
   }
 
   bool get isClosurized => closurizedCount > 0;
@@ -614,12 +581,6 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitMemberTypeInformation(this);
-  }
-
-  @override
-  void cleanup() {
-    _callers = null;
-    super.cleanup();
   }
 
   @override
@@ -1076,7 +1037,6 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   @override
   void addToGraph(InferrerEngine inferrer) {
     MemberTypeInformation callee = _getCalledTypeInfo(inferrer);
-    callee.addCall(caller, _call);
     callee.addUser(this);
     if (arguments != null) {
       arguments!.forEach((info) => info.addUser(this));
@@ -1168,14 +1128,6 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     assert(validCallType(_callType, _call));
   }
 
-  void _addCall(MemberTypeInformation callee) {
-    callee.addCall(caller, _call);
-  }
-
-  void _removeCall(MemberTypeInformation callee) {
-    callee.removeCall(caller, _call);
-  }
-
   @override
   void addToGraph(InferrerEngine inferrer) {
     final typeMask = computeTypedSelector(inferrer);
@@ -1191,7 +1143,6 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     for (MemberEntity element in concreteTargets) {
       MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
-      _addCall(callee);
       callee.addUser(this);
       inferrer.updateParameterInputs(this, element, arguments, selector,
           remove: false, addToQueue: false);
@@ -1373,7 +1324,6 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
           .forEach((MemberEntity element) {
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
-        _addCall(callee);
         callee.addUser(this);
         inferrer.updateParameterInputs(this, element, arguments, selector,
             remove: false, addToQueue: true);
@@ -1385,7 +1335,6 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
           .forEach((MemberEntity element) {
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
-        _removeCall(callee);
         callee.removeUser(this);
         inferrer.updateParameterInputs(this, element, arguments, selector,
             remove: true, addToQueue: true);
@@ -1469,9 +1418,6 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
       invalidateTargetsIncludeComplexNoSuchMethod();
       for (MemberEntity element in newConcreteTargets) {
         if (!oldTargets.contains(element)) {
-          MemberTypeInformation callee =
-              inferrer.types.getInferredTypeOfMember(element);
-          callee.addCall(caller, _call);
           inferrer.updateParameterInputs(this, element, arguments, selector,
               remove: false, addToQueue: true);
         }

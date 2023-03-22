@@ -344,7 +344,7 @@ class InferrerEngine {
 
     // Update overrides that need to be considered for closurization before
     // tracing.
-    _updateOverrideClosurizations();
+    _updateOverrideClosurizations(markCalled: false);
 
     metrics.trace.measure(() {
       // Try to infer element types of lists and compute their escape information.
@@ -460,7 +460,7 @@ class InferrerEngine {
 
     // Update overrides that need to be considered for closurization after
     // the final round of refines.
-    _updateOverrideClosurizations();
+    _updateOverrideClosurizations(markCalled: true);
 
     if (debug.PRINT_SUMMARY) {
       types.allocatedLists.values.forEach((_info) {
@@ -1011,7 +1011,7 @@ class InferrerEngine {
     IterationStep handleTarget(MemberEntity override) {
       if (!override.isAbstract) {
         MemberTypeInformation info = types.getInferredTypeOfMember(override);
-        info.addCall(callSiteType.caller, callSite);
+        info.markCalled();
 
         if (types.getInferredTypeOfVirtualMember(member).closurizedCount > 0) {
           _markForClosurization(info, callSiteType,
@@ -1030,12 +1030,15 @@ class InferrerEngine {
     }
   }
 
-  void _updateOverrideClosurizations() {
+  void _updateOverrideClosurizations({required bool markCalled}) {
     final Set<MemberEntity> visited = {};
     for (final call in types.allocatedCalls) {
-      if (call is! DynamicCallSiteTypeInformation) continue;
-      for (final target in call.concreteTargets) {
-        _registerOverridesCalled(target, call, call.callNode, visited);
+      if (call is DynamicCallSiteTypeInformation) {
+        for (final target in call.concreteTargets) {
+          _registerOverridesCalled(target, call, call.callNode, visited);
+        }
+      } else if (markCalled && call is StaticCallSiteTypeInformation) {
+        types.getInferredTypeOfMember(call.calledElement).markCalled();
       }
     }
   }
@@ -1279,13 +1282,6 @@ class InferrerEngine {
     return info;
   }
 
-  void close() {
-    for (MemberTypeInformation typeInformation
-        in types.memberTypeInformations.values) {
-      typeInformation.computeIsCalledOnce();
-    }
-  }
-
   void clear() {
     if (retainDataForTesting) return;
 
@@ -1319,9 +1315,28 @@ class InferrerEngine {
     _memberData.clear();
   }
 
+  Map<MemberEntity, Set<MemberEntity>>? _cachedCallersOfForTesting;
+
   Iterable<MemberEntity>? getCallersOfForTesting(MemberEntity element) {
-    MemberTypeInformation info = types.getInferredTypeOfMember(element);
-    return info.callersForTesting;
+    if (_cachedCallersOfForTesting == null) {
+      final callers = _cachedCallersOfForTesting = {};
+      for (final callSite in types.allocatedCalls) {
+        if (callSite is StaticCallSiteTypeInformation) {
+          (callers[callSite.calledElement] ??= {}).add(callSite.caller);
+        } else if (callSite is DynamicCallSiteTypeInformation) {
+          for (final target in callSite.concreteTargets) {
+            (callers[target.member] ??= {}).add(callSite.caller);
+            if (target.isVirtual) {
+              memberHierarchyBuilder.forEachOverride(target.member, (override) {
+                (callers[override] ??= {}).add(callSite.caller);
+                return IterationStep.CONTINUE;
+              });
+            }
+          }
+        }
+      }
+    }
+    return _cachedCallersOfForTesting![element];
   }
 
   /// Returns the type of [element] when being called with [selector].

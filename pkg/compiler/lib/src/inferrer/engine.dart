@@ -1044,9 +1044,16 @@ class InferrerEngine {
   }
 
   void close() {
-    for (MemberTypeInformation typeInformation
-        in types.memberTypeInformations.values) {
-      typeInformation.computeIsCalledOnce();
+    for (final callSite in types.allocatedCalls) {
+      void markCalled(MemberEntity member) {
+        types.getInferredTypeOfMember(member).markCalled();
+      }
+
+      if (callSite is StaticCallSiteTypeInformation) {
+        markCalled(callSite.calledElement);
+      } else if (callSite is DynamicCallSiteTypeInformation) {
+        callSite.callees.forEach(markCalled);
+      }
     }
   }
 
@@ -1083,9 +1090,22 @@ class InferrerEngine {
     _memberData.clear();
   }
 
+  Map<MemberEntity, Set<MemberEntity>>? _cachedCallersOfForTesting;
+
   Iterable<MemberEntity>? getCallersOfForTesting(MemberEntity element) {
-    MemberTypeInformation info = types.getInferredTypeOfMember(element);
-    return info.callersForTesting;
+    if (_cachedCallersOfForTesting == null) {
+      final callers = _cachedCallersOfForTesting = {};
+      for (final callSite in types.allocatedCalls) {
+        if (callSite is StaticCallSiteTypeInformation) {
+          (callers[callSite.calledElement] ??= {}).add(callSite.caller);
+        } else if (callSite is DynamicCallSiteTypeInformation) {
+          callSite.callees.forEach((callee) {
+            (callers[callee] ??= {}).add(callSite.caller);
+          });
+        }
+      }
+    }
+    return _cachedCallersOfForTesting![element];
   }
 
   /// Returns the type of [element] when being called with [selector].
