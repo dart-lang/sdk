@@ -10251,6 +10251,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ValueKinds.Pattern, node.fields.length)
     ]));
 
+    node.requiredType = analysisResult.requiredType;
+
     Pattern? replacement;
 
     InvalidExpression? error =
@@ -10873,15 +10875,65 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new RecordType(positional, namedFields, Nullability.nonNullable);
   }
 
+  /// Infers type arguments corresponding to [typeParameters] so that, when
+  /// substituted into [declaredType], the resulting type matches [contextType].
+  List<DartType> _inferTypeArguments(
+      {required List<TypeParameter> typeParameters,
+      required DartType declaredType,
+      required DartType contextType}) {
+    TypeConstraintGatherer gatherer = typeSchemaEnvironment
+        .setupGenericTypeInference(declaredType, typeParameters, contextType,
+            isNonNullableByDefault: isNonNullableByDefault);
+    List<DartType> inferredTypes = typeSchemaEnvironment.partialInfer(
+        gatherer, typeParameters, null,
+        isNonNullableByDefault: isNonNullableByDefault);
+    // Type inference may not be able to infer a type for every type parameter;
+    // if it can't fall back on the type parameter's bound.
+    // TODO(paulberry): this doesn't work if the type is F-bounded because in
+    // that case, the bound may refer to other type variables.
+    for (int i = 0; i < inferredTypes.length; i++) {
+      if (inferredTypes[i] is UnknownType) {
+        DartType bound = typeParameters[i].bound;
+        inferredTypes[i] = bound;
+      }
+    }
+    return inferredTypes;
+  }
+
   @override
   DartType downwardInferObjectPatternRequiredType({
     required DartType matchedType,
-    required Pattern pattern,
+    required covariant ObjectPatternInternal pattern,
   }) {
-    if (pattern is! ObjectPattern) return const InvalidType();
-    // TODO(johnniwinther): Update this when language issue #2770 has been
-    // resolved.
-    return pattern.requiredType;
+    DartType requiredType = pattern.requiredType;
+    if (!pattern.hasExplicitTypeArguments) {
+      if (pattern.typedef != null) {
+        // TODO(paulberry): handle typedefs properly.
+      }
+      if (requiredType is InterfaceType &&
+          requiredType.classNode.typeParameters.isNotEmpty) {
+        List<TypeParameter> typeParameters =
+            requiredType.classNode.typeParameters;
+
+        // It's possible that one of the callee type parameters might match a
+        // type that already exists as part of inference.  This might happen,
+        // for instance, in the case where a method in a generic class contains
+        // an object pattern naming the enclosing class.  To avoid creating
+        // invalid inference results, we need to create fresh type parameters.
+        FreshTypeParameters fresh = getFreshTypeParameters(typeParameters);
+        InterfaceType declaredType = new InterfaceType(requiredType.classNode,
+            requiredType.declaredNullability, fresh.freshTypeArguments);
+        typeParameters = fresh.freshTypeParameters;
+
+        List<DartType> inferredTypeArguments = _inferTypeArguments(
+            typeParameters: typeParameters,
+            declaredType: declaredType,
+            contextType: matchedType);
+        requiredType = new InterfaceType(requiredType.classNode,
+            requiredType.declaredNullability, inferredTypeArguments);
+      }
+    }
+    return requiredType;
   }
 
   @override

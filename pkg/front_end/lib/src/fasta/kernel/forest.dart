@@ -1038,11 +1038,6 @@ class Forest {
     return new NullCheckPattern(pattern)..fileOffset = fileOffset;
   }
 
-  ObjectPattern createObjectPattern(
-      int fileOffset, DartType type, List<NamedPattern> fields) {
-    return new ObjectPattern(type, fields)..fileOffset = fileOffset;
-  }
-
   OrPattern createOrPattern(int fileOffset, Pattern left, Pattern right,
       {required List<VariableDeclaration> orPatternJointVariables}) {
     return new OrPattern(left, right,
