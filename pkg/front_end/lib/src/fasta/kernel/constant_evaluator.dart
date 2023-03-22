@@ -442,6 +442,8 @@ class ConstantsTransformer extends RemovingTransformer {
   /// rewritten.
   bool get keepLocals => backend.keepLocals;
 
+  Library get currentLibrary => _staticTypeContext!.enclosingLibrary;
+
   // Transform the library/class members:
 
   void convertLibrary(Library library) {
@@ -1517,7 +1519,7 @@ class ConstantsTransformer extends RemovingTransformer {
       reportedErrors = [];
     }
     if (!useFallbackExhaustivenessAlgorithm) {
-      Library library = _staticTypeContext!.enclosingLibrary;
+      Library library = currentLibrary;
       for (ExhaustivenessError error in errors) {
         if (error is UnreachableCaseError) {
           if (library.importUri.isScheme('dart') &&
@@ -1558,7 +1560,7 @@ class ConstantsTransformer extends RemovingTransformer {
   TreeNode visitSwitchStatement(
       SwitchStatement node, TreeNode? removalSentinel) {
     TreeNode result = super.visitSwitchStatement(node, removalSentinel);
-    Library library = _staticTypeContext!.enclosingLibrary;
+    Library library = currentLibrary;
     // ignore: unnecessary_null_comparison
     if (library != null) {
       for (SwitchCase switchCase in node.cases) {
@@ -2183,6 +2185,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   final Map<Node, Constant?> nodeCache;
 
   late Map<Class, bool> primitiveEqualCache;
+  late Map<Class, bool> primitiveHashCodeCache;
 
   /// Classes that are considered having a primitive equals but where the
   /// `operator ==` is actually defined through as custom method. For instance
@@ -2209,6 +2212,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   bool get isNonNullableByDefault =>
       _staticTypeContext!.nonNullable == Nullability.nonNullable;
+
+  Library get currentLibrary => _staticTypeContext!.enclosingLibrary;
 
   late ConstantWeakener _weakener;
 
@@ -2247,6 +2252,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       coreTypes.symbolClass: true,
       coreTypes.typeClass: true,
     };
+    primitiveHashCodeCache = <Class, bool>{...primitiveEqualCache};
     _weakener = new ConstantWeakener(this);
   }
 
@@ -3648,20 +3654,37 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   Constant _handleEquals(Expression node, Constant left, Constant right) {
-    if (left is NullConstant ||
-        left is BoolConstant ||
-        left is IntConstant ||
-        left is DoubleConstant ||
-        left is StringConstant ||
-        right is NullConstant) {
-      // [DoubleConstant] uses [identical] to determine equality, so we need
-      // to take the special cases into account.
-      return doubleSpecialCases(left, right) ?? makeBoolConstant(left == right);
+    if (enablePrimitiveEquality) {
+      if (hasPrimitiveEqual(left) ||
+          left is DoubleConstant ||
+          right is NullConstant) {
+        return doubleSpecialCases(left, right) ??
+            makeBoolConstant(left == right);
+      } else {
+        return createEvaluationErrorConstant(
+            node,
+            templateConstEvalEqualsOperandNotPrimitiveEquality.withArguments(
+                left,
+                left.getType(_staticTypeContext!),
+                isNonNullableByDefault));
+      }
     } else {
-      return createEvaluationErrorConstant(
-          node,
-          templateConstEvalInvalidEqualsOperandType.withArguments(
-              left, left.getType(_staticTypeContext!), isNonNullableByDefault));
+      if (left is NullConstant ||
+          left is BoolConstant ||
+          left is IntConstant ||
+          left is DoubleConstant ||
+          left is StringConstant ||
+          right is NullConstant) {
+        // [DoubleConstant] uses [identical] to determine equality, so we need
+        // to take the special cases into account.
+        return doubleSpecialCases(left, right) ??
+            makeBoolConstant(left == right);
+      } else {
+        return createEvaluationErrorConstant(
+            node,
+            templateConstEvalInvalidEqualsOperandType.withArguments(left,
+                left.getType(_staticTypeContext!), isNonNullableByDefault));
+      }
     }
   }
 
@@ -4737,9 +4760,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitSymbolLiteral(SymbolLiteral node) {
-    final Reference? libraryReference = node.value.startsWith('_')
-        ? _staticTypeContext!.enclosingLibrary.reference
-        : null;
+    final Reference? libraryReference =
+        node.value.startsWith('_') ? currentLibrary.reference : null;
     return canonicalize(new SymbolConstant(node.value, libraryReference));
   }
 
@@ -4867,6 +4889,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return null;
   }
 
+  bool get enablePrimitiveEquality => currentLibrary.languageVersion.major >= 3;
+
   bool hasPrimitiveEqual(Constant constant,
       {bool allowPseudoPrimitive = true}) {
     if (intFolder.isInt(constant)) return true;
@@ -4892,9 +4916,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
     DartType type = constant.getType(_staticTypeContext!);
     if (type is InterfaceType) {
-      bool result = classHasPrimitiveEqual(type.classNode);
+      Class cls = type.classNode;
+      bool result = classHasPrimitiveEqual(cls);
       if (result && !allowPseudoPrimitive) {
-        result = !pseudoPrimitiveClasses.contains(type.classNode);
+        result = !pseudoPrimitiveClasses.contains(cls);
+      }
+      if (result && enablePrimitiveEquality) {
+        result = classHasPrimitiveHashCode(cls);
       }
       return result;
     }
@@ -4915,6 +4943,27 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (klass.supertype == null) return true; // To be on the safe side
     return primitiveEqualCache[klass] =
         classHasPrimitiveEqual(klass.supertype!.classNode);
+  }
+
+  bool classHasPrimitiveHashCode(Class klass) {
+    bool? cached = primitiveHashCodeCache[klass];
+    if (cached != null) return cached;
+    for (Procedure procedure in klass.procedures) {
+      if (procedure.kind == ProcedureKind.Getter &&
+          procedure.name.text == 'hashCode' &&
+          !procedure.isAbstract &&
+          !procedure.isForwardingStub) {
+        return primitiveHashCodeCache[klass] = false;
+      }
+    }
+    for (Field field in klass.fields) {
+      if (field.name.text == 'hashCode') {
+        return primitiveHashCodeCache[klass] = false;
+      }
+    }
+    if (klass.supertype == null) return true; // To be on the safe side
+    return primitiveHashCodeCache[klass] =
+        classHasPrimitiveHashCode(klass.supertype!.classNode);
   }
 
   BoolConstant makeBoolConstant(bool value) =>
@@ -6096,4 +6145,11 @@ class _PatternSwitchStatementInfo {
 
   _PatternSwitchStatementInfo(this.switchIndexVariable,
       this.innerLabeledStatement, this.switchCaseIndexMap);
+}
+
+enum PrimitiveEquality {
+  None,
+  EqualsOnly,
+  HashCodeOnly,
+  EqualsAndHashCode,
 }

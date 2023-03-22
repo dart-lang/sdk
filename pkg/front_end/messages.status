@@ -107,6 +107,10 @@ ConstEvalDeferredLibrary/example: Fail
 ConstEvalDuplicateElement/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalElementImplementsEqual/example: Fail
+ConstEvalElementNotPrimitiveEquality/analyzerCode: Fail
+ConstEvalElementNotPrimitiveEquality/example: Fail
+ConstEvalEqualsOperandNotPrimitiveEquality/analyzerCode: Fail
+ConstEvalEqualsOperandNotPrimitiveEquality/example: Fail
 ConstEvalError/analyzerCode: Fail
 ConstEvalError/example: Fail
 ConstEvalExtension/example: Fail
@@ -138,6 +142,8 @@ ConstEvalIterationInConstList/example: Fail
 ConstEvalIterationInConstMap/example: Fail
 ConstEvalIterationInConstSet/example: Fail
 ConstEvalKeyImplementsEqual/example: Fail
+ConstEvalKeyNotPrimitiveEquality/analyzerCode: Fail
+ConstEvalKeyNotPrimitiveEquality/example: Fail
 ConstEvalNegativeShift/analyzerCode: Fail # http://dartbug.com/33481
 ConstEvalNegativeShift/example: Fail
 ConstEvalNonConstantVariableGet/example: Fail

@@ -468,6 +468,72 @@ Message _withArgumentsConstEvalElementImplementsEqual(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>
+    templateConstEvalElementNotPrimitiveEquality = const Template<
+            Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The element '#constant' does not have a primitive equality.""",
+        withArguments: _withArgumentsConstEvalElementNotPrimitiveEquality);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
+    codeConstEvalElementNotPrimitiveEquality = const Code<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>(
+  "ConstEvalElementNotPrimitiveEquality",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalElementNotPrimitiveEquality(
+    Constant _constant, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalElementNotPrimitiveEquality,
+      problemMessage:
+          """The element '${constant}' does not have a primitive equality.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            Constant _constant, DartType _type, bool isNonNullableByDefault)>
+    templateConstEvalEqualsOperandNotPrimitiveEquality = const Template<
+            Message Function(Constant _constant, DartType _type,
+                bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'.""",
+        withArguments:
+            _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            Constant _constant, DartType _type, bool isNonNullableByDefault)>
+    codeConstEvalEqualsOperandNotPrimitiveEquality = const Code<
+        Message Function(
+            Constant _constant, DartType _type, bool isNonNullableByDefault)>(
+  "ConstEvalEqualsOperandNotPrimitiveEquality",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality(
+    Constant _constant, DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  List<Object> typeParts = labeler.labelType(_type);
+  String constant = constantParts.join();
+  String type = typeParts.join();
+  return new Message(codeConstEvalEqualsOperandNotPrimitiveEquality,
+      problemMessage:
+          """Binary operator '==' requires receiver constant '${constant}' of a type with primitive equality or type 'double', but was of type '${type}'.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateConstEvalFreeTypeParameter = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
@@ -861,6 +927,35 @@ Message _withArgumentsConstEvalKeyImplementsEqual(
   return new Message(codeConstEvalKeyImplementsEqual,
       problemMessage:
           """The key '${constant}' does not have a primitive operator '=='.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>
+    templateConstEvalKeyNotPrimitiveEquality = const Template<
+            Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The key '#constant' does not have a primitive equality.""",
+        withArguments: _withArgumentsConstEvalKeyNotPrimitiveEquality);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
+    codeConstEvalKeyNotPrimitiveEquality = const Code<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>(
+  "ConstEvalKeyNotPrimitiveEquality",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalKeyNotPrimitiveEquality(
+    Constant _constant, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalKeyNotPrimitiveEquality,
+      problemMessage:
+          """The key '${constant}' does not have a primitive equality.""" +
               labeler.originMessages,
       arguments: {'constant': _constant});
 }

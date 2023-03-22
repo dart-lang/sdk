@@ -139,9 +139,15 @@ ConstEvalElementImplementsEqual:
   problemMessage: "The element '#constant' does not have a primitive operator '=='."
   analyzerCode: CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS
 
+ConstEvalElementNotPrimitiveEquality:
+  problemMessage: "The element '#constant' does not have a primitive equality."
+
 ConstEvalKeyImplementsEqual:
   problemMessage: "The key '#constant' does not have a primitive operator '=='."
   analyzerCode: CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+
+ConstEvalKeyNotPrimitiveEquality:
+  problemMessage: "The key '#constant' does not have a primitive equality."
 
 ConstEvalCaseImplementsEqual:
   problemMessage: "Case expression '#constant' does not have a primitive operator '=='."
@@ -154,6 +160,9 @@ ConstEvalInvalidBinaryOperandType:
 
 ConstEvalInvalidEqualsOperandType:
   problemMessage: "Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'."
+
+ConstEvalEqualsOperandNotPrimitiveEquality:
+  problemMessage: "Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'."
 
 ConstEvalZeroDivisor:
   problemMessage: "Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'."

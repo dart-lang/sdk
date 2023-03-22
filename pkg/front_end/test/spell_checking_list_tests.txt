@@ -64,6 +64,7 @@ bailout
 bar'baz
 bar\'baz
 barbar
+baseline
 bash
 bat
 bazbaz
@@ -113,6 +114,7 @@ cb
 cc
 ccc
 cdee
+center
 certificate
 cf
 characteristics
@@ -639,6 +641,7 @@ stay
 std
 stopwatches
 stress
+stretch
 stringy
 strip
 strongest
@@ -669,6 +672,7 @@ thereby
 thereof
 thread
 ticks
+tile
 timed
 timeout
 timer
