@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
@@ -52,6 +53,7 @@ class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
 
     var visitor = _Visitor(this, context);
     registry.addFieldDeclaration(this, visitor);
+    registry.addPatternVariableDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
   }
@@ -63,12 +65,40 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LinterContext context;
   _Visitor(this.rule, this.context);
 
+  void check(AstNode element) {
+    if (element is! DeclaredVariablePattern) return;
+    var type = element.declaredElement?.type;
+    if (type == null) return;
+    if (type.isDynamic) return;
+    var valueType = element.matchedValueType;
+    if (valueType == null) return;
+    if (context.typeSystem.isNullable(type) &&
+        context.typeSystem.isNonNullable(valueType)) {
+      rule.reportLint(element);
+    }
+  }
+
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var variable in node.fields.variables) {
       if (Identifier.isPrivateName(variable.name.lexeme) || node.isStatic) {
         _visit(variable);
       }
+    }
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    if (node.keyword.keyword != Keyword.FINAL) return;
+
+    var pattern = node.pattern;
+    if (pattern is RecordPattern) {
+      for (var field in pattern.fields) {
+        check(field.pattern);
+      }
+    }
+    if (pattern is ListPattern) {
+      pattern.elements.forEach(check);
     }
   }
 

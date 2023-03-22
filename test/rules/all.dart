@@ -110,6 +110,8 @@ import 'unnecessary_lambdas_test.dart' as unnecessary_lambdas;
 import 'unnecessary_library_directive_test.dart'
     as unnecessary_library_directive;
 import 'unnecessary_null_checks_test.dart' as unnecessary_null_checks;
+import 'unnecessary_nullable_for_final_variable_declarations_test.dart'
+    as unnecessary_nullable_for_final_variable_declarations;
 import 'unnecessary_overrides_test.dart' as unnecessary_overrides;
 import 'unnecessary_parenthesis_test.dart' as unnecessary_parenthesis;
 import 'unnecessary_string_escapes_test.dart' as unnecessary_string_escapes;
@@ -205,6 +207,7 @@ void main() {
   unnecessary_final.main();
   unnecessary_lambdas.main();
   unnecessary_library_directive.main();
+  unnecessary_nullable_for_final_variable_declarations.main();
   unnecessary_null_checks.main();
   unnecessary_overrides.main();
   unnecessary_parenthesis.main();
