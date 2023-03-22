@@ -41,9 +41,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:meta/meta.dart';
 
-@Deprecated('Use PatternField and visitPatternField() instead')
-typedef RecordPatternField = PatternField;
-
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
 ///
@@ -2694,7 +2691,7 @@ abstract class FunctionBody implements AstNode {
   /// level function or method containing this [FunctionBody], return `false`.
   ///
   /// Throws an exception if resolution has not yet been performed.
-  /// TODO(scheglov) This method is not used.
+  @Deprecated('Not used by clients')
   bool isPotentiallyMutatedInClosure(VariableElement variable);
 
   /// If [variable] is a local variable or parameter declared anywhere within

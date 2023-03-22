@@ -5035,7 +5035,7 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
-      if (isNullSafetyEnabled) error(HintCode.DEAD_CODE, 37, 1),
+      if (isNullSafetyEnabled) error(WarningCode.DEAD_CODE, 37, 1),
     ]);
     expectInitializerType('foo', isNullSafetyEnabled ? 'int?' : 'int');
   }
@@ -5047,7 +5047,7 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
-      if (isNullSafetyEnabled) error(HintCode.DEAD_CODE, 34, 4),
+      if (isNullSafetyEnabled) error(WarningCode.DEAD_CODE, 34, 4),
     ]);
     expectInitializerType('foo', isNullSafetyEnabled ? 'int?' : 'int');
   }

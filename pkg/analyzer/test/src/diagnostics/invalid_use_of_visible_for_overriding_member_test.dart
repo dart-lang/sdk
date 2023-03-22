@@ -111,6 +111,29 @@ class B {
     ]);
   }
 
+  test_getter_inObjectPattern() async {
+    newFile('$testPackageLibPath/a.dart', '''
+import 'package:meta/meta.dart';
+
+class A {
+  @visibleForOverriding
+  int get g => 0;
+}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+void f(Object o) {
+  switch (o) {
+    case A(g: 7): print('yes');
+  }
+}
+''', [
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 63, 1),
+    ]);
+  }
+
   test_operator() async {
     newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';

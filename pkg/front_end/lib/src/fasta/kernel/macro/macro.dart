@@ -701,13 +701,13 @@ class MacroApplications {
             typeParameters: [],
             interfaces: _typeBuildersToAnnotations(
                 builder.libraryBuilder, builder.interfaceBuilders),
-            isAbstract: builder.isAbstract,
-            isBase: builder.isBase,
-            isExternal: builder.isExternal,
-            isFinal: builder.isFinal,
-            isInterface: builder.isInterface,
-            isMixin: builder.isMixinClass,
-            isSealed: builder.isSealed,
+            hasAbstract: builder.isAbstract,
+            hasBase: builder.isBase,
+            hasExternal: builder.isExternal,
+            hasFinal: builder.isFinal,
+            hasInterface: builder.isInterface,
+            hasMixin: builder.isMixinClass,
+            hasSealed: builder.isSealed,
             mixins: _typeBuildersToAnnotations(builder.libraryBuilder, mixins),
             superclass: supertypeBuilder != null
                 ? _computeTypeAnnotation(

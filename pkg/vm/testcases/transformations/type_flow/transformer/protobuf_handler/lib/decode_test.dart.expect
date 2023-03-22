@@ -2,7 +2,7 @@ library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "generated/foo.pb.dart" as pb;
 import "package:test_core/scaffolding.dart" as sca;
-import "package:test_api/src/expect/expect.dart" as exp;
+import "package:matcher/src/expect/expect.dart" as exp;
 import "dart:core" as core;
 
 import "package:test/test.dart";

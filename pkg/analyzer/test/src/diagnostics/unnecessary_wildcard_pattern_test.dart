@@ -94,7 +94,7 @@ void f(Object? x) {
   if (x case _ || 0) {}
 }
 ''', [
-      error(HintCode.DEAD_CODE, 35, 4),
+      error(WarningCode.DEAD_CODE, 35, 4),
     ]);
   }
 

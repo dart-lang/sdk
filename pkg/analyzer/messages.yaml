@@ -19240,175 +19240,6 @@ HintCode:
       subsequent invocations should also use '?.' operator.
 
       Note: This diagnostic is only generated in pre-null safe code.
-  DEAD_CODE:
-    problemMessage: Dead code.
-    correctionMessage: Try removing the code, or fixing the code before it so that it can be reached.
-    hasPublishedDocs: true
-    comment: |-
-      Dead code is code that is never reached, this can happen for instance if a
-      statement follows a return statement.
-
-      No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when code is found that won't be
-      executed because execution will never reach the code.
-
-      #### Example
-
-      The following code produces this diagnostic because the invocation of
-      `print` occurs after the function has returned:
-
-      ```dart
-      void f() {
-        return;
-        [!print('here');!]
-      }
-      ```
-
-      #### Common fixes
-
-      If the code isn't needed, then remove it:
-
-      ```dart
-      void f() {
-        return;
-      }
-      ```
-
-      If the code needs to be executed, then either move the code to a place
-      where it will be executed:
-
-      ```dart
-      void f() {
-        print('here');
-        return;
-      }
-      ```
-
-      Or, rewrite the code before it, so that it can be reached:
-
-      ```dart
-      void f({bool skipPrinting = true}) {
-        if (skipPrinting) {
-          return;
-        }
-        print('here');
-      }
-      ```
-  DEAD_CODE_CATCH_FOLLOWING_CATCH:
-    problemMessage: "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' are never reached."
-    correctionMessage: Try reordering the catch clauses so that they can be reached, or removing the unreachable catch clauses.
-    hasPublishedDocs: true
-    comment: |-
-      Dead code is code that is never reached. This case covers cases where the
-      user has catch clauses after `catch (e)` or `on Object catch (e)`.
-
-      No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a `catch` clause is found that
-      can't be executed because it's after a `catch` clause of the form
-      `catch (e)` or `on Object catch (e)`. The first `catch` clause that matches
-      the thrown object is selected, and both of those forms will match any
-      object, so no `catch` clauses that follow them will be selected.
-
-      #### Example
-
-      The following code produces this diagnostic:
-
-      ```dart
-      void f() {
-        try {
-        } catch (e) {
-        } [!on String {
-        }!]
-      }
-      ```
-
-      #### Common fixes
-
-      If the clause should be selectable, then move the clause before the general
-      clause:
-
-      ```dart
-      void f() {
-        try {
-        } on String {
-        } catch (e) {
-        }
-      }
-      ```
-
-      If the clause doesn't need to be selectable, then remove it:
-
-      ```dart
-      void f() {
-        try {
-        } catch (e) {
-        }
-      }
-      ```
-  DEAD_CODE_ON_CATCH_SUBTYPE:
-    problemMessage: "Dead code: This on-catch block won't be executed because '{0}' is a subtype of '{1}' and hence will have been caught already."
-    correctionMessage: Try reordering the catch clauses so that this block can be reached, or removing the unreachable catch clause.
-    hasPublishedDocs: true
-    comment: |-
-      Dead code is code that is never reached. This case covers cases where the
-      user has an on-catch clause such as `on A catch (e)`, where a supertype of
-      `A` was already caught.
-
-      Parameters:
-      0: name of the subtype
-      1: name of the supertype
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a `catch` clause is found that
-      can't be executed because it is after a `catch` clause that catches either
-      the same type or a supertype of the clause's type. The first `catch` clause
-      that matches the thrown object is selected, and the earlier clause always
-      matches anything matchable by the highlighted clause, so the highlighted
-      clause will never be selected.
-
-      #### Example
-
-      The following code produces this diagnostic:
-
-      ```dart
-      void f() {
-        try {
-        } on num {
-        } [!on int {
-        }!]
-      }
-      ```
-
-      #### Common fixes
-
-      If the clause should be selectable, then move the clause before the general
-      clause:
-
-      ```dart
-      void f() {
-        try {
-        } on int {
-        } on num {
-        }
-      }
-      ```
-
-      If the clause doesn't need to be selectable, then remove it:
-
-      ```dart
-      void f() {
-        try {
-        } on num {
-        }
-      }
-      ```
   DEPRECATED_COLON_FOR_DEFAULT_VALUE:
     problemMessage: Using a colon as a separator before a default value is deprecated and will not be supported in language version 3.0 and later.
     correctionMessage: Try replacing the colon with an equal sign.
@@ -21755,8 +21586,174 @@ WarningCode:
       }
       ```
   DEAD_CODE:
-    aliasFor: HintCode.DEAD_CODE
-    comment: This is the new replacement for [HintCode.DEAD_CODE].
+    problemMessage: Dead code.
+    correctionMessage: Try removing the code, or fixing the code before it so that it can be reached.
+    hasPublishedDocs: true
+    comment: |-
+      Dead code is code that is never reached, this can happen for instance if a
+      statement follows a return statement.
+
+      No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when code is found that won't be
+      executed because execution will never reach the code.
+
+      #### Example
+
+      The following code produces this diagnostic because the invocation of
+      `print` occurs after the function has returned:
+
+      ```dart
+      void f() {
+        return;
+        [!print('here');!]
+      }
+      ```
+
+      #### Common fixes
+
+      If the code isn't needed, then remove it:
+
+      ```dart
+      void f() {
+        return;
+      }
+      ```
+
+      If the code needs to be executed, then either move the code to a place
+      where it will be executed:
+
+      ```dart
+      void f() {
+        print('here');
+        return;
+      }
+      ```
+
+      Or, rewrite the code before it, so that it can be reached:
+
+      ```dart
+      void f({bool skipPrinting = true}) {
+        if (skipPrinting) {
+          return;
+        }
+        print('here');
+      }
+      ```
+  DEAD_CODE_CATCH_FOLLOWING_CATCH:
+    problemMessage: "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' are never reached."
+    correctionMessage: Try reordering the catch clauses so that they can be reached, or removing the unreachable catch clauses.
+    hasPublishedDocs: true
+    comment: |-
+      Dead code is code that is never reached. This case covers cases where the
+      user has catch clauses after `catch (e)` or `on Object catch (e)`.
+
+      No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `catch` clause is found that
+      can't be executed because it's after a `catch` clause of the form
+      `catch (e)` or `on Object catch (e)`. The first `catch` clause that matches
+      the thrown object is selected, and both of those forms will match any
+      object, so no `catch` clauses that follow them will be selected.
+
+      #### Example
+
+      The following code produces this diagnostic:
+
+      ```dart
+      void f() {
+        try {
+        } catch (e) {
+        } [!on String {
+        }!]
+      }
+      ```
+
+      #### Common fixes
+
+      If the clause should be selectable, then move the clause before the general
+      clause:
+
+      ```dart
+      void f() {
+        try {
+        } on String {
+        } catch (e) {
+        }
+      }
+      ```
+
+      If the clause doesn't need to be selectable, then remove it:
+
+      ```dart
+      void f() {
+        try {
+        } catch (e) {
+        }
+      }
+      ```
+  DEAD_CODE_ON_CATCH_SUBTYPE:
+    problemMessage: "Dead code: This on-catch block won't be executed because '{0}' is a subtype of '{1}' and hence will have been caught already."
+    correctionMessage: Try reordering the catch clauses so that this block can be reached, or removing the unreachable catch clause.
+    hasPublishedDocs: true
+    comment: |-
+      Dead code is code that is never reached. This case covers cases where the
+      user has an on-catch clause such as `on A catch (e)`, where a supertype of
+      `A` was already caught.
+
+      Parameters:
+      0: name of the subtype
+      1: name of the supertype
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `catch` clause is found that
+      can't be executed because it is after a `catch` clause that catches either
+      the same type or a supertype of the clause's type. The first `catch` clause
+      that matches the thrown object is selected, and the earlier clause always
+      matches anything matchable by the highlighted clause, so the highlighted
+      clause will never be selected.
+
+      #### Example
+
+      The following code produces this diagnostic:
+
+      ```dart
+      void f() {
+        try {
+        } on num {
+        } [!on int {
+        }!]
+      }
+      ```
+
+      #### Common fixes
+
+      If the clause should be selectable, then move the clause before the general
+      clause:
+
+      ```dart
+      void f() {
+        try {
+        } on int {
+        } on num {
+        }
+      }
+      ```
+
+      If the clause doesn't need to be selectable, then remove it:
+
+      ```dart
+      void f() {
+        try {
+        } on num {
+        }
+      }
+      ```
   DEPRECATED_EXTENDS_FUNCTION:
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
     problemMessage: "Extending 'Function' is deprecated."

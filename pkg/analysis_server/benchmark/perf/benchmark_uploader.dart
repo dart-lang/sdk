@@ -16,8 +16,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-const countRuns = 2;
-
 void main(List<String> args) async {
   try {
     final results = <Map<String, dynamic>>[];
@@ -44,6 +42,8 @@ void main(List<String> args) async {
     print('$e\n$st');
   }
 }
+
+const countRuns = 2;
 
 Future<List<Map<String, dynamic>>> runBenchmarks({required bool warm}) async {
   final temperature = warm ? 'warm' : 'cold';

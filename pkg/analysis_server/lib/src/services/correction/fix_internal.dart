@@ -1361,19 +1361,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
       ReplaceWithNullAware.inChain,
     ],
-    HintCode.DEAD_CODE: [
-      RemoveDeadCode.new,
-    ],
-    HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
-      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
-      //  a place where it can be reached (when possible).
-      RemoveDeadCode.new,
-    ],
-    HintCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
-      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
-      //  a place where it can be reached (when possible).
-      RemoveDeadCode.new,
-    ],
     HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
       ReplaceColonWithEquals.new,
     ],
@@ -1478,6 +1465,19 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
       AddReturnNull.new,
+    ],
+    WarningCode.DEAD_CODE: [
+      RemoveDeadCode.new,
+    ],
+    WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
+      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      //  a place where it can be reached (when possible).
+      RemoveDeadCode.new,
+    ],
+    WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
+      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      //  a place where it can be reached (when possible).
+      RemoveDeadCode.new,
     ],
     WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
       RemoveNameFromDeclarationClause.new,

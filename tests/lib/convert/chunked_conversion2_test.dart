@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 // Test that the String and ByteConversionSinks make a copy when they need to
 // adapt.
 
-class MyByteSink extends ByteConversionSink {
+class MyByteSink extends ByteConversionSinkBase {
   var accumulator = [];
   add(List<int> bytes) {
     accumulator.add(bytes);
@@ -28,7 +28,7 @@ void testBase() {
   Expect.equals(2, byteSink.accumulator[1][0]);
 }
 
-class MyChunkedSink implements ChunkedConversionSink<List<int>> {
+class MyChunkedSink extends ChunkedConversionSink<List<int>> {
   var accumulator = [];
   add(List<int> bytes) {
     accumulator.add(bytes);

@@ -390,6 +390,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, node);
     }
+    super.visitCastPattern(node);
   }
 
   @override
@@ -804,6 +805,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitNamedType(node);
+  }
+
+  @override
+  void visitPatternField(PatternField node) {
+    _invalidAccessVerifier.verifyPatternField(node as PatternFieldImpl);
+    super.visitPatternField(node);
   }
 
   @override
@@ -2077,6 +2084,30 @@ class _InvalidAccessVerifier {
     }
   }
 
+  void verifyPatternField(PatternFieldImpl node) {
+    var element = node.element;
+    if (element == null || _inCurrentLibrary(element)) {
+      return;
+    }
+
+    if (_hasInternal(element) &&
+        !_isLibraryInWorkspacePackage(element.library)) {
+      var fieldName = node.name;
+      if (fieldName == null) {
+        return;
+      }
+      var errorEntity = node.errorEntity;
+
+      _errorReporter.reportErrorForOffset(
+          WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+          errorEntity.offset,
+          errorEntity.length,
+          [element.displayName]);
+    }
+
+    _checkForOtherInvalidAccess(node, element);
+  }
+
   void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
     if (node.constructorName != null) {
       // Named constructor calls are handled by [verify].
@@ -2090,8 +2121,7 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void _checkForInvalidInternalAccess(
-      SimpleIdentifier identifier, Element element) {
+  void _checkForInvalidInternalAccess(Identifier identifier, Element element) {
     if (_hasInternal(element) &&
         !_isLibraryInWorkspacePackage(element.library)) {
       String name;
@@ -2112,8 +2142,7 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void _checkForOtherInvalidAccess(
-      SimpleIdentifier identifier, Element element) {
+  void _checkForOtherInvalidAccess(AstNode node, Element element) {
     bool hasProtected = _hasProtected(element);
     if (hasProtected) {
       var definingClass = element.enclosingElement as InterfaceElement;
@@ -2122,16 +2151,16 @@ class _InvalidAccessVerifier {
       }
     }
 
-    bool hasVisibleForTemplate = _hasVisibleForTemplate(element);
-    if (hasVisibleForTemplate) {
-      if (_inTemplateSource || _inExportDirective(identifier)) {
+    bool isVisibleForTemplateApplied = _isVisibleForTemplateApplied(element);
+    if (isVisibleForTemplateApplied) {
+      if (_inTemplateSource || _inExportDirective(node)) {
         return;
       }
     }
 
     bool hasVisibleForTesting = _hasVisibleForTesting(element);
     if (hasVisibleForTesting) {
-      if (_inTestDirectory || _inExportDirective(identifier)) {
+      if (_inTestDirectory || _inExportDirective(node)) {
         return;
       }
     }
@@ -2143,37 +2172,49 @@ class _InvalidAccessVerifier {
     // annotation present.
 
     String name;
-    AstNode node;
+    SyntacticEntity errorEntity = node;
 
-    var grandparent = identifier.parent?.parent;
-
-    if (grandparent is ConstructorName) {
-      name = grandparent.toSource();
-      node = grandparent;
+    var grandparent = node.parent?.parent;
+    if (node is Identifier) {
+      if (grandparent is ConstructorName) {
+        name = grandparent.toSource();
+        errorEntity = grandparent;
+      } else {
+        name = node.name;
+      }
+    } else if (node is PatternFieldImpl) {
+      name = element.displayName;
+      errorEntity = node.errorEntity;
     } else {
-      name = identifier.name;
-      node = identifier;
+      throw StateError('Can only handle Identifier or PatternField, but got '
+          '${node.runtimeType}');
     }
 
     var definingClass = element.enclosingElement;
-    if (hasProtected) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
-          node,
-          [name, definingClass!.source!.uri]);
+    if (definingClass == null) {
+      return;
     }
-    if (hasVisibleForTemplate) {
-      _errorReporter.reportErrorForNode(
+    if (hasProtected) {
+      _errorReporter.reportErrorForOffset(
+          WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
+          errorEntity.offset,
+          errorEntity.length,
+          [name, definingClass.source!.uri]);
+    }
+    if (isVisibleForTemplateApplied) {
+      _errorReporter.reportErrorForOffset(
           WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
-          node,
-          [name, definingClass!.source!.uri]);
+          errorEntity.offset,
+          errorEntity.length,
+          [name, definingClass.source!.uri]);
     }
 
     if (hasVisibleForTesting) {
-      _errorReporter.reportErrorForNode(
+      _errorReporter.reportErrorForOffset(
           WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
-          node,
-          [name, definingClass!.source!.uri]);
+          errorEntity.offset,
+          errorEntity.length,
+          [name, definingClass.source!.uri]);
     }
 
     if (hasVisibleForOverriding) {
@@ -2183,14 +2224,15 @@ class _InvalidAccessVerifier {
           parent is PropertyAccess && parent.target is SuperExpression) {
         var methodDeclaration =
             grandparent?.thisOrAncestorOfType<MethodDeclaration>();
-        if (methodDeclaration?.name.lexeme == identifier.name) {
+        if (methodDeclaration?.name.lexeme == name) {
           validOverride = true;
         }
       }
       if (!validOverride) {
-        _errorReporter.reportErrorForNode(
+        _errorReporter.reportErrorForOffset(
             WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
-            node,
+            errorEntity.offset,
+            errorEntity.length,
             [name]);
       }
     }
@@ -2257,6 +2299,10 @@ class _InvalidAccessVerifier {
         element.variable.hasVisibleForTemplate) {
       return true;
     }
+    final enclosingElement = element.enclosingElement;
+    if (_hasVisibleForTemplate(enclosingElement)) {
+      return true;
+    }
     return false;
   }
 
@@ -2278,9 +2324,8 @@ class _InvalidAccessVerifier {
 
   bool _inCurrentLibrary(Element element) => element.library == _library;
 
-  bool _inExportDirective(SimpleIdentifier identifier) =>
-      identifier.parent is Combinator &&
-      identifier.parent!.parent is ExportDirective;
+  bool _inExportDirective(AstNode node) =>
+      node.parent is Combinator && node.parent!.parent is ExportDirective;
 
   bool _isLibraryInWorkspacePackage(LibraryElement? library) {
     if (_workspacePackage == null || library == null) {
@@ -2289,6 +2334,21 @@ class _InvalidAccessVerifier {
       return false;
     }
     return _workspacePackage!.contains(library.source);
+  }
+
+  /// Check if @visibleForTemplate is applied to the given [Element].
+  ///
+  /// [ClassElement] and [EnumElement] are excluded from the @visibleForTemplate
+  /// access checks. Instead, the access restriction is cascaded to the
+  /// corresponding class members and enum constants. For other types of
+  /// elements, check if they are annotated based on `hasVisibleForTemplate`
+  /// value.
+  bool _isVisibleForTemplateApplied(Element? element) {
+    if (element is ClassElement || element is EnumElement) {
+      return false;
+    } else {
+      return _hasVisibleForTemplate(element);
+    }
   }
 }
 

@@ -207,13 +207,7 @@ B? b;
         modifiedOtherFileContent: modifiedOtherFileContent);
   }
 
-  @failingTest
   Future<void> test_imports_referenceInThirdFile_withMultiplePrefixes() async {
-    // This fails for two reasons:
-    // 1. The indexer isn't recording when a top-level element is referenced
-    //    without a prefix.
-    // 2. The method `DartFileEditBuilderImpl._importLibrary` doesn't support
-    //    importing the same URI with multiple prefixes.
     var originalSource = '''
 class A {}
 

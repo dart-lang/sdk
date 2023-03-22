@@ -25,50 +25,6 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage: "Replace the '.' with a '?.' in the invocation.",
   );
 
-  ///  Dead code is code that is never reached, this can happen for instance if a
-  ///  statement follows a return statement.
-  ///
-  ///  No parameters.
-  static const HintCode DEAD_CODE = HintCode(
-    'DEAD_CODE',
-    "Dead code.",
-    correctionMessage:
-        "Try removing the code, or fixing the code before it so that it can be "
-        "reached.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Dead code is code that is never reached. This case covers cases where the
-  ///  user has catch clauses after `catch (e)` or `on Object catch (e)`.
-  ///
-  ///  No parameters.
-  static const HintCode DEAD_CODE_CATCH_FOLLOWING_CATCH = HintCode(
-    'DEAD_CODE_CATCH_FOLLOWING_CATCH',
-    "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' "
-        "are never reached.",
-    correctionMessage:
-        "Try reordering the catch clauses so that they can be reached, or "
-        "removing the unreachable catch clauses.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Dead code is code that is never reached. This case covers cases where the
-  ///  user has an on-catch clause such as `on A catch (e)`, where a supertype of
-  ///  `A` was already caught.
-  ///
-  ///  Parameters:
-  ///  0: name of the subtype
-  ///  1: name of the supertype
-  static const HintCode DEAD_CODE_ON_CATCH_SUBTYPE = HintCode(
-    'DEAD_CODE_ON_CATCH_SUBTYPE',
-    "Dead code: This on-catch block won't be executed because '{0}' is a "
-        "subtype of '{1}' and hence will have been caught already.",
-    correctionMessage:
-        "Try reordering the catch clauses so that this block can be reached, "
-        "or removing the unreachable catch clause.",
-    hasPublishedDocs: true,
-  );
-
   ///  No parameters.
   static const HintCode DEPRECATED_COLON_FOR_DEFAULT_VALUE = HintCode(
     'DEPRECATED_COLON_FOR_DEFAULT_VALUE',

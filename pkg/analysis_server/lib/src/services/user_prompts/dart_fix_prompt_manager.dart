@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// Handles prompting the user to run "dart fix" when they have diagnostics that
@@ -50,6 +51,13 @@ class DartFixPromptManager {
   /// Set on the first prompt, and used to avoid prompting again.
   bool _hasPromptedThisSession = false;
 
+  /// A map of context root paths to their version constraint strings the last
+  /// time we checked for fixes.
+  ///
+  /// Usually checks are throttled but when constraints change (or the set of
+  /// context paths) additional checks are allowed.
+  Map<String, String?> _lastContextSdkVersionConstraints = {};
+
   DartFixPromptManager(this.server, this.preferences);
 
   @visibleForTesting
@@ -59,6 +67,16 @@ class DartFixPromptManager {
         BulkFixProcessor(server.instrumentationService, workspace);
 
     return processor.hasFixes(server.contextManager.analysisContexts);
+  }
+
+  /// Gets a map of context root paths to their version constraint strings.
+  @visibleForTesting
+  Map<String, String?> get currentContextSdkConstraints {
+    return {
+      for (final context in server.contextManager.analysisContexts)
+        context.contextRoot.root.path:
+            context.analysisOptions.sdkVersionConstraint?.toString(),
+    };
   }
 
   bool get hasCheckedRecently {
@@ -118,12 +136,21 @@ class DartFixPromptManager {
     if (_hasPromptedThisSession ||
         !server.supportsShowMessageRequest ||
         !server.supportsOpenUriNotification ||
-        hasCheckedRecently ||
         !preferences.showDartFixPrompts) {
       return;
     }
 
-    // Perform the (expensive) check.
+    // Don't show if we've recently shown unless our roots or their SDK
+    // constraints have changed.
+    final newConstraints = currentContextSdkConstraints;
+    if (hasCheckedRecently &&
+        const MapEquality()
+            .equals(newConstraints, _lastContextSdkVersionConstraints)) {
+      return;
+    }
+    _lastContextSdkVersionConstraints = newConstraints;
+
+    // Perform the (potentially expensive) check.
     lastCheck = DateTime.now();
     if (!(await bulkFixesAvailable)) {
       return;

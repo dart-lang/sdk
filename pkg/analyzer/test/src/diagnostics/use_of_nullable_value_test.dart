@@ -1274,7 +1274,7 @@ m() {
   if(!x) {}
 }
 ''', [
-      error(HintCode.DEAD_CODE, 32, 2),
+      error(WarningCode.DEAD_CODE, 32, 2),
     ]);
   }
 
@@ -1526,7 +1526,7 @@ m() {
   if(x || false) {}
 }
 ''', [
-      error(HintCode.DEAD_CODE, 30, 8),
+      error(WarningCode.DEAD_CODE, 30, 8),
     ]);
   }
 

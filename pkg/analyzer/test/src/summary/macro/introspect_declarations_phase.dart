@@ -68,8 +68,8 @@ class _DeclarationPrinter {
 
   Future<void> writeClassDeclaration(IntrospectableClassDeclaration e) async {
     _sink.write(_indent);
-    _writeIf(e.isAbstract, 'abstract ');
-    _writeIf(e.isExternal, 'external ');
+    _writeIf(e.hasAbstract, 'abstract ');
+    _writeIf(e.hasExternal, 'external ');
 
     _writeln('class ${e.identifier.name}');
 

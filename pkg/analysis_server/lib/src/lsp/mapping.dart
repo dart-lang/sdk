@@ -33,7 +33,7 @@ import 'package:collection/collection.dart';
 const languageSourceName = 'dart';
 
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
-  _errorCode(HintCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
+  _errorCode(WarningCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE): [lsp.DiagnosticTag.Deprecated],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
     lsp.DiagnosticTag.Deprecated

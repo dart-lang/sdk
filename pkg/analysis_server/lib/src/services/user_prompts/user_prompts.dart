@@ -42,8 +42,13 @@ class UserPromptPreferences {
     try {
       final contents = preferencesFile.readAsStringSync();
       return jsonDecode(contents) as Map<String, Object?>;
-    } catch (_) {
-      // File may not exist / could be corrupt.
+    } on FileSystemException catch (_) {
+      // File did not exist, do nothing.
+      return null;
+    } on FormatException catch (e) {
+      instrumentationService.logError(
+        'Failed to parse preferences JSON from ${preferencesFile.path}: $e',
+      );
       return null;
     }
   }
@@ -88,9 +93,12 @@ class UserPromptPreferences {
 
   /// Writes [value] for [name] to the preferences file.
   ///
+  /// Only [bool], [num], [String] are allowed.
+  ///
   /// Returns whether the write was successful. If unsuccessful, the error is
   /// written to the instrumentation log.
   bool _writeValue<T>(String name, T value) {
+    assert(value is bool || value is num || value is String);
     final data = _readFile() ?? {};
     data[name] = value;
     return _writeFile(data);

@@ -29,9 +29,7 @@ class InvalidUseOfInternalMemberTest extends PubPackageResolutionTest {
         ..add(
           name: 'foo',
           rootPath: fooPackageRootPath,
-          languageVersion: '2.9',
         ),
-      languageVersion: '2.9',
       meta: true,
     );
   }
@@ -63,6 +61,96 @@ class A {}
 import 'package:foo/src/a.dart';
 
 A a = A();
+''', [
+      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 34, 1),
+    ]);
+  }
+
+  test_outsidePackage_class_inAsExpression() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+class A {}
+''');
+
+    await assertErrorsInCode('''
+import 'package:foo/src/a.dart';
+
+void f(Object o) {
+  o as A;
+}
+''', [
+      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 60, 1),
+    ]);
+  }
+
+  test_outsidePackage_class_inCastPattern() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+class A {}
+''');
+
+    await assertErrorsInCode('''
+import 'package:foo/src/a.dart';
+
+void f(Object a, Object b) {
+  (b as A, ) = (a, );
+}
+''', [
+      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 71, 1),
+    ]);
+  }
+
+  test_outsidePackage_class_inIsExpression() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+class A {}
+''');
+
+    await assertErrorsInCode('''
+import 'package:foo/src/a.dart';
+
+void f(Object o) {
+  o is A;
+}
+''', [
+      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 60, 1),
+    ]);
+  }
+
+  test_outsidePackage_class_inObjectPattern() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+class A {}
+''');
+
+    await assertErrorsInCode('''
+import 'package:foo/src/a.dart';
+
+void f(Object a, Object b) {
+  switch (a) {
+    case A(): print('yes');
+  }
+}
+''', [
+      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 87, 1),
+    ]);
+  }
+
+  test_outsidePackage_class_inVariableDeclarationType() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+class A {}
+''');
+
+    await assertErrorsInCode('''
+import 'package:foo/src/a.dart';
+
+A? a;
 ''', [
       error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 34, 1),
     ]);
@@ -150,6 +238,28 @@ import 'package:foo/src/a.dart';
 int a = 'hello'.f();
 ''', [
       error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 50, 1),
+    ]);
+  }
+
+  test_outsidePackage_field_inObjectPattern() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+class A {
+  @internal
+  int get a => 42;
+}
+''');
+
+    await assertErrorsInCode('''
+import 'package:foo/src/a.dart';
+
+void f(Object o) {
+  switch (o) {
+    case A(a: 7): print('yes');
+  }
+}
+''', [
+      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 79, 1),
     ]);
   }
 
@@ -491,7 +601,7 @@ f() {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
-  int get s() => 1;
+  int? get s() => 1;
 
   @internal
   set s(int value) {}

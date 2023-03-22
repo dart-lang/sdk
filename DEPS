@@ -73,7 +73,7 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_version": "git_revision:28ee6040710fff44ae1349eadabd4cb4a9b1b1b8",
+  "clang_version": "git_revision:ee3efcf1bc8b327cc04297895529b1088a2b748d",
   "gn_version": "git_revision:fe330c0ae1ec29db30b6f830e50771a335e071fb",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
@@ -133,8 +133,8 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "a3f1b041f3c5045d1fee7f1129075d0ad6a4a96e", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "7fde7a4d61dd251a4e48bf85ccab34f28ec8da71",
+  "dart_style_rev": "568333db2650e77c0f96ebc77969c9469cf514f0", # disable rev_sdk_deps.dart
+  "dartdoc_rev": "2bbe649a2139d0672e94bc69d78e815a290d2c8d",
   "ffi_rev": "32f5eefea59d4461e8ab40e83f157e49d5abe0da",
   "file_rev": "72a67c33f90bfb7e10057e286e06d2fe3baa4d98",
   "fixnum_rev": "f8379d94436f3a73f71ea078f3207897c6700498",
@@ -168,7 +168,7 @@ vars = {
   "string_scanner_rev": "29e471ea98762db8052cca0e6a69ef9c7999abed",
   "sync_http_rev": "36a1bd086798cbdb48e7541b05e5a14b5e5bb56b",
   "term_glyph_rev": "d275a8f7482b6a5e4f15d0da6feb66c24f52eb94",
-  "test_rev": "3ba78f15538399073d0b5aba4ec19b1378af1625",
+  "test_rev": "cc0598b2c3bf3a7439f10f9542a8d01ff50b69e9",
   "test_descriptor_rev": "1d4a967dd17874f3835af30720e9820c74977569",
   "test_process_rev": "f76d0b8fcf078d629cb57f859db79be93d6323d5",
   "test_reflective_loader_rev": "c4c2d5c3f94a96f3fc79e9e28944fba391bc544c",

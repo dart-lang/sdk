@@ -4101,7 +4101,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // Note that we don't need to take any action to handle
     // `before(E1) = matched(P)`, because we store both the "matched" state for
     // patterns and the "before" state for expressions in `_current`.
-    _pushPattern(_pushScrutinee(scrutinee, scrutineeType));
+    _pushPattern(_pushScrutinee(scrutinee, scrutineeType,
+        allowScrutineePromotion: true));
   }
 
   @override
@@ -4438,7 +4439,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void patternAssignment_afterRhs(Expression rhs, Type rhsType) {
-    _pushPattern(_pushScrutinee(rhs, rhsType));
+    _pushPattern(_pushScrutinee(rhs, rhsType, allowScrutineePromotion: false));
   }
 
   @override
@@ -4449,7 +4450,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void patternForIn_afterExpression(Type elementType) {
-    _pushPattern(_pushScrutinee(null, elementType));
+    _pushPattern(
+        _pushScrutinee(null, elementType, allowScrutineePromotion: false));
   }
 
   @override
@@ -4461,7 +4463,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void patternVariableDeclaration_afterInitializer(
       Expression initializer, Type initializerType) {
-    _pushPattern(_pushScrutinee(initializer, initializerType));
+    _pushPattern(_pushScrutinee(initializer, initializerType,
+        allowScrutineePromotion: false));
   }
 
   @override
@@ -4672,7 +4675,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void switchStatement_expressionEnd(
       Statement? switchStatement, Expression scrutinee, Type scrutineeType) {
     EqualityInfo<Type> matchedValueInfo =
-        _pushScrutinee(scrutinee, scrutineeType);
+        _pushScrutinee(scrutinee, scrutineeType, allowScrutineePromotion: true);
     _current = _current.split();
     _SwitchStatementContext<Type> context = new _SwitchStatementContext<Type>(
         _current.reachable.parent!, _current, matchedValueInfo);
@@ -5245,9 +5248,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// that's being matched directly, as happens when in `for-in` loops).
   /// [scrutineeType] should be the static type of the scrutinee.
   ///
+  /// [allowScrutineePromotion] indicates whether pattern matches should cause
+  /// the scrutinee to be promoted.
+  ///
   /// The returned value is the [EqualityInfo] representing the value being
   /// matched.  It should be passed to [_pushPattern].
-  EqualityInfo<Type> _pushScrutinee(Expression? scrutinee, Type scrutineeType) {
+  EqualityInfo<Type> _pushScrutinee(Expression? scrutinee, Type scrutineeType,
+      {required bool allowScrutineePromotion}) {
     EqualityInfo<Type>? scrutineeInfo = scrutinee == null
         ? null
         : _computeEqualityInfo(scrutinee, scrutineeType);
@@ -5255,9 +5262,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         previousScrutineeReference: _scrutineeReference));
     ReferenceWithType<Type>? scrutineeReference = scrutineeInfo?._reference;
     _scrutineeReference = scrutineeReference;
-    SsaNode<Type>? scrutineeSsaNode = scrutineeReference == null
-        ? new SsaNode<Type>(null)
-        : _current.infoFor(scrutineeReference.promotionKey).ssaNode;
+    SsaNode<Type>? scrutineeSsaNode;
+    if (!allowScrutineePromotion || scrutineeReference == null) {
+      scrutineeSsaNode = new SsaNode<Type>(null);
+    } else {
+      scrutineeSsaNode =
+          _current.infoFor(scrutineeReference.promotionKey).ssaNode;
+    }
     return new EqualityInfo._(
         scrutineeInfo?._expressionInfo,
         scrutineeType,

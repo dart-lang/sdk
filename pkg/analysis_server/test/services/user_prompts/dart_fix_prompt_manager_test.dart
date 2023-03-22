@@ -31,6 +31,45 @@ class DartFixPromptTest with ResourceProviderMixin {
     promptManager = TestDartFixPromptManager(server, preferences);
   }
 
+  Future<void> test_check_ifCheckedRecently_contextConstraintsChanged() async {
+    // Always say there are no fixes (to allow multiple checks).
+    promptManager.bulkFixesAvailableOverride = Future.value(false);
+
+    // First trigger should work.
+    promptManager.currentContextSdkConstraints = {
+      'dummy-path': '>=2.19.0',
+    };
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksPerformed, 1);
+
+    // Second trigger should also work because we changed the version constraint.
+    promptManager.currentContextSdkConstraints = {
+      'dummy-path': '>=3.0.0',
+    };
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksPerformed, 2);
+  }
+
+  Future<void> test_check_ifCheckedRecently_contextPathsChanged() async {
+    // Always say there are no fixes (to allow multiple checks).
+    promptManager.bulkFixesAvailableOverride = Future.value(false);
+
+    // First trigger should work.
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksPerformed, 1);
+
+    // Second trigger should also work because we changed the context roots.
+    promptManager.currentContextSdkConstraints = {
+      'dummy-path': '>=2.19.0',
+    };
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksPerformed, 2);
+  }
+
   Future<void> test_check_ifLastCheckedLongAgo() async {
     // Always say there are no fixes (to allow multiple checks).
     promptManager.bulkFixesAvailableOverride = Future.value(false);
@@ -48,6 +87,9 @@ class DartFixPromptTest with ResourceProviderMixin {
   }
 
   Future<void> test_check_notIfCheckedRecently() async {
+    // Always say there are no fixes (to allow multiple checks).
+    promptManager.bulkFixesAvailableOverride = Future.value(false);
+
     // First trigger should work.
     promptManager.triggerCheck();
     await pumpEventQueue(times: 5000);
@@ -131,6 +173,9 @@ class DartFixPromptTest with ResourceProviderMixin {
 class TestDartFixPromptManager extends DartFixPromptManager {
   int checksPerformed = 0;
   int promptsShown = 0;
+
+  @override
+  Map<String, String?> currentContextSdkConstraints = {};
 
   Future<bool> bulkFixesAvailableOverride = Future.value(true);
 

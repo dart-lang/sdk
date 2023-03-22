@@ -9,10 +9,12 @@ part of dart.convert;
 ///
 /// Instead of limiting the interface to one non-chunked list of bytes it
 /// accepts its input in chunks (themselves being lists of bytes).
-abstract mixin class ByteConversionSink
-    implements ChunkedConversionSink<List<int>> {
-  const ByteConversionSink();
-
+///
+/// This abstract class will likely get more methods over time. Implementers are
+/// urged to extend or mix in [ByteConversionSinkBase] to ensure that their
+/// class covers the newly added methods.
+abstract class ByteConversionSink extends ChunkedConversionSink<List<int>> {
+  ByteConversionSink();
   factory ByteConversionSink.withCallback(
       void callback(List<int> accumulated)) = _ByteCallbackSink;
   factory ByteConversionSink.from(Sink<List<int>> sink) = _ByteAdapterSink;
@@ -23,24 +25,31 @@ abstract mixin class ByteConversionSink
   ///
   /// If [isLast] is `true` closes `this`.
   ///
-  /// Contrary to `add` the given [chunk] must not be held onto.
-  /// Once the method returns, it is safe to overwrite the data in it.
+  /// Contrary to `add` the given [chunk] must not be held onto. Once the method
+  /// returns, it is safe to overwrite the data in it.
+  void addSlice(List<int> chunk, int start, int end, bool isLast);
+
+  // TODO(floitsch): add more methods:
+  // - iterateBytes.
+}
+
+/// This class provides a base-class for converters that need to accept byte
+/// inputs.
+abstract class ByteConversionSinkBase extends ByteConversionSink {
+  void add(List<int> chunk);
+  void close();
+
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
     add(chunk.sublist(start, end));
     if (isLast) close();
   }
 }
 
-/// This class provides a base-class for converters that need to accept byte
-/// inputs.
-@Deprecated("Use ByteConversionSink instead")
-typedef ByteConversionSinkBase = ByteConversionSink;
-
 /// This class adapts a simple [Sink] to a [ByteConversionSink].
 ///
 /// All additional methods of the [ByteConversionSink] (compared to the
 /// ChunkedConversionSink) are redirected to the `add` method.
-class _ByteAdapterSink extends ByteConversionSink {
+class _ByteAdapterSink extends ByteConversionSinkBase {
   final Sink<List<int>> _sink;
 
   _ByteAdapterSink(this._sink);
@@ -58,7 +67,7 @@ class _ByteAdapterSink extends ByteConversionSink {
 /// and invokes a callback when the sink is closed.
 ///
 /// This class can be used to terminate a chunked conversion.
-class _ByteCallbackSink extends ByteConversionSink {
+class _ByteCallbackSink extends ByteConversionSinkBase {
   static const _INITIAL_BUFFER_SIZE = 1024;
 
   final void Function(List<int>) _callback;

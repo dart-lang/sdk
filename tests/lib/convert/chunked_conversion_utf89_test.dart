@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import 'dart:convert';
 
-class MySink implements ChunkedConversionSink<String> {
+class MySink extends ChunkedConversionSink<String> {
   final Function _add;
   final Function _close;
 

@@ -294,9 +294,22 @@ class _IndexAssembler {
     nameRelations.add(_NameRelationInfo(nameId, kind, offset, isQualified));
   }
 
-  void addPrefixForElement(PrefixElement prefixElement, Element element) {
+  /// Adds a prefix (or empty string for unprefixed) for an element.
+  void addPrefixForElement(Element element, {PrefixElement? prefix}) {
+    if (element is MultiplyDefinedElementImpl ||
+        // TODO(brianwilkerson) The last two conditions are here because the
+        //  elements for `dynamic` and `Never` are singletons and hence don't have
+        //  a parent element for which we can find an `_ElementInfo`. This means
+        //  that any reference to either type via a prefix can't be stored in the
+        //  index. The solution is to make those elements be normal (not unique)
+        //  elements.
+        element is DynamicElementImpl ||
+        element is NeverElementImpl) {
+      return;
+    }
+
     _ElementInfo elementInfo = _getElementInfo(element);
-    elementInfo.importPrefixes.add(prefixElement.name);
+    elementInfo.importPrefixes.add(prefix?.name ?? '');
   }
 
   void addSubtype(String name, List<String> members, List<String> supertypes) {
@@ -833,20 +846,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    var prefixElement = node.prefix.staticElement;
     var element = node.staticElement;
-    if (element != null &&
-        prefixElement is PrefixElement &&
-        element is! MultiplyDefinedElementImpl &&
-        element is! DynamicElementImpl &&
-        element is! NeverElementImpl) {
-      // TODO(brianwilkerson) The last two conditions are here because the
-      //  elements for `dynamic` and `Never` are singletons and hence don't have
-      //  a parent element for which we can find an `_ElementInfo`. This means
-      //  that any reference to either type via a prefix can't be stored in the
-      //  index. The solution is to make those elements be normal (not unique)
-      //  elements.
-      assembler.addPrefixForElement(prefixElement, element);
+    var prefixElement = node.prefix.staticElement;
+    if (element != null && prefixElement is PrefixElement) {
+      assembler.addPrefixForElement(element, prefix: prefixElement);
     }
     super.visitPrefixedIdentifier(node);
   }
@@ -884,6 +887,15 @@ class _IndexContributor extends GeneralizingAstVisitor {
     Element? element = node.writeOrReadElement;
     if (element is ParameterElement) {
       element = declaredParameterElement(node, element);
+    }
+
+    final parent = node.parent;
+    if (element != null &&
+        element.enclosingElement is CompilationUnitElement &&
+        // We're only unprefixed when part of a PrefixedIdentifier if we're
+        // the left side.
+        (parent is! PrefixedIdentifier || parent.prefix == node)) {
+      assembler.addPrefixForElement(element);
     }
 
     // record unresolved name reference

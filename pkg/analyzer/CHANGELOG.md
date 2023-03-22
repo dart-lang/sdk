@@ -1,3 +1,7 @@
+## 5.9.0
+* Deprecated `FunctionBody.isPotentiallyMutatedInClosure`, not used by clients.
+* Fix for `FunctionBody.isPotentiallyMutatedInScope` and pattern assignment.
+
 ## 5.8.0
 * Deprecated `DartType.isVoid`, use `is VoidType` instead.
 * `records`, `patterns`, and `class-modifiers` features enabled by default.

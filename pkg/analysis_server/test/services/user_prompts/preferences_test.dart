@@ -45,6 +45,20 @@ class UserPromptPreferencesTest with ResourceProviderMixin {
     );
   }
 
+  Future<void> test_handlesCorruptFile() async {
+    // Write a corrupt file and ensure we get the usual default (true).
+    preferencesFile.writeAsStringSync('Not JSON');
+
+    expect(preferences.showDartFixPrompts, isTrue);
+
+    // Ensure we can persist over the corrupt file.
+    preferences.showDartFixPrompts = false;
+    expect(
+      currentFileJson,
+      {'showDartFixPrompts': false},
+    );
+  }
+
   Future<void> test_readsExternallyUpdatedFile() async {
     // Write our own value.
     preferences.showDartFixPrompts = true;

@@ -23,7 +23,7 @@ void f(Never x) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(HintCode.DEAD_CODE, 25, 6),
+      error(WarningCode.DEAD_CODE, 25, 6),
     ]);
 
     assertResolvedNodeText(findNode.binary('x =='), r'''
@@ -59,7 +59,7 @@ void f(Never x) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(HintCode.DEAD_CODE, 24, 8),
+      error(WarningCode.DEAD_CODE, 24, 8),
     ]);
 
     assertResolvedNodeText(findNode.binary('x +'), r'''
@@ -190,7 +190,7 @@ void f(Never x) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(HintCode.DEAD_CODE, 21, 3),
+      error(WarningCode.DEAD_CODE, 21, 3),
     ]);
   }
 
@@ -211,7 +211,7 @@ void f(Never x) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(HintCode.DEAD_CODE, 22, 3),
+      error(WarningCode.DEAD_CODE, 22, 3),
     ]);
 
     assertResolvedNodeText(findNode.index('x[0]'), r'''
@@ -238,7 +238,7 @@ void f(Never x) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(HintCode.DEAD_CODE, 22, 12),
+      error(WarningCode.DEAD_CODE, 22, 12),
     ]);
 
     var assignment = findNode.assignment('[0] +=');
@@ -287,7 +287,7 @@ void f(Never x) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(HintCode.DEAD_CODE, 22, 11),
+      error(WarningCode.DEAD_CODE, 22, 11),
     ]);
 
     assertResolvedNodeText(findNode.assignment('x[0]'), r'''
@@ -467,7 +467,7 @@ void f(Never x) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(HintCode.DEAD_CODE, 25, 8),
+      error(WarningCode.DEAD_CODE, 25, 8),
     ]);
 
     var node = findNode.methodInvocation('.foo(1 + 2)');
@@ -511,7 +511,7 @@ void f(Never x) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(HintCode.DEAD_CODE, 30, 8),
+      error(WarningCode.DEAD_CODE, 30, 8),
     ]);
 
     var node = findNode.methodInvocation('.toString(1 + 2)');
@@ -728,7 +728,7 @@ void f(Never x) {
   x.foo += 0;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 29, 2),
+      error(WarningCode.DEAD_CODE, 29, 2),
     ]);
 
     var assignment = findNode.assignment('foo += 0');
@@ -780,7 +780,7 @@ void f(Never x) {
   x.foo = 0;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 28, 2),
+      error(WarningCode.DEAD_CODE, 28, 2),
     ]);
 
     var assignment = findNode.assignment('foo = 0');
