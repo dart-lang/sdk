@@ -49,6 +49,20 @@ enum A {
 ''');
   }
 
+  test_annotatedEnumValue() async {
+    await assertNoDiagnostics(r'''
+/// Documented.
+enum A {
+  /// This represents 'a'.
+  @Deprecated("Use 'b'")
+  a,
+
+  /// This represents 'b'.
+  b;
+}
+''');
+  }
+
   /// https://github.com/dart-lang/linter/issues/3525
   test_extension() async {
     await assertDiagnostics(r'''
