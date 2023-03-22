@@ -113,7 +113,7 @@ class AnalyzerSealedClassOperations
   @override
   ClassElement? getSealedClass(DartType type) {
     Element? element = type.element;
-    if (element is ClassElementImpl && element.isSealed) {
+    if (element is ClassElement && element.isSealed) {
       return element;
     }
     return null;

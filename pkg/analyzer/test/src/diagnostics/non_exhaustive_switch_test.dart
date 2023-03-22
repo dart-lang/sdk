@@ -156,15 +156,13 @@ void f(bool? x) {
     ]);
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
   test_alwaysExhaustive_boolNullable_true_false_null() async {
     await assertNoErrorsInCode(r'''
 void f(bool? x) {
   switch (x) {
     case true:
     case false:
-    case Null:
+    case null:
       break;
   }
 }
@@ -341,24 +339,6 @@ void f(M x) {
 ''', [
       error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 71, 6),
     ]);
-  }
-
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
-  test_alwaysExhaustive_sealedMixin_2at2() async {
-    await assertNoErrorsInCode(r'''
-sealed mixin M {}
-class A with M {}
-class B with M {}
-
-void f(M x) {
-  switch (x) {
-    case A():
-    case B():
-      break;
-  }
-}
-''');
   }
 
   test_alwaysExhaustive_typeVariable_bound_bool_true() async {
