@@ -42,6 +42,7 @@ static method main() → dynamic {
           break #L1;
         }
       }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t3;
   #L2:
