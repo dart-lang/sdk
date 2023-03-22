@@ -781,8 +781,6 @@ void residentRun() {
   });
 
   test('Handles experiments', () async {
-    // TODO(https://github.com/dart-lang/sdk/issues/50230): Use
-    // `test-experiment` instead of `records` here.
     p = project(
       mainSrc: r"void main() { print(('hello','world').$1); }",
       sdkConstraint: VersionConstraint.parse(
@@ -792,7 +790,7 @@ void residentRun() {
     final result = await p.run([
       'run',
       '--$serverInfoOption=$serverInfoFile',
-      '--enable-experiment=records',
+      '--enable-experiment=test-experiment',
       p.relativeFilePath,
     ]);
     Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
