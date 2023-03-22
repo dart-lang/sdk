@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
@@ -135,6 +136,18 @@ class DartFixPromptTest with ResourceProviderMixin {
     expect(promptManager.checksPerformed, 1);
   }
 
+  Future<void> test_check_returnsFalseIfCancelled() async {
+    // Trigger 50 checks at once. Each one should cancel the previous, with only
+    // the final one completing.
+    final futures = List.generate(50, (_) => promptManager.performCheck());
+    await pumpEventQueue(times: 5000);
+    final results = await Future.wait(futures);
+
+    // Expect the first 49 to be false, the last to be true.
+    expect(results.sublist(0, 49), everyElement(isFalse));
+    expect(results.last, isTrue);
+  }
+
   Future<void> test_prompt_ifFixes() async {
     promptManager.triggerCheck();
     await pumpEventQueue(times: 5000);
@@ -182,7 +195,7 @@ class TestDartFixPromptManager extends DartFixPromptManager {
   TestDartFixPromptManager(super.server, super.preferences);
 
   @override
-  Future<bool> get bulkFixesAvailable {
+  Future<bool> bulkFixesAvailable(CancellationToken token) {
     checksPerformed++;
     return bulkFixesAvailableOverride;
   }

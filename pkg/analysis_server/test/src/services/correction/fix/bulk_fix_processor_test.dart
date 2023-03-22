@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../utils/test_instrumentation_service.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -36,6 +39,34 @@ var aa = new A();
     var errors = changeMap.libraryMap[testFile]!;
     expect(errors, hasLength(1));
     expect(errors[LintNames.unnecessary_new], 2);
+  }
+
+  Future<void> test_changeMap_cancelled() async {
+    createAnalysisOptionsFile(experiments: experiments, lints: [
+      LintNames.unnecessary_new,
+    ]);
+
+    await resolveTestCode('''
+class A { }
+
+var a = new A();
+''');
+
+    var analysisContext = contextFor(testFile);
+    var changeWorkspace = await workspace;
+    var token = CancelableToken();
+    var processor = BulkFixProcessor(
+        TestInstrumentationService(), changeWorkspace,
+        cancellationToken: token);
+
+    // Begin computing fixes, then immediately cancel.
+    var fixErrorsFuture = processor.fixErrors([analysisContext]);
+    token.cancel();
+
+    // Wait for code to return and expect that we didn't compute any changes
+    // (because we exited early).
+    await fixErrorsFuture;
+    expect(processor.changeMap.libraryMap, isEmpty);
   }
 }
 
