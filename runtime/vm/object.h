@@ -5260,22 +5260,6 @@ class KernelProgramInfo : public Object {
   ArrayPtr constants() const { return untag()->constants(); }
   void set_constants(const Array& constants) const;
 
-  // If we load a kernel blob with evaluated constants, then we delay setting
-  // the native names of [Function] objects until we've read the constant table
-  // (since native names are encoded as constants).
-  //
-  // This array will hold the functions which might need their native name set.
-  GrowableObjectArrayPtr potential_natives() const {
-    return untag()->potential_natives();
-  }
-  void set_potential_natives(const GrowableObjectArray& candidates) const;
-
-  GrowableObjectArrayPtr potential_pragma_functions() const {
-    return untag()->potential_pragma_functions();
-  }
-  void set_potential_pragma_functions(
-      const GrowableObjectArray& candidates) const;
-
   ScriptPtr ScriptAt(intptr_t index) const;
 
   ArrayPtr libraries_cache() const { return untag()->libraries_cache(); }

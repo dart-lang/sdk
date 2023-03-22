@@ -73,11 +73,6 @@ class TranslationHelper {
 
   KernelProgramInfo& info() { return info_; }
 
-  GrowableObjectArrayPtr EnsurePotentialPragmaFunctions();
-
-  void AddPotentialExtensionLibrary(const Library& library);
-  GrowableObjectArrayPtr GetPotentialExtensionLibraries();
-
   void SetKernelProgramInfo(const KernelProgramInfo& info);
   const KernelProgramInfo& GetKernelProgramInfo() const { return info_; }
 
