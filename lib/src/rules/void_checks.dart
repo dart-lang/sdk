@@ -49,9 +49,10 @@ class VoidChecks extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
-    registry.addMethodInvocation(this, visitor);
-    registry.addInstanceCreationExpression(this, visitor);
+    registry.addAssignedVariablePattern(this, visitor);
     registry.addAssignmentExpression(this, visitor);
+    registry.addInstanceCreationExpression(this, visitor);
+    registry.addMethodInvocation(this, visitor);
     registry.addReturnStatement(this, visitor);
   }
 }
@@ -87,6 +88,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       return true;
     }
     return false;
+  }
+
+  @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    var valueType = node.matchedValueType;
+    var element = node.element;
+    if (element is! VariableElement) return;
+    _check(element.type, valueType, node);
   }
 
   @override
