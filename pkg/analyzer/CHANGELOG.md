@@ -1,4 +1,4 @@
-## 5.9.0-dev
+## 5.9.0
 * Deprecated `FunctionBody.isPotentiallyMutatedInClosure`, not used by clients.
 * Fix for `FunctionBody.isPotentiallyMutatedInScope` and pattern assignment.
 
