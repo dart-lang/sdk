@@ -60,8 +60,8 @@ void NativeCallbackTrampolines::AllocateTrampoline() {
     trampoline_pages_.Add(memory);
 
     compiler::Assembler assembler(/*object_pool_builder=*/nullptr);
-    compiler::StubCodeCompiler::GenerateJITCallbackTrampolines(
-        &assembler, next_callback_id_);
+    compiler::StubCodeCompiler stubCodeCompiler(&assembler);
+    stubCodeCompiler.GenerateJITCallbackTrampolines(next_callback_id_);
 
     MemoryRegion region(memory->address(), memory->size());
     assembler.FinalizeInstructions(region);

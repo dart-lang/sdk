@@ -33,8 +33,7 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [EAX], [THR] and [FP].
 // The caller should simply call LeaveFrame() and return.
-void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
-                                               bool preserve_registers) {
+void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
@@ -61,7 +60,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
 //   ECX : address of the runtime function to call.
 //   EDX : number of arguments to the call.
 // Must preserve callee saved registers EDI and EBX.
-void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateCallToRuntimeStub() {
   const intptr_t thread_offset = target::NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = target::NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = target::NativeArguments::argv_offset();
@@ -137,7 +136,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateEnterSafepointStub() {
   __ pushal();
   __ subl(SPREG, Immediate(8));
   __ movsd(Address(SPREG, 0), XMM0);
@@ -179,13 +178,12 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   __ ret();
 }
 
-void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateExitSafepointStub() {
   GenerateExitSafepointStubCommon(
       assembler, kExitSafepointRuntimeEntry.OffsetFromThread());
 }
 
-void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub() {
   GenerateExitSafepointStubCommon(
       assembler,
       kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
@@ -200,8 +198,7 @@ void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub(
 // On exit:
 //   Stack: preserved
 //   EBX: clobbered (even though it's normally callee-saved)
-void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ popl(EBX);
 
   __ movl(ECX, compiler::Immediate(target::Thread::exit_through_ffi()));
@@ -214,7 +211,6 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
 }
 
 void StubCodeCompiler::GenerateJITCallbackTrampolines(
-    Assembler* assembler,
     intptr_t next_callback_id) {
   Label done, ret_4;
 
@@ -346,7 +342,6 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 }
 
 void StubCodeCompiler::GenerateSharedStubGeneric(
-    Assembler* assembler,
     bool save_fpu_registers,
     intptr_t self_code_stub_offset_from_thread,
     bool allow_return,
@@ -356,7 +351,6 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
 }
 
 void StubCodeCompiler::GenerateSharedStub(
-    Assembler* assembler,
     bool save_fpu_registers,
     const RuntimeEntry* target,
     intptr_t self_code_stub_offset_from_thread,
@@ -366,20 +360,17 @@ void StubCodeCompiler::GenerateSharedStub(
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
-                                          bool with_fpu_regs) {
+void StubCodeCompiler::GenerateRangeError(bool with_fpu_regs) {
   // Only used in AOT.
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateWriteError(Assembler* assembler,
-                                          bool with_fpu_regs) {
+void StubCodeCompiler::GenerateWriteError(bool with_fpu_regs) {
   // Only used in AOT.
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {
   // Only used in AOT.
   __ Breakpoint();
 }
@@ -472,14 +463,14 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ ret();
 }
 
-void StubCodeCompiler::GenerateCallNoScopeNativeStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateCallNoScopeNativeStub() {
   GenerateCallNativeWithWrapperStub(
       assembler,
       Address(THR,
               target::Thread::no_scope_native_wrapper_entry_point_offset()));
 }
 
-void StubCodeCompiler::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateCallAutoScopeNativeStub() {
   GenerateCallNativeWithWrapperStub(
       assembler,
       Address(THR,
@@ -492,7 +483,7 @@ void StubCodeCompiler::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
 //   EAX : address of first argument in argument array.
 //   ECX : address of the native function to call.
 //   EDX : argc_tag including number of arguments and function kind.
-void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateCallBootstrapNativeStub() {
   GenerateCallNativeWithWrapperStub(
       assembler,
       Address(THR,
@@ -501,7 +492,7 @@ void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
 
 // Input parameters:
 //   ARGS_DESC_REG: arguments descriptor array.
-void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateCallStaticFunctionStub() {
   __ EnterStubFrame();
   __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
   __ pushl(Immediate(0));  // Setup space on stack for return value.
@@ -517,7 +508,7 @@ void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // Called from a static call only when an invalid code has been entered
 // (invalid because its function was optimized or deoptimized).
 // ARGS_DESC_REG: arguments descriptor array.
-void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateFixCallersTargetStub() {
   Label monomorphic;
   __ BranchOnMonomorphicCheckedEntryJIT(&monomorphic);
 
@@ -552,8 +543,7 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
 
 // Called from object allocate instruction when the allocation stub has been
 // disabled.
-void StubCodeCompiler::GenerateFixAllocationStubTargetStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateFixAllocationStubTargetStub() {
   __ EnterStubFrame();
   __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
@@ -566,8 +556,7 @@ void StubCodeCompiler::GenerateFixAllocationStubTargetStub(
 
 // Called from object allocate instruction when the allocation stub for a
 // generic class has been disabled.
-void StubCodeCompiler::GenerateFixParameterizedAllocationStubTargetStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateFixParameterizedAllocationStubTargetStub() {
   __ EnterStubFrame();
   // Preserve type arguments register.
   __ pushl(AllocateObjectABI::kTypeArgumentsReg);
@@ -763,8 +752,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 }
 
 // EAX: result, must be preserved
-void StubCodeCompiler::GenerateDeoptimizeLazyFromReturnStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateDeoptimizeLazyFromReturnStub() {
   // Return address for "call" to deopt stub.
   __ pushl(Immediate(kZapReturnAddress));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
@@ -773,15 +761,14 @@ void StubCodeCompiler::GenerateDeoptimizeLazyFromReturnStub(
 
 // EAX: exception, must be preserved
 // EDX: stacktrace, must be preserved
-void StubCodeCompiler::GenerateDeoptimizeLazyFromThrowStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateDeoptimizeLazyFromThrowStub() {
   // Return address for "call" to deopt stub.
   __ pushl(Immediate(kZapReturnAddress));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
   __ ret();
 }
 
-void StubCodeCompiler::GenerateDeoptimizeStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateDeoptimizeStub() {
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
   __ ret();
 }
@@ -832,8 +819,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   GenerateNoSuchMethodDispatcherCode(assembler);
 }
 
-void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
   GenerateNoSuchMethodDispatcherCode(assembler);
 }
 
@@ -845,7 +831,7 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
 //   AllocateArrayABI::kResultReg: newly allocated array.
 // Clobbered:
 //   EBX, EDI
-void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateAllocateArrayStub() {
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     // Compute the size to be allocated, it is based on the array length
@@ -998,7 +984,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 //   ESP + 12 : arguments array.
 //   ESP + 16 : current thread.
 // Uses EAX, EDX, ECX, EDI as temporary registers.
-void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   const intptr_t kTargetCodeOffset = 2 * target::kWordSize;
   const intptr_t kArgumentsDescOffset = 3 * target::kWordSize;
   const intptr_t kArgumentsOffset = 4 * target::kWordSize;
@@ -1207,7 +1193,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 // EAX: new allocated Context object.
 // Clobbered:
 // EBX, EDX
-void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateAllocateContextStub() {
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
 
@@ -1257,7 +1243,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
 
   // EAX: new object
   // Restore the frame pointer.
@@ -1273,7 +1259,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 //   EAX: new allocated Context object.
 // Clobbered:
 //   EBX, ECX, EDX
-void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateCloneContextStub() {
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
 
@@ -1331,7 +1317,7 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
 
   // EAX: new object
   // Restore the frame pointer.
@@ -1339,7 +1325,7 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCodeCompiler::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateWriteBarrierWrappersStub() {
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
 
@@ -1367,8 +1353,7 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 COMPILE_ASSERT(kWriteBarrierObjectReg == EDX);
 COMPILE_ASSERT(kWriteBarrierValueReg == EBX);
 COMPILE_ASSERT(kWriteBarrierSlotReg == EDI);
-static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           bool cards) {
+static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   // Save values being destroyed.
   __ pushl(EAX);
   __ pushl(ECX);
@@ -1524,24 +1509,23 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   }
 }
 
-void StubCodeCompiler::GenerateWriteBarrierStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateWriteBarrierStub() {
   GenerateWriteBarrierStubHelper(assembler, false);
 }
 
-void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateArrayWriteBarrierStub() {
   GenerateWriteBarrierStubHelper(assembler, true);
 }
 
-void StubCodeCompiler::GenerateAllocateObjectStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateAllocateObjectStub() {
   __ int3();
 }
 
-void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateAllocateObjectParameterizedStub() {
   __ int3();
 }
 
-void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateAllocateObjectSlowStub() {
   __ int3();
 }
 
@@ -1554,7 +1538,6 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
 // Returns patch_code_pc offset where patching code for disabling the stub
 // has been generated (similar to regularly generated Dart code).
 void StubCodeCompiler::GenerateAllocationStubForClass(
-    Assembler* assembler,
     UnresolvedPcRelativeCalls* unresolved_calls,
     const Class& cls,
     const Code& allocate_object,
@@ -1682,7 +1665,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
     // Write-barrier elimination is enabled for [cls] and we therefore need to
     // ensure that the object is in new-space or has remembered bit set.
-    EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+    EnsureIsNewOrRemembered(/*preserve_registers=*/false);
   }
 
   // AllocateObjectABI::kResultReg: new object
@@ -1699,8 +1682,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
 //   ESP + 4 : address of last argument.
 //   EDX : arguments descriptor array.
 // Uses EAX, EBX, EDI as temporary registers.
-void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
   __ EnterStubFrame();
 
   // Load the receiver.
@@ -1738,8 +1720,7 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
 
 // Cannot use function object from ICData as it may be the inlined
 // function and not the top-scope function.
-void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
   Register ic_reg = ECX;
   Register func_reg = EAX;
   if (FLAG_trace_optimized_ic_calls) {
@@ -1759,8 +1740,7 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
 }
 
 // Loads function into 'temp_reg'.
-void StubCodeCompiler::GenerateUsageCounterIncrement(Assembler* assembler,
-                                                     Register temp_reg) {
+void StubCodeCompiler::GenerateUsageCounterIncrement(Register temp_reg) {
   if (FLAG_optimization_counter_threshold >= 0) {
     Register func_reg = temp_reg;
     ASSERT(func_reg != IC_DATA_REG);
@@ -1856,24 +1836,22 @@ static void EmitFastSmiOp(Assembler* assembler,
 // - Match found -> jump to target.
 // - Match not found -> jump to IC miss.
 void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
-    Assembler* assembler,
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
     Optimized optimized,
     CallType type,
     Exactness exactness) {
-  GenerateNArgsCheckInlineCacheStubForEntryKind(
-      assembler, num_args, handle_ic_miss, kind, optimized, type, exactness,
-      CodeEntryKind::kNormal);
+  GenerateNArgsCheckInlineCacheStubForEntryKind(num_args, handle_ic_miss, kind,
+                                                optimized, type, exactness,
+                                                CodeEntryKind::kNormal);
   __ BindUncheckedEntryPoint();
-  GenerateNArgsCheckInlineCacheStubForEntryKind(
-      assembler, num_args, handle_ic_miss, kind, optimized, type, exactness,
-      CodeEntryKind::kUnchecked);
+  GenerateNArgsCheckInlineCacheStubForEntryKind(num_args, handle_ic_miss, kind,
+                                                optimized, type, exactness,
+                                                CodeEntryKind::kUnchecked);
 }
 
 void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
-    Assembler* assembler,
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
@@ -1882,9 +1860,9 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
     Exactness exactness,
     CodeEntryKind entry_kind) {
   if (optimized == kOptimized) {
-    GenerateOptimizedUsageCounterIncrement(assembler);
+    GenerateOptimizedUsageCounterIncrement();
   } else {
-    GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
+    GenerateUsageCounterIncrement(/* scratch */ EAX);
   }
 
   ASSERT(exactness == kIgnoreExactness);  // Unimplemented.
@@ -2065,77 +2043,71 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
 // EBX: receiver
 // ECX: ICData
 // ESP[0]: return address
-void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub() {
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
 }
 
 // EBX: receiver
 // ECX: ICData
 // ESP[0]: return address
-void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub() {
   __ Stop("Unimplemented");
 }
 
-void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
   __ Stop("Unimplemented");
 }
 
-void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
   __ Stop("Unimplemented");
 }
 
 // EBX: receiver
 // ECX: ICData
 // ESP[0]: return address
-void StubCodeCompiler::GenerateTwoArgsCheckInlineCacheStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateTwoArgsCheckInlineCacheStub() {
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
+      2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
 }
 
 // EBX: receiver
 // ECX: ICData
 // ESP[0]: return address
-void StubCodeCompiler::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSmiAddInlineCacheStub() {
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD,
-      kUnoptimized, kInstanceCall, kIgnoreExactness);
+      2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD, kUnoptimized,
+      kInstanceCall, kIgnoreExactness);
 }
 
 // EBX: receiver
 // ECX: ICData
 // ESP[0]: return address
-void StubCodeCompiler::GenerateSmiLessInlineCacheStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSmiLessInlineCacheStub() {
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kLT,
-      kUnoptimized, kInstanceCall, kIgnoreExactness);
+      2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kLT, kUnoptimized,
+      kInstanceCall, kIgnoreExactness);
 }
 
 // EBX: receiver
 // ECX: ICData
 // ESP[0]: return address
-void StubCodeCompiler::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSmiEqualInlineCacheStub() {
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ,
-      kUnoptimized, kInstanceCall, kIgnoreExactness);
+      2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ, kUnoptimized,
+      kInstanceCall, kIgnoreExactness);
 }
 
 // EBX: receiver
 // ECX: ICData
 // EAX: Function
 // ESP[0]: return address
-void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub() {
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
-      kOptimized, kInstanceCall, kIgnoreExactness);
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL, kOptimized,
+      kInstanceCall, kIgnoreExactness);
 }
 
 // EBX: receiver
@@ -2143,8 +2115,7 @@ void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub(
 // EAX: Function
 // ESP[0]: return address
 void StubCodeCompiler::
-    GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub(
-        Assembler* assembler) {
+    GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub() {
   __ Stop("Unimplemented");
 }
 
@@ -2152,19 +2123,19 @@ void StubCodeCompiler::
 // ECX: ICData
 // EAX: Function
 // ESP[0]: return address
-void StubCodeCompiler::GenerateTwoArgsOptimizedCheckInlineCacheStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateTwoArgsOptimizedCheckInlineCacheStub() {
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
+      2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kOptimized, kInstanceCall, kIgnoreExactness);
 }
 
 // ECX: ICData
 // ESP[0]: return address
 static void GenerateZeroArgsUnoptimizedStaticCallForEntryKind(
-    Assembler* assembler,
+    StubCodeCompiler* stub_code_compiler,
     CodeEntryKind entry_kind) {
-  StubCodeCompiler::GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
+  stub_code_compiler->GenerateUsageCounterIncrement(/* scratch */ EAX);
+  auto* const assembler = stub_code_compiler->assembler;
 
 #if defined(DEBUG)
   {
@@ -2226,37 +2197,34 @@ static void GenerateZeroArgsUnoptimizedStaticCallForEntryKind(
 #endif
 }
 
-void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
-    Assembler* assembler) {
-  GenerateZeroArgsUnoptimizedStaticCallForEntryKind(assembler,
+void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub() {
+  GenerateZeroArgsUnoptimizedStaticCallForEntryKind(this,
                                                     CodeEntryKind::kNormal);
   __ BindUncheckedEntryPoint();
-  GenerateZeroArgsUnoptimizedStaticCallForEntryKind(assembler,
+  GenerateZeroArgsUnoptimizedStaticCallForEntryKind(this,
                                                     CodeEntryKind::kUnchecked);
 }
 
 // ECX: ICData
 // ESP[0]: return address
-void StubCodeCompiler::GenerateOneArgUnoptimizedStaticCallStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateOneArgUnoptimizedStaticCallStub() {
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
+      2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kStaticCall, kIgnoreExactness);
 }
 
 // ECX: ICData
 // ESP[0]: return address
-void StubCodeCompiler::GenerateTwoArgsUnoptimizedStaticCallStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateTwoArgsUnoptimizedStaticCallStub() {
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
+      2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kStaticCall, kIgnoreExactness);
 }
 
 // Stub for compiling a function and jumping to the compiled code.
 // ARGS_DESC_REG: Arguments descriptor.
 // FUNCTION_REG: Function.
-void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateLazyCompileStub() {
   __ EnterStubFrame();
   __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
   __ pushl(FUNCTION_REG);   // Pass function.
@@ -2269,7 +2237,7 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 // ECX: Contains an ICData.
-void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateICCallBreakpointStub() {
 #if defined(PRODUCT)
   __ Stop("No debugging in PRODUCT mode");
 #else
@@ -2287,8 +2255,7 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
 #endif  // defined(PRODUCT)
 }
 
-void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub() {
 #if defined(PRODUCT)
   __ Stop("No debugging in PRODUCT mode");
 #else
@@ -2304,7 +2271,7 @@ void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub(
 #endif  // defined(PRODUCT)
 }
 
-void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateRuntimeCallBreakpointStub() {
 #if defined(PRODUCT)
   __ Stop("No debugging in PRODUCT mode");
 #else
@@ -2321,7 +2288,7 @@ void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 }
 
 // Called only from unoptimized code.
-void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateDebugStepCheckStub() {
 #if defined(PRODUCT)
   __ Stop("No debugging in PRODUCT mode");
 #else
@@ -2568,29 +2535,29 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype1TestCacheStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
   GenerateSubtypeNTestCacheStub(assembler, 1);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype3TestCacheStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSubtype3TestCacheStub() {
   GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype5TestCacheStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSubtype5TestCacheStub() {
   GenerateSubtypeNTestCacheStub(assembler, 5);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype7TestCacheStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
   GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 // Return the current stack pointer address, used to do stack alignment checks.
 // TOS + 0: return address
 // Result in EAX.
-void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateGetCStackPointerStub() {
   __ leal(EAX, Address(ESP, target::kWordSize));
   __ ret();
 }
@@ -2602,7 +2569,7 @@ void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
 // TOS + 3: frame_pointer
 // TOS + 4: thread
 // No Result.
-void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateJumpToFrameStub() {
   __ movl(THR, Address(ESP, 4 * target::kWordSize));  // Load target thread.
   __ movl(EBP,
           Address(ESP, 3 * target::kWordSize));  // Load target frame_pointer.
@@ -2641,7 +2608,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 //
 // The arguments are stored in the Thread object.
 // No result.
-void StubCodeCompiler::GenerateRunExceptionHandlerStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
   ASSERT(kExceptionObjectReg == EAX);
   ASSERT(kStackTraceObjectReg == EDX);
   __ movl(EBX, Address(THR, target::Thread::resume_pc_offset()));
@@ -2665,7 +2632,7 @@ void StubCodeCompiler::GenerateRunExceptionHandlerStub(Assembler* assembler) {
 // Deoptimize a frame on the call stack before rewinding.
 // The arguments are stored in the Thread object.
 // No result.
-void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateDeoptForRewindStub() {
   // Push the deopt pc.
   __ pushl(Address(THR, target::Thread::resume_pc_offset()));
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
@@ -2680,7 +2647,7 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 // Calls to the runtime to optimize the given function.
 // EBX: function to be reoptimized.
 // ARGS_DESC_REG: argument descriptor (preserved).
-void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateOptimizeFunctionStub() {
   __ movl(CODE_REG, Address(THR, target::Thread::optimize_stub_offset()));
   __ EnterStubFrame();
   __ pushl(ARGS_DESC_REG);
@@ -2756,8 +2723,7 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // TOS + 1: right argument.
 // TOS + 2: left argument.
 // Returns ZF set.
-void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
@@ -2790,8 +2756,7 @@ void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub(
 // TOS + 1: right argument.
 // TOS + 2: left argument.
 // Returns ZF set.
-void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub() {
   const Register left = EAX;
   const Register right = EDX;
   const Register temp = ECX;
@@ -2808,7 +2773,7 @@ void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub(
 //  EBX: target entry point
 //  FUNCTION_REG: target function
 //  ARGS_DESC_REG: argument descriptor
-void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateMegamorphicCallStub() {
   // Jump if receiver is a smi.
   Label smi_case;
   // Check if object (in tmp) is a Smi.
@@ -2880,21 +2845,20 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
 
   __ Bind(&miss);
   __ popl(EBX);  // restore receiver
-  GenerateSwitchableCallMissStub(assembler);
+  GenerateSwitchableCallMissStub();
 }
 
-void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   __ int3();  // AOT only.
 }
 
-void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub() {
   __ int3();  // AOT only.
 }
 
 // Called from switchable IC calls.
 //  EBX: receiver
-void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSwitchableCallMissStub() {
   __ movl(CODE_REG,
           Address(THR, target::Thread::switchable_call_miss_stub_offset()));
   __ EnterStubFrame();
@@ -2916,7 +2880,7 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
   __ jmp(EAX);
 }
 
-void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSingleTargetCallStub() {
   __ int3();  // AOT only.
 }
 
@@ -2937,8 +2901,7 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
   return static_cast<ScaleFactor>(0);
 }
 
-void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
-                                                          intptr_t cid) {
+void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
   const intptr_t element_size = TypedDataElementSizeInBytes(cid);
   const intptr_t max_len = TypedDataMaxNewSpaceElements(cid);
   ScaleFactor scale_factor = GetScaleFactor(element_size);
