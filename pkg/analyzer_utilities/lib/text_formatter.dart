@@ -24,7 +24,7 @@ String nodesToText(List<dom.Node> desc, int width, bool javadocStyle,
 
 /// Engine that transforms HTML to text.  The input HTML is processed one
 /// character at a time, gathering characters into words and words into lines.
-class _TextFormatter extends CodeGenerator {
+class _TextFormatter with CodeGenerator {
   /// Word-wrapping width.
   final int width;
 

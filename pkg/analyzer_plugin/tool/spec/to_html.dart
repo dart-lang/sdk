@@ -152,7 +152,7 @@ class ApiMappings extends HierarchicalApiVisitor {
 }
 
 /// Helper methods for creating HTML elements.
-abstract class HtmlMixin {
+mixin HtmlMixin {
   void anchor(String id, void Function() callback) {
     element('a', {'name': id}, callback);
   }
