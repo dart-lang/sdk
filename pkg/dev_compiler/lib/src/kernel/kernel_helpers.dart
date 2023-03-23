@@ -157,14 +157,6 @@ bool isFromEnvironmentInvocation(CoreTypes coreTypes, StaticInvocation node) {
       target.enclosingLibrary == coreTypes.coreLibrary;
 }
 
-/// Returns true if this class is of the form:
-/// `class C = Object with M [implements I1, I2 ...];`
-///
-/// A mixin alias class is a mixin application, that can also be itself used as
-/// a mixin.
-bool isMixinAliasClass(Class c) =>
-    c.isMixinApplication && c.superclass!.superclass == null;
-
 List<Class> getSuperclasses(Class? c) {
   var result = <Class>[];
   var visited = HashSet<Class>();
