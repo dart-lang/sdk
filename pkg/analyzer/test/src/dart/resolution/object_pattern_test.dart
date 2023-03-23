@@ -15,6 +15,33 @@ main() {
 
 @reflectiveTest
 class ObjectPatternResolutionTest extends PubPackageResolutionTest {
+  test_class_generic_noTypeArguments_infer_f_bounded() async {
+    await assertNoErrorsInCode(r'''
+abstract class B<T extends B<T>> {}
+abstract class C extends B<C> {}
+
+void f(Object o) {
+  switch (o) {
+    case B():
+  }
+}
+''');
+
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: B
+      staticElement: self::@class::B
+      staticType: null
+    type: B<B<Object?>>
+  leftParenthesis: (
+  rightParenthesis: )
+  matchedValueType: Object
+''');
+  }
+
   test_class_generic_noTypeArguments_infer_fromSuperType() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}
@@ -38,6 +65,33 @@ ObjectPattern
   leftParenthesis: (
   rightParenthesis: )
   matchedValueType: A<int>
+''');
+  }
+
+  test_class_generic_noTypeArguments_infer_partial_inference() async {
+    await assertNoErrorsInCode(r'''
+abstract class B<T> {}
+abstract class C<T, U extends Set<T>> extends B<T> {}
+
+void f(B<int> b) {
+  switch (b) {
+    case C():
+  }
+}
+''');
+
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: null
+    type: C<int, Set<int>>
+  leftParenthesis: (
+  rightParenthesis: )
+  matchedValueType: B<int>
 ''');
   }
 

@@ -48,8 +48,7 @@ void inferDynamic(Object o) {
   switch (o) {
     case C(listOfT: var x, t: var t):
       x.expectStaticType<Exactly<List<dynamic>>>();
-      // TODO(paulberry): make the following like work properly
-      // t.foo(); // Should be ok since T is `dynamic`.
+      t.isEven; // Should be ok since T is `dynamic`.
       o.expectStaticType<Exactly<C<dynamic>>>();
     default:
       Expect.fail('Match failure');
@@ -99,6 +98,53 @@ class E<T, U> {
   }
 }
 
+class F1<T extends F1<T>> {
+  late final T t;
+
+  List<T> get listOfT => [t];
+}
+
+class F2 extends F1<F2> {
+  F2() {
+    t = this;
+  }
+}
+
+void fBounded(Object o) {
+  switch (o) {
+    case F1(listOfT: var x):
+      x.expectStaticType<Exactly<List<F1<Object?>>>>();
+      o.expectStaticType<Exactly<F1<F1<Object?>>>>();
+    default:
+      Expect.fail('Match failure');
+  }
+}
+
+class G1<T> {
+  final T t;
+
+  List<T> get listOfT => [t];
+
+  G1(this.t);
+}
+
+class G2<T, U extends Set<T>> extends G1<T> {
+  final U u;
+
+  List<U> get listOfU => [u];
+
+  G2(super.t, this.u);
+}
+
+void partialInference(G1<int> g) {
+  switch (g) {
+    case G2(listOfT: var x, listOfU: var y):
+      x.expectStaticType<Exactly<List<int>>>();
+      y.expectStaticType<Exactly<List<Set<int>>>>();
+      g.expectStaticType<Exactly<G2<int, Set<int>>>>();
+  }
+}
+
 main() {
   explicitTypeArguments(C(0));
   simpleInference(C(0));
@@ -106,4 +152,6 @@ main() {
   inferBound(D(0));
   E<int, String>(0, '')
       .inferEnclosingTypeParameters(E<Set<String>, Set<int>>({''}, {0}));
+  fBounded(F2());
+  partialInference(G2(0, {0}));
 }
