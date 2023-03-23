@@ -19240,11 +19240,18 @@ HintCode:
       subsequent invocations should also use '?.' operator.
 
       Note: This diagnostic is only generated in pre-null safe code.
+
+      Note: Since this diagnostic is only produced in pre-null safe code, we do
+      not plan to go through the exercise of converting it to a Warning.
   DEPRECATED_COLON_FOR_DEFAULT_VALUE:
     problemMessage: Using a colon as a separator before a default value is deprecated and will not be supported in language version 3.0 and later.
     correctionMessage: Try replacing the colon with an equal sign.
     hasPublishedDocs: true
-    comment: No parameters.
+    comment: |-
+      No parameters.
+
+      Note: Since this diagnostic is only produced in pre-3.0 code, we do not
+      plan to go through the exercise of converting it to a Warning.
     documentation: |-
       #### Description
 
@@ -19694,90 +19701,6 @@ HintCode:
       If some of the names imported by this import are intended to be used but
       aren't yet, and if those names aren't imported by other imports, then add
       the missing references to those names.
-  UNNECESSARY_SET_LITERAL:
-    problemMessage: Braces unnecessarily wrap this expression in a set literal.
-    correctionMessage: Try removing the set literal around the expression.
-    hasPublishedDocs: false
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a function that has a return
-      type of `void`, `Future<void>`, or `FutureOr<void>` uses an expression
-      function body (`=>`) and the returned value is a literal set containing a
-      single element.
-
-      Although the language allows it, returning a value from a `void` function
-      isn't useful because it can't be used at the call site. In this particular
-      case the return is often due to a misunderstanding about the syntax. The
-      braces aren't necessary and can be removed.
-
-      #### Example
-
-      The following code produces this diagnostic because the closure being
-      passed to `g` has a return type of `void`, but is returning a set:
-
-      ```dart
-      void f() {
-        g(() => [!{1}!]);
-      }
-
-      void g(void Function() p) {}
-      ```
-
-      #### Common fixes
-
-      Remove the braces from around the value:
-
-      ```dart
-      void f() {
-        g(() => 1);
-      }
-
-      void g(void Function() p) {}
-      ```
-  UNNECESSARY_TYPE_CHECK_FALSE:
-    sharedName: UNNECESSARY_TYPE_CHECK
-    problemMessage: "Unnecessary type check; the result is always 'false'."
-    correctionMessage: Try correcting the type check, or removing the type check.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the value of a type check (using
-      either `is` or `is!`) is known at compile time.
-
-      #### Example
-
-      The following code produces this diagnostic because the test `a is Object?`
-      is always `true`:
-
-      ```dart
-      bool f<T>(T a) => [!a is Object?!];
-      ```
-
-      #### Common fixes
-
-      If the type check doesn't check what you intended to check, then change the
-      test:
-
-      ```dart
-      bool f<T>(T a) => a is Object;
-      ```
-
-      If the type check does check what you intended to check, then replace the
-      type check with its known value or completely remove it:
-
-      ```dart
-      bool f<T>(T a) => true;
-      ```
-  UNNECESSARY_TYPE_CHECK_TRUE:
-    sharedName: UNNECESSARY_TYPE_CHECK
-    problemMessage: "Unnecessary type check; the result is always 'true'."
-    correctionMessage: Try correcting the type check, or removing the type check.
-    hasPublishedDocs: true
-    comment: No parameters.
   UNREACHABLE_SWITCH_CASE:
     problemMessage: "This case is covered by the previous cases."
     correctionMessage: Try removing the case clause, or restructuring the preceding patterns.
@@ -24984,16 +24907,97 @@ WarningCode:
       ```dart
       dynamic x;
       ```
+  UNNECESSARY_SET_LITERAL:
+    problemMessage: Braces unnecessarily wrap this expression in a set literal.
+    correctionMessage: Try removing the set literal around the expression.
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a function that has a return
+      type of `void`, `Future<void>`, or `FutureOr<void>` uses an expression
+      function body (`=>`) and the returned value is a literal set containing a
+      single element.
+
+      Although the language allows it, returning a value from a `void` function
+      isn't useful because it can't be used at the call site. In this particular
+      case the return is often due to a misunderstanding about the syntax. The
+      braces aren't necessary and can be removed.
+
+      #### Example
+
+      The following code produces this diagnostic because the closure being
+      passed to `g` has a return type of `void`, but is returning a set:
+
+      ```dart
+      void f() {
+        g(() => [!{1}!]);
+      }
+
+      void g(void Function() p) {}
+      ```
+
+      #### Common fixes
+
+      Remove the braces from around the value:
+
+      ```dart
+      void f() {
+        g(() => 1);
+      }
+
+      void g(void Function() p) {}
+      ```
   UNNECESSARY_TYPE_CHECK_FALSE:
-    aliasFor: HintCode.UNNECESSARY_TYPE_CHECK_FALSE
-    comment: This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
+    sharedName: UNNECESSARY_TYPE_CHECK
+    problemMessage: "Unnecessary type check; the result is always 'false'."
+    correctionMessage: Try correcting the type check, or removing the type check.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value of a type check (using
+      either `is` or `is!`) is known at compile time.
+
+      #### Example
+
+      The following code produces this diagnostic because the test `a is Object?`
+      is always `true`:
+
+      ```dart
+      bool f<T>(T a) => [!a is Object?!];
+      ```
+
+      #### Common fixes
+
+      If the type check doesn't check what you intended to check, then change the
+      test:
+
+      ```dart
+      bool f<T>(T a) => a is Object;
+      ```
+
+      If the type check does check what you intended to check, then replace the
+      type check with its known value or completely remove it:
+
+      ```dart
+      bool f<T>(T a) => true;
+      ```
   UNNECESSARY_TYPE_CHECK_TRUE:
-    aliasFor: HintCode.UNNECESSARY_TYPE_CHECK_TRUE
-    comment: This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_TRUE].
+    sharedName: UNNECESSARY_TYPE_CHECK
+    problemMessage: "Unnecessary type check; the result is always 'true'."
+    correctionMessage: Try correcting the type check, or removing the type check.
+    hasPublishedDocs: true
+    comment: No parameters.
   UNNECESSARY_WILDCARD_PATTERN:
     problemMessage: Unnecessary wildcard pattern.
     correctionMessage: Try removing the wildcard pattern.
     comment: No parameters.
+  UNREACHABLE_SWITCH_CASE:
+    aliasFor: HintCode.UNREACHABLE_SWITCH_CASE
+    comment: This is the new replacement for [HintCode.UNREACHABLE_SWITCH_CASE].
   UNUSED_CATCH_CLAUSE:
     problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
     correctionMessage: Try removing the catch clause.

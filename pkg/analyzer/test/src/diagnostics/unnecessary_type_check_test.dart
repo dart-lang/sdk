@@ -25,7 +25,7 @@ void f(int a) {
   a is! int;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9),
     ]);
   }
 
@@ -43,7 +43,7 @@ void f(int a) {
   a is! num;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9),
     ]);
   }
 
@@ -53,7 +53,7 @@ void f(int? a) {
   a is! int?;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10),
     ]);
   }
 
@@ -87,7 +87,7 @@ void f(int? a) {
   a is! num?;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10),
     ]);
   }
 
@@ -105,7 +105,7 @@ void f<T>(T a) {
   a is! Object?;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
     ]);
   }
 }
@@ -115,7 +115,7 @@ mixin UnnecessaryTypeCheckFalseTestCases on PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 var b = null is! Null;
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 8, 13),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 8, 13),
     ]);
   }
 
@@ -125,7 +125,7 @@ void f<T>(T a) {
   a is! dynamic;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
     ]);
   }
 
@@ -133,7 +133,7 @@ void f<T>(T a) {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [],
       legacy: [
-        error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 12),
+        error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 12),
       ],
     );
     await assertErrorsInCode(r'''
@@ -158,7 +158,7 @@ void f(int a) {
   a is int;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8),
     ]);
   }
 
@@ -176,7 +176,7 @@ void f(int a) {
   a is num;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8),
     ]);
   }
 
@@ -186,7 +186,7 @@ void f(int? a) {
   a is int?;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9),
     ]);
   }
 
@@ -220,7 +220,7 @@ void f(int? a) {
   a is num?;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9),
     ]);
   }
 
@@ -238,7 +238,7 @@ void f<T>(T a) {
   a is Object?;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12),
     ]);
   }
 }
@@ -248,7 +248,7 @@ mixin UnnecessaryTypeCheckTrueTestCases on PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 var b = null is Null;
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 8, 12),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 8, 12),
     ]);
   }
 
@@ -258,7 +258,7 @@ void f(int a) {
   a is dynamic;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 12),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 12),
     ]);
   }
 
@@ -278,7 +278,7 @@ void f<T>(T a) {
   a is dynamic;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12),
     ]);
   }
 
@@ -286,7 +286,7 @@ void f<T>(T a) {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [],
       legacy: [
-        error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 11),
+        error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 11),
       ],
     );
     await assertErrorsInCode(r'''
