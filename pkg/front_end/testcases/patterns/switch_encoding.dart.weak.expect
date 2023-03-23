@@ -41,12 +41,11 @@ static method switchStatement(dynamic o) → dynamic {
     synthesized core::bool #0#4#isSet = false;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     dynamic #t1;
     {
       lowered dynamic a#case#0;
       lowered dynamic a#case#1;
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t2 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t3 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t4 = a#case#0 = #0#6 in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t5 = #t1 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t6 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t7 = #0#6 in true) && (let final dynamic #t8 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t9 = #t1 = a#case#1 in true)) {
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t2 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t3 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t4 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t5 = #t1 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t6 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t7 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t8 = #t1 = a#case#1 in true)) {
         dynamic a = #t1{dynamic};
         {
           core::print(a);
@@ -56,7 +55,7 @@ static method switchStatement(dynamic o) → dynamic {
     }
     {
       dynamic a;
-      if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t10 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t11 = #0#2#isSet = true in #0#2 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t12 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t9 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t10 = #0#2#isSet = true in #0#2 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t11 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
         {
           core::print(a);
         }
@@ -72,13 +71,12 @@ static method switchStatementWithLabel(dynamic o) → dynamic {
     synthesized core::bool #0#4#isSet = false;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    dynamic #t13;
+    dynamic #t12;
     {
       lowered dynamic a#case#0;
       lowered dynamic a#case#1;
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t14 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t15 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t16 = a#case#0 = #0#6 in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t17 = #t13 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t18 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t19 = #0#6 in true) && (let final dynamic #t20 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t21 = #t13 = a#case#1 in true)) {
-        dynamic a = #t13{dynamic};
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t13 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t14 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t15 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t16 = #t12 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t17 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t18 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t19 = #t12 = a#case#1 in true)) {
+        dynamic a = #t12{dynamic};
         {
           core::print(a);
           break #L2;
@@ -87,7 +85,7 @@ static method switchStatementWithLabel(dynamic o) → dynamic {
     }
     {
       dynamic a;
-      if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t22 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t23 = #0#2#isSet = true in #0#2 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t24 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t20 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t21 = #0#2#isSet = true in #0#2 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t22 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
         {
           core::print(a);
           break #L2;
@@ -106,21 +104,20 @@ static method switchStatementWithLabel(dynamic o) → dynamic {
 static method switchStatementWithContinue(dynamic o) → dynamic {
   #L3:
   {
-    core::int #t25 = -1;
+    core::int #t23 = -1;
     final synthesized dynamic #0#0 = o;
     synthesized core::bool #0#4;
     synthesized core::bool #0#4#isSet = false;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    dynamic #t26;
+    dynamic #t24;
     #L4:
     {
       {
         lowered dynamic a#case#0;
         lowered dynamic a#case#1;
-        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t27 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t28 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t29 = a#case#0 = #0#6 in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t30 = #t26 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t31 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t32 = #0#6 in true) && (let final dynamic #t33 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t34 = #t26 = a#case#1 in true)) {
-          dynamic a = #t26{dynamic};
+        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t25 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t26 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t27 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t28 = #t24 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t29 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t30 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t31 = #t24 = a#case#1 in true)) {
+          dynamic a = #t24{dynamic};
           {
             core::print(a);
             break #L3;
@@ -129,10 +126,10 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
       }
       {
         dynamic a;
-        if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t35 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t36 = #0#2#isSet = true in #0#2 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t37 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+        if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t32 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t33 = #0#2#isSet = true in #0#2 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t34 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
           {
             core::print(a);
-            #t25 = 0;
+            #t23 = 0;
             break #L4;
           }
         }
@@ -147,18 +144,18 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
       }
       {
         if(#C4 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-          #t25 = 0;
+          #t23 = 0;
           break #L4;
         }
       }
       {
         if(#C7 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-          #t25 = 1;
+          #t23 = 1;
           break #L4;
         }
       }
     }
-    switch(#t25) {
+    switch(#t23) {
       #L5:
       case #C1:
         {
@@ -180,7 +177,7 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
 static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dynamic {
   #L7:
   {
-    core::int #t38 = -1;
+    core::int #t35 = -1;
     final synthesized dynamic #2#0 = o1;
     synthesized core::bool #2#4;
     synthesized core::bool #2#4#isSet = false;
@@ -188,7 +185,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
     {
       {
         dynamic a;
-        if(#2#0 is{ForNonNullableByDefault} core::List<dynamic> && (#2#4#isSet ?{core::bool} #2#4{core::bool} : let final dynamic #t39 = #2#4#isSet = true in #2#4 = #2#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t40 = a = #2#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)) {
+        if(#2#0 is{ForNonNullableByDefault} core::List<dynamic> && (#2#4#isSet ?{core::bool} #2#4{core::bool} : let final dynamic #t36 = #2#4#isSet = true in #2#4 = #2#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t37 = a = #2#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)) {
           {
             core::print(a);
             break #L7;
@@ -197,26 +194,25 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
       }
       {
         dynamic a;
-        if(#2#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#2#4#isSet ?{core::bool} #2#4{core::bool} : let final dynamic #t41 = #2#4#isSet = true in #2#4 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4) && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t42 = a = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+        if(#2#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#2#4#isSet ?{core::bool} #2#4{core::bool} : let final dynamic #t38 = #2#4#isSet = true in #2#4 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4) && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t39 = a = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
           {
             core::print(a);
             #L9:
             {
-              core::int #t43 = -1;
+              core::int #t40 = -1;
               final synthesized dynamic #0#0 = o2;
               synthesized core::bool #0#4;
               synthesized core::bool #0#4#isSet = false;
               synthesized core::int #0#2;
               synthesized core::bool #0#2#isSet = false;
-              late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-              dynamic #t44;
+              dynamic #t41;
               #L10:
               {
                 {
                   lowered dynamic a#case#0;
                   lowered dynamic a#case#1;
-                  if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t45 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t46 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t47 = a#case#0 = #0#6 in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t48 = #t44 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t49 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t50 = #0#6 in true) && (let final dynamic #t51 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t52 = #t44 = a#case#1 in true)) {
-                    dynamic a = #t44{dynamic};
+                  if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t42 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t43 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t44 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t45 = #t41 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t46 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t47 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t48 = #t41 = a#case#1 in true)) {
+                    dynamic a = #t41{dynamic};
                     {
                       core::print(a);
                       break #L9;
@@ -225,10 +221,10 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                 }
                 {
                   dynamic a;
-                  if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t53 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t54 = #0#2#isSet = true in #0#2 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t55 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+                  if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t49 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t50 = #0#2#isSet = true in #0#2 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t51 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
                     {
                       core::print(a);
-                      #t38 = 1;
+                      #t35 = 1;
                       break #L8;
                     }
                   }
@@ -237,25 +233,25 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                   if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
                     {
                       core::print(o2);
-                      #t43 = 0;
+                      #t40 = 0;
                       break #L10;
                     }
                   }
                 }
                 {
                   if(#C4 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-                    #t43 = 0;
+                    #t40 = 0;
                     break #L10;
                   }
                 }
                 {
                   if(#C7 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-                    #t43 = 1;
+                    #t40 = 1;
                     break #L10;
                   }
                 }
               }
-              switch(#t43) {
+              switch(#t40) {
                 #L11:
                 case #C1:
                   {
@@ -269,7 +265,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                   {
                     {
                       core::print(2);
-                      #t38 = 0;
+                      #t35 = 0;
                       break #L8;
                     }
                   }
@@ -289,18 +285,18 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
       }
       {
         if(#C4 =={core::num::==}{(core::Object) → core::bool} #2#0) {
-          #t38 = 0;
+          #t35 = 0;
           break #L8;
         }
       }
       {
         if(#C7 =={core::num::==}{(core::Object) → core::bool} #2#0) {
-          #t38 = 1;
+          #t35 = 1;
           break #L8;
         }
       }
     }
-    switch(#t38) {
+    switch(#t35) {
       #L13:
       case #C1:
         {
@@ -316,21 +312,20 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
             core::print(2);
             #L15:
             {
-              core::int #t56 = -1;
+              core::int #t52 = -1;
               final synthesized dynamic #1#0 = o2;
               synthesized core::bool #1#4;
               synthesized core::bool #1#4#isSet = false;
               synthesized core::int #1#2;
               synthesized core::bool #1#2#isSet = false;
-              late final synthesized dynamic #1#6 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-              dynamic #t57;
+              dynamic #t53;
               #L16:
               {
                 {
                   lowered dynamic a#case#0;
                   lowered dynamic a#case#1;
-                  if(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && (#1#4#isSet ?{core::bool} #1#4{core::bool} : let final dynamic #t58 = #1#4#isSet = true in #1#4 = (#1#2#isSet ?{core::int} #1#2{core::int} : let final dynamic #t59 = #1#2#isSet = true in #1#2 = #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t60 = a#case#0 = #1#6 in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t61 = #t57 = a#case#0 in true) || #1#0 is{ForNonNullableByDefault} core::List<dynamic> && (#1#2#isSet ?{core::int} #1#2{core::int} : let final dynamic #t62 = #1#2#isSet = true in #1#2 = #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t63 = #1#6 in true) && (let final dynamic #t64 = a#case#1 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t65 = #t57 = a#case#1 in true)) {
-                    dynamic a = #t57{dynamic};
+                  if(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && (#1#4#isSet ?{core::bool} #1#4{core::bool} : let final dynamic #t54 = #1#4#isSet = true in #1#4 = (#1#2#isSet ?{core::int} #1#2{core::int} : let final dynamic #t55 = #1#2#isSet = true in #1#2 = #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t56 = a#case#0 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t57 = #t53 = a#case#0 in true) || #1#0 is{ForNonNullableByDefault} core::List<dynamic> && (#1#2#isSet ?{core::int} #1#2{core::int} : let final dynamic #t58 = #1#2#isSet = true in #1#2 = #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t59 = a#case#1 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t60 = #t53 = a#case#1 in true)) {
+                    dynamic a = #t53{dynamic};
                     {
                       core::print(a);
                       break #L15;
@@ -339,7 +334,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                 }
                 {
                   dynamic a;
-                  if(#1#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#1#4#isSet ?{core::bool} #1#4{core::bool} : let final dynamic #t66 = #1#4#isSet = true in #1#4 = (#1#2#isSet ?{core::int} #1#2{core::int} : let final dynamic #t67 = #1#2#isSet = true in #1#2 = #1#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t68 = a = #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+                  if(#1#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#1#4#isSet ?{core::bool} #1#4{core::bool} : let final dynamic #t61 = #1#4#isSet = true in #1#4 = (#1#2#isSet ?{core::int} #1#2{core::int} : let final dynamic #t62 = #1#2#isSet = true in #1#2 = #1#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4) && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t63 = a = #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
                     {
                       core::print(a);
                       continue #L14;
@@ -350,25 +345,25 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                   if(#C1 =={core::num::==}{(core::Object) → core::bool} #1#0) {
                     {
                       core::print(o2);
-                      #t56 = 0;
+                      #t52 = 0;
                       break #L16;
                     }
                   }
                 }
                 {
                   if(#C4 =={core::num::==}{(core::Object) → core::bool} #1#0) {
-                    #t56 = 0;
+                    #t52 = 0;
                     break #L16;
                   }
                 }
                 {
                   if(#C7 =={core::num::==}{(core::Object) → core::bool} #1#0) {
-                    #t56 = 1;
+                    #t52 = 1;
                     break #L16;
                   }
                 }
               }
-              switch(#t56) {
+              switch(#t52) {
                 #L17:
                 case #C1:
                   {
@@ -536,7 +531,7 @@ static method switchStatementNonPrimitiveEquals(dynamic o) → dynamic {
 }
 static method switchExpression(dynamic o) → dynamic {
   return block {
-    dynamic #t69;
+    dynamic #t64;
     final synthesized dynamic #0#0 = o;
     synthesized core::bool #0#4;
     synthesized core::bool #0#4#isSet = false;
@@ -544,140 +539,140 @@ static method switchExpression(dynamic o) → dynamic {
     {
       {
         dynamic a;
-        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t70 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t71 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)) {
-          #t69 = a;
+        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t65 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4) && (let final dynamic #t66 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)) {
+          #t64 = a;
           break #L39;
         }
       }
       {
         dynamic a;
-        if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t72 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t73 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
-          #t69 = a;
+        if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t67 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t68 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+          #t64 = a;
           break #L39;
         }
       }
       {
         if(true) {
-          #t69 = null;
+          #t64 = null;
           break #L39;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t69;
+  } =>#t64;
 }
 static method switchExpressionEnum(self::E o) → dynamic {
   return block {
-    core::int #t74;
+    core::int #t69;
     #L40:
     switch(o) /*isExplicitlyExhaustive*/ {
       #L41:
       case #C3:
         {
-          #t74 = 0;
+          #t69 = 0;
           break #L40;
         }
       #L42:
       case #C6:
         {
-          #t74 = 1;
+          #t69 = 1;
           break #L40;
         }
       #L43:
       case #C9:
         {
-          #t74 = 2;
+          #t69 = 2;
           break #L40;
         }
       #L44:
       default:
         throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t74;
+  } =>#t69;
 }
 static method switchExpressionEnumWithGuard(self::E o) → dynamic {
   return block {
-    core::int #t75;
+    core::int #t70;
     final synthesized self::E #0#0 = o;
     #L45:
     {
       {
         if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0 && true) {
-          #t75 = 0;
+          #t70 = 0;
           break #L45;
         }
       }
       {
         if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          #t75 = 1;
+          #t70 = 1;
           break #L45;
         }
       }
       {
         if(true) {
-          #t75 = 2;
+          #t70 = 2;
           break #L45;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t75;
+  } =>#t70;
 }
 static method switchExpressionPrimitiveEquals(dynamic o) → dynamic {
   return block {
-    core::int #t76;
+    core::int #t71;
     final synthesized dynamic #0#0 = o;
     #L46:
     {
       {
         if(#C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          #t76 = 0;
+          #t71 = 0;
           break #L46;
         }
       }
       {
         if(#C12 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          #t76 = 1;
+          #t71 = 1;
           break #L46;
         }
       }
       {
         if(true) {
-          #t76 = 2;
+          #t71 = 2;
           break #L46;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t76;
+  } =>#t71;
 }
 static method switchExpressionNonPrimitiveEquals(dynamic o) → dynamic {
   return block {
-    core::int #t77;
+    core::int #t72;
     final synthesized dynamic #0#0 = o;
     #L47:
     {
       {
         if(#C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} #0#0) {
-          #t77 = 0;
+          #t72 = 0;
           break #L47;
         }
       }
       {
         if(#C14 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} #0#0) {
-          #t77 = 1;
+          #t72 = 1;
           break #L47;
         }
       }
       {
         if(true) {
-          #t77 = 2;
+          #t72 = 2;
           break #L47;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t77;
+  } =>#t72;
 }
 static method switchStatementSymbol(core::Symbol s) → dynamic {
   #L48:
@@ -708,31 +703,31 @@ static method switchStatementSymbol(core::Symbol s) → dynamic {
 }
 static method switchExpressionSymbol(core::Symbol s) → dynamic {
   return block {
-    core::int #t78;
+    core::int #t73;
     final synthesized core::Symbol #0#0 = s;
     #L49:
     {
       {
         if(#C15 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
-          #t78 = 0;
+          #t73 = 0;
           break #L49;
         }
       }
       {
         if(#C16 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
-          #t78 = 1;
+          #t73 = 1;
           break #L49;
         }
       }
       {
         if(true) {
-          #t78 = 2;
+          #t73 = 2;
           break #L49;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t78;
+  } =>#t73;
 }
 
 constants  {

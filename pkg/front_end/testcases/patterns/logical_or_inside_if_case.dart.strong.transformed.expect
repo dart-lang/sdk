@@ -22,7 +22,7 @@ static method test2(dynamic x) → dynamic {
     function ##0#7#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = y = #0#6 in true)) && (let final dynamic #t2 = #0#7 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t3 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t4 = y = #0#7 in true))) {
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = y = #0#6 in true)) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t2 = y = #0#7 in true))) {
       return y;
     }
     else {
@@ -54,10 +54,7 @@ static method test4(dynamic x) → dynamic {
     function ##0#7#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
-    function ##0#8#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(2){(core::int) → dynamic};
-    late final synthesized dynamic #0#8 = ##0#8#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t5 = y = #0#6 in true)) && (let final dynamic #t6 = #0#7 in true) && (let final dynamic #t7 = #0#8 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t8 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t9 = y = #0#7 in true)) && (let final dynamic #t10 = #0#8 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t11 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::bool && (let final dynamic #t12 = y = #0#7 in true)) && (let final dynamic #t13 = #0#8 in true)) {
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = y = #0#6 in true)) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t4 = y = #0#7 in true)) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::bool && (let final dynamic #t5 = y = #0#7 in true))) {
       return y;
     }
     else {

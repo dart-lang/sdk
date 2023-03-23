@@ -153,9 +153,10 @@ class MatchingExpressionVisitor
     bool hasSeenRestPattern = false;
     for (int i = 0; i < node.patterns.length; i++) {
       CacheableExpression elementExpression;
-      if (node.patterns[i] is RestPattern) {
+      Pattern elementPattern = node.patterns[i];
+      if (elementPattern is RestPattern) {
         hasSeenRestPattern = true;
-        Pattern? subPattern = (node.patterns[i] as RestPattern).subPattern;
+        Pattern? subPattern = elementPattern.subPattern;
         if (subPattern == null) {
           continue;
         }
@@ -234,17 +235,10 @@ class MatchingExpressionVisitor
       }
 
       DelayedExpression elementMatcher =
-          visitPattern(node.patterns[i], elementExpression);
-      if (!elementMatcher.uses(elementExpression)) {
-        // Ensure that we perform the lookup even if we don't use the result.
-        matchingExpression = DelayedAndExpression.merge(matchingExpression,
-            new EffectExpression(elementExpression, elementMatcher),
-            fileOffset: node.fileOffset);
-      } else {
-        matchingExpression = DelayedAndExpression.merge(
-            matchingExpression, elementMatcher,
-            fileOffset: node.fileOffset);
-      }
+          visitPattern(elementPattern, elementExpression);
+      matchingExpression = DelayedAndExpression.merge(
+          matchingExpression, elementMatcher,
+          fileOffset: node.fileOffset);
     }
     return matchingExpression ??
         new BooleanExpression(true, fileOffset: node.fileOffset);

@@ -27,7 +27,7 @@ static method exhaustiveWildcard((core::int, core::String, {required named: core
     #L1:
     {
       {
-        if(true && true && true) {
+        if(true) {
           #t1 = 0;
           break #L1;
         }
@@ -41,7 +41,7 @@ static method exhaustiveTyped((core::int, core::String, {required named: core::b
     #L2:
     {
       {
-        if(true && true && true) {
+        if(true) {
           #t2 = 0;
           break #L2;
         }
@@ -58,13 +58,13 @@ static method exhaustiveValue((core::int, core::String, {required named: core::b
     #L3:
     {
       {
-        if(true && true && #C1 =={core::Object::==}{(core::Object) → core::bool} #0#3) {
+        if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#3) {
           #t3 = 0;
           break #L3;
         }
       }
       {
-        if(true && true && #C2 =={core::Object::==}{(core::Object) → core::bool} #0#3) {
+        if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#3) {
           #t3 = 1;
           break #L3;
         }
@@ -78,7 +78,7 @@ static method nonExhaustiveRestrictedValue1((core::int, core::String, {required 
     #L4:
     {
       {
-        if(#C3 =={core::num::==}{(core::Object) → core::bool} #0#0.$1{core::int} && true && true) {
+        if(#C3 =={core::num::==}{(core::Object) → core::bool} #0#0.$1{core::int}) {
           #t4 = 1;
           break #L4;
         }
@@ -92,7 +92,7 @@ static method nonExhaustiveRestrictedValue2((core::int, core::String, {required 
     #L5:
     {
       {
-        if(true && #C4 =={core::String::==}{(core::Object) → core::bool} #0#0.$2{core::String} && true) {
+        if(#C4 =={core::String::==}{(core::Object) → core::bool} #0#0.$2{core::String}) {
           #t5 = 1;
           break #L5;
         }
@@ -106,7 +106,7 @@ static method nonExhaustiveRestrictedValue3((core::int, core::String, {required 
     #L6:
     {
       {
-        if(true && true && #C1 =={core::Object::==}{(core::Object) → core::bool} #0#0.named{core::bool}) {
+        if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0.named{core::bool}) {
           #t6 = 1;
           break #L6;
         }
@@ -120,11 +120,3 @@ constants  {
   #C3 = 5
   #C4 = "foo"
 }
-
-Extra constant evaluation status:
-Evaluated: LogicalExpression @ org-dartlang-testcase:///record.dart:6:7 -> BoolConstant(true)
-Evaluated: LogicalExpression @ org-dartlang-testcase:///record.dart:10:7 -> BoolConstant(true)
-Evaluated: LogicalExpression @ org-dartlang-testcase:///record.dart:14:7 -> BoolConstant(true)
-Evaluated: LogicalExpression @ org-dartlang-testcase:///record.dart:15:7 -> BoolConstant(true)
-Evaluated: LogicalExpression @ org-dartlang-testcase:///record.dart:27:7 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 53, effectively constant: 5

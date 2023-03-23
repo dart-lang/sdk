@@ -20,7 +20,7 @@ static method test(dynamic x) → dynamic {
     {
       lowered core::int a#case#0;
       lowered core::double a#case#1;
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = a#case#0 = #0#6{core::int} in true)) && (let final dynamic #t3 = #0#7 in true) && a#case#0.{core::int::isEven}{core::bool} && (let final dynamic #t4 = #t1 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t5 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::double && (let final dynamic #t6 = a#case#1 = #0#7{core::double} in true)) && a#case#1.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool} && (let final dynamic #t7 = #t1 = a#case#1 in true)) {
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = a#case#0 = #0#6{core::int} in true)) && a#case#0.{core::int::isEven}{core::bool} && (let final dynamic #t3 = #t1 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::double && (let final dynamic #t4 = a#case#1 = #0#7{core::double} in true)) && a#case#1.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool} && (let final dynamic #t5 = #t1 = a#case#1 in true)) {
         core::int a = invalid-expression "pkg/front_end/testcases/patterns/simple_switch_with_guards_error.dart:7:15: Error: Variable pattern 'a' doesn't have the same type in all cases.
     case [int a, _] when a.isEven: // Error: type of 'a' mismatch.
               ^";

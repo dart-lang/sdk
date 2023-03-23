@@ -131,7 +131,7 @@ static method exhaustive1a(core::List<core::num> list) → dynamic
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t3 = #0#0.{core::List::[]}(0){(core::int) → core::num} in true)) {
+        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool}) {
           #t2 = 1;
           break #L2;
         }
@@ -141,485 +141,478 @@ static method exhaustive1a(core::List<core::num> list) → dynamic
   } =>#t2;
 static method exhaustive1b(core::List<core::num> list) → dynamic
   return block {
-    core::int #t4;
+    core::int #t3;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
     #L3:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t4 = 0;
+          #t3 = 0;
           break #L3;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t5 = #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num} in true)) {
-          #t4 = 1;
+        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool}) {
+          #t3 = 1;
           break #L3;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t3;
+static method exhaustive2a(core::List<core::num> list) → dynamic
+  return block {
+    core::int #t4;
+    final synthesized core::List<core::num> #0#0 = list;
+    late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
+    #L4:
+    {
+      {
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
+          #t4 = 0;
+          break #L4;
+        }
+      }
+      {
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t4 = 1;
+          break #L4;
+        }
+      }
+      {
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool}) {
+          #t4 = 2;
+          break #L4;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t4;
-static method exhaustive2a(core::List<core::num> list) → dynamic
-  return block {
-    core::int #t6;
-    final synthesized core::List<core::num> #0#0 = list;
-    late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
-    late final synthesized core::num #0#6 = #0#0.{core::List::[]}(0){(core::int) → core::num};
-    #L4:
-    {
-      {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t6 = 0;
-          break #L4;
-        }
-      }
-      {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t7 = #0#6 in true)) {
-          #t6 = 1;
-          break #L4;
-        }
-      }
-      {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && (let final dynamic #t8 = #0#6 in true) && (let final dynamic #t9 = #0#0.{core::List::[]}(1){(core::int) → core::num} in true)) {
-          #t6 = 2;
-          break #L4;
-        }
-      }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
-    }
-  } =>#t6;
 static method exhaustive2b(core::List<core::num> list) → dynamic
   return block {
-    core::int #t10;
+    core::int #t5;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
-    late final synthesized core::num #0#6 = #0#0.{core::List::[]}(0){(core::int) → core::num};
     #L5:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t10 = 0;
+          #t5 = 0;
           break #L5;
         }
       }
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t11 = #0#6 in true)) {
-          #t10 = 1;
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t5 = 1;
           break #L5;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && (let final dynamic #t12 = #0#6 in true) && (let final dynamic #t13 = #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num} in true)) {
-          #t10 = 2;
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool}) {
+          #t5 = 2;
           break #L5;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t10;
+  } =>#t5;
 static method exhaustive2c(core::List<core::num> list) → dynamic
   return block {
-    core::int #t14;
+    core::int #t6;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
     #L6:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t14 = 0;
+          #t6 = 0;
           break #L6;
         }
       }
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t15 = #0#0.{core::List::[]}(0){(core::int) → core::num} in true)) {
-          #t14 = 1;
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t6 = 1;
           break #L6;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && (let final dynamic #t16 = #0#0.{core::List::[]}(#0#1.{core::num::-}(2){(core::num) → core::int}){(core::int) → core::num} in true) && (let final dynamic #t17 = #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num} in true)) {
-          #t14 = 2;
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool}) {
+          #t6 = 2;
           break #L6;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t14;
+  } =>#t6;
 static method nonExhaustive1aMissing(core::List<core::num> list) → dynamic
   return block {
-    core::int #t18;
+    core::int #t7;
     final synthesized core::List<core::num> #0#0 = list;
     #L7:
     {
       {
-        if(#0#0.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t19 = #0#0.{core::List::[]}(0){(core::int) → core::num} in true)) {
-          #t18 = 1;
+        if(#0#0.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool}) {
+          #t7 = 1;
           break #L7;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t18;
+  } =>#t7;
 static method nonExhaustive1bMissing(core::List<core::num> list) → dynamic
   return block {
-    core::int #t20;
+    core::int #t8;
     final synthesized core::List<core::num> #0#0 = list;
-    late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
     #L8:
     {
       {
-        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t21 = #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num} in true)) {
-          #t20 = 1;
+        if(#0#0.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool}) {
+          #t8 = 1;
           break #L8;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t20;
+  } =>#t8;
 static method nonExhaustive2aMissing(core::List<core::num> list) → dynamic
   return block {
-    core::int #t22;
+    core::int #t9;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
     #L9:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t22 = 0;
+          #t9 = 0;
           break #L9;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && (let final dynamic #t23 = #0#0.{core::List::[]}(0){(core::int) → core::num} in true) && (let final dynamic #t24 = #0#0.{core::List::[]}(1){(core::int) → core::num} in true)) {
-          #t22 = 2;
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool}) {
+          #t9 = 2;
           break #L9;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t22;
+  } =>#t9;
 static method nonExhaustive2bMissing(core::List<core::num> list) → dynamic
   return block {
-    core::int #t25;
+    core::int #t10;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
     #L10:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t25 = 0;
+          #t10 = 0;
           break #L10;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && (let final dynamic #t26 = #0#0.{core::List::[]}(0){(core::int) → core::num} in true) && (let final dynamic #t27 = #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num} in true)) {
-          #t25 = 2;
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool}) {
+          #t10 = 2;
           break #L10;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t25;
+  } =>#t10;
 static method nonExhaustive2cMissing(core::List<core::num> list) → dynamic
   return block {
-    core::int #t28;
+    core::int #t11;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
     #L11:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t28 = 0;
+          #t11 = 0;
           break #L11;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && (let final dynamic #t29 = #0#0.{core::List::[]}(#0#1.{core::num::-}(2){(core::num) → core::int}){(core::int) → core::num} in true) && (let final dynamic #t30 = #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num} in true)) {
-          #t28 = 2;
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool}) {
+          #t11 = 2;
           break #L11;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t28;
+  } =>#t11;
 static method nonExhaustiveRestrictedType(core::List<core::num> list) → dynamic
   return block {
-    core::int #t31;
+    core::int #t12;
     final synthesized core::List<core::num> #0#0 = list;
     #L12:
     {
       {
         if(#0#0.{core::List::sublist}(0){(core::int, [core::int?]) → core::List<core::num>} is{ForNonNullableByDefault} core::List<core::int>) {
-          #t31 = 0;
+          #t12 = 0;
           break #L12;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t31;
+  } =>#t12;
 static method nonExhaustive1aRestrictedValue(core::List<core::num> list) → dynamic
   return block {
-    core::int #t32;
+    core::int #t13;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
     #L13:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t32 = 0;
+          #t13 = 0;
           break #L13;
         }
       }
       {
         if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::num}) {
-          #t32 = 1;
+          #t13 = 1;
           break #L13;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t32;
+  } =>#t13;
 static method nonExhaustive1aRestrictedType(core::List<core::num> list) → dynamic
   return block {
-    core::int #t33;
+    core::int #t14;
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
     #L14:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} core::List<core::int> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t34 = #0#2#isSet = true in #0#2 = #0#0{core::List<core::int>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t33 = 0;
+        if(#0#0 is{ForNonNullableByDefault} core::List<core::int> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t15 = #0#2#isSet = true in #0#2 = #0#0{core::List<core::int>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) {
+          #t14 = 0;
           break #L14;
         }
       }
       {
-        if((#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t35 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t36 = #0#0.{core::List::[]}(0){(core::int) → core::num} in true)) {
-          #t33 = 1;
+        if((#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t16 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
+          #t14 = 1;
           break #L14;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t33;
+  } =>#t14;
 static method nonExhaustive1bRestrictedValue(core::List<core::num> list) → dynamic
   return block {
-    core::int #t37;
+    core::int #t17;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
     #L15:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t37 = 0;
+          #t17 = 0;
           break #L15;
         }
       }
       {
         if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num}) {
-          #t37 = 1;
+          #t17 = 1;
           break #L15;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t37;
+  } =>#t17;
 static method nonExhaustive1bRestrictedType(core::List<core::num> list) → dynamic
   return block {
-    core::int #t38;
+    core::int #t18;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
     #L16:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t38 = 0;
+          #t18 = 0;
           break #L16;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && #0#0.{core::List::sublist}(0, #0#1.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<core::num>} is{ForNonNullableByDefault} core::List<core::int> && (let final dynamic #t39 = #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num} in true)) {
-          #t38 = 1;
+        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && #0#0.{core::List::sublist}(0, #0#1.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<core::num>} is{ForNonNullableByDefault} core::List<core::int>) {
+          #t18 = 1;
           break #L16;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t38;
+  } =>#t18;
 static method nonExhaustive2aRestrictedValue(core::List<core::num> list) → dynamic
   return block {
-    core::int #t40;
+    core::int #t19;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
-    late final synthesized core::num #0#6 = #0#0.{core::List::[]}(0){(core::int) → core::num};
     #L17:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t40 = 0;
+          #t19 = 0;
           break #L17;
         }
       }
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6) {
-          #t40 = 1;
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::num}) {
+          #t19 = 1;
           break #L17;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && (let final dynamic #t41 = #0#6 in true) && (let final dynamic #t42 = #0#0.{core::List::[]}(1){(core::int) → core::num} in true)) {
-          #t40 = 2;
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool}) {
+          #t19 = 2;
           break #L17;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t40;
+  } =>#t19;
 static method nonExhaustive2bRestrictedValue(core::List<core::num> list) → dynamic
   return block {
-    core::int #t43;
+    core::int #t20;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
-    late final synthesized core::num #0#6 = #0#0.{core::List::[]}(0){(core::int) → core::num};
     #L18:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t43 = 0;
+          #t20 = 0;
           break #L18;
         }
       }
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t44 = #0#6 in true)) {
-          #t43 = 1;
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t20 = 1;
           break #L18;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6 && (let final dynamic #t45 = #0#0.{core::List::[]}(1){(core::int) → core::num} in true)) {
-          #t43 = 2;
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::num}) {
+          #t20 = 2;
           break #L18;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t43;
+  } =>#t20;
 static method nonExhaustive2cRestrictedValue(core::List<core::num> list) → dynamic
   return block {
-    core::int #t46;
+    core::int #t21;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
-    late final synthesized core::num #0#6 = #0#0.{core::List::[]}(0){(core::int) → core::num};
     #L19:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t46 = 0;
+          #t21 = 0;
           break #L19;
         }
       }
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t47 = #0#6 in true)) {
-          #t46 = 1;
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t21 = 1;
           break #L19;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && (let final dynamic #t48 = #0#6 in true) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(1){(core::int) → core::num}) {
-          #t46 = 2;
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(1){(core::int) → core::num}) {
+          #t21 = 2;
           break #L19;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t46;
+  } =>#t21;
 static method nonExhaustive2dRestrictedValue(core::List<core::num> list) → dynamic
   return block {
-    core::int #t49;
+    core::int #t22;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
-    late final synthesized core::num #0#6 = #0#0.{core::List::[]}(0){(core::int) → core::num};
     #L20:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t49 = 0;
+          #t22 = 0;
           break #L20;
         }
       }
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t50 = #0#6 in true)) {
-          #t49 = 1;
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t22 = 1;
           break #L20;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && (let final dynamic #t51 = #0#6 in true) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num}) {
-          #t49 = 2;
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num}) {
+          #t22 = 2;
           break #L20;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t49;
+  } =>#t22;
 static method nonExhaustive2eRestrictedValue(core::List<core::num> list) → dynamic
   return block {
-    core::int #t52;
+    core::int #t23;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
     #L21:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t52 = 0;
+          #t23 = 0;
           break #L21;
         }
       }
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t53 = #0#0.{core::List::[]}(0){(core::int) → core::num} in true)) {
-          #t52 = 1;
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t23 = 1;
           break #L21;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(#0#1.{core::num::-}(2){(core::num) → core::int}){(core::int) → core::num} && (let final dynamic #t54 = #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num} in true)) {
-          #t52 = 2;
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(#0#1.{core::num::-}(2){(core::num) → core::int}){(core::int) → core::num}) {
+          #t23 = 2;
           break #L21;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t52;
+  } =>#t23;
 static method nonExhaustive2fRestrictedValue(core::List<core::num> list) → dynamic
   return block {
-    core::int #t55;
+    core::int #t24;
     final synthesized core::List<core::num> #0#0 = list;
     late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
     #L22:
     {
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t55 = 0;
+          #t24 = 0;
           break #L22;
         }
       }
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t56 = #0#0.{core::List::[]}(0){(core::int) → core::num} in true)) {
-          #t55 = 1;
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t24 = 1;
           break #L22;
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && (let final dynamic #t57 = #0#0.{core::List::[]}(#0#1.{core::num::-}(2){(core::num) → core::int}){(core::int) → core::num} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num}) {
-          #t55 = 2;
+        if(#0#1.{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num}) {
+          #t24 = 2;
           break #L22;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t55;
+  } =>#t24;
 
 constants  {
   #C1 = 0
