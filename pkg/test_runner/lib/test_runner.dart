@@ -180,6 +180,7 @@ class NoResultsForCommitException implements Exception {
 
   NoResultsForCommitException(this.reason);
 
+  @override
   String toString() => reason;
 }
 
@@ -523,14 +524,14 @@ Future<void> runTests(List<String> args) async {
     // Write out the merged results for the builders.
     if (needsMerge || needsConfigurationOverride) {
       await File("${outDirectory.path}/previous.json").writeAsString(
-          mergedResults.values.map((data) => jsonEncode(data) + "\n").join(""));
+          mergedResults.values.map((data) => "${jsonEncode(data)}\n").join(""));
     }
     // Ensure that there is a flaky.json even if it wasn't downloaded.
     if (needsMerge ||
         needsConfigurationOverride ||
         options["report-flakes"] as bool) {
       await File("${outDirectory.path}/flaky.json").writeAsString(
-          mergedFlaky.values.map((data) => jsonEncode(data) + "\n").join(""));
+          mergedFlaky.values.map((data) => "${jsonEncode(data)}\n").join(""));
     }
     // Deflake results of the tests if required.
     if (options["deflake"] as bool) {

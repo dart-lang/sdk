@@ -13,15 +13,15 @@ import 'package:test_runner/src/repository.dart';
 import 'package:test_runner/src/utils.dart';
 
 class DispatchingServer {
-  HttpServer server;
+  final HttpServer server;
   final Map<String, Function> _handlers = {};
   final void Function(HttpRequest request) _notFound;
 
-  DispatchingServer(this.server, void onError(e), this._notFound) {
+  DispatchingServer(this.server, Function? onError, this._notFound) {
     server.listen(_dispatchRequest, onError: onError);
   }
 
-  void addHandler(String prefix, void handler(HttpRequest request)) {
+  void addHandler(String prefix, void Function(HttpRequest request) handler) {
     _handlers[prefix] = handler;
   }
 
@@ -434,6 +434,7 @@ class _Entry implements Comparable<_Entry> {
 
   _Entry(this.name, this.displayName);
 
+  @override
   int compareTo(_Entry other) {
     return name.compareTo(other.name);
   }

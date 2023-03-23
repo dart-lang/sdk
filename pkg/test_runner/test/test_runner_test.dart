@@ -67,6 +67,7 @@ class CustomTestSuite extends TestSuite {
   CustomTestSuite(TestConfiguration configuration)
       : super(configuration, "CustomTestSuite", []);
 
+  @override
   void findTestCases(TestCaseEvent onTest, Map testCache) {
     void enqueueTestCase(TestCase testCase) {
       TestController.numTests++;
@@ -116,6 +117,7 @@ void testProcessQueue() {
 }
 
 class EventListener extends progress.EventListener {
+  @override
   void done(TestCase test) {
     TestController.processCompletedTest(test);
   }

@@ -1,4 +1,4 @@
-include: package:lints/core.yaml
+include: package:lints/recommended.yaml
 
 analyzer:
   language:
@@ -6,9 +6,6 @@ analyzer:
   errors:
     # TODO: These issues should be addressed.
     exhaustive_cases: ignore
-    # Disabled due to existing violations.
-    only_throw_errors: ignore
-    prefer_single_quotes: ignore
 
 linter:
   rules:
