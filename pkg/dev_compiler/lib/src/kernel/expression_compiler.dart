@@ -205,6 +205,7 @@ class FileEndOffsetCalculator extends Visitor<int?> with VisitorNullMixin<int> {
 
   final int _startOffset;
   final TreeNode _root;
+  final TreeNode _original;
 
   int _endOffset = noOffset;
 
@@ -212,7 +213,8 @@ class FileEndOffsetCalculator extends Visitor<int?> with VisitorNullMixin<int> {
   ///
   /// [_root] is the parent of the scoping node.
   /// [_startOffset] is the start offset of the scoping node.
-  FileEndOffsetCalculator._(this._root, this._startOffset);
+  FileEndOffsetCalculator._(this._root, this._original)
+      : _startOffset = _original.fileOffset;
 
   /// Calculate file end offset for a scoping node.
   ///
@@ -231,7 +233,7 @@ class FileEndOffsetCalculator extends Visitor<int?> with VisitorNullMixin<int> {
   /// If none found, return [noOffset].
   static int calculateEndOffset(TreeNode node) {
     for (var n = node.parent; n != null; n = n.parent) {
-      var calculator = FileEndOffsetCalculator._(n, node.fileOffset);
+      var calculator = FileEndOffsetCalculator._(n, node);
       var offset = n.accept(calculator);
       if (offset != noOffset) return offset!;
     }
@@ -240,12 +242,17 @@ class FileEndOffsetCalculator extends Visitor<int?> with VisitorNullMixin<int> {
 
   @override
   int defaultTreeNode(TreeNode node) {
+    if (node == _original) return _endOffset;
     if (node == _root) {
       node.visitChildren(this);
       if (_endOffset != noOffset) return _endOffset;
       return _endOffsetForNode(node);
     }
-    if (_endOffset == noOffset && node.fileOffset > _startOffset) {
+    // Skip synthesized variables as they could have offsets
+    // from later code (in case they are hoisted, for example).
+    if ((node is! VariableDeclaration || !node.isSynthesized) &&
+        _endOffset == noOffset &&
+        node.fileOffset > _startOffset) {
       _endOffset = node.fileOffset;
     }
     return _endOffset;
