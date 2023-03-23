@@ -2860,7 +2860,7 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   }
 
   @override
-  Token get beginToken => expression.beginToken;
+  Token get beginToken => constKeyword ?? expression.beginToken;
 
   @override
   Token get endToken => expression.endToken;

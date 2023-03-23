@@ -178,7 +178,7 @@ class B extends A {
   const B();
 }
 ''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 33, 3),
+      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 9),
     ]);
   }
 
@@ -212,7 +212,7 @@ class B extends A<int> {
   const B();
 }
 ''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 33, 8),
+      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 14),
     ]);
   }
 
@@ -250,7 +250,7 @@ class A<T> {
   const A();
 }
 ''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 38, 8),
+      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 14),
     ]);
   }
 
