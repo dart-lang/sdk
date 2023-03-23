@@ -194,7 +194,7 @@ final simpleTestProgramExpectedOutput = [
   'Expected: <2>',
   '  Actual: <1>',
   // These lines contain paths, so just check the non-path parts.
-  allOf(startsWith('package:test_api'), endsWith('expect')),
+  allOf(startsWith('package:matcher'), endsWith('expect')),
   endsWith('main.<fn>.<fn>'),
   '✖ group 1 failing test',
   // Exit
