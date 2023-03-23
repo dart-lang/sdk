@@ -205,15 +205,15 @@ class ConvertToSwitchExpression extends CorrectionProducer {
       if (member is! SwitchPatternCase) return false;
       if (member.labels.isNotEmpty) return false;
       var statements = member.statements;
-
-      if (statements.length == 1 &&
-          statements.first.isThrowExpressionStatement) {
-        continue;
+      if (statements.length == 1) {
+        if (statements.first.isThrowExpressionStatement) continue;
+      } else if (statements.length == 2) {
+        if (statements[1] is! BreakStatement) return false;
+      } else {
+        return false;
       }
 
-      if (statements.length != 2) return false;
-      if (statements[1] is! BreakStatement) return false;
-      var s = statements[0];
+      var s = statements.first;
       if (s is! ExpressionStatement) return false;
       var expression = s.expression;
       if (expression is! MethodInvocation) return false;
@@ -234,15 +234,15 @@ class ConvertToSwitchExpression extends CorrectionProducer {
       if (member is! SwitchPatternCase) return false;
       if (member.labels.isNotEmpty) return false;
       var statements = member.statements;
-
-      if (statements.length == 1 &&
-          statements.first.isThrowExpressionStatement) {
-        continue;
+      if (statements.length == 1) {
+        if (statements.first.isThrowExpressionStatement) continue;
+      } else if (statements.length == 2) {
+        if (statements[1] is! BreakStatement) return false;
+      } else {
+        return false;
       }
 
-      if (statements.length != 2) return false;
-      if (statements[1] is! BreakStatement) return false;
-      var s = statements[0];
+      var s = statements.first;
       if (s is! ExpressionStatement) return false;
       var expression = s.expression;
       if (expression is! AssignmentExpression) return false;
