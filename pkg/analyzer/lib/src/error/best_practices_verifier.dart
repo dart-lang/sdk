@@ -444,6 +444,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstantPattern(ConstantPattern node) {
+    if (node.expression.isDoubleNan) {
+      _errorReporter.reportErrorForNode(
+        WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE,
+        node,
+      );
+    }
+    super.visitConstantPattern(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredElement as ConstructorElementImpl;
     if (!_isNonNullableByDefault && element.isFactory) {
@@ -1274,15 +1285,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       );
     }
 
-    bool isDoubleNan(Expression expression) =>
-        expression is PrefixedIdentifier &&
-        expression.prefix.name == 'double' &&
-        expression.identifier.name == 'nan';
-
     void checkLeftRight(ErrorCode errorCode) {
-      if (isDoubleNan(node.leftOperand)) {
+      if (node.leftOperand.isDoubleNan) {
         reportStartEnd(errorCode, node.leftOperand, node.operator);
-      } else if (isDoubleNan(node.rightOperand)) {
+      } else if (node.rightOperand.isDoubleNan) {
         reportStartEnd(errorCode, node.operator, node.rightOperand);
       }
     }
@@ -2373,5 +2379,17 @@ class _UsedParameterVisitor extends RecursiveAstVisitor<void> {
     if (_parameters.contains(element)) {
       _usedParameters.add(element as ParameterElement);
     }
+  }
+}
+
+extension on Expression {
+  /// Whether this is the [PrefixedIdentifier] referring to `double.nan`.
+  // TODO(srawlins): This will return the wrong answer for `prefixed.double.nan`
+  // and for `import 'foo.dart' as double; double.nan`.
+  bool get isDoubleNan {
+    final self = this;
+    return self is PrefixedIdentifier &&
+        self.prefix.name == 'double' &&
+        self.identifier.name == 'nan';
   }
 }

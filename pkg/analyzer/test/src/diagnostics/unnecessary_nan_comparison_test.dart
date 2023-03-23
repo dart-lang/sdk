@@ -15,6 +15,18 @@ main() {
 
 @reflectiveTest
 class UnnecessaryNanComparisonTest extends PubPackageResolutionTest {
+  test_constantPattern() async {
+    await assertErrorsInCode('''
+void f(List<double> list) {
+  switch (list) {
+    case [double.nan]:
+  }
+}
+''', [
+      error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 56, 10),
+    ]);
+  }
+
   test_equal() async {
     await assertErrorsInCode('''
 void f(double d) {
