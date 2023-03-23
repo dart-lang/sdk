@@ -1,3 +1,6 @@
+## 5.10.0-dev
+* Added `DartType.isDartCoreType`.
+
 ## 5.9.0
 * Deprecated `FunctionBody.isPotentiallyMutatedInClosure`, not used by clients.
 * Fix for `FunctionBody.isPotentiallyMutatedInScope` and pattern assignment.

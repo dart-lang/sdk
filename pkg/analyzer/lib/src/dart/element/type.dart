@@ -623,6 +623,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartCoreType {
+    return element.name == "Type" && element.library.isDartCore;
+  }
+
+  @override
   List<MethodElement> get methods {
     if (_methods == null) {
       List<MethodElement> methods = element.methods;
@@ -1231,6 +1236,9 @@ abstract class TypeImpl implements DartType {
 
   @override
   bool get isDartCoreSymbol => false;
+
+  @override
+  bool get isDartCoreType => false;
 
   @override
   bool get isDynamic => false;
