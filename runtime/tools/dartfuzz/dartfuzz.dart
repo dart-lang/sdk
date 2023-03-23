@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.98';
+const String version = '1.99';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -875,17 +875,12 @@ class DartFuzz {
       } else {
         final parentClass = choose(i);
         classParents.add(parentClass);
-        if (coinFlip()) {
+        if (classParents[parentClass] >= 0 || coinFlip()) {
           // Inheritance
           emit('class X$i extends X$parentClass ');
         } else {
           // Mixin
-          if (classParents[parentClass] >= 0) {
-            emit(
-                'class X$i extends X${classParents[parentClass]} with X$parentClass ');
-          } else {
-            emit('class X$i with X$parentClass ');
-          }
+          emit('class X$i with X$parentClass ');
         }
       }
       emitBraceWrapped(() {
