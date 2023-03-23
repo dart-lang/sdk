@@ -93,6 +93,7 @@ import 'prefer_generic_function_type_aliases_test.dart'
 import 'prefer_mixin_test.dart' as prefer_mixin;
 import 'prefer_relative_imports_test.dart' as prefer_relative_imports;
 import 'prefer_spread_collections_test.dart' as prefer_spread_collections;
+import 'prefer_void_to_null_test.dart' as prefer_void_to_null;
 import 'public_member_api_docs_test.dart' as public_member_api_docs;
 import 'recursive_getters_test.dart' as recursive_getters;
 import 'sort_constructors_first_test.dart' as sort_constructors_first;
@@ -197,6 +198,7 @@ void main() {
   prefer_spread_collections.main();
   public_member_api_docs.main();
   prefer_mixin.main();
+  prefer_void_to_null.main();
   recursive_getters.main();
   sort_constructors_first.main();
   sort_unnamed_constructors_first.main();
