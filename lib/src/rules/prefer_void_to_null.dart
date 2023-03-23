@@ -125,9 +125,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parent = node.parent;
 
     // Null Function()
-    if (parent is GenericFunctionType) {
-      return;
-    }
+    if (parent is GenericFunctionType) return;
+
+    // case var _ as Null
+    if (parent is CastPattern) return;
+
+    // a as Null
+    if (parent is AsExpression) return;
 
     // Function(Null)
     if (parent is SimpleFormalParameter &&

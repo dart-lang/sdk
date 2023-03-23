@@ -19,20 +19,22 @@ class PreferVoidToNullTestLanguage300 extends LintRuleTest
   String get lintRule => 'prefer_void_to_null';
 
   /// https://github.com/dart-lang/linter/issues/4201
+  test_castAsExpression() async {
+    await assertNoDiagnostics(r'''
+void f(int a) {
+  a as Null;
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4201
   test_castPattern() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 void f(int a) {
   switch (a) {
-    case var _ as void:
+    case var _ as Null:
   }
-  a as void;
 }
-''', [
-      // No lint.
-      error(WarningCode.UNNECESSARY_CAST_PATTERN, 46, 2),
-      error(ParserErrorCode.EXPECTED_TYPE_NAME, 49, 4),
-      error(HintCode.UNNECESSARY_CAST, 61, 9),
-      error(ParserErrorCode.EXPECTED_TYPE_NAME, 66, 4),
-    ]);
+''');
   }
 }
