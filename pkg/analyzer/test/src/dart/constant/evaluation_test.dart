@@ -1017,7 +1017,9 @@ class C<U> {
   }
 }
 ''');
-    var result = _evaluateConstantLocal('g')!;
+    var result = _evaluateConstantLocal('g', errorCodes: [
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ])!;
     assertType(result.type, 'void Function(U)');
     assertElement(result.toFunctionValue(), findElement.topFunction('f'));
     _assertTypeArguments(result, ['U']);

@@ -558,4 +558,15 @@ GuardedPattern
     matchedValueType: dynamic
 ''');
   }
+
+  test_typeLiteral_typeParameter() async {
+    await assertErrorsInCode(r'''
+void f<T>(x) {
+  if (x case T) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          28, 1),
+    ]);
+  }
 }

@@ -936,6 +936,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
     if (!_isNonNullableByDefault && hasTypeParameterReference(type)) {
       return super.visitNamedType(node);
+    } else {
+      node.name.accept(this);
     }
 
     if (_substitution != null) {
