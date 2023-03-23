@@ -10887,20 +10887,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypeConstraintGatherer gatherer = typeSchemaEnvironment
         .setupGenericTypeInference(declaredType, typeParameters, contextType,
             isNonNullableByDefault: isNonNullableByDefault);
-    List<DartType> inferredTypes = typeSchemaEnvironment.partialInfer(
-        gatherer, typeParameters, null,
+    return typeSchemaEnvironment.upwardsInfer(gatherer, typeParameters, null,
         isNonNullableByDefault: isNonNullableByDefault);
-    // Type inference may not be able to infer a type for every type parameter;
-    // if it can't fall back on the type parameter's bound.
-    // TODO(paulberry): this doesn't work if the type is F-bounded because in
-    // that case, the bound may refer to other type variables.
-    for (int i = 0; i < inferredTypes.length; i++) {
-      if (inferredTypes[i] is UnknownType) {
-        DartType bound = typeParameters[i].bound;
-        inferredTypes[i] = bound;
-      }
-    }
-    return inferredTypes;
   }
 
   @override

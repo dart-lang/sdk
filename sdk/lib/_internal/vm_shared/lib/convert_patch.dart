@@ -1553,7 +1553,7 @@ external double _parseDouble(String source, int start, int end);
  * Implements the chunked conversion from a UTF-8 encoding of JSON
  * to its corresponding object.
  */
-class _JsonUtf8DecoderSink extends ByteConversionSink {
+class _JsonUtf8DecoderSink extends ByteConversionSinkBase {
   final _JsonUtf8Parser _parser;
   final Sink<Object?> _sink;
 

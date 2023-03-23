@@ -285,7 +285,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             isLegacyCovariant: typeParam.isLegacyCovariant);
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
-            previouslyInferredTypes![i], constraint, extendsConstraint,
+            previouslyInferredTypes?[i], constraint, extendsConstraint,
             isNonNullableByDefault: isNonNullableByDefault,
             isContravariant: typeParam.variance == Variance.contravariant,
             isLegacyCovariant: typeParam.isLegacyCovariant);
@@ -496,7 +496,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   List<DartType> upwardsInfer(
           TypeConstraintGatherer gatherer,
           List<TypeParameter> typeParametersToInfer,
-          List<DartType> previouslyInferredTypes,
+          List<DartType>? previouslyInferredTypes,
           {required bool isNonNullableByDefault}) =>
       _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
           isNonNullableByDefault: isNonNullableByDefault, partial: false);
@@ -524,7 +524,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return inferredTypes;
   }
 
-  DartType _inferTypeParameterFromAll(DartType typeFromPreviousInference,
+  DartType _inferTypeParameterFromAll(DartType? typeFromPreviousInference,
       TypeConstraint constraint, DartType? extendsConstraint,
       {required bool isNonNullableByDefault,
       bool isContravariant = false,
@@ -532,7 +532,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // See if we already fixed this type in a previous inference step.
     // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
     // false.
-    if (isLegacyCovariant && isKnown(typeFromPreviousInference)) {
+    if (typeFromPreviousInference != null &&
+        isLegacyCovariant &&
+        isKnown(typeFromPreviousInference)) {
       return typeFromPreviousInference;
     }
 

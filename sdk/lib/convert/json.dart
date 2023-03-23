@@ -162,7 +162,7 @@ dynamic jsonDecode(String source,
 /// var encoded = json.encode([1, 2, { "a": null }]);
 /// var decoded = json.decode('["foo", { "bar": 499 }]');
 /// ```
-final class JsonCodec extends Codec<Object?, String> {
+class JsonCodec extends Codec<Object?, String> {
   final Object? Function(Object? key, Object? value)? _reviver;
   final Object? Function(dynamic)? _toEncodable;
 
@@ -268,7 +268,7 @@ final class JsonCodec extends Codec<Object?, String> {
 /// //   "value": "2"
 /// // }
 /// ```
-final class JsonEncoder extends Converter<Object?, String> {
+class JsonEncoder extends Converter<Object?, String> {
   /// The string used for indention.
   ///
   /// When generating multi-line output, this string is inserted once at the
@@ -383,7 +383,7 @@ final class JsonEncoder extends Converter<Object?, String> {
 /// This encoder works equivalently to first converting the object to
 /// a JSON string, and then UTF-8 encoding the string, but without
 /// creating an intermediate string.
-final class JsonUtf8Encoder extends Converter<Object?, List<int>> {
+class JsonUtf8Encoder extends Converter<Object?, List<int>> {
   /// Default buffer size used by the JSON-to-UTF-8 encoder.
   static const int _defaultBufferSize = 256;
 
@@ -585,7 +585,7 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
 /// When used as a [StreamTransformer], the input stream may emit
 /// multiple strings. The concatenation of all of these strings must
 /// be a valid JSON encoding of a single JSON value.
-final class JsonDecoder extends Converter<String, Object?> {
+class JsonDecoder extends Converter<String, Object?> {
   final Object? Function(Object? key, Object? value)? _reviver;
 
   /// Constructs a new JsonDecoder.
