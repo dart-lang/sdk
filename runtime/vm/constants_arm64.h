@@ -512,6 +512,9 @@ const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
 
+// R18 is reserved on Mac/iOS, Fuchsia, Windows and sometimes Android. Although
+// it is available on Linux, we mark it as reserved unconditionally to avoid
+// adding another dimenision for OS into the extracted runtime offsets.
 const RegList kReservedCpuRegisters = R(SPREG) |  // Dart SP
                                       R(FPREG) | R(TMP) | R(TMP2) | R(PP) |
                                       R(THR) | R(LR) | R(HEAP_BITS) |

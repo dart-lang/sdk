@@ -493,29 +493,20 @@ constexpr RegList kAbiPreservedCpuRegs = R(S1) | R(S2) | R(S3) | R(S4) | R(S5) |
                                          R(S10) | R(S11);
 constexpr int kAbiPreservedCpuRegCount = 11;
 
-#if defined(DART_TARGET_OS_FUCHSIA)
-// We rely on X18 not being touched by Dart generated assembly or stubs at all.
-// We rely on that any calls into C++ also preserve X18.
+// S2 is reserved as the shadow call stack pointer on Fuchsia and Android.
+// Although it is available on Linux, we mark it as reserved unconditionally to
+// avoid adding another dimenision for OS into the extracted runtime offsets.
 constexpr RegList kReservedCpuRegisters =
     R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
     R(RA) | R(WRITE_BARRIER_STATE) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
-    R(FAR_TMP) | R(18);
-#else
-constexpr RegList kReservedCpuRegisters =
-    R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
-    R(RA) | R(WRITE_BARRIER_STATE) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
-    R(FAR_TMP);
-#endif
+    R(FAR_TMP) | R(S2);
 constexpr intptr_t kNumberOfReservedCpuRegisters =
     Utils::CountOneBits32(kReservedCpuRegisters);
 // CPU registers available to Dart allocator.
 constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
-#if defined(DART_TARGET_OS_FUCHSIA)
-constexpr int kNumberOfDartAvailableCpuRegs = 17;
-#else
-constexpr int kNumberOfDartAvailableCpuRegs = 18;
-#endif
+constexpr int kNumberOfDartAvailableCpuRegs =
+    kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
 // Registers X8-15 (S0-1,A0-5) have more compressed instructions available.
 constexpr int kRegisterAllocationBias = 8;
 // Registers available to Dart that are not preserved by runtime calls.
