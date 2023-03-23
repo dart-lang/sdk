@@ -44,7 +44,7 @@ exhaustiveSwitchNullable(num? n) {
 
 nonExhaustiveSwitch(num n1, num n2, num? n3) {
   /*
-   error=non-exhaustive:double,
+   error=non-exhaustive:double(),
    subtypes={double,int},
    type=num
   */
@@ -53,7 +53,7 @@ nonExhaustiveSwitch(num n1, num n2, num? n3) {
     case int i:
   }
   /*
-   error=non-exhaustive:int,
+   error=non-exhaustive:int(),
    subtypes={double,int},
    type=num
   */
@@ -62,7 +62,7 @@ nonExhaustiveSwitch(num n1, num n2, num? n3) {
     case double d:
   }
   /*
-   error=non-exhaustive:Null,
+   error=non-exhaustive:null,
    expandedSubtypes={double,int,Null},
    subtypes={num,Null},
    type=num?

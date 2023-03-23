@@ -6,6 +6,7 @@ import 'key.dart';
 import 'shared.dart';
 import 'space.dart';
 import 'static_type.dart';
+import 'witness.dart';
 
 part 'types/bool.dart';
 part 'types/enum.dart';
@@ -29,7 +30,7 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   TypeBasedStaticType(this._typeOperations, this._fieldLookup, this._type);
 
   @override
-  Map<String, StaticType> get fields => _fieldLookup.getFieldTypes(_type);
+  Map<Key, StaticType> get fields => _fieldLookup.getFieldTypes(_type);
 
   @override
   StaticType? getAdditionalField(Key key) =>
@@ -64,11 +65,43 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   }
 
   Type get typeForTesting => _type;
+
+  @override
+  void witnessToText(StringBuffer buffer, FieldWitness witness,
+      Map<Key, FieldWitness> witnessFields) {
+    if (!_typeOperations.hasSimpleName(_type)) {
+      buffer.write(name);
+      buffer.write(' _');
+
+      // If we have restrictions on the record type we create an and pattern.
+      String additionalStart = ' && Object(';
+      String additionalEnd = '';
+      String comma = '';
+      for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+        Key key = entry.key;
+        if (key is! ListKey) {
+          buffer.write(additionalStart);
+          additionalStart = '';
+          additionalEnd = ')';
+          buffer.write(comma);
+          comma = ', ';
+
+          buffer.write(key.name);
+          buffer.write(': ');
+          FieldWitness field = entry.value;
+          field.witnessToText(buffer);
+        }
+      }
+      buffer.write(additionalEnd);
+    } else {
+      super.witnessToText(buffer, witness, witnessFields);
+    }
+  }
 }
 
 /// [StaticType] for an object restricted by its [restriction].
-class RestrictedStaticType<Type extends Object, Identity extends Restriction>
-    extends TypeBasedStaticType<Type> {
+abstract class RestrictedStaticType<Type extends Object,
+    Identity extends Restriction> extends TypeBasedStaticType<Type> {
   @override
   final Identity restriction;
 
@@ -77,6 +110,40 @@ class RestrictedStaticType<Type extends Object, Identity extends Restriction>
 
   RestrictedStaticType(super.typeOperations, super.fieldLookup, super.type,
       this.restriction, this.name);
+}
+
+/// [StaticType] for an object restricted to a single value.
+class ValueStaticType<Type extends Object, T extends Object>
+    extends RestrictedStaticType<Type, IdentityRestriction<T>> {
+  ValueStaticType(super.typeOperations, super.fieldLookup, super.type,
+      super.restriction, super.name);
+
+  @override
+  void witnessToText(StringBuffer buffer, FieldWitness witness,
+      Map<Key, FieldWitness> witnessFields) {
+    buffer.write(name);
+
+    // If we have restrictions on the value we create an and pattern.
+    String additionalStart = ' && Object(';
+    String additionalEnd = '';
+    String comma = '';
+    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+      Key key = entry.key;
+      if (key is! RecordKey) {
+        buffer.write(additionalStart);
+        additionalStart = '';
+        additionalEnd = ')';
+        buffer.write(comma);
+        comma = ', ';
+
+        buffer.write(key.name);
+        buffer.write(': ');
+        FieldWitness field = entry.value;
+        field.witnessToText(buffer);
+      }
+    }
+    buffer.write(additionalEnd);
+  }
 }
 
 /// Interface for a restriction within a subtype relation.

@@ -13,7 +13,7 @@ object(o) {
     _ /*space=()*/=> 1,
   };
   var b = /*
-   error=non-exhaustive:Null,
+   error=non-exhaustive:null,
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -30,7 +30,7 @@ wildcard(o) {
     _ /*space=()*/=> 1,
   };
   var b = /*
-   error=non-exhaustive:Null,
+   error=non-exhaustive:null,
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -47,7 +47,7 @@ or(o) {
     _ /*space=()*/=> 1,
   };
   var b = /*
-   error=non-exhaustive:Null,
+   error=non-exhaustive:null,
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -64,7 +64,7 @@ typedVariable(o) {
     _ /*space=()*/=> 1,
   };
   var b = /*
-   error=non-exhaustive:Null,
+   error=non-exhaustive:null,
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
@@ -81,7 +81,7 @@ untypedVariable(o) {
     _ /*space=()*/=> 1,
   };
   var b = /*
-   error=non-exhaustive:Null,
+   error=non-exhaustive:null,
    subtypes={Object,Null},
    type=Object?
   */switch (o) {

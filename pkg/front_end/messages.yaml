@@ -6394,7 +6394,7 @@ VariablePatternTypeMismatchInSwitchHeads:
 
 NonExhaustiveSwitch:
   problemMessage: "The type '#type' is not exhaustively matched by the switch cases."
-  correctionMessage: "Try adding a default case or cases that match #string."
+  correctionMessage: "Try adding a default case or cases that match '#string'."
   analyzerCode: NON_EXHAUSTIVE_SWITCH
   experiments: patterns
   script: |

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
@@ -34,8 +35,12 @@ void expectNotExhaustive(
   _expectExhaustive(fieldLookup, value, spaces, false);
 }
 
-Map<String, Space> fieldsToSpace(Map<String, Object> fields, Path path) =>
-    fields.map((key, value) => MapEntry(key, parseSpace(value, path.add(key))));
+Map<Key, Space> fieldsToSpace(Map<String, Object> fields, Path path,
+        {required bool asRecordNames}) =>
+    fields.map((String name, Object value) {
+      Key key = asRecordNames ? new RecordNameKey(name) : new NameKey(name);
+      return MapEntry(key, parseSpace(value, path.add(key)));
+    });
 
 Space parseSpace(Object object, [Path path = const Path.root()]) {
   if (object is Space) return object;
@@ -62,7 +67,8 @@ List<Space> parseSpaces(List<Object> objects) =>
 /// Make a [Space] with [type] and [fields].
 Space ty(StaticType type, Map<String, Object> fields,
         [Path path = const Path.root()]) =>
-    Space(path, type, fields: fieldsToSpace(fields, path));
+    Space(path, type,
+        fields: fieldsToSpace(fields, path, asRecordNames: type.isRecord));
 
 void _checkExhaustive(ObjectFieldLookup fieldLookup, Space value,
     List<Space> spaces, bool expectation) {

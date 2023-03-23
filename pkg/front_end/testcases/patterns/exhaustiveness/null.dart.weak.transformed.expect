@@ -1,0 +1,144 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/null.dart:19:49: Error: The type 'Null' is not exhaustively matched by the switch cases.
+// Try adding a default case or cases that match 'Null(hashCode: int())'.
+// nonExhaustiveRestrictedField(Null n) => switch (n) {
+//                                                 ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/null.dart:28:45: Error: The type 'Object?' is not exhaustively matched by the switch cases.
+//  - 'Object' is from 'dart:core'.
+// Try adding a default case or cases that match 'null'.
+// nonExhaustiveNullable(Object? o) => switch (o) {
+//                                             ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/null.dart:32:55: Error: The type 'Object?' is not exhaustively matched by the switch cases.
+//  - 'Object' is from 'dart:core'.
+// Try adding a default case or cases that match 'Object(hashCode: int())'.
+// nonExhaustiveNullableRestricted(Object? o) => switch (o) {
+//                                                       ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+typedef Nullable = core::Object?;
+static method exhaustiveByValue(Null n) → dynamic
+  return block {
+    core::int #t1;
+    #L1:
+    switch(n) /*isExplicitlyExhaustive*/ {
+      #L2:
+      case #C1:
+        {
+          #t1 = 0;
+          break #L1;
+        }
+      #L3:
+      default:
+        throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t1;
+static method exhaustiveByType(Null n) → dynamic
+  return block {
+    core::int #t2;
+    final synthesized Null #0#0 = n;
+    #L4:
+    {
+      {
+        if(true) {
+          #t2 = 0;
+          break #L4;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t2;
+static method exhaustiveWithField(Null n) → dynamic
+  return block {
+    core::int #t3;
+    final synthesized Null #0#0 = n;
+    #L5:
+    {
+      {
+        core::int hashCode;
+        if(let final core::int #t4 = hashCode = #0#0.{core::Object::hashCode}{core::int} in true) {
+          #t3 = hashCode;
+          break #L5;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t3;
+static method nonExhaustiveRestrictedField(Null n) → dynamic
+  return block {
+    core::int #t5;
+    final synthesized Null #0#0 = n;
+    #L6:
+    {
+      {
+        if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Object::hashCode}{core::int}) {
+          #t5 = 0;
+          break #L6;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t5;
+static method exhaustiveNullable(core::Object? o) → dynamic
+  return block {
+    core::int #t6;
+    final synthesized core::Object? #0#0 = o;
+    #L7:
+    {
+      {
+        if(#0#0 is{ForNonNullableByDefault} core::Object) {
+          #t6 = 0;
+          break #L7;
+        }
+      }
+      {
+        if(true) {
+          #t6 = 1;
+          break #L7;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t6;
+static method nonExhaustiveNullable(core::Object? o) → dynamic
+  return block {
+    core::int #t7;
+    final synthesized core::Object? #0#0 = o;
+    #L8:
+    {
+      {
+        if(#0#0 is{ForNonNullableByDefault} core::Object) {
+          #t7 = 1;
+          break #L8;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t7;
+static method nonExhaustiveNullableRestricted(core::Object? o) → dynamic
+  return block {
+    core::int #t8;
+    final synthesized core::Object? #0#0 = o;
+    #L9:
+    {
+      {
+        if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Object::hashCode}{core::int}) {
+          #t8 = 1;
+          break #L9;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t8;
+
+constants  {
+  #C1 = null
+  #C2 = 5
+}

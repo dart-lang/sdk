@@ -60,7 +60,7 @@ restrictedCase(o1, o2) {
   };
 
   var b = /*
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    fields={field:-},
    subtypes={Object,Null},
    type=Object?
@@ -94,7 +94,7 @@ sealedCast(B b1, B b2) {
 
 genericSealedCast<T>(F<T> f1, F<T> f2) {
   /*
-   error=non-exhaustive:I<dynamic, dynamic>,
+   error=non-exhaustive:I<dynamic, dynamic>(),
    subtypes={G<T>,H,I<dynamic, dynamic>},
    type=F<T>
   */
@@ -105,7 +105,7 @@ genericSealedCast<T>(F<T> f1, F<T> f2) {
     case H() as H:
   }
   /*
-   error=non-exhaustive:H,
+   error=non-exhaustive:H(),
    subtypes={G<T>,H,I<dynamic, dynamic>},
    type=F<T>
   */
@@ -161,7 +161,7 @@ enumCast(Enum e) {
 
 unrelatedCast(B b1, B? b2) {
   /*
-   error=non-exhaustive:C,
+   error=non-exhaustive:C(),
    subtypes={C,D,E},
    type=B
   */
@@ -170,7 +170,7 @@ unrelatedCast(B b1, B? b2) {
     case H() as H:
   }
   /*
-   error=non-exhaustive:C,
+   error=non-exhaustive:C(),
    expandedSubtypes={C,D,E,Null},
    subtypes={B,Null},
    type=B?
@@ -248,7 +248,7 @@ exhaustiveNested(J j1, J j2, J j3, J j4, J j5, J j6) {
 
 nonExhaustiveNested(J j) {
   /*
-   error=non-exhaustive:N,
+   error=non-exhaustive:N(),
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
@@ -316,7 +316,7 @@ exhaustiveNestedMultiple(J j1, J j2, J j3, J j4, J j5, J j6) {
     case N() as N:
   }
   /*
-   error=non-exhaustive:N,
+   error=non-exhaustive:N(),
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J

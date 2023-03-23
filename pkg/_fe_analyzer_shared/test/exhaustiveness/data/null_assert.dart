@@ -45,7 +45,7 @@ restrictedCase(o1, o2) {
   };
 
   var b = /*
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    fields={field:-},
    subtypes={Object,Null},
    type=Object?
@@ -96,7 +96,7 @@ nullableA(A? a1, A? a2, A? a3) {
     A(:var field)! /*space=A(field: int)|Null*/=> 0,
   };
   var c = /*
-   error=non-exhaustive:A(field: int),
+   error=non-exhaustive:A(field: int()),
    fields={field:-},
    subtypes={A,Null},
    type=A?
@@ -132,7 +132,7 @@ nullableB(B? b1, B? b2, B? b3) {
       break;
   }
   /*
-   error=non-exhaustive:D,
+   error=non-exhaustive:D(),
    expandedSubtypes={C,D,Null},
    subtypes={B,Null},
    type=B?

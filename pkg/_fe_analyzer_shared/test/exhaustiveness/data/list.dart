@@ -40,7 +40,7 @@ restWithSubpattern(List list) {
     [...var l] /*space=<[...List<dynamic>]>*/=> l.length,
   };
   var b = /*
-   error=non-exhaustive:[...]([0:0]: [...]),
+   error=non-exhaustive:[...[...]],
    subtypes={[...]},
    type=List<dynamic>
   */switch (list) {
@@ -212,7 +212,7 @@ exhaustiveRestWithExtraElement(List list) {
 
 nonExhaustiveNoRest(List list) {
   return /*
-   error=non-exhaustive:[(), (), (), ...],
+   error=non-exhaustive:[_, _, _, ...],
    subtypes={[],[()],[(), ()],[(), (), (), ...]},
    type=List<dynamic>
   */switch (list) {
@@ -225,7 +225,7 @@ nonExhaustiveNoRest(List list) {
 
 nonExhaustiveTyped(List list) {
   return /*
-   error=non-exhaustive:[(), ()],
+   error=non-exhaustive:[_, _],
    subtypes={[],[()],[(), ()],[(), (), (), ...]},
    type=List<dynamic>
   */switch (list) {
@@ -239,7 +239,7 @@ nonExhaustiveTyped(List list) {
 
 nonExhaustiveRestrictedHeadElement(List list) {
   return /*
-   error=non-exhaustive:[(), ()]([0]: Object, [1]: Object),
+   error=non-exhaustive:[Object(), Object()],
    subtypes={[],[()],[(), ()],[(), (), (), ...]},
    type=List<dynamic>
   */switch (list) {
@@ -253,7 +253,7 @@ nonExhaustiveRestrictedHeadElement(List list) {
 
 nonExhaustiveRestrictedTailElement(List list) {
   return /*
-   error=non-exhaustive:[(), (), (), ()]([0]: Object, [1:-2]: [...], [-1]: Object, [-2]: Object),
+   error=non-exhaustive:[Object(), _, Object(), Object()],
    subtypes={[],[()],[(), ()],[(), (), ()],[(), (), (), ()],[(), (), (), (), (), ...]},
    type=List<dynamic>
   */switch (list) {
@@ -267,7 +267,7 @@ nonExhaustiveRestrictedTailElement(List list) {
 
 nonExhaustiveRestrictedRest(List list) {
   return /*
-   error=non-exhaustive:[(), (), (), ...]([0]: Object, [1]: Object, [2]: Object, [3:0]: [...]),
+   error=non-exhaustive:[Object(), Object(), Object(), ...[...]],
    subtypes={[],[()],[(), ()],[(), (), (), ...]},
    type=List<dynamic>
   */switch (list) {
@@ -281,7 +281,7 @@ nonExhaustiveRestrictedRest(List list) {
 
 nonExhaustiveRestrictedRestWithTail(List list) {
   return /*
-   error=non-exhaustive:[(), (), (), ()]([0]: Object, [1:-2]: [...], [-1]: Object, [-2]: Object),
+   error=non-exhaustive:[Object(), _, Object(), Object()],
    subtypes={[],[()],[(), ()],[(), (), ()],[(), (), (), ()],[(), (), (), (), (), ...]},
    type=List<dynamic>
   */switch (list) {
@@ -295,7 +295,7 @@ nonExhaustiveRestrictedRestWithTail(List list) {
 
 nonExhaustiveMissingCount(List list) {
   return /*
-   error=non-exhaustive:[(), ()],
+   error=non-exhaustive:[_, _],
    subtypes={[],[()],[(), ()],[(), (), (), ...]},
    type=List<dynamic>
   */switch (list) {
@@ -361,7 +361,7 @@ exhaustiveSealed(List<A> list) {
 
 nonExhaustiveSealed(List<A> list) {
   return /*
-   error=non-exhaustive:<A>[()]([0]: C),
+   error=non-exhaustive:[C()],
    subtypes={<A>[],<A>[()],<A>[(), (), ...]},
    type=List<A>
   */switch (list) {

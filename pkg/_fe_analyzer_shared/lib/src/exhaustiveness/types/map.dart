@@ -13,7 +13,7 @@ class MapPatternStaticType<Type extends Object>
 
   @override
   String spaceToText(
-      Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
     StringBuffer buffer = new StringBuffer();
     buffer.write(restriction.typeArgumentsText);
     buffer.write('{');
@@ -31,6 +31,51 @@ class MapPatternStaticType<Type extends Object>
 
     buffer.write('}');
     return buffer.toString();
+  }
+
+  @override
+  void witnessToText(StringBuffer buffer, FieldWitness witness,
+      Map<Key, FieldWitness> witnessFields) {
+    buffer.write('{');
+    String comma = '';
+    for (MapKey key in restriction.keys) {
+      buffer.write(comma);
+      buffer.write(key.valueAsText);
+      buffer.write(': ');
+      FieldWitness? witness = witnessFields[key];
+      if (witness != null) {
+        witness.witnessToText(buffer);
+      } else {
+        buffer.write('_');
+      }
+      comma = ', ';
+    }
+    if (restriction.hasRest) {
+      buffer.write(comma);
+      buffer.write('...');
+    }
+    buffer.write('}');
+
+    // If we have restrictions on the record type we create an and pattern.
+    String additionalStart = ' && Object(';
+    String additionalEnd = '';
+    comma = '';
+    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+      Key key = entry.key;
+      if (key is! MapKey) {
+        buffer.write(additionalStart);
+        additionalStart = '';
+        additionalEnd = ')';
+        buffer.write(comma);
+        comma = ', ';
+
+        buffer.write(key.name);
+        buffer.write(': ');
+        FieldWitness field = entry.value;
+        field.witnessToText(buffer);
+      }
+    }
+    buffer.write(additionalEnd);
   }
 }
 

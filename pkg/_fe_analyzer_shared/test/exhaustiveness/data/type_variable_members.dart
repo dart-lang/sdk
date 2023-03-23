@@ -13,15 +13,24 @@ class Class<Typedef> {
       Typedef(:var runtimeType) /*cfe.
        error=unreachable,
        space=(Typedef & Object)(runtimeType: Type)
-      *//*analyzer.space=Typedef & Object(runtimeType: Type)*/=> runtimeType,
+      *//*analyzer.
+       error=unreachable,
+       space=Typedef & Object(runtimeType: Type)
+      */=> runtimeType,
       Typedef(:var toString) /*cfe.
        error=unreachable,
        space=(Typedef & Object)(toString: String Function())
-      *//*analyzer.space=Typedef & Object(toString: String Function())*/=> toString(),
+      *//*analyzer.
+       error=unreachable,
+       space=Typedef & Object(toString: String Function())
+      */=> toString(),
       Typedef(:var noSuchMethod) /*cfe.
        error=unreachable,
        space=(Typedef & Object)(noSuchMethod: dynamic Function(Invocation))
-      *//*analyzer.space=Typedef & Object(noSuchMethod: dynamic Function(Invocation))*/=> noSuchMethod,
+      *//*analyzer.
+       error=unreachable,
+       space=Typedef & Object(noSuchMethod: dynamic Function(Invocation))
+      */=> noSuchMethod,
       _ /*space=()*/=> null,
     };
   }
@@ -31,8 +40,7 @@ class Class<Typedef> {
      fields={hashCode:int},
      type=(Typedef & Object)
     *//*analyzer.
-     error=non-exhaustive:Typedef & Object(hashCode: Object),
-     fields={hashCode:-},
+     fields={hashCode:int},
      type=Typedef & Object
     */switch (o) {
       Typedef(:int hashCode) /*cfe.space=(Typedef & Object)(hashCode: int)*//*analyzer.space=Typedef & Object(hashCode: int)*/=> hashCode,
@@ -44,8 +52,7 @@ class Class<Typedef> {
      fields={runtimeType:Type},
      type=(Typedef & Object)
     *//*analyzer.
-     error=non-exhaustive:Typedef & Object(runtimeType: Object),
-     fields={runtimeType:-},
+     fields={runtimeType:Type},
      type=Typedef & Object
     */switch (o) {
       Typedef(:Type runtimeType) /*cfe.space=(Typedef & Object)(runtimeType: Type)*//*analyzer.space=Typedef & Object(runtimeType: Type)*/=> runtimeType,
@@ -57,8 +64,7 @@ class Class<Typedef> {
      fields={toString:String Function()},
      type=(Typedef & Object)
     *//*analyzer.
-     error=non-exhaustive:Typedef & Object(toString: Object),
-     fields={toString:-},
+     fields={toString:String Function()},
      type=Typedef & Object
     */switch (o) {
       Typedef(:String Function() toString) /*cfe.space=(Typedef & Object)(toString: String Function())*//*analyzer.space=Typedef & Object(toString: String Function())*/=> toString,
@@ -70,8 +76,7 @@ class Class<Typedef> {
      fields={noSuchMethod:dynamic Function(Invocation)},
      type=(Typedef & Object)
     *//*analyzer.
-     error=non-exhaustive:Typedef & Object(noSuchMethod: Object),
-     fields={noSuchMethod:-},
+     fields={noSuchMethod:dynamic Function(Invocation)},
      type=Typedef & Object
     */switch (o) {
       Typedef(:dynamic Function(Invocation) noSuchMethod) /*cfe.space=(Typedef & Object)(noSuchMethod: dynamic Function(Invocation))*//*analyzer.space=Typedef & Object(noSuchMethod: dynamic Function(Invocation))*/=> noSuchMethod,
@@ -80,12 +85,12 @@ class Class<Typedef> {
 
   nonExhaustiveRestrictedValue(Typedef o) {
     return /*cfe.
-     error=non-exhaustive:(Typedef & Object)(hashCode: int),
+     error=non-exhaustive:(Typedef & Object) _ && Object(hashCode: int()),
      fields={hashCode:int},
      type=(Typedef & Object)
     *//*analyzer.
-     error=non-exhaustive:Typedef & Object(hashCode: Object),
-     fields={hashCode:-},
+     error=non-exhaustive:Typedef & Object(hashCode: int()),
+     fields={hashCode:int},
      type=Typedef & Object
     */switch (o) {
       Typedef(hashCode: 5) /*cfe.space=(Typedef & Object)(hashCode: 5)*//*analyzer.space=Typedef & Object(hashCode: 5)*/=> 5,
@@ -94,12 +99,12 @@ class Class<Typedef> {
 
   nonExhaustiveRestrictedType(Typedef o) {
     return /*cfe.
-     error=non-exhaustive:(Typedef & Object)(noSuchMethod: dynamic Function(Invocation)),
+     error=non-exhaustive:(Typedef & Object) _ && Object(noSuchMethod: dynamic Function(Invocation) _),
      fields={noSuchMethod:dynamic Function(Invocation)},
      type=(Typedef & Object)
     *//*analyzer.
-     error=non-exhaustive:Typedef & Object(noSuchMethod: Object),
-     fields={noSuchMethod:-},
+     error=non-exhaustive:Typedef & Object(noSuchMethod: dynamic Function(Invocation) _),
+     fields={noSuchMethod:dynamic Function(Invocation)},
      type=Typedef & Object
     */switch (o) {
       Typedef(:int Function(Invocation) noSuchMethod) /*cfe.space=(Typedef & Object)(noSuchMethod: int Function(Invocation))*//*analyzer.space=Typedef & Object(noSuchMethod: int Function(Invocation))*/=> noSuchMethod,
@@ -111,23 +116,31 @@ class Class<Typedef> {
      fields={hashCode:int,noSuchMethod:dynamic Function(Invocation),runtimeType:Type,toString:String Function()},
      type=(Typedef & Object)
     *//*analyzer.
-     error=non-exhaustive:Typedef & Object(hashCode: Object, noSuchMethod: Object, runtimeType: Object, toString: Object),
-     fields={hashCode:-,noSuchMethod:-,runtimeType:-,toString:-},
+     fields={hashCode:int,noSuchMethod:dynamic Function(Invocation),runtimeType:Type,toString:String Function()},
      type=Typedef & Object
     */switch (o) {
       Typedef(:var hashCode) /*cfe.space=(Typedef & Object)(hashCode: int)*//*analyzer.space=Typedef & Object(hashCode: int)*/=> hashCode,
       Typedef(:var runtimeType) /*cfe.
        error=unreachable,
        space=(Typedef & Object)(runtimeType: Type)
-      *//*analyzer.space=Typedef & Object(runtimeType: Type)*/=> runtimeType,
+      *//*analyzer.
+       error=unreachable,
+       space=Typedef & Object(runtimeType: Type)
+      */=> runtimeType,
       Typedef(:var toString) /*cfe.
        error=unreachable,
        space=(Typedef & Object)(toString: String Function())
-      *//*analyzer.space=Typedef & Object(toString: String Function())*/=> toString(),
+      *//*analyzer.
+       error=unreachable,
+       space=Typedef & Object(toString: String Function())
+      */=> toString(),
       Typedef(:var noSuchMethod) /*cfe.
        error=unreachable,
        space=(Typedef & Object)(noSuchMethod: dynamic Function(Invocation))
-      *//*analyzer.space=Typedef & Object(noSuchMethod: dynamic Function(Invocation))*/=> noSuchMethod,
+      *//*analyzer.
+       error=unreachable,
+       space=Typedef & Object(noSuchMethod: dynamic Function(Invocation))
+      */=> noSuchMethod,
     };
   }
 }

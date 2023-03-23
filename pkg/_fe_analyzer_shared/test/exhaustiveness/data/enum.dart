@@ -187,7 +187,7 @@ void exhaustiveNullableSwitch(Enum? e) {
 
 void nonExhaustiveNullableSwitch1(Enum? e) {
   /*
-   error=non-exhaustive:Null,
+   error=non-exhaustive:null,
    expandedSubtypes={Enum.a,Enum.b,Enum.c,Null},
    subtypes={Enum,Null},
    type=Enum?

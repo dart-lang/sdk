@@ -21,7 +21,7 @@ class SingleSpace {
   final StaticType type;
 
   /// Any field subpatterns the pattern matches.
-  final Map<String, Space> fields;
+  final Map<Key, Space> fields;
 
   /// Additional fields for map/list semantics.
   final Map<Key, Space> additionalFields;
@@ -42,7 +42,7 @@ class SingleSpace {
     if (type != other.type) return false;
     if (fields.length != other.fields.length) return false;
     if (fields.isNotEmpty) {
-      for (MapEntry<String, Space> entry in fields.entries) {
+      for (MapEntry<Key, Space> entry in fields.entries) {
         if (entry.value != other.fields[entry.key]) {
           return false;
         }
@@ -72,7 +72,7 @@ class Space {
   Space.empty(this.path) : singleSpaces = [SingleSpace.empty];
 
   Space(Path path, StaticType type,
-      {Map<String, Space> fields = const {},
+      {Map<Key, Space> fields = const {},
       Map<Key, Space> additionalFields = const {}})
       : this._(path, [
           new SingleSpace(type,

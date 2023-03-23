@@ -30,7 +30,7 @@ void nonExhaustiveSwitch2(bool b) {
 }
 
 void nonExhaustiveSwitchWithDefault(bool b) {
-  switch (e) /* Ok */ {
+  switch (b) /* Ok */ {
     case true:
       print('true');
       break;
@@ -54,7 +54,7 @@ void exhaustiveNullableSwitch(bool? b) {
   }
 }
 
-void nonExhaustiveNullableSwitch1(bool? e) {
+void nonExhaustiveNullableSwitch1(bool? b) {
   switch (b) /* Error */ {
     case true:
       print('true');
@@ -65,7 +65,7 @@ void nonExhaustiveNullableSwitch1(bool? e) {
   }
 }
 
-void nonExhaustiveNullableSwitch2(bool? e) {
+void nonExhaustiveNullableSwitch2(bool? b) {
   switch (b) /* Error */ {
     case true:
       print('true');
@@ -77,7 +77,7 @@ void nonExhaustiveNullableSwitch2(bool? e) {
 }
 
 void unreachableCase1(bool b) {
-  switch (e) /* Ok */ {
+  switch (b) /* Ok */ {
     case true:
       print('true1');
       break;

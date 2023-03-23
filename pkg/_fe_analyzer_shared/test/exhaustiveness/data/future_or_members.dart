@@ -22,13 +22,13 @@ membersMethod(o) {
 
 exhaustiveHashCode(Typedef o) {
   return /*cfe.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int},
    subtypes={FutureOr<dynamic>,Null},
    type=FutureOr<dynamic>?
   *//*analyzer.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int},
    subtypes={Object?,Future<dynamic>},
@@ -40,13 +40,13 @@ exhaustiveHashCode(Typedef o) {
 
 exhaustiveRuntimeType(Typedef o) {
   return /*cfe.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={runtimeType:Type},
    subtypes={FutureOr<dynamic>,Null},
    type=FutureOr<dynamic>?
   *//*analyzer.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={runtimeType:Type},
    subtypes={Object?,Future<dynamic>},
@@ -58,13 +58,13 @@ exhaustiveRuntimeType(Typedef o) {
 
 exhaustiveToString(Typedef o) {
   return /*cfe.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={toString:String Function()},
    subtypes={FutureOr<dynamic>,Null},
    type=FutureOr<dynamic>?
   *//*analyzer.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={toString:String Function()},
    subtypes={Object?,Future<dynamic>},
@@ -76,13 +76,13 @@ exhaustiveToString(Typedef o) {
 
 exhaustiveNoSuchMethod(Typedef o) {
   return /*cfe.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={FutureOr<dynamic>,Null},
    type=FutureOr<dynamic>?
   *//*analyzer.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={Object?,Future<dynamic>},
@@ -94,13 +94,13 @@ exhaustiveNoSuchMethod(Typedef o) {
 
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*cfe.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int},
    subtypes={FutureOr<dynamic>,Null},
    type=FutureOr<dynamic>?
   *//*analyzer.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int},
    subtypes={Object?,Future<dynamic>},
@@ -112,13 +112,13 @@ nonExhaustiveRestrictedValue(Typedef o) {
 
 nonExhaustiveRestrictedType(Typedef o) {
   return /*cfe.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={FutureOr<dynamic>,Null},
    type=FutureOr<dynamic>?
   *//*analyzer.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={Object?,Future<dynamic>},
@@ -130,13 +130,13 @@ nonExhaustiveRestrictedType(Typedef o) {
 
 unreachableMethod(Typedef o) {
   return /*cfe.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int,noSuchMethod:dynamic Function(Invocation),runtimeType:Type,toString:String Function()},
    subtypes={FutureOr<dynamic>,Null},
    type=FutureOr<dynamic>?
   *//*analyzer.
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int,noSuchMethod:dynamic Function(Invocation),runtimeType:Type,toString:String Function()},
    subtypes={Object?,Future<dynamic>},

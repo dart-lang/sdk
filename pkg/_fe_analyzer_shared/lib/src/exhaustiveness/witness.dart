@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'key.dart';
 import 'path.dart';
 import 'static_type.dart';
 
@@ -45,17 +46,17 @@ class Predicate {
 ///     'U(w: T(x: B, y: B), z: T(x: C, y: B))'
 class Witness {
   final List<Predicate> _predicates;
-  late final _Witness _witness = _buildWitness();
+  late final FieldWitness _witness = _buildWitness();
 
   Witness(this._predicates);
 
-  _Witness _buildWitness() {
-    _Witness witness = new _Witness();
+  FieldWitness _buildWitness() {
+    FieldWitness witness = new FieldWitness();
 
     for (Predicate predicate in _predicates) {
-      _Witness here = witness;
-      for (String field in predicate.path.toList()) {
-        here = here.fields.putIfAbsent(field, () => new _Witness());
+      FieldWitness here = witness;
+      for (Key field in predicate.path.toList()) {
+        here = here.fields.putIfAbsent(field, () => new FieldWitness());
       }
       here.type = predicate.type;
     }
@@ -67,34 +68,18 @@ class Witness {
 }
 
 /// Helper class used to turn a list of [Predicates] into a string.
-class _Witness {
+class FieldWitness {
   StaticType type = StaticType.nullableObject;
-  final Map<String, _Witness> fields = {};
+  final Map<Key, FieldWitness> fields = {};
 
-  void _buildString(StringBuffer buffer) {
-    if (!type.isRecord) {
-      buffer.write(type);
-    }
-
-    if (fields.isNotEmpty) {
-      buffer.write('(');
-      bool first = true;
-      fields.forEach((name, field) {
-        if (!first) buffer.write(', ');
-        first = false;
-
-        buffer.write(name);
-        buffer.write(': ');
-        field._buildString(buffer);
-      });
-      buffer.write(')');
-    }
+  void witnessToText(StringBuffer buffer) {
+    type.witnessToText(buffer, this, fields);
   }
 
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
-    _buildString(sb);
+    witnessToText(sb);
     return sb.toString();
   }
 }

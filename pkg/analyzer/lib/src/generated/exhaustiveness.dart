@@ -165,8 +165,7 @@ class AnalyzerSealedClassOperations
 class AnalyzerTypeOperations implements TypeOperations<DartType> {
   final TypeSystemImpl _typeSystem;
 
-  final Map<InterfaceType, Map<String, DartType>> _interfaceFieldTypesCaches =
-      {};
+  final Map<InterfaceType, Map<Key, DartType>> _interfaceFieldTypesCaches = {};
 
   AnalyzerTypeOperations(this._typeSystem);
 
@@ -180,21 +179,22 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   DartType get nullableObjectType => _typeSystem.objectQuestion;
 
   @override
-  Map<String, DartType> getFieldTypes(DartType type) {
+  Map<Key, DartType> getFieldTypes(DartType type) {
     if (type is InterfaceType) {
       return _getInterfaceFieldTypes(type);
     } else if (type is RecordType) {
-      Map<String, DartType> fieldTypes = {};
+      Map<Key, DartType> fieldTypes = {};
+      fieldTypes.addAll(getFieldTypes(_typeSystem.typeProvider.objectType));
       for (int index = 0; index < type.positionalFields.length; index++) {
         RecordTypePositionalField field = type.positionalFields[index];
-        fieldTypes['\$${index + 1}'] = field.type;
+        fieldTypes[RecordIndexKey(index)] = field.type;
       }
       for (RecordTypeNamedField field in type.namedFields) {
-        fieldTypes[field.name] = field.type;
+        fieldTypes[RecordNameKey(field.name)] = field.type;
       }
       return fieldTypes;
     }
-    return const {};
+    return getFieldTypes(_typeSystem.typeProvider.objectType);
   }
 
   @override
@@ -230,6 +230,16 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   @override
   DartType getNonNullable(DartType type) {
     return _typeSystem.promoteToNonNull(type);
+  }
+
+  @override
+  bool hasSimpleName(DartType type) {
+    return type is InterfaceType ||
+        type is DynamicType ||
+        type is VoidType ||
+        type is NeverType ||
+        // TODO(johnniwinther): What about intersection types?
+        type is TypeParameterType;
   }
 
   @override
@@ -295,8 +305,8 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   @override
   String typeToString(DartType type) => type.toString();
 
-  Map<String, DartType> _getInterfaceFieldTypes(InterfaceType type) {
-    Map<String, DartType>? fieldTypes = _interfaceFieldTypesCaches[type];
+  Map<Key, DartType> _getInterfaceFieldTypes(InterfaceType type) {
+    Map<Key, DartType>? fieldTypes = _interfaceFieldTypesCaches[type];
     if (fieldTypes == null) {
       _interfaceFieldTypesCaches[type] = fieldTypes = {};
       for (InterfaceType supertype in type.allSupertypes) {
@@ -304,12 +314,12 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
       }
       for (PropertyAccessorElement accessor in type.accessors) {
         if (accessor.isGetter && !accessor.isStatic) {
-          fieldTypes[accessor.name] = accessor.type.returnType;
+          fieldTypes[NameKey(accessor.name)] = accessor.type.returnType;
         }
       }
       for (MethodElement method in type.methods) {
         if (!method.isStatic) {
-          fieldTypes[method.name] = method.type;
+          fieldTypes[NameKey(method.name)] = method.type;
         }
       }
     }
@@ -535,15 +545,15 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         return Space(path, cache.getBoolValueStaticType(state.value!));
       }
     } else if (state is RecordState) {
-      final fields = <String, Space>{};
+      final fields = <Key, Space>{};
       for (var index = 0; index < state.positionalFields.length; index++) {
-        final name = '\$${1 + index}';
+        final key = RecordIndexKey(index);
         final value = state.positionalFields[index];
-        fields[name] = _convertConstantValue(value, path.add(name));
+        fields[key] = _convertConstantValue(value, path.add(key));
       }
       for (final entry in state.namedFields.entries) {
-        final name = entry.key;
-        fields[name] = _convertConstantValue(entry.value, path.add(name));
+        final key = RecordNameKey(entry.key);
+        fields[key] = _convertConstantValue(entry.value, path.add(key));
       }
       return Space(path, cache.getStaticType(value.type), fields: fields);
     }

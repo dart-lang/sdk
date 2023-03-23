@@ -116,9 +116,9 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
-  Map<String, DartType> getFieldTypes(DartType type) {
+  Map<Key, DartType> getFieldTypes(DartType type) {
     if (type is InterfaceType) {
-      Map<String, DartType> fieldTypes = {};
+      Map<Key, DartType> fieldTypes = {};
       Map<Class, Substitution> substitutions = {};
       for (Member member
           in _classHierarchy.getInterfaceMembers(type.classNode)) {
@@ -140,17 +140,19 @@ class CfeTypeOperations implements TypeOperations<DartType> {
                         isNonNullableByDefault: true)!);
             fieldType = substitution.substituteType(fieldType);
           }
-          fieldTypes[member.name.text] = fieldType;
+          fieldTypes[new NameKey(member.name.text)] = fieldType;
         }
       }
       return fieldTypes;
     } else if (type is RecordType) {
-      Map<String, DartType> fieldTypes = {};
+      Map<Key, DartType> fieldTypes = {};
+      fieldTypes.addAll(
+          getFieldTypes(_typeEnvironment.coreTypes.objectNonNullableRawType));
       for (int index = 0; index < type.positional.length; index++) {
-        fieldTypes['\$${index + 1}'] = type.positional[index];
+        fieldTypes[new RecordIndexKey(index)] = type.positional[index];
       }
       for (NamedType field in type.named) {
-        fieldTypes[field.name] = field.type;
+        fieldTypes[new RecordNameKey(field.name)] = field.type;
       }
       return fieldTypes;
     } else {
@@ -218,6 +220,18 @@ class CfeTypeOperations implements TypeOperations<DartType> {
       }
     }
     return null;
+  }
+
+  @override
+  bool hasSimpleName(DartType type) {
+    return type is InterfaceType ||
+        type is DynamicType ||
+        type is VoidType ||
+        type is NeverType ||
+        type is NullType ||
+        type is InlineType ||
+        // TODO(johnniwinther): What about intersection types?
+        type is TypeParameterType;
   }
 }
 
@@ -508,16 +522,16 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         return new Space(
             path, cache.getEnumElementStaticType(constant.classNode, constant));
       } else if (constant is RecordConstant) {
-        Map<String, Space> fields = {};
+        Map<Key, Space> fields = {};
         for (int index = 0; index < constant.positional.length; index++) {
-          String name = '\$${index + 1}';
-          fields[name] = convertConstantToSpace(constant.positional[index],
-              path: path.add(name));
+          Key key = new RecordIndexKey(index);
+          fields[key] = convertConstantToSpace(constant.positional[index],
+              path: path.add(key));
         }
         for (MapEntry<String, Constant> entry in constant.named.entries) {
-          String name = entry.key;
-          fields[name] =
-              convertConstantToSpace(entry.value, path: path.add(name));
+          Key key = new RecordNameKey(entry.key);
+          fields[key] =
+              convertConstantToSpace(entry.value, path: path.add(key));
         }
         return new Space(path, cache.getStaticType(constant.recordType),
             fields: fields);

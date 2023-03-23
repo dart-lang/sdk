@@ -66,7 +66,7 @@ exhaustiveMethodTyped(Class c) {
 
 nonExhaustiveFieldRestrictedValue(Class c) {
   return /*
-   error=non-exhaustive:Class(field: double),
+   error=non-exhaustive:Class(field: double()),
    fields={field:num},
    type=Class
   */switch (c) {
@@ -76,7 +76,7 @@ nonExhaustiveFieldRestrictedValue(Class c) {
 
 nonExhaustiveGetterRestrictedValue(Class c) {
   return /*
-   error=non-exhaustive:Class(getter: double),
+   error=non-exhaustive:Class(getter: double()),
    fields={getter:num},
    type=Class
   */switch (c) {
@@ -86,7 +86,7 @@ nonExhaustiveGetterRestrictedValue(Class c) {
 
 nonExhaustiveMethodRestrictedValue(Class c) {
   return /*
-   error=non-exhaustive:Class(method: num Function(num)),
+   error=non-exhaustive:Class(method: num Function(num) _),
    fields={method:num Function(num)},
    type=Class
   */switch (c) {
@@ -96,7 +96,7 @@ nonExhaustiveMethodRestrictedValue(Class c) {
 
 nonExhaustiveFieldRestrictedType(Class c) {
   return /*
-   error=non-exhaustive:Class(field: double),
+   error=non-exhaustive:Class(field: double()),
    fields={field:num},
    type=Class
   */switch (c) {
@@ -106,7 +106,7 @@ nonExhaustiveFieldRestrictedType(Class c) {
 
 exhaustiveGetterRestrictedType(Class c) {
   return /*
-   error=non-exhaustive:Class(getter: double),
+   error=non-exhaustive:Class(getter: double()),
    fields={getter:num},
    type=Class
   */switch (c) {
@@ -116,7 +116,7 @@ exhaustiveGetterRestrictedType(Class c) {
 
 exhaustiveMethodRestrictedType(Class c) {
   return /*
-   error=non-exhaustive:Class(method: num Function(num)),
+   error=non-exhaustive:Class(method: num Function(num) _),
    fields={method:num Function(num)},
    type=Class
   */switch (c) {

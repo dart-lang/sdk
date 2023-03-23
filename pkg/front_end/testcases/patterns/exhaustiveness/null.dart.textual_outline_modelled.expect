@@ -1,0 +1,36 @@
+exhaustiveByValue(Null n) => 
+switch (n) {}
+typedef Nullable = Object?;
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustiveByType(Null n) => 
+switch (n) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustiveWithField(Null n) => 
+switch (n) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustiveRestrictedField(Null n) => 
+switch (n) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustiveNullable(Object? o) => 
+switch (o) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustiveNullable(Object? o) => 
+switch (o) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustiveNullableRestricted(Object? o) => 
+switch (o) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----

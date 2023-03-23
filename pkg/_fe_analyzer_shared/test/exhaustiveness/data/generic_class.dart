@@ -34,7 +34,7 @@ switchANum(A<num> o) {
     _ /*space=A<num>*/=> 1,
   };
   var d2 = /*
-   error=non-exhaustive:A<num>,
+   error=non-exhaustive:A<num>(),
    type=A<num>
   */
   switch (o) {
@@ -61,7 +61,7 @@ switchAGeneric<T>(A<T> o) {
     _ /*space=A<T>*/=> 1,
   };
   var d2 = /*
-   error=non-exhaustive:A<T>,
+   error=non-exhaustive:A<T>(),
    type=A<T>
   */
   switch (o) {

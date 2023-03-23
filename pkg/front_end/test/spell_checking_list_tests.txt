@@ -740,6 +740,7 @@ week
 weekly
 wherever
 whiskers
+wildcards
 wins
 wording
 workflow

@@ -181,7 +181,7 @@ exhaustiveSwitchCatchAll<T extends A<T>>(A<T> a, Enum<T> e) {
 
 nonExhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
   /*
-   error=non-exhaustive:D1,
+   error=non-exhaustive:D1(),
    expandedSubtypes={B,C,D1,D2},
    subtypes={B,C,D<D<dynamic>>},
    type=A<dynamic>
@@ -223,7 +223,7 @@ nonExhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
 
 nonExhaustiveSwitchGeneric<T1 extends A<T1>>(A<T1> a, Enum<T1> e) {
   /*
-   error=non-exhaustive:D1,
+   error=non-exhaustive:D1(),
    expandedSubtypes={B,C,D1,D2},
    subtypes={B,C,D<D<dynamic>>},
    type=A<T1>
@@ -265,7 +265,7 @@ nonExhaustiveSwitchGeneric<T1 extends A<T1>>(A<T1> a, Enum<T1> e) {
 
 nonExhaustiveSwitchBounded<T2 extends D<T2>>(A<T2> a, Enum<T2> e) {
   /*
-   error=non-exhaustive:D1,
+   error=non-exhaustive:D1(),
    expandedSubtypes={D1,D2},
    subtypes={D<T2>},
    type=A<T2>
@@ -291,7 +291,7 @@ nonExhaustiveSwitchBounded<T2 extends D<T2>>(A<T2> a, Enum<T2> e) {
 
 nonExhaustiveSwitchCatchAll<T3 extends A<T3>>(A<T3> a, Enum<T3> e) {
   /*
-   error=non-exhaustive:D1,
+   error=non-exhaustive:D1(),
    expandedSubtypes={B,C,D1,D2},
    subtypes={B,C,D<D<dynamic>>},
    type=A<T3>

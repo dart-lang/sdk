@@ -163,7 +163,7 @@ void exhaustiveNullableSwitch(A? r) {
 
 void nonExhaustiveNullableSwitch1(A? r) {
   /*
-   error=non-exhaustive:Null,
+   error=non-exhaustive:null,
    expandedSubtypes={B,Null},
    fields={a:-,b:-},
    subtypes={A,Null},

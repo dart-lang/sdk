@@ -69,7 +69,7 @@ abstract class TypeOperations<Type extends Object> {
   /// Returns a map of the field names and corresponding types available on
   /// [type]. For an interface type, these are the fields and getters, and for
   /// record types these are the record fields.
-  Map<String, Type> getFieldTypes(Type type);
+  Map<Key, Type> getFieldTypes(Type type);
 
   /// Returns the value type `V` if [type] implements `Map<K, V>` or `null`
   /// otherwise.
@@ -85,6 +85,10 @@ abstract class TypeOperations<Type extends Object> {
 
   /// Returns a human-readable representation of the [type].
   String typeToString(Type type);
+
+  /// Returns `true` if [type] has a simple name that can be used as the type
+  /// of an object pattern.
+  bool hasSimpleName(Type type);
 }
 
 /// Interface for looking up fields and their corresponding [StaticType]s of
@@ -93,7 +97,7 @@ abstract class FieldLookup<Type extends Object> {
   /// Returns a map of the field names and corresponding [StaticType]s available
   /// on [type]. For an interface type, these are the fields and getters, and
   /// for record types these are the record fields.
-  Map<String, StaticType> getFieldTypes(Type type);
+  Map<Key, StaticType> getFieldTypes(Type type);
 
   StaticType? getAdditionalFieldType(Type type, Key key);
 }
@@ -130,7 +134,7 @@ class ExhaustivenessCache<
       new BoolStaticType(typeOperations, this, typeOperations.boolType);
 
   /// Cache for [StaticType]s for fields available on a [Type].
-  Map<Type, Map<String, StaticType>> _fieldCache = {};
+  Map<Type, Map<Key, StaticType>> _fieldCache = {};
 
   ExhaustivenessCache(
       this.typeOperations, this.enumOperations, this._sealedClassOperations);
@@ -241,7 +245,7 @@ class ExhaustivenessCache<
       Type type, Identity uniqueValue, String textualRepresentation) {
     Type nonNullable = typeOperations.getNonNullable(type);
     StaticType staticType = _uniqueTypeMap[uniqueValue] ??=
-        new RestrictedStaticType(
+        new ValueStaticType<Type, Identity>(
             typeOperations,
             this,
             nonNullable,
@@ -278,11 +282,11 @@ class ExhaustivenessCache<
   }
 
   @override
-  Map<String, StaticType> getFieldTypes(Type type) {
-    Map<String, StaticType>? fields = _fieldCache[type];
+  Map<Key, StaticType> getFieldTypes(Type type) {
+    Map<Key, StaticType>? fields = _fieldCache[type];
     if (fields == null) {
       _fieldCache[type] = fields = {};
-      for (MapEntry<String, Type> entry
+      for (MapEntry<Key, Type> entry
           in typeOperations.getFieldTypes(type).entries) {
         fields[entry.key] = getStaticType(entry.value);
       }
@@ -307,13 +311,15 @@ class ExhaustivenessCache<
       if (listType != null) {
         return getStaticType(listType);
       }
+    } else {
+      return getObjectFieldType(key);
     }
     return null;
   }
 
   @override
-  StaticType? getObjectFieldType(String name) {
-    return getFieldTypes(typeOperations.nonNullableObjectType)[name];
+  StaticType? getObjectFieldType(Key key) {
+    return getFieldTypes(typeOperations.nonNullableObjectType)[key];
   }
 }
 
@@ -398,12 +404,12 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       {required bool nonNull}) {
     StaticType staticType =
         _createStaticTypeWithContext(contextType, type, nonNull: nonNull);
-    Map<String, Space> fields = <String, Space>{};
+    Map<Key, Space> fields = <Key, Space>{};
     for (MapEntry<String, Pattern> entry in fieldPatterns.entries) {
-      String name = entry.key;
-      StaticType fieldType = staticType.getField(objectFieldLookup, name) ??
+      Key key = new NameKey(entry.key);
+      StaticType fieldType = staticType.getField(objectFieldLookup, key) ??
           StaticType.nullableObject;
-      fields[name] = dispatchPattern(path.add(name), fieldType, entry.value,
+      fields[key] = dispatchPattern(path.add(key), fieldType, entry.value,
           nonNull: false);
     }
     return new Space(path, staticType, fields: fields);
@@ -415,20 +421,20 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       List<Pattern> positionalFields, Map<String, Pattern> namedFields) {
     StaticType staticType =
         _createStaticTypeWithContext(contextType, recordType, nonNull: true);
-    Map<String, Space> fields = <String, Space>{};
+    Map<Key, Space> fields = <Key, Space>{};
     for (int index = 0; index < positionalFields.length; index++) {
-      String name = '\$${index + 1}';
-      StaticType fieldType = staticType.getField(objectFieldLookup, name) ??
+      Key key = new RecordIndexKey(index);
+      StaticType fieldType = staticType.getField(objectFieldLookup, key) ??
           StaticType.nullableObject;
-      fields[name] = dispatchPattern(
-          path.add(name), fieldType, positionalFields[index],
+      fields[key] = dispatchPattern(
+          path.add(key), fieldType, positionalFields[index],
           nonNull: false);
     }
     for (MapEntry<String, Pattern> entry in namedFields.entries) {
-      String name = entry.key;
-      StaticType fieldType = staticType.getField(objectFieldLookup, name) ??
+      Key key = new RecordNameKey(entry.key);
+      StaticType fieldType = staticType.getField(objectFieldLookup, key) ??
           StaticType.nullableObject;
-      fields[name] = dispatchPattern(path.add(name), fieldType, entry.value,
+      fields[key] = dispatchPattern(path.add(key), fieldType, entry.value,
           nonNull: false);
     }
     return new Space(path, staticType, fields: fields);
@@ -577,7 +583,7 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       StaticType fieldType =
           staticType.getAdditionalField(key) ?? StaticType.nullableObject;
       additionalFields[key] = dispatchPattern(
-          path.add(key.name), fieldType, headElements[index],
+          path.add(key), fieldType, headElements[index],
           nonNull: false);
     }
     if (hasRest) {
@@ -586,17 +592,17 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
           staticType.getAdditionalField(key) ?? StaticType.nullableObject;
       if (restElement != null) {
         additionalFields[key] = dispatchPattern(
-            path.add(key.name), fieldType, restElement,
+            path.add(key), fieldType, restElement,
             nonNull: false);
       } else {
-        additionalFields[key] = new Space(path.add(key.name), fieldType);
+        additionalFields[key] = new Space(path.add(key), fieldType);
       }
     }
     for (int index = 0; index < tailSize; index++) {
       Key key = new TailKey(index);
       StaticType fieldType =
           staticType.getAdditionalField(key) ?? StaticType.nullableObject;
-      additionalFields[key] = dispatchPattern(path.add(key.name), fieldType,
+      additionalFields[key] = dispatchPattern(path.add(key), fieldType,
           tailElements[tailElements.length - index - 1],
           nonNull: false);
     }
@@ -635,7 +641,7 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       StaticType fieldType =
           staticType.getAdditionalField(key) ?? StaticType.nullableObject;
       additionalFields[key] = dispatchPattern(
-          path.add(key.name), fieldType, entry.value,
+          path.add(key), fieldType, entry.value,
           nonNull: false);
     }
     return new Space(path, staticType, additionalFields: additionalFields);
@@ -664,20 +670,20 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     if (type == null) {
       return null;
     }
-    Map<String, Space> fields = {};
-    for (MapEntry<String, Space> entry in a.fields.entries) {
-      String name = entry.key;
+    Map<Key, Space> fields = {};
+    for (MapEntry<Key, Space> entry in a.fields.entries) {
+      Key key = entry.key;
       Space aSpace = entry.value;
-      Space? bSpace = b.fields[name];
+      Space? bSpace = b.fields[key];
       if (bSpace != null) {
-        fields[name] = _createSpaceIntersection(path.add(name), aSpace, bSpace);
+        fields[key] = _createSpaceIntersection(path.add(key), aSpace, bSpace);
       } else {
-        fields[name] = aSpace;
+        fields[key] = aSpace;
       }
     }
-    for (MapEntry<String, Space> entry in b.fields.entries) {
-      String name = entry.key;
-      fields[name] ??= entry.value;
+    for (MapEntry<Key, Space> entry in b.fields.entries) {
+      Key key = entry.key;
+      fields[key] ??= entry.value;
     }
     return new SingleSpace(type, fields: fields);
   }

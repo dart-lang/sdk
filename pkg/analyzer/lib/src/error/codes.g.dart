@@ -3467,7 +3467,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
     'NON_EXHAUSTIVE_SWITCH',
     "The type '{0}' is not exhaustively matched by the switch cases.",
-    correctionMessage: "Try adding a default case or cases that match {1}.",
+    correctionMessage: "Try adding a default case or cases that match '{1}'.",
   );
 
   ///  No parameters.

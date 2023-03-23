@@ -24,14 +24,14 @@ abstract class StaticType {
   /// The static types of the fields this type exposes for record destructuring.
   ///
   /// Includes inherited fields.
-  Map<String, StaticType> get fields;
+  Map<Key, StaticType> get fields;
 
   /// Returns the static type for the [name] in this static type, or `null` if
   /// no such key exists.
   ///
   /// This is used to support implicit on the constant [StaticType]s
   /// [nullableObject], [nonNullableObject], [nullType] and [neverType].
-  StaticType? getField(ObjectFieldLookup fieldLookup, String name);
+  StaticType? getField(ObjectFieldLookup fieldLookup, Key key);
 
   /// Returns the static type for the [key] in this static type, or `null` if
   /// no such key exists.
@@ -90,13 +90,16 @@ abstract class StaticType {
   /// Returns a textual representation of a single space consisting of this
   /// type and the provided [fields] and [additionalFields].
   String spaceToText(
-      Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields);
+      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields);
+
+  void witnessToText(StringBuffer buffer, FieldWitness witness,
+      Map<Key, FieldWitness> witnessFields);
 }
 
 mixin _ObjectFieldMixin on _BaseStaticType {
   @override
-  StaticType? getField(ObjectFieldLookup fieldLookup, String name) {
-    return fields[name] ?? fieldLookup.getObjectFieldType(name);
+  StaticType? getField(ObjectFieldLookup fieldLookup, Key key) {
+    return fields[key] ?? fieldLookup.getObjectFieldType(key);
   }
 }
 
@@ -107,10 +110,10 @@ abstract class _BaseStaticType implements StaticType {
   bool get isRecord => false;
 
   @override
-  Map<String, StaticType> get fields => const {};
+  Map<Key, StaticType> get fields => const {};
 
   @override
-  StaticType? getField(ObjectFieldLookup fieldLookup, String name) {
+  StaticType? getField(ObjectFieldLookup fieldLookup, Key name) {
     return fields[name];
   }
 
@@ -122,7 +125,7 @@ abstract class _BaseStaticType implements StaticType {
 
   @override
   String spaceToText(
-      Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
     assert(additionalSpaceFields.isEmpty,
         "Additional fields not supported in ${runtimeType}.");
     if (this == StaticType.nullableObject && spaceFields.isEmpty) return '()';
@@ -137,14 +140,39 @@ abstract class _BaseStaticType implements StaticType {
     buffer.write('(');
     bool first = true;
 
-    spaceFields.forEach((String name, Space space) {
+    spaceFields.forEach((Key key, Space space) {
       if (!first) buffer.write(', ');
-      buffer.write('$name: $space');
+      buffer.write('${key.name}: $space');
       first = false;
     });
 
     buffer.write(')');
     return buffer.toString();
+  }
+
+  @override
+  void witnessToText(StringBuffer buffer, FieldWitness witness,
+      Map<Key, FieldWitness> witnessFields) {
+    if (this == StaticType.nullableObject && witnessFields.isEmpty) {
+      buffer.write('_');
+    } else if (this == StaticType.nullType && witnessFields.isEmpty) {
+      buffer.write('null');
+    } else {
+      buffer.write(name);
+      buffer.write('(');
+      if (witnessFields.isNotEmpty) {
+        String comma = '';
+        for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+          buffer.write(comma);
+          comma = ', ';
+
+          buffer.write(entry.key.name);
+          buffer.write(': ');
+          entry.value.witnessToText(buffer);
+        }
+      }
+      buffer.write(')');
+    }
   }
 
   @override
@@ -301,7 +329,7 @@ class WrappedStaticType extends NonNullableStaticType {
   WrappedStaticType(this.wrappedType, this.impliedType);
 
   @override
-  Map<String, StaticType> get fields => wrappedType.fields;
+  Map<Key, StaticType> get fields => wrappedType.fields;
 
   @override
   bool get isRecord => wrappedType.isRecord;
@@ -332,11 +360,17 @@ class WrappedStaticType extends NonNullableStaticType {
         wrappedType == other.wrappedType &&
         impliedType == other.impliedType;
   }
+
+  @override
+  void witnessToText(StringBuffer buffer, FieldWitness witness,
+      Map<Key, FieldWitness> witnessFields) {
+    return wrappedType.witnessToText(buffer, witness, witnessFields);
+  }
 }
 
 /// Interface for accessing the members defined on `Object`.
 abstract class ObjectFieldLookup {
-  /// Returns the [StaticType] for the member [name] defined on `Object`, or
-  /// `null` none exists.
-  StaticType? getObjectFieldType(String name);
+  /// Returns the [StaticType] for the member with the given [key] defined on
+  /// `Object`, or `null` none exists.
+  StaticType? getObjectFieldType(Key key);
 }

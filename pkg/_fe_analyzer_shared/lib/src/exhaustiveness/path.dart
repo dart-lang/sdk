@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'key.dart';
+
 /// A path that describes location of a [SingleSpace] from the root of
 /// enclosing [Space].
 abstract class Path {
@@ -10,13 +12,13 @@ abstract class Path {
   /// Create root path.
   const factory Path.root() = _Root;
 
-  /// Returns a path that adds a step by the [name] to the current path.
-  Path add(String name) => new _Step(this, name);
+  /// Returns a path that adds a step by the [key] to the current path.
+  Path add(Key key) => new _Step(this, key);
 
-  void _toList(List<String> list);
+  void _toList(List<Key> list);
 
-  /// Returns a list of the names from the root to this path.
-  List<String> toList();
+  /// Returns a list of the keys from the root to this path.
+  List<Key> toList();
 }
 
 /// The root path object.
@@ -24,10 +26,10 @@ class _Root extends Path {
   const _Root();
 
   @override
-  void _toList(List<String> list) {}
+  void _toList(List<Key> list) {}
 
   @override
-  List<String> toList() => const [];
+  List<Key> toList() => const [];
 
   @override
   int get hashCode => 1729;
@@ -41,42 +43,42 @@ class _Root extends Path {
   String toString() => '@';
 }
 
-/// A single step in a path that holds the [parent] pointer the [name] for the
-/// step.
+/// A single step in a path that holds the [parent] pointer and the [key] for
+/// the step.
 class _Step extends Path {
   final Path parent;
-  final String name;
+  final Key key;
 
-  _Step(this.parent, this.name);
+  _Step(this.parent, this.key);
 
   @override
-  List<String> toList() {
-    List<String> list = [];
+  List<Key> toList() {
+    List<Key> list = [];
     _toList(list);
     return list;
   }
 
   @override
-  void _toList(List<String> list) {
+  void _toList(List<Key> list) {
     parent._toList(list);
-    list.add(name);
+    list.add(key);
   }
 
   @override
-  late final int hashCode = Object.hash(parent, name);
+  late final int hashCode = Object.hash(parent, key);
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is _Step && name == other.name && parent == other.parent;
+    return other is _Step && key == other.key && parent == other.parent;
   }
 
   @override
   String toString() {
     if (parent is _Root) {
-      return name;
+      return key.name;
     } else {
-      return '$parent.$name';
+      return '$parent.${key.name}';
     }
   }
 }

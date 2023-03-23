@@ -4072,7 +4072,7 @@ const Template<
     problemMessageTemplate:
         r"""The type '#type' is not exhaustively matched by the switch cases.""",
     correctionMessageTemplate:
-        r"""Try adding a default case or cases that match #string.""",
+        r"""Try adding a default case or cases that match '#string'.""",
     withArguments: _withArgumentsNonExhaustiveSwitch);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4096,7 +4096,7 @@ Message _withArgumentsNonExhaustiveSwitch(
       problemMessage:
           """The type '${type}' is not exhaustively matched by the switch cases.""" +
               labeler.originMessages,
-      correctionMessage: """Try adding a default case or cases that match ${string}.""",
+      correctionMessage: """Try adding a default case or cases that match '${string}'.""",
       arguments: {'type': _type, 'string': string});
 }
 

@@ -119,7 +119,7 @@ void exhaustiveNullableSwitch(({Enum a, bool b})? r) {
 
 void nonExhaustiveNullableSwitch1(({Enum a, bool b})? r) {
   /*
-   error=non-exhaustive:Null,
+   error=non-exhaustive:null,
    fields={a:-,b:-},
    subtypes={({Enum a, bool b}),Null},
    type=({Enum a, bool b})?

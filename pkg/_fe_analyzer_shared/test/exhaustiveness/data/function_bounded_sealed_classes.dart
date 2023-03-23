@@ -72,7 +72,7 @@ exhaustiveBivariant<T>(A<T Function(T)> a) {
 
 nonExhaustiveCovariant<T>(A<T Function(Never)> a) {
   /*
-   error=non-exhaustive:B<num Function(dynamic)>,
+   error=non-exhaustive:B<num Function(dynamic)>(),
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(Never)>
   */
@@ -87,7 +87,7 @@ nonExhaustiveCovariant<T>(A<T Function(Never)> a) {
       break;
   }
   /*
-   error=non-exhaustive:C<dynamic Function(num)>,
+   error=non-exhaustive:C<dynamic Function(num)>(),
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(Never)>
   */
@@ -102,7 +102,7 @@ nonExhaustiveCovariant<T>(A<T Function(Never)> a) {
       break;
   }
   /*
-   error=non-exhaustive:D<num Function(num)>,
+   error=non-exhaustive:D<num Function(num)>(),
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(Never)>
   */
@@ -120,7 +120,7 @@ nonExhaustiveCovariant<T>(A<T Function(Never)> a) {
 
 nonExhaustiveContravariant<T>(A<dynamic Function(T)> a) {
   /*
-   error=non-exhaustive:B<num Function(dynamic)>,
+   error=non-exhaustive:B<num Function(dynamic)>(),
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<dynamic Function(T)>
   */
@@ -135,7 +135,7 @@ nonExhaustiveContravariant<T>(A<dynamic Function(T)> a) {
       break;
   }
   /*
-   error=non-exhaustive:C<dynamic Function(num)>,
+   error=non-exhaustive:C<dynamic Function(num)>(),
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<dynamic Function(T)>
   */
@@ -150,7 +150,7 @@ nonExhaustiveContravariant<T>(A<dynamic Function(T)> a) {
       break;
   }
   /*
-   error=non-exhaustive:D<num Function(num)>,
+   error=non-exhaustive:D<num Function(num)>(),
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<dynamic Function(T)>
   */
@@ -168,7 +168,7 @@ nonExhaustiveContravariant<T>(A<dynamic Function(T)> a) {
 
 nonExhaustiveBivariant<T>(A<T Function(T)> a) {
   /*
-   error=non-exhaustive:B<num Function(dynamic)>,
+   error=non-exhaustive:B<num Function(dynamic)>(),
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(T)>
   */
@@ -183,7 +183,7 @@ nonExhaustiveBivariant<T>(A<T Function(T)> a) {
       break;
   }
   /*
-   error=non-exhaustive:C<dynamic Function(num)>,
+   error=non-exhaustive:C<dynamic Function(num)>(),
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(T)>
   */
@@ -198,7 +198,7 @@ nonExhaustiveBivariant<T>(A<T Function(T)> a) {
       break;
   }
   /*
-   error=non-exhaustive:D<num Function(num)>,
+   error=non-exhaustive:D<num Function(num)>(),
    subtypes={B<num Function(dynamic)>,C<dynamic Function(num)>,D<num Function(num)>},
    type=A<T Function(T)>
   */
