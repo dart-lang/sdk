@@ -1289,7 +1289,7 @@ void f(Object? x) {
 ''');
     await prepareNavigation();
 
-    assertHasRegionTarget('foo:', 'foo =>', regionLength: 4);
+    assertHasRegionTarget('foo', 'foo =>');
   }
 
   Future<void> test_objectPattern_patternField_implicitlyNamed() async {
@@ -1304,7 +1304,7 @@ void f(Object? x) {
 ''');
     await prepareNavigation();
 
-    assertHasRegionTarget(': var', 'foo =>', regionLength: 1);
+    assertHasRegionTarget('foo))', 'foo =>');
   }
 
   Future<void> test_objectPattern_patternField_notResolved() async {
@@ -1429,7 +1429,7 @@ void f(Object? x) {
 ''');
     await prepareNavigation();
 
-    assertNoRegionAt('foo:');
+    assertNoRegionAt('foo');
   }
 
   Future<void> test_redirectingConstructorInvocation() async {
