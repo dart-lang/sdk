@@ -171,6 +171,13 @@
 #### Web Dev Compiler (DDC)
 - Removed deprecated command line flags `-k`, `--kernel`, and `--dart-sdk`.
 
+#### Dart2js
+
+- Cleanup related to [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  the internal dart2js snapshot fails unless it is called from a supported
+  interface, such as `dart compile js`, `flutter build`, or
+  `build_web_compilers`. This is not expected to be a visible change.
+
 #### Formatter
 
 * Format `sync*` and `async*` functions with `=>` bodies.

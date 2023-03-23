@@ -732,13 +732,6 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   parseCommandLine(handlers, argv);
 
-  if (invoker == null) {
-    warning("The 'dart2js' entrypoint script is deprecated, "
-        "please use 'dart compile js' instead.");
-  } else if (verbose != null && !wantHelp) {
-    print("Compiler invoked from: '$invoker'");
-  }
-
   final diagnostic = diagnosticHandler = FormattingDiagnosticHandler();
   if (verbose != null) {
     diagnostic.verbose = verbose!;
@@ -776,6 +769,22 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   if (wantHelp || wantVersion) {
     helpAndExit(wantHelp, wantVersion, diagnostic.verbose);
+  }
+
+  if (invoker == null) {
+    final message = "The 'dart2js' entrypoint script is deprecated, "
+        "please use 'dart compile js' instead.";
+    // Aside from asking for `-h`, dart2js fails when it is invoked from its
+    // snapshot directly and not using the supported workflows.  However, we
+    // allow invoking dart2js from Dart sources to support the dart2js team
+    // local workflows and testing.
+    if (!Platform.script.path.endsWith(".dart")) {
+      _fail(message);
+    } else {
+      warning(message);
+    }
+  } else if (verbose != null) {
+    print("Compiler invoked from: '$invoker'");
   }
 
   if (arguments.isEmpty &&

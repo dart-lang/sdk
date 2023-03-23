@@ -78,6 +78,7 @@ template("dart2js_compile") {
     args = [
       "$abs_main",
       "-m",
+      "--invoker=gn_build",
       "-o$abs_output",
       "--no-source-maps",
       "--platform-binaries=" + rebase_path("$root_out_dir"),
