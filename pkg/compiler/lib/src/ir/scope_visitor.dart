@@ -970,7 +970,9 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitRecordLiteral(ir.RecordLiteral node) {
     EvaluationComplexity complexity = visitExpressions(node.positional);
-    return visitNamedExpressions(node.named, complexity);
+    complexity = visitNamedExpressions(node.named, complexity);
+    if (complexity.isConstant) return _evaluateImplicitConstant(node);
+    return complexity;
   }
 
   @override

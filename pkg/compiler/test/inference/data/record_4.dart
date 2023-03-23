@@ -16,12 +16,13 @@ testList() {
   return list;
 }
 
-/*member: testClosure1:[empty]*/
+/*member: testClosure1:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
 testClosure1() {
-  return getRecord(). /*[exact=JSUInt31]*/ $1;
+  return getRecord()
+      . /*[Record(RecordShape(2), [Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null), [exact=JSUInt31]])]*/ $1;
 }
 
-/*member: getRecord:[exact=JSUInt31]*/
+/*member: getRecord:[Record(RecordShape(2), [Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null), [exact=JSUInt31]])]*/
 getRecord() {
   return ([1, 2], 3);
 }
