@@ -288,6 +288,9 @@ class CoreTypes {
   late final Constructor reachabilityErrorConstructor =
       index.getConstructor('dart:_internal', 'ReachabilityError', '');
 
+  late final Constructor stateErrorConstructor =
+      index.getConstructor('dart:core', 'StateError', '');
+
   late final Class cellClass = index.getClass('dart:_late_helper', '_Cell');
 
   late final Constructor cellConstructor =

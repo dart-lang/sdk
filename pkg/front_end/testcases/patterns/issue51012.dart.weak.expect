@@ -1,7 +1,6 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class A extends core::Object {
   synthetic constructor •() → self::A
@@ -18,7 +17,7 @@ static method main() → dynamic {
   {
     final synthesized dynamic #0#0 = new self::A::•();
     if(!(let final dynamic #t1 = #0#0{self::A}.{self::A::bar}{core::int} in true))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   self::expect(1, self::count);
 }

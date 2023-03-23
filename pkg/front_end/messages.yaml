@@ -6712,3 +6712,6 @@ EqualKeysInMapPattern:
 EqualKeysInMapPatternContext:
   problemMessage: This is the previous use of the same key.
   severity: CONTEXT
+
+PatternMatchingError:
+  problemMessage: "Pattern matching error"

@@ -1,7 +1,6 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method main() → void {
   self::left<core::int, core::int>(core::_GrowableList::_literal2<(core::int, core::int)>((1, 2), (3, 4)));
@@ -18,7 +17,7 @@ static method left<A extends core::Object? = dynamic, B extends core::Object? = 
           {
             final synthesized dynamic #0#0 = #t2;
             if(!((let final self::left::A% #t3 = a = #0#0{(self::left::A%, self::left::B%)}.$1{self::left::A%} in true) && true))
-              throw new _in::ReachabilityError::•();
+              throw new core::StateError::•("Pattern matching error");
           }
           #t1.{core::List::add}{Invariant}(a){(self::left::A%) → void};
         }

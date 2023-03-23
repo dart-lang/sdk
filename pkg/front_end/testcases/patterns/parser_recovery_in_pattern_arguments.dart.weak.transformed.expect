@@ -18,7 +18,6 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class C<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field self::C::T% t;
@@ -40,7 +39,7 @@ static method test() → dynamic {
              ^"){(core::Object?) → core::bool} && (let final core::int #t1 = a1 = #0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::[]}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
   var {const C(:var t): a1} = foo();
              ^"){(core::Object?) → core::int?} in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
 }
 

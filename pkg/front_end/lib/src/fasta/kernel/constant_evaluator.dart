@@ -1665,8 +1665,11 @@ class ConstantsTransformer extends RemovingTransformer {
       createIfStatement(
           createNot(readMatchingExpression),
           createExpressionStatement(createThrow(createConstructorInvocation(
-              typeEnvironment.coreTypes.reachabilityErrorConstructor,
-              createArguments([], fileOffset: node.fileOffset),
+              typeEnvironment.coreTypes.stateErrorConstructor,
+              createArguments([
+                createStringLiteral(messagePatternMatchingError.problemMessage,
+                    fileOffset: node.fileOffset)
+              ], fileOffset: node.fileOffset),
               fileOffset: node.fileOffset))),
           fileOffset: node.fileOffset),
     ];

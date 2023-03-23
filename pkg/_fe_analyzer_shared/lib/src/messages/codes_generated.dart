@@ -10921,6 +10921,14 @@ const MessageCode messagePatternAssignmentNotLocalVariable = const MessageCode(
     correctionMessage: r"""Try assigning to a local variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatternMatchingError = messagePatternMatchingError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatternMatchingError = const MessageCode(
+    "PatternMatchingError",
+    problemMessage: r"""Pattern matching error""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePlatformPrivateLibraryAccess =
     messagePlatformPrivateLibraryAccess;
 

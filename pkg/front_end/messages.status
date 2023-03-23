@@ -848,6 +848,8 @@ PatchInjectionFailed/example: Fail
 PatchNonExternal/analyzerCode: Fail
 PatchNonExternal/example: Fail
 PatternAssignmentDeclaresVariable/analyzerCode: Fail
+PatternMatchingError/analyzerCode: Fail
+PatternMatchingError/example: Fail
 PlatformPrivateLibraryAccess/example: Fail
 PositionalAfterNamedArgument/example: Fail
 PositionalSuperParametersAndArguments/analyzerCode: Fail
@@ -974,12 +976,12 @@ UnmatchedToken/part_wrapped_script3: Fail
 UnmatchedToken/script1: Fail
 UnmatchedToken/script3: Fail
 UnnamedObjectPatternField/analyzerCode: Fail
+UnreachableSwitchCase/part_wrapped_script: Fail # https://github.com/dart-lang/language/issues/2924
+UnreachableSwitchCase/script: Fail # https://github.com/dart-lang/language/issues/2924
 Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
 UnsupportedDartExt/analyzerCode: Fail
 UnsupportedDartExt/part_wrapped_script: Fail # Example uses import declaration.
-UnreachableSwitchCase/part_wrapped_script: Fail # https://github.com/dart-lang/language/issues/2924
-UnreachableSwitchCase/script: Fail # https://github.com/dart-lang/language/issues/2924
 UnterminatedString/part_wrapped_script2: Fail
 UnterminatedString/part_wrapped_script4: Fail
 UnterminatedString/part_wrapped_script5: Fail
@@ -1003,20 +1005,20 @@ VarAsTypeName/script1: Fail # Too many problems
 VariableCouldBeNullDueToWrite/analyzerCode: Fail
 VariableCouldBeNullDueToWrite/example: Fail
 VariablePatternTypeMismatchInSwitchHeads/analyzerCode: Fail
-WeakWithStrongDillLibrary/analyzerCode: Fail
-WeakWithStrongDillLibrary/example: Fail
-WeakReferenceNotStatic/analyzerCode: Fail
-WeakReferenceNotStatic/example: Fail
-WeakReferenceNotOneArgument/analyzerCode: Fail
-WeakReferenceNotOneArgument/example: Fail
-WeakReferenceReturnTypeNotNullable/analyzerCode: Fail
-WeakReferenceReturnTypeNotNullable/example: Fail
 WeakReferenceMismatchReturnAndArgumentTypes/analyzerCode: Fail
 WeakReferenceMismatchReturnAndArgumentTypes/example: Fail
-WeakReferenceTargetNotStaticTearoff/analyzerCode: Fail
-WeakReferenceTargetNotStaticTearoff/example: Fail
+WeakReferenceNotOneArgument/analyzerCode: Fail
+WeakReferenceNotOneArgument/example: Fail
+WeakReferenceNotStatic/analyzerCode: Fail
+WeakReferenceNotStatic/example: Fail
+WeakReferenceReturnTypeNotNullable/analyzerCode: Fail
+WeakReferenceReturnTypeNotNullable/example: Fail
 WeakReferenceTargetHasParameters/analyzerCode: Fail
 WeakReferenceTargetHasParameters/example: Fail
+WeakReferenceTargetNotStaticTearoff/analyzerCode: Fail
+WeakReferenceTargetNotStaticTearoff/example: Fail
+WeakWithStrongDillLibrary/analyzerCode: Fail
+WeakWithStrongDillLibrary/example: Fail
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail
 WebLiteralCannotBeRepresentedExactly/example: Fail
 YieldAsIdentifier/example: Fail
