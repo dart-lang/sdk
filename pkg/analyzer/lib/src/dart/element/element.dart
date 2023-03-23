@@ -4666,6 +4666,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
         definingCompilationUnit,
         ...libraryExports,
         ...libraryImports,
+        ...augmentationImports,
       ];
 
   @override

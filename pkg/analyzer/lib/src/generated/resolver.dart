@@ -2069,6 +2069,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitClassTypeAlias(node);
+    baseOrFinalTypeVerifier
+        .checkElement(node.declaredElement as ClassOrMixinElementImpl);
   }
 
   @override

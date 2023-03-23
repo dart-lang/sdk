@@ -433,6 +433,15 @@ void defineAnalyze() {
     expect(result.stderr, contains("Unknown experiment(s): 'bad'"));
   });
 
+  test('--enable-experiment with a non-experimental feature', () async {
+    p = project();
+    var result = await p.runAnalyze(['--enable-experiment=records']);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains('No issues found!'));
+    expect(result.stderr, contains("'records' is now enabled by default"));
+  });
+
   test('--verbose', () async {
     p = project(mainSrc: '''
 int f() {

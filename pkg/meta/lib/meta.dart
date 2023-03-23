@@ -297,7 +297,6 @@ const _Protected protected = _Protected();
 ///   class.
 /// * The annotation is applied to a class or mixin which does not require it.
 ///   (The intent to reopen was not satisfied.)
-@experimental // todo(pq): remove before publishing for 3.0 (https://github.com/dart-lang/sdk/issues/51059)
 const _Reopen reopen = _Reopen();
 
 /// Used to annotate a named parameter `p` in a method or function `f`.

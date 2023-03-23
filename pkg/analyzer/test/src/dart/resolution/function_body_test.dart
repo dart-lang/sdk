@@ -51,6 +51,24 @@ void f() {
 ''', false);
   }
 
+  test_localVariable_false_patternVariableDeclaration() async {
+    await _assertLocalVariable('''
+void f() {
+  var (v) = 0;
+  v;
+}
+''', false);
+  }
+
+  test_localVariable_false_patternVariableDeclaration_mapPattern() async {
+    await _assertLocalVariable('''
+void f() {
+  var {0: v} = {0: 1};
+  v;
+}
+''', false);
+  }
+
   test_localVariable_true_assignmentExpression() async {
     await _assertLocalVariable('''
 void f() {

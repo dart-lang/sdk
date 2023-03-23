@@ -321,6 +321,76 @@ class C extends B {}
     ]);
   }
 
+  test_classTypeAlias() async {
+    await assertErrorsInCode(r'''
+base class A {}
+mixin B {}
+class C = Object with B implements A;
+''', [
+      error(CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          33, 1,
+          text:
+              "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'."),
+    ]);
+  }
+
+  test_classTypeAlias_interface() async {
+    await assertErrorsInCode(r'''
+base class A {}
+mixin B {}
+interface class C = Object with B implements A;
+''', [
+      error(CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          43, 1,
+          text:
+              "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'."),
+    ]);
+  }
+
+  test_classTypeAlias_sealed() async {
+    await assertErrorsInCode(r'''
+base class A {}
+sealed class AA extends A {}
+mixin B {}
+class C = Object with B implements AA;
+''', [
+      error(
+        CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+        62,
+        1,
+        text:
+            "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 11, 1,
+              text:
+                  "The type 'AA' is a subtype of 'A', and 'A' is defined here.")
+        ],
+      ),
+    ]);
+  }
+
+  test_classTypeAlias_sealed_interface() async {
+    await assertErrorsInCode(r'''
+base class A {}
+sealed class AA extends A {}
+mixin B {}
+interface class C = Object with B implements AA;
+''', [
+      error(
+        CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+        72,
+        1,
+        text:
+            "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 11, 1,
+              text:
+                  "The type 'AA' is a subtype of 'A', and 'A' is defined here.")
+        ],
+      ),
+    ]);
+  }
+
   test_mixin_implements() async {
     await assertErrorsInCode(r'''
 base class A {}
