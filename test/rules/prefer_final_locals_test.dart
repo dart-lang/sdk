@@ -202,6 +202,34 @@ f(Object o) {
 ''');
   }
 
+  test_ifPatternObject() async {
+    await assertDiagnostics(r'''
+class C {
+  int c;
+  C(this.c);
+}
+
+f(Object o) {
+  if (o case C(c: var x)) print(x);
+}
+''', [
+      lint(71, 1),
+    ]);
+  }
+
+  test_ifPatternObject_ok() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int c;
+  C(this.c);
+}
+
+f(Object o) {
+  if (o case C(c: final x)) print(x);
+}
+''');
+  }
+
   test_ifPatternRecord() async {
     await assertDiagnostics(r'''
 f(Object o) {
