@@ -35,7 +35,7 @@ const int _CR = 13;
 /// // 3:  garbage-collected
 /// // 4:  language with C-style syntax
 /// ```
-final class LineSplitter extends StreamTransformerBase<String, String> {
+class LineSplitter extends StreamTransformerBase<String, String> {
   const LineSplitter();
 
   /// Split [lines] into individual lines.
@@ -84,7 +84,7 @@ final class LineSplitter extends StreamTransformerBase<String, String> {
   }
 }
 
-class _LineSplitterSink extends StringConversionSink {
+class _LineSplitterSink extends StringConversionSinkBase {
   final StringConversionSink _sink;
 
   /// The carry-over from the previous chunk.
