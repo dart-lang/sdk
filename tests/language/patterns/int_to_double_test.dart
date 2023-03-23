@@ -31,23 +31,25 @@ main() {
     Expect.fail('Should have matched.');
   }
 
-  // No coercion on if-case value.
-  if (123 case double d) {
+  // No coercion on if-case value. There should be no context type on the value
+  // from the pattern, and thus `[123]` should be inferred as `<int>[123]`,
+  // which is not matched by `List<double> _`.
+  if ([123] case List<double> _) {
     Expect.fail('Should not have matched.');
   } else {
     // OK.
   }
 
   // No coercion on switch statement value.
-  switch (123) {
-    case double d:
+  switch ([123]) {
+    case List<double> _:
       Expect.fail('Should not have matched.');
     default:
     // OK.
   }
 
   // No coercion on switch expression value.
-  var result = switch (123) { double d => 'wrong', _ => 'ok' };
+  var result = switch ([123]) { List<double> _ => 'wrong', _ => 'ok' };
   Expect.equals('ok', result);
 }
 
