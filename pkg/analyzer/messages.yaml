@@ -22328,8 +22328,8 @@ WarningCode:
   INVALID_FACTORY_ANNOTATION:
     problemMessage: Only methods can be annotated as factories.
     comment: |-
-      This hint is generated anywhere a @factory annotation is associated with
-      anything other than a method.
+      This warning is generated anywhere a @factory annotation is associated
+      with anything other than a method.
   INVALID_FACTORY_METHOD_DECL:
     problemMessage: "Factory method '{0}' must have a return type."
     comment: |-
@@ -22421,8 +22421,8 @@ WarningCode:
   INVALID_IMMUTABLE_ANNOTATION:
     problemMessage: Only classes can be annotated as being immutable.
     comment: |-
-      This hint is generated anywhere an @immutable annotation is associated with
-      anything other than a class.
+      This warning is generated anywhere an @immutable annotation is associated
+      with anything other than a class.
   INVALID_INTERNAL_ANNOTATION:
     problemMessage: "Only public elements in a package's private API can be annotated as being internal."
     comment: |-
@@ -22631,7 +22631,7 @@ WarningCode:
     correctionMessage: Try removing '@nonVirtual'.
     hasPublishedDocs: true
     comment: |-
-      This hint is generated anywhere where `@nonVirtual` annotates something
+      This warning is generated anywhere where `@nonVirtual` annotates something
       other than a non-abstract instance member in a class or mixin.
 
       No Parameters.
@@ -22711,7 +22711,7 @@ WarningCode:
     problemMessage: "The member '{0}' is declared non-virtual in '{1}' and can't be overridden in subclasses."
     hasPublishedDocs: true
     comment: |-
-      This hint is generated anywhere where an instance member annotated with
+      This warning is generated anywhere where an instance member annotated with
       `@nonVirtual` is overridden in a subclass.
 
       Parameters:
@@ -22777,7 +22777,7 @@ WarningCode:
     problemMessage: "The type parameter '{0}' is annotated with @required but only named parameters without a default value can be annotated with it."
     correctionMessage: Remove @required.
     comment: |-
-      This hint is generated anywhere where `@required` annotates a named
+      This warning is generated anywhere where `@required` annotates a named
       parameter with a default value.
 
       Parameters:
@@ -22786,7 +22786,7 @@ WarningCode:
     problemMessage: "Incorrect use of the annotation @required on the optional positional parameter '{0}'. Optional positional parameters cannot be required."
     correctionMessage: Remove @required.
     comment: |-
-      This hint is generated anywhere where `@required` annotates an optional
+      This warning is generated anywhere where `@required` annotates an optional
       positional parameter.
 
       Parameters:
@@ -22795,8 +22795,8 @@ WarningCode:
     problemMessage: "Redundant use of the annotation @required on the required positional parameter '{0}'."
     correctionMessage: Remove @required.
     comment: |-
-      This hint is generated anywhere where `@required` annotates a non optional
-      positional parameter.
+      This warning is generated anywhere where `@required` annotates a
+      non-optional positional parameter.
 
       Parameters:
       0: the name of the member
@@ -22841,8 +22841,8 @@ WarningCode:
   INVALID_USE_OF_PROTECTED_MEMBER:
     problemMessage: "The member '{0}' can only be used within instance members of subclasses of '{1}'."
     comment: |-
-      This hint is generated anywhere where a member annotated with `@protected`
-      is used outside of an instance member of a subclass.
+      This warning is generated anywhere where a member annotated with
+      `@protected` is used outside of an instance member of a subclass.
 
       Parameters:
       0: the name of the member
@@ -22895,7 +22895,7 @@ WarningCode:
   INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
     problemMessage: "The member '{0}' can only be used within '{1}' or a template library."
     comment: |-
-      This hint is generated anywhere where a member annotated with
+      This warning is generated anywhere where a member annotated with
       `@visibleForTemplate` is used outside of a "template" Dart file.
 
       Parameters:
@@ -22905,7 +22905,7 @@ WarningCode:
     problemMessage: "The member '{0}' can only be used within '{1}' or a test."
     hasPublishedDocs: true
     comment: |-
-      This hint is generated anywhere where a member annotated with
+      This warning is generated anywhere where a member annotated with
       `@visibleForTesting` is used outside the defining library, or a test.
 
       Parameters:
@@ -22967,8 +22967,8 @@ WarningCode:
     problemMessage: "The member '{0}' is annotated with '{1}', but this annotation is only meaningful on declarations of public members."
     hasPublishedDocs: true
     comment: |-
-      This hint is generated anywhere where a private declaration is annotated
-      with `@visibleForTemplate` or `@visibleForTesting`.
+      This warning is generated anywhere where a private declaration is
+      annotated with `@visibleForTemplate` or `@visibleForTesting`.
 
       Parameters:
       0: the name of the member
@@ -23117,8 +23117,8 @@ WarningCode:
     correctionMessage: Try removing the '@sealed' annotation.
     hasPublishedDocs: true
     comment: |-
-      This hint is generated anywhere where `@sealed` annotates something other
-      than a class.
+      This warning is generated anywhere where `@sealed` annotates something
+      other than a class.
 
       No parameters.
     documentation: |-
@@ -23233,8 +23233,8 @@ WarningCode:
     problemMessage: "The parameter '{0}' is required."
     hasPublishedDocs: true
     comment: |-
-      Generate a hint for a constructor, function or method invocation where a
-      required parameter is missing.
+      Generates a warning for a constructor, function or method invocation where
+      a required parameter is missing.
 
       Parameters:
       0: the name of the parameter
@@ -23280,8 +23280,8 @@ WarningCode:
     problemMessage: "The parameter '{0}' is required. {1}."
     hasPublishedDocs: true
     comment: |-
-      Generate a hint for a constructor, function or method invocation where a
-      required parameter is missing.
+      Generates a warning for a constructor, function or method invocation where
+      a required parameter is missing.
 
       Parameters:
       0: the name of the parameter
@@ -23323,7 +23323,7 @@ WarningCode:
     correctionMessage: Try composing with this class, or refer to its documentation for more information.
     hasPublishedDocs: true
     comment: |-
-      This hint is generated anywhere where a `@sealed` class is used as a
+      This warning is generated anywhere where a `@sealed` class is used as a
       a superclass constraint of a mixin.
 
       Parameters:
@@ -23366,7 +23366,7 @@ WarningCode:
     problemMessage: "This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: {0}"
     hasPublishedDocs: true
     comment: |-
-      Generate a hint for classes that inherit from classes annotated with
+      Generates a warning for classes that inherit from classes annotated with
       `@immutable` but that are not immutable.
 
       Parameters:
@@ -23479,7 +23479,7 @@ WarningCode:
     correctionMessage: "Try replacing the 'new' keyword with 'const'."
     hasPublishedDocs: true
     comment: |-
-      Generate a hint for non-const instance creation (with the `new` keyword)
+      Generate a warning for non-const instance creation (with the `new` keyword)
       using a constructor annotated with `@literal`.
 
       Parameters:
@@ -23489,7 +23489,7 @@ WarningCode:
     correctionMessage: "Try adding a 'const' keyword."
     hasPublishedDocs: true
     comment: |-
-      Generate a hint for non-const instance creation using a constructor
+      Generates a warning for non-const instance creation using a constructor
       annotated with `@literal`.
 
       Parameters:

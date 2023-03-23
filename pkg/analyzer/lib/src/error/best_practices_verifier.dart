@@ -292,8 +292,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
       } else {
         // Something other than a declaration was annotated. Whatever this is,
-        // it probably warrants a Hint, but this has not been specified on
-        // visibleForTemplate or visibleForTesting, so leave it alone for now.
+        // it probably warrants a Warning, but this has not been specified on
+        // `visibleForTemplate` or `visibleForTesting`, so leave it alone for
+        // now.
       }
     }
 
@@ -412,8 +413,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     try {
-      // Commented out until we decide that we want this hint in the analyzer
-      //    checkForOverrideEqualsButNotHashCode(node);
       _checkForImmutable(node);
       _checkForInvalidSealedSuperclass(node);
       super.visitClassDeclaration(node);
@@ -459,7 +458,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var element = node.declaredElement as ConstructorElementImpl;
     if (!_isNonNullableByDefault && element.isFactory) {
       if (node.body is BlockFunctionBody) {
-        // Check the block for a return statement, if not, create the hint.
+        // Check the block for a return statement.
         if (!ExitDetector.exits(node.body)) {
           _errorReporter.reportErrorForNode(
               WarningCode.MISSING_RETURN, node, [node.returnType.name]);
@@ -729,8 +728,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _inDoNotStoreMember = true;
     }
     try {
-      // This was determined to not be a good hint, see: dartbug.com/16029
-      //checkForOverridingPrivateMember(node);
       _checkForMissingReturn(node.body, node);
       _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
@@ -775,7 +772,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _deprecatedVerifier.methodInvocation(node);
-    _checkForNullAwareHints(node, node.operator);
+    _checkForNullAwareWarnings(node, node.operator);
     _errorHandlerVerifier.verifyMethodInvocation(node);
     _nullSafeApiVerifier.methodInvocation(node);
     super.visitMethodInvocation(node);
@@ -843,7 +840,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    _checkForNullAwareHints(node, node.operator);
+    _checkForNullAwareWarnings(node, node.operator);
     super.visitPropertyAccess(node);
   }
 
@@ -905,14 +902,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Check for the passed is expression for the unnecessary type check hint
-  /// codes as well as null checks expressed using an is expression.
+  /// Checks for the passed [IsExpression] for the unnecessary type check
+  /// warning codes as well as null checks expressed using an
+  /// [IsExpression].
   ///
-  /// @param node the is expression to check
-  /// @return `true` if and only if a hint code is generated on the passed node
-  /// See [HintCode.TYPE_CHECK_IS_NOT_NULL], [HintCode.TYPE_CHECK_IS_NULL],
-  /// [HintCode.UNNECESSARY_TYPE_CHECK_TRUE], and
-  /// [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
+  /// Returns `true` if a warning code is generated on [node].
+  /// See [WarningCode.TYPE_CHECK_IS_NOT_NULL],
+  /// [WarningCode.TYPE_CHECK_IS_NULL],
+  /// [WarningCode.UNNECESSARY_TYPE_CHECK_TRUE], and
+  /// [WarningCode.UNNECESSARY_TYPE_CHECK_FALSE].
   bool _checkAllTypeChecks(IsExpression node) {
     var leftNode = node.expression;
     var rightNode = node.type;
@@ -921,8 +919,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     void report() {
       _errorReporter.reportErrorForNode(
         node.notOperator == null
-            ? HintCode.UNNECESSARY_TYPE_CHECK_TRUE
-            : HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+            ? WarningCode.UNNECESSARY_TYPE_CHECK_TRUE
+            : WarningCode.UNNECESSARY_TYPE_CHECK_FALSE,
         node,
       );
     }
@@ -1061,7 +1059,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   ///
   /// If [node] is marked with [immutable] or inherits from a class or mixin
   /// marked with [immutable], this function searches the fields of [node] and
-  /// its superclasses, reporting a hint if any non-final instance fields are
+  /// its superclasses, reporting a warning if any non-final instance fields are
   /// found.
   void _checkForImmutable(NamedCompilationUnitMember node) {
     /// Return `true` if the given class [element] is annotated with the
@@ -1358,10 +1356,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (constructorName.name != null) {
         fullConstructorName = '$fullConstructorName.${constructorName.name}';
       }
-      var hint = node.keyword?.keyword == Keyword.NEW
+      var warning = node.keyword?.keyword == Keyword.NEW
           ? WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW
           : WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
-      _errorReporter.reportErrorForNode(hint, node, [fullConstructorName]);
+      _errorReporter.reportErrorForNode(warning, node, [fullConstructorName]);
     }
   }
 
@@ -1391,13 +1389,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /// Generate a hint for functions or methods that have a return type, but do
-  /// not have a return statement on all branches. At the end of blocks with no
-  /// return, Dart implicitly returns `null`. Avoiding these implicit returns
-  /// is considered a best practice.
-  ///
-  /// Note: for async functions/methods, this hint only applies when the
-  /// function has a return type that Future<Null> is not assignable to.
+  /// Generates a warning for functions that have a potentially non-nullable
+  /// return type, but do not have a return statement on all branches. At the
+  /// end of blocks with no return, Dart implicitly returns `null`. Avoiding
+  /// these implicit returns is considered a best practice.
   ///
   /// See [WarningCode.MISSING_RETURN].
   void _checkForMissingReturn(FunctionBody body, AstNode functionNode) {
@@ -1465,8 +1460,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Produce several null-aware related hints.
-  void _checkForNullAwareHints(Expression node, Token? operator) {
+  /// Produce several null-aware related warnings.
+  void _checkForNullAwareWarnings(Expression node, Token? operator) {
     if (_isNonNullableByDefault) {
       return;
     }
@@ -1565,10 +1560,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Generate a hint for `noSuchMethod` methods that do nothing except of
-  /// calling another `noSuchMethod` that is not defined by `Object`.
+  /// Generates a warning for `noSuchMethod` methods that do nothing except of
+  /// calling another `noSuchMethod` which is not defined by `Object`.
   ///
-  /// Return `true` if and only if a hint code is generated on the passed node.
+  /// Returns `true` if a warning code is generated for [node].
   bool _checkForUnnecessaryNoSuchMethod(MethodDeclaration node) {
     if (node.name.lexeme != FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
       return false;
@@ -2014,18 +2009,18 @@ class _InvalidAccessVerifier {
       : _inTemplateSource =
             _library.source.fullName.contains(_templateExtension);
 
-  /// Produces a hint if [identifier] is accessed from an invalid location.
+  /// Produces a warning if [identifier] is accessed from an invalid location.
   ///
-  /// In particular, a hint is produced in either of the two following cases:
+  /// In particular, a warning is produced in either of the two following cases:
   ///
   /// * The element associated with [identifier] is annotated with [internal],
   ///   and is accessed from outside the package in which the element is
   ///   declared.
   /// * The element associated with [identifier] is annotated with [protected],
-  ///   [visibleForTesting], and/or [visibleForTemplate], and is accessed from a
+  ///   [visibleForTesting], and/or `visibleForTemplate`, and is accessed from a
   ///   location which is invalid as per the rules of each such annotation.
   ///   Conversely, if the element is annotated with more than one of these
-  ///   annotations, the access is valid (and no hint will be produced) if it
+  ///   annotations, the access is valid (and no warning is produced) if it
   ///   conforms to the rules of at least one of the annotations.
   void verify(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext() || _inCommentReference(identifier)) {
