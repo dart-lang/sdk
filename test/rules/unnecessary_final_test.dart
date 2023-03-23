@@ -60,6 +60,52 @@ f(Object o) {
     ]);
   }
 
+  test_objectPattern_destructured() async {
+    await assertDiagnostics(r'''
+class C {
+  int c;
+  C(this.c);
+}
+
+f() {
+  final C(:c) = C(1);
+  print(c);
+}
+''', [
+      lint(43, 5),
+    ]);
+  }
+
+  test_objectPattern_destructured_ok() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int c;
+  C(this.c);
+}
+
+f() {
+  var C(:c) = C(1);
+  print(c);
+}
+''');
+  }
+
+  test_objectPattern_ifCase() async {
+    await assertDiagnostics(r'''
+class C {
+  int c;
+  int d;
+  C(this.c, this.d);
+}
+
+f(Object o) {
+  if (o case C(c: final x, d: var y)) print('$x$y');
+}
+''', [
+      lint(84, 5),
+    ]);
+  }
+
   test_objectPattern_switch() async {
     await assertDiagnostics(r'''
 class A {
