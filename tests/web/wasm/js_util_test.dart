@@ -372,16 +372,24 @@ class _JSSymbol {
 external _JSSymbol get symbol;
 
 @JS()
+external _JSSymbol get symbol2;
+
+@JS()
 external JSString methodWithSymbol(_JSSymbol s);
 
 void symbolTest() {
   eval(r'''
-      var s = Symbol.for('symbol');
-      globalThis.symbol = s;
-      globalThis[s] = 'boo';
+      var s1 = Symbol.for('symbol');
+      globalThis.symbol = s1;
+      globalThis[s1] = 'boo';
       globalThis.methodWithSymbol = function(s) {
         return Symbol.keyFor(s);
       }
+      var symbol2 = Symbol.for('symbolMethod');
+      globalThis[symbol2] = function() {
+        return 'hello world';
+      }
+      globalThis.symbol2 = symbol2;
       ''');
   Expect.equals(
       _JSSymbol.keyFor(_JSSymbol._for('symbol'.toJS)).toDart, 'symbol');
@@ -394,6 +402,7 @@ void symbolTest() {
   Expect.equals(
       _JSSymbol.keyFor(getProperty<_JSSymbol>(globalThis, 'symbol')).toDart,
       'symbol');
+  Expect.equals(callMethod<String>(globalThis, symbol2, []), 'hello world');
 }
 
 void main() async {

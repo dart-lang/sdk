@@ -102,21 +102,21 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     Namespace namespace =
         NamespaceBuilder().createExportNamespaceForLibrary(library);
     NodeList<SimpleIdentifier> names;
-    ErrorCode hintCode;
+    ErrorCode warningCode;
     if (combinator is HideCombinator) {
       names = combinator.hiddenNames;
-      hintCode = WarningCode.UNDEFINED_HIDDEN_NAME;
+      warningCode = WarningCode.UNDEFINED_HIDDEN_NAME;
     } else {
       names = (combinator as ShowCombinator).shownNames;
-      hintCode = WarningCode.UNDEFINED_SHOWN_NAME;
+      warningCode = WarningCode.UNDEFINED_SHOWN_NAME;
     }
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;
       Element? element = namespace.get(nameStr);
       element ??= namespace.get("$nameStr=");
       if (element == null) {
-        _errorReporter
-            .reportErrorForNode(hintCode, name, [library.identifier, nameStr]);
+        _errorReporter.reportErrorForNode(
+            warningCode, name, [library.identifier, nameStr]);
       }
     }
   }

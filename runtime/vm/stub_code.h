@@ -83,7 +83,7 @@ class StubCode : public AllStatic {
   // code executable area.
   static CodePtr Generate(const char* name,
                           compiler::ObjectPoolBuilder* object_pool_builder,
-                          void (*GenerateStub)(compiler::Assembler* assembler));
+                          void (compiler::StubCodeCompiler::*GenerateStub)());
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   static const Code& UnoptimizedStaticCallEntry(intptr_t num_args_tested);
@@ -104,7 +104,7 @@ class StubCode : public AllStatic {
       compiler::ObjectPoolBuilder* opw) {                                      \
     return StubCode::Generate(                                                 \
         "_iso_stub_" #name, opw,                                               \
-        compiler::StubCodeCompiler::Generate##name##Stub);                     \
+        &compiler::StubCodeCompiler::Generate##name##Stub);                    \
   }
   VM_STUB_CODE_LIST(GENERATE_STUB);
 #undef GENERATE_STUB
@@ -127,7 +127,7 @@ class StubCode : public AllStatic {
     Code* code;
     const char* name;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    void (*generator)(compiler::Assembler* assembler);
+    void (compiler::StubCodeCompiler::*generator)();
 #endif
   };
   static StubCodeEntry entries_[kNumStubEntries];

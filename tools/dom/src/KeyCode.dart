@@ -95,7 +95,7 @@ abstract class KeyCode {
   static const int Y = 89;
   static const int Z = 90;
   static const int META = 91;
-  static const int WIN_KEY_LEFT = 91;
+  static const int WIN_KEY_LEFT = 91; // Note that it's the same value as META.
   static const int WIN_KEY_RIGHT = 92;
   static const int CONTEXT_MENU = 93;
   static const int NUM_ZERO = 96;
@@ -320,7 +320,8 @@ abstract class KeyCode {
         return _KeyName.UP;
       case KeyCode.WIN_IME:
       case KeyCode.WIN_KEY:
-      case KeyCode.WIN_KEY_LEFT:
+      // Covered by `KeyCode.META` above.
+      // case KeyCode.WIN_KEY_LEFT:
       case KeyCode.WIN_KEY_RIGHT:
         return _KeyName.WIN;
       default:

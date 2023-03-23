@@ -80,14 +80,14 @@ interface class InterfaceExtendWith extends FinalClass with _MixinOnObject {}
 
 // Extending via an anonymous mixin application class.
 class SimpleExtendApplication = FinalClass with _MixinOnObject;
-//    ^
+//    ^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleExtendApplication' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
-// [analyzer] unspecified
 
 interface class InterfaceExtendApplication = FinalClass with _MixinOnObject;
-//              ^
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'InterfaceExtendApplication' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
-// [analyzer] unspecified
 
 /// It is an error if FinalClass is implemented by something which is not base,
 /// final or sealed.
@@ -154,17 +154,17 @@ interface class InterfaceMixinClassImplementApplied extends Object
 
 // Implementing with a mixin application class.
 interface class InterfaceImplementApplication = Object
-//              ^
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'InterfaceImplementApplication' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
-// [analyzer] unspecified
     with
         _MixinOnObject
     implements
         FinalClass;
 class SimpleImplementApplication = Object
-//    ^
+//    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleImplementApplication' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
-// [analyzer] unspecified
     with
         _MixinOnObject
     implements

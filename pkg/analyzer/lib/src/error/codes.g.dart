@@ -6090,8 +6090,8 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This hint is generated anywhere a @factory annotation is associated with
-  ///  anything other than a method.
+  ///  This warning is generated anywhere a @factory annotation is associated
+  ///  with anything other than a method.
   static const WarningCode INVALID_FACTORY_ANNOTATION = WarningCode(
     'INVALID_FACTORY_ANNOTATION',
     "Only methods can be annotated as factories.",
@@ -6113,8 +6113,8 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This hint is generated anywhere an @immutable annotation is associated with
-  ///  anything other than a class.
+  ///  This warning is generated anywhere an @immutable annotation is associated
+  ///  with anything other than a class.
   static const WarningCode INVALID_IMMUTABLE_ANNOTATION = WarningCode(
     'INVALID_IMMUTABLE_ANNOTATION',
     "Only classes can be annotated as being immutable.",
@@ -6249,7 +6249,7 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This hint is generated anywhere where `@nonVirtual` annotates something
+  ///  This warning is generated anywhere where `@nonVirtual` annotates something
   ///  other than a non-abstract instance member in a class or mixin.
   ///
   ///  No Parameters.
@@ -6261,7 +6261,7 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This hint is generated anywhere where an instance member annotated with
+  ///  This warning is generated anywhere where an instance member annotated with
   ///  `@nonVirtual` is overridden in a subclass.
   ///
   ///  Parameters:
@@ -6274,7 +6274,7 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This hint is generated anywhere where `@required` annotates a named
+  ///  This warning is generated anywhere where `@required` annotates a named
   ///  parameter with a default value.
   ///
   ///  Parameters:
@@ -6286,7 +6286,7 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage: "Remove @required.",
   );
 
-  ///  This hint is generated anywhere where `@required` annotates an optional
+  ///  This warning is generated anywhere where `@required` annotates an optional
   ///  positional parameter.
   ///
   ///  Parameters:
@@ -6299,8 +6299,8 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage: "Remove @required.",
   );
 
-  ///  This hint is generated anywhere where `@required` annotates a non optional
-  ///  positional parameter.
+  ///  This warning is generated anywhere where `@required` annotates a
+  ///  non-optional positional parameter.
   ///
   ///  Parameters:
   ///  0: the name of the member
@@ -6311,8 +6311,8 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage: "Remove @required.",
   );
 
-  ///  This hint is generated anywhere where `@sealed` annotates something other
-  ///  than a class.
+  ///  This warning is generated anywhere where `@sealed` annotates something
+  ///  other than a class.
   ///
   ///  No parameters.
   static const WarningCode INVALID_SEALED_ANNOTATION = WarningCode(
@@ -6330,8 +6330,8 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This hint is generated anywhere where a member annotated with `@protected`
-  ///  is used outside of an instance member of a subclass.
+  ///  This warning is generated anywhere where a member annotated with
+  ///  `@protected` is used outside of an instance member of a subclass.
   ///
   ///  Parameters:
   ///  0: the name of the member
@@ -6351,7 +6351,7 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This hint is generated anywhere where a member annotated with
+  ///  This warning is generated anywhere where a member annotated with
   ///  `@visibleForTemplate` is used outside of a "template" Dart file.
   ///
   ///  Parameters:
@@ -6363,7 +6363,7 @@ class WarningCode extends AnalyzerErrorCode {
     "The member '{0}' can only be used within '{1}' or a template library.",
   );
 
-  ///  This hint is generated anywhere where a member annotated with
+  ///  This warning is generated anywhere where a member annotated with
   ///  `@visibleForTesting` is used outside the defining library, or a test.
   ///
   ///  Parameters:
@@ -6376,8 +6376,8 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This hint is generated anywhere where a private declaration is annotated
-  ///  with `@visibleForTemplate` or `@visibleForTesting`.
+  ///  This warning is generated anywhere where a private declaration is
+  ///  annotated with `@visibleForTemplate` or `@visibleForTesting`.
   ///
   ///  Parameters:
   ///  0: the name of the member
@@ -6434,8 +6434,8 @@ class WarningCode extends AnalyzerErrorCode {
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
   );
 
-  ///  Generate a hint for a constructor, function or method invocation where a
-  ///  required parameter is missing.
+  ///  Generates a warning for a constructor, function or method invocation where
+  ///  a required parameter is missing.
   ///
   ///  Parameters:
   ///  0: the name of the parameter
@@ -6445,8 +6445,8 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Generate a hint for a constructor, function or method invocation where a
-  ///  required parameter is missing.
+  ///  Generates a warning for a constructor, function or method invocation where
+  ///  a required parameter is missing.
   ///
   ///  Parameters:
   ///  0: the name of the parameter
@@ -6469,7 +6469,7 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This hint is generated anywhere where a `@sealed` class is used as a
+  ///  This warning is generated anywhere where a `@sealed` class is used as a
   ///  a superclass constraint of a mixin.
   ///
   ///  Parameters:
@@ -6485,7 +6485,7 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Generate a hint for classes that inherit from classes annotated with
+  ///  Generates a warning for classes that inherit from classes annotated with
   ///  `@immutable` but that are not immutable.
   ///
   ///  Parameters:
@@ -6507,7 +6507,7 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Generate a hint for non-const instance creation using a constructor
+  ///  Generates a warning for non-const instance creation using a constructor
   ///  annotated with `@literal`.
   ///
   ///  Parameters:
@@ -6520,7 +6520,7 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Generate a hint for non-const instance creation (with the `new` keyword)
+  ///  Generate a warning for non-const instance creation (with the `new` keyword)
   ///  using a constructor annotated with `@literal`.
   ///
   ///  Parameters:

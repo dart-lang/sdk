@@ -104,14 +104,14 @@ interface class InterfaceExtendWith extends BaseClass with _MixinOnObject {}
 
 // Extending via an anonymous mixin application class.
 class SimpleExtendApplication = BaseClass with _MixinOnObject;
-//    ^
+//    ^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleExtendApplication' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
-// [analyzer] unspecified
 
 interface class InterfaceExtendApplication = BaseClass with _MixinOnObject;
-//              ^
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'InterfaceExtendApplication' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
-// [analyzer] unspecified
 
 /// It is an error if BaseClass is implemented by something which is not base,
 /// final or sealed.
@@ -164,7 +164,8 @@ base mixin class BaseMixinClassImplement implements BaseClass {}
 
 // Implementing with a mixin application class.
 class SimpleImplementApplication = Object
-//    ^
+//    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleImplementApplication' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
     with
         _MixinOnObject
@@ -182,7 +183,8 @@ base class BaseImplementApplication = Object
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 interface class InterfaceImplementApplication = Object
-//              ^
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'InterfaceImplementApplication' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
     with
         _MixinOnObject

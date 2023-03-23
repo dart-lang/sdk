@@ -794,10 +794,10 @@ class TypeSystemImpl implements TypeSystem {
 
     // If the subtype relation goes the other way, allow the implicit downcast.
     if (isSubtypeOf(toType, fromType)) {
-      // TODO(leafp,jmesserly): we emit warnings/hints for these in
-      // src/task/strong/checker.dart, which is a bit inconsistent. That
-      // code should be handled into places that use isAssignableTo, such as
-      // ErrorVerifier.
+      // TODO(leafp,jmesserly): we emit warnings for these in
+      // `src/task/strong/checker.dart`, which is a bit inconsistent. That code
+      // should be handled into places that use `isAssignableTo`, such as
+      // [ErrorVerifier].
       return true;
     }
 

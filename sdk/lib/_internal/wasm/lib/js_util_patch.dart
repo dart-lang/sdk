@@ -86,7 +86,7 @@ T setProperty<T>(Object o, Object name, T? value) =>
         as T;
 
 @patch
-T callMethod<T>(Object o, String method, List<Object?> args) => dartifyRaw(
+T callMethod<T>(Object o, Object method, List<Object?> args) => dartifyRaw(
     callMethodVarArgsRaw(jsifyRaw(o), jsifyRaw(method), jsifyRaw(args))) as T;
 
 @patch
