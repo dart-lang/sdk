@@ -46,7 +46,7 @@ external T setProperty<T>(Object o, Object name, T? value);
 // A CFE transformation may optimize calls to `callMethod` when [args] is a
 // a list literal or const list containing at most 4 values, all of which are
 // statically known to be non-functions.
-external T callMethod<T>(Object o, String method, List<Object?> args);
+external T callMethod<T>(Object o, Object method, List<Object?> args);
 
 /// Check whether [o] is an instance of [type].
 ///

@@ -163,6 +163,8 @@
 - `jsify` is now permissive and has inverse semantics to `dartify`.
 - `jsify` and `dartify` both handle types they understand natively more
   efficiently.
+- Signature of `callMethod` has been aligned with the other methods and
+  now takes `Object` instead of `String`.
 
 ### Tools
 
