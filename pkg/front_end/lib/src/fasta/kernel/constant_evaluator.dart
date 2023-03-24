@@ -442,9 +442,9 @@ class ConstantsTransformer extends RemovingTransformer {
   /// rewritten.
   bool get keepLocals => backend.keepLocals;
 
-  Library get currentLibrary => _staticTypeContext!.enclosingLibrary;
+  StaticTypeContext get staticTypeContext => _staticTypeContext!;
 
-  bool get enablePrimitiveEquality => currentLibrary.languageVersion.major >= 3;
+  Library get currentLibrary => staticTypeContext.enclosingLibrary;
 
   // Transform the library/class members:
 
@@ -729,7 +729,7 @@ class ConstantsTransformer extends RemovingTransformer {
   @override
   TreeNode visitSymbolLiteral(SymbolLiteral node, TreeNode? removalSentinel) {
     return makeConstantExpression(
-        constantEvaluator.evaluate(_staticTypeContext!, node), node);
+        constantEvaluator.evaluate(staticTypeContext, node), node);
   }
 
   bool _isNull(Expression node) {
@@ -1113,7 +1113,7 @@ class ConstantsTransformer extends RemovingTransformer {
               Constant constant = pattern.value!;
               if (!constantEvaluator.hasPrimitiveEqual(constant,
                   allowPseudoPrimitive: false,
-                  usePrimitiveEquality: enablePrimitiveEquality)) {
+                  staticTypeContext: staticTypeContext)) {
                 primitiveEqualConstantsOnly = false;
               }
             } else {
@@ -1510,7 +1510,7 @@ class ConstantsTransformer extends RemovingTransformer {
     StaticType type = exhaustivenessCache.getStaticType(expressionType);
     List<Space> cases = [];
     PatternConverter patternConverter =
-        new PatternConverter(exhaustivenessCache, {}, {}, _staticTypeContext!);
+        new PatternConverter(exhaustivenessCache, {}, {}, staticTypeContext);
     for (PatternGuard patternGuard in patternGuards) {
       cases.add(patternConverter.createRootSpace(type, patternGuard.pattern,
           hasGuard: patternGuard.guard != null));
@@ -1568,13 +1568,14 @@ class ConstantsTransformer extends RemovingTransformer {
         for (Expression caseExpression in switchCase.expressions) {
           if (caseExpression is ConstantExpression) {
             if (!constantEvaluator.hasPrimitiveEqual(caseExpression.constant,
-                usePrimitiveEquality: enablePrimitiveEquality)) {
+                staticTypeContext: staticTypeContext)) {
               constantEvaluator.errorReporter.report(
                   constantEvaluator.createLocatedMessage(
                       caseExpression,
                       templateConstEvalCaseImplementsEqual.withArguments(
                           caseExpression.constant,
-                          constantEvaluator.isNonNullableByDefault)),
+                          staticTypeContext.nonNullable ==
+                              Nullability.nonNullable)),
                   null);
             }
           } else {
@@ -1815,7 +1816,7 @@ class ConstantsTransformer extends RemovingTransformer {
             Constant constant = pattern.value!;
             if (!constantEvaluator.hasPrimitiveEqual(constant,
                 allowPseudoPrimitive: false,
-                usePrimitiveEquality: enablePrimitiveEquality)) {
+                staticTypeContext: staticTypeContext)) {
               primitiveEqualConstantsOnly = false;
               break;
             }
@@ -2142,10 +2143,10 @@ class ConstantsTransformer extends RemovingTransformer {
 
   Constant evaluateWithContext(TreeNode treeContext, Expression node) {
     if (treeContext == node) {
-      return constantEvaluator.evaluate(_staticTypeContext!, node);
+      return constantEvaluator.evaluate(staticTypeContext, node);
     }
 
-    return constantEvaluator.evaluate(_staticTypeContext!, node,
+    return constantEvaluator.evaluate(staticTypeContext, node,
         contextNode: treeContext);
   }
 
@@ -2155,7 +2156,7 @@ class ConstantsTransformer extends RemovingTransformer {
       return constant.expression;
     }
     return new ConstantExpression(
-        constant, node.getStaticType(_staticTypeContext!))
+        constant, node.getStaticType(staticTypeContext))
       ..fileOffset = node.fileOffset;
   }
 
@@ -2217,9 +2218,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   bool get targetingJavaScript => numberSemantics == NumberSemantics.js;
 
   bool get isNonNullableByDefault =>
-      _staticTypeContext!.nonNullable == Nullability.nonNullable;
+      staticTypeContext.nonNullable == Nullability.nonNullable;
 
-  Library get currentLibrary => _staticTypeContext!.enclosingLibrary;
+  StaticTypeContext get staticTypeContext => _staticTypeContext!;
+
+  Library get currentLibrary => staticTypeContext.enclosingLibrary;
 
   late ConstantWeakener _weakener;
 
@@ -2366,13 +2369,30 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return node == null ? TreeNode.noOffset : node.fileOffset;
   }
 
+  /// Evaluates [f] with [staticTypeContext] as the current static type context.
+  T inStaticTypeContext<T>(
+      StaticTypeContext staticTypeContext, T Function() f) {
+    StaticTypeContext? oldStaticTypeContext = _staticTypeContext;
+    _staticTypeContext = staticTypeContext;
+    T result = f();
+    _staticTypeContext = oldStaticTypeContext;
+    return result;
+  }
+
   /// Evaluate [node] and possibly cache the evaluation result.
   /// Returns UnevaluatedConstant if the constant could not be evaluated.
   /// If the expression in the UnevaluatedConstant is an InvalidExpression,
   /// an error occurred during constant evaluation.
   Constant evaluate(StaticTypeContext context, Expression node,
       {TreeNode? contextNode}) {
+    StaticTypeContext? oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = context;
+    Constant result = _evaluate(node, contextNode: contextNode);
+    _staticTypeContext = oldStaticTypeContext;
+    return result;
+  }
+
+  Constant _evaluate(Expression node, {TreeNode? contextNode}) {
     seenUnevaluatedChild = false;
     lazyDepth = 0;
     Constant result = _evaluateSubexpression(node);
@@ -3448,7 +3468,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           templateConstEvalInvalidType.withArguments(
               condition,
               typeEnvironment.coreTypes.boolLegacyRawType,
-              condition.getType(_staticTypeContext!),
+              condition.getType(staticTypeContext),
               isNonNullableByDefault));
     }
 
@@ -3664,8 +3684,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   Constant _handleEquals(Expression node, Constant left, Constant right) {
-    if (enablePrimitiveEquality) {
-      if (hasPrimitiveEqual(left, usePrimitiveEquality: true) ||
+    if (staticTypeContext.enablePrimitiveEquality) {
+      if (hasPrimitiveEqual(left, staticTypeContext: staticTypeContext) ||
           left is DoubleConstant ||
           right is NullConstant) {
         return doubleSpecialCases(left, right) ??
@@ -3674,9 +3694,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         return createEvaluationErrorConstant(
             node,
             templateConstEvalEqualsOperandNotPrimitiveEquality.withArguments(
-                left,
-                left.getType(_staticTypeContext!),
-                isNonNullableByDefault));
+                left, left.getType(staticTypeContext), isNonNullableByDefault));
       }
     } else {
       if (left is NullConstant ||
@@ -3692,8 +3710,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       } else {
         return createEvaluationErrorConstant(
             node,
-            templateConstEvalInvalidEqualsOperandType.withArguments(left,
-                left.getType(_staticTypeContext!), isNonNullableByDefault));
+            templateConstEvalInvalidEqualsOperandType.withArguments(
+                left, left.getType(staticTypeContext), isNonNullableByDefault));
       }
     }
   }
@@ -3733,7 +3751,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                     '+',
                     receiver,
                     typeEnvironment.coreTypes.stringLegacyRawType,
-                    other.getType(_staticTypeContext!),
+                    other.getType(staticTypeContext),
                     isNonNullableByDefault));
           case '[]':
             if (enableConstFunctions) {
@@ -3751,7 +3769,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                       '[]',
                       receiver,
                       typeEnvironment.coreTypes.intNonNullableRawType,
-                      other.getType(_staticTypeContext!),
+                      other.getType(staticTypeContext),
                       isNonNullableByDefault));
             }
         }
@@ -3773,7 +3791,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                     op,
                     other,
                     typeEnvironment.coreTypes.intLegacyRawType,
-                    other.getType(_staticTypeContext!),
+                    other.getType(staticTypeContext),
                     isNonNullableByDefault));
           }
           num receiverValue = (receiver as PrimitiveConstant<num>).value;
@@ -3786,7 +3804,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 op,
                 receiver,
                 typeEnvironment.coreTypes.numLegacyRawType,
-                other.getType(_staticTypeContext!),
+                other.getType(staticTypeContext),
                 isNonNullableByDefault));
       }
     } else if (receiver is DoubleConstant) {
@@ -3798,7 +3816,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 op,
                 receiver,
                 typeEnvironment.coreTypes.intLegacyRawType,
-                receiver.getType(_staticTypeContext!),
+                receiver.getType(staticTypeContext),
                 isNonNullableByDefault));
       }
       if (positionalArguments.length == 0) {
@@ -3820,7 +3838,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 op,
                 receiver,
                 typeEnvironment.coreTypes.numLegacyRawType,
-                other.getType(_staticTypeContext!),
+                other.getType(staticTypeContext),
                 isNonNullableByDefault));
       }
     } else if (receiver is BoolConstant) {
@@ -3861,7 +3879,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                     '[]',
                     receiver,
                     typeEnvironment.coreTypes.intNonNullableRawType,
-                    other.getType(_staticTypeContext!),
+                    other.getType(staticTypeContext),
                     isNonNullableByDefault));
           case 'add':
             if (receiver is MutableListConstant) {
@@ -3985,7 +4003,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                   logicalExpressionOperatorToString(node.operatorEnum),
                   left,
                   typeEnvironment.coreTypes.boolLegacyRawType,
-                  right.getType(_staticTypeContext!),
+                  right.getType(staticTypeContext),
                   isNonNullableByDefault));
         }
         return createEvaluationErrorConstant(
@@ -4010,7 +4028,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                   logicalExpressionOperatorToString(node.operatorEnum),
                   left,
                   typeEnvironment.coreTypes.boolLegacyRawType,
-                  right.getType(_staticTypeContext!),
+                  right.getType(staticTypeContext),
                   isNonNullableByDefault));
         }
         return createEvaluationErrorConstant(
@@ -4055,7 +4073,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           templateConstEvalInvalidType.withArguments(
               condition,
               typeEnvironment.coreTypes.boolLegacyRawType,
-              condition.getType(_staticTypeContext!),
+              condition.getType(staticTypeContext),
               isNonNullableByDefault));
     }
   }
@@ -4291,7 +4309,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     _staticTypeContext = new StaticTypeContext(member, typeEnvironment);
     Constant constant = _evaluateSubexpression(expression);
     if (constant is! AbortConstant) {
-      if (_staticTypeContext!.nonNullableByDefaultCompiledMode ==
+      if (staticTypeContext.nonNullableByDefaultCompiledMode ==
               NonNullableByDefaultCompiledMode.Agnostic &&
           evaluationMode == EvaluationMode.weak) {
         constant = _weakener.visitConstant(constant) ?? constant;
@@ -4630,7 +4648,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             templateConstEvalInvalidType.withArguments(
                 result,
                 function.returnType,
-                result.getType(_staticTypeContext!),
+                result.getType(staticTypeContext),
                 isNonNullableByDefault));
       }
       return result;
@@ -4651,7 +4669,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           node,
           new AsExpression(_wrap(constant), env.substituteType(node.type))
             ..isForNonNullableByDefault =
-                _staticTypeContext!.isNonNullableByDefault);
+                staticTypeContext.isNonNullableByDefault);
     }
     DartType? type = _evaluateDartType(node, node.type);
     if (type == null) {
@@ -4751,7 +4769,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         templateConstEvalInvalidType.withArguments(
             constant,
             typeEnvironment.coreTypes.boolLegacyRawType,
-            constant.getType(_staticTypeContext!),
+            constant.getType(staticTypeContext),
             isNonNullableByDefault));
   }
 
@@ -4899,17 +4917,16 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return null;
   }
 
-  bool get enablePrimitiveEquality => currentLibrary.languageVersion.major >= 3;
-
   bool hasPrimitiveEqual(Constant constant,
-      {bool allowPseudoPrimitive = true, required bool usePrimitiveEquality}) {
+      {bool allowPseudoPrimitive = true,
+      required StaticTypeContext staticTypeContext}) {
     if (intFolder.isInt(constant)) return true;
     if (constant is RecordConstant) {
       bool nonPrimitiveEqualsFound = false;
       for (Constant field in constant.positional) {
         if (!hasPrimitiveEqual(field,
             allowPseudoPrimitive: allowPseudoPrimitive,
-            usePrimitiveEquality: usePrimitiveEquality)) {
+            staticTypeContext: staticTypeContext)) {
           nonPrimitiveEqualsFound = true;
           break;
         }
@@ -4917,7 +4934,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       for (Constant field in constant.named.values) {
         if (!hasPrimitiveEqual(field,
             allowPseudoPrimitive: allowPseudoPrimitive,
-            usePrimitiveEquality: usePrimitiveEquality)) {
+            staticTypeContext: staticTypeContext)) {
           nonPrimitiveEqualsFound = true;
           break;
         }
@@ -4926,14 +4943,14 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         return false;
       }
     }
-    DartType type = constant.getType(_staticTypeContext!);
+    DartType type = constant.getType(staticTypeContext);
     if (type is InterfaceType) {
       Class cls = type.classNode;
       bool result = classHasPrimitiveEqual(cls);
       if (result && !allowPseudoPrimitive) {
         result = !pseudoPrimitiveClasses.contains(cls);
       }
-      if (result && usePrimitiveEquality) {
+      if (result && staticTypeContext.enablePrimitiveEquality) {
         result = classHasPrimitiveHashCode(cls);
       }
       return result;
@@ -4982,7 +4999,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       value ? trueConstant : falseConstant;
 
   bool isSubtype(Constant constant, DartType type, SubtypeCheckMode mode) {
-    DartType constantType = constant.getType(_staticTypeContext!);
+    DartType constantType = constant.getType(staticTypeContext);
     if (mode == SubtypeCheckMode.ignoringNullabilities) {
       constantType = rawLegacyErasure(constantType) ?? constantType;
     }
@@ -5038,7 +5055,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       return createEvaluationErrorConstant(
           node,
           templateConstEvalInvalidType.withArguments(constant, type,
-              constant.getType(_staticTypeContext!), isNonNullableByDefault));
+              constant.getType(staticTypeContext), isNonNullableByDefault));
     }
     return constant;
   }
@@ -5472,7 +5489,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
 
         DartType? throwType;
         if (throwValue is Constant) {
-          throwType = throwValue.getType(exprEvaluator._staticTypeContext!);
+          throwType = throwValue.getType(exprEvaluator.staticTypeContext);
         } else if (throwValue is StateError) {
           final Class stateErrorClass = exprEvaluator
               .coreTypes.coreLibrary.classes
@@ -6164,4 +6181,9 @@ enum PrimitiveEquality {
   EqualsOnly,
   HashCodeOnly,
   EqualsAndHashCode,
+}
+
+extension on StaticTypeContext {
+  bool get enablePrimitiveEquality =>
+      enclosingLibrary.languageVersion.major >= 3;
 }

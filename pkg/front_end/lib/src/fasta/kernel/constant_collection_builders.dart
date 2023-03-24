@@ -159,8 +159,8 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
   @override
   AbortConstant? addConstant(Constant constant, TreeNode context) {
     if (!evaluator.hasPrimitiveEqual(constant,
-        usePrimitiveEquality: evaluator.enablePrimitiveEquality)) {
-      if (evaluator.enablePrimitiveEquality) {
+        staticTypeContext: evaluator.staticTypeContext)) {
+      if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(
             context,
             templateConstEvalElementNotPrimitiveEquality.withArguments(
@@ -312,8 +312,8 @@ class MapConstantBuilder {
       parts.add(lastPart = <ConstantMapEntry>[]);
     }
     if (!evaluator.hasPrimitiveEqual(key,
-        usePrimitiveEquality: evaluator.enablePrimitiveEquality)) {
-      if (evaluator.enablePrimitiveEquality) {
+        staticTypeContext: evaluator.staticTypeContext)) {
+      if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(
             keyContext,
             templateConstEvalKeyNotPrimitiveEquality.withArguments(
