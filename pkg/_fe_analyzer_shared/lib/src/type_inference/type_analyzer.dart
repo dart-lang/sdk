@@ -305,6 +305,9 @@ mixin TypeAnalyzer<
   /// Returns the type `int`.
   Type get intType;
 
+  /// Returns the type `Never`.
+  Type get neverType;
+
   /// Returns the type `Object?`.
   Type get objectQuestionType;
 
@@ -1770,7 +1773,7 @@ mixin TypeAnalyzer<
       finishExpressionCase(node, i);
       // Stack: (Expression, (i + 1) * ExpressionCase)
     }
-    lubType ??= dynamicType;
+    lubType ??= neverType;
     // Stack: (Expression, numCases * ExpressionCase)
     flow.switchStatement_end(true);
     return new SwitchExpressionResult(

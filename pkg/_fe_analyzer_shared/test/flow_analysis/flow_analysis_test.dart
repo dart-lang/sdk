@@ -8604,6 +8604,13 @@ main() {
           ]).stmt,
         ]);
       });
+
+      test('no cases', () {
+        h.run([
+          switchExpr(expr('A'), []).stmt,
+          checkReachable(false),
+        ]);
+      });
     });
 
     group('Switch statement:', () {

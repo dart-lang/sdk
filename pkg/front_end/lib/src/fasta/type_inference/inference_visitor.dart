@@ -8173,13 +8173,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitSwitchExpression(
       SwitchExpression node, DartType typeContext) {
-    if (node.cases.isEmpty) {
-      return new ExpressionInferenceResult(
-          const InvalidType(),
-          helper.buildProblem(
-              messageSwitchExpressionEmpty, node.fileOffset, noLength));
-    }
-
     Set<Field?>? previousEnumFields = _enumFields;
 
     int? stackBase;
@@ -9799,6 +9792,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new InterfaceType(
         coreTypes.listClass, Nullability.nonNullable, <DartType>[elementType]);
   }
+
+  @override
+  DartType get neverType => const NeverType.nonNullable();
 
   @override
   DartType streamType(DartType elementType) {
