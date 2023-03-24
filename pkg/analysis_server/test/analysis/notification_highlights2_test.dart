@@ -242,7 +242,6 @@ void f() {
   Future<void> test_BUILT_IN_final() async {
     addTestFile('''
 final class A {}
-final mixin M {}
 final class B = Object with M;
 void f() {
   var final = 42;
@@ -250,7 +249,6 @@ void f() {
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'final class A');
-    assertHasRegion(HighlightRegionType.BUILT_IN, 'final mixin M');
     assertHasRegion(HighlightRegionType.BUILT_IN, 'final class B');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'final = 42');
   }
@@ -319,7 +317,6 @@ void f() {
   Future<void> test_BUILT_IN_interface() async {
     addTestFile('''
 interface class A {}
-interface mixin M {}
 interface class B = Object with M;
 void f() {
   var interface = 42;
@@ -327,7 +324,6 @@ void f() {
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'interface class A');
-    assertHasRegion(HighlightRegionType.BUILT_IN, 'interface mixin M');
     assertHasRegion(HighlightRegionType.BUILT_IN, 'interface class B');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'interface = 42');
   }
@@ -437,7 +433,6 @@ void f() {
   Future<void> test_BUILT_IN_sealed() async {
     addTestFile('''
 sealed class A {}
-sealed mixin M {}
 sealed class B = Object with M;
 void f() {
   var sealed = 42;
@@ -445,7 +440,6 @@ void f() {
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'sealed class A');
-    assertHasRegion(HighlightRegionType.BUILT_IN, 'sealed mixin M');
     assertHasRegion(HighlightRegionType.BUILT_IN, 'sealed class B');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'sealed = 42');
   }

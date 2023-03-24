@@ -225,9 +225,6 @@ class MoveTopLevelToFile extends RefactoringProducer {
           validSelection(node.name)) {
         name = node.name.lexeme;
       } else if (node is MixinDeclaration && validSelection(node.name)) {
-        if (node.sealedKeyword != null) {
-          sealedDeclarations.add(node);
-        }
         name = node.name.lexeme;
       } else if (node is TopLevelVariableDeclaration) {
         var variables = node.variables.variables;
@@ -410,7 +407,7 @@ class _MembersToMove {
   }
 }
 
-/// A helper to for matching sealed classes/mixins to their subclasses.
+/// A helper to for matching sealed classes to their subclasses.
 class _SealedSubclassIndex {
   final CompilationUnit unit;
 
@@ -499,9 +496,6 @@ class _SealedSubclassIndex {
     return const [];
   }
 
-  bool _isSealed(Element element) {
-    var isSealedClass = element is ClassElement && element.isSealed;
-    var isSealedMixin = element is MixinElement && element.isSealed;
-    return isSealedClass || isSealedMixin;
-  }
+  bool _isSealed(Element element) =>
+      element is ClassElement && element.isSealed;
 }
