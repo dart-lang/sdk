@@ -2628,8 +2628,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         if (evaluatedResult is AbortConstant) {
           nodeCache.remove(node);
           return evaluatedResult;
-        } else {
+        } else if (lazyDepth == 0) {
           nodeCache[node] = evaluatedResult;
+        } else {
+          // Don't cache nodes evaluated in a lazy region, since these are not
+          // themselves unevaluated but just part of an unevaluated constant.
+          nodeCache.remove(node);
         }
         result = evaluatedResult;
       }

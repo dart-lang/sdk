@@ -113,10 +113,8 @@ Evaluated: TypeLiteral @ org-dartlang-testcase:///various_2_lib.dart:17:27 -> Ty
 Evaluated: StaticTearOff @ org-dartlang-testcase:///various_2_lib.dart:18:12 -> StaticTearOffConstant(identical)
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various_2_lib.dart:20:39 -> InstantiationConstant(id2<int*>)
 Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various_2_lib.dart:20:11 -> BoolConstant(false)
-Evaluated with empty environment: Instantiation @ org-dartlang-testcase:///various_2_lib.dart:20:41 -> InstantiationConstant(id1<int*>)
-Evaluated: StaticTearOff @ org-dartlang-testcase:///various_2_lib.dart:20:41 -> StaticTearOffConstant(id1)
-Evaluated with empty environment: Instantiation @ org-dartlang-testcase:///various_2_lib.dart:20:47 -> InstantiationConstant(id2<int*>)
-Evaluated: StaticTearOff @ org-dartlang-testcase:///various_2_lib.dart:20:47 -> StaticTearOffConstant(id2)
+Evaluated: Instantiation @ org-dartlang-testcase:///various_2_lib.dart:20:41 -> InstantiationConstant(id1<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///various_2_lib.dart:20:47 -> InstantiationConstant(id2<int*>)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various_2_lib.dart:21:24 -> InstanceConstant(const Class<int*>{Class.field: 0})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various_2_lib.dart:22:25 -> InstanceConstant(const Class<dynamic>{Class.field: const <int*>[42]})
 Evaluated: TypeLiteral @ org-dartlang-testcase:///various_2_lib.dart:23:29 -> TypeLiteralConstant(dynamic Function(dynamic)*)
@@ -130,4 +128,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///various_2_lib.dart:34:39 -> Map
 Evaluated: ListConcatenation @ org-dartlang-testcase:///various_2_lib.dart:38:32 -> ListConstant(const <int*>[0])
 Evaluated: SetConcatenation @ org-dartlang-testcase:///various_2_lib.dart:39:31 -> SetConstant(const <int*>{0})
 Evaluated: MapConcatenation @ org-dartlang-testcase:///various_2_lib.dart:40:7 -> MapConstant(const <int*, String*>{0: "foo"})
-Extra constant evaluation: evaluated: 54, effectively constant: 53
+Extra constant evaluation: evaluated: 52, effectively constant: 51
