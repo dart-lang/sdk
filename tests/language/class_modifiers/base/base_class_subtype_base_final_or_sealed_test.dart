@@ -12,49 +12,57 @@ import 'package:expect/expect.dart';
 base class BaseClass {
   int foo = 0;
 }
+
 base mixin BaseMixin {
   int foo = 0;
 }
 
 base class BaseExtends extends BaseClass {}
+
 final class FinalExtends extends BaseClass {}
+
 sealed class SealedExtends extends BaseClass {}
+
 base class SealedExtendsImpl extends SealedExtends {}
 
 base class BaseImplements implements BaseClass {
   int foo = 0;
 }
+
 final class FinalImplements implements BaseClass {
   int foo = 0;
 }
+
 sealed class SealedImplements implements BaseClass {
   int foo = 0;
 }
+
 base class SealedImplementsImpl extends SealedImplements {}
 
 base mixin BaseMixinImplements implements BaseMixin {}
-final mixin FinalMixinImplements implements BaseMixin {}
-sealed mixin SealedMixinImplements implements BaseMixin {}
 
-base class ImplementsImpl implements BaseMixinImplements, FinalMixinImplements, SealedMixinImplements {
+base class ImplementsImpl implements BaseMixinImplements {
   int foo = 0;
 }
 
 base class BaseWith with BaseMixin {}
+
 final class FinalWith with BaseMixin {}
+
 sealed class SealedWith with BaseMixin {}
+
 base class SealedWithImpl extends SealedWith {}
 
 base mixin BaseOn on BaseClass {}
-final mixin FinalOn on BaseClass {}
-sealed mixin SealedOn on BaseClass {}
 
-base class OnImpl implements BaseOn, FinalOn, SealedOn {
+base class OnImpl implements BaseOn {
   int foo = 0;
 }
 
 base mixin MixinForEnum {}
+
 enum EnumWith with MixinForEnum { x }
+
 enum EnumImplements implements MixinForEnum { x }
 
 main() {

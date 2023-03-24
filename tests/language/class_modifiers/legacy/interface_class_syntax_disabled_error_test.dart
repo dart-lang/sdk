@@ -18,8 +18,3 @@ interface class InterfaceClassTypeAlias = Object with M;
 // [error column 1, length 9]
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] The 'class-modifiers' language feature is disabled for this library.
-
-interface mixin InterfaceMixin {}
-// [error column 1, length 9]
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] The 'class-modifiers' language feature is disabled for this library.

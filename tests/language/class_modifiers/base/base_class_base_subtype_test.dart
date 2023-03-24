@@ -11,7 +11,9 @@ import 'package:expect/expect.dart';
 base class BaseClass {
   int foo = 0;
 }
+
 base class A extends BaseClass {}
+
 base class B implements BaseClass {
   int foo = 1;
 }
@@ -19,13 +21,18 @@ base class B implements BaseClass {
 base mixin BaseMixin {
   int foo = 0;
 }
+
 base class AMixin with BaseMixin {}
+
 base class BMixin = Object with BaseMixin;
 
 // Used for trivial runtime tests of the base subtypes.
 base class AConcrete extends A {}
+
 base class BConcrete extends B {}
+
 base class AMixinConcrete extends AMixin {}
+
 base class BMixinConcrete extends BMixin {}
 
 main() {
