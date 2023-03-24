@@ -197,7 +197,17 @@ mixin SimpleMixinOnSimpleFinal on SimpleClass, FinalClass {}
 
 base mixin BaseMixinOn on FinalClass {}
 // ^
-// [analyzer] unspecified
 // [cfe] unspecified
+// [analyzer] unspecified
+
+base mixin BaseMixinOnFinalSimple on SimpleClass, FinalClass {}
+// ^
+// [cfe] unspecified
+// [analyzer] unspecified
+
+base mixin BaseMixinOnSimpleFinal on FinalClass, SimpleClass {}
+// ^
+// [cfe] unspecified
+// [analyzer] unspecified
 
 main() {}
