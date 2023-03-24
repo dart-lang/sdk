@@ -129,15 +129,15 @@ class DevAnalysisServer {
       }
     });
 
-    await _channel
-        .sendRequest(Request('${_nextId++}', 'server.setSubscriptions', {
+    await _channel.simulateRequestFromClient(
+        Request('${_nextId++}', 'server.setSubscriptions', {
       'subscriptions': ['STATUS'],
     }));
 
     directories =
         directories.map((dir) => path.normalize(path.absolute(dir))).toList();
 
-    await _channel.sendRequest(Request(
+    await _channel.simulateRequestFromClient(Request(
       '${_nextId++}',
       'analysis.setAnalysisRoots',
       {'included': directories, 'excluded': []},
@@ -146,7 +146,7 @@ class DevAnalysisServer {
     return whenComplete.future.whenComplete(() {
       notificationSubscriptions.cancel();
 
-      _channel.sendRequest(Request(
+      _channel.simulateRequestFromClient(Request(
         '${_nextId++}',
         'analysis.setAnalysisRoots',
         {'included': [], 'excluded': []},
@@ -156,7 +156,7 @@ class DevAnalysisServer {
 }
 
 class DevChannel implements ServerCommunicationChannel {
-  final StreamController<Request> _requestController =
+  final StreamController<RequestOrResponse> _requestController =
       StreamController.broadcast();
 
   final StreamController<Notification> _notificationController =
@@ -167,7 +167,7 @@ class DevChannel implements ServerCommunicationChannel {
   Stream<Notification> get onNotification => _notificationController.stream;
 
   @override
-  Stream<Request> get requests => _requestController.stream;
+  Stream<RequestOrResponse> get requests => _requestController.stream;
 
   @override
   void close() {
@@ -179,16 +179,22 @@ class DevChannel implements ServerCommunicationChannel {
     _notificationController.add(notification);
   }
 
-  Future<Response> sendRequest(Request request) {
-    var completer = Completer<Response>();
-    _responseCompleters[request.id] = completer;
-    _requestController.add(request);
-    return completer.future;
+  @override
+  void sendRequest(Request request) {
+    throw UnimplementedError(
+        'sendRequest (did you mean simulateRequestFromClient?)');
   }
 
   @override
   void sendResponse(Response response) {
     var completer = _responseCompleters.remove(response.id);
     completer?.complete(response);
+  }
+
+  Future<Response> simulateRequestFromClient(Request request) {
+    var completer = Completer<Response>();
+    _responseCompleters[request.id] = completer;
+    _requestController.add(request);
+    return completer.future;
   }
 }

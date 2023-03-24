@@ -18,26 +18,26 @@ import 'package:analysis_server/src/channel/channel.dart';
 /// empty response is enough.
 ///
 /// Discarded requests are reported into [discardedRequests].
-Stream<Request> debounceRequests(
+Stream<RequestOrResponse> debounceRequests(
   ServerCommunicationChannel channel,
-  StreamController<Request> discardedRequests,
+  StreamController<RequestOrResponse> discardedRequests,
 ) {
   return _DebounceRequests(channel, discardedRequests).requests;
 }
 
 class _DebounceRequests {
   final ServerCommunicationChannel channel;
-  final StreamController<Request> discardedRequests;
-  late final Stream<Request> requests;
+  final StreamController<RequestOrResponse> discardedRequests;
+  late final Stream<RequestOrResponse> requests;
 
   _DebounceRequests(this.channel, this.discardedRequests) {
-    var buffer = <Request>[];
+    var buffer = <RequestOrResponse>[];
     Timer? timer;
 
     requests = channel.requests.transform(
       StreamTransformer.fromHandlers(
-        handleData: (request, sink) {
-          buffer.add(request);
+        handleData: (requestOrResponse, sink) {
+          buffer.add(requestOrResponse);
           // Accumulate requests for a short period of time.
           // When we were busy processing a request, the client could put
           // multiple requests into the event queue. So, when we look, we will
@@ -55,28 +55,31 @@ class _DebounceRequests {
     );
   }
 
-  List<Request> _filterCompletion(List<Request> requests) {
-    var reversed = <Request>[];
+  List<RequestOrResponse> _filterCompletion(List<RequestOrResponse> requests) {
+    var reversed = <RequestOrResponse>[];
     var abortCompletionRequests = false;
-    for (var request in requests.reversed) {
-      if (request.method == ANALYSIS_REQUEST_UPDATE_CONTENT) {
-        abortCompletionRequests = true;
-      }
-      if (request.method == COMPLETION_REQUEST_GET_SUGGESTIONS2) {
-        if (abortCompletionRequests) {
-          discardedRequests.add(request);
-          var params = CompletionGetSuggestions2Params.fromRequest(request);
-          var offset = params.offset;
-          channel.sendResponse(
-            CompletionGetSuggestions2Result(offset, 0, [], true)
-                .toResponse(request.id),
-          );
-          continue;
-        } else {
+    for (var requestOrResponse in requests.reversed) {
+      if (requestOrResponse is Request) {
+        if (requestOrResponse.method == ANALYSIS_REQUEST_UPDATE_CONTENT) {
           abortCompletionRequests = true;
         }
+        if (requestOrResponse.method == COMPLETION_REQUEST_GET_SUGGESTIONS2) {
+          if (abortCompletionRequests) {
+            discardedRequests.add(requestOrResponse);
+            var params =
+                CompletionGetSuggestions2Params.fromRequest(requestOrResponse);
+            var offset = params.offset;
+            channel.sendResponse(
+              CompletionGetSuggestions2Result(offset, 0, [], true)
+                  .toResponse(requestOrResponse.id),
+            );
+            continue;
+          } else {
+            abortCompletionRequests = true;
+          }
+        }
       }
-      reversed.add(request);
+      reversed.add(requestOrResponse);
     }
     return reversed.reversed.toList();
   }
