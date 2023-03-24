@@ -1116,7 +1116,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
 
   DynamicCallSiteTypeInformation(
       super.abstractValueDomain,
-      super.ontext,
+      super.context,
       this._callType,
       super.callNode,
       super.enclosing,

@@ -9,7 +9,6 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_model/js_world.dart';
-import '../util/util.dart';
 import 'type_graph_nodes.dart';
 
 /// Strategy for creating type information from members and parameters and type
@@ -351,17 +350,9 @@ class TypeSystem {
     return memberTypeInformations[member] ??= _getInferredTypeOfMember(member);
   }
 
-  Pair<MemberTypeInformation, bool> getCachedOrInferredTypeOfVirtualMember(
-      MemberEntity member) {
-    final cached = virtualCallTypeInformations[member];
-    if (cached != null) return Pair(cached, false);
-    final newType = virtualCallTypeInformations[member] =
-        strategy.createMemberTypeInformation(_abstractValueDomain, member);
-    return Pair(newType, true);
-  }
-
   MemberTypeInformation getInferredTypeOfVirtualMember(MemberEntity member) {
-    return getCachedOrInferredTypeOfVirtualMember(member).a;
+    return virtualCallTypeInformations[member] ??=
+        strategy.createMemberTypeInformation(_abstractValueDomain, member);
   }
 
   void forEachMemberType(
