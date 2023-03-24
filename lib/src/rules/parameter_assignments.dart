@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -125,16 +126,48 @@ class _DeclarationVisitor extends RecursiveAstVisitor {
       {required this.paramIsNotNullByDefault,
       required this.paramDefaultsToNull});
 
+  Element? get parameterElement => parameter.declaredElement;
+
+  void checkPatternElements(DartPattern node) {
+    NodeList<PatternField>? fields;
+    if (node is RecordPattern) fields = node.fields;
+    if (node is ObjectPattern) fields = node.fields;
+    if (fields != null) {
+      for (var field in fields) {
+        if (field.pattern.element == parameterElement) {
+          reportLint(node);
+        }
+      }
+    } else {
+      List<AstNode>? elements;
+      if (node is ListPattern) elements = node.elements;
+      if (node is MapPattern) elements = node.elements;
+      if (elements == null) return;
+      for (var element in elements) {
+        if (element is MapPatternEntry) {
+          element = element.value;
+        }
+        if (element.element == parameterElement) {
+          reportLint(node);
+        }
+      }
+    }
+  }
+
+  void reportLint(AstNode node) {
+    rule.reportLint(node, arguments: [parameter.name!.lexeme]);
+  }
+
   @override
   visitAssignmentExpression(AssignmentExpression node) {
     if (paramIsNotNullByDefault) {
       if (_isFormalParameterReassigned(parameter, node)) {
-        rule.reportLint(node, arguments: [parameter.name!.lexeme]);
+        reportLint(node);
       }
     } else if (paramDefaultsToNull) {
       if (_isFormalParameterReassigned(parameter, node)) {
         if (hasBeenAssigned) {
-          rule.reportLint(node, arguments: [parameter.name!.lexeme]);
+          reportLint(node);
         }
         hasBeenAssigned = true;
       }
@@ -144,12 +177,19 @@ class _DeclarationVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitPatternAssignment(PatternAssignment node) {
+    checkPatternElements(node.pattern);
+
+    super.visitPatternAssignment(node);
+  }
+
+  @override
   visitPostfixExpression(PostfixExpression node) {
     if (paramIsNotNullByDefault) {
       var operand = node.operand;
       if (operand is SimpleIdentifier &&
-          operand.staticElement == parameter.declaredElement) {
-        rule.reportLint(node, arguments: [parameter.name!.lexeme]);
+          operand.staticElement == parameterElement) {
+        reportLint(node);
       }
     }
 
@@ -161,8 +201,8 @@ class _DeclarationVisitor extends RecursiveAstVisitor {
     if (paramIsNotNullByDefault) {
       var operand = node.operand;
       if (operand is SimpleIdentifier &&
-          operand.staticElement == parameter.declaredElement) {
-        rule.reportLint(node, arguments: [parameter.name!.lexeme]);
+          operand.staticElement == parameterElement) {
+        reportLint(node);
       }
     }
 
@@ -204,5 +244,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       }
     }
+  }
+}
+
+extension on AstNode {
+  Element? get element {
+    var self = this;
+    if (self is AssignedVariablePattern) return self.element;
+    return null;
   }
 }
