@@ -44,7 +44,38 @@ void f() {
   test_patternIfStatement_underscores() async {
     await assertNoDiagnostics(r'''
 void f() {
-  if ([1,2] case [int _, int __]) { }
+  if ([1,2] case [int _, int _]) { }
+}
+''');
+  }
+
+  test_patternList_declaration() async {
+    await assertDiagnostics(r'''
+f() {
+  var [__, foo_bar] = [1,2];
+  print('$__$foo_bar');
+}
+''', [
+      lint(13, 2),
+      lint(17, 7),
+    ]);
+  }
+
+  test_patternList_declaration_underscore_ok() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var [_, a] = [1,2];
+  print(a);
+}
+''');
+  }
+
+  test_patternList_wildCardPattern() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var a = 0;
+  [_, a] = [1,2];
+  print(a);
 }
 ''');
   }

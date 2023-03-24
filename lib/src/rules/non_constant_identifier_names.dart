@@ -100,7 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    checkIdentifier(node.name, underscoresOk: true);
+    checkIdentifier(node.name);
   }
 
   @override
