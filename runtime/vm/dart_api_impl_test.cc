@@ -10483,6 +10483,9 @@ TEST_CASE(DartAPI_UserTags) {
       "Dart_SetCurrentUserTag expects argument 'user_tag' to be non-null");
 }
 
+#endif  // !PRODUCT
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 static void* HeapSamplingCreate(Dart_Isolate isolate,
                                 Dart_IsolateGroup isolate_group) {
   return strdup("test data");
@@ -10591,9 +10594,13 @@ TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
 
   Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
   EXPECT(heap_samples > 0);
+#if !defined(PRODUCT)
   EXPECT_STREQ("List", last_allocation_cls);
-
   ResetHeapSamplingState("String");
+#else
+  EXPECT_STREQ("_List", last_allocation_cls);
+  ResetHeapSamplingState("_OneByteString");
+#endif
 
   // Re-enter the isolate.
   Dart_EnterIsolate(isolate);
@@ -10610,7 +10617,11 @@ TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
   EXPECT(heap_samples > 0);
   EXPECT(found_allocation);
 
+#if !defined(PRODUCT)
   ResetHeapSamplingState("String");
+#else
+  ResetHeapSamplingState("_OneByteString");
+#endif
 
   // Re-enter the isolate.
   Dart_EnterIsolate(isolate);
@@ -10702,8 +10713,7 @@ TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
   Dart_EnterIsolate(isolate);
   Dart_DisableHeapSampling();
 }
-
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
 #if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
 TEST_CASE(DartAPI_WriteHeapSnapshot) {

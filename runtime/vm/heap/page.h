@@ -257,7 +257,7 @@ class Page {
     thread->set_top(0);
     thread->set_end(0);
     thread->set_true_end(0);
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     thread->heap_sampler().HandleReleasedTLAB(Thread::Current());
 #endif
   }

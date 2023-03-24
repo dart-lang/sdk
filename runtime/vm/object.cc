@@ -2831,7 +2831,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
     heap->old_space()->AllocateBlack(size);
   }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler& heap_sampler = thread->heap_sampler();
   if (heap_sampler.HasOutstandingSample()) {
     thread->IncrementNoCallbackScopeDepth();
@@ -2839,7 +2839,9 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
     heap->SetHeapSamplingData(raw_obj, data);
     thread->DecrementNoCallbackScopeDepth();
   }
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
+#if !defined(PRODUCT)
   auto class_table = thread->isolate_group()->class_table();
   if (class_table->ShouldTraceAllocationFor(cls_id)) {
     uint32_t hash =
@@ -5152,7 +5154,9 @@ void Class::set_name(const String& value) const {
 void Class::set_user_name(const String& value) const {
   untag()->set_user_name(value.ptr());
 }
+#endif  // !defined(PRODUCT)
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 void Class::SetUserVisibleNameInClassTable() {
   IsolateGroup* isolate_group = IsolateGroup::Current();
   auto class_table = isolate_group->class_table();
@@ -5161,7 +5165,7 @@ void Class::SetUserVisibleNameInClassTable() {
     class_table->SetUserVisibleNameFor(id(), name.ToMallocCString());
   }
 }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
 const char* Class::GenerateUserVisibleName() const {
   if (FLAG_show_internal_names) {

@@ -140,7 +140,7 @@ void WeakTable::Forward(ObjectPointerVisitor* visitor) {
   Rehash();
 }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 void WeakTable::ReportSurvivingAllocations(
     Dart_HeapSamplingReportCallback callback,
     void* context) {

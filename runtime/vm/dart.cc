@@ -898,7 +898,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return ApiError::New(message);
     }
   }
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   I->group()->class_table()->PopulateUserVisibleNames();
 #endif
 

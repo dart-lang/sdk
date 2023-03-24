@@ -215,7 +215,7 @@ bool ClassFinalizer::ProcessPendingClasses() {
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeTypesInClass(cls);
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
       cls.SetUserVisibleNameInClassTable();
 #endif
     }

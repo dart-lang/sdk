@@ -63,7 +63,7 @@ Heap::Heap(IsolateGroup* isolate_group,
 }
 
 Heap::~Heap() {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   Dart_HeapSamplingDeleteCallback cleanup =
       HeapProfileSampler::delete_callback();
   if (cleanup != nullptr) {
@@ -105,7 +105,7 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
 uword Heap::AllocateOld(Thread* thread, intptr_t size, Page::PageType type) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   if (HeapProfileSampler::enabled()) {
     thread->heap_sampler().SampleOldSpaceAllocation(size);
   }

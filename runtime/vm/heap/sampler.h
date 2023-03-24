@@ -5,7 +5,7 @@
 #ifndef RUNTIME_VM_HEAP_SAMPLER_H_
 #define RUNTIME_VM_HEAP_SAMPLER_H_
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
 #include <atomic>
 
@@ -173,5 +173,5 @@ class HeapProfileSampler {
 
 }  // namespace dart
 
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 #endif  // RUNTIME_VM_HEAP_SAMPLER_H_

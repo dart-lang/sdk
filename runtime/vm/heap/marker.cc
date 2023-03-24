@@ -601,7 +601,7 @@ void GCMarker::ProcessWeakTables(Thread* thread) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakTables");
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
     Dart_HeapSamplingDeleteCallback cleanup = nullptr;
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     if (sel == Heap::kHeapSamplingData) {
       cleanup = HeapProfileSampler::delete_callback();
     }

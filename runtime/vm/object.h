@@ -1869,9 +1869,9 @@ class Class : public Object {
   void MarkFieldBoxedDuringReload(ClassTable* class_table,
                                   const Field& field) const;
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   void SetUserVisibleNameInClassTable();
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
  private:
   TypePtr declaration_type() const {

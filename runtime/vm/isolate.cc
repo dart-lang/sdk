@@ -633,7 +633,7 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     thread->set_safepoint_state(
         Thread::SetBypassSafepoints(bypass_safepoint, 0));
     thread->set_vm_tag(VMTag::kVMTagId);
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     thread->heap_sampler().Initialize();
 #endif
     ASSERT(thread->no_safepoint_scope_depth() == 0);
@@ -692,7 +692,7 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   thread->set_execution_state(Thread::kThreadInNative);
   thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
                               Thread::AtDeoptSafepointField::encode(true));
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   thread->heap_sampler().Cleanup();
 #endif
 

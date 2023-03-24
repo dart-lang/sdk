@@ -48,7 +48,7 @@ class Heap {
     kCanonicalHashes,
     kObjectIds,
     kLoadingUnits,
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     kHeapSamplingData,
 #endif
     kNumWeakSelectors
@@ -242,7 +242,7 @@ class Heap {
     return GetWeakEntry(raw_obj, kLoadingUnits);
   }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   void SetHeapSamplingData(ObjectPtr obj, void* data) {
     SetWeakEntry(obj, kHeapSamplingData, reinterpret_cast<intptr_t>(data));
   }
@@ -274,7 +274,7 @@ class Heap {
   void ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object);
   void ForwardWeakTables(ObjectPointerVisitor* visitor);
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   void ReportSurvivingAllocations(Dart_HeapSamplingReportCallback callback,
                                   void* context) {
     new_weak_tables_[kHeapSamplingData]->ReportSurvivingAllocations(callback,

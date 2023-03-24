@@ -1446,7 +1446,7 @@ void Scavenger::MournWeakTables() {
     auto table_new = WeakTable::NewFrom(table);
 
     Dart_HeapSamplingDeleteCallback cleanup = nullptr;
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     if (sel == Heap::kHeapSamplingData) {
       cleanup = HeapProfileSampler::delete_callback();
     }
@@ -1617,7 +1617,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
   ASSERT(heap_ != Dart::vm_isolate_group()->heap());
   ASSERT(!scavenging_);
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   // Find the remaining space available in the TLAB before abandoning it so we
   // can reset the heap sampling offset in the new TLAB.
   intptr_t remaining = thread->true_end() - thread->top();
@@ -1643,7 +1643,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
         (page->end() - kAllocationRedZoneSize) - page->object_end();
     if (available >= min_size) {
       page->Acquire(thread);
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
       thread->heap_sampler().HandleNewTLAB(remaining, /*is_first_tlab=*/false);
 #endif
       return;
@@ -1655,7 +1655,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
     return;
   }
   page->Acquire(thread);
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   thread->heap_sampler().HandleNewTLAB(remaining, is_first_tlab);
 #endif
 }

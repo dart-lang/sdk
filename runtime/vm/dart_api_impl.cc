@@ -1847,13 +1847,13 @@ DART_EXPORT void Dart_NotifyDestroyed() {
 }
 
 DART_EXPORT void Dart_EnableHeapSampling() {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler::Enable(true);
 #endif
 }
 
 DART_EXPORT void Dart_DisableHeapSampling() {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler::Enable(false);
 #endif
 }
@@ -1861,7 +1861,7 @@ DART_EXPORT void Dart_DisableHeapSampling() {
 DART_EXPORT void Dart_RegisterHeapSamplingCallback(
     Dart_HeapSamplingCreateCallback create_callback,
     Dart_HeapSamplingDeleteCallback delete_callback) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler::SetSamplingCallback(create_callback, delete_callback);
 #endif
 }
@@ -1869,7 +1869,7 @@ DART_EXPORT void Dart_RegisterHeapSamplingCallback(
 DART_EXPORT void Dart_ReportSurvivingAllocations(
     Dart_HeapSamplingReportCallback callback,
     void* context) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   CHECK_NO_ISOLATE(Thread::Current());
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     Thread::EnterIsolateGroupAsHelper(group, Thread::kUnknownTask,
@@ -1881,7 +1881,7 @@ DART_EXPORT void Dart_ReportSurvivingAllocations(
 }
 
 DART_EXPORT void Dart_SetHeapSamplingPeriod(intptr_t bytes) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler::SetSamplingInterval(bytes);
 #endif
 }
