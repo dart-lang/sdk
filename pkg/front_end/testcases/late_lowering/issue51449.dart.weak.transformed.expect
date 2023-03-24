@@ -31,7 +31,7 @@ static method main() → dynamic {
   block {
     final synthesized dynamic #0#0 = (2, "Hello");
     if(!(let final dynamic #t1 = #j#set(#0#0{(core::int, core::String)}.$1{core::int}){(core::int) → dynamic} in true))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#0#0;
   core::print(#j#get(){() → core::int});
 }

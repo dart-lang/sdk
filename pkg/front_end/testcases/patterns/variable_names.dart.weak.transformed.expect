@@ -12,7 +12,6 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 abstract class A extends core::Object {
   synthetic constructor •() → self::A
@@ -86,11 +85,11 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
   block {
     final synthesized dynamic #4#0 = y;
     if(!(#4#0 is{ForNonNullableByDefault} self::A && (let final core::bool #t15 = qux = #4#0{self::A}.{self::A::qux}{core::bool} in true) && (let final core::String #t16 = quux = #4#0{self::A}.{self::A::quux}{core::String} in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#4#0;
   block {
     final synthesized dynamic #5#0 = z;
     if(!(#5#0 is{ForNonNullableByDefault} (core::Object?, {quux: core::Object?}) && (let final core::Object? #t17 = qux = #5#0{(core::Object?, {quux: core::Object?})}.$1{core::Object?} in true) && (let final core::Object? #t18 = quux = #5#0{(core::Object?, {quux: core::Object?})}.quux{core::Object?} in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#5#0;
 }

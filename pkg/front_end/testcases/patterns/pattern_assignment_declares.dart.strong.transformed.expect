@@ -34,7 +34,6 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class Class extends core::Object {
   field dynamic field1 = null;
@@ -54,7 +53,7 @@ Try using a preexisting variable or changing the assignment to a pattern variabl
 Try using a preexisting variable or changing the assignment to a pattern variable declaration.
   (a, int b, final int c) = x;
                        ^"))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#0#0;
   block {
     final synthesized dynamic #1#0 = y;
@@ -62,7 +61,7 @@ Try using a preexisting variable or changing the assignment to a pattern variabl
 Try using a preexisting variable or changing the assignment to a pattern variable declaration.
   [a, final d] = y;
             ^"))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#1#0;
   block {
     final synthesized dynamic #2#0 = z;
@@ -85,7 +84,7 @@ Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
 Try using a preexisting variable or changing the assignment to a pattern variable declaration.
   Class(field1: a, field2: [[var e, _], [1, var f]]) = z;
                                                 ^"))))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#2#0;
 }
 

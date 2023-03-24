@@ -89,7 +89,6 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class Class extends core::Object {
   synthetic constructor •() → self::Class
@@ -154,7 +153,7 @@ static method duplicateAssignmentPatternVariable(core::List<core::String> list) 
 Try renaming the variable.
   [a, a] = list; // Error
       ^"))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#0#0;
 }
 static method duplicateRecordPatternField(dynamic o) → dynamic {

@@ -1,7 +1,6 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method sideEffect<T extends core::Object? = dynamic>(core::List<self::sideEffect::T%> list) → core::List<self::sideEffect::T%> {
   core::print(self::sideEffect::T%);
@@ -16,7 +15,7 @@ static method method() → dynamic {
   block {
     final synthesized dynamic #1#0 = self::sideEffect<dynamic>(core::_GrowableList::•<dynamic>(0));
     if(!true)
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#1#0;
   {
     final synthesized core::List<dynamic> #2#0 = self::sideEffect<dynamic>(core::_GrowableList::•<dynamic>(0));

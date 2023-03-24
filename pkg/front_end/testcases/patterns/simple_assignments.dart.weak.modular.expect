@@ -1,14 +1,13 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method test1(dynamic x) → dynamic {
   core::int a;
   block {
     final synthesized dynamic #0#0 = x;
     if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#0#0;
   return a;
 }
@@ -21,10 +20,10 @@ static method test2(dynamic x) → dynamic {
       final synthesized dynamic #0#0 = x;
       late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && ((let final dynamic #t2 = a = #0#6 as{ForNonNullableByDefault} core::int in true) && (let final dynamic #t3 = b = #0#6{core::int} in true))))
-        throw new _in::ReachabilityError::•();
+        throw new core::StateError::•("Pattern matching error");
     } =>#0#0;
     if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t4 = c = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#1#0;
   return a.{core::num::+}(b){(core::num) → core::int}.{core::num::+}(c){(core::num) → core::int};
 }
