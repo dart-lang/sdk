@@ -21,7 +21,7 @@ body:
     attributes:
       label: Impact
       description: What is the impact of this change?
-     - type: textarea
+  - type: textarea
     id: mitigation
     attributes:
       label: Mitigation
