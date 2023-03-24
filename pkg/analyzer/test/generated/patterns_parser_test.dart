@@ -21,6 +21,35 @@ main() {
 class PatternsTest extends ParserDiagnosticsTest {
   late FindNode findNode;
 
+  test_case_identifier_dot_incomplete() {
+    // Based on the repro from
+    // https://github.com/Dart-Code/Dart-Code/issues/4407.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case A.
+  }
+}
+''', errors: [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 41, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 41, 1),
+    ]);
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  guardedPattern: GuardedPattern
+    pattern: ConstantPattern
+      expression: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: A
+        period: .
+        identifier: SimpleIdentifier
+          token: <empty> <synthetic>
+  colon: : <synthetic>
+''');
+  }
+
   test_caseHead_withClassicPattern_guarded_insideIfElement() {
     _parse('''
 void f(x) {

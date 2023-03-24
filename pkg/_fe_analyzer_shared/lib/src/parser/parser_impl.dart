@@ -9785,7 +9785,8 @@ class Parser {
           // `typeIdentifier | qualifiedName`, but that permits `a.b.c`,
           // which doesn't make sense.
         } else {
-          throw new UnimplementedError('TODO(paulberry)');
+          secondIdentifier = IdentifierContext.expressionContinuation
+              .ensureIdentifier(token, this);
         }
       }
       TypeParamOrArgInfo potentialTypeArg = computeTypeParamOrArg(token);
