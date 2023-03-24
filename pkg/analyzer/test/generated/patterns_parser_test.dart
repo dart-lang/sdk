@@ -21,6 +21,35 @@ main() {
 class PatternsTest extends ParserDiagnosticsTest {
   late FindNode findNode;
 
+  test_case_identifier_dot_incomplete() {
+    // Based on the repro from
+    // https://github.com/Dart-Code/Dart-Code/issues/4407.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case A.
+  }
+}
+''', errors: [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 41, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 41, 1),
+    ]);
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  guardedPattern: GuardedPattern
+    pattern: ConstantPattern
+      expression: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: A
+        period: .
+        identifier: SimpleIdentifier
+          token: <empty> <synthetic>
+  colon: : <synthetic>
+''');
+  }
+
   test_caseHead_withClassicPattern_guarded_insideIfElement() {
     _parse('''
 void f(x) {
@@ -2894,6 +2923,86 @@ NullCheckPattern
       rightBracket: }
       isMap: false
   operator: ?
+''');
+  }
+
+  test_declaredVariable_inPatternAssignment_usingFinal() {
+    _parse('''
+void f() {
+  [a, final d] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 23, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      DeclaredVariablePattern
+        keyword: final
+        name: d
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
+  test_declaredVariable_inPatternAssignment_usingType() {
+    _parse('''
+void f() {
+  [a, int d] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 21, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      DeclaredVariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: d
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
+  test_declaredVariable_inPatternAssignment_usingVar() {
+    _parse('''
+void f() {
+  [a, var d] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 21, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      DeclaredVariablePattern
+        keyword: var
+        name: d
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
 ''');
   }
 

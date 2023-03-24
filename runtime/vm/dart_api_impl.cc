@@ -5,6 +5,7 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 
+#include <cstring>
 #include <memory>
 #include <utility>
 
@@ -1554,6 +1555,23 @@ DART_EXPORT Dart_Handle Dart_DebugName() {
                               static_cast<int64_t>(I->main_port()), I->name()));
 }
 
+DART_EXPORT const char* Dart_DebugNameToCString() {
+  Thread* thread = Thread::Current();
+  if (thread == nullptr) {
+    return nullptr;
+  }
+  Isolate* I = thread->isolate();
+  if (I == nullptr) {
+    return nullptr;
+  }
+  int64_t main_port = static_cast<int64_t>(I->main_port());
+  const char* fmt = "%s (%" Pd64 ")";
+  int length = snprintf(nullptr, 0, fmt, I->name(), main_port) + 1;
+  char* res = Api::TopScope(thread)->zone()->Alloc<char>(length);
+  snprintf(res, length, fmt, I->name(), main_port);
+  return res;
+}
+
 DART_EXPORT const char* Dart_IsolateServiceId(Dart_Isolate isolate) {
   if (isolate == NULL) {
     FATAL("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
@@ -1829,26 +1847,41 @@ DART_EXPORT void Dart_NotifyDestroyed() {
 }
 
 DART_EXPORT void Dart_EnableHeapSampling() {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler::Enable(true);
 #endif
 }
 
 DART_EXPORT void Dart_DisableHeapSampling() {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler::Enable(false);
 #endif
 }
 
 DART_EXPORT void Dart_RegisterHeapSamplingCallback(
-    Dart_HeapSamplingCallback callback) {
-#if !defined(PRODUCT)
-  HeapProfileSampler::SetSamplingCallback(callback);
+    Dart_HeapSamplingCreateCallback create_callback,
+    Dart_HeapSamplingDeleteCallback delete_callback) {
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  HeapProfileSampler::SetSamplingCallback(create_callback, delete_callback);
+#endif
+}
+
+DART_EXPORT void Dart_ReportSurvivingAllocations(
+    Dart_HeapSamplingReportCallback callback,
+    void* context) {
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  CHECK_NO_ISOLATE(Thread::Current());
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    Thread::EnterIsolateGroupAsHelper(group, Thread::kUnknownTask,
+                                      /*bypass_safepoint=*/false);
+    group->heap()->ReportSurvivingAllocations(callback, context);
+    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
+  });
 #endif
 }
 
 DART_EXPORT void Dart_SetHeapSamplingPeriod(intptr_t bytes) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler::SetSamplingInterval(bytes);
 #endif
 }

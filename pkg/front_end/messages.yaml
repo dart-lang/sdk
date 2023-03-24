@@ -6277,6 +6277,10 @@ BaseClassImplementedOutsideOfLibrary:
     lib.dart:
       base class A {}
 
+BaseClassImplementedOutsideOfLibraryCause:
+  problemMessage: "The type '#name' is a subtype of '#name2', and '#name2' is defined here."
+  severity: CONTEXT
+
 BaseMixinImplementedOutsideOfLibrary:
   problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a base mixin."
   analyzerCode: BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
@@ -6658,6 +6662,8 @@ InvalidConstantPatternBinary:
 PatternAssignmentDeclaresVariable:
   problemMessage: "Variable '#name' can't be declared in a pattern assignment."
   correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
+  analyzerCode: ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE
+  index: 145
   experiments: patterns
   script: |
     method(x) {

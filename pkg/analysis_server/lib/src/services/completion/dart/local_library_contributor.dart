@@ -120,9 +120,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
     if (node is ImplementsClause &&
         !element.isImplementableIn(request.libraryElement)) {
       return;
-    } else if (node is WithClause &&
-        !element.isMixableIn(request.libraryElement)) {
-      return;
     }
     _visitInterfaceElement(element);
   }

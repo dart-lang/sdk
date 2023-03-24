@@ -2785,10 +2785,6 @@ void Object::CheckHandle() const {
 #endif
 }
 
-#if !defined(PRODUCT)
-static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
-#endif
-
 ObjectPtr Object::Allocate(intptr_t cls_id,
                            intptr_t size,
                            Heap::Space space,
@@ -2835,31 +2831,18 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
     heap->old_space()->AllocateBlack(size);
   }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler& heap_sampler = thread->heap_sampler();
-  auto class_table = thread->isolate_group()->class_table();
   if (heap_sampler.HasOutstandingSample()) {
-    IsolateGroup* isolate_group = thread->isolate_group();
-    Api::Scope api_scope(thread);
-    const char* type_name = class_table->UserVisibleNameFor(cls_id);
-    if (type_name == nullptr) {
-      // Try the vm-isolate's class table for core types.
-      type_name =
-          Dart::vm_isolate_group()->class_table()->UserVisibleNameFor(cls_id);
-    }
-    // If type_name is still null, then we haven't finished initializing yet and
-    // should drop the sample.
-    if (type_name != nullptr) {
-      thread->IncrementNoCallbackScopeDepth();
-      Object& obj = Object::Handle(raw_obj);
-      auto weak_obj = FinalizablePersistentHandle::New(
-          isolate_group, obj, nullptr, NoopFinalizer, 0, /*auto_delete=*/false);
-      heap_sampler.InvokeCallbackForLastSample(
-          type_name, weak_obj->ApiWeakPersistentHandle());
-      thread->DecrementNoCallbackScopeDepth();
-    }
+    thread->IncrementNoCallbackScopeDepth();
+    void* data = heap_sampler.InvokeCallbackForLastSample();
+    heap->SetHeapSamplingData(raw_obj, data);
+    thread->DecrementNoCallbackScopeDepth();
   }
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
+#if !defined(PRODUCT)
+  auto class_table = thread->isolate_group()->class_table();
   if (class_table->ShouldTraceAllocationFor(cls_id)) {
     uint32_t hash =
         HeapSnapshotWriter::GetHeapSnapshotIdentityHash(thread, raw_obj);
@@ -5171,7 +5154,9 @@ void Class::set_name(const String& value) const {
 void Class::set_user_name(const String& value) const {
   untag()->set_user_name(value.ptr());
 }
+#endif  // !defined(PRODUCT)
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 void Class::SetUserVisibleNameInClassTable() {
   IsolateGroup* isolate_group = IsolateGroup::Current();
   auto class_table = isolate_group->class_table();
@@ -5180,7 +5165,7 @@ void Class::SetUserVisibleNameInClassTable() {
     class_table->SetUserVisibleNameFor(id(), name.ToMallocCString());
   }
 }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
 const char* Class::GenerateUserVisibleName() const {
   if (FLAG_show_internal_names) {

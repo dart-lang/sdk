@@ -360,7 +360,13 @@ void defineAnalyze() {
 
   test('info implicit no --fatal-infos', () async {
     p = project(
-        mainSrc: '$dartVersionFilePrefix2_9@deprecated var x = 1; var y = x;');
+      mainSrc: 'var x = 1; var y = x?.isEven;',
+      analysisOptions: r'''
+analyzer:
+  errors:
+    INVALID_NULL_AWARE_OPERATOR: info
+''',
+    );
     var result = await p.runAnalyze([p.dirPath]);
 
     expect(result.exitCode, 0);
@@ -370,7 +376,13 @@ void defineAnalyze() {
 
   test('info --fatal-infos', () async {
     p = project(
-        mainSrc: '$dartVersionFilePrefix2_9@deprecated var x = 1; var y = x;');
+      mainSrc: 'var x = 1; var y = x?.isEven;',
+      analysisOptions: r'''
+analyzer:
+  errors:
+    INVALID_NULL_AWARE_OPERATOR: info
+''',
+    );
     var result = await p.runAnalyze(['--fatal-infos', p.dirPath]);
 
     expect(result.exitCode, 1);

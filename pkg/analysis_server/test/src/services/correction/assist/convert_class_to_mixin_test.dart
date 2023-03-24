@@ -375,10 +375,7 @@ mixin D on B implements A, C {
 class A {}
 final class B implements A {}
 ''');
-    await assertHasAssistAt('B', '''
-class A {}
-final mixin B implements A {}
-''');
+    await assertNoAssistAt('B');
   }
 
   Future<void> test_implements() async {
@@ -422,10 +419,7 @@ mixin A {}
 class A {}
 sealed class B extends A {}
 ''');
-    await assertHasAssistAt('B', '''
-class A {}
-sealed mixin B implements A {}
-''');
+    await assertNoAssistAt('B');
   }
 
   Future<void> test_sealed_extendsWith_super_extends() async {
@@ -442,19 +436,7 @@ sealed class C extends A with B {
   }
 }
 ''');
-    await assertHasAssistAt('C', '''
-class A {
-  a() {}
-}
-mixin class B {
-  b() {}
-}
-sealed mixin C on A implements B {
-  c() {
-    super.a();
-  }
-}
-''');
+    await assertNoAssistAt('C');
   }
 
   Future<void> test_typeParameters() async {

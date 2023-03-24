@@ -77,6 +77,9 @@ declare_args() {
 
   # Whether to use compressed pointers.
   dart_use_compressed_pointers = false
+
+  # Whether the sampling heap profiler should be included in product mode.
+  dart_include_sampling_heap_profiler = false
 }
 
 declare_args() {

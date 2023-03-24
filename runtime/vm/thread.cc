@@ -97,7 +97,7 @@ Thread::Thread(bool is_vm_isolate)
 #if defined(USING_SAFE_STACK)
               saved_safestack_limit_(0),
 #endif
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
       next_(nullptr),
       heap_sampler_(this) {
 #else
@@ -454,6 +454,9 @@ ErrorPtr Thread::HandleInterrupts() {
     if (isolate()->TakeHasCompletedBlocks()) {
       Profiler::ProcessCompletedBlocks(this);
     }
+#endif  // !defined(PRODUCT)
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     HeapProfileSampler& sampler = heap_sampler();
     if (sampler.ShouldSetThreadSamplingInterval()) {
       sampler.SetThreadSamplingInterval();
@@ -461,7 +464,7 @@ ErrorPtr Thread::HandleInterrupts() {
     if (sampler.ShouldUpdateThreadEnable()) {
       sampler.UpdateThreadEnable();
     }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   }
   if ((interrupt_bits & kMessageInterrupt) != 0) {
     MessageHandler::MessageStatus status =

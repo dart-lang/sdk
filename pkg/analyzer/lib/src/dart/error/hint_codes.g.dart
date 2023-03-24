@@ -61,6 +61,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the member
+  ///
+  ///  This code is deprecated in favor of the
+  ///  'deprecated_member_from_same_package' lint rule, and will be removed.
   static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE = HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     "'{0}' is deprecated and shouldn't be used.",
@@ -72,6 +75,9 @@ class HintCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the name of the member
   ///  1: message details
+  ///
+  ///  This code is deprecated in favor of the
+  ///  'deprecated_member_from_same_package' lint rule, and will be removed.
   static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE =
       HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',

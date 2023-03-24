@@ -1071,6 +1071,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPatternAssignment(PatternAssignment node) {
+    // We need to call `casePatternStart` and `casePatternFinish` in case there
+    // are any declared variable patterns inside the pattern assignment (this
+    // could happen due to error recovery).  But we don't need to keep the
+    // variables map that `casePatternFinish` returns.
+    _patternVariables.casePatternStart();
+    super.visitPatternAssignment(node);
+    _patternVariables.casePatternFinish();
+  }
+
+  @override
   void visitPatternVariableDeclaration(
     covariant PatternVariableDeclarationImpl node,
   ) {

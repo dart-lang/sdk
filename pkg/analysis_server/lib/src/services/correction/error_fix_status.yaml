@@ -1637,6 +1637,14 @@ LintCode.depend_on_referenced_packages:
   status: needsFix
 LintCode.deprecated_consistency:
   status: needsEvaluation
+LintCode.deprecated_member_use_from_same_package:
+  status: needsFix
+  notes: |-
+    Should probably be able to use `DataDriven`.
+LintCode.deprecated_member_use_from_same_package_with_message:
+  status: needsFix
+  notes: |-
+    Should probably be able to use `DataDriven`.
 LintCode.diagnostic_describe_all_properties:
   status: hasFix
 LintCode.directives_ordering:
@@ -2375,6 +2383,8 @@ ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS:
 ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER:
   status: needsEvaluation
 ParserErrorCode.OUT_OF_ORDER_CLAUSES:
+  status: needsEvaluation
+ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
   status: needsEvaluation
 ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
   status: needsEvaluation

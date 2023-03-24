@@ -177,7 +177,8 @@ base mixin BaseMixinImplement implements FinalClass {}
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'FinalClass' can't be implemented outside of its library because it's a final class.
 
-/// It is an error if FinalClass is the `on` type of a mixin which is not marked base.
+// It is an error if FinalClass is the `on` type of a mixin outside of
+// FinalClass' library.
 
 mixin SimpleMixinOn on FinalClass {}
 //    ^^^^^^^^^^^^^
@@ -193,5 +194,10 @@ mixin SimpleMixinOnSimpleFinal on SimpleClass, FinalClass {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleMixinOnSimpleFinal' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
+
+base mixin BaseMixinOn on FinalClass {}
+// ^
+// [analyzer] unspecified
+// [cfe] unspecified
 
 main() {}

@@ -3257,6 +3257,8 @@ const c = 'c';
 
 ### const_set_element_not_primitive_equality
 
+<a id="const_set_element_type_implements_equals" aria-hidden="true"></a>_(Previously known as `const_set_element_type_implements_equals`)_
+
 _An element in a constant set can't override the '==' operator, or 'hashCode',
 but the type '{0}' does._
 
@@ -12668,6 +12670,63 @@ mixin M on A {
 abstract class B extends A with M {}
 {% endprettify %}
 
+### mixin_class_declaration_extends_not_object
+
+_The class '{0}' can't be declared a mixin because it extends a class other than
+'Object'._
+
+#### Description
+
+The analyzer produces this diagnostic when a class that is marked with
+the `mixin` modifier extends a class other than `Object`. A mixin class
+can't have a superclass other than `Object`.
+
+#### Example
+
+The following code produces this diagnostic because the class `B`, which
+has the modifier `mixin`, extends `A`:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+mixin class B extends [!A!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If you want the class to be used as a mixin, then change the superclass to
+`Object`, either explicitly or by removing the extends clause:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+mixin class B {}
+{% endprettify %}
+
+If the class needs to have a superclass other than `Object`, then remove
+the `mixin` modifier:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class B extends A {}
+{% endprettify %}
+
+If you need both a mixin and a subclass of a class other than `Object`,
+then move the members of the subclass to a new mixin, remove the `mixin`
+modifier from the subclass, and apply the new mixin to the subclass:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class B extends A with M {}
+
+mixin M {}
+{% endprettify %}
+
+Depending on the members of the subclass this might require adding an `on`
+clause to the mixin.
+
 ### mixin_class_declares_constructor
 
 _The class '{0}' can't be used as a mixin because it declares a constructor._
@@ -17246,6 +17305,78 @@ void f(int? x) {
 #### Common fixes
 
 Rewrite the code to not use a refutable pattern in an irrefutable context.
+
+### relational_pattern_operand_type_not_assignable
+
+_The constant expression type '{0}' is not assignable to the parameter type
+'{1}' of the '{2}' operator._
+
+#### Description
+
+The analyzer produces this diagnostic when the operand of a relational
+pattern has a type that isn't assignable to the parameter of the operator
+that will be invoked.
+
+#### Example
+
+The following code produces this diagnostic because the operand in the
+relational pattern (`0`) is an `int`, but the `>` operator defined in `C`
+expects an object of type `C`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  bool operator >(C other) => true;
+}
+
+void f(C c) {
+  switch (c) {
+    case > [!0!]:
+      print('positive');
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the switch is using the correct value, then change the case to compare
+the value to the right type of object:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  bool operator >(C other) => true;
+}
+
+void f(C c) {
+  switch (c) {
+    case > const C():
+      print('positive');
+  }
+}
+{% endprettify %}
+
+If the switch is using the wrong value, then change the expression used to
+compute the value being matched:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  bool operator >(C other) => true;
+
+  int get toInt => 0;
+}
+
+void f(C c) {
+  switch (c.toInt) {
+    case > 0:
+      print('positive');
+  }
+}
+{% endprettify %}
 
 ### relational_pattern_operator_return_type_not_assignable_to_bool
 

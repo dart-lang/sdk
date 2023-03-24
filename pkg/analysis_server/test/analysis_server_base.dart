@@ -125,7 +125,7 @@ class ContextResolutionTest with ResourceProviderMixin {
   void createDefaultFiles() {}
 
   Future<Response> handleRequest(Request request) async {
-    return await serverChannel.sendRequest(request);
+    return await serverChannel.simulateRequestFromClient(request);
   }
 
   /// Validates that the given [request] is handled successfully.

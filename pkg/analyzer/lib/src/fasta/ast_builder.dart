@@ -32,7 +32,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
         templateExtraneousModifier,
-        templateInternalProblemUnhandled;
+        templateInternalProblemUnhandled,
+        templatePatternAssignmentDeclaresVariable;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -5502,6 +5503,18 @@ class AstBuilder extends StackListener {
       throw UnimplementedError('Patterns not enabled');
     }
     var type = pop() as TypeAnnotationImpl?;
+    if (inAssignmentPattern && (type != null || keyword != null)) {
+      // TODO(paulberry): Consider generating this error in the parser
+      // This error is also reported in the body builder
+      handleRecoverableError(
+          templatePatternAssignmentDeclaresVariable
+              .withArguments(variable.lexeme),
+          variable,
+          variable);
+      // To ensure that none of the tokens are dropped from the AST, don't build
+      // an `AssignedVariablePatternImpl`.
+      inAssignmentPattern = false;
+    }
     if (variable.lexeme == '_') {
       push(
         WildcardPatternImpl(

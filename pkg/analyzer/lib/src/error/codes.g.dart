@@ -3010,6 +3010,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
     "The class '{0}' can't be declared a mixin because it extends a class "
         "other than 'Object'.",
+    correctionMessage:
+        "Try removing the 'mixin' modifier or changing the superclass to "
+        "'Object'.",
   );
 
   ///  Parameters:

@@ -121,7 +121,7 @@ void f(A a, B b, C c, D d) {
             0,
             false)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 }
 
@@ -233,7 +233,7 @@ void f(A a, B b, C c, D d) {
             0,
             false)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 }
 
@@ -879,7 +879,7 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
     var request =
         EditGetAvailableRefactoringsParams(testFile.path, offset, length)
             .toRequest('0');
-    var response = await serverChannel.sendRequest(request);
+    var response = await serverChannel.simulateRequestFromClient(request);
     var result = EditGetAvailableRefactoringsResult.fromResponse(response);
     kinds = result.kinds;
   }
@@ -1191,7 +1191,7 @@ void f() {
             0,
             false)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 }
 
@@ -1313,7 +1313,7 @@ void f() {
             testFile.path, findOffset(search), 0, false,
             options: options)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 }
 
@@ -1369,7 +1369,7 @@ import 'new_folder/file.dart';
     // 0 is the id from _sendMoveRequest
     // 1 is another arbitrary id for the cancel request
     var request = ServerCancelRequestParams('0').toRequest('1');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 
   Future<Response> _sendAndCancelMoveRequest(String item) async {
@@ -1385,7 +1385,7 @@ import 'new_folder/file.dart';
             RefactoringKind.MOVE_FILE, item, 0, 0, false,
             options: options)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 
   void _setOptions(String newFile) {
@@ -1402,7 +1402,7 @@ class RenameTest extends _AbstractGetRefactoring_Test {
             testFile.path, findOffset(search), 0, validateOnly,
             options: options)
         .toRequest(id);
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 
   @override
@@ -2589,7 +2589,7 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
             kind, testFile.path, offset, length, validateOnly,
             options: options)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 
   @override

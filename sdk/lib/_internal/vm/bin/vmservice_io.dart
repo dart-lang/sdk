@@ -40,7 +40,7 @@ bool _enableServicePortFallback = false;
 @pragma("vm:entry-point")
 bool _waitForDdsToAdvertiseService = false;
 @pragma("vm:entry-point", !const bool.fromEnvironment('dart.vm.product'))
-bool _serveObservatory = true;
+bool _serveObservatory = false;
 
 // HTTP server.
 Server? server;
