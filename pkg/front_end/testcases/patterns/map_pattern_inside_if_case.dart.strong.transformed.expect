@@ -33,7 +33,7 @@ static method test3(core::Map<core::bool, core::double> x) → dynamic {
   }
   {
     final synthesized core::Map<core::bool, core::double> #1#0 = x;
-    if(#1#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) {
+    if(#1#0.{core::Map::length}{core::int}.{core::num::<=}(#C9){(core::num) → core::bool}) {
     }
   }
 }
