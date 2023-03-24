@@ -1,0 +1,26 @@
+import 'dart:collection';
+
+class NegativeLengthList<E> with ListMixin<E> {
+  final List<E> _list;
+  NegativeLengthList(this._list);
+  int get length => _list.length <= 0 ? -1 : _list.length;
+  void set length(int value) {}
+  E operator [](int index) => _list[index];
+  void operator []=(int index, E value) {}
+}
+
+class NegativeLengthMap<K, V> with MapMixin<K, V> {
+  final Map<K, V> _map;
+  NegativeLengthMap(this._map);
+  int get length => _map.length <= 0 ? -1 : _map.length;
+  V? operator [](Object? key) => _map[key];
+  void operator []=(K key, V value) {}
+  Iterable<K> get keys => _map.keys;
+  V? remove(Object? key) => _map.remove(key);
+  void clear() => _map.clear();
+}
+
+int switchList(List<int> list) => switch (list) {  };
+int switchMap(Map<int, String> map) => switch (map) {  };
+main() {}
+expect(expected, actual) {}

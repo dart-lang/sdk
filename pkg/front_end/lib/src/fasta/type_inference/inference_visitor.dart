@@ -10207,6 +10207,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       node.lengthCheckTarget = greaterThanOrEqualTarget.member as Procedure;
       node.lengthCheckType = greaterThanOrEqualTarget.getFunctionType(this);
+    } else if (node.patterns.isEmpty) {
+      ObjectAccessTarget lessThanOrEqualsInvokeTarget = findInterfaceMember(
+          lengthType, lessThanOrEqualsName, node.fileOffset,
+          includeExtensionMethods: true,
+          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+      assert(lessThanOrEqualsInvokeTarget.isInstanceMember ||
+          lessThanOrEqualsInvokeTarget.isObjectMember);
+
+      node.lengthCheckTarget = lessThanOrEqualsInvokeTarget.member as Procedure;
+      node.lengthCheckType = lessThanOrEqualsInvokeTarget.getFunctionType(this);
     } else {
       ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
           lengthType, equalsName, node.fileOffset,
@@ -10607,16 +10617,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       node.lengthCheckTarget = greaterThanOrEqualTarget.member as Procedure;
       node.lengthCheckType = greaterThanOrEqualTarget.getFunctionType(this);
+    } else if (node.entries.isEmpty) {
+      ObjectAccessTarget lessThanOrEqualInvokeTarget = findInterfaceMember(
+          lengthType, lessThanOrEqualsName, node.fileOffset,
+          includeExtensionMethods: true,
+          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+      assert(lessThanOrEqualInvokeTarget.isInstanceMember ||
+          lessThanOrEqualInvokeTarget.isObjectMember);
+
+      node.lengthCheckTarget = lessThanOrEqualInvokeTarget.member as Procedure;
+      node.lengthCheckType = lessThanOrEqualInvokeTarget.getFunctionType(this);
     } else {
-      ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
+      ObjectAccessTarget equalInvokeTarget = findInterfaceMember(
           lengthType, equalsName, node.fileOffset,
           includeExtensionMethods: true,
           callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-      assert(equalsInvokeTarget.isInstanceMember ||
-          equalsInvokeTarget.isObjectMember);
+      assert(equalInvokeTarget.isInstanceMember ||
+          equalInvokeTarget.isObjectMember);
 
-      node.lengthCheckTarget = equalsInvokeTarget.member as Procedure;
-      node.lengthCheckType = equalsInvokeTarget.getFunctionType(this);
+      node.lengthCheckTarget = equalInvokeTarget.member as Procedure;
+      node.lengthCheckType = equalInvokeTarget.getFunctionType(this);
     }
 
     ObjectAccessTarget containsKeyTarget = findInterfaceMember(

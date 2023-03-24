@@ -479,8 +479,9 @@ class ListPattern extends Pattern {
 
   /// The method used to check the `length` of the list.
   ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method.
-  /// Otherwise this is an `operator ==` method.
+  /// If this pattern has a rest pattern, this is an `operator >=` method. If
+  /// this is the empty list pattern, this an `operator <=` method. Otherwise
+  /// this is an `operator ==` method.
   ///
   /// This is set during inference.
   Procedure get lengthCheckTarget => lengthCheckTargetReference!.asProcedure;
@@ -952,8 +953,9 @@ class MapPattern extends Pattern {
 
   /// Reference to the method used to check the `length` of the map.
   ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method.
-  /// Otherwise this is an `operator ==` method.
+  /// If this pattern has a rest pattern, this is an `operator >=` method. If
+  /// this is the empty map pattern, this an `operator <=` method. Otherwise
+  /// this is an `operator ==` method.
   ///
   /// This is set during inference.
   Reference? lengthCheckTargetReference;
@@ -1009,7 +1011,7 @@ class MapPattern extends Pattern {
   /// The method used to check the `length` of the map.
   ///
   /// If this pattern has a rest pattern, this is an `operator >=` method.
-  /// Otherwise this is an `operator ==` method.
+  /// Otherwise this is an `operator <=` method.
   ///
   /// This is set during inference.
   Procedure get lengthCheckTarget => lengthCheckTargetReference!.asProcedure;

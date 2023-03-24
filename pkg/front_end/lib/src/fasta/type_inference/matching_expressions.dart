@@ -128,16 +128,28 @@ class MatchingExpressionVisitor
             fileOffset: node.fileOffset);
       }
     } else {
-      CacheableExpression constExpression = matchingCache
-          .createIntConstant(node.patterns.length, fileOffset: node.fileOffset);
+      int length = node.patterns.length;
+      CacheableExpression constExpression =
+          matchingCache.createIntConstant(length, fileOffset: node.fileOffset);
 
-      lengthCheck = matchingCache.createEqualsExpression(
-          lengthGet,
-          constExpression,
-          new DelayedEqualsExpression(lengthGet, constExpression,
-              node.lengthCheckTarget, node.lengthCheckType!,
-              fileOffset: node.fileOffset),
-          fileOffset: node.fileOffset);
+      if (length == 0) {
+        lengthCheck = matchingCache.createComparisonExpression(
+            lengthGet,
+            lessThanOrEqualsName.text,
+            constExpression,
+            new DelayedInstanceInvocation(lengthGet, node.lengthCheckTarget,
+                node.lengthCheckType!, [constExpression],
+                fileOffset: node.fileOffset),
+            fileOffset: node.fileOffset);
+      } else {
+        lengthCheck = matchingCache.createEqualsExpression(
+            lengthGet,
+            constExpression,
+            new DelayedEqualsExpression(lengthGet, constExpression,
+                node.lengthCheckTarget, node.lengthCheckType!,
+                fileOffset: node.fileOffset),
+            fileOffset: node.fileOffset);
+      }
     }
 
     DelayedExpression? matchingExpression;
@@ -288,16 +300,27 @@ class MatchingExpressionVisitor
             fileOffset: node.fileOffset);
       }
     } else {
-      CacheableExpression constExpression = matchingCache
-          .createIntConstant(node.entries.length, fileOffset: node.fileOffset);
-
-      lengthCheck = matchingCache.createEqualsExpression(
-          lengthGet,
-          constExpression,
-          new DelayedEqualsExpression(lengthGet, constExpression,
-              node.lengthCheckTarget, node.lengthCheckType!,
-              fileOffset: node.fileOffset),
-          fileOffset: node.fileOffset);
+      int length = node.entries.length;
+      CacheableExpression constExpression =
+          matchingCache.createIntConstant(length, fileOffset: node.fileOffset);
+      if (length == 0) {
+        lengthCheck = matchingCache.createComparisonExpression(
+            lengthGet,
+            lessThanOrEqualsName.text,
+            constExpression,
+            new DelayedInstanceInvocation(lengthGet, node.lengthCheckTarget,
+                node.lengthCheckType!, [constExpression],
+                fileOffset: node.fileOffset),
+            fileOffset: node.fileOffset);
+      } else {
+        lengthCheck = matchingCache.createEqualsExpression(
+            lengthGet,
+            constExpression,
+            new DelayedEqualsExpression(lengthGet, constExpression,
+                node.lengthCheckTarget, node.lengthCheckType!,
+                fileOffset: node.fileOffset),
+            fileOffset: node.fileOffset);
+      }
     }
 
     DelayedExpression? matchingExpression;

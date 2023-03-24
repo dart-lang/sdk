@@ -165,7 +165,7 @@ static method ifCase(dynamic o) → core::int {
   }
   {
     final synthesized dynamic #20#0 = o;
-    if(#20#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #20#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C12) {
+    if(#20#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #20#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::<=}(#C12){(core::num) → core::bool}) {
       return 21;
     }
   }
@@ -354,7 +354,7 @@ static method ifCaseElse(dynamic o) → core::int {
                                           }
                                           else {
                                             final synthesized dynamic #20#0 = o;
-                                            if(#20#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #20#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C12) {
+                                            if(#20#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #20#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::<=}(#C12){(core::num) → core::bool}) {
                                               return 21;
                                             }
                                             else {
@@ -630,7 +630,7 @@ static method switchStatement(dynamic o) → core::int {
       }
     }
     {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t47 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C12) {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t47 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}).{core::num::<=}(#C12){(core::num) → core::bool}) {
         {
           return 21;
         }
@@ -879,7 +879,7 @@ static method switchExpression(dynamic o) → core::int {
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t82 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C12) {
+        if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t82 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}).{core::num::<=}(#C12){(core::num) → core::bool}) {
           #t61 = 21;
           break #L2;
         }
