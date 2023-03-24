@@ -25,7 +25,8 @@ void constructorTearOffStaticTests<T>() {
   // todo: consider cases -- https://github.com/dart-lang/linter/issues/2911
   // final c2 = C.m<int>; // LINT
   final C<int> Function() c3 = C.m; // LINT
-  final c4 = C.m<T>; // LINT
+  final c4 = C.m<int>; // LINT
+  final c5 = C.m<T>; // OK
   // final C<T> Function() c5 = C.m; // OK -- not constant
 }
 
