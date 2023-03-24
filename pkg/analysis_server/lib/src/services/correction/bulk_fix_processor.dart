@@ -132,13 +132,7 @@ class BulkFixProcessor {
     HintCode.DEPRECATED_MEMBER_USE: [
       DataDriven.new,
     ],
-    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE: [
-      DataDriven.new,
-    ],
     HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
-      DataDriven.new,
-    ],
-    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE: [
       DataDriven.new,
     ],
     WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
@@ -456,6 +450,16 @@ class BulkFixProcessor {
         await bulkApply(generators, codeName);
         if (isCancelled) {
           return;
+        }
+        var multiGenerators = FixProcessor.lintMultiProducerMap[codeName];
+        if (multiGenerators != null) {
+          for (var multiGenerator in multiGenerators) {
+            var multiProducer = multiGenerator();
+            multiProducer.configure(context);
+            for (var producer in await multiProducer.producers) {
+              await _generateFix(context, producer, codeName);
+            }
+          }
         }
       } else {
         var generators = FixProcessor.nonLintProducerMap[errorCode] ?? [];

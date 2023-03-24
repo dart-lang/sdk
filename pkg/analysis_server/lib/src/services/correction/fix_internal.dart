@@ -361,6 +361,13 @@ class FixInFileProcessor {
 
 /// The computer for Dart fixes.
 class FixProcessor extends BaseProcessor {
+  static final Map<String, List<MultiProducerGenerator>> lintMultiProducerMap =
+      {
+    LintNames.deprecated_member_use_from_same_package: [
+      DataDriven.new,
+    ],
+  };
+
   /// A map from the names of lint rules to a list of the generators that are
   /// used to create correction producers. The generators are then used to build
   /// fixes for those diagnostics. The generators used for non-lint diagnostics

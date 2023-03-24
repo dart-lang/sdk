@@ -99,6 +99,8 @@ class DocumentationValidator {
     'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
+    // This is deprecated.
+    'HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     // Produces two diagnostics when it should only produce one (see
     // https://github.com/dart-lang/sdk/issues/43051)
     'HintCode.UNNECESSARY_NULL_COMPARISON_FALSE',

@@ -348,14 +348,6 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
             e.errorCode == HintCode.UNUSED_ELEMENT,
       );
 
-      // Remove warnings about deprecated member use from the same library.
-      errors.removeWhere(
-        (e) =>
-            e.errorCode == HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE ||
-            e.errorCode ==
-                HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
-      );
-
       // Handle edge case around dart:_http
       errors.removeWhere((e) {
         if (e.message.contains("'dart:_http'")) {

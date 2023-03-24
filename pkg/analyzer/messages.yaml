@@ -19377,6 +19377,9 @@ HintCode:
     comment: |-
       Parameters:
       0: the name of the member
+
+      This code is deprecated in favor of the
+      'deprecated_member_from_same_package' lint rule, and will be removed.
     documentation: |-
       #### Description
 
@@ -19407,6 +19410,9 @@ HintCode:
       Parameters:
       0: the name of the member
       1: message details
+
+      This code is deprecated in favor of the
+      'deprecated_member_from_same_package' lint rule, and will be removed.
   DIVISION_OPTIMIZATION:
     problemMessage: The operator x ~/ y is more efficient than (x / y).toInt().
     correctionMessage: "Try re-writing the expression to use the '~/' operator."
