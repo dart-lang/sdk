@@ -22,6 +22,8 @@ class Co19TestSuite extends StandardTestSuite {
           "tests/$selector/$selector-kernel.status"
         ]);
 
+  @override
   bool isTestFile(String filename) => _testRegExp.hasMatch(filename);
+  @override
   bool get listRecursively => true;
 }

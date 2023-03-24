@@ -36,7 +36,7 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
     if (fields.length != other.fields.length) {
       return false;
     }
-    for (MapEntry<String, StaticType> field in fields.entries) {
+    for (MapEntry<Key, StaticType> field in fields.entries) {
       StaticType? type = other.fields[field.key];
       if (type == null) {
         return false;
@@ -47,18 +47,100 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
 
   @override
   String spaceToText(
-      Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
     StringBuffer buffer = new StringBuffer();
     buffer.write('(');
-    bool first = true;
-    fields.forEach((String name, StaticType staticType) {
-      if (!first) buffer.write(', ');
-      // TODO(johnniwinther): Ensure using Dart syntax for positional fields.
-      buffer.write('$name: ${spaceFields[name] ?? staticType}');
-      first = false;
+    String comma = '';
+    fields.forEach((Key key, StaticType staticType) {
+      if (key is RecordIndexKey) {
+        buffer.write(comma);
+        comma = ', ';
+        buffer.write('${spaceFields[key] ?? staticType}');
+      } else if (key is RecordNameKey) {
+        buffer.write(comma);
+        comma = ', ';
+        buffer.write('${key.name}: ${spaceFields[key] ?? staticType}');
+      }
     });
-
     buffer.write(')');
+    String additionalStart = '(';
+    String additionalEnd = '';
+    comma = '';
+    spaceFields.forEach((Key key, Space value) {
+      if (key is! RecordKey) {
+        buffer.write(additionalStart);
+        additionalStart = '';
+        additionalEnd = ')';
+        buffer.write(comma);
+        comma = ', ';
+        buffer.write('${key.name}: ${value}');
+      }
+    });
+    additionalSpaceFields.forEach((Key key, Space value) {
+      if (key is! RecordKey) {
+        buffer.write(additionalStart);
+        additionalStart = '';
+        additionalEnd = ')';
+        buffer.write(comma);
+        comma = ', ';
+        buffer.write('${key.name}: ${value}');
+      }
+    });
+    buffer.write(additionalEnd);
     return buffer.toString();
+  }
+
+  @override
+  void witnessToText(StringBuffer buffer, FieldWitness witness,
+      Map<Key, FieldWitness> witnessFields) {
+    buffer.write('(');
+    String comma = '';
+    for (Key key in fields.keys) {
+      if (key is RecordIndexKey) {
+        buffer.write(comma);
+        comma = ', ';
+
+        FieldWitness? field = witnessFields[key];
+        if (field != null) {
+          field.witnessToText(buffer);
+        } else {
+          buffer.write('_');
+        }
+      } else if (key is RecordNameKey) {
+        buffer.write(comma);
+        comma = ', ';
+
+        buffer.write(key.name);
+        buffer.write(': ');
+        FieldWitness? field = witnessFields[key];
+        if (field != null) {
+          field.witnessToText(buffer);
+        } else {
+          buffer.write('_');
+        }
+      }
+    }
+    buffer.write(')');
+
+    // If we have restrictions on the record type we create an and pattern.
+    String additionalStart = ' && Object(';
+    String additionalEnd = '';
+    comma = '';
+    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+      Key key = entry.key;
+      if (key is! RecordKey) {
+        buffer.write(additionalStart);
+        additionalStart = '';
+        additionalEnd = ')';
+        buffer.write(comma);
+        comma = ', ';
+
+        buffer.write(key.name);
+        buffer.write(': ');
+        FieldWitness field = entry.value;
+        field.witnessToText(buffer);
+      }
+    }
+    buffer.write(additionalEnd);
   }
 }

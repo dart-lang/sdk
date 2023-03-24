@@ -9,7 +9,6 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method test() → dynamic {
   {
@@ -27,7 +26,7 @@ static method test() → dynamic {
             return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
           late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
           if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = x = #0#6{core::int} in true))))
-            throw new _in::ReachabilityError::•();
+            throw new core::StateError::•("Pattern matching error");
         }
       }
     }

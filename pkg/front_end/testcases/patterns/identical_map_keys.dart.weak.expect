@@ -334,7 +334,7 @@ static method test() → dynamic {
     late final synthesized core::bool #0#5 = #0#0{core::Map<self::C, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
     late final synthesized core::int? #0#6 = #0#0{core::Map<self::C, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
     if(!(#0#0{core::Map<self::C, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#5 && (let final dynamic #t20 = a = #0#6{core::int} in true) && #0#5 && (let final dynamic #t21 = b = #0#6{core::int} in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   core::int c;
   core::int d;
@@ -343,7 +343,7 @@ static method test() → dynamic {
     late final synthesized core::bool #1#5 = #1#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
     late final synthesized core::int? #1#6 = #1#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?};
     if(!(#1#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #1#5 && (let final dynamic #t22 = c = #1#6{core::int} in true) && #1#5 && (let final dynamic #t23 = d = #1#6{core::int} in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   final core::int a1;
   final core::int b1;
@@ -352,7 +352,7 @@ static method test() → dynamic {
     late final synthesized core::bool #2#5 = #2#0{core::Map<self::C, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
     late final synthesized core::int? #2#6 = #2#0{core::Map<self::C, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
     if(!(#2#0{core::Map<self::C, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #2#5 && (let final dynamic #t24 = a1 = #2#6{core::int} in true) && #2#5 && (let final dynamic #t25 = b1 = #2#6{core::int} in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   final core::int a2;
   final core::int b2;
@@ -361,7 +361,7 @@ static method test() → dynamic {
     late final synthesized core::bool #3#5 = #3#0{core::Map<core::double, core::int>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
     late final synthesized core::int? #3#6 = #3#0{core::Map<core::double, core::int>}.{core::Map::[]}(#C4){(core::Object?) → core::int?};
     if(!(#3#0{core::Map<core::double, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #3#5 && (let final dynamic #t26 = a2 = #3#6{core::int} in true) && #3#5 && (let final dynamic #t27 = b2 = #3#6{core::int} in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   final core::int a3;
   final core::int b3;
@@ -370,7 +370,7 @@ static method test() → dynamic {
     late final synthesized core::bool #4#5 = #4#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
     late final synthesized core::int? #4#6 = #4#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?};
     if(!(#4#0{core::Map<core::String, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #4#5 && (let final dynamic #t28 = a3 = #4#6{core::int} in true) && #4#5 && (let final dynamic #t29 = b3 = #4#6{core::int} in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
 }
 

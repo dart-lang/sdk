@@ -127,7 +127,7 @@ void exhaustiveNullableSwitch(bool? b) {
 
 void nonExhaustiveNullableSwitch1(bool? b) {
   /*
-   error=non-exhaustive:Null,
+   error=non-exhaustive:null,
    expandedSubtypes={true,false,Null},
    subtypes={bool,Null},
    type=bool?

@@ -37,7 +37,10 @@ void main() async {
 }
 
 class FakeBrowser extends Browser {
+  @override
   Future<bool> start(String url) => Future.value(true);
+  @override
   Future<bool> close() => Future.value(true);
+  @override
   Future<String> version = Future.value('fake version');
 }

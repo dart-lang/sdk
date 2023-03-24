@@ -29,6 +29,16 @@ dynamic? a;
     ]);
   }
 
+  test_dynamicQuestionMark_inVariableDeclarationPattern() async {
+    await assertErrorsInCode('''
+void f(List<Object> a) {
+  var [dynamic? _] = a;
+}
+''', [
+      error(WarningCode.UNNECESSARY_QUESTION_MARK, 39, 1),
+    ]);
+  }
+
   test_Null() async {
     await assertNoErrorsInCode('''
 Null a;
@@ -40,6 +50,18 @@ Null a;
 Null? a;
 ''', [
       error(WarningCode.UNNECESSARY_QUESTION_MARK, 4, 1),
+    ]);
+  }
+
+  test_NullQuestionMark_inCastPattern() async {
+    await assertErrorsInCode('''
+void f(Object a) {
+  switch (a) {
+    case var _ as Null?:
+  }
+}
+''', [
+      error(WarningCode.UNNECESSARY_QUESTION_MARK, 56, 1),
     ]);
   }
 

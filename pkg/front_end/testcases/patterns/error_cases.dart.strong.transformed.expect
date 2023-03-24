@@ -34,7 +34,7 @@ library /*isNonNullableByDefault*/;
 //          ^
 //
 import self as self;
-import "dart:_internal" as _in;
+import "dart:core" as core;
 
 static method method() → dynamic {
   final dynamic Square;
@@ -47,6 +47,6 @@ static method method() → dynamic {
 Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
   final (42) = 42;
          ^")
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
 }

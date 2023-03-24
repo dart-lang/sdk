@@ -34,7 +34,7 @@ method(A a) {
     /*space=C(field: int)*/case C(:var field):
   }
   /*
-   error=non-exhaustive:B,
+   error=non-exhaustive:B(),
    fields={field:int},
    subtypes={B,C},
    type=A
@@ -43,7 +43,7 @@ method(A a) {
     /*space=C(field: int)*/case C(:var field):
   }
   /*
-   error=non-exhaustive:C,
+   error=non-exhaustive:C(),
    fields={field:int},
    subtypes={B,C},
    type=A

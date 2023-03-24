@@ -93,11 +93,11 @@ exhaustiveNoSuchMethod(Typedef o) {
 
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*cfe.
-   error=non-exhaustive:<invalid>(hashCode: int),
+   error=non-exhaustive:<invalid> _ && Object(hashCode: int()),
    fields={hashCode:int},
    type=<invalid>
   *//*analyzer.
-   error=non-exhaustive:Object(hashCode: int),
+   error=non-exhaustive:Object(hashCode: int()),
    fields={hashCode:int},
    subtypes={Object,Null},
    type=Object?
@@ -108,11 +108,11 @@ nonExhaustiveRestrictedValue(Typedef o) {
 
 nonExhaustiveRestrictedType(Typedef o) {
   return /*cfe.
-   error=non-exhaustive:<invalid>(noSuchMethod: dynamic Function(Invocation)),
+   error=non-exhaustive:<invalid> _ && Object(noSuchMethod: dynamic Function(Invocation) _),
    fields={noSuchMethod:dynamic Function(Invocation)},
    type=<invalid>
   *//*analyzer.
-   error=non-exhaustive:Object(noSuchMethod: dynamic Function(Invocation)),
+   error=non-exhaustive:Object(noSuchMethod: dynamic Function(Invocation) _),
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={Object,Null},
    type=Object?

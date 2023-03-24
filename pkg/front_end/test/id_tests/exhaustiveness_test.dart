@@ -72,7 +72,7 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
       Features features = new Features();
       features[Tags.scrutineeType] = staticTypeToText(result.scrutineeType);
       Set<Key> keysOfInterest = {};
-      Set<String> fieldsOfInterest = {};
+      Set<Key> fieldsOfInterest = {};
       for (Space caseSpace in result.caseSpaces) {
         for (SingleSpace singleSpace in caseSpace.singleSpaces) {
           fieldsOfInterest.addAll(singleSpace.fields.keys);

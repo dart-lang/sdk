@@ -9,6 +9,7 @@ library get_object_rpc_test;
 
 import 'dart:collection';
 import 'dart:convert' show base64Decode;
+import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
@@ -93,6 +94,9 @@ getDummyInterfaceClass() => _DummyInterfaceClass();
 
 @pragma("vm:entry-point")
 getDummyClassWithMixins() => _DummyClassWithMixins();
+
+@pragma("vm:entry-point")
+getUserTag() => UserTag('Test Tag');
 
 var tests = <IsolateTest>[
   // null object.
@@ -1540,6 +1544,17 @@ var tests = <IsolateTest>[
     } on RPCError catch (e) {
       expect(e.code, equals(RPCError.kInvalidParams));
     }
+  },
+
+  // UserTag
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    // Call eval to get a UserTag id.
+    final evalResult = await service.invoke(
+        isolateId, isolate.rootLib!.id!, 'getUserTag', []) as InstanceRef;
+    final result = await service.getObject(isolateId, evalResult.id!) as Instance;
+    expect(result.label, equals('Test Tag'));
   },
 
   // code.

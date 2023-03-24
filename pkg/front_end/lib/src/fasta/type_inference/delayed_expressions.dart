@@ -154,7 +154,13 @@ class DelayedAndExpression implements DelayedExpression {
       DelayedExpression? left, DelayedExpression right,
       {required int fileOffset}) {
     if (left != null) {
-      return new DelayedAndExpression(left, right, fileOffset: fileOffset);
+      if (left is BooleanExpression && left.value) {
+        return right;
+      } else if (right is BooleanExpression && right.value) {
+        return left;
+      } else {
+        return new DelayedAndExpression(left, right, fileOffset: fileOffset);
+      }
     } else {
       return right;
     }

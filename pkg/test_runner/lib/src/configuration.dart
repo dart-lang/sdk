@@ -484,5 +484,6 @@ class Progress {
 
   const Progress._(this.name);
 
+  @override
   String toString() => "Progress($name)";
 }

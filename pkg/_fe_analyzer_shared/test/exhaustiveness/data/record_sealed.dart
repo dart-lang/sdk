@@ -16,9 +16,9 @@ method(Class c) {
    fields={field:(A, A)},
    type=Class
   */switch (c) {
-    /*space=Class(field: ($1: A, $2: B))*/case Class(field: (A a, B b)):
+    /*space=Class(field: (A, B))*/case Class(field: (A a, B b)):
       print('1');
-    /*space=Class(field: ($1: B, $2: A))*/case Class(field: (B b, A a)):
+    /*space=Class(field: (B, A))*/case Class(field: (B b, A a)):
       print('2');
     default:
   }

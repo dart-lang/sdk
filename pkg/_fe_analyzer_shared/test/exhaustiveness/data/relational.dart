@@ -12,7 +12,7 @@ equals(o1, o2) {
   };
 
   var b = /*
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {
@@ -30,7 +30,7 @@ greaterThan(o1, o2) {
   };
 
   var b = /*
-   error=non-exhaustive:Object,
+   error=non-exhaustive:Object(),
    subtypes={Object,Null},
    type=Object?
   */switch (o2) {

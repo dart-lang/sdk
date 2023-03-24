@@ -109,7 +109,7 @@ class ListPatternStaticType<Type extends Object>
 
   @override
   String spaceToText(
-      Map<String, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
     StringBuffer buffer = new StringBuffer();
     buffer.write(restriction.typeArgumentText);
     buffer.write('[');
@@ -126,6 +126,83 @@ class ListPatternStaticType<Type extends Object>
 
     buffer.write(']');
     return buffer.toString();
+  }
+
+  @override
+  void witnessToText(StringBuffer buffer, FieldWitness witness,
+      Map<Key, FieldWitness> witnessFields) {
+    int maxHeadSize = 0;
+    int maxTailSize = 0;
+    FieldWitness? restWitness;
+    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+      Key key = entry.key;
+      if (key is HeadKey && key.index >= maxHeadSize) {
+        maxHeadSize = key.index + 1;
+      } else if (key is TailKey && key.index >= maxHeadSize) {
+        maxTailSize = key.index + 1;
+      } else if (key is RestKey) {
+        // TODO(johnniwinther): Can the rest key have head/tail sizes that don't
+        // match the found max head/tail sizes?
+        restWitness = entry.value;
+      }
+    }
+    if (maxHeadSize + maxTailSize < restriction.size) {
+      maxHeadSize = restriction.size - maxTailSize;
+    }
+    buffer.write('[');
+    String comma = '';
+    for (int index = 0; index < maxHeadSize; index++) {
+      buffer.write(comma);
+      Key key = new HeadKey(index);
+      FieldWitness? witness = witnessFields[key];
+      if (witness != null) {
+        witness.witnessToText(buffer);
+      } else {
+        buffer.write('_');
+      }
+      comma = ', ';
+    }
+    if (restriction.hasRest) {
+      buffer.write(comma);
+      buffer.write('...');
+      if (restWitness != null) {
+        restWitness.witnessToText(buffer);
+      }
+      comma = ', ';
+    }
+    for (int index = maxTailSize - 1; index >= 0; index--) {
+      buffer.write(comma);
+      Key key = new TailKey(index);
+      FieldWitness? witness = witnessFields[key];
+      if (witness != null) {
+        witness.witnessToText(buffer);
+      } else {
+        buffer.write('_');
+      }
+      comma = ', ';
+    }
+    buffer.write(']');
+
+    // If we have restrictions on the record type we create an and pattern.
+    String additionalStart = ' && Object(';
+    String additionalEnd = '';
+    comma = '';
+    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+      Key key = entry.key;
+      if (key is! ListKey) {
+        buffer.write(additionalStart);
+        additionalStart = '';
+        additionalEnd = ')';
+        buffer.write(comma);
+        comma = ', ';
+
+        buffer.write(key.name);
+        buffer.write(': ');
+        FieldWitness field = entry.value;
+        field.witnessToText(buffer);
+      }
+    }
+    buffer.write(additionalEnd);
   }
 }
 

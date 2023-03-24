@@ -444,6 +444,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
   Library get currentLibrary => _staticTypeContext!.enclosingLibrary;
 
+  bool get enablePrimitiveEquality => currentLibrary.languageVersion.major >= 3;
+
   // Transform the library/class members:
 
   void convertLibrary(Library library) {
@@ -1110,7 +1112,8 @@ class ConstantsTransformer extends RemovingTransformer {
             if (pattern is ConstantPattern) {
               Constant constant = pattern.value!;
               if (!constantEvaluator.hasPrimitiveEqual(constant,
-                  allowPseudoPrimitive: false)) {
+                  allowPseudoPrimitive: false,
+                  usePrimitiveEquality: enablePrimitiveEquality)) {
                 primitiveEqualConstantsOnly = false;
               }
             } else {
@@ -1564,7 +1567,8 @@ class ConstantsTransformer extends RemovingTransformer {
       for (SwitchCase switchCase in node.cases) {
         for (Expression caseExpression in switchCase.expressions) {
           if (caseExpression is ConstantExpression) {
-            if (!constantEvaluator.hasPrimitiveEqual(caseExpression.constant)) {
+            if (!constantEvaluator.hasPrimitiveEqual(caseExpression.constant,
+                usePrimitiveEquality: enablePrimitiveEquality)) {
               constantEvaluator.errorReporter.report(
                   constantEvaluator.createLocatedMessage(
                       caseExpression,
@@ -1665,8 +1669,11 @@ class ConstantsTransformer extends RemovingTransformer {
       createIfStatement(
           createNot(readMatchingExpression),
           createExpressionStatement(createThrow(createConstructorInvocation(
-              typeEnvironment.coreTypes.reachabilityErrorConstructor,
-              createArguments([], fileOffset: node.fileOffset),
+              typeEnvironment.coreTypes.stateErrorConstructor,
+              createArguments([
+                createStringLiteral(messagePatternMatchingError.problemMessage,
+                    fileOffset: node.fileOffset)
+              ], fileOffset: node.fileOffset),
               fileOffset: node.fileOffset))),
           fileOffset: node.fileOffset),
     ];
@@ -1807,7 +1814,8 @@ class ConstantsTransformer extends RemovingTransformer {
           if (pattern is ConstantPattern) {
             Constant constant = pattern.value!;
             if (!constantEvaluator.hasPrimitiveEqual(constant,
-                allowPseudoPrimitive: false)) {
+                allowPseudoPrimitive: false,
+                usePrimitiveEquality: enablePrimitiveEquality)) {
               primitiveEqualConstantsOnly = false;
               break;
             }
@@ -3653,7 +3661,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   Constant _handleEquals(Expression node, Constant left, Constant right) {
     if (enablePrimitiveEquality) {
-      if (hasPrimitiveEqual(left) ||
+      if (hasPrimitiveEqual(left, usePrimitiveEquality: true) ||
           left is DoubleConstant ||
           right is NullConstant) {
         return doubleSpecialCases(left, right) ??
@@ -4890,20 +4898,22 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   bool get enablePrimitiveEquality => currentLibrary.languageVersion.major >= 3;
 
   bool hasPrimitiveEqual(Constant constant,
-      {bool allowPseudoPrimitive = true}) {
+      {bool allowPseudoPrimitive = true, required bool usePrimitiveEquality}) {
     if (intFolder.isInt(constant)) return true;
     if (constant is RecordConstant) {
       bool nonPrimitiveEqualsFound = false;
       for (Constant field in constant.positional) {
         if (!hasPrimitiveEqual(field,
-            allowPseudoPrimitive: allowPseudoPrimitive)) {
+            allowPseudoPrimitive: allowPseudoPrimitive,
+            usePrimitiveEquality: usePrimitiveEquality)) {
           nonPrimitiveEqualsFound = true;
           break;
         }
       }
       for (Constant field in constant.named.values) {
         if (!hasPrimitiveEqual(field,
-            allowPseudoPrimitive: allowPseudoPrimitive)) {
+            allowPseudoPrimitive: allowPseudoPrimitive,
+            usePrimitiveEquality: usePrimitiveEquality)) {
           nonPrimitiveEqualsFound = true;
           break;
         }
@@ -4919,7 +4929,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       if (result && !allowPseudoPrimitive) {
         result = !pseudoPrimitiveClasses.contains(cls);
       }
-      if (result && enablePrimitiveEquality) {
+      if (result && usePrimitiveEquality) {
         result = classHasPrimitiveHashCode(cls);
       }
       return result;

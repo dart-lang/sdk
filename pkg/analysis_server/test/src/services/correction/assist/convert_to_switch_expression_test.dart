@@ -62,6 +62,46 @@ void f(Color color) {
 ''');
   }
 
+  Future<void> test_argument_switchExpression_noBreaks() async {
+    await resolveTestCode('''
+enum Color {
+  red, blue, green, yellow
+}
+    
+void f(Color color) {
+  switch (color) {
+    case Color.red:
+      print('red'); // Red.
+    case Color.blue:
+      print('blue');
+    // Not green.
+    case Color.green:
+      throw 'Green is bad';
+    case Color.yellow:
+      // Yellow is OK.
+      print('yellow');
+  }
+}
+''');
+    await assertHasAssistAt('(color)', '''
+enum Color {
+  red, blue, green, yellow
+}
+    
+void f(Color color) {
+  print(switch (color) {
+    Color.red => 'red', // Red.
+    Color.blue => 'blue',
+    // Not green.
+    Color.green => throw 'Green is bad',
+    Color.yellow => 
+      // Yellow is OK.
+      'yellow'
+  });
+}
+''');
+  }
+
   Future<void> test_assignment_switchExpression() async {
     await resolveTestCode('''
 enum Color {
@@ -84,6 +124,50 @@ String f(Color color) {
       // Yellow is OK.
       name = 'yellow';
       break;
+  }
+  return name;
+}
+''');
+    await assertHasAssistAt('(color)', '''
+enum Color {
+  red, blue, green, yellow
+}
+    
+String f(Color color) {
+  var name = '';
+  name = switch (color) {
+    Color.red => 'red',
+    Color.blue => 'blue', // Blue!
+    // Not green.
+    Color.green => throw 'Green is bad',
+    Color.yellow =>
+      // Yellow is OK.
+      'yellow'
+  };
+  return name;
+}
+''');
+  }
+
+  Future<void> test_assignment_switchExpression_noBreaks() async {
+    await resolveTestCode('''
+enum Color {
+  red, blue, green, yellow
+}
+    
+String f(Color color) {
+  var name = '';
+  switch (color) {
+    case Color.red:
+      name = 'red';
+    case Color.blue:
+      name = 'blue'; // Blue!
+    // Not green.
+    case Color.green:
+      throw 'Green is bad';
+    case Color.yellow:
+      // Yellow is OK.
+      name = 'yellow';
   }
   return name;
 }

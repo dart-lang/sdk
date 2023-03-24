@@ -283,38 +283,20 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           expectedResult: '0');
     });
 
-    // TODO(annagrin): Remove renamed variables here and below after
-    // const evaluator stops renaming variables used in cases.
-    //
-    // Issue: https://github.com/dart-lang/sdk/issues/51554
     test('first case scope', () async {
-      await driver.checkScope(breakpointId: 'bp1', expectedScope: {
-        'a': '1',
-        'b': '2',
-        r'a$351': r'a$351',
-        r'b$351': r'b$351',
-        'obj': 'obj'
-      });
+      await driver.checkScope(
+          breakpointId: 'bp1',
+          expectedScope: {'a': '1', 'b': '2', 'obj': 'obj'});
     });
 
     test('second case scope', () async {
-      await driver.checkScope(breakpointId: 'bp2', expectedScope: {
-        'a': '10',
-        'b': '10',
-        r'a$351': '10',
-        r'b$351': '\'20\'',
-        'obj': 'obj'
-      });
+      await driver.checkScope(
+          breakpointId: 'bp2',
+          expectedScope: {'a': '10', 'b': '\'20\'', 'obj': 'obj'});
     });
 
     test('default case scope', () async {
-      await driver.checkScope(breakpointId: 'bp3', expectedScope: {
-        'a': 'a',
-        'b': 'b',
-        r'a$351': r'a$351',
-        r'b$351': r'b$351',
-        'obj': '0'
-      });
+      await driver.checkScope(breakpointId: 'bp3', expectedScope: {'obj': '0'});
     });
 
     test('result scope', () async {

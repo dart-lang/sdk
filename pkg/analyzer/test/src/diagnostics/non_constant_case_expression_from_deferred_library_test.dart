@@ -110,6 +110,37 @@ void f(int e) {
       error(expectedErrorCode, 74, 1),
     ]);
   }
+
+  test_simple_typeLiteral() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {}
+''');
+
+    final ErrorCode expectedErrorCode;
+    switch (_variant) {
+      case _Variant.nullSafe:
+        expectedErrorCode = CompileTimeErrorCode
+            .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
+        break;
+      case _Variant.patterns:
+        expectedErrorCode =
+            CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
+        break;
+    }
+
+    await assertErrorsInCode('''
+import 'a.dart' deferred as a;
+
+void f(Object? x) {
+  switch (x) {
+    case a.A:
+      break;
+  }
+}
+''', [
+      error(expectedErrorCode, 78, 1),
+    ]);
+  }
 }
 
 enum _Variant { nullSafe, patterns }

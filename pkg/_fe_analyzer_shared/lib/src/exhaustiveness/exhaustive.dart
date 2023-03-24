@@ -167,7 +167,7 @@ class _Checker {
     // We have now filtered by the type test of the first column of patterns,
     // but some of those may also have field subpatterns. If so, lift those out
     // so we can recurse into them.
-    Set<String> fieldNames = {
+    Set<Key> fieldKeys = {
       ...firstSingleSpaceValue.fields.keys,
       for (SingleSpace firstPattern in remainingRowFirstSingleSpaces)
         ...firstPattern.fields.keys
@@ -180,13 +180,13 @@ class _Checker {
     };
 
     // Sorting isn't necessary, but makes the behavior deterministic.
-    List<String> sortedFieldNames = fieldNames.toList()..sort();
+    List<Key> sortedFieldKeys = fieldKeys.toList()..sort();
     List<Key> sortedAdditionalFieldKeys = additionalFieldKeys.toList()..sort();
 
     // Remove the first column from the value list and replace it with any
     // expanded fields.
     valueSpaces = [
-      ..._expandFields(sortedFieldNames, sortedAdditionalFieldKeys,
+      ..._expandFields(sortedFieldKeys, sortedAdditionalFieldKeys,
           firstSingleSpaceValue, type, path),
       ...valueSpaces.skip(1)
     ];
@@ -196,7 +196,7 @@ class _Checker {
     for (int i = 0; i < remainingRows.length; i++) {
       remainingRows[i] = [
         ..._expandFields(
-            sortedFieldNames,
+            sortedFieldKeys,
             sortedAdditionalFieldKeys,
             remainingRowFirstSingleSpaces[i],
             remainingRowFirstSingleSpaces[i].type,
@@ -209,7 +209,7 @@ class _Checker {
     return _unmatched(remainingRows, valueSpaces, extendedWitness);
   }
 
-  /// Given a list of [fieldNames] and [additionalFieldKeys], and a
+  /// Given a list of [fieldKeys] and [additionalFieldKeys], and a
   /// [singleSpace], generates a list of single spaces, one for each named field
   /// and additional field key.
   ///
@@ -220,25 +220,19 @@ class _Checker {
   ///
   /// In other words, this unpacks a set of fields so that the main algorithm
   /// can add them to the worklist.
-  List<Space> _expandFields(
-      List<String> fieldNames,
-      List<Key> additionalFieldKeys,
-      SingleSpace singleSpace,
-      StaticType type,
-      Path path) {
+  List<Space> _expandFields(List<Key> fieldKeys, List<Key> additionalFieldKeys,
+      SingleSpace singleSpace, StaticType type, Path path) {
     profile.count('_expandFields');
     List<Space> result = <Space>[];
-    for (String fieldName in fieldNames) {
-      Space? field = singleSpace.fields[fieldName];
+    for (Key key in fieldKeys) {
+      Space? field = singleSpace.fields[key];
       if (field != null) {
         result.add(field);
       } else {
         // This pattern doesn't test this field, so add a pattern for the
         // field that matches all values. This way the columns stay aligned.
-        result.add(new Space(
-            path.add(fieldName),
-            type.getField(_fieldLookup, fieldName) ??
-                StaticType.nullableObject));
+        result.add(new Space(path.add(key),
+            type.getField(_fieldLookup, key) ?? StaticType.nullableObject));
       }
     }
     for (Key key in additionalFieldKeys) {
@@ -248,7 +242,7 @@ class _Checker {
       } else {
         // This pattern doesn't test this field, so add a pattern for the
         // field that matches all values. This way the columns stay aligned.
-        result.add(new Space(path.add(key.name),
+        result.add(new Space(path.add(key),
             type.getAdditionalField(key) ?? StaticType.nullableObject));
       }
     }

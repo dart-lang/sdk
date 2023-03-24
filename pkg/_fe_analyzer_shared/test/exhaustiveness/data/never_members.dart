@@ -56,7 +56,7 @@ exhaustiveNoSuchMethod(Typedef o) {
 
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*
-   error=non-exhaustive:Never(hashCode: int),
+   error=non-exhaustive:Never(hashCode: int()),
    fields={hashCode:int},
    type=Never
   */switch (o) {
@@ -66,7 +66,7 @@ nonExhaustiveRestrictedValue(Typedef o) {
 
 nonExhaustiveRestrictedType(Typedef o) {
   return /*
-   error=non-exhaustive:Never(noSuchMethod: dynamic Function(Invocation)),
+   error=non-exhaustive:Never(noSuchMethod: dynamic Function(Invocation) _),
    fields={noSuchMethod:dynamic Function(Invocation)},
    type=Never
   */switch (o) {
@@ -76,7 +76,7 @@ nonExhaustiveRestrictedType(Typedef o) {
 
 unreachableMethod(Typedef o) {
   return /*
-   error=non-exhaustive:Never(hashCode: int, noSuchMethod: dynamic Function(Invocation), runtimeType: Type, toString: String Function()),
+   error=non-exhaustive:Never(hashCode: int(), noSuchMethod: dynamic Function(Invocation) _, runtimeType: Type(), toString: String Function() _),
    fields={hashCode:int,noSuchMethod:dynamic Function(Invocation),runtimeType:Type,toString:String Function()},
    type=Never
   */switch (o) {

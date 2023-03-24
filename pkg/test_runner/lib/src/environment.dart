@@ -48,7 +48,7 @@ String _runtimeName(TestConfiguration configuration) {
   return configuration.runtime.name;
 }
 
-List<String> _runtimeNames = ['ff', 'drt']..addAll(Runtime.names);
+List<String> _runtimeNames = ['ff', 'drt', ...Runtime.names];
 
 /// Gets the name of the runtime as it appears in status files.
 String _systemName(TestConfiguration configuration) {
@@ -60,7 +60,7 @@ String _systemName(TestConfiguration configuration) {
   return configuration.system.name;
 }
 
-List<String> _systemNames = ['windows', 'macos']..addAll(System.names);
+List<String> _systemNames = ['windows', 'macos', ...System.names];
 
 /// Defines the variables that are available for use inside a status file
 /// section header.
@@ -77,6 +77,7 @@ class ConfigurationEnvironment implements Environment {
   /// against [value].
   ///
   /// If any errors are found, adds them to [errors].
+  @override
   void validate(String name, String value, List<String> errors) {
     var variable = _variables[name];
     if (variable == null) {
@@ -89,13 +90,13 @@ class ConfigurationEnvironment implements Environment {
 
     if (!variable.allowedValues.contains(value)) {
       errors.add(
-          'Variable "$name" cannot have value "$value". Allowed values are:\n' +
-              variable.allowedValues.join(', ') +
-              '.');
+          'Variable "$name" cannot have value "$value". Allowed values are:\n'
+          '${variable.allowedValues.join(', ')}.');
     }
   }
 
   /// Looks up the value of the variable with [name].
+  @override
   String lookUp(String name) {
     var variable = _variables[name];
     if (variable == null) {

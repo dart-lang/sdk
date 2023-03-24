@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:test/test.dart';
 
@@ -143,21 +144,21 @@ void main() {
     expect(b.fields, isEmpty);
 
     expect(c.fields, hasLength(2));
-    expect(c.fields['x'], a);
-    expect(c.fields['y'], b);
+    expect(c.fields[NameKey('x')], a);
+    expect(c.fields[NameKey('y')], b);
 
     // Fields are inherited.
     expect(e.fields, hasLength(4));
-    expect(e.fields['x'], a);
-    expect(e.fields['y'], b);
-    expect(e.fields['w'], a);
-    expect(e.fields['z'], b);
+    expect(e.fields[NameKey('x')], a);
+    expect(e.fields[NameKey('y')], b);
+    expect(e.fields[NameKey('w')], a);
+    expect(e.fields[NameKey('z')], b);
 
     // Overridden field types win.
     var f = env.createClass('F', fields: {'x': a});
     var g = env.createClass('G', inherits: [f], fields: {'x': b});
     expect(g.fields, hasLength(1));
-    expect(g.fields['x'], b);
+    expect(g.fields[NameKey('x')], b);
   });
 
   test('subtypes', () {

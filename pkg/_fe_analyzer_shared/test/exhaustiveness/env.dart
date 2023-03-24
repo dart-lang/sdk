@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
@@ -22,7 +23,7 @@ class TestEnvironment implements ObjectFieldLookup {
   }
 
   Map<String, _Class> _classes = {};
-  Map<_Class, Map<String, _Type>> _fields = {};
+  Map<_Class, Map<Key, _Type>> _fields = {};
   Map<_Class, Set<_InterfaceType>> _supertypes = {};
   Map<_Class, Set<_InterfaceType>> _subtypes = {};
 
@@ -62,7 +63,7 @@ class TestEnvironment implements ObjectFieldLookup {
     return _subtypes[cls] ?? const {};
   }
 
-  Map<String, _Type> _getFields(_Class cls) {
+  Map<Key, _Type> _getFields(_Class cls) {
     return _fields[cls] ?? const {};
   }
 
@@ -85,11 +86,11 @@ class TestEnvironment implements ObjectFieldLookup {
     }
 
     if (fields.isNotEmpty) {
-      Map<String, _Type> fieldMap = _fields[cls] ??= {};
+      Map<Key, _Type> fieldMap = _fields[cls] ??= {};
       for (MapEntry<String, StaticType> entry in fields.entries) {
         assert(!fieldMap.containsKey(entry.key),
             "Duplicate field '${entry.key}' in $cls.");
-        fieldMap[entry.key] = _typeFromStaticType(entry.value);
+        fieldMap[new NameKey(entry.key)] = _typeFromStaticType(entry.value);
       }
     }
 
@@ -117,17 +118,18 @@ class TestEnvironment implements ObjectFieldLookup {
   }
 
   StaticType createRecordType(Map<String, StaticType> named) {
-    Map<String, _Type> namedTypes = {};
+    Map<Key, _Type> namedTypes = {};
     for (MapEntry<String, StaticType> entry in named.entries) {
-      namedTypes[entry.key] = _typeFromStaticType(entry.value);
+      namedTypes[new RecordNameKey(entry.key)] =
+          _typeFromStaticType(entry.value);
     }
     _Type type = new _RecordType([], namedTypes);
     return _exhaustivenessCache.getStaticType(type);
   }
 
   @override
-  StaticType? getObjectFieldType(String name) {
-    return _exhaustivenessCache.getObjectFieldType(name);
+  StaticType? getObjectFieldType(Key key) {
+    return _exhaustivenessCache.getObjectFieldType(key);
   }
 }
 
@@ -201,7 +203,7 @@ class _NullableType implements _Type {
 
 class _RecordType implements _Type {
   final List<_Type> positional;
-  final Map<String, _Type> named;
+  final Map<Key, _Type> named;
 
   _RecordType(this.positional, this.named);
 
@@ -222,7 +224,7 @@ class _RecordType implements _Type {
         return false;
       }
     }
-    for (MapEntry<String, _Type> entry in named.entries) {
+    for (MapEntry<Key, _Type> entry in named.entries) {
       if (entry.value != other.named[entry.key]) return false;
     }
     return true;
@@ -242,9 +244,9 @@ class _RecordType implements _Type {
       sb.write(comma);
       sb.write('{');
       comma = '';
-      for (MapEntry<String, _Type> entry in named.entries) {
+      for (MapEntry<Key, _Type> entry in named.entries) {
         sb.write(comma);
-        sb.write(entry.key);
+        sb.write(entry.key.name);
         sb.write(': ');
         sb.write(entry.value);
         comma = ', ';
@@ -265,21 +267,22 @@ class _TypeOperations implements TypeOperations<_Type> {
   _Type get boolType => _Type.Bool;
 
   @override
-  Map<String, _Type> getFieldTypes(_Type type) {
+  Map<Key, _Type> getFieldTypes(_Type type) {
     if (type is _InterfaceType) {
-      Map<String, _Type> fields = {};
+      Map<Key, _Type> fields = {};
       for (_InterfaceType supertype in env._getSupertypes(type.cls)) {
         fields.addAll(getFieldTypes(supertype));
       }
       fields.addAll(env._getFields(type.cls));
       return fields;
     } else if (type is _RecordType) {
-      Map<String, _Type> fields = {};
+      Map<Key, _Type> fields = {};
       fields.addAll(getFieldTypes(_Type.Object));
       for (int i = 0; i < type.positional.length; i++) {
-        fields['\$${i + 1}'] = type.positional[i];
+        fields[new RecordIndexKey(i)] = type.positional[i];
       }
-      fields.addAll(type.named);
+      fields.addAll(type.named.map(
+          (key, value) => new MapEntry(new RecordNameKey(key.name), value)));
       return fields;
     } else {
       return getFieldTypes(_Type.Object);
@@ -412,6 +415,11 @@ class _TypeOperations implements TypeOperations<_Type> {
   _Type? getMapValueType(_Type type) {
     // TODO(johnniwinther): Support map types in testing.
     return null;
+  }
+
+  @override
+  bool hasSimpleName(_Type type) {
+    return type is _InterfaceType;
   }
 }
 

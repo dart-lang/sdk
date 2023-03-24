@@ -11,13 +11,11 @@ class BoolStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
   @override
   bool get isSealed => true;
 
-  late StaticType trueType =
-      new RestrictedStaticType<Type, IdentityRestriction<bool>>(_typeOperations,
-          _fieldLookup, _type, const IdentityRestriction<bool>(true), 'true');
+  late StaticType trueType = new ValueStaticType<Type, bool>(_typeOperations,
+      _fieldLookup, _type, const IdentityRestriction<bool>(true), 'true');
 
-  late StaticType falseType =
-      new RestrictedStaticType<Type, IdentityRestriction<bool>>(_typeOperations,
-          _fieldLookup, _type, const IdentityRestriction<bool>(false), 'false');
+  late StaticType falseType = new ValueStaticType<Type, bool>(_typeOperations,
+      _fieldLookup, _type, const IdentityRestriction<bool>(false), 'false');
 
   @override
   Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) =>

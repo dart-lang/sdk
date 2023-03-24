@@ -257,7 +257,7 @@ static method testUnresolved(dynamic o) → dynamic {
       return #0#0{invalid-type}{<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t1 = field = #0#2 in true))))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   final invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:13:21: Error: Can't declare 'o' because it was already used in this scope.
   final Unresolved(:o) = o;
@@ -265,7 +265,7 @@ static method testUnresolved(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t2 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   {
     invalid-type field;
@@ -315,7 +315,7 @@ static method testNonType(dynamic o) → dynamic {
       return #0#0{invalid-type}{<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t7 = field = #0#2 in true))))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   final invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:29:18: Error: Can't declare 'o' because it was already used in this scope.
   final NonType(:o) = o;
@@ -323,7 +323,7 @@ static method testNonType(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t8 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   {
     invalid-type field;
@@ -373,7 +373,7 @@ static method testExtension(dynamic o) → dynamic {
       return #0#0{invalid-type}{<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t13 = field = #0#2 in true))))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   final invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:45:20: Error: Can't declare 'o' because it was already used in this scope.
   final Extension(:o) = o;
@@ -381,7 +381,7 @@ static method testExtension(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t14 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   {
     invalid-type field;
@@ -431,7 +431,7 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
       return #0#0{invalid-type}{<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t19 = field = #0#2 in true))))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   final invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:61:28: Error: Can't declare 'o' because it was already used in this scope.
   final prefix.Unresolved(:o) = o;
@@ -439,7 +439,7 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t20 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   {
     invalid-type field;
@@ -489,7 +489,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
       return #0#0{invalid-type}{<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t25 = field = #0#2 in true))))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   final invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:77:25: Error: Can't declare 'o' because it was already used in this scope.
   final prefix.NonType(:o) = o;
@@ -497,7 +497,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t26 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   {
     invalid-type field;
@@ -547,7 +547,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
       return #0#0{invalid-type}{<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t31 = field = #0#2 in true))))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   final invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:93:27: Error: Can't declare 'o' because it was already used in this scope.
   final prefix.Extension(:o) = o;
@@ -555,7 +555,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t32 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   {
     invalid-type field;
@@ -605,7 +605,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
       return #0#0{invalid-type}{<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t37 = field = #0#2 in true))))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   final invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:109:26: Error: Can't declare 'o' because it was already used in this scope.
   final unresolved.Type(:o) = o;
@@ -613,7 +613,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t38 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   {
     invalid-type field;
@@ -663,7 +663,7 @@ static method testMemberAccess(dynamic o) → dynamic {
       return #0#0{invalid-type}{<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t43 = field = #0#2 in true))))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   final invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:125:27: Error: Can't declare 'o' because it was already used in this scope.
   final NonType.hashCode(:o) = o;
@@ -671,7 +671,7 @@ static method testMemberAccess(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t44 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
   {
     invalid-type field;

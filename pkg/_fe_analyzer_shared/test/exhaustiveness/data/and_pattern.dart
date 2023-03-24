@@ -39,7 +39,7 @@ intersectSameClass(A o1, A o2, A o3) {
     A(:var field1) && A(:var field2) /*space=A(field1: B, field2: B)*/=> [field1, field2],
   };
   var c = /*
-   error=non-exhaustive:A(field1: C, field2: C),
+   error=non-exhaustive:A(field1: C(), field2: C()),
    fields={field1:B,field2:B},
    type=A
   */switch (o3) {
@@ -58,7 +58,7 @@ intersectSubClass(A o1, A o2, A o3) {
     A(:var field1) && Object(:var hashCode) /*space=A(field1: B, hashCode: int)*/=> [field1, hashCode],
   };
   var c = /*
-   error=non-exhaustive:A(field1: C, field2: C, hashCode: int),
+   error=non-exhaustive:A(field1: C(), field2: C(), hashCode: int()),
    fields={field1:B,field2:B,hashCode:int},
    type=A
   */switch (o3) {

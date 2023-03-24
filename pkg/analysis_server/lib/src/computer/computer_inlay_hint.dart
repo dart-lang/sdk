@@ -39,11 +39,16 @@ class DartInlayHintComputer {
   /// Adds a parameter name hint before [node] showing a the name for
   /// [parameter].
   ///
+  /// If the parameter has no name, no hint will be added.
+  ///
   /// A colon and padding will be added between the hint and [node]
   /// automatically.
   void _addParameterNamePrefix(
       SyntacticEntity nodeOrToken, ParameterElement parameter) {
     final name = parameter.name;
+    if (name.isEmpty) {
+      return;
+    }
     final offset = nodeOrToken.offset;
     final position = toPosition(_lineInfo.getLocation(offset));
     final labelParts = Either2<List<InlayHintLabelPart>, String>.t1([
@@ -154,7 +159,7 @@ class DartInlayHintComputer {
         element.thisOrAncestorOfType<CompilationUnitElement>();
     final path = compilationUnit?.source.fullName;
     final lineInfo = compilationUnit?.lineInfo;
-    if (path == null || lineInfo == null) {
+    if (path == null || lineInfo == null || element.nameOffset == -1) {
       return null;
     }
     return Location(

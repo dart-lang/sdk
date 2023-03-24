@@ -284,7 +284,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   bool get _isEnclosingClassFfiStruct {
     var superClass = _enclosingClass?.supertype?.element;
     return superClass != null &&
-        superClass.library.name == 'dart.ffi' &&
+        _isDartFfiLibrary(superClass.library) &&
         superClass.name == 'Struct';
   }
 
@@ -293,7 +293,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   bool get _isEnclosingClassFfiUnion {
     var superClass = _enclosingClass?.supertype?.element;
     return superClass != null &&
-        superClass.library.name == 'dart.ffi' &&
+        _isDartFfiLibrary(superClass.library) &&
         superClass.name == 'Union';
   }
 
@@ -5463,6 +5463,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     return false;
   }
 
+  /// Returns `true` if the given [library] is the `dart:ffi` library.
+  bool _isDartFfiLibrary(LibraryElement library) => library.name == 'dart.ffi';
+
   /// Return `true` if the given [identifier] is in a location where it is
   /// allowed to resolve to a static member of a supertype.
   bool _isUnqualifiedReferenceToNonLocalStaticMemberAllowed(
@@ -5507,6 +5510,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   bool _mayIgnoreClassModifiers(LibraryElement superLibrary) {
     // Only modifiers in platform libraries can be ignored.
     if (!superLibrary.isInSdk) return false;
+
+    // Modifiers in 'dart:ffi' can't be ignored in pre-feature code.
+    if (_isDartFfiLibrary(superLibrary)) {
+      return false;
+    }
 
     // Other platform libraries can ignore modifiers.
     if (_currentLibrary.isInSdk) return true;

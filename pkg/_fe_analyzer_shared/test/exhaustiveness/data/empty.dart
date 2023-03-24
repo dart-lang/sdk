@@ -14,7 +14,7 @@ emptyBool(bool b) {
 
 emptyNum(num n) {
   return /*analyzer.
-   error=non-exhaustive:double,
+   error=non-exhaustive:double(),
    subtypes={double,int},
    type=num
   */
@@ -24,7 +24,7 @@ emptyNum(num n) {
 
 emptyInt(int i) {
   return /*analyzer.
-   error=non-exhaustive:int,
+   error=non-exhaustive:int(),
    type=int
   */
   switch (i) {

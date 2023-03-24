@@ -29,6 +29,18 @@ final class C extends Double {}
     ]);
   }
 
+  test_Double_language219() async {
+    await assertErrorsInCode(r'''
+// @dart=2.19
+import 'dart:ffi';
+class C extends Double {}
+''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 49, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 49, 6),
+    ]);
+  }
+
   test_Finalizable() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -192,6 +204,19 @@ class C implements Double {}
       error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
           6),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6,
+          messageContains: ["class 'C'", "implement 'Double'"]),
+    ]);
+  }
+
+  test_Double_language219() async {
+    await assertErrorsInCode(r'''
+// @dart=2.19
+import 'dart:ffi';
+class C implements Double {}
+''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 52,
+          6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 52, 6,
           messageContains: ["class 'C'", "implement 'Double'"]),
     ]);
   }
@@ -369,6 +394,19 @@ class C with Double {}
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 6),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6,
+          messageContains: ["class 'C'", "mix in 'Double'"]),
+    ]);
+  }
+
+  test_Double_language219() async {
+    await assertErrorsInCode(r'''
+// @dart=2.19
+import 'dart:ffi';
+class C with Double {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 46, 6),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 46, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 46, 6,
           messageContains: ["class 'C'", "mix in 'Double'"]),
     ]);
   }

@@ -2172,7 +2172,14 @@ severity: $severity
     /// exempt from restrictions on extending otherwise sealed platform types,
     /// or if the library is a pre-class-modifiers-feature language version
     /// library.
-    bool mayIgnoreClassModifiers(ClassBuilder supertypeDeclaration) {
+    ///
+    /// [checkingBaseOrFinalSubtypeError] indicates that we are checking whether
+    /// to emit a base or final subtype error, see
+    /// [checkForBaseFinalRestriction]. We ignore these in `dart:` libraries no
+    /// matter what, otherwise pre-feature libraries can't use base types with
+    /// modifiers at all.
+    bool mayIgnoreClassModifiers(ClassBuilder supertypeDeclaration,
+        {bool checkingBaseOrFinalSubtypeError = false}) {
       // Only use this to ignore `final`, `base`, `interface`, and `mixin`.
       // Nobody can ignore `abstract` or `sealed`.
 
@@ -2182,6 +2189,13 @@ severity: $severity
       // Exception only applies to platform libraries.
       final LibraryBuilder superLibrary = supertypeDeclaration.libraryBuilder;
       if (!superLibrary.importUri.isScheme("dart")) return false;
+
+      // Modifiers in certain libraries like 'dart:ffi' can't be ignored in
+      // pre-feature code.
+      if (superLibrary.importUri.path == 'ffi' &&
+          !checkingBaseOrFinalSubtypeError) {
+        return false;
+      }
 
       // Remaining tests depend on the source library only,
       // and the result can be cached.
@@ -2255,7 +2269,8 @@ severity: $severity
           !cls.isFinal &&
           !cls.isSealed &&
           !cls.cls.isAnonymousMixin &&
-          !mayIgnoreClassModifiers(baseOrFinalSuperClass)) {
+          !mayIgnoreClassModifiers(baseOrFinalSuperClass,
+              checkingBaseOrFinalSubtypeError: true)) {
         if (baseOrFinalSuperClass.isFinal) {
           cls.addProblem(
               templateSubtypeOfFinalIsNotBaseFinalOrSealed.withArguments(

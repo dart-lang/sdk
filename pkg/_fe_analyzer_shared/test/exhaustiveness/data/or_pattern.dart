@@ -96,39 +96,39 @@ inRecord((bool, bool?) r) {
    fields={$1:bool,$2:bool?},
    type=(bool, bool?)
   */switch (r) {
-    /*space=($1: true|false, $2: true|false|Null)*/
+    /*space=(true|false, true|false|Null)*/
     case (true || false, true || false || null):
   }
   /*
    fields={$1:bool,$2:bool?},
    type=(bool, bool?)
   */switch (r) {
-    /*space=($1: true, $2: true|false|Null)*/
+    /*space=(true, true|false|Null)*/
     case (true, true || false || null):
-    /*space=($1: false, $2: true|false)*/
+    /*space=(false, true|false)*/
     case (false, true || false):
-    /*space=($1: false, $2: Null)*/
+    /*space=(false, Null)*/
     case (false, null):
   }
 
   /*
-   error=non-exhaustive:($1: false, $2: Null),
+   error=non-exhaustive:(false, null),
    fields={$1:bool,$2:bool?},
    type=(bool, bool?)
   */switch (r) {
-    /*space=($1: true, $2: true|false|Null)*/
+    /*space=(true, true|false|Null)*/
     case (true, true || false || null):
-    /*space=($1: false, $2: true|false)*/
+    /*space=(false, true|false)*/
     case (false, true || false):
   }
 
   /*
-   error=non-exhaustive:($1: true, $2: false),
+   error=non-exhaustive:(true, false),
    fields={$1:bool,$2:bool?},
    type=(bool, bool?)
   */
   switch (r) {
-    /*space=($1: true|false, $2: true?)*/
+    /*space=(true|false, true?)*/
     case (true || false, true || null):
   }
 }

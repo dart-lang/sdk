@@ -10,83 +10,117 @@ membersMethod(o) {
    subtypes={Object,Null},
    type=Object?
   */switch (o) {
-    Typedef(:var hashCode) /*space=($1: int, $2: String)*/=> hashCode,
-    Typedef(:var runtimeType) /*space=($1: int, $2: String)*/=> runtimeType,
-    Typedef(:var toString) /*space=($1: int, $2: String)*/=> toString(),
-    Typedef(:var noSuchMethod) /*space=($1: int, $2: String)*/=> noSuchMethod,
+    Typedef(:var hashCode) /*space=(int, String)(hashCode: int)*/=> hashCode,
+    Typedef(:var runtimeType) /*
+     error=unreachable,
+     space=(int, String)(runtimeType: Type)
+    */=> runtimeType,
+    Typedef(:var toString) /*
+     error=unreachable,
+     space=(int, String)(toString: String Function())
+    */=> toString(),
+    Typedef(:var noSuchMethod) /*
+     error=unreachable,
+     space=(int, String)(noSuchMethod: dynamic Function(Invocation))
+    */=> noSuchMethod,
     _ /*space=()*/=> null,
   };
 }
 
 exhaustiveHashCode(Typedef o) {
   return /*
-   error=non-exhaustive:(hashCode: Object),
-   fields={hashCode:-},
+   fields={hashCode:int},
    type=(int, String)
   */switch (o) {
-    Typedef(:int hashCode) /*space=($1: int, $2: String)*/=> hashCode,
+    Typedef(:int hashCode) /*space=(int, String)(hashCode: int)*/=> hashCode,
   };
 }
 
 exhaustiveRuntimeType(Typedef o) {
   return /*
-   error=non-exhaustive:(runtimeType: Object),
-   fields={runtimeType:-},
+   fields={runtimeType:Type},
    type=(int, String)
   */switch (o) {
-    Typedef(:Type runtimeType) /*space=($1: int, $2: String)*/=> runtimeType,
+    Typedef(:Type runtimeType) /*space=(int, String)(runtimeType: Type)*/=> runtimeType,
   };
 }
 
 exhaustiveToString(Typedef o) {
   return /*
-   error=non-exhaustive:(toString: Object),
-   fields={toString:-},
+   fields={toString:String Function()},
    type=(int, String)
   */switch (o) {
-    Typedef(:String Function() toString) /*space=($1: int, $2: String)*/=> toString,
+    Typedef(:String Function() toString) /*space=(int, String)(toString: String Function())*/=> toString,
   };
 }
 
 exhaustiveNoSuchMethod(Typedef o) {
   return /*
-   error=non-exhaustive:(noSuchMethod: Object),
-   fields={noSuchMethod:-},
+   fields={noSuchMethod:dynamic Function(Invocation)},
    type=(int, String)
   */switch (o) {
-    Typedef(:dynamic Function(Invocation) noSuchMethod) /*space=($1: int, $2: String)*/=> noSuchMethod,
+    Typedef(:dynamic Function(Invocation) noSuchMethod) /*space=(int, String)(noSuchMethod: dynamic Function(Invocation))*/=> noSuchMethod,
   };
 }
 
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*
-   error=non-exhaustive:(hashCode: Object),
-   fields={hashCode:-},
+   error=non-exhaustive:(_, _) && Object(hashCode: int()),
+   fields={hashCode:int},
    type=(int, String)
   */switch (o) {
-    Typedef(hashCode: 5) /*space=($1: int, $2: String)*/=> 5,
+    Typedef(hashCode: 5) /*space=(int, String)(hashCode: 5)*/=> 5,
   };
 }
+
+exhaustiveRestrictedValue(Typedef o) {
+  return /*
+   fields={$1:int,$2:String,hashCode:int},
+   type=(int, String)
+  */switch (o) {
+  Typedef(hashCode: 5) /*space=(int, String)(hashCode: 5)*/=> 5,
+  (_, _) && Object(hashCode: int()) /*space=(int, String)(hashCode: int)*/=> 0,
+  };
+  }
 
 nonExhaustiveRestrictedType(Typedef o) {
   return /*
-   error=non-exhaustive:(noSuchMethod: Object),
-   fields={noSuchMethod:-},
+   fields={$1:int,$2:String,noSuchMethod:dynamic Function(Invocation)},
    type=(int, String)
   */switch (o) {
-    Typedef(:int Function(Invocation) noSuchMethod) /*space=($1: int, $2: String)*/=> noSuchMethod,
+    Typedef(:int Function(Invocation) noSuchMethod) /*space=(int, String)(noSuchMethod: int Function(Invocation))*/=> noSuchMethod,
+    (_, _) && Object(noSuchMethod: dynamic Function(Invocation) _) /*space=(int, String)(noSuchMethod: dynamic Function(Invocation))*/=> null,
   };
 }
 
-unreachableMethod(Typedef o) {
+exhaustiveRestrictedType(Typedef o) {
   return /*
-   error=non-exhaustive:(hashCode: Object, noSuchMethod: Object, runtimeType: Object, toString: Object),
-   fields={hashCode:-,noSuchMethod:-,runtimeType:-,toString:-},
+   fields={$1:int,$2:String,noSuchMethod:dynamic Function(Invocation)},
    type=(int, String)
   */switch (o) {
-    Typedef(:var hashCode) /*space=($1: int, $2: String)*/=> hashCode,
-    Typedef(:var runtimeType) /*space=($1: int, $2: String)*/=> runtimeType,
-    Typedef(:var toString) /*space=($1: int, $2: String)*/=> toString(),
-    Typedef(:var noSuchMethod) /*space=($1: int, $2: String)*/=> noSuchMethod,
+    Typedef(:int Function(Invocation) noSuchMethod) /*space=(int, String)(noSuchMethod: int Function(Invocation))*/=> noSuchMethod,
+    (_, _) && Object(noSuchMethod: dynamic Function(Invocation) _) /*space=(int, String)(noSuchMethod: dynamic Function(Invocation))*/=> null,
+  };
+}
+
+
+unreachableMethod(Typedef o) {
+  return /*
+   fields={hashCode:int,noSuchMethod:dynamic Function(Invocation),runtimeType:Type,toString:String Function()},
+   type=(int, String)
+  */switch (o) {
+    Typedef(:var hashCode) /*space=(int, String)(hashCode: int)*/=> hashCode,
+    Typedef(:var runtimeType) /*
+     error=unreachable,
+     space=(int, String)(runtimeType: Type)
+    */=> runtimeType,
+    Typedef(:var toString) /*
+     error=unreachable,
+     space=(int, String)(toString: String Function())
+    */=> toString(),
+    Typedef(:var noSuchMethod) /*
+     error=unreachable,
+     space=(int, String)(noSuchMethod: dynamic Function(Invocation))
+    */=> noSuchMethod,
   };
 }

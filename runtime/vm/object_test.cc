@@ -6422,7 +6422,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
     EXPECT_SUBSTRING(
         "\"id\":\"\","
-        "\"kind\":\"PlainInstance\",\"length\":0}",
+        "\"kind\":\"UserTag\",\"label\":\"Default\"}",
         buffer);
   }
   // Type reference

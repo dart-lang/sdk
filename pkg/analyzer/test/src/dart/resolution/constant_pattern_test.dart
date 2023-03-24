@@ -279,6 +279,151 @@ ConstantPattern
 ''');
   }
 
+  test_expression_typeLiteral_notPrefixed() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case int) {}
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ConstantPattern
+  expression: TypeLiteral
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
+    staticType: Type
+  matchedValueType: Object?
+''');
+  }
+
+  test_expression_typeLiteral_notPrefixed_nested() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case [0, int]) {}
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+      matchedValueType: Object?
+    ConstantPattern
+      expression: TypeLiteral
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+        staticType: Type
+      matchedValueType: Object?
+  rightBracket: ]
+  matchedValueType: Object?
+  requiredType: List<Object?>
+''');
+  }
+
+  test_expression_typeLiteral_notPrefixed_typeAlias() async {
+    await assertNoErrorsInCode(r'''
+typedef A = int;
+
+void f(Object? x) {
+  if (x case A) {}
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ConstantPattern
+  expression: TypeLiteral
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@typeAlias::A
+        staticType: null
+      type: int
+        alias: self::@typeAlias::A
+    staticType: Type
+  matchedValueType: Object?
+''');
+  }
+
+  test_expression_typeLiteral_prefixed() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:math' as math;
+
+void f(Object? x) {
+  if (x case math.Random) {}
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ConstantPattern
+  expression: TypeLiteral
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: math
+          staticElement: self::@prefix::math
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: Random
+          staticElement: dart:math::@class::Random
+          staticType: null
+        staticElement: dart:math::@class::Random
+        staticType: null
+      type: Random
+    staticType: Type
+  matchedValueType: Object?
+''');
+  }
+
+  test_expression_typeLiteral_prefixed_typeAlias() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef A = int;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+void f(Object? x) {
+  if (x case prefix.A) {}
+}
+''');
+
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ConstantPattern
+  expression: TypeLiteral
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: prefix
+          staticElement: self::@prefix::prefix
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          staticElement: package:test/a.dart::@typeAlias::A
+          staticType: null
+        staticElement: package:test/a.dart::@typeAlias::A
+        staticType: null
+      type: int
+        alias: package:test/a.dart::@typeAlias::A
+    staticType: Type
+  matchedValueType: Object?
+''');
+  }
+
   test_location_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {

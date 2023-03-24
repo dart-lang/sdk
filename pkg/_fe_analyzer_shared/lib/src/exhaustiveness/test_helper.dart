@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'exhaustive.dart';
+import 'key.dart';
 import 'space.dart';
-
 import 'static_type.dart';
 
 /// Tags used for id-testing of exhaustiveness.
@@ -29,15 +29,15 @@ String spacesToText(Space space) {
 
 /// Returns a textual representation for [fields] used for testing.
 String fieldsToText(StaticType type, ObjectFieldLookup objectFieldLookup,
-    Set<String> fieldsOfInterest) {
-  List<String> sortedNames = fieldsOfInterest.toList()..sort();
+    Set<Key> fieldsOfInterest) {
+  List<Key> sortedNames = fieldsOfInterest.toList()..sort();
   StringBuffer sb = new StringBuffer();
   String comma = '';
   sb.write('{');
-  for (String name in sortedNames) {
-    StaticType? fieldType = type.getField(objectFieldLookup, name);
+  for (Key key in sortedNames) {
+    StaticType? fieldType = type.getField(objectFieldLookup, key);
     sb.write(comma);
-    sb.write(name);
+    sb.write(key.name);
     sb.write(':');
     if (fieldType != null) {
       sb.write(staticTypeToText(fieldType));

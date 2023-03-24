@@ -21,7 +21,7 @@ class C extends A {}
 
 typedMap(Map<int, A> map) {
   var a = /*
-   error=non-exhaustive:Map<int, A>,
+   error=non-exhaustive:Map<int, A>(),
    type=Map<int, A>
   */switch (map) {
     {} /*space={}*/=> 0,
@@ -36,7 +36,7 @@ typedMap(Map<int, A> map) {
     {...} /*space={...}*/=> 0,
   };
   var c = /*
-   error=non-exhaustive:Map<int, A>,
+   error=non-exhaustive:Map<int, A>(),
    type=Map<int, A>
   */switch (map) {
     <int, B>{...} /*space=<int, B>{...}*/=> 0,
@@ -112,7 +112,7 @@ unreachableAfterRestSameKeys(Map o) {
 
 nonExhaustiveAfterRestSameKeys(Map o) {
   return /*
-   error=non-exhaustive:Map<dynamic, dynamic>,
+   error=non-exhaustive:Map<dynamic, dynamic>(),
    type=Map<dynamic, dynamic>
   */switch (o) {
     {0: _, ...} /*cfe.space={0: A, ...}*//*analyzer.space={0: (), ...}*/=> 0,
@@ -142,7 +142,7 @@ unreachableAfterRestMoreKeys(Map o) {
 
 nonExhaustiveAfterRestMoreKeys(Map o) {
   return /*
-   error=non-exhaustive:Map<dynamic, dynamic>,
+   error=non-exhaustive:Map<dynamic, dynamic>(),
    type=Map<dynamic, dynamic>
   */switch (o) {
     {0: _, ...} /*cfe.space={0: A, ...}*//*analyzer.space={0: (), ...}*/=> 0,
@@ -169,7 +169,7 @@ unreachableAfterSameKeys(Map o) {
 
 nonExhaustiveAfterSameKeys(Map o) {
   return /*
-   error=non-exhaustive:Map<dynamic, dynamic>,
+   error=non-exhaustive:Map<dynamic, dynamic>(),
    type=Map<dynamic, dynamic>
   */switch (o) {
     {0: _} /*cfe.space={0: A}*//*analyzer.space={0: ()}*/=> 0,
@@ -190,7 +190,7 @@ reachableAfterRestOnlyDifferentTypes(Map o) {
 
 nonExhaustiveAfterRestOnlyDifferentTypes(Map o) {
   return /*
-   error=non-exhaustive:Map<dynamic, dynamic>,
+   error=non-exhaustive:Map<dynamic, dynamic>(),
    type=Map<dynamic, dynamic>
   */switch (o) {
     <int, String>{...} /*space=<int, String>{...}*/=> 0,
@@ -208,7 +208,7 @@ reachableAfterRestOnlyEmptyDifferentTypes(Map o) {
 
 nonExhaustiveAfterRestOnlyEmptyDifferentTypes(Map o) {
   return /*
-   error=non-exhaustive:Map<dynamic, dynamic>,
+   error=non-exhaustive:Map<dynamic, dynamic>(),
    type=Map<dynamic, dynamic>
   */switch (o) {
     <int, String>{...} /*space=<int, String>{...}*/=> 0,
@@ -242,7 +242,7 @@ reachableAfterRestDifferentKeys(Map o) {
 
 nonExhaustiveAfterRestDifferentKeys(Map o) {
   return /*
-   error=non-exhaustive:Map<dynamic, dynamic>,
+   error=non-exhaustive:Map<dynamic, dynamic>(),
    type=Map<dynamic, dynamic>
   */switch (o) {
     {0: _, ...} /*cfe.space={0: A, ...}*//*analyzer.space={0: (), ...}*/=> 0,
@@ -260,7 +260,7 @@ reachableAfterDifferentKeys(Map o) {
 
 nonExhaustiveAfterDifferentKeys(Map o) {
   return /*
-   error=non-exhaustive:Map<dynamic, dynamic>,
+   error=non-exhaustive:Map<dynamic, dynamic>(),
    type=Map<dynamic, dynamic>
   */switch (o) {
     {0: _} /*cfe.space={0: A}*//*analyzer.space={0: ()}*/=> 0,
@@ -278,7 +278,7 @@ reachableAfterDifferentTypes(Map o) {
 
 nonExhaustiveAfterDifferentTypes(Map o) {
   return /*
-   error=non-exhaustive:Map<dynamic, dynamic>,
+   error=non-exhaustive:Map<dynamic, dynamic>(),
    type=Map<dynamic, dynamic>
   */switch (o) {
     <int, String>{0: _} /*space=<int, String>{0: String}*/=> 0,

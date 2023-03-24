@@ -114,7 +114,7 @@ class WasmTarget extends Target {
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!,
         enableDisallowedExternalCheck: false,
-        enableStrictMode: false);
+        enableStrictMode: true);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);

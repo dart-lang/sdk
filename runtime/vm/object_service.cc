@@ -2109,7 +2109,12 @@ void MirrorReference::PrintImplementationFieldsImpl(
     const JSONArray& jsarr_fields) const {}
 
 void UserTag::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "UserTag");
+
+  String& tag_label = String::Handle(label());
+  jsobj.AddProperty("label", tag_label.ToCString());
 }
 
 void UserTag::PrintImplementationFieldsImpl(

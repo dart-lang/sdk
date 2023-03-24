@@ -406,6 +406,12 @@
         "nnbd": "strong"
       }
     },
+    "vm-checked-(linux|mac|win|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "nnbd": "strong",
+        "enable-asserts": true
+      }
+    },
     "vm-aot-(linux|mac)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
         "nnbd": "strong"
@@ -1976,6 +1982,31 @@
           "name": "vm tests",
           "arguments": [
             "-ndartk-checked-linux-release-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-checked-mac-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is for the VM in checked mode."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-checked-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10

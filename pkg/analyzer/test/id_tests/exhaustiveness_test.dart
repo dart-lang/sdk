@@ -71,7 +71,7 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
       StaticType? scrutineeType = _exhaustivenessData.switchScrutineeType[node];
       List<Space>? caseSpaces = _exhaustivenessData.switchCases[node];
       if (scrutineeType != null && caseSpaces != null) {
-        Set<String> fieldsOfInterest = {};
+        Set<Key> fieldsOfInterest = {};
         Set<Key> keysOfInterest = {};
         for (Space caseSpace in caseSpaces) {
           for (SingleSpace singleSpace in caseSpace.singleSpaces) {

@@ -65,7 +65,7 @@ exhaustiveNoSuchMethod(Typedef o) {
 
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*
-   error=non-exhaustive:Object(hashCode: int),
+   error=non-exhaustive:Object(hashCode: int()),
    fields={hashCode:int},
    type=Object
   */switch (o) {
@@ -75,7 +75,7 @@ nonExhaustiveRestrictedValue(Typedef o) {
 
 nonExhaustiveRestrictedType(Typedef o) {
   return /*
-   error=non-exhaustive:Object(noSuchMethod: dynamic Function(Invocation)),
+   error=non-exhaustive:Object(noSuchMethod: dynamic Function(Invocation) _),
    fields={noSuchMethod:dynamic Function(Invocation)},
    type=Object
   */switch (o) {

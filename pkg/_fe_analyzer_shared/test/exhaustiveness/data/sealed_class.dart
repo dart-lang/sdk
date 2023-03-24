@@ -49,7 +49,7 @@ void exhaustiveSwitch2(A a) {
 
 void nonExhaustiveSwitch1(A a) {
   /*
-   error=non-exhaustive:D,
+   error=non-exhaustive:D(),
    subtypes={B,C,D},
    type=A
   */
@@ -67,7 +67,7 @@ void nonExhaustiveSwitch1(A a) {
 
 void nonExhaustiveSwitch2(A a) {
   /*
-   error=non-exhaustive:B,
+   error=non-exhaustive:B(),
    subtypes={B,C,D},
    type=A
   */
@@ -85,7 +85,7 @@ void nonExhaustiveSwitch2(A a) {
 
 void nonExhaustiveSwitch3(A a) {
   /*
-   error=non-exhaustive:C,
+   error=non-exhaustive:C(),
    subtypes={B,C,D},
    type=A
   */
@@ -144,7 +144,7 @@ void exhaustiveNullableSwitch(A? a) {
 
 void nonExhaustiveNullableSwitch1(A? a) {
   /*
-   error=non-exhaustive:Null,
+   error=non-exhaustive:null,
    expandedSubtypes={B,C,D,Null},
    subtypes={A,Null},
    type=A?
@@ -159,7 +159,7 @@ void nonExhaustiveNullableSwitch1(A? a) {
 
 void nonExhaustiveNullableSwitch2(A? a) {
   /*
-   error=non-exhaustive:D,
+   error=non-exhaustive:D(),
    expandedSubtypes={B,C,D,Null},
    subtypes={A,Null},
    type=A?

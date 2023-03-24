@@ -132,7 +132,7 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
 /// In the [StaticType] model, individual enum elements are represented as
 /// unique subtypes of the enum type, modelled using [EnumStaticType].
 class EnumElementStaticType<Type extends Object, EnumElement extends Object>
-    extends RestrictedStaticType<Type, IdentityRestriction<EnumElement>> {
+    extends ValueStaticType<Type, EnumElement> {
   EnumElementStaticType(super.typeOperations, super.fieldLookup, super.type,
       super.restriction, super.name);
 }

@@ -337,6 +337,7 @@ class BrowserCommandOutput extends CommandOutput
         super(command, 0, result.didTimeout, stdout, stderr, result.duration,
             false, 0);
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle timeouts first.
     if (_result.didTimeout) {
@@ -357,6 +358,7 @@ class BrowserCommandOutput extends CommandOutput
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // Handle timeouts first.
     if (_result.didTimeout) {
@@ -368,6 +370,7 @@ class BrowserCommandOutput extends CommandOutput
     return _outcome;
   }
 
+  @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
     if (_jsonResult != null) {
       _describeEvents(progress, output);
@@ -392,15 +395,15 @@ class BrowserCommandOutput extends CommandOutput
 
   void _describeEvents(Progress progress, OutputWriter output) {
     // Always show the error events since those are most useful.
-    var showedError = false;
+    var errorShown = false;
 
-    void _showError(String header, event) {
+    void showError(String header, event) {
       output.subsection(header);
       var value = event["value"] as String?;
       if (event["stack_trace"] != null) {
         value = '$value\n${event["stack_trace"]}';
       }
-      showedError = true;
+      errorShown = true;
       output.write(value);
 
       // Skip deobfuscation if there is no indication that there is a stack
@@ -419,15 +422,15 @@ class BrowserCommandOutput extends CommandOutput
 
     for (var event in _jsonResult!.events) {
       if (event["type"] == "sync_exception") {
-        _showError("Runtime error", event);
+        showError("Runtime error", event);
       } else if (event["type"] == "window_onerror") {
-        _showError("Runtime window.onerror", event);
+        showError("Runtime window.onerror", event);
       }
     }
 
     // Show the events unless the above error was sufficient.
     // TODO(rnystrom): Let users enable or disable this explicitly?
-    if (showedError &&
+    if (errorShown &&
         progress != Progress.buildbot &&
         progress != Progress.verbose) {
       return;
@@ -451,7 +454,7 @@ class BrowserCommandOutput extends CommandOutput
         case "window_onerror":
           var value = event["value"] as String;
           value = indent(value.trim(), 2);
-          value = "- " + value.substring(2);
+          value = "- ${value.substring(2)}";
           output.write(value);
           break;
 
@@ -637,6 +640,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
 
+  @override
   Expectation result(TestCase testCase) {
     // TODO(kustermann): If we run the analyzer not in batch mode, make sure
     // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
@@ -684,6 +688,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // TODO(kustermann): If we run the analyzer not in batch mode, make sure
     // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
@@ -786,6 +791,7 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.crash;
@@ -803,6 +809,7 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.crash;
@@ -833,6 +840,7 @@ class SpecParseCommandOutput extends CommandOutput {
 
   bool get hasSyntaxError => exitCode == parseFailExitCode;
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
@@ -860,6 +868,7 @@ class SpecParseCommandOutput extends CommandOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
@@ -883,6 +892,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
       List<int> stdout, List<int> stderr, Duration time, int pid)
       : super(command, exitCode, timedOut, stdout, stderr, time, false, pid);
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (exitCode == _dfeErrorExitCode) return Expectation.dartkCrash;
@@ -924,6 +934,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (exitCode == _dfeErrorExitCode) return Expectation.dartkCrash;
@@ -984,6 +995,7 @@ class CompilationCommandOutput extends CommandOutput {
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
   /// This code can return Expectation.ignore - we may want to fix that.
+  @override
   Expectation realResult(TestCase testCase) {
     // Handle general crash/timeout detection.
     if (hasCrashed) return Expectation.crash;
@@ -1009,6 +1021,7 @@ class CompilationCommandOutput extends CommandOutput {
     return Expectation.pass;
   }
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle general crash/timeout detection.
     if (hasCrashed) return Expectation.crash;
@@ -1160,6 +1173,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, pid);
 
+  @override
   Expectation result(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
@@ -1183,6 +1197,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
@@ -1220,6 +1235,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped);
 
+  @override
   bool get canRunDependentCommands {
     // See [BatchRunnerProcess]: 0 means success, 1 means compile-time error.
     // TODO(asgerf): When the frontend supports it, continue running even if
@@ -1227,6 +1243,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     return !hasCrashed && !hasTimedOut && exitCode == 0;
   }
 
+  @override
   Expectation result(TestCase testCase) {
     // TODO(kustermann): Currently the batch mode runner (which can be found
     // in `test_runner.dart:BatchRunnerProcess`) does not really distinguish
@@ -1270,6 +1287,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // TODO(kustermann): Currently the batch mode runner (which can be found
     // in `test_runner.dart:BatchRunnerProcess`) does not really distinguish
@@ -1309,6 +1327,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
   ///
   /// This ensures we test that the DartVM produces correct CompileTime errors
   /// as it is supposed to for our test suites.
+  @override
   bool get successful => canRunDependentCommands;
 }
 
@@ -1318,6 +1337,7 @@ class JSCommandLineOutput extends CommandOutput
       List<int> stdout, List<int> stderr, Duration time)
       : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
@@ -1336,6 +1356,7 @@ class JSCommandLineOutput extends CommandOutput
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
@@ -1351,6 +1372,7 @@ class JSCommandLineOutput extends CommandOutput
     return Expectation.pass;
   }
 
+  @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
     super.describe(testCase, progress, output);
     var decodedOut = decodeUtf8(stdout)
@@ -1368,6 +1390,7 @@ class Dart2WasmCommandLineOutput extends CommandOutput
       List<int> stdout, List<int> stderr, Duration time)
       : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
@@ -1386,6 +1409,7 @@ class Dart2WasmCommandLineOutput extends CommandOutput
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
@@ -1412,12 +1436,16 @@ class ScriptCommandOutput extends CommandOutput {
     diagnostics.addAll(lines);
   }
 
+  @override
   Expectation result(TestCase testCase) => _result;
 
+  @override
   Expectation realResult(TestCase testCase) => _result;
 
+  @override
   bool get canRunDependentCommands => _result == Expectation.pass;
 
+  @override
   bool get successful => _result == Expectation.pass;
 }
 
@@ -1582,6 +1610,7 @@ mixin _StaticErrorOutput on CommandOutput {
     }
   }
 
+  @override
   Expectation result(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
@@ -1596,6 +1625,7 @@ mixin _StaticErrorOutput on CommandOutput {
     return super.result(testCase);
   }
 
+  @override
   Expectation realResult(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
