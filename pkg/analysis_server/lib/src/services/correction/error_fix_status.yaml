@@ -2384,6 +2384,8 @@ ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER:
   status: needsEvaluation
 ParserErrorCode.OUT_OF_ORDER_CLAUSES:
   status: needsEvaluation
+ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
+  status: needsEvaluation
 ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
   status: needsEvaluation
 ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP:

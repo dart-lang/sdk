@@ -159,6 +159,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.FINAL_MIXIN_CLASS,
   ParserErrorCode.INTERFACE_MIXIN_CLASS,
   ParserErrorCode.SEALED_MIXIN_CLASS,
+  ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -1504,6 +1505,15 @@ class ParserErrorCode extends ErrorCode {
     'OUT_OF_ORDER_CLAUSES',
     "The '{0}' clause must come before the '{1}' clause.",
     correctionMessage: "Try moving the '{0}' clause before the '{1}' clause.",
+  );
+
+  static const ParserErrorCode PATTERN_ASSIGNMENT_DECLARES_VARIABLE =
+      ParserErrorCode(
+    'PATTERN_ASSIGNMENT_DECLARES_VARIABLE',
+    "Variable '{0}' can't be declared in a pattern assignment.",
+    correctionMessage:
+        "Try using a preexisting variable or changing the assignment to a "
+        "pattern variable declaration.",
   );
 
   static const ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT =

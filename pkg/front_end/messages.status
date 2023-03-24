@@ -847,7 +847,6 @@ PatchInjectionFailed/analyzerCode: Fail
 PatchInjectionFailed/example: Fail
 PatchNonExternal/analyzerCode: Fail
 PatchNonExternal/example: Fail
-PatternAssignmentDeclaresVariable/analyzerCode: Fail
 PatternMatchingError/analyzerCode: Fail
 PatternMatchingError/example: Fail
 PlatformPrivateLibraryAccess/example: Fail

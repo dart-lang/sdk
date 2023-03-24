@@ -10921,8 +10921,8 @@ const Template<
 const Code<Message Function(String name)>
     codePatternAssignmentDeclaresVariable =
     const Code<Message Function(String name)>(
-  "PatternAssignmentDeclaresVariable",
-);
+        "PatternAssignmentDeclaresVariable",
+        index: 145);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPatternAssignmentDeclaresVariable(String name) {
