@@ -51,16 +51,13 @@ class A {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 import 'a.dart' deferred as a;
 
 void f() {
   var aa = a.A();
 }
-''', [
-      // No lint.
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 2),
-    ]);
+''');
   }
 
   test_extraPositionalArgument() async {

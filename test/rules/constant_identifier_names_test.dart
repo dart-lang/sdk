@@ -42,7 +42,6 @@ void f() {
   final (AA, ) = (1, );
 }
 ''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 20, 2),
       lint(20, 2),
     ]);
   }

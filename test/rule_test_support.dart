@@ -8,19 +8,18 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:linter/src/analyzer.dart';
+import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'mocks.dart';
+import 'rule_test_support.dart';
 
 export 'package:analyzer/src/dart/analysis/experiments.dart';
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -472,7 +471,12 @@ abstract class _ContextResolutionTest with ResourceProviderMixin {
   List<String> get collectionIncludedPaths;
 
   /// The analysis errors that were computed during analysis.
-  List<AnalysisError> get errors => result.errors;
+  List<AnalysisError> get errors => result.errors
+      .whereNot((e) => ignoredErrorCodes.any((c) => e.errorCode == c))
+      .toList();
+
+  /// Error codes that by default should be ignored in test expectations.
+  List<HintCode> get ignoredErrorCodes => [WarningCode.UNUSED_LOCAL_VARIABLE];
 
   Folder get sdkRoot => newFolder('/sdk');
 

@@ -205,13 +205,11 @@ int f(int a, int b) {
   }
 
   test_patternVariableDeclaration_multiple() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 int f() {
   var (a, b) = (0, 1);
   return a;
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
-    ]);
+''');
   }
 }

@@ -49,7 +49,6 @@ void f(Stream stream) {
   StreamSubscription s = stream.listen((_) {});
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
       lint(66, 25),
     ]);
   }
@@ -92,7 +91,7 @@ class A {
           'should be counted as canceled. However, that is not how an '
           'expectation is set in an integration test, and a Lint is indeed '
           'reported for this case. We have the test written here with what was '
-          'presumably the intention of the previoius test.')
+          'presumably the intention of the previous test.')
   test_privateField_canceled_outsideTheClass() async {
     await assertNoDiagnostics(r'''
 import 'dart:async';

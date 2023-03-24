@@ -78,17 +78,14 @@ void f(String p) {
   }
 
   test_function_ok_shadow() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 void f(String? p) {
   if (p == null) {
     int p = 2;
     p = 3;
   }
 }
-''', [
-      // No lint.
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
+''');
   }
 
   test_function_positional_optional_assignedTwice() async {

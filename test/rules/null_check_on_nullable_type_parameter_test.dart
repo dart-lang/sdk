@@ -24,9 +24,7 @@ void f<T>((T?, T?) p){
   var (x!, y) = p;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
       lint(31, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
     ]);
   }
 }
