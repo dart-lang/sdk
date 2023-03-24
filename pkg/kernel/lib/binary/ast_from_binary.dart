@@ -3059,7 +3059,7 @@ class BinaryBuilder {
     return AssignedVariablePattern(variable)
       ..fileOffset = fileOffset
       ..matchedValueType = matchedType
-      ..needsCheck = needsCheck;
+      ..needsCast = needsCheck;
   }
 
   CastPattern _readCastPattern() {

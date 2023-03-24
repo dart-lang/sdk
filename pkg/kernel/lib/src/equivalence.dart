@@ -4831,7 +4831,7 @@ class EquivalenceStrategy {
     if (!checkAssignedVariablePattern_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkAssignedVariablePattern_needsCheck(visitor, node, other)) {
+    if (!checkAssignedVariablePattern_needsCast(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkAssignedVariablePattern_fileOffset(visitor, node, other)) {
@@ -9040,9 +9040,9 @@ class EquivalenceStrategy {
         node.matchedValueType, other.matchedValueType, 'matchedValueType');
   }
 
-  bool checkAssignedVariablePattern_needsCheck(EquivalenceVisitor visitor,
+  bool checkAssignedVariablePattern_needsCast(EquivalenceVisitor visitor,
       AssignedVariablePattern node, AssignedVariablePattern other) {
-    return visitor.checkValues(node.needsCheck, other.needsCheck, 'needsCheck');
+    return visitor.checkValues(node.needsCast, other.needsCast, 'needsCast');
   }
 
   bool checkAssignedVariablePattern_fileOffset(EquivalenceVisitor visitor,

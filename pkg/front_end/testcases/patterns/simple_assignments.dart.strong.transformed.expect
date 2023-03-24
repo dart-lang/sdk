@@ -22,7 +22,7 @@ static method test2(dynamic x) → dynamic {
       function ##0#6#initializer() → dynamic
         return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
-      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && ((let final core::int #t2 = a = #0#6{core::int} in true) && (let final core::int #t3 = b = #0#6{core::int} in true))))
+      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && ((let final core::int #t2 = a = #0#6 as{ForNonNullableByDefault} core::int in true) && (let final core::int #t3 = b = #0#6{core::int} in true))))
         throw new _in::ReachabilityError::•();
     } =>#0#0;
     if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::int #t4 = c = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true)))

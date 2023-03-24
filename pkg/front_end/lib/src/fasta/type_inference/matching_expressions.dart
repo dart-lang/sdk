@@ -41,10 +41,11 @@ class MatchingExpressionVisitor
       AssignedVariablePattern node, CacheableExpression matchedExpression) {
     matchedExpression = matchedExpression.promote(node.matchedValueType!);
 
-    CacheableExpression valueExpression;
-    if (node.needsCheck) {
-      valueExpression = new PromotedCacheableExpression(
-          matchedExpression, node.variable.type);
+    DelayedExpression valueExpression;
+    if (node.needsCast) {
+      valueExpression = new DelayedAsExpression(
+          matchedExpression, node.variable.type,
+          fileOffset: node.fileOffset);
     } else {
       valueExpression = matchedExpression;
     }

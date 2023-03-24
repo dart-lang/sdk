@@ -2713,7 +2713,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     _writeVariableReference(node.variable);
     writeOptionalNode(node.matchedValueType);
-    writeByte(node.needsCheck ? 1 : 0);
+    writeByte(node.needsCast ? 1 : 0);
   }
 
   @override

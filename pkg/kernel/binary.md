@@ -1654,7 +1654,7 @@ type AssignedVariablePattern extends Pattern {
   FileOffset fileOffset;
   VariableReference variable;
   Option<DartType> matchedType;
-  Byte needsCheck;
+  Byte needsCast;
 }
 
 type CastPattern extends Pattern {

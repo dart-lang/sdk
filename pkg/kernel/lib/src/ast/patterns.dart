@@ -861,7 +861,7 @@ class AssignedVariablePattern extends Pattern {
   /// of [variable].
   ///
   /// This is set during inference.
-  bool needsCheck = false;
+  bool needsCast = false;
 
   AssignedVariablePattern(this.variable);
 

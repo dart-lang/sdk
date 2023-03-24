@@ -247,7 +247,7 @@ class DelayedConditionExpression implements DelayedExpression {
 // TODO(johnniwinther): Should we instead mark the variable as non-final?
 class VariableSetExpression implements DelayedExpression {
   final VariableDeclaration _variable;
-  final CacheableExpression _value;
+  final DelayedExpression _value;
   final bool allowFinalAssignment;
   final int fileOffset;
 
