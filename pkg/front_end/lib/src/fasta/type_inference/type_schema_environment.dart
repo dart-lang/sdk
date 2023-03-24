@@ -123,13 +123,13 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   /// Performs partial (either downwards or horizontal) inference, producing a
   /// set of inferred types that may contain references to the "unknown type".
-  List<DartType> partialInfer(
+  List<DartType> choosePreliminaryTypes(
           TypeConstraintGatherer gatherer,
           List<TypeParameter> typeParametersToInfer,
           List<DartType>? previouslyInferredTypes,
           {required bool isNonNullableByDefault}) =>
       _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
-          isNonNullableByDefault: isNonNullableByDefault, partial: true);
+          isNonNullableByDefault: isNonNullableByDefault, preliminary: true);
 
   @override
   DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2,
@@ -251,17 +251,18 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// of types inferred by the last call to this method; it should be a list of
   /// the same length.
   ///
-  /// If [partial] is `true`, then we not in the final pass of inference.  This
-  /// means we are allowed to return `?` to precisely represent an unknown type.
+  /// If [preliminary] is `true`, then we not in the final pass of inference.
+  /// This means we are allowed to return `?` to precisely represent an unknown
+  /// type.
   ///
-  /// If [partial] is `false`, then we are in the final pass of inference, and
-  /// must not conclude `?` for any type formal.
+  /// If [preliminary] is `false`, then we are in the final pass of inference,
+  /// and must not conclude `?` for any type formal.
   List<DartType> inferTypeFromConstraints(
       Map<TypeParameter, TypeConstraint> constraints,
       List<TypeParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
       {required bool isNonNullableByDefault,
-      bool partial = false}) {
+      bool preliminary = false}) {
     List<DartType> inferredTypes =
         previouslyInferredTypes?.toList(growable: false) ??
             new List.filled(typeParametersToInfer.length, const UnknownType());
@@ -278,7 +279,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       }
 
       TypeConstraint constraint = constraints[typeParam]!;
-      if (partial) {
+      if (preliminary) {
         inferredTypes[i] = _inferTypeParameterFromContext(
             previouslyInferredTypes?[i], constraint, extendsConstraint,
             isNonNullableByDefault: isNonNullableByDefault,
@@ -292,7 +293,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       }
     }
 
-    if (!partial) {
+    if (!preliminary) {
       assert(typeParametersToInfer.length == inferredTypes.length);
       FreshTypeParameters freshTypeParameters =
           getFreshTypeParameters(typeParametersToInfer);
@@ -493,13 +494,13 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   /// Performs upwards inference, producing a final set of inferred types that
   /// does not  contain references to the "unknown type".
-  List<DartType> upwardsInfer(
+  List<DartType> chooseFinalTypes(
           TypeConstraintGatherer gatherer,
           List<TypeParameter> typeParametersToInfer,
           List<DartType>? previouslyInferredTypes,
           {required bool isNonNullableByDefault}) =>
       _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
-          isNonNullableByDefault: isNonNullableByDefault, partial: false);
+          isNonNullableByDefault: isNonNullableByDefault, preliminary: false);
 
   /// Computes (or recomputes) a set of [inferredTypes] based on the constraints
   /// that have been recorded so far.
@@ -508,14 +509,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       List<TypeParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
       {required bool isNonNullableByDefault,
-      required bool partial}) {
+      required bool preliminary}) {
     List<DartType> inferredTypes = inferTypeFromConstraints(
         gatherer.computeConstraints(
             isNonNullableByDefault: isNonNullableByDefault),
         typeParametersToInfer,
         previouslyInferredTypes,
         isNonNullableByDefault: isNonNullableByDefault,
-        partial: partial);
+        preliminary: preliminary);
 
     for (int i = 0; i < inferredTypes.length; i++) {
       inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i],

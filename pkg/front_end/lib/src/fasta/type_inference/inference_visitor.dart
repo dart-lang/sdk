@@ -2580,7 +2580,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           listType, listClass.typeParameters, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
-      inferredTypes = typeSchemaEnvironment.partialInfer(
+      inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, listClass.typeParameters, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredTypeArgument = inferredTypes[0];
@@ -2598,7 +2598,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes, actualTypes);
-      inferredTypes = typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, listClass.typeParameters, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
@@ -4614,7 +4614,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           mapType, mapClass.typeParameters, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
-      inferredTypes = typeSchemaEnvironment.partialInfer(
+      inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, mapClass.typeParameters, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredKeyType = inferredTypes[0];
@@ -4687,11 +4687,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 setType, coreTypes.setClass.typeParameters, typeContext,
                 isNonNullableByDefault: isNonNullableByDefault,
                 isConst: node.isConst);
-        List<DartType> inferredTypesForSet = typeSchemaEnvironment.partialInfer(
-            gatherer, coreTypes.setClass.typeParameters, null,
-            isNonNullableByDefault: isNonNullableByDefault);
+        List<DartType> inferredTypesForSet =
+            typeSchemaEnvironment.choosePreliminaryTypes(
+                gatherer, coreTypes.setClass.typeParameters, null,
+                isNonNullableByDefault: isNonNullableByDefault);
         gatherer.constrainArguments(formalTypesForSet, actualTypesForSet);
-        inferredTypesForSet = typeSchemaEnvironment.upwardsInfer(
+        inferredTypesForSet = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, coreTypes.setClass.typeParameters, inferredTypesForSet,
             isNonNullableByDefault: isNonNullableByDefault);
         DartType inferredTypeArgument = inferredTypesForSet[0];
@@ -4731,7 +4732,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             NeverType.fromNullability(libraryBuilder.nonNullable), replacement);
       }
       gatherer!.constrainArguments(formalTypes, actualTypes);
-      inferredTypes = typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, mapClass.typeParameters, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
@@ -7899,7 +7900,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           setType, setClass.typeParameters, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
-      inferredTypes = typeSchemaEnvironment.partialInfer(
+      inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, setClass.typeParameters, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredTypeArgument = inferredTypes[0];
@@ -7918,7 +7919,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes, actualTypes);
-      inferredTypes = typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, setClass.typeParameters, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
@@ -10914,7 +10915,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypeConstraintGatherer gatherer = typeSchemaEnvironment
         .setupGenericTypeInference(declaredType, typeParameters, contextType,
             isNonNullableByDefault: isNonNullableByDefault);
-    return typeSchemaEnvironment.upwardsInfer(gatherer, typeParameters, null,
+    return typeSchemaEnvironment.chooseFinalTypes(
+        gatherer, typeParameters, null,
         isNonNullableByDefault: isNonNullableByDefault);
   }
 

@@ -199,8 +199,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
       );
 
-      substitution =
-          Substitution.fromPairs(rawType.typeFormals, inferrer.partialInfer());
+      substitution = Substitution.fromPairs(
+          rawType.typeFormals, inferrer.choosePreliminaryTypes());
     }
 
     List<EqualityInfo<DartType>?>? identicalInfo = _isIdentical ? [] : null;
@@ -221,7 +221,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
           .planReconciliationStages()) {
         if (inferrer != null && !isFirstStage) {
           substitution = Substitution.fromPairs(
-              rawType!.typeFormals, inferrer.partialInfer());
+              rawType!.typeFormals, inferrer.choosePreliminaryTypes());
         }
         _resolveDeferredFunctionLiterals(
             deferredFunctionLiterals: stage,
@@ -233,7 +233,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     }
 
     if (inferrer != null) {
-      typeArgumentTypes = inferrer.upwardsInfer();
+      typeArgumentTypes = inferrer.chooseFinalTypes();
     }
     FunctionType? invokeType = typeArgumentTypes != null
         ? rawType?.instantiate(typeArgumentTypes)

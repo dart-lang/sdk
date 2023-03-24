@@ -536,7 +536,7 @@ class TypeSystemImpl implements TypeSystem {
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
-    return inferrer.upwardsInfer();
+    return inferrer.chooseFinalTypes();
   }
 
   @override
@@ -1345,7 +1345,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     var inferredTypes = inferrer
-        .upwardsInfer()
+        .chooseFinalTypes()
         .map(_removeBoundsOfGenericFunctionTypes)
         .toFixedList();
     var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
