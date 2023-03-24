@@ -34,15 +34,17 @@ def sdk_builder_category():
             ["win", "w"],
             ["win-arm64", "wa"],
         ]:
-            if channel not in ["beta", "stable"] or \
-               builder_type not in ["linux-riscv64", "win-arm64"]:
-                luci.console_view_entry(
-                    builder = "dart-internal:ci/dart-sdk-%s-%s" %
-                              (builder_type, channel),
-                    short_name = short_name,
-                    category = "sdk",
-                    console_view = console,
-                )
+            if channel == "stable" and builder_type == "linux-riscv64":
+                continue
+            if channel in ["beta", "stable"] and builder_type == "win-arm64":
+                continue
+            luci.console_view_entry(
+                builder = "dart-internal:ci/dart-sdk-%s-%s" %
+                          (builder_type, channel),
+                short_name = short_name,
+                category = "sdk",
+                console_view = console,
+            )
         luci.console_view_entry(
             builder = "dart-internal:ci/debianpackage-linux-%s" % channel,
             short_name = "dp",
