@@ -226,24 +226,6 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
       }
     }
     if (buffer.isNotEmpty) {
-      if (dumpAstOnFailures) {
-        buffer.writeln();
-        buffer.writeln();
-        try {
-          var astSink = CollectingSink();
-
-          StringSpelunker(result.unit.toSource(),
-                  sink: astSink, featureSet: result.unit.featureSet)
-              .spelunk();
-          buffer.write(astSink.buffer);
-          buffer.writeln();
-          // I hereby choose to catch this type.
-          // ignore: avoid_catching_errors
-        } on ArgumentError catch (_) {
-          // Perhaps we encountered a parsing error while spelunking.
-        }
-      }
-
       errors.sort((first, second) => first.offset.compareTo(second.offset));
       buffer.writeln();
       buffer.writeln('To accept the current state, expect:');
@@ -266,6 +248,25 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
         buffer.write(actual.length);
         buffer.writeln('),');
       }
+
+      if (dumpAstOnFailures) {
+        buffer.writeln();
+        buffer.writeln();
+        try {
+          var astSink = CollectingSink();
+
+          StringSpelunker(result.unit.toSource(),
+                  sink: astSink, featureSet: result.unit.featureSet)
+              .spelunk();
+          buffer.write(astSink.buffer);
+          buffer.writeln();
+          // I hereby choose to catch this type.
+          // ignore: avoid_catching_errors
+        } on ArgumentError catch (_) {
+          // Perhaps we encountered a parsing error while spelunking.
+        }
+      }
+
       fail(buffer.toString());
     }
   }

@@ -17,6 +17,16 @@ class NoLeadingUnderscoresForLocalIdentifiersTest extends LintRuleTest {
   @override
   String get lintRule => 'no_leading_underscores_for_local_identifiers';
 
+  test_listPattern_ifCase() async {
+    await assertDiagnostics(r'''
+f(Object o) {
+  if (o case [int _x, int y]) print('$_x$y'); 
+}
+''', [
+      lint(32, 2),
+    ]);
+  }
+
   test_listPattern_switch() async {
     await assertDiagnostics(r'''
 f() {
@@ -52,6 +62,16 @@ f() {
     ]);
   }
 
+  test_mapPattern_ifCase() async {
+    await assertDiagnostics(r'''
+f(Object o) {
+  if (o case {'x': var _x, 'y' : var y}) print('$_x$y');
+}
+''', [
+      lint(37, 2),
+    ]);
+  }
+
   test_mapPattern_switch() async {
     await assertDiagnostics(r'''
 f() {
@@ -79,6 +99,22 @@ f() {
     ]);
   }
 
+  test_objectPattern_ifCase() async {
+    await assertDiagnostics(r'''
+class C {
+  int c;
+  int d;
+  C(this.c, this.d);
+}
+
+f(Object o) {
+  if (o case C(c: var _x, d: var y)) print('$_x$y');
+}
+''', [
+      lint(88, 2),
+    ]);
+  }
+
   test_objectPattern_switch() async {
     await assertDiagnostics(r'''
 class A {
@@ -103,6 +139,16 @@ f() {
 }
 ''', [
       lint(13, 2),
+    ]);
+  }
+
+  test_recordPattern_ifCase() async {
+    await assertDiagnostics(r'''
+f(Object o) {
+  if (o case (int _x, int y)) print('$_x$y');
+}
+''', [
+      lint(32, 2),
     ]);
   }
 
