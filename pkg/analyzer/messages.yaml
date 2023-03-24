@@ -2834,6 +2834,7 @@ CompileTimeErrorCode:
   CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
     problemMessage: "An element in a constant set can't override the '==' operator, or 'hashCode', but the type '{0}' does."
     correctionMessage: "Try using a different value for the element, or removing the keyword 'const' from the set."
+    previousName: CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -9598,9 +9599,62 @@ CompileTimeErrorCode:
       ```
   MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT:
     problemMessage: "The class '{0}' can't be declared a mixin because it extends a class other than 'Object'."
+    correctionMessage: Try removing the 'mixin' modifier or changing the superclass to 'Object'.
     comment: |-
       Parameters:
       0: the name of the mixin class that is invalid
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class that is marked with
+      the `mixin` modifier extends a class other than `Object`. A mixin class
+      can't have a superclass other than `Object`.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `B`, which
+      has the modifier `mixin`, extends `A`:
+
+      ```dart
+      class A {}
+
+      mixin class B extends [!A!] {}
+      ```
+
+      #### Common fixes
+
+      If you want the class to be used as a mixin, then change the superclass to
+      `Object`, either explicitly or by removing the extends clause:
+
+      ```dart
+      class A {}
+
+      mixin class B {}
+      ```
+
+      If the class needs to have a superclass other than `Object`, then remove
+      the `mixin` modifier:
+
+      ```dart
+      class A {}
+
+      class B extends A {}
+      ```
+
+      If you need both a mixin and a subclass of a class other than `Object`,
+      then move the members of the subclass to a new mixin, remove the `mixin`
+      modifier from the subclass, and apply the new mixin to the subclass:
+
+      ```dart
+      class A {}
+
+      class B extends A with M {}
+
+      mixin M {}
+      ```
+
+      Depending on the members of the subclass this might require adding an `on`
+      clause to the mixin.
   MIXIN_CLASS_DECLARES_CONSTRUCTOR:
     problemMessage: "The class '{0}' can't be used as a mixin because it declares a constructor."
     hasPublishedDocs: true
@@ -13693,6 +13747,74 @@ CompileTimeErrorCode:
       0: the operand type
       1: the parameter type of the invoked operator
       2: the name of the invoked operator
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the operand of a relational
+      pattern has a type that isn't assignable to the parameter of the operator
+      that will be invoked.
+
+      #### Example
+
+      The following code produces this diagnostic because the operand in the
+      relational pattern (`0`) is an `int`, but the `>` operator defined in `C`
+      expects an object of type `C`:
+
+      ```dart
+      class C {
+        const C();
+
+        bool operator >(C other) => true;
+      }
+
+      void f(C c) {
+        switch (c) {
+          case > [!0!]:
+            print('positive');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the switch is using the correct value, then change the case to compare
+      the value to the right type of object:
+
+      ```dart
+      class C {
+        const C();
+
+        bool operator >(C other) => true;
+      }
+
+      void f(C c) {
+        switch (c) {
+          case > const C():
+            print('positive');
+        }
+      }
+      ```
+
+      If the switch is using the wrong value, then change the expression used to
+      compute the value being matched:
+
+      ```dart
+      class C {
+        const C();
+
+        bool operator >(C other) => true;
+
+        int get toInt => 0;
+      }
+
+      void f(C c) {
+        switch (c.toInt) {
+          case > 0:
+            print('positive');
+        }
+      }
+      ```
+
   RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
     problemMessage: The return type of operators used in relational patterns must be assignable to 'bool'.
     correctionMessage: Try updating the operator declaration to return 'bool'.
