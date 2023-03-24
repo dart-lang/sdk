@@ -1739,7 +1739,9 @@ class FixProcessor extends BaseProcessor {
       }
     }
 
-    if (errorCode is LintCode || errorCode is HintCode) {
+    if (errorCode is LintCode ||
+        errorCode is HintCode ||
+        errorCode is WarningCode) {
       var generators = [
         IgnoreDiagnosticOnLine.new,
         IgnoreDiagnosticInFile.new,

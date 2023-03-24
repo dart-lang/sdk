@@ -1904,8 +1904,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       FileState file, List<AnalysisError> errors) {
     for (AnalysisError error in errors) {
       ErrorSeverity severity = error.errorCode.errorSeverity;
-      if (severity == ErrorSeverity.ERROR ||
-          severity == ErrorSeverity.WARNING) {
+      if (severity == ErrorSeverity.ERROR) {
         file.hasErrorOrWarning = true;
         return;
       }

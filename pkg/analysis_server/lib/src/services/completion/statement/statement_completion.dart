@@ -152,7 +152,7 @@ class StatementCompletionProcessor {
     }
     for (var error in statementContext.resolveResult.errors) {
       if (error.offset >= node.offset && error.offset <= node.end) {
-        if (error.errorCode is! HintCode) {
+        if (error.errorCode is! HintCode && error.errorCode is! WarningCode) {
           errors.add(error);
         }
       }

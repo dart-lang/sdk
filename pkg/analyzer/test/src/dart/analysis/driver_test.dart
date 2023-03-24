@@ -3308,7 +3308,7 @@ class F extends X {}
 
     allResults.clear();
 
-    // Update a.dart with changing its API signature.
+    // Update b.dart with changing its API signature.
     modifyFile(b, 'class A {}');
     driver.changeFile(b);
     await waitForIdleWithoutExceptions();
