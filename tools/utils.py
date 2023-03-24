@@ -500,11 +500,13 @@ def GetGitRevision(git_revision_file=None, repo_path=DART_DIR):
         pass
     p = subprocess.Popen(['git', 'rev-parse', 'HEAD'],
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
+                         stderr=subprocess.PIPE,
                          shell=IsWindows(),
                          cwd=repo_path)
-    output, _ = p.communicate()
-    revision = output.decode('utf-8').strip()
+    out, err = p.communicate()
+    if p.wait() != 0:
+        raise Exception('git rev-parse failed: ' + str(err))
+    revision = out.decode('utf-8').strip()
     # We expect a full git hash
     if len(revision) != 40:
         print('Warning: Could not parse git commit, output was {}'.format(
@@ -517,13 +519,13 @@ def GetGitRevision(git_revision_file=None, repo_path=DART_DIR):
 def GetShortGitHash(repo_path=DART_DIR):
     p = subprocess.Popen(['git', 'rev-parse', '--short=10', 'HEAD'],
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
+                         stderr=subprocess.PIPE,
                          shell=IsWindows(),
                          cwd=repo_path)
-    output, _ = p.communicate()
-    revision = output.decode('utf-8').strip()
+    out, err = p.communicate()
     if p.wait() != 0:
-        return None
+        raise Exception('git rev-parse failed: ' + str(err))
+    revision = out.decode('utf-8').strip()
     return revision
 
 
@@ -540,16 +542,16 @@ def GetLatestDevTag(repo_path=DART_DIR):
     ]
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
+                         stderr=subprocess.PIPE,
                          shell=IsWindows(),
                          cwd=repo_path)
-    output, _ = p.communicate()
-    tag = output.decode('utf-8').strip()
+    out, err = p.communicate()
     if p.wait() != 0:
         print('Warning: Could not get the most recent dev branch tag {}'.format(
             tag),
               file=sys.stderr)
         return None
+    tag = out.decode('utf-8').strip()
     return tag
 
 
@@ -564,24 +566,26 @@ def GetGitTimestamp(git_timestamp_file=None, repo_path=DART_DIR):
         pass
     p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%cd'],
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
+                         stderr=subprocess.PIPE,
                          shell=IsWindows(),
                          cwd=repo_path)
-    output, _ = p.communicate()
-    timestamp = output.decode('utf-8').strip()
+    out, err = p.communicate()
     if p.wait() != 0:
-        return None
+        raise Exception('git log failed: ' + str(err))
+    timestamp = out.decode('utf-8').strip()
     return timestamp
 
 
 def GetGitNumber(repo_path=DART_DIR):
     p = subprocess.Popen(['git', 'rev-list', 'HEAD', '--count'],
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
+                         stderr=subprocess.PIPE,
                          shell=IsWindows(),
                          cwd=repo_path)
-    output, _ = p.communicate()
-    number = output.decode('utf-8').strip()
+    out, err = p.communicate()
+    if p.wait() != 0:
+        raise Exception('git rev-list failed: ' + str(err))
+    number = out.decode('utf-8').strip()
     try:
         number = int(number)
         return number + GIT_NUMBER_BASE
