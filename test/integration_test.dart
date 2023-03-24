@@ -21,8 +21,6 @@ import 'integration/close_sinks.dart' as close_sinks;
 import 'integration/depend_on_referenced_packages.dart'
     as depend_on_referenced_packages;
 import 'integration/exhaustive_cases.dart' as exhaustive_cases;
-import 'integration/lines_longer_than_80_chars.dart'
-    as lines_longer_than_80_chars;
 import 'integration/prefer_const_constructors_in_immutables.dart'
     as prefer_const_constructors_in_immutables;
 import 'integration/public_member_api_docs.dart' as public_member_api_docs;
@@ -157,7 +155,6 @@ void ruleTests() {
     avoid_web_libraries_in_flutter.main();
     close_sinks.main();
     depend_on_referenced_packages.main();
-    lines_longer_than_80_chars.main();
     always_require_non_null_named_parameters.main();
     prefer_const_constructors_in_immutables.main();
     public_member_api_docs.main();

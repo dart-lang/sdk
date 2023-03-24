@@ -55,6 +55,7 @@ import 'library_annotations_test.dart' as library_annotations;
 import 'library_names_test.dart' as library_names;
 import 'library_private_types_in_public_api_test.dart'
     as library_private_types_in_public_api;
+import 'lines_longer_than_80_chars_test.dart' as lines_longer_than_80_chars;
 import 'literal_only_boolean_expressions_test.dart'
     as literal_only_boolean_expressions;
 import 'missing_whitespace_between_adjacent_strings_test.dart'
@@ -172,6 +173,7 @@ void main() {
   library_annotations.main();
   library_names.main();
   library_private_types_in_public_api.main();
+  lines_longer_than_80_chars.main();
   literal_only_boolean_expressions.main();
   missing_whitespace_between_adjacent_strings.main();
   no_adjacent_strings_in_list.main();
