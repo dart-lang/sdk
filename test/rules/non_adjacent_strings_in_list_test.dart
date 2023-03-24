@@ -23,7 +23,7 @@ class NonAdjacentStringsInListTestLanguage300 extends LintRuleTest
 void f() {
   List<String?> row = [];
   switch (row) {
-    case ['one' 'two', var name!]: print(name);
+    case ['one' 'two', var name!]:
   }
 }  
 ''', [

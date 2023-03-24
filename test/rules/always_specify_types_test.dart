@@ -22,7 +22,6 @@ class AlwaysSpecifyTypesTestLanguage300 extends LintRuleTest
     await assertDiagnostics(r'''
 f() {
   var [a] = <int>[1];
-  print('$a');
 }
 ''', [
       lint(13, 1),
@@ -33,7 +32,6 @@ f() {
     await assertDiagnostics(r'''
 f() {
   var [int a] = [1];
-  print('$a');
 }
 ''', [
       lint(22, 1),
@@ -44,7 +42,6 @@ f() {
     await assertNoDiagnostics(r'''
 f() {
   var [int a] = <int>[1];
-  print('$a');
 }
 ''');
   }
@@ -53,7 +50,6 @@ f() {
     await assertDiagnostics(r'''
 f() {
   var {'a': a} = <String, int>{'a': 1};
-  print('$a');
 }
 ''', [
       lint(18, 1),
@@ -64,7 +60,6 @@ f() {
     await assertNoDiagnostics(r'''
 f() {
   var {'a': int a} = <String, int>{'a': 1};
-  print('$a');
 }
 ''');
   }
@@ -78,7 +73,7 @@ class A {
 
 f() {
   switch (A(1)) {
-    case A(a: >0 && final b): print('$b');
+    case A(a: >0 && final b):
   }
 }
 ''', [
@@ -95,7 +90,7 @@ class A {
 
 f() {
   switch (A(1)) {
-    case A(a: >0 && int b): print('$b');
+    case A(a: >0 && int b):
   }
 }
 ''');
@@ -110,7 +105,7 @@ class A {
 
 f() {
   switch (A(1)) {
-    case A(a: >0 && var b): print('$b');
+    case A(a: >0 && var b):
   }
 }
 ''', [
@@ -122,7 +117,7 @@ f() {
     await assertDiagnostics(r'''
 f() {
   switch ((1, 2)) {
-    case (final a, var b): print('$a$b');
+    case (final a, var b):
   }
 }
 ''', [
@@ -135,7 +130,7 @@ f() {
     await assertNoDiagnostics(r'''
 f() {
   switch ((1, 2)) {
-    case (int a, int b): print('$a$b');
+    case (int a, int b):
   }
 }
 ''');

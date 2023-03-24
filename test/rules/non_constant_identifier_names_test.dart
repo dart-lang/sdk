@@ -51,7 +51,6 @@ void f() {
     await assertDiagnostics(r'''
 f() {
   var [__, foo_bar] = [1,2];
-  print('$__$foo_bar');
 }
 ''', [
       lint(13, 2),
@@ -63,7 +62,6 @@ f() {
     await assertNoDiagnostics(r'''
 f() {
   var [_, a] = [1,2];
-  print(a);
 }
 ''');
   }
@@ -73,7 +71,6 @@ f() {
 f() {
   var a = 0;
   [_, a] = [1,2];
-  print(a);
 }
 ''');
   }

@@ -29,7 +29,7 @@ class A {
 }
 
 void f(A a) {
-  if (a case const A(0)) print(a);
+  if (a case const A(0)) {}
 }
 ''', [
       lint(117, 4),

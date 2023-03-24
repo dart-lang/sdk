@@ -39,7 +39,6 @@ class B {
 
 main() {
   var b = B(a.aa);
-  print(b);
 }   
 ''');
   }

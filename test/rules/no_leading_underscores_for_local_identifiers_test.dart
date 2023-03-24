@@ -20,7 +20,7 @@ class NoLeadingUnderscoresForLocalIdentifiersTest extends LintRuleTest {
   test_listPattern_ifCase() async {
     await assertDiagnostics(r'''
 f(Object o) {
-  if (o case [int _x, int y]) print('$_x$y'); 
+  if (o case [int _x, int y]) {}
 }
 ''', [
       lint(32, 2),
@@ -31,7 +31,7 @@ f(Object o) {
     await assertDiagnostics(r'''
 f() {
   switch ([1,2]) {
-    case [1 && var _a, 2 && var b]: print('$_a$b');
+    case [1 && var _a, 2 && var b]:
   }
 }
 ''', [
@@ -43,7 +43,7 @@ f() {
     await assertDiagnostics(r'''
 f() {
   switch ([1,2]) {
-    case [var _a && 1, 2 && var b]: print('$_a$b');
+    case [var _a && 1, 2 && var b]:
   }
 }
 ''', [
@@ -55,7 +55,6 @@ f() {
     await assertDiagnostics(r'''
 f() {
   final {'first': _a, 'second': b} = {'first': 1, 'second': 2};
-  print('$_a$b');
 }
 ''', [
       lint(24, 2),
@@ -65,7 +64,7 @@ f() {
   test_mapPattern_ifCase() async {
     await assertDiagnostics(r'''
 f(Object o) {
-  if (o case {'x': var _x, 'y' : var y}) print('$_x$y');
+  if (o case {'x': var _x, 'y' : var y}) {}
 }
 ''', [
       lint(37, 2),
@@ -76,7 +75,7 @@ f(Object o) {
     await assertDiagnostics(r'''
 f() {
   switch ({1: 2}) {
-    case {'a': var _a, 'b': var b} : print('$_a$b');
+    case {'a': var _a, 'b': var b} :
   }
 }
 ''', [
@@ -92,7 +91,6 @@ class A {
 }
 f() {
   final A(a: _b) = A(1);
-  print('$_b');
 }
 ''', [
       lint(53, 2),
@@ -108,7 +106,7 @@ class C {
 }
 
 f(Object o) {
-  if (o case C(c: var _x, d: var y)) print('$_x$y');
+  if (o case C(c: var _x, d: var y)) {}
 }
 ''', [
       lint(88, 2),
@@ -123,7 +121,7 @@ class A {
 }
 f() {
   switch (A(1)) {
-    case A(a: >0 && var _b): print('$_b');
+    case A(a: >0 && var _b):
   }
 }
 ''', [
@@ -135,7 +133,6 @@ f() {
     await assertDiagnostics(r'''
 f() {
   var (_a, b) = ('a', 'b');
-  print('$_a$b');
 }
 ''', [
       lint(13, 2),
@@ -145,7 +142,7 @@ f() {
   test_recordPattern_ifCase() async {
     await assertDiagnostics(r'''
 f(Object o) {
-  if (o case (int _x, int y)) print('$_x$y');
+  if (o case (int _x, int y)) {}
 }
 ''', [
       lint(32, 2),
@@ -156,7 +153,7 @@ f(Object o) {
     await assertDiagnostics(r'''
 f() {
   switch ((1, 2)) {
-    case (var _a, var b): print('$_a$b');
+    case (var _a, var b):
   }
 }
 ''', [

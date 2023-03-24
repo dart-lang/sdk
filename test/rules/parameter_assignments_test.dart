@@ -189,7 +189,6 @@ class ParameterAssignmentsTestLanguage300 extends LintRuleTest
     await assertDiagnostics(r'''
 f(var b) {
   [b] = [1];
-  print('$b');
 }
 ''', [
       lint(13, 3),
@@ -200,7 +199,6 @@ f(var b) {
     await assertDiagnostics(r'''
 f(var a) {
   {'a': a} = {'a': 1};
-  print('$a');
 }
 ''', [
       lint(13, 8),
@@ -216,7 +214,6 @@ class A {
 
 f(var b) {
   A(a: b) = A(1);
-  print('$b');
 }
 ''', [
       lint(48, 7),
@@ -228,7 +225,6 @@ f(var b) {
 void f(var a) {
   var b = 0;
   (a, b) = (1, 2);
-  print(b);
 }
 ''', [
       lint(31, 6),

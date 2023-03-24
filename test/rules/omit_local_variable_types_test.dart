@@ -72,7 +72,6 @@ class OmitLocalVariableTypesTestLanguage300 extends LintRuleTest
     await assertNoDiagnostics(r'''
 f() {
   var [int a] = <int>[1];
-  print('$a');
 }
 ''');
   }
@@ -81,7 +80,6 @@ f() {
     await assertNoDiagnostics(r'''
 f() {
   var {'a': int a} = <String, int>{'a': 1};
-  print('$a');
 }
 ''');
   }
@@ -94,7 +92,6 @@ class A {
 }
 f() {
   final A(a: int _b) = A(1);
-  print('$_b');
 }
 ''');
   }
@@ -108,7 +105,7 @@ class A {
 
 f() {
   switch (A(1)) {
-    case A(a: >0 && int b): print('$b');
+    case A(a: >0 && int b):
   }
 }
 ''');
@@ -118,7 +115,7 @@ f() {
     await assertNoDiagnostics(r'''
 f(Object o) {
   switch (o) {
-    case (int x, String s): print('$x$s');
+    case (int x, String s):
   }
 }
 ''');
@@ -128,7 +125,7 @@ f(Object o) {
     await assertNoDiagnostics(r'''
 f() {
   switch ((1, 2)) {
-    case (int a, final int b): print('$a$b');
+    case (int a, final int b):
   }
 }
 ''');
