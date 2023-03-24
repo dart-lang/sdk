@@ -44,14 +44,15 @@ bool simpleInference(B<num> b) {
   // No need for a `return` since the switch is exhaustive.
 }
 
-void inferDynamic(Object o) {
+bool inferDynamic(Object o) {
   switch (o) {
     case C(listOfT: var x, t: var t):
       x.expectStaticType<Exactly<List<dynamic>>>();
       t.isEven; // Should be ok since T is `dynamic`.
       o.expectStaticType<Exactly<C<dynamic>>>();
+      return true;
     default:
-      Expect.fail('Match failure');
+      return false;
   }
 }
 
@@ -66,13 +67,14 @@ class D<T extends num> {
   D(this.t);
 }
 
-void inferBound(Object o) {
+bool inferBound(Object o) {
   switch (o) {
     case D(listOfT: var x):
       x.expectStaticType<Exactly<List<num>>>();
       o.expectStaticType<Exactly<D<num>>>();
+      return true;
     default:
-      Expect.fail('Match failure');
+      return false;
   }
 }
 
@@ -110,13 +112,14 @@ class F2 extends F1<F2> {
   }
 }
 
-void fBounded(Object o) {
+bool fBounded(Object o) {
   switch (o) {
     case F1(listOfT: var x):
       x.expectStaticType<Exactly<List<F1<Object?>>>>();
       o.expectStaticType<Exactly<F1<F1<Object?>>>>();
+      return true;
     default:
-      Expect.fail('Match failure');
+      return false;
   }
 }
 
@@ -136,22 +139,71 @@ class G2<T, U extends Set<T>> extends G1<T> {
   G2(super.t, this.u);
 }
 
-void partialInference(G1<int> g) {
+bool partialInference(G1<int> g) {
   switch (g) {
     case G2(listOfT: var x, listOfU: var y):
       x.expectStaticType<Exactly<List<int>>>();
       y.expectStaticType<Exactly<List<Set<int>>>>();
       g.expectStaticType<Exactly<G2<int, Set<int>>>>();
+      return true;
+    default:
+      return false;
+  }
+}
+
+class H1<T, U> {
+  final T t;
+  final U u;
+
+  List<T> get listOfT => [t];
+  List<U> get listOfU => [u];
+
+  H1(this.t, this.u);
+}
+
+typedef H2<S extends num> = H1<S, String>;
+
+bool typedefResolvingToInterfaceType(Object o) {
+  switch (o) {
+    case H2(listOfT: var x, listOfU: var y):
+      x.expectStaticType<Exactly<List<num>>>();
+      y.expectStaticType<Exactly<List<String>>>();
+      o.expectStaticType<Exactly<H2<num>>>();
+      return true;
+    default:
+      return false;
+  }
+}
+
+typedef I<S extends num> = String Function(S);
+
+bool typedefResolvingToFunctionType(Object o) {
+  switch (o) {
+    case I():
+      o.expectStaticType<Exactly<I<num>>>();
+      return true;
+    default:
+      return false;
   }
 }
 
 main() {
-  explicitTypeArguments(C(0));
-  simpleInference(C(0));
-  inferDynamic(C(0));
-  inferBound(D(0));
-  E<int, String>(0, '')
-      .inferEnclosingTypeParameters(E<Set<String>, Set<int>>({''}, {0}));
-  fBounded(F2());
-  partialInference(G2(0, {0}));
+  Expect.isTrue(explicitTypeArguments(C(0)));
+  Expect.isTrue(simpleInference(C(0)));
+  Expect.isTrue(inferDynamic(C(0)));
+  Expect.isFalse(inferDynamic(0));
+  Expect.isTrue(inferBound(D(0)));
+  Expect.isFalse(inferBound(0));
+  Expect.isTrue(E<int, String>(0, '')
+      .inferEnclosingTypeParameters(E<Set<String>, Set<int>>({''}, {0})));
+  Expect.isTrue(fBounded(F2()));
+  Expect.isFalse(fBounded(0));
+  Expect.isTrue(partialInference(G2(0, {0})));
+  Expect.isFalse(partialInference(G1(0)));
+  Expect.isTrue(typedefResolvingToInterfaceType(H1<int, String>(0, '')));
+  Expect.isTrue(typedefResolvingToInterfaceType(H1<num, String>(0, '')));
+  Expect.isFalse(typedefResolvingToInterfaceType(H1<Object, String>(0, '')));
+  Expect.isTrue(typedefResolvingToFunctionType((Object o) => o.toString()));
+  Expect.isTrue(typedefResolvingToFunctionType((num n) => n.toString()));
+  Expect.isFalse(typedefResolvingToFunctionType((int i) => i.toString()));
 }
