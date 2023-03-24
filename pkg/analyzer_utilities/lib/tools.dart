@@ -44,7 +44,7 @@ typedef DirectoryContentsComputer = Map<String, FileContentsComputer> Function(
 typedef FileContentsComputer = Future<String> Function(String pkgPath);
 
 /// Mixin class for generating code.
-class CodeGenerator {
+mixin CodeGenerator {
   _CodeGeneratorState _state = _CodeGeneratorState();
 
   /// Settings that specialize code generation behavior for a given
@@ -438,7 +438,7 @@ class GeneratedFile extends GeneratedContent {
 
 /// Mixin class for generating HTML representations of code that are suitable
 /// for enclosing inside a <pre> element.
-abstract class HtmlCodeGenerator {
+mixin HtmlCodeGenerator {
   _HtmlCodeGeneratorState _state = _HtmlCodeGeneratorState();
 
   /// Add the given [node] to the HTML output.

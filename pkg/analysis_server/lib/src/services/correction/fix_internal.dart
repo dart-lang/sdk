@@ -1376,15 +1376,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_IMPORT: [
       RemoveUnusedImport.new,
     ],
-    HintCode.UNNECESSARY_SET_LITERAL: [
-      RemoveSetLiteral.new,
-    ],
-    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
-      RemoveComparison.typeCheck,
-    ],
-    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [
-      RemoveComparison.typeCheck,
-    ],
     HintCode.UNREACHABLE_SWITCH_CASE: [
       RemoveDeadCode.new,
     ],
@@ -1632,6 +1623,15 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.UNNECESSARY_QUESTION_MARK: [
       RemoveQuestionMark.new,
+    ],
+    WarningCode.UNNECESSARY_SET_LITERAL: [
+      RemoveSetLiteral.new,
+    ],
+    WarningCode.UNNECESSARY_TYPE_CHECK_FALSE: [
+      RemoveComparison.typeCheck,
+    ],
+    WarningCode.UNNECESSARY_TYPE_CHECK_TRUE: [
+      RemoveComparison.typeCheck,
     ],
     WarningCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.new,

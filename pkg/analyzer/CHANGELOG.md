@@ -1,4 +1,4 @@
-## 5.10.0-dev
+## 5.10.0
 * Added `DartType.isDartCoreType`.
 
 ## 5.9.0

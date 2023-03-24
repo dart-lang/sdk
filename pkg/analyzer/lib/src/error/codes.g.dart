@@ -7024,13 +7024,32 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
-  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE =
-      HintCode.UNNECESSARY_TYPE_CHECK_FALSE;
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_SET_LITERAL = WarningCode(
+    'UNNECESSARY_SET_LITERAL',
+    "Braces unnecessarily wrap this expression in a set literal.",
+    correctionMessage: "Try removing the set literal around the expression.",
+  );
 
-  ///  This is the new replacement for [HintCode.UNNECESSARY_TYPE_CHECK_TRUE].
-  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE =
-      HintCode.UNNECESSARY_TYPE_CHECK_TRUE;
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_TYPE_CHECK_FALSE = WarningCode(
+    'UNNECESSARY_TYPE_CHECK',
+    "Unnecessary type check; the result is always 'false'.",
+    correctionMessage:
+        "Try correcting the type check, or removing the type check.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNNECESSARY_TYPE_CHECK_FALSE',
+  );
+
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_TYPE_CHECK_TRUE = WarningCode(
+    'UNNECESSARY_TYPE_CHECK',
+    "Unnecessary type check; the result is always 'true'.",
+    correctionMessage:
+        "Try correcting the type check, or removing the type check.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNNECESSARY_TYPE_CHECK_TRUE',
+  );
 
   ///  No parameters.
   static const WarningCode UNNECESSARY_WILDCARD_PATTERN = WarningCode(
@@ -7038,6 +7057,10 @@ class WarningCode extends AnalyzerErrorCode {
     "Unnecessary wildcard pattern.",
     correctionMessage: "Try removing the wildcard pattern.",
   );
+
+  ///  This is the new replacement for [HintCode.UNREACHABLE_SWITCH_CASE].
+  static const HintCode UNREACHABLE_SWITCH_CASE =
+      HintCode.UNREACHABLE_SWITCH_CASE;
 
   ///  Parameters:
   ///  0: the name of the exception variable

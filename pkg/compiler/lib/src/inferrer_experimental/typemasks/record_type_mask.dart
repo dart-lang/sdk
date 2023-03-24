@@ -439,7 +439,7 @@ class RecordTypeMask extends TypeMask {
     final recordClass = _classForRecord(closedWorld);
     return memberHierarchyBuilder.rootsForCall(
         recordClass != null
-            ? FlatTypeMask.nonNullSubclass(recordClass, closedWorld)
+            ? closedWorld.abstractValueDomain.createNonNullSubclass(recordClass)
             : null,
         selector);
   }

@@ -7,7 +7,7 @@ import 'package:matcher/matcher.dart';
 typedef _Predicate<T> = bool Function(T value);
 
 /// Lightweight expect that can be run outside of a test context.
-class ExpectMixin {
+mixin ExpectMixin {
   void expect(actual, matcher, {String? reason}) {
     matcher = _wrapMatcher(matcher);
     var matchState = {};

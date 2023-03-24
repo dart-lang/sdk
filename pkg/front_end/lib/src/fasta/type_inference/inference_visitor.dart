@@ -10226,8 +10226,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
+  bool _needsCast(
+      {required DartType matchedType, required DartType requiredType}) {
+    return !typeSchemaEnvironment.isSubtypeOf(
+        matchedType, requiredType, SubtypeCheckMode.withNullabilities);
+  }
+
   bool _needsCheck(
       {required DartType matchedType, required DartType requiredType}) {
+    // TODO(johnniwinther): Should we use `isSubtypeOf` here instead?
     return !isAssignable(requiredType, matchedType) ||
         matchedType is InvalidType ||
         matchedType is DynamicType;
@@ -10790,7 +10797,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     DartType matchedValueType =
         node.matchedValueType = flow.getMatchedValueType();
-    node.needsCheck = _needsCheck(
+    node.needsCast = _needsCast(
         matchedType: matchedValueType, requiredType: node.variable.type);
 
     // TODO(johnniwinther): Share this through the type analyzer.

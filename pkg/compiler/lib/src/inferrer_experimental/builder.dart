@@ -1715,12 +1715,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   TypeInformation _handleRecordFieldGet(
       ir.Expression node, ir.Expression receiver, String fieldName) {
     final receiverType = visit(receiver)!;
-    final staticType = _getStaticType(node);
-    final staticTypeMask = _closedWorld.abstractValueDomain
-        .createFromStaticType(staticType, nullable: true)
-        .abstractValue;
     (_memberData as KernelGlobalTypeInferenceElementData)
-        .setReceiverTypeMask(node, staticTypeMask);
+        .setReceiverTypeMask(node, receiverType.type);
     return _types.allocateRecordFieldGet(node, fieldName, receiverType);
   }
 

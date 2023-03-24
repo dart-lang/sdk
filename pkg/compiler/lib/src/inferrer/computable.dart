@@ -620,10 +620,12 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
       _wrappedDomain.isFixedLengthJsIndexable(_unwrap(value));
 
   @override
-  Iterable<DynamicCallTarget> findRootsOfTargets(AbstractValue receiver,
-      Selector selector, MemberHierarchyBuilder memberHierarchyBuilder) {
+  Iterable<DynamicCallTarget> findRootsOfTargets(
+      covariant ComputableAbstractValue receiver,
+      Selector selector,
+      MemberHierarchyBuilder memberHierarchyBuilder) {
     return _wrappedDomain.findRootsOfTargets(
-        receiver, selector, memberHierarchyBuilder);
+        _unwrap(receiver), selector, memberHierarchyBuilder);
   }
 
   @override

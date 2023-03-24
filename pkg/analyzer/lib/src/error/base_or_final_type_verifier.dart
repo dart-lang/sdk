@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -24,16 +25,21 @@ class BaseOrFinalTypeVerifier {
         _errorReporter = errorReporter;
 
   /// Check to ensure the subelement of a base or final element must be base,
-  /// final, or sealed. Otherwise, an error is reported on that element.
+  /// final, or sealed and that base elements are not implemented outside of its
+  /// library. Otherwise, an error is reported on that element.
   ///
   /// See [CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED],
-  /// [CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED]
-  void checkElement(ClassOrMixinElementImpl element) {
+  /// [CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED],
+  /// [CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY].
+  void checkElement(
+      ClassOrMixinElementImpl element, ImplementsClause? implementsClause) {
     final supertype = element.supertype;
     if (supertype != null && _checkSupertypes([supertype], element)) {
       return;
     }
-    if (_checkSupertypes(element.interfaces, element)) {
+    if (implementsClause != null &&
+        _checkInterfaceSupertypes(implementsClause.interfaces, element,
+            areImplementedInterfaces: true)) {
       return;
     }
     if (_checkSupertypes(element.mixins, element)) {
@@ -44,6 +50,28 @@ class BaseOrFinalTypeVerifier {
             areSuperclassConstraints: true)) {
       return;
     }
+  }
+
+  /// Returns true if a 'base' or 'final' subtype modifier error is reported for
+  /// an interface in [interfaces].
+  bool _checkInterfaceSupertypes(
+      List<NamedType> interfaces, ClassOrMixinElementImpl subElement,
+      {bool areImplementedInterfaces = false}) {
+    for (NamedType interface in interfaces) {
+      final interfaceType = interface.type;
+      if (interfaceType is InterfaceType) {
+        final interfaceElement = interfaceType.element;
+        if (interfaceElement is ClassOrMixinElementImpl) {
+          // Return early if an error has been reported to prevent reporting
+          // multiple errors on one element.
+          if (_reportRestrictionError(subElement, interfaceElement,
+              implementsNamedType: interface)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   /// Returns true if a 'base' or 'final' subtype modifier error is reported for
@@ -135,7 +163,7 @@ class BaseOrFinalTypeVerifier {
   /// Reports an error based on the modifier of the [superElement].
   bool _reportRestrictionError(
       ClassOrMixinElementImpl element, ClassOrMixinElementImpl superElement,
-      {bool isSuperclassConstraint = false}) {
+      {bool isSuperclassConstraint = false, NamedType? implementsNamedType}) {
     ClassOrMixinElementImpl? baseOrFinalSuperElement;
     if (superElement.isBase || superElement.isFinal) {
       // The 'base' or 'final' modifier may be an induced modifier. Find the
@@ -151,9 +179,6 @@ class BaseOrFinalTypeVerifier {
       return false;
     }
     if (baseOrFinalSuperElement != null &&
-        !element.isBase &&
-        !element.isFinal &&
-        !element.isSealed &&
         !_mayIgnoreClassModifiers(baseOrFinalSuperElement.library)) {
       // The context message links to the explicitly declared 'base' or 'final'
       // super element and is only added onto the error if 'base' or 'final' is
@@ -170,27 +195,44 @@ class BaseOrFinalTypeVerifier {
         )
       ];
 
-      if (baseOrFinalSuperElement.isFinal) {
-        if (!isSuperclassConstraint &&
-            baseOrFinalSuperElement.library != element.library) {
-          // If you can't extend, implement or mix in a final element outside of
-          // its library anyways, it's not helpful to report a subelement
-          // modifier error.
-          return false;
+      // It's an error to implement a class if it has a supertype from a
+      // different library which is marked base.
+      if (implementsNamedType != null &&
+          superElement.isSealed &&
+          baseOrFinalSuperElement.library != element.library) {
+        if (baseOrFinalSuperElement.isBase) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+              implementsNamedType,
+              [baseOrFinalSuperElement.displayName],
+              contextMessage);
+          return true;
         }
-        _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-            element,
-            [element.displayName, baseOrFinalSuperElement.displayName],
-            superElement.isSealed ? contextMessage : null);
-        return true;
-      } else if (baseOrFinalSuperElement.isBase) {
-        _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
-            element,
-            [element.displayName, baseOrFinalSuperElement.displayName],
-            superElement.isSealed ? contextMessage : null);
-        return true;
+      }
+
+      if (!element.isBase && !element.isFinal && !element.isSealed) {
+        if (baseOrFinalSuperElement.isFinal) {
+          if (!isSuperclassConstraint &&
+              baseOrFinalSuperElement.library != element.library) {
+            // If you can't extend, implement or mix in a final element outside of
+            // its library anyways, it's not helpful to report a subelement
+            // modifier error.
+            return false;
+          }
+          _errorReporter.reportErrorForElement(
+              CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+              element,
+              [element.displayName, baseOrFinalSuperElement.displayName],
+              superElement.isSealed ? contextMessage : null);
+          return true;
+        } else if (baseOrFinalSuperElement.isBase) {
+          _errorReporter.reportErrorForElement(
+              CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+              element,
+              [element.displayName, baseOrFinalSuperElement.displayName],
+              superElement.isSealed ? contextMessage : null);
+          return true;
+        }
       }
     }
 

@@ -1271,7 +1271,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (shouldDefer(supertype)) {
       var originalSupertype = supertype;
       deferredSupertypes.add(() => runtimeStatement('setBaseClass(#, #)', [
-            getBaseClass(isMixinAliasClass(c) ? 0 : mixinApplications.length),
+            getBaseClass(mixinApplications.length),
             emitDeferredType(originalSupertype, emitNullability: false),
           ]));
       // Refers to 'supertype' without type parameters. We remove these from
@@ -1281,54 +1281,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           _coreTypes.rawType(supertype.classNode, _currentLibrary!.nonNullable);
     }
     var baseClass = emitClassRef(supertype);
-
-    if (isMixinAliasClass(c)) {
-      // Given `class C = Object with M [implements I1, I2 ...];`
-      // The resulting class C should work as a mixin.
-      //
-      // TODO(jmesserly): is there any way to merge this with the other mixin
-      // code paths, or will these always need special handling?
-      body.add(_emitClassStatement(c, className, baseClass, []));
-
-      var m = c.mixedInType!.asInterfaceType;
-      var deferMixin = shouldDefer(m);
-      var mixinClass = deferMixin
-          ? emitDeferredType(m, emitNullability: false)
-          : emitClassRef(m);
-      var classExpr = deferMixin ? getBaseClass(0) : className;
-
-      var mixinApplication =
-          runtimeStatement('applyMixin(#, #)', [classExpr, mixinClass]);
-      if (deferMixin) {
-        deferredSupertypes.add(() => mixinApplication);
-      } else {
-        body.add(mixinApplication);
-      }
-
-      if (methods.isNotEmpty) {
-        // However we may need to add some methods to this class that call
-        // `super` such as covariance checks.
-        //
-        // We do this with the following pattern:
-        //
-        //     applyMixin(C, class C$ extends M { <methods>  });
-        var mixinApplicationWithMethods = runtimeStatement('applyMixin(#, #)', [
-          classExpr,
-          js_ast.ClassExpression(
-              _emitTemporaryId(getLocalClassName(c)), mixinClass, methods)
-        ]);
-        if (deferMixin) {
-          deferredSupertypes.add(() => mixinApplicationWithMethods);
-        } else {
-          body.add(mixinApplicationWithMethods);
-        }
-      }
-
-      emitMixinConstructors(className, m);
-
-      _classEmittingExtends = savedTopLevelClass;
-      return;
-    }
 
     // TODO(jmesserly): we need to unroll kernel mixins because the synthetic
     // classes lack required synthetic members, such as constructors.
@@ -1394,7 +1346,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       baseClass = mixinId;
     }
 
-    if (c.isMixinDeclaration) {
+    if (c.isMixinDeclaration && !c.isMixinClass) {
       _emitMixinStatement(c, className, baseClass, methods, body);
     } else {
       body.add(_emitClassStatement(c, className, baseClass, methods));
@@ -1407,7 +1359,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   List<js_ast.Statement> _defineConstructors(
       Class c, js_ast.Expression className) {
     var body = <js_ast.Statement>[];
-    if (c.isAnonymousMixin || isMixinAliasClass(c)) {
+    if (c.isAnonymousMixin) {
       // We already handled this when we defined the class.
       return body;
     }

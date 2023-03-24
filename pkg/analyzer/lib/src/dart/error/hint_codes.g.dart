@@ -19,6 +19,9 @@ class HintCode extends AnalyzerErrorCode {
   ///  subsequent invocations should also use '?.' operator.
   ///
   ///  Note: This diagnostic is only generated in pre-null safe code.
+  ///
+  ///  Note: Since this diagnostic is only produced in pre-null safe code, we do
+  ///  not plan to go through the exercise of converting it to a Warning.
   static const HintCode CAN_BE_NULL_AFTER_NULL_AWARE = HintCode(
     'CAN_BE_NULL_AFTER_NULL_AWARE',
     "The receiver uses '?.', so its value can be null.",
@@ -26,6 +29,9 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  ///
+  ///  Note: Since this diagnostic is only produced in pre-3.0 code, we do not
+  ///  plan to go through the exercise of converting it to a Warning.
   static const HintCode DEPRECATED_COLON_FOR_DEFAULT_VALUE = HintCode(
     'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     "Using a colon as a separator before a default value is deprecated and "
@@ -167,33 +173,6 @@ class HintCode extends AnalyzerErrorCode {
         "also provided by the import of '{1}'.",
     correctionMessage: "Try removing the import directive.",
     hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_SET_LITERAL = HintCode(
-    'UNNECESSARY_SET_LITERAL',
-    "Braces unnecessarily wrap this expression in a set literal.",
-    correctionMessage: "Try removing the set literal around the expression.",
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = HintCode(
-    'UNNECESSARY_TYPE_CHECK',
-    "Unnecessary type check; the result is always 'false'.",
-    correctionMessage:
-        "Try correcting the type check, or removing the type check.",
-    hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_TYPE_CHECK_FALSE',
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = HintCode(
-    'UNNECESSARY_TYPE_CHECK',
-    "Unnecessary type check; the result is always 'true'.",
-    correctionMessage:
-        "Try correcting the type check, or removing the type check.",
-    hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_TYPE_CHECK_TRUE',
   );
 
   ///  No parameters.

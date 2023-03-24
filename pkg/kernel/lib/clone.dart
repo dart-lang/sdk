@@ -900,7 +900,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   TreeNode visitAssignedVariablePattern(AssignedVariablePattern node) {
     return new AssignedVariablePattern(getVariableClone(node.variable)!)
       ..matchedValueType = visitOptionalType(node.matchedValueType)
-      ..needsCheck = node.needsCheck;
+      ..needsCast = node.needsCast;
   }
 
   @override

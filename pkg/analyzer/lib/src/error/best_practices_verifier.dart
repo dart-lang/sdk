@@ -1641,7 +1641,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           var elements = expression.elements;
           if (elements.length == 1 && elements.first is Expression) {
             _errorReporter.reportErrorForNode(
-                HintCode.UNNECESSARY_SET_LITERAL, expression);
+                WarningCode.UNNECESSARY_SET_LITERAL, expression);
           }
         }
       }
