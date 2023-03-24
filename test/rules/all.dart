@@ -127,6 +127,7 @@ import 'use_is_even_rather_than_modulo_test.dart'
     as use_is_even_rather_than_modulo;
 import 'use_late_for_private_fields_and_variables_test.dart'
     as use_late_for_private_fields_and_variables;
+import 'use_named_constants_test.dart' as use_named_constants;
 import 'use_super_parameters_test.dart' as use_super_parameters;
 import 'void_checks_test.dart' as void_checks;
 
@@ -222,6 +223,7 @@ void main() {
   use_enums.main();
   use_is_even_rather_than_modulo.main();
   use_late_for_private_fields_and_variables.main();
+  use_named_constants.main();
   use_super_parameters.main();
   void_checks.main();
 }
