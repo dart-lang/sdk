@@ -113,6 +113,14 @@ class ExpectedLint extends ExpectedDiagnostic {
       : super((AnalysisError error) => error.errorCode.name == lintName, offset,
             length,
             messageContains: messageContains);
+
+  /// Initialize a newly created lint description.
+  ExpectedLint.withLintCode(LintCode lintCode, int offset, int length,
+      {Pattern? messageContains})
+      : lintName = lintCode.uniqueName,
+        super((AnalysisError error) => error.errorCode == lintCode, offset,
+            length,
+            messageContains: messageContains);
 }
 
 mixin LanguageVersion219Mixin on PubPackageResolutionTest {

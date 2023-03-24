@@ -102,6 +102,8 @@ import 'sort_unnamed_constructors_first_test.dart'
 import 'tighten_type_of_initializing_formals_test.dart'
     as tighten_type_of_initializing_formals;
 import 'type_init_formals_test.dart' as type_init_formals;
+import 'type_literal_in_constant_pattern_test.dart'
+    as type_literal_in_constant_pattern;
 import 'unawaited_futures_test.dart' as unawaited_futures;
 import 'unnecessary_brace_in_string_interps_test.dart'
     as unnecessary_brace_in_string_interps;
@@ -205,6 +207,7 @@ void main() {
   sort_unnamed_constructors_first.main();
   tighten_type_of_initializing_formals.main();
   type_init_formals.main();
+  type_literal_in_constant_pattern.main();
   unawaited_futures.main();
   unnecessary_brace_in_string_interps.main();
   unnecessary_breaks.main();

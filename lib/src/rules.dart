@@ -176,6 +176,7 @@ import 'rules/throw_in_finally.dart';
 import 'rules/tighten_type_of_initializing_formals.dart';
 import 'rules/type_annotate_public_apis.dart';
 import 'rules/type_init_formals.dart';
+import 'rules/type_literal_in_constant_pattern.dart';
 import 'rules/unawaited_futures.dart';
 import 'rules/unnecessary_await_in_return.dart';
 import 'rules/unnecessary_brace_in_string_interps.dart';
@@ -403,6 +404,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(ThrowInFinally())
     ..register(TypeAnnotatePublicApis())
     ..register(TypeInitFormals())
+    ..register(TypeLiteralInConstantPattern())
     ..register(UnawaitedFutures())
     ..register(UnnecessaryAwaitInReturn())
     ..register(UnnecessaryBraceInStringInterps())
