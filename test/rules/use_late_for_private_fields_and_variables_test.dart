@@ -9,6 +9,7 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseLateForPrivateFieldsAndVariablesTest);
+    defineReflectiveTests(UseLateForPrivateFieldsAndVariablesTestLanguage300);
   });
 }
 
@@ -164,6 +165,15 @@ f(int? i) {
 ''');
   }
 
+  test_topLevel_public() async {
+    await assertNoDiagnostics('''
+int? i;
+void f() {
+  i = 1;
+}
+''');
+  }
+
   test_useInPart() async {
     newFile2('$testPackageRootPath/lib/lib.dart', '''
 part '$testFileName';
@@ -178,13 +188,41 @@ m() {
 }
 ''', [lint(24, 2)]);
   }
-
-  test_topLevel_public() async {
-    await assertNoDiagnostics('''
-int? i;
-void f() {
-  i = 1;
 }
-''');
+
+@reflectiveTest
+class UseLateForPrivateFieldsAndVariablesTestLanguage300 extends LintRuleTest
+    with LanguageVersion300Mixin {
+  @override
+  String get lintRule => 'use_late_for_private_fields_and_variables';
+
+  /// https://github.com/dart-lang/linter/issues/4180
+  test_patternAssignment_field() async {
+    await assertDiagnostics('''
+class C {
+  int? _i;
+  void m() {
+    _i?.abs();
+    (_i, ) = (null, );
+  }
+}
+''', [
+      // No lint.
+      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 54, 2),
+    ]);
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4180
+  test_patternAssignment_topLevel() async {
+    await assertDiagnostics('''
+int? _i;
+m() {
+  _i?.abs();
+  (_i, ) = (null, );
+}
+''', [
+      // No lint.
+      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 31, 2),
+    ]);
   }
 }
