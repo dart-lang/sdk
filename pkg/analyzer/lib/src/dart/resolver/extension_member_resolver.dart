@@ -352,7 +352,7 @@ class ExtensionMemberResolver {
         element.extendedType,
         'extendedType',
       );
-      return inferrer.upwardsInfer();
+      return inferrer.chooseFinalTypes();
     }
   }
 

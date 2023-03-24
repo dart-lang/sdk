@@ -8,7 +8,7 @@ library /*isNonNullableByDefault*/;
 //    ^
 //
 import self as self;
-import "dart:_internal" as _in;
+import "dart:core" as core;
 
 static method main() → dynamic {
   block {
@@ -17,6 +17,6 @@ static method main() → dynamic {
 Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
   (null) = null;
    ^")
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#0#0;
 }

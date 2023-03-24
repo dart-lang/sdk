@@ -2580,7 +2580,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           listType, listClass.typeParameters, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
-      inferredTypes = typeSchemaEnvironment.partialInfer(
+      inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, listClass.typeParameters, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredTypeArgument = inferredTypes[0];
@@ -2598,7 +2598,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes, actualTypes);
-      inferredTypes = typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, listClass.typeParameters, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
@@ -4614,7 +4614,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           mapType, mapClass.typeParameters, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
-      inferredTypes = typeSchemaEnvironment.partialInfer(
+      inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, mapClass.typeParameters, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredKeyType = inferredTypes[0];
@@ -4687,11 +4687,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 setType, coreTypes.setClass.typeParameters, typeContext,
                 isNonNullableByDefault: isNonNullableByDefault,
                 isConst: node.isConst);
-        List<DartType> inferredTypesForSet = typeSchemaEnvironment.partialInfer(
-            gatherer, coreTypes.setClass.typeParameters, null,
-            isNonNullableByDefault: isNonNullableByDefault);
+        List<DartType> inferredTypesForSet =
+            typeSchemaEnvironment.choosePreliminaryTypes(
+                gatherer, coreTypes.setClass.typeParameters, null,
+                isNonNullableByDefault: isNonNullableByDefault);
         gatherer.constrainArguments(formalTypesForSet, actualTypesForSet);
-        inferredTypesForSet = typeSchemaEnvironment.upwardsInfer(
+        inferredTypesForSet = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, coreTypes.setClass.typeParameters, inferredTypesForSet,
             isNonNullableByDefault: isNonNullableByDefault);
         DartType inferredTypeArgument = inferredTypesForSet[0];
@@ -4731,7 +4732,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             NeverType.fromNullability(libraryBuilder.nonNullable), replacement);
       }
       gatherer!.constrainArguments(formalTypes, actualTypes);
-      inferredTypes = typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, mapClass.typeParameters, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
@@ -7899,7 +7900,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           setType, setClass.typeParameters, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
-      inferredTypes = typeSchemaEnvironment.partialInfer(
+      inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, setClass.typeParameters, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredTypeArgument = inferredTypes[0];
@@ -7918,7 +7919,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes, actualTypes);
-      inferredTypes = typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, setClass.typeParameters, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
@@ -10914,7 +10915,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypeConstraintGatherer gatherer = typeSchemaEnvironment
         .setupGenericTypeInference(declaredType, typeParameters, contextType,
             isNonNullableByDefault: isNonNullableByDefault);
-    return typeSchemaEnvironment.upwardsInfer(gatherer, typeParameters, null,
+    return typeSchemaEnvironment.chooseFinalTypes(
+        gatherer, typeParameters, null,
         isNonNullableByDefault: isNonNullableByDefault);
   }
 
@@ -10925,30 +10927,45 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }) {
     DartType requiredType = pattern.requiredType;
     if (!pattern.hasExplicitTypeArguments) {
-      if (pattern.typedef != null) {
-        // TODO(paulberry): handle typedefs properly.
-      }
-      if (requiredType is InterfaceType &&
-          requiredType.classNode.typeParameters.isNotEmpty) {
+      Typedef? typedef = pattern.typedef;
+      if (typedef != null) {
+        List<TypeParameter> typedefTypeParameters = typedef.typeParameters;
+        if (typedefTypeParameters.isNotEmpty) {
+          List<DartType> asTypeArguments =
+              getAsTypeArguments(typedefTypeParameters, libraryBuilder.library);
+          TypedefType typedefType = new TypedefType(
+              typedef, libraryBuilder.library.nonNullable, asTypeArguments);
+          DartType unaliasedTypedef = typedefType.unalias;
+          List<DartType> inferredTypeArguments = _inferTypeArguments(
+              typeParameters: typedefTypeParameters,
+              declaredType: unaliasedTypedef,
+              contextType: matchedType);
+          requiredType = new TypedefType(typedef,
+                  libraryBuilder.library.nonNullable, inferredTypeArguments)
+              .unalias;
+        }
+      } else if (requiredType is InterfaceType) {
         List<TypeParameter> typeParameters =
             requiredType.classNode.typeParameters;
+        if (typeParameters.isNotEmpty) {
+          // It's possible that one of the callee type parameters might match a
+          // type that already exists as part of inference.  This might happen,
+          // for instance, in the case where a method in a generic class
+          // contains an object pattern naming the enclosing class.  To avoid
+          // creating invalid inference results, we need to create fresh type
+          // parameters.
+          FreshTypeParameters fresh = getFreshTypeParameters(typeParameters);
+          InterfaceType declaredType = new InterfaceType(requiredType.classNode,
+              requiredType.declaredNullability, fresh.freshTypeArguments);
+          typeParameters = fresh.freshTypeParameters;
 
-        // It's possible that one of the callee type parameters might match a
-        // type that already exists as part of inference.  This might happen,
-        // for instance, in the case where a method in a generic class contains
-        // an object pattern naming the enclosing class.  To avoid creating
-        // invalid inference results, we need to create fresh type parameters.
-        FreshTypeParameters fresh = getFreshTypeParameters(typeParameters);
-        InterfaceType declaredType = new InterfaceType(requiredType.classNode,
-            requiredType.declaredNullability, fresh.freshTypeArguments);
-        typeParameters = fresh.freshTypeParameters;
-
-        List<DartType> inferredTypeArguments = _inferTypeArguments(
-            typeParameters: typeParameters,
-            declaredType: declaredType,
-            contextType: matchedType);
-        requiredType = new InterfaceType(requiredType.classNode,
-            requiredType.declaredNullability, inferredTypeArguments);
+          List<DartType> inferredTypeArguments = _inferTypeArguments(
+              typeParameters: typeParameters,
+              declaredType: declaredType,
+              contextType: matchedType);
+          requiredType = new InterfaceType(requiredType.classNode,
+              requiredType.declaredNullability, inferredTypeArguments);
+        }
       }
     }
     return requiredType;

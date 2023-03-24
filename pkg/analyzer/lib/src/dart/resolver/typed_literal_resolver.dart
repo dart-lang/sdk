@@ -108,7 +108,7 @@ class TypedLiteralResolver {
     } else {
       inferrer = _inferListTypeDownwards(node, contextType: contextType);
       if (contextType is! UnknownInferredType) {
-        var typeArguments = inferrer.partialInfer();
+        var typeArguments = inferrer.choosePreliminaryTypes();
         listType = _typeProvider.listElement.instantiate(
             typeArguments: typeArguments, nullabilitySuffix: _noneOrStarSuffix);
       }
@@ -142,7 +142,7 @@ class TypedLiteralResolver {
       } else {
         inferrer = _inferSetTypeDownwards(node, literalResolution.contextType);
         if (literalResolution.contextType != null) {
-          var typeArguments = inferrer.partialInfer();
+          var typeArguments = inferrer.choosePreliminaryTypes();
           literalType = _typeProvider.setElement.instantiate(
               typeArguments: typeArguments,
               nullabilitySuffix: _noneOrStarSuffix);
@@ -156,7 +156,7 @@ class TypedLiteralResolver {
       } else {
         inferrer = _inferMapTypeDownwards(node, literalResolution.contextType);
         if (literalResolution.contextType != null) {
-          var typeArguments = inferrer.partialInfer();
+          var typeArguments = inferrer.choosePreliminaryTypes();
           literalType = _typeProvider.mapElement.instantiate(
               typeArguments: typeArguments,
               nullabilitySuffix: _noneOrStarSuffix);
@@ -499,7 +499,7 @@ class TypedLiteralResolver {
 
     inferrer.constrainArguments(
         parameters: parameters, argumentTypes: elementTypes);
-    var typeArguments = inferrer.upwardsInfer();
+    var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: _noneOrStarSuffix,
@@ -742,7 +742,7 @@ class TypedLiteralResolver {
       parameters: parameters,
       argumentTypes: argumentTypes,
     );
-    var typeArguments = inferrer.upwardsInfer();
+    var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: _noneOrStarSuffix,
@@ -776,7 +776,7 @@ class TypedLiteralResolver {
     }
     inferrer.constrainArguments(
         parameters: parameters, argumentTypes: argumentTypes);
-    var typeArguments = inferrer.upwardsInfer();
+    var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
         typeArguments: typeArguments, nullabilitySuffix: _noneOrStarSuffix);
   }

@@ -1,7 +1,6 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method test1() → dynamic {
   core::num b = 0;
@@ -10,7 +9,7 @@ static method test1() → dynamic {
   block {
     final synthesized dynamic #0#0 = (3.14);
     if(!(let final dynamic #t1 = b = #0#0{(core::double)}.$1{core::double} in true))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#0#0;
   return b;
 }
@@ -21,7 +20,7 @@ static method test2() → dynamic {
   block {
     final synthesized dynamic #0#0 = (3.14, {foo: "foo"});
     if(!(let final dynamic #t2 = b = #0#0{(core::double, {foo: core::String})}.$1{core::double} in true))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#0#0;
   return b;
 }
@@ -32,7 +31,7 @@ static method test3() → dynamic {
   block {
     final synthesized dynamic #0#0 = ({foo: 3.14});
     if(!(let final dynamic #t3 = b = #0#0{({foo: core::double})}.foo{core::double} in true))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#0#0;
   return b;
 }

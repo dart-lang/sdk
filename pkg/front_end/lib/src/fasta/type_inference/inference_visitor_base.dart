@@ -969,7 +969,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         .setupGenericTypeInference(null, typeParameters, null,
             isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
     gatherer.constrainArguments([onType], [receiverType]);
-    inferredTypes = typeSchemaEnvironment.upwardsInfer(
+    inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
         gatherer, typeParameters, inferredTypes,
         isNonNullableByDefault: isNonNullableByDefault);
     return inferredTypes;
@@ -1829,7 +1829,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           calleeTypeParameters,
           typeContext,
           isNonNullableByDefault: isNonNullableByDefault);
-      inferredTypes = typeSchemaEnvironment.partialInfer(
+      inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, calleeTypeParameters, null,
           isNonNullableByDefault: isNonNullableByDefault);
       substitution =
@@ -2006,7 +2006,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   : const [])
           .planReconciliationStages()) {
         if (gatherer != null && !isFirstStage) {
-          inferredTypes = typeSchemaEnvironment.partialInfer(
+          inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
               gatherer, calleeTypeParameters, inferredTypes,
               isNonNullableByDefault: isNonNullableByDefault);
           substitution =
@@ -2113,7 +2113,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (inferenceNeeded) {
-      inferredTypes = typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer!, calleeTypeParameters, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       assert(inferredTypes.every((type) => isKnown(type)),
@@ -3699,7 +3699,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             typeSchemaEnvironment.setupGenericTypeInference(
                 instantiatedType, typeParameters, context,
                 isNonNullableByDefault: isNonNullableByDefault);
-        inferredTypes = typeSchemaEnvironment.upwardsInfer(
+        inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, typeParameters, inferredTypes,
             isNonNullableByDefault: isNonNullableByDefault);
         Substitution substitution =

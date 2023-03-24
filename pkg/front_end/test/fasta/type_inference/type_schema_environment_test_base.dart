@@ -171,12 +171,12 @@ abstract class TypeSchemaEnvironmentTestBase {
               returnContextTypeNode,
               isNonNullableByDefault: isNonNullableByDefault);
       if (formalTypeNodes == null) {
-        inferredTypeNodes = typeSchemaEnvironment.partialInfer(
+        inferredTypeNodes = typeSchemaEnvironment.choosePreliminaryTypes(
             gatherer, typeParameterNodesToInfer, inferredTypeNodes,
             isNonNullableByDefault: isNonNullableByDefault);
       } else {
         gatherer.constrainArguments(formalTypeNodes, actualTypeNodes!);
-        inferredTypeNodes = typeSchemaEnvironment.upwardsInfer(
+        inferredTypeNodes = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, typeParameterNodesToInfer, inferredTypeNodes!,
             isNonNullableByDefault: isNonNullableByDefault);
       }
@@ -215,7 +215,7 @@ abstract class TypeSchemaEnvironmentTestBase {
           [typeParameterNode],
           inferredTypeNodes,
           isNonNullableByDefault: isNonNullableByDefault,
-          partial: downwardsInferPhase);
+          preliminary: downwardsInferPhase);
 
       expect(inferredTypeNodes.single, expectedTypeNode);
     });

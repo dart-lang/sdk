@@ -1,7 +1,6 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method guard() → dynamic
   return true;
@@ -16,7 +15,7 @@ static method main() → dynamic {
   block {
     final synthesized dynamic #1#0 = core::_GrowableList::_literal1<core::int>(5);
     if(!(#1#0{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t2 = b = #1#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#1#0;
   {
     final synthesized core::int #2#0 = a;

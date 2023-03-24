@@ -1666,7 +1666,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
     List<Statement> replacementStatements = [
       ...matchingCache.declarations,
-      // TODO(cstefantsova): Figure out the right exception to throw.
+      // TODO(cstefantsova): Provide a better diagnostic message.
       createIfStatement(
           createNot(readMatchingExpression),
           createExpressionStatement(createThrow(createConstructorInvocation(
@@ -1726,12 +1726,15 @@ class ConstantsTransformer extends RemovingTransformer {
     List<Statement> replacementStatements = [
       ...node.pattern.declaredVariables,
       ...matchingCache.declarations,
-      // TODO(cstefantsova): Figure out the right exception to throw.
+      // TODO(cstefantsova): Provide a better diagnostic message.
       createIfStatement(
           createNot(readMatchingExpression),
           createExpressionStatement(createThrow(createConstructorInvocation(
-              typeEnvironment.coreTypes.reachabilityErrorConstructor,
-              createArguments([], fileOffset: node.fileOffset),
+              typeEnvironment.coreTypes.stateErrorConstructor,
+              createArguments([
+                createStringLiteral(messagePatternMatchingError.problemMessage,
+                    fileOffset: node.fileOffset)
+              ], fileOffset: node.fileOffset),
               fileOffset: node.fileOffset))),
           fileOffset: node.fileOffset),
     ];

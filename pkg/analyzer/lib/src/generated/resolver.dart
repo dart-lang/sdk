@@ -3676,7 +3676,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       genericMetadataIsEnabled: genericMetadataIsEnabled,
     );
     inferrer.constrainReturnType(declaredType, contextType);
-    return inferrer.upwardsInfer();
+    return inferrer.chooseFinalTypes();
   }
 
   /// If `expression` should be treated as `expression.call`, inserts an
