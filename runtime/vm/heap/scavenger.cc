@@ -1411,7 +1411,8 @@ void Scavenger::MournWeakTables() {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "MournWeakTables");
 
   auto rehash_weak_table = [](WeakTable* table, WeakTable* replacement_new,
-                              WeakTable* replacement_old) {
+                              WeakTable* replacement_old,
+                              Dart_HeapSamplingDeleteCallback cleanup) {
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAtExclusive(i)) {
@@ -1426,6 +1427,11 @@ void Scavenger::MournWeakTables() {
               raw_obj->IsNewObject() ? replacement_new : replacement_old;
           replacement->SetValueExclusive(raw_obj, table->ValueAtExclusive(i));
         }
+      } else {
+        // The object has been collected.
+        if (cleanup != nullptr) {
+          cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
+        }
       }
     }
   };
@@ -1438,7 +1444,14 @@ void Scavenger::MournWeakTables() {
 
     // Create a new weak table for the new-space.
     auto table_new = WeakTable::NewFrom(table);
-    rehash_weak_table(table, table_new, table_old);
+
+    Dart_HeapSamplingDeleteCallback cleanup = nullptr;
+#if !defined(PRODUCT)
+    if (sel == Heap::kHeapSamplingData) {
+      cleanup = HeapProfileSampler::delete_callback();
+    }
+#endif
+    rehash_weak_table(table, table_new, table_old, cleanup);
     heap_->SetWeakTable(Heap::kNew, selector, table_new);
 
     // Remove the old table as it has been replaced with the newly allocated
@@ -1453,7 +1466,8 @@ void Scavenger::MournWeakTables() {
         auto table = isolate->forward_table_new();
         if (table != nullptr) {
           auto replacement = WeakTable::NewFrom(table);
-          rehash_weak_table(table, replacement, isolate->forward_table_old());
+          rehash_weak_table(table, replacement, isolate->forward_table_old(),
+                            nullptr);
           isolate->set_forward_table_new(replacement);
         }
       },

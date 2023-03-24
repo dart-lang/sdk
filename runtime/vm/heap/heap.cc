@@ -63,6 +63,15 @@ Heap::Heap(IsolateGroup* isolate_group,
 }
 
 Heap::~Heap() {
+#if !defined(PRODUCT)
+  Dart_HeapSamplingDeleteCallback cleanup =
+      HeapProfileSampler::delete_callback();
+  if (cleanup != nullptr) {
+    new_weak_tables_[kHeapSamplingData]->CleanupValues(cleanup);
+    old_weak_tables_[kHeapSamplingData]->CleanupValues(cleanup);
+  }
+#endif
+
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     delete new_weak_tables_[sel];
     delete old_weak_tables_[sel];

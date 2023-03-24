@@ -48,6 +48,9 @@ class Heap {
     kCanonicalHashes,
     kObjectIds,
     kLoadingUnits,
+#if !defined(PRODUCT)
+    kHeapSamplingData,
+#endif
     kNumWeakSelectors
   };
 
@@ -239,6 +242,12 @@ class Heap {
     return GetWeakEntry(raw_obj, kLoadingUnits);
   }
 
+#if !defined(PRODUCT)
+  void SetHeapSamplingData(ObjectPtr obj, void* data) {
+    SetWeakEntry(obj, kHeapSamplingData, reinterpret_cast<intptr_t>(data));
+  }
+#endif
+
   // Used by the GC algorithms to propagate weak entries.
   intptr_t GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const;
   void SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val);
@@ -264,6 +273,16 @@ class Heap {
 
   void ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object);
   void ForwardWeakTables(ObjectPointerVisitor* visitor);
+
+#if !defined(PRODUCT)
+  void ReportSurvivingAllocations(Dart_HeapSamplingReportCallback callback,
+                                  void* context) {
+    new_weak_tables_[kHeapSamplingData]->ReportSurvivingAllocations(callback,
+                                                                    context);
+    old_weak_tables_[kHeapSamplingData]->ReportSurvivingAllocations(callback,
+                                                                    context);
+  }
+#endif
 
   void UpdateGlobalMaxUsed();
 
