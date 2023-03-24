@@ -2236,7 +2236,8 @@ severity: $severity
 
     // All subtypes of a base or final class or mixin must also be base,
     // final, or sealed. Report an error otherwise.
-    void checkForBaseFinalRestriction(ClassBuilder superclass) {
+    void checkForBaseFinalRestriction(ClassBuilder superclass,
+        {TypeBuilder? implementsBuilder}) {
       if (classToBaseOrFinalSuperClass.containsKey(cls)) {
         // We've already visited this class. Don't check it again.
         return;
@@ -2265,7 +2266,27 @@ severity: $severity
 
       classToBaseOrFinalSuperClass[cls] = baseOrFinalSuperClass;
 
-      if (!cls.isBase &&
+      if (implementsBuilder != null &&
+          superclass.isSealed &&
+          baseOrFinalSuperClass.libraryBuilder.origin !=
+              cls.libraryBuilder.origin) {
+        // It's an error to implement a class if it has a supertype from a
+        // different library which is marked base.
+        if (baseOrFinalSuperClass.isBase) {
+          cls.addProblem(
+              templateBaseClassImplementedOutsideOfLibrary
+                  .withArguments(baseOrFinalSuperClass.fullNameForErrors),
+              implementsBuilder.charOffset ?? TreeNode.noOffset,
+              noLength,
+              context: [
+                templateBaseClassImplementedOutsideOfLibraryCause
+                    .withArguments(superclass.fullNameForErrors,
+                        baseOrFinalSuperClass.fullNameForErrors)
+                    .withLocation(baseOrFinalSuperClass.fileUri,
+                        baseOrFinalSuperClass.charOffset, noLength)
+              ]);
+        }
+      } else if (!cls.isBase &&
           !cls.isFinal &&
           !cls.isSealed &&
           !cls.cls.isAnonymousMixin &&
@@ -2425,7 +2446,8 @@ severity: $severity
               // supertype is a final type used outside of its library.
               // However, we still check the base and final subtyping
               // restriction if we are evaluating a multiple type 'on' clause.
-              checkForBaseFinalRestriction(interfaceDeclaration);
+              checkForBaseFinalRestriction(interfaceDeclaration,
+                  implementsBuilder: interfaceBuilder);
             }
 
             if (cls.libraryBuilder.origin !=
