@@ -319,6 +319,7 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
 
     // We also forward Enum.values. No filler is needed because arrays never
     // change shape.
+    ASSERT(old_values.ptr() != new_values.ptr());
     become->Add(old_values, new_values);
 
 #if defined(DEBUG)
