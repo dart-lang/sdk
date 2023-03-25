@@ -34,6 +34,12 @@ const languageSourceName = 'dart';
 
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
   _errorCode(WarningCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
+    lsp.DiagnosticTag.Deprecated
+  ],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE): [
+    lsp.DiagnosticTag.Deprecated
+  ],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE): [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package': [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package_with_message': [

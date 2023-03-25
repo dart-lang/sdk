@@ -366,6 +366,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.deprecated_member_use_from_same_package: [
       DataDriven.new,
     ],
+    LintNames.deprecated_member_use_from_same_package_with_message: [
+      DataDriven.new,
+    ],
   };
 
   /// A map from the names of lint rules to a list of the generators that are
