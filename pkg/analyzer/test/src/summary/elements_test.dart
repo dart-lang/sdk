@@ -12911,7 +12911,7 @@ library
 ''');
   }
 
-  test_const_invalid_functionExpression_inConstructorInitializer() async {
+  test_const_invalid_functionExpression_constructorFieldInitializer() async {
     var library = await buildLibrary('''
 class A {
   final Object? foo;
@@ -12965,6 +12965,91 @@ library
     accessors
       synthetic static get v @-1
         returnType: dynamic
+''');
+  }
+
+  test_const_invalid_functionExpression_redirectingConstructorInvocation() async {
+    var library = await buildLibrary('''
+class A {
+  const A(Object a, Object b);
+  const A.named() : this(0, () => 0);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @18
+            parameters
+              requiredPositional a @27
+                type: Object
+              requiredPositional b @37
+                type: Object
+          const named @51
+            periodOffset: 50
+            nameEnd: 56
+            constantInitializers
+              RedirectingConstructorInvocation
+                thisKeyword: this @61
+                argumentList: ArgumentList
+                  leftParenthesis: ( @65
+                  arguments
+                    IntegerLiteral
+                      literal: 0 @66
+                      staticType: int
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      staticElement: <null>
+                      staticType: null
+                  rightParenthesis: ) @76
+                staticElement: self::@class::A::@constructor::new
+            redirectedConstructor: self::@class::A::@constructor::new
+''');
+  }
+
+  test_const_invalid_functionExpression_superConstructorInvocation() async {
+    var library = await buildLibrary('''
+class A {
+  const A(Object a, Object b);
+}
+class B extends A {
+  const B() : super(0, () => 0);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @18
+            parameters
+              requiredPositional a @27
+                type: Object
+              requiredPositional b @37
+                type: Object
+      class B @49
+        supertype: A
+        constructors
+          const @71
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @77
+                argumentList: ArgumentList
+                  leftParenthesis: ( @82
+                  arguments
+                    IntegerLiteral
+                      literal: 0 @83
+                      staticType: int
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      staticElement: <null>
+                      staticType: null
+                  rightParenthesis: ) @93
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 

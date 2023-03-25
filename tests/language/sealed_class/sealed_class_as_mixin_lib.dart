@@ -12,6 +12,7 @@ sealed class SealedClass {
   int nonAbstractBar(int value) => value + 100;
   int bar(int value);
 }
-sealed mixin SealedMixin {}
+
 class Class {}
+
 mixin Mixin {}

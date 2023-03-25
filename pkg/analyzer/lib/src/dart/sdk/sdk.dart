@@ -19,6 +19,22 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
+/// Returns the version of the SDK that runs the analyzer.
+Version? get runningSdkVersion {
+  try {
+    final regExp = RegExp(r'^(\d+\.\d+\.\d+)');
+    final match = regExp.firstMatch(io.Platform.version);
+    if (match == null) {
+      return null;
+    }
+
+    final sdkVersionStr = match.group(1)!;
+    return Version.parse(sdkVersionStr);
+  } catch (_) {
+    return null;
+  }
+}
+
 Version languageVersionFromSdkVersion(String sdkVersionStr) {
   var sdkVersionParts = sdkVersionStr.split('.');
   var sdkVersionMajor = int.parse(sdkVersionParts[0]);

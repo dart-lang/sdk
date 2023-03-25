@@ -3268,6 +3268,7 @@ class _MiniAstTypeAnalyzer
   @override
   late final Type intType = Type('int');
 
+  @override
   late final Type neverType = Type('Never');
 
   late final Type nullType = Type('Null');

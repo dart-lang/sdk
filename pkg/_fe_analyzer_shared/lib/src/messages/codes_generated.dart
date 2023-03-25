@@ -12073,14 +12073,6 @@ const MessageCode messageSwitchCaseFallThrough = const MessageCode(
     problemMessage: r"""Switch case may fall through to the next case.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeSwitchExpressionEmpty = messageSwitchExpressionEmpty;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSwitchExpressionEmpty = const MessageCode(
-    "SwitchExpressionEmpty",
-    problemMessage: r"""Switch expressions must contain at least one case.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSwitchExpressionNotAssignableCause =
     messageSwitchExpressionNotAssignableCause;
 

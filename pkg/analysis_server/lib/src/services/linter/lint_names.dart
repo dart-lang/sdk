@@ -59,6 +59,8 @@ class LintNames {
       'dangling_library_doc_comments';
   static const String deprecated_member_use_from_same_package =
       'deprecated_member_use_from_same_package';
+  static const String deprecated_member_use_from_same_package_with_message =
+      'deprecated_member_use_from_same_package_with_message';
   static const String diagnostic_describe_all_properties =
       'diagnostic_describe_all_properties';
   static const String directives_ordering = 'directives_ordering';

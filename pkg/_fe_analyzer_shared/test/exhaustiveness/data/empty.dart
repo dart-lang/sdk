@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 emptyBool(bool b) {
-  return /*analyzer.
+  return /*
    error=non-exhaustive:true,
    subtypes={true,false},
    type=bool
@@ -13,7 +13,7 @@ emptyBool(bool b) {
 }
 
 emptyNum(num n) {
-  return /*analyzer.
+  return /*
    error=non-exhaustive:double(),
    subtypes={double,int},
    type=num
@@ -23,7 +23,7 @@ emptyNum(num n) {
 }
 
 emptyInt(int i) {
-  return /*analyzer.
+  return /*
    error=non-exhaustive:int(),
    type=int
   */
@@ -34,7 +34,7 @@ emptyInt(int i) {
 enum E { a, b }
 
 emptyEnum(E e) {
-  return /*analyzer.
+  return /*
    error=non-exhaustive:E.a,
    subtypes={E.a,E.b},
    type=E

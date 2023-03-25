@@ -348,7 +348,7 @@ main() {
       });
 
       test('no cases', () {
-        h.run([switchExpr(expr('int'), []).checkType('dynamic').stmt]);
+        h.run([switchExpr(expr('A'), []).checkType('Never').stmt]);
       });
 
       test('guard', () {

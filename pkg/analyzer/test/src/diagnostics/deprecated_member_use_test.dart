@@ -341,6 +341,19 @@ export 'package:aaa/a.dart';
     ]);
   }
 
+  test_export_fromSamePackage() async {
+    newFile('$testPackageLibPath/lib2.dart', r'''
+@deprecated
+library a;
+''');
+
+    await assertErrorsInCode('''
+export 'lib2.dart';
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 0, 19),
+    ]);
+  }
+
   test_extensionOverride() async {
     await assertErrorsInCode2(
       externalCode: r'''
@@ -786,6 +799,25 @@ var x = f();
     );
   }
 
+  test_methodInvocation_fromSamePackage() async {
+    newFile('$testPackageLibPath/lib2.dart', r'''
+class A {
+  @deprecated
+  void foo() {}
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'lib2.dart';
+
+void f(A a) {
+  a.foo();
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 39, 3),
+    ]);
+  }
+
   test_methodInvocation_inDeprecatedConstructor() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -1195,12 +1227,14 @@ class B extends A {
   }
 
   test_redirectingConstructorInvocation_namedParameter() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   A({@deprecated int a = 0}) {}
   A.named() : this(a: 0);
 }
-''');
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 61, 1),
+    ]);
   }
 
   test_setterInvocation() async {

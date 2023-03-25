@@ -87,7 +87,7 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 264;
+  static const int DATA_VERSION = 265;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1904,8 +1904,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       FileState file, List<AnalysisError> errors) {
     for (AnalysisError error in errors) {
       ErrorSeverity severity = error.errorCode.errorSeverity;
-      if (severity == ErrorSeverity.ERROR ||
-          severity == ErrorSeverity.WARNING) {
+      if (severity == ErrorSeverity.ERROR) {
         file.hasErrorOrWarning = true;
         return;
       }

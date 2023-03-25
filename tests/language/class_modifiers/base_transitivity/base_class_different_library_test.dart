@@ -41,11 +41,19 @@ sealed class SealedExtendWith extends BaseClass with _MixinOnObject {}
 
 // Extending via an anonymous mixin application class.
 final class FinalExtendApplication = BaseClass with _MixinOnObject;
+
 base class BaseExtendApplication = BaseClass with _MixinOnObject;
+
 sealed class SealedExtendApplication = BaseClass with _MixinOnObject;
 
 /// BaseClass can be an `on` type, so long as the subtype is base.
 
 base mixin BaseMixinOn on BaseClass {}
 
-main() {}
+// This test is intended just to check that certain combinations of modifiers
+// are statically allowed.  Make this a static error test so that backends don't
+// try to run it.
+int x = "This is a static error test";
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+// [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.

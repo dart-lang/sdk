@@ -1146,6 +1146,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     computer._addRegion_token(node.baseKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.name, HighlightRegionType.MIXIN);
     super.visitMixinDeclaration(node);
   }
 

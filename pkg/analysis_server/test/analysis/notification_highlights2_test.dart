@@ -1433,14 +1433,6 @@ class C {
     assertHasRegion(HighlightRegionType.KEYWORD, 'late');
   }
 
-  Future<void> test_KEYWORD_mixin() async {
-    addTestFile('''
-mixin M {}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.BUILT_IN, 'mixin');
-  }
-
   Future<void> test_KEYWORD_required() async {
     addTestFile('''
 void f({required int x}) {}
@@ -1588,6 +1580,33 @@ void f(p) {
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.INSTANCE_METHOD_REFERENCE, 'add(null)');
+  }
+
+  Future<void> test_mixin() async {
+    var testCode = TestCode.parse(r'''
+mixin M on int {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 5 |mixin| BUILT_IN
+6 + 1 |M| MIXIN
+8 + 2 |on| BUILT_IN
+11 + 3 |int| CLASS
+''');
+  }
+
+  Future<void> test_mixin_base() async {
+    var testCode = TestCode.parse(r'''
+base mixin M {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 4 |base| BUILT_IN
+5 + 5 |mixin| BUILT_IN
+11 + 1 |M| MIXIN
+''');
   }
 
   Future<void> test_namedExpression_namedParameter() async {

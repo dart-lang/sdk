@@ -119,4 +119,10 @@ sealed class SealedMixinImplementApplied extends Object
 
 base mixin BaseMixinOn on FinalClass {}
 
-main() {}
+// This test is intended just to check that certain combinations of modifiers
+// are statically allowed.  Make this a static error test so that backends don't
+// try to run it.
+int x = "This is a static error test";
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+// [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.

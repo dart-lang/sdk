@@ -33,7 +33,7 @@ SwitchExpression
   rightParenthesis: )
   leftBracket: {
   rightBracket: }
-  staticType: dynamic
+  staticType: Never
 ''');
   }
 

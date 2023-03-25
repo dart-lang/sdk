@@ -5196,6 +5196,35 @@ TEST_CASE(IsolateReload_ImplicitGetterWithLoadGuard) {
   EXPECT_STREQ("y: 3, z: 8208", SimpleInvokeStr(lib1, "main"));
 }
 
+// Regression test for https://github.com/dart-lang/sdk/issues/51835
+TEST_CASE(IsolateReload_EnumInMainLibraryModified) {
+  const char* kScript =
+      "enum Bar { bar }\n"
+      "class Foo { int? a; toString() => 'foo'; }"
+      "main() {\n"
+      "  return Foo().toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_VALID(Dart_FinalizeAllClasses());
+  EXPECT_STREQ("foo", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Bar { bar }\n"
+      "class Foo { int? a; String? b; toString() => 'foo'; }"
+      "main() {\n"
+      "  return Foo().toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  Dart_SetFileModifiedCallback(NULL);
+
+  // Modification of an imported library propagates to the importing library.
+  EXPECT_STREQ("foo", SimpleInvokeStr(lib, "main"));
+}
+
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

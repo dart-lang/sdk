@@ -610,6 +610,11 @@ void Class::MarkFieldBoxedDuringReload(ClassTable* class_table,
 
 bool Class::RequiresInstanceMorphing(ClassTable* class_table,
                                      const Class& replacement) const {
+  if (!is_allocate_finalized()) {
+    // No instances of this class exists on the heap - nothing to morph.
+    return false;
+  }
+
   if (replacement.is_enum_class()) {
     return true;
   }

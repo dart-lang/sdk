@@ -475,6 +475,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return flowAnalysis.localVariableTypeProvider;
   }
 
+  @override
+  DartType get neverType => typeProvider.neverType;
+
   NullabilitySuffix get noneOrStarSuffix {
     return _isNonNullableByDefault
         ? NullabilitySuffix.none

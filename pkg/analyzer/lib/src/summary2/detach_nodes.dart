@@ -39,6 +39,10 @@ class _Visitor extends GeneralizingElementVisitor<void> {
           final expression = initializer.expression;
           final replacement = replaceNotSerializableNode(expression);
           initializer.expression = replacement;
+        } else if (initializer is RedirectingConstructorInvocationImpl) {
+          _sanitizeArguments(initializer.argumentList.arguments);
+        } else if (initializer is SuperConstructorInvocationImpl) {
+          _sanitizeArguments(initializer.argumentList.arguments);
         }
       }
 
@@ -52,13 +56,7 @@ class _Visitor extends GeneralizingElementVisitor<void> {
     for (final annotation in element.metadata) {
       final ast = (annotation as ElementAnnotationImpl).annotationAst;
       _detachNode(ast);
-      // Sanitize arguments.
-      final arguments = ast.arguments?.arguments;
-      if (arguments != null) {
-        for (var i = 0; i < arguments.length; i++) {
-          arguments[i] = replaceNotSerializableNode(arguments[i]);
-        }
-      }
+      _sanitizeArguments(ast.arguments?.arguments);
     }
     super.visitElement(element);
   }
@@ -106,6 +104,14 @@ class _Visitor extends GeneralizingElementVisitor<void> {
       // Also detach from the token stream.
       node.beginToken.previous = null;
       node.endToken.next = null;
+    }
+  }
+
+  void _sanitizeArguments(List<ExpressionImpl>? arguments) {
+    if (arguments != null) {
+      for (var i = 0; i < arguments.length; i++) {
+        arguments[i] = replaceNotSerializableNode(arguments[i]);
+      }
     }
   }
 }

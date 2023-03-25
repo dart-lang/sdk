@@ -843,6 +843,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   METHOD_DECLARATION
 ///   METHOD_DECLARATION_STATIC
 ///   METHOD_STATIC
+///   MIXIN
 ///   PARAMETER
 ///   SETTER_DECLARATION
 ///   TOP_LEVEL_VARIABLE
@@ -926,6 +927,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'METHOD_DECLARATION',
   'METHOD_DECLARATION_STATIC',
   'METHOD_STATIC',
+  'MIXIN',
   'PARAMETER',
   'SETTER_DECLARATION',
   'TOP_LEVEL_VARIABLE',

@@ -158,6 +158,8 @@ public class HighlightRegionType {
    */
   public static final String METHOD_STATIC = "METHOD_STATIC";
 
+  public static final String MIXIN = "MIXIN";
+
   /**
    * Deprecated - no longer sent.
    */
