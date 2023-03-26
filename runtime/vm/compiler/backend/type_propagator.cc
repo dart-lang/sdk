@@ -637,9 +637,14 @@ CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
 
   const AbstractType* old_abstract_type = old_type->ToAbstractType();
   const AbstractType* new_abstract_type = new_type->ToAbstractType();
+  CompileType* preferred_type = nullptr;
 
-  CompileType* preferred_type;
-  if (old_abstract_type->IsSubtypeOf(*new_abstract_type, Heap::kOld)) {
+  // Prefer 'int' if known.
+  if (old_type->IsNullableInt()) {
+    preferred_type = old_type;
+  } else if (new_type->IsNullableInt()) {
+    preferred_type = new_type;
+  } else if (old_abstract_type->IsSubtypeOf(*new_abstract_type, Heap::kOld)) {
     // Prefer old type, as it is clearly more specific.
     preferred_type = old_type;
   } else {
@@ -1166,7 +1171,7 @@ CompileType ParameterInstr::ComputeType() const {
     // In irregexp functions, types of input parameters are known and immutable.
     // Set parameter types here in order to prevent unnecessary CheckClassInstr
     // from being generated.
-    switch (index()) {
+    switch (env_index()) {
       case RegExpMacroAssembler::kParamRegExpIndex:
         return CompileType::FromCid(kRegExpCid);
       case RegExpMacroAssembler::kParamStringIndex:
@@ -1180,29 +1185,18 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
-  // Figure out if this Parameter instruction corresponds to a direct
-  // parameter. See FlowGraph::EnvIndex and initialization of
-  // num_direct_parameters_ in FlowGraph constructor.
-  const bool is_direct_parameter =
-      !function.MakesCopyOfParameters() && (index() < function.NumParameters());
-  // Parameter instructions in a function entry are only used for direct
-  // parameters. Parameter instructions in OsrEntry and CatchBlockEntry
-  // correspond to all local variables, not just direct parameters.
-  // OsrEntry is already checked above.
-  ASSERT(is_direct_parameter || block_->IsCatchBlockEntry());
+  const intptr_t param_index = this->param_index();
+  ASSERT((param_index >= 0) || block_->IsCatchBlockEntry());
 
-  // The code below assumes that env index matches parameter index.
-  // This is true only for direct parameters.
-  if (is_direct_parameter) {
-    const intptr_t param_index = index();
+  if (param_index >= 0) {
     // Parameter is the receiver.
     if ((param_index == 0) &&
         (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
       const AbstractType& type = pf.RawParameterVariable(0)->type();
       if (type.IsObjectType() || type.IsNullType()) {
         // Receiver can be null.
-        return CompileType::FromAbstractType(type, CompileType::kCanBeNull,
-                                             CompileType::kCannotBeSentinel);
+        return CompileType(CompileType::kCanBeNull,
+                           CompileType::kCannotBeSentinel, kIllegalCid, &type);
       }
 
       // Receiver can't be null but can be an instance of a subclass.

@@ -2819,19 +2819,23 @@ class PhiInstr : public VariadicDefinition {
 
 // This instruction represents an incoming parameter for a function entry,
 // or incoming value for OSR entry or incoming value for a catch entry.
-// Value [index] always denotes the position of the parameter. When [base_reg]
-// is set to FPREG, value [index] corresponds to environment variable index
-// (0 is the very first parameter, 1 is next and so on). When [base_reg] is
-// set to SPREG, value [index] needs to be reversed (0 is the very last
-// parameter, 1 is next and so on) to get the sp relative position.
+// [env_index] is a position of the parameter in the flow graph environment.
+// [param_index] is a position of the function parameter, or -1 if
+// this instruction doesn't correspond to a real function parameter.
 class ParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  ParameterInstr(intptr_t index,
+  // [param_index] when ParameterInstr doesn't correspond to
+  // a function parameter.
+  static constexpr intptr_t kNotFunctionParameter = -1;
+
+  ParameterInstr(intptr_t env_index,
+                 intptr_t param_index,
                  intptr_t param_offset,
                  BlockEntryInstr* block,
                  Representation representation,
                  Register base_reg = FPREG)
-      : index_(index),
+      : env_index_(env_index),
+        param_index_(param_index),
         param_offset_(param_offset),
         base_reg_(base_reg),
         representation_(representation),
@@ -2840,7 +2844,14 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
   DECLARE_INSTRUCTION(Parameter)
   DECLARE_ATTRIBUTES(index())
 
-  intptr_t index() const { return index_; }
+  // Index of the parameter in the flow graph environment.
+  intptr_t env_index() const { return env_index_; }
+  intptr_t index() const { return env_index(); }
+
+  // Index of the real function parameter
+  // (between 0 and function.NumParameters()), or -1.
+  intptr_t param_index() const { return param_index_; }
+
   intptr_t param_offset() const { return param_offset_; }
   Register base_reg() const { return base_reg_; }
 
@@ -2869,7 +2880,8 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
-  F(const intptr_t, index_)                                                    \
+  F(const intptr_t, env_index_)                                                \
+  F(const intptr_t, param_index_)                                              \
   /* The offset (in words) of the last slot of the parameter, relative */      \
   /* to the first parameter. */                                                \
   /* It is used in the FlowGraphAllocator when it sets the assigned */         \

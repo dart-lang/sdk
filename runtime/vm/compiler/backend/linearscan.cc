@@ -698,7 +698,7 @@ bool FlowGraphAllocator::IsSuspendStateParameter(Definition* defn) {
     if ((param->GetBlock()->IsOsrEntry() ||
          param->GetBlock()->IsCatchBlockEntry()) &&
         flow_graph_.SuspendStateVar() != nullptr &&
-        param->index() == flow_graph_.SuspendStateEnvIndex()) {
+        param->env_index() == flow_graph_.SuspendStateEnvIndex()) {
       return true;
     }
   }
@@ -820,7 +820,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(
     // a synthetic :suspend_state variable as it is already allocated
     // in AllocateSpillSlotForSuspendState.
     ASSERT(defn->IsParameter());
-    ASSERT(defn->AsParameter()->index() == initial_definition_index);
+    ASSERT(defn->AsParameter()->env_index() == initial_definition_index);
     const intptr_t spill_slot_index =
         -compiler::target::frame_layout.VariableIndexForFrameSlot(
             spill_slot.stack_index());
