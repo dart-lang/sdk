@@ -193,6 +193,7 @@ class ParserErrorCode extends ErrorCode {
     'ABSTRACT_SEALED_CLASS',
     "A class can't be declared both 'sealed' and 'abstract'.",
     correctionMessage: "Try removing the 'abstract' or 'sealed' keyword.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode ABSTRACT_STATIC_FIELD = ParserErrorCode(
@@ -468,6 +469,7 @@ class ParserErrorCode extends ErrorCode {
     'EMPTY_RECORD_LITERAL_WITH_COMMA',
     "A record literal without fields can't have a trailing comma.",
     correctionMessage: "Try removing the trailing comma.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST =
@@ -475,12 +477,14 @@ class ParserErrorCode extends ErrorCode {
     'EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST',
     "The list of named fields in a record type can't be empty.",
     correctionMessage: "Try adding a named field to the list.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode EMPTY_RECORD_TYPE_WITH_COMMA = ParserErrorCode(
     'EMPTY_RECORD_TYPE_WITH_COMMA',
     "A record type without fields can't have a trailing comma.",
     correctionMessage: "Try removing the trailing comma.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode ENUM_IN_CLASS = ParserErrorCode(
@@ -1545,6 +1549,7 @@ class ParserErrorCode extends ErrorCode {
     "A record literal with exactly one positional field requires a trailing "
         "comma.",
     correctionMessage: "Try adding a trailing comma.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA =
@@ -1553,6 +1558,7 @@ class ParserErrorCode extends ErrorCode {
     "A record type with exactly one positional field requires a trailing "
         "comma.",
     correctionMessage: "Try adding a trailing comma.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =

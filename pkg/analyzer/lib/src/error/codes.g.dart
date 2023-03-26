@@ -235,6 +235,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
     "The class '{0}' can't be implemented outside of its library because it's "
         "a base class.",
+    hasPublishedDocs: true,
     uniqueName: 'BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
   );
 
@@ -245,6 +246,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
     "The mixin '{0}' can't be implemented outside of its library because it's "
         "a base mixin.",
+    hasPublishedDocs: true,
     uniqueName: 'BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
   );
 
@@ -417,6 +419,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'CLASS_USED_AS_MIXIN',
     "The class '{0}' can't be used as a mixin because it's neither a mixin "
         "class nor a mixin.",
+    hasPublishedDocs: true,
   );
 
   static const CompileTimeErrorCode CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE =
@@ -655,6 +658,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION',
     "The expression of a constant pattern must be a valid constant.",
     correctionMessage: "Try making the expression a valid constant.",
+    hasPublishedDocs: true,
   );
 
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -1184,6 +1188,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'DUPLICATE_FIELD_NAME',
     "The field name '{0}' is already used in this record.",
     correctionMessage: "Try renaming the field.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1215,6 +1220,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
     "The variable '{0}' is already assigned in this pattern.",
     correctionMessage: "Try renaming the variable.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1224,13 +1230,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'DUPLICATE_PATTERN_FIELD',
     "The field '{0}' is already matched in this pattern.",
     correctionMessage: "Try removing the duplicate field.",
+    hasPublishedDocs: true,
   );
 
+  ///  No parameters.
   static const CompileTimeErrorCode DUPLICATE_REST_ELEMENT_IN_PATTERN =
       CompileTimeErrorCode(
     'DUPLICATE_REST_ELEMENT_IN_PATTERN',
     "At most one rest element is allowed in a list or map pattern.",
     correctionMessage: "Try removing the duplicate rest element.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1240,6 +1249,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'DUPLICATE_VARIABLE_PATTERN',
     "The variable '{0}' is already defined in this pattern.",
     correctionMessage: "Try renaming the variable.",
+    hasPublishedDocs: true,
   );
 
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
@@ -1316,6 +1326,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EQUAL_KEYS_IN_MAP_PATTERN',
     "Two keys in a map pattern can't be equal.",
     correctionMessage: "Change or remove the duplicate key.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1325,6 +1336,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
     "List patterns require one type argument or none, but {0} found.",
     correctionMessage: "Try adjusting the number of type arguments.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1354,6 +1366,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
     "Map patterns require two type arguments or none, but {0} found.",
     correctionMessage: "Try adjusting the number of type arguments.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1669,6 +1682,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
     "The class '{0}' can't be extended outside of its library because it's a "
         "final class.",
+    hasPublishedDocs: true,
     uniqueName: 'FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
   );
 
@@ -1679,6 +1693,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
     "The class '{0}' can't be implemented outside of its library because it's "
         "a final class.",
+    hasPublishedDocs: true,
     uniqueName: 'FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
   );
 
@@ -1700,6 +1715,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
     "The mixin '{0}' can't be implemented outside of its library because it's "
         "a final mixin.",
+    hasPublishedDocs: true,
     uniqueName: 'FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
   );
 
@@ -1710,6 +1726,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
     "The mixin '{0}' can't be mixed-in outside of its library because it's a "
         "final mixin.",
+    hasPublishedDocs: true,
     uniqueName: 'FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY',
   );
 
@@ -2137,6 +2154,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try declaring the variable pattern with the same type and finality in "
         "both branches.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -2281,6 +2299,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
     "The class '{0}' can't be extended outside of its library because it's an "
         "interface class.",
+    hasPublishedDocs: true,
     uniqueName: 'INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
   );
 
@@ -2291,6 +2310,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
     "The mixin '{0}' can't be mixed-in outside of its library because it's an "
         "interface mixin.",
+    hasPublishedDocs: true,
     uniqueName: 'INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY',
   );
 
@@ -2472,6 +2492,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_FIELD_NAME',
     "Record field names can't be the same as a member from 'Object'.",
     correctionMessage: "Try using a different name for the field.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_FIELD_NAME_FROM_OBJECT',
   );
 
@@ -2482,6 +2503,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Record field names can't be a dollar sign followed by an integer when the "
         "integer is the index of a positional field.",
     correctionMessage: "Try using a different name for the field.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_FIELD_NAME_POSITIONAL',
   );
 
@@ -2491,6 +2513,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_FIELD_NAME',
     "Record field names can't be private.",
     correctionMessage: "Try removing the leading underscore.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_FIELD_NAME_PRIVATE',
   );
 
@@ -2916,6 +2939,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
   );
 
+  ///  No parameters.
   static const CompileTimeErrorCode MISSING_OBJECT_PATTERN_GETTER_NAME =
       CompileTimeErrorCode(
     'MISSING_OBJECT_PATTERN_GETTER_NAME',
@@ -2924,6 +2948,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try specifying the getter name explicitly, or using a variable "
         "pattern.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -2945,6 +2970,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Variable pattern '{0}' is missing in this branch of the logical-or "
         "pattern.",
     correctionMessage: "Try declaring this variable pattern in the branch.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -3013,6 +3039,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the 'mixin' modifier or changing the superclass to "
         "'Object'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -3404,6 +3431,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'NON_CONSTANT_MAP_PATTERN_KEY',
     "Key expressions in map patterns must be constants.",
     correctionMessage: "Try using constants instead.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -3434,6 +3462,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',
     "The relational pattern expression must be a constant.",
     correctionMessage: "Try using a constant instead.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -3471,6 +3500,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'NON_EXHAUSTIVE_SWITCH',
     "The type '{0}' is not exhaustively matched by the switch cases.",
     correctionMessage: "Try adding a default case or cases that match '{1}'.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -3882,6 +3912,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
     "Only local variables can be assigned in pattern assignments.",
     correctionMessage: "Try assigning to a local variable.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -3890,6 +3921,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY',
     "Constant values from a deferred library can't be used in patterns.",
     correctionMessage: "Try removing the keyword 'deferred' from the import.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -3903,14 +3935,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try changing the required type of the pattern, or the matched value "
         "type.",
+    hasPublishedDocs: true,
   );
 
+  ///  No parameters.
   static const CompileTimeErrorCode PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD =
       CompileTimeErrorCode(
     'PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
     "Pattern variables can't be assigned inside the guard of the enclosing "
         "guarded pattern.",
     correctionMessage: "Try assigning to a different variable.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -3924,6 +3959,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try declaring the variable pattern with the same type and finality in "
         "all cases.",
+    hasPublishedDocs: true,
     uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE',
   );
 
@@ -3937,6 +3973,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the label, or providing the 'default' case with its own "
         "body.",
+    hasPublishedDocs: true,
     uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL',
   );
 
@@ -3950,6 +3987,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try declaring the variable pattern with the same type and finality in "
         "all cases.",
+    hasPublishedDocs: true,
     uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES',
   );
 
@@ -4271,6 +4309,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
   static const CompileTimeErrorCode REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT =
       CompileTimeErrorCode(
     'REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT',
@@ -4278,6 +4317,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try using an if-case, a 'switch' statement, or a 'switch' expression "
         "instead.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -4289,8 +4329,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
     "The constant expression type '{0}' is not assignable to the parameter "
         "type '{1}' of the '{2}' operator.",
+    hasPublishedDocs: true,
   );
 
+  ///  No parameters.
   static const CompileTimeErrorCode
       RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL =
       CompileTimeErrorCode(
@@ -4299,20 +4341,25 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "assignable to 'bool'.",
     correctionMessage:
         "Try updating the operator declaration to return 'bool'.",
+    hasPublishedDocs: true,
   );
 
+  ///  No parameters.
   static const CompileTimeErrorCode REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN =
       CompileTimeErrorCode(
     'REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN',
     "A rest element in a map pattern must be the last element.",
     correctionMessage: "Try moving the rest element to be the last element.",
+    hasPublishedDocs: true,
   );
 
+  ///  No parameters.
   static const CompileTimeErrorCode
       REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN = CompileTimeErrorCode(
     'REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN',
     "A rest element in a map pattern can't have a subpattern.",
     correctionMessage: "Try removing the subpattern.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -4411,6 +4458,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
     "The class '{0}' can't be extended, implemented, or mixed in outside of "
         "its library because it's a sealed class.",
+    hasPublishedDocs: true,
     uniqueName: 'SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
   );
 
@@ -4421,6 +4469,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
     "The mixin '{0}' can't be mixed in outside of its library because it's a "
         "sealed mixin.",
+    hasPublishedDocs: true,
     uniqueName: 'SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY',
   );
 
@@ -4481,6 +4530,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
     "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
         "'{1}' is 'base'.",
+    hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED',
   );
 
@@ -4492,6 +4542,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
     "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
         "'{1}' is 'final'.",
+    hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
   );
 
@@ -5261,6 +5312,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Variable patterns in declaration context can't specify 'var' or 'final' "
         "keyword.",
     correctionMessage: "Try removing the keyword.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -5720,6 +5772,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
         "isn't nullable.",
     correctionMessage:
         "Try replacing the null-assert pattern with its nested pattern.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -5730,6 +5783,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
         "nullable.",
     correctionMessage:
         "Try replacing the null-check pattern with its nested pattern.",
+    hasPublishedDocs: true,
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -5797,6 +5851,7 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try adding a return statement, or if no value is ever returned, try "
         "changing the return type to 'void'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -5829,6 +5884,7 @@ class WarningCode extends AnalyzerErrorCode {
         "'{1}'.",
     correctionMessage:
         "Try a constant of the same type as the matched value type.",
+    hasPublishedDocs: true,
   );
 
   ///  Dead code is code that is never reached, this can happen for instance if a
@@ -6669,6 +6725,7 @@ class WarningCode extends AnalyzerErrorCode {
     "A record literal with exactly one positional field requires a trailing "
         "comma.",
     correctionMessage: "Try adding a trailing comma.",
+    hasPublishedDocs: true,
   );
 
   ///  An error code indicating use of a removed lint rule.
@@ -6980,6 +7037,7 @@ class WarningCode extends AnalyzerErrorCode {
     'UNNECESSARY_NAN_COMPARISON',
     "A double can't equal 'double.nan', so the condition is always 'false'.",
     correctionMessage: "Try using 'double.isNan', or removing the condition.",
+    hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NAN_COMPARISON_FALSE',
   );
 
@@ -6988,6 +7046,7 @@ class WarningCode extends AnalyzerErrorCode {
     'UNNECESSARY_NAN_COMPARISON',
     "A double can't equal 'double.nan', so the condition is always 'true'.",
     correctionMessage: "Try using 'double.isNan', or removing the condition.",
+    hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NAN_COMPARISON_TRUE',
   );
 
@@ -7032,6 +7091,7 @@ class WarningCode extends AnalyzerErrorCode {
     'UNNECESSARY_SET_LITERAL',
     "Braces unnecessarily wrap this expression in a set literal.",
     correctionMessage: "Try removing the set literal around the expression.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.

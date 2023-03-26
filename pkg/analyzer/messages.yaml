@@ -1130,6 +1130,7 @@ CompileTimeErrorCode:
   BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The class '{0}' can't be implemented outside of its library because it's a base class."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the base class being implemented
@@ -1182,6 +1183,7 @@ CompileTimeErrorCode:
   BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The mixin '{0}' can't be implemented outside of its library because it's a base mixin."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the base mixin being implemented
@@ -1648,6 +1650,7 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the class being used as a mixin
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -1807,6 +1810,7 @@ CompileTimeErrorCode:
   PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
     problemMessage: Constant values from a deferred library can't be used in patterns.
     correctionMessage: Try removing the keyword 'deferred' from the import.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -3132,6 +3136,7 @@ CompileTimeErrorCode:
     problemMessage: The expression of a constant pattern must be a valid constant.
     correctionMessage: Try making the expression a valid constant.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -3682,6 +3687,7 @@ CompileTimeErrorCode:
   DUPLICATE_FIELD_NAME:
     problemMessage: The field name '{0}' is already used in this record.
     correctionMessage: Try renaming the field.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the duplicated name
@@ -3855,6 +3861,7 @@ CompileTimeErrorCode:
   DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
     problemMessage: The variable '{0}' is already assigned in this pattern.
     correctionMessage: Try renaming the variable.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the variable
@@ -3903,6 +3910,7 @@ CompileTimeErrorCode:
   DUPLICATE_PATTERN_FIELD:
     problemMessage: The field '{0}' is already matched in this pattern.
     correctionMessage: Try removing the duplicate field.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the field
@@ -3970,6 +3978,8 @@ CompileTimeErrorCode:
   DUPLICATE_REST_ELEMENT_IN_PATTERN:
     problemMessage: At most one rest element is allowed in a list or map pattern.
     correctionMessage: Try removing the duplicate rest element.
+    hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -4001,6 +4011,7 @@ CompileTimeErrorCode:
   DUPLICATE_VARIABLE_PATTERN:
     problemMessage: The variable '{0}' is already defined in this pattern.
     correctionMessage: Try renaming the variable.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the variable
@@ -4314,6 +4325,7 @@ CompileTimeErrorCode:
   EQUAL_KEYS_IN_MAP_PATTERN:
     problemMessage: Two keys in a map pattern can't be equal.
     correctionMessage: Change or remove the duplicate key.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -4354,6 +4366,7 @@ CompileTimeErrorCode:
   EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
     problemMessage: List patterns require one type argument or none, but {0} found.
     correctionMessage: Try adjusting the number of type arguments.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the number of provided type arguments
@@ -4474,6 +4487,7 @@ CompileTimeErrorCode:
   EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS:
     problemMessage: Map patterns require two type arguments or none, but {0} found.
     correctionMessage: Try adjusting the number of type arguments.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the number of provided type arguments
@@ -5547,12 +5561,14 @@ CompileTimeErrorCode:
   FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The class '{0}' can't be extended outside of its library because it's a final class."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the final class being extended.
   FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The class '{0}' can't be implemented outside of its library because it's a final class."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the final class being implemented.
@@ -5608,12 +5624,14 @@ CompileTimeErrorCode:
   FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The mixin '{0}' can't be implemented outside of its library because it's a final mixin."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the final mixin being implemented.
   FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The mixin '{0}' can't be mixed-in outside of its library because it's a final mixin."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the final mixin being mixed in.
@@ -6728,6 +6746,7 @@ CompileTimeErrorCode:
   INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
     problemMessage: "The variable '{0}' has a different type and/or finality in this branch of the logical-or pattern."
     correctionMessage: Try declaring the variable pattern with the same type and finality in both branches.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the pattern variable
@@ -7332,12 +7351,14 @@ CompileTimeErrorCode:
   INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The class '{0}' can't be extended outside of its library because it's an interface class."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the interface class being extended.
   INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The mixin '{0}' can't be mixed-in outside of its library because it's an interface mixin."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the interface mixin being mixed in.
@@ -7760,6 +7781,7 @@ CompileTimeErrorCode:
     sharedName: INVALID_FIELD_NAME
     problemMessage: Record field names can't be the same as a member from 'Object'.
     correctionMessage: Try using a different name for the field.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -7830,11 +7852,13 @@ CompileTimeErrorCode:
     sharedName: INVALID_FIELD_NAME
     problemMessage: Record field names can't be private.
     correctionMessage: Try removing the leading underscore.
+    hasPublishedDocs: true
     comment: No parameters.
   INVALID_FIELD_NAME_POSITIONAL:
     sharedName: INVALID_FIELD_NAME
     problemMessage: Record field names can't be a dollar sign followed by an integer when the integer is the index of a positional field.
     correctionMessage: Try using a different name for the field.
+    hasPublishedDocs: true
     comment: No parameters.
   INVALID_IMPLEMENTATION_OVERRIDE:
     problemMessage: "'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' ('{4}')."
@@ -9198,6 +9222,8 @@ CompileTimeErrorCode:
   MISSING_OBJECT_PATTERN_GETTER_NAME:
     problemMessage: The getter name is not specified explicitly, and the pattern is not a variable.
     correctionMessage: Try specifying the getter name explicitly, or using a variable pattern.
+    hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -9299,6 +9325,7 @@ CompileTimeErrorCode:
   MISSING_VARIABLE_PATTERN:
     problemMessage: "Variable pattern '{0}' is missing in this branch of the logical-or pattern."
     correctionMessage: "Try declaring this variable pattern in the branch."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the variable pattern
@@ -9600,6 +9627,7 @@ CompileTimeErrorCode:
   MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT:
     problemMessage: "The class '{0}' can't be declared a mixin because it extends a class other than 'Object'."
     correctionMessage: Try removing the 'mixin' modifier or changing the superclass to 'Object'.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the mixin class that is invalid
@@ -10719,6 +10747,7 @@ CompileTimeErrorCode:
   NON_CONSTANT_MAP_PATTERN_KEY:
     problemMessage: Key expressions in map patterns must be constants.
     correctionMessage: Try using constants instead.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -10793,6 +10822,7 @@ CompileTimeErrorCode:
   NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
     problemMessage: The relational pattern expression must be a constant.
     correctionMessage: Try using a constant instead.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -10871,6 +10901,7 @@ CompileTimeErrorCode:
   NON_EXHAUSTIVE_SWITCH:
     problemMessage: "The type '{0}' is not exhaustively matched by the switch cases."
     correctionMessage: "Try adding a default case or cases that match '{1}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the type of the switch scrutinee
@@ -12307,6 +12338,7 @@ CompileTimeErrorCode:
   PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE:
     problemMessage: Only local variables can be assigned in pattern assignments.
     correctionMessage: Try assigning to a local variable.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -12363,6 +12395,7 @@ CompileTimeErrorCode:
   PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
     problemMessage: "The matched value of type '{0}' isn't assignable to the required type '{1}'."
     correctionMessage: "Try changing the required type of the pattern, or the matched value type."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the matched type
@@ -12400,6 +12433,8 @@ CompileTimeErrorCode:
   PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
     problemMessage: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
     correctionMessage: Try assigning to a different variable.
+    hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -12446,6 +12481,7 @@ CompileTimeErrorCode:
     sharedName: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
     problemMessage: "The variable '{0}' doesn't have the same type and/or finality in all cases that share this body."
     correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the pattern variable
@@ -12599,6 +12635,7 @@ CompileTimeErrorCode:
     sharedName: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
     problemMessage: "The variable '{0}' is not available because there is a label or 'default' case."
     correctionMessage: Try removing the label, or providing the 'default' case with its own body.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the pattern variable
@@ -12606,6 +12643,7 @@ CompileTimeErrorCode:
     sharedName: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
     problemMessage: "The variable '{0}' is available in some, but not all cases that share this body."
     correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the pattern variable
@@ -13708,6 +13746,8 @@ CompileTimeErrorCode:
   REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
     problemMessage: Refutable patterns can't be used in an irrefutable context.
     correctionMessage: Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
+    hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -13742,6 +13782,7 @@ CompileTimeErrorCode:
       Rewrite the code to not use a refutable pattern in an irrefutable context.
   RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The constant expression type '{0}' is not assignable to the parameter type '{1}' of the '{2}' operator."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the operand type
@@ -13818,6 +13859,8 @@ CompileTimeErrorCode:
   RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
     problemMessage: The return type of operators used in relational patterns must be assignable to 'bool'.
     correctionMessage: Try updating the operator declaration to return 'bool'.
+    hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -13888,6 +13931,8 @@ CompileTimeErrorCode:
   REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
     problemMessage: A rest element in a map pattern can't have a subpattern.
     correctionMessage: Try removing the subpattern.
+    hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -13924,6 +13969,8 @@ CompileTimeErrorCode:
   REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN:
     problemMessage: A rest element in a map pattern must be the last element.
     correctionMessage: Try moving the rest element to be the last element.
+    hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -14231,12 +14278,14 @@ CompileTimeErrorCode:
   SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The class '{0}' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the sealed class being extended, implemented, or mixed in
   SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The mixin '{0}' can't be mixed in outside of its library because it's a sealed mixin."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the sealed mixin being mixed in
@@ -14385,6 +14434,7 @@ CompileTimeErrorCode:
   SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED:
     sharedName: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
     problemMessage: "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype '{1}' is 'base'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the subtype that is not 'base', 'final', or 'sealed'
@@ -14418,6 +14468,7 @@ CompileTimeErrorCode:
   SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
     sharedName: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
     problemMessage: "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype '{1}' is 'final'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the subtype that is not 'base', 'final', or 'sealed'
@@ -17040,6 +17091,7 @@ CompileTimeErrorCode:
   VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
     problemMessage: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
     correctionMessage: Try removing the keyword.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -19832,6 +19884,7 @@ HintCode:
   UNREACHABLE_SWITCH_CASE:
     problemMessage: "This case is covered by the previous cases."
     correctionMessage: Try removing the case clause, or restructuring the preceding patterns.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -21267,8 +21320,8 @@ StaticWarningCode:
   UNNECESSARY_NULL_ASSERT_PATTERN:
     problemMessage: The null-assert pattern will have no effect because the matched type isn't nullable.
     correctionMessage: Try replacing the null-assert pattern with its nested pattern.
+    hasPublishedDocs: true
     comment: No parameters.
-
     documentation: |-
       #### Description
 
@@ -21298,6 +21351,7 @@ StaticWarningCode:
   UNNECESSARY_NULL_CHECK_PATTERN:
     problemMessage: The null-check pattern will have no effect because the matched type isn't nullable.
     correctionMessage: Try replacing the null-check pattern with its nested pattern.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -21472,7 +21526,7 @@ WarningCode:
   BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
     problemMessage: "This function has a nullable return type of '{0}', but ends without returning a value."
     correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the declared return type
@@ -21594,6 +21648,7 @@ WarningCode:
   CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE:
     problemMessage: "The matched value type '{0}' can never be equal to this constant of type '{1}'."
     correctionMessage: "Try a constant of the same type as the matched value type."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the matched value type
@@ -23806,6 +23861,7 @@ WarningCode:
   RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
     problemMessage: "A record literal with exactly one positional field requires a trailing comma."
     correctionMessage: Try adding a trailing comma.
+    hasPublishedDocs: true
   REMOVED_LINT_USE:
     problemMessage: "'{0}' was removed in Dart '{1}'"
     correctionMessage: "Remove the reference to '{0}'."
@@ -24854,7 +24910,7 @@ WarningCode:
     sharedName: UNNECESSARY_NAN_COMPARISON
     problemMessage: A double can't equal 'double.nan', so the condition is always 'false'.
     correctionMessage: Try using 'double.isNan', or removing the condition.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -24891,7 +24947,7 @@ WarningCode:
     sharedName: UNNECESSARY_NAN_COMPARISON
     problemMessage: A double can't equal 'double.nan', so the condition is always 'true'.
     correctionMessage: Try using 'double.isNan', or removing the condition.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
   UNNECESSARY_NO_SUCH_METHOD:
     problemMessage: "Unnecessary 'noSuchMethod' declaration."
@@ -25038,7 +25094,7 @@ WarningCode:
   UNNECESSARY_SET_LITERAL:
     problemMessage: Braces unnecessarily wrap this expression in a set literal.
     correctionMessage: Try removing the set literal around the expression.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
